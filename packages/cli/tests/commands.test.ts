@@ -102,6 +102,59 @@ describe('generated commands — functional tests', () => {
       expect(fetchCalls().length).toBe(2);
     });
 
+    it('--all → списочный метод останавливается по has_next: false', async () => {
+      const entity = mockEntity('/users', 'GET');
+      mockPaginatedFetch([
+        { data: [{ ...entity, id: 1 }], next: 'c1', prev: 'p1', hasNext: true, hasPrev: false },
+        { data: [{ ...entity, id: 2 }], next: 'c2', prev: 'p2', hasNext: true, hasPrev: true },
+        { data: [{ ...entity, id: 3 }], next: 'c3', prev: 'p3', hasNext: false, hasPrev: true },
+      ]);
+      const { stdout } = await runCommand(['users', 'list', '--all'], { root: CLI_ROOT });
+      const parsed = JSON.parse(stdout);
+      expect(parsed.length).toBe(3);
+      // Останавливается ровно на 3 запросах (4-й не нужен — has_next: false)
+      expect(fetchCalls().length).toBe(3);
+    });
+
+    it('--all → списочный метод не останавливается на has_next: true даже если следующая страница пуста', async () => {
+      // Защита от ранней остановки: если сервер вернул has_next: true, делаем ещё запрос
+      const entity = mockEntity('/users', 'GET');
+      mockPaginatedFetch([
+        { data: [{ ...entity, id: 1 }], next: 'c1', hasNext: true, hasPrev: false },
+        { data: [], next: 'c1', hasNext: false, hasPrev: true }, // пустой ответ — останавливаемся по empty data
+      ]);
+      const { stdout } = await runCommand(['users', 'list', '--all'], { root: CLI_ROOT });
+      const parsed = JSON.parse(stdout);
+      expect(parsed.length).toBe(1);
+      expect(fetchCalls().length).toBe(2);
+    });
+
+    it('--all → /users с query (упрощённая meta без has_next) останавливается по пустому data', async () => {
+      // Симуляция Elasticsearch-ветки: meta.paginate содержит только next_page
+      const entity = mockEntity('/users', 'GET');
+      mockPaginatedFetch([
+        { data: [{ ...entity, id: 1 }], next: 'c1' },        // нет hasNext
+        { data: [{ ...entity, id: 2 }], next: 'c2' },        // нет hasNext
+        { data: [], next: 'c3' },                              // пустой ответ — break
+      ]);
+      const { stdout } = await runCommand(['users', 'list', '--query', 'Олег', '--all'], { root: CLI_ROOT });
+      const parsed = JSON.parse(stdout);
+      expect(parsed.length).toBe(2);
+      expect(fetchCalls().length).toBe(3);
+    });
+
+    it('--all → search метод (только total + next_page) останавливается по пустому data', async () => {
+      const entity = mockEntity('/search/messages', 'GET');
+      mockPaginatedFetch([
+        { data: [{ ...entity, id: 1 }], next: 'c1', total: 2 },
+        { data: [{ ...entity, id: 2 }], next: 'c2', total: 2 },
+        { data: [], next: 'c3', total: 2 },
+      ]);
+      const { stdout } = await runCommand(['search', 'list-messages', '--query', 'отчёт', '--all'], { root: CLI_ROOT });
+      const parsed = JSON.parse(stdout);
+      expect(parsed.length).toBe(2);
+    });
+
     it('--quiet → empty stdout', async () => {
       mockFetchForEndpoint('/users', 'GET');
       const { stdout } = await runCommand(['users', 'list', '--quiet'], { root: CLI_ROOT });
@@ -360,28 +413,31 @@ describe('generated commands — functional tests', () => {
     });
   });
 
-  // ----- Composite query params (chats list) -----
+  // ----- Sort query params (chats list) -----
 
   describe('chats list', () => {
-    it('--sort last-message-at --order desc → query sort[last_message_at]=desc', async () => {
+    it('--sort last_message_at --order desc → query sort=last_message_at&order=desc', async () => {
       mockFetchForEndpoint('/chats', 'GET');
-      const { stdout, stderr, error } = await runCommand(['chats', 'list', '--sort', 'last-message-at', '--order', 'desc'], { root: CLI_ROOT });
+      const { stdout, stderr, error } = await runCommand(['chats', 'list', '--sort', 'last_message_at', '--order', 'desc'], { root: CLI_ROOT });
       expect(error).toBeUndefined();
       expect(fetchCalls().length).toBeGreaterThan(0);
       const url = fetchCalls()[0][0] as string;
-      expect(url).toContain('sort%5Blast_message_at%5D=desc');
+      expect(url).toContain('sort=last_message_at');
+      expect(url).toContain('order=desc');
     });
   });
 
   // ----- Array query (search list-messages) -----
 
   describe('search list-messages', () => {
-    it('--chat-ids 1,2,3 → query chat_ids', async () => {
+    it('--chat-ids 1,2,3 → query chat_ids[] repeated', async () => {
       mockFetchForEndpoint('/search/messages', 'GET');
       await runCommand(['search', 'list-messages', '--chat-ids', '1,2,3'], { root: CLI_ROOT });
       expect(fetchCalls().length).toBeGreaterThan(0);
       const url = fetchCalls()[0][0] as string;
-      expect(url).toContain('chat_ids=');
+      expect(url).toContain('chat_ids%5B%5D=1');
+      expect(url).toContain('chat_ids%5B%5D=2');
+      expect(url).toContain('chat_ids%5B%5D=3');
     });
   });
 });

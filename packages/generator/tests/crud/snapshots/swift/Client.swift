@@ -3,7 +3,43 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct ChatsService {
+private func pachcaNotImplemented(_ method: String) -> Error {
+    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+open class ChatsService {
+    public init() {}
+
+    open func listChats(availability: ChatAvailability? = nil, limit: Int? = nil, cursor: String? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> ListChatsResponse {
+        throw pachcaNotImplemented("Chats.listChats")
+    }
+
+    open func listChatsAll(availability: ChatAvailability? = nil, limit: Int? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> [Chat] {
+        throw pachcaNotImplemented("Chats.listChatsAll")
+    }
+
+    open func getChat(id: Int) async throws -> Chat {
+        throw pachcaNotImplemented("Chats.getChat")
+    }
+
+    open func createChat(request body: ChatCreateRequest) async throws -> Chat {
+        throw pachcaNotImplemented("Chats.createChat")
+    }
+
+    open func updateChat(id: Int, request body: ChatUpdateRequest) async throws -> Chat {
+        throw pachcaNotImplemented("Chats.updateChat")
+    }
+
+    open func archiveChat(id: Int) async throws -> Void {
+        throw pachcaNotImplemented("Chats.archiveChat")
+    }
+
+    open func deleteChat(id: Int) async throws -> Void {
+        throw pachcaNotImplemented("Chats.deleteChat")
+    }
+}
+
+public final class ChatsServiceImpl: ChatsService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -12,9 +48,10 @@ public struct ChatsService {
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
-    public func listChats(availability: ChatAvailability? = nil, limit: Int? = nil, cursor: String? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> ListChatsResponse {
+    public override func listChats(availability: ChatAvailability? = nil, limit: Int? = nil, cursor: String? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> ListChatsResponse {
         var components = URLComponents(string: "\(baseURL)/chats")!
         var queryItems: [URLQueryItem] = []
         if let availability { queryItems.append(URLQueryItem(name: "availability", value: availability.rawValue)) }
@@ -37,18 +74,21 @@ public struct ChatsService {
         }
     }
 
-    public func listChatsAll(availability: ChatAvailability? = nil, limit: Int? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> [Chat] {
+    public override func listChatsAll(availability: ChatAvailability? = nil, limit: Int? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> [Chat] {
         var items: [Chat] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await listChats(availability: availability, limit: limit, cursor: cursor, sortField: sortField, sortOrder: sortOrder)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta?.paginate.nextPage
+            hasNext = response.meta?.paginate.hasNext ?? true
+        }
         return items
     }
 
-    public func getChat(id: Int) async throws -> Chat {
+    public override func getChat(id: Int) async throws -> Chat {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
@@ -63,7 +103,7 @@ public struct ChatsService {
         }
     }
 
-    public func createChat(request body: ChatCreateRequest) async throws -> Chat {
+    public override func createChat(request body: ChatCreateRequest) async throws -> Chat {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -81,7 +121,7 @@ public struct ChatsService {
         }
     }
 
-    public func updateChat(id: Int, request body: ChatUpdateRequest) async throws -> Chat {
+    public override func updateChat(id: Int, request body: ChatUpdateRequest) async throws -> Chat {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)")!)
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -99,7 +139,7 @@ public struct ChatsService {
         }
     }
 
-    public func archiveChat(id: Int) async throws -> Void {
+    public override func archiveChat(id: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/archive")!)
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -115,7 +155,7 @@ public struct ChatsService {
         }
     }
 
-    public func deleteChat(id: Int) async throws -> Void {
+    public override func deleteChat(id: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)")!)
         request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -132,11 +172,31 @@ public struct ChatsService {
     }
 }
 
+public let pachcaAPIURL = "https://api.pachca.com/api/shared/v1"
+
 public struct PachcaClient {
     public let chats: ChatsService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
+    private init(chats: ChatsService) {
+        self.chats = chats
+    }
+
+    public init(token: String, baseURL: String = pachcaAPIURL, chats: ChatsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.chats = ChatsService(baseURL: baseURL, headers: headers)
+        self.init(
+            chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, chats: ChatsService? = nil) {
+        self.init(
+            chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers, session: session)
+        )
+    }
+
+    public static func stub(chats: ChatsService = ChatsService()) -> PachcaClient {
+        PachcaClient(
+            chats: chats
+        )
     }
 }

@@ -1,3 +1,7 @@
+> Расположение: SDK
+> Краткое содержание: Типизированные SDK для Pachca API на TypeScript, Python, Go, Kotlin, Swift и C#: автодополнение, retry и пагинация. Или свой клиент через OpenAPI-генератор
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
+
 
 # SDK и генератор
 
@@ -22,14 +26,14 @@
 
 ```bash
 # Генерация из Pachca API (спецификация загружается автоматически)
-npx @pachca/generator --output ./generated --lang typescript
+npx -y @pachca/generator --output ./generated --lang typescript
 
 # Несколько языков
-npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,swift,csharp
+npx -y @pachca/generator --output ./generated --lang typescript,python,go,kotlin,swift,csharp
 
 # Из локального файла или произвольного URL
-npx @pachca/generator --spec openapi.yaml --output ./generated --lang typescript
-npx @pachca/generator --spec https://example.com/openapi.yaml --output ./generated --lang go
+npx -y @pachca/generator --spec openapi.yaml --output ./generated --lang typescript
+npx -y @pachca/generator --spec https://example.com/openapi.yaml --output ./generated --lang go
 ```
 
 | Параметр | Описание |
@@ -45,7 +49,7 @@ npx @pachca/generator --spec https://example.com/openapi.yaml --output ./generat
 |-------------|----------|
 | **16 сервисов** | Типизированные методы для каждого API-эндпоинта |
 | **Автопагинация** | Методы `*All()` для автоматического обхода всех страниц |
-| **Повторные запросы** | Автоматический retry при `429` с экспоненциальным backoff |
+| **Повторные запросы** | Автоматический retry при `429` и `5xx` с экспоненциальным backoff — подробнее на странице [Лимиты](/api/limits) |
 | **Обработка ошибок** | Типизированные `ApiError` и `OAuthError` |
 | **Сериализация** | Автоматическая конвертация между форматами (snake_case ↔ camelCase) |
 | **Авторизация** | Bearer-токен передаётся один раз при создании клиента |
@@ -72,3 +76,10 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 | **Cleanup** | — | `await client.close()` | — | `client.close()` | — | `client.Dispose()` |
 | **Требования** | Node.js 18+ | Python 3.10+ | Go 1.24+ | Kotlin 2.2+, Java 11+ | Swift 5.9+, macOS 13+, iOS 16+ | .NET 8+ |
 
+
+
+## Связанные разделы
+
+- [Авторизация](/api/authorization)
+- [Пагинация](/api/pagination)
+- [CLI](/guides/cli/overview)

@@ -55,6 +55,11 @@ import {
   Code,
   Package,
   Database,
+  BotMessageSquare,
+  FileDiff,
+  Gauge,
+  ListOrdered,
+  Upload,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -103,15 +108,25 @@ const iconMap: Record<string, LucideIcon> = {
   Code,
   Package,
   Database,
+  BotMessageSquare,
+  FileDiff,
+  Gauge,
+  ListOrdered,
+  Upload,
 };
 
 /** Icon mapping for guide pages by path */
 const GUIDE_ICONS: Record<string, string> = {
   '/guides/quickstart': 'Zap',
+  '/guides/threads': 'MessageSquareMore',
   '/guides/ai-agents': 'Sparkles',
-  '/guides/cli': 'Terminal',
+  '/guides/ai-agents/overview': 'Sparkles',
+  '/guides/ai-agents/interaction': 'BotMessageSquare',
+  '/guides/ai-agents/markdown': 'FileDiff',
+  '/guides/cli/overview': 'Terminal',
   '/guides/workflows': 'Route',
   '/guides/webhook': 'Webhook',
+  '/guides/webhook/overview': 'Webhook',
   '/guides/export': 'Download',
   '/guides/forms/overview': 'LayoutList',
   '/guides/dlp': 'ShieldCheck',
@@ -119,6 +134,9 @@ const GUIDE_ICONS: Record<string, string> = {
   '/api/authorization': 'KeyRound',
   '/api/requests-responses': 'ArrowLeftRight',
   '/api/errors': 'AlertTriangle',
+  '/api/limits': 'Gauge',
+  '/api/pagination': 'ListOrdered',
+  '/api/file-uploads': 'Upload',
   '/updates': 'FileText',
 };
 

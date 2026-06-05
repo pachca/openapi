@@ -1,6 +1,10 @@
 ---
 title: TypeScript
-description: Типизированный клиент для Pachca API на TypeScript с автодополнением и автопагинацией
+description: "Типизированный клиент для Pachca API на TypeScript: Node.js 18+ или любое окружение с fetch. Автодополнение, автопагинация и retry. npm-пакет @pachca/sdk"
+related:
+  - { path: /guides/sdk/overview, title: SDK }
+  - /api/authorization
+  - /api/pagination
 ---
 
 # TypeScript
@@ -84,20 +88,27 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит поле `meta.paginate.nextPage` — курсор для следующей страницы.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.users.listUsers()`, `client.chats.listChats()`, `client.messages.listChatMessages()` и т.д.) — `meta.paginate` с полями `nextPage`, `prevPage`, `hasNext`, `hasPrev`. Признак конца — `hasNext: false`. Курсор `prevPage` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.search.searchUsers()`, `client.search.searchChats()`, `client.search.searchMessages()`) — `meta` с полями `total` и `paginate.nextPage` (без `prevPage`/`hasNext`/`hasPrev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
+
+Курсоры — непрозрачные токены, никогда не бывают `null`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```typescript
 let cursor: string | undefined
+let hasNext = true
 
-do {
+while (hasNext) {
   const response = await client.users.listUsers({ limit: 50, cursor })
   for (const user of response.data) {
     console.log(user.firstName, user.lastName)
   }
-  cursor = response.meta?.paginate?.nextPage
-} while (cursor)
+  cursor = response.meta.paginate.nextPage
+  hasNext = response.meta.paginate.hasNext
+}
 ```
 
 ### Автопагинация
@@ -179,12 +190,12 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- Все остальные ошибки возвращаются сразу без retry
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Сериализация
 

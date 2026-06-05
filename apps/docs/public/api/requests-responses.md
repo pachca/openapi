@@ -1,3 +1,7 @@
+> Расположение: Основы API
+> Краткое содержание: Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
+
 
 # Запросы и ответы
 
@@ -57,6 +61,9 @@ curl "https://api.pachca.com/api/shared/v1/users" \
       "Product",
       "Design"
     ],
+    "chat_ids": [
+      12345
+    ],
     "custom_properties": [
       {
         "id": 1678,
@@ -90,7 +97,7 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 
 ### Список с пагинацией
 
-Списочные методы возвращают массив `data` и блок `meta` с курсором для следующей страницы:
+Списочные методы возвращают массив `data` и блок `meta.paginate` с курсорами и флагами:
 
 ```json
 {
@@ -100,7 +107,10 @@ curl "https://api.pachca.com/api/shared/v1/users" \
   ],
   "meta": {
     "paginate": {
-      "next_page": "eyJpZCI6MTAsIl9rZCI6Im4ifQ"
+      "next_page": "eyJpZCI6MTAsIl9rZCI6Im4ifQ",
+      "prev_page": "eyJpZCI6MSwgIl9rZCI6InAifQ",
+      "has_next": true,
+      "has_prev": false
     }
   }
 }
@@ -135,7 +145,7 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 }
 ```
 
-Подробнее — в разделе [Ошибки и лимиты](/api/errors).
+Подробнее — в разделах [Ошибки](/api/errors) и [Лимиты](/api/limits).
 
 ## Соглашения
 
@@ -172,3 +182,11 @@ https://dev.pachca.com/pachca.postman_collection.json
 
 - [Скачать коллекцию](/pachca.postman_collection.json) — Файл в формате Postman Collection v2.1, совместим с Postman и Bruno.
 
+
+
+## Связанные разделы
+
+- [Авторизация](/api/authorization)
+- [Пагинация](/api/pagination)
+- [Ошибки](/api/errors)
+- [Лимиты](/api/limits)

@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { generateUrlFromOperation } from '@/lib/openapi/mapper';
 import { getOrderedPages } from '@/lib/ordered-pages';
-import { loadUpdates } from '@/lib/updates-parser';
+import { loadUpdates, loadTimeline, groupTimelineByDate } from '@/lib/updates-parser';
+import { groupBySeason } from '@/lib/seasons';
 
 const BASE_URL = 'https://dev.pachca.com';
 const CONTENT_DIR = join(process.cwd(), 'content');
@@ -38,6 +39,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: getFileMtime(guidePathToFile('/')),
   });
 
+  // /llms.txt — agent entry point. Listed in the sitemap so search engines
+  // crawl and index it; restricted chat agents (browser ChatGPT) require the
+  // URL to be in a search result before they can fetch it directly.
+  entries.push({
+    url: `${BASE_URL}/llms.txt`,
+    lastModified: specMtime,
+  });
+
   // Guide pages
   for (const guide of guidePages) {
     if (guide.path === '/') continue;
@@ -56,12 +65,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // API endpoint pages
-  for (const endpoint of api.endpoints) {
-    const url = generateUrlFromOperation(endpoint);
-    if (url.startsWith('/api/search')) continue;
+  // Per-season pages (newest date in the season drives lastModified)
+  const seasons = groupBySeason(groupTimelineByDate(loadTimeline()));
+  for (const sg of seasons) {
     entries.push({
-      url: `${BASE_URL}${url}`,
+      url: `${BASE_URL}/updates/season/${sg.season.slug}`,
+      lastModified: new Date(sg.dates[0].date),
+    });
+  }
+
+  // API endpoint pages — all of them. The docs site's own search route now
+  // lives at /internal/search (not /api/search), so /api/ is a clean docs
+  // namespace and there's no internal route to special-case here.
+  for (const endpoint of api.endpoints) {
+    entries.push({
+      url: `${BASE_URL}${generateUrlFromOperation(endpoint)}`,
       lastModified: specMtime,
     });
   }

@@ -3,6 +3,7 @@ import { groupEndpointsByTag, generateUrlFromOperation, generateTitle } from '@/
 import { sortTagsByOrder } from '@/lib/guides-config';
 import { CopyableInlineCode } from '@/components/api/copyable-inline-code';
 import { EndpointLink } from '@/components/api/endpoint-link';
+import type { EndpointRequirements } from '@/lib/openapi/types';
 
 const METHOD_ORDER: Record<string, number> = { POST: 0, GET: 1, PUT: 2, PATCH: 3, DELETE: 4 };
 
@@ -62,7 +63,13 @@ export async function SdkCommands({ lang }: SdkCommandsProps) {
   const grouped = groupEndpointsByTag(api.endpoints);
   const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
 
-  const rows: Array<{ sdkCall: string; method: string; href: string; title: string }> = [];
+  const rows: Array<{
+    sdkCall: string;
+    method: string;
+    href: string;
+    title: string;
+    requirements?: EndpointRequirements;
+  }> = [];
 
   for (const tag of sortedTags) {
     const endpoints = grouped.get(tag)!;
@@ -74,6 +81,7 @@ export async function SdkCommands({ lang }: SdkCommandsProps) {
         method: endpoint.method,
         href: generateUrlFromOperation(endpoint),
         title: generateTitle(endpoint),
+        requirements: endpoint.requirements,
       });
     }
   }
@@ -98,7 +106,14 @@ export async function SdkCommands({ lang }: SdkCommandsProps) {
                 <CopyableInlineCode>{row.sdkCall}</CopyableInlineCode>
               </td>
               <td className="py-5 pl-0! text-text-primary">
-                <EndpointLink method={row.method} href={row.href}>
+                <EndpointLink
+                  method={row.method}
+                  href={row.href}
+                  scope={row.requirements?.scope}
+                  scopeRoles={row.requirements?.scopeRoles?.join(',')}
+                  plan={row.requirements?.plan}
+                  noAuth={row.requirements?.auth === false}
+                >
                   {row.title}
                 </EndpointLink>
               </td>

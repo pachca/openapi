@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "const client = new PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "SearchOperations_searchMessages": {
+    "usage": "const response = client.search.searchMessages({\n  query: \"example\",\n  chatIds: [123],\n  userIds: [123],\n  limit: 123,\n  cursor: \"example\"\n})",
+    "output": "SearchMessagesResponse({ data: MessageResult[], meta: PaginationMeta })"
+  }
+}

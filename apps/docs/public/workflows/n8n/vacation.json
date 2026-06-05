@@ -1,0 +1,55 @@
+{
+  "name": "Заявка на отпуск",
+  "nodes": [
+    {
+      "parameters": {
+        "events": ["new_message"]
+      },
+      "name": "Pachca Trigger",
+      "type": "n8n-nodes-pachca.pachcaTrigger",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $json.content }}",
+              "rightValue": "/отпуск",
+              "operator": { "type": "string", "operation": "contains" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "name": "IF /отпуск",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityId": "={{ $(\"Pachca Trigger\").item.json.chat_id }}",
+        "content": "Нажмите кнопку, чтобы оформить заявку на отпуск:",
+        "additionalFields": {
+          "buttons": "[[{\"text\": \"Создать заявку\", \"data\": \"vacation_request\"}]]"
+        }
+      },
+      "name": "Кнопка заявки",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [520, 0]
+    }
+  ],
+  "connections": {
+    "Pachca Trigger": { "main": [[{ "node": "IF /отпуск", "type": "main", "index": 0 }]] },
+    "IF /отпуск": { "main": [[{ "node": "Кнопка заявки", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

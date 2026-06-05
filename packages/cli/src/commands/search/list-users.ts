@@ -7,7 +7,7 @@ export default class SearchListUsers extends BaseCommand {
 
   static override examples = [
       "Отправить личное сообщение пользователю:\n  $ pachca search list-users",
-      "Упомянуть пользователя по имени:\n  $ pachca search list-users",
+      "Упомянуть пользователя:\n  $ pachca search list-users",
       "Найти сотрудника по имени:\n  $ pachca search list-users"
   ];
 
@@ -66,13 +66,13 @@ export default class SearchListUsers extends BaseCommand {
       const seenCursors = new Set<string>();
 
       while (pages < 500) {
-        const query: Record<string, string | number | boolean | undefined> = {
+        const query: Record<string, string | number | boolean | string[] | undefined> = {
         query: flags['query'],
         sort: flags['sort'],
         order: flags['order'],
         'created_from': flags['created-from'],
         'created_to': flags['created-to'],
-        'company_roles': flags['company-roles'],
+        'company_roles': flags['company-roles']?.split(','),
         limit: flags.limit,
           cursor: nextCursor,
         };
@@ -84,6 +84,13 @@ export default class SearchListUsers extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
+        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data
+        const hasNext = paginate?.has_next;
+        if (typeof hasNext === 'boolean') {
+          if (!hasNext) break;
+        } else if (!items || items.length === 0) {
+          break;
+        }
 
         if (process.stderr.isTTY) {
           const total = (paginate as Record<string, unknown> | undefined)?.total;
@@ -116,7 +123,7 @@ export default class SearchListUsers extends BaseCommand {
       order: flags['order'],
       'created_from': flags['created-from'],
       'created_to': flags['created-to'],
-      'company_roles': flags['company-roles'],
+      'company_roles': flags['company-roles']?.split(','),
       limit: flags.limit,
       cursor: flags.cursor,
       },

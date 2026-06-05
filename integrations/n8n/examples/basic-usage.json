@@ -1,0 +1,69 @@
+{
+  "name": "Pachca Basic Usage",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "When clicking 'Test workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityId": 123,
+        "content": "Hello from n8n!"
+      },
+      "id": "send-message",
+      "name": "Send Message",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [220, 0],
+      "credentials": {
+        "pachcaApi": {
+          "id": "1",
+          "name": "Pachca API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": 10
+      },
+      "id": "list-chats",
+      "name": "List Chats",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [220, 200],
+      "credentials": {
+        "pachcaApi": {
+          "id": "1",
+          "name": "Pachca API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Test workflow'": {
+      "main": [
+        [
+          {
+            "node": "Send Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "List Chats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

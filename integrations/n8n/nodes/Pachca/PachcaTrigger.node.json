@@ -1,0 +1,19 @@
+{
+	"categories": [
+		"Communication"
+	],
+	"resources": {
+		"primaryDocumentation": [
+			{
+				"url": "https://dev.pachca.com/guides/n8n/overview"
+			}
+		]
+	},
+	"alias": [
+		"pachca",
+		"messenger",
+		"chat",
+		"team",
+		"corporate messenger"
+	]
+}

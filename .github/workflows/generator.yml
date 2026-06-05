@@ -18,19 +18,15 @@ on:
 
 concurrency:
   group: generator-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   snapshot-tests:
     name: Snapshot tests
     runs-on: ubuntu-latest
-    outputs:
-      changed: ${{ steps.check.outputs.changed }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -48,16 +44,26 @@ jobs:
         working-directory: packages/generator
         run: bun test
 
-      - name: Check for generator changes
-        if: github.event_name == 'push'
+  check-changes:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.check.outputs.should_publish }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.20.2
+      - name: Check generator release (changelog-driven)
         id: check
-        run: |
-          CHANGED=$(git diff --name-only HEAD~1 HEAD -- packages/generator/ packages/openapi-parser/ | grep -q . && echo true || echo false)
-          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+        run: node scripts/check-release.mjs --product generator --npm @pachca/generator --dir "packages/generator,packages/openapi-parser" >> "$GITHUB_OUTPUT"
 
   publish-generator:
-    if: github.event_name == 'push' && needs.snapshot-tests.outputs.changed == 'true'
-    needs: snapshot-tests
+    if: github.event_name == 'push' && needs.check-changes.outputs.should_publish == 'true'
+    needs: [snapshot-tests, check-changes]
     runs-on: ubuntu-latest
     concurrency:
       group: publish-generator
@@ -72,7 +78,7 @@ jobs:
           bun-version: 1.3.4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.20.2
           registry-url: "https://registry.npmjs.org"
       - run: bun install --frozen-lockfile
 
@@ -84,14 +90,21 @@ jobs:
         working-directory: packages/generator
         run: bun run build
 
-      - name: Publish to npm
+      - name: Set version (from releases.json)
+        working-directory: packages/generator
+        run: |
+          VERSION="${{ needs.check-changes.outputs.version }}"
+          node -e "const fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json'));p.version='$VERSION';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          echo "Publishing @pachca/generator@$VERSION"
+
+      - name: Publish to npm (idempotent)
         working-directory: packages/generator
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          VERSION=$(node -e "console.log(require('./package.json').version)")
+          VERSION="${{ needs.check-changes.outputs.version }}"
           if npm view "@pachca/generator@${VERSION}" version 2>/dev/null; then
-            echo "Version ${VERSION} already published, skipping"
+            echo "@pachca/generator@${VERSION} already published, skipping"
           else
             npm publish --access public --provenance
           fi

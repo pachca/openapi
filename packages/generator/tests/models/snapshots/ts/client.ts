@@ -13,4 +13,4 @@ import {
   OAuthError,
   PaginationMeta,
   SearchPaginationMeta,
-} from "./types";
+} from "./types.js";

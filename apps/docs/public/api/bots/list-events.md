@@ -1,3 +1,7 @@
+> Расположение: Методы API → Боты и Webhook
+> Краткое содержание: Метод для получения истории последних событий бота
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
+
 # История событий
 
 **Метод**: `GET`
@@ -17,7 +21,7 @@
 ### Query параметры
 
 - `limit: integer, int32` (default: 50) — Количество возвращаемых сущностей за один запрос
-- `cursor: string` — Курсор для пагинации (из meta.paginate.next_page)
+- `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
 
 
 ## Пример запроса
@@ -35,87 +39,105 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
 **Схема ответа:**
 
 - `data: array of object` (required)
-  - `id: string` (required) — Идентификатор события
-  - `event_type: string` (required) — Тип события
+  - `id: string` (required) — Идентификатор события. Пример: `"01KAJZ2XDSS2S3DSW9EXJZ0TBV"`
+  - `event_type: string` (required) — Тип события. Пример: `"message_new"`
   - `payload: anyOf` (required) — Объект вебхука
     **Возможные варианты:**
 
     - **MessageWebhookPayload**: Структура исходящего вебхука о сообщении
-      - `type: string` (required) — Тип объекта
+      - `type: string` (required) — Тип объекта. Пример: `"message"`
         Значения: `message` — Для сообщений всегда message
-      - `id: integer, int32` (required) — Идентификатор сообщения
+      - `id: integer, int32` (required) — Идентификатор сообщения. Пример: `1245817`
       - `event: string` (required) — Тип события
         Значения: `new` — Создание, `update` — Обновление, `delete` — Удаление
       - `entity_type: string` (required) — Тип сущности, к которой относится сообщение
         Значения: `discussion` — Беседа или канал, `thread` — Тред, `user` — Пользователь
-      - `entity_id: integer, int32` (required) — Идентификатор сущности, к которой относится сообщение
-      - `content: string` (required) — Текст сообщения
-      - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения
-      - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-      - `url: string` (required) — Прямая ссылка на сообщение
-      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение
-      - `parent_message_id: integer, int32` — Идентификатор сообщения, к которому написан ответ
+      - `entity_id: integer, int32` (required) — Идентификатор сущности, к которой относится сообщение. Пример: `5678`
+      - `content: string` (required) — Текст сообщения. Пример: `"Текст сообщения"`
+      - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
+      - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+      - `url: string` (required) — Прямая ссылка на сообщение. Пример: `"https://pachca.com/chats/1245817/messages/5678"`
+      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Пример: `9012`
+      - `parent_message_id: integer, int32` — Идентификатор сообщения, к которому написан ответ. Пример: `3456`
       - `thread: object` — Объект с параметрами треда
-        - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому был создан тред
-        - `message_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому был создан тред
-      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+        - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому был создан тред. Пример: `12345`
+        - `message_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому был создан тред. Пример: `67890`
+      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
     - **ReactionWebhookPayload**: Структура исходящего вебхука о реакции
-      - `type: string` (required) — Тип объекта
+      - `type: string` (required) — Тип объекта. Пример: `"reaction"`
         Значения: `reaction` — Для реакций всегда reaction
       - `event: string` (required) — Тип события
         Значения: `new` — Создание, `delete` — Удаление
-      - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому относится реакция
-      - `code: string` (required) — Emoji символ реакции
-      - `name: string` (required) — Название реакции
-      - `user_id: integer, int32` (required) — Идентификатор пользователя, который добавил или удалил реакцию
-      - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Поле всегда присутствует в payload. В редких случаях (например, если сообщение было удалено к моменту отправки вебхука) может быть `null`.. Пример: `9012`
+      - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому относится реакция. Пример: `1245817`
+      - `code: string` (required) — Emoji символ реакции. Пример: `"👍"`
+      - `name: string` (required) — Название реакции. Пример: `"thumbsup"`
+      - `user_id: integer, int32` (required) — Идентификатор пользователя, который добавил или удалил реакцию. Пример: `2345`
+      - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
     - **ButtonWebhookPayload**: Структура исходящего вебхука о нажатии кнопки
-      - `type: string` (required) — Тип объекта
+      - `type: string` (required) — Тип объекта. Пример: `"button"`
         Значения: `button` — Для кнопки всегда button
-      - `event: string` (required) — Тип события
+      - `event: string` (required) — Тип события. Пример: `"click"`
         Значения: `click` — Нажатие кнопки
-      - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому относится кнопка
-      - `trigger_id: string` (required) — Уникальный идентификатор события. Время жизни — 3 секунды. Может быть использован, например, для открытия представления пользователю
-      - `data: string` (required) — Данные нажатой кнопки
-      - `user_id: integer, int32` (required) — Идентификатор пользователя, который нажал кнопку
-      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором была нажата кнопка
-      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+      - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому относится кнопка. Пример: `1245817`
+      - `trigger_id: string` (required) — Уникальный идентификатор события. Время жизни — 3 секунды. Может быть использован, например, для открытия представления пользователю. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
+      - `data: string` (required) — Данные нажатой кнопки. Пример: `"button_data"`
+      - `user_id: integer, int32` (required) — Идентификатор пользователя, который нажал кнопку. Пример: `2345`
+      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором была нажата кнопка. Пример: `9012`
+      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
+    - **ViewSubmitWebhookPayload**: Структура исходящего вебхука о заполнении формы
+      - `type: string` (required) — Тип объекта. Пример: `"view"`
+        Значения: `view` — Для формы всегда view
+      - `event: string` (required) — Тип события. Пример: `"submit"`
+        Значения: `submit` — Отправка формы
+      - `callback_id: string` (required) — Идентификатор обратного вызова, указанный при открытии представления. Пример: `"timeoff_request_form"`
+      - `private_metadata: string` (required) — Приватные метаданные, указанные при открытии представления. Пример: `"{'timeoff_id':4378}"`
+      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором было нажатие кнопки, открывшей форму. Значение фиксируется в момент **открытия** формы, а не отправки — если форма провисела открытой длительное время, `chat_id` всё равно ссылается на чат с кнопкой. Поле всегда присутствует в payload. Для форм, открытых до выкатки этого изменения, `chat_id` придёт как `null` — такие формы постепенно вымоются по TTL сохранённого представления (30 дней).. Пример: `9012`
+      - `user_id: integer, int32` (required) — Идентификатор пользователя, который отправил форму. Пример: `1235523`
+      - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `action_id` поля, значение — введённые данные
+        **Структура значений Record:**
+        - Тип значения: `any`
+      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1755075544`
     - **ChatMemberWebhookPayload**: Структура исходящего вебхука об участниках чата
-      - `type: string` (required) — Тип объекта
+      - `type: string` (required) — Тип объекта. Пример: `"chat_member"`
         Значения: `chat_member` — Для участника чата всегда chat_member
       - `event: string` (required) — Тип события
         Значения: `add` — Добавление, `remove` — Удаление
-      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором изменился состав участников
-      - `thread_id: integer, int32` — Идентификатор треда
-      - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие
-      - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором изменился состав участников. Пример: `9012`
+      - `thread_id: integer, int32` — Идентификатор треда. Пример: `5678`
+      - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие. Пример: `[2345,6789]`
+      - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
     - **CompanyMemberWebhookPayload**: Структура исходящего вебхука об участниках пространства
-      - `type: string` (required) — Тип объекта
+      - `type: string` (required) — Тип объекта. Пример: `"company_member"`
         Значения: `company_member` — Для участника пространства всегда company_member
       - `event: string` (required) — Тип события
         Значения: `invite` — Приглашение, `confirm` — Подтверждение, `update` — Обновление, `suspend` — Приостановка, `activate` — Активация, `delete` — Удаление
-      - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие
-      - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+      - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие. Пример: `[2345,6789]`
+      - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
     - **LinkSharedWebhookPayload**: Структура исходящего вебхука о разворачивании ссылок
-      - `type: string` (required) — Тип объекта
+      - `type: string` (required) — Тип объекта. Пример: `"message"`
         Значения: `message` — Для разворачивания ссылок всегда message
-      - `event: string` (required) — Тип события
+      - `event: string` (required) — Тип события. Пример: `"link_shared"`
         Значения: `link_shared` — Обнаружена ссылка на отслеживаемый домен
-      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором обнаружена ссылка
-      - `message_id: integer, int32` (required) — Идентификатор сообщения, содержащего ссылку
+      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором обнаружена ссылка. Пример: `23438`
+      - `message_id: integer, int32` (required) — Идентификатор сообщения, содержащего ссылку. Пример: `268092`
       - `links: array of object` (required) — Массив обнаруженных ссылок на отслеживаемые домены
-        - `url: string` (required) — URL ссылки
-        - `domain: string` (required) — Домен ссылки
-      - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения
-      - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
-  - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+        - `url: string` (required) — URL ссылки. Пример: `"https://example.com/page1"`
+        - `domain: string` (required) — Домен ссылки. Пример: `"example.com"`
+        - `skip: boolean` (required) — Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью. Пример: `false`
+      - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
+      - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-09-18T19:53:14.000Z"`
+      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1726685594`
+  - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`
+    - `prev_page: string` — Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка.. Пример: `"eyJxZCO2MiwiZGlyIjoiYXNjIn0"`
+    - `has_next: boolean` — Есть ли ещё данные на следующей странице. На последней странице — `false`.. Пример: `true`
+    - `has_prev: boolean` — Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`.. Пример: `false`
 
 **Пример ответа:**
 
@@ -148,7 +170,10 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
   ],
   "meta": {
     "paginate": {
-      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3",
+      "prev_page": "eyJxZCO2MiwiZGlyIjoiYXNjIn0",
+      "has_next": true,
+      "has_prev": false
     }
   }
 }
@@ -159,12 +184,12 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
 **Схема ответа при ошибке:**
 
 - `errors: array of object` (required) — Массив ошибок
-  - `key: string` (required) — Ключ поля с ошибкой
-  - `value: string` (required) — Значение поля, которое вызвало ошибку
-  - `message: string` (required) — Сообщение об ошибке
+  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
   - `code: string` (required) — Код ошибки
     Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all)
-  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
     **Структура значений Record:**
     - Тип значения: `any`
 
@@ -188,8 +213,8 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
 
 **Схема ответа при ошибке:**
 
-- `error: string` (required) — Код ошибки
-- `error_description: string` (required) — Описание ошибки
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 **Пример ответа:**
 
@@ -205,12 +230,12 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
 **Схема ответа при ошибке:**
 
 - `errors: array of object` (required) — Массив ошибок
-  - `key: string` (required) — Ключ поля с ошибкой
-  - `value: string` (required) — Значение поля, которое вызвало ошибку
-  - `message: string` (required) — Сообщение об ошибке
+  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
   - `code: string` (required) — Код ошибки
     Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all)
-  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
     **Структура значений Record:**
     - Тип значения: `any`
 
@@ -234,8 +259,8 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
 
 **Схема ответа при ошибке:**
 
-- `error: string` (required) — Код ошибки
-- `error_description: string` (required) — Описание ошибки
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 **Пример ответа:**
 
@@ -251,12 +276,12 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
 **Схема ответа при ошибке:**
 
 - `errors: array of object` (required) — Массив ошибок
-  - `key: string` (required) — Ключ поля с ошибкой
-  - `value: string` (required) — Значение поля, которое вызвало ошибку
-  - `message: string` (required) — Сообщение об ошибке
+  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
   - `code: string` (required) — Код ошибки
     Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all)
-  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
     **Структура значений Record:**
     - Тип значения: `any`
 

@@ -1,3 +1,7 @@
+> Расположение: SDK
+> Краткое содержание: Типизированный клиент для Pachca API на Swift: URLSession, async throws, Codable и встроенный retry. Swift Package, Swift 5.9+, macOS 13+ или iOS 16+
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
+
 
 # Swift
 
@@ -15,7 +19,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.1")
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
 ]
 ```
 
@@ -40,7 +44,7 @@ import PachcaSDK
 
 // Получение профиля
 let response = try await client.profile.getProfile()
-// → User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)
+// → User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)
 ```
 
 
@@ -75,15 +79,19 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.profile.getTokenInfo()` | [Информация о токене](/api/profile/get-info) |
 | `client.profile.getProfile()` | [Информация о профиле](/api/profile/get) |
 | `client.profile.getStatus()` | [Текущий статус](/api/profile/get-status) |
+| `client.profile.updateProfileAvatar()` | [Загрузка аватара](/api/profile/update-avatar) |
 | `client.profile.updateStatus()` | [Новый статус](/api/profile/update-status) |
+| `client.profile.deleteProfileAvatar()` | [Удаление аватара](/api/profile/delete-avatar) |
 | `client.profile.deleteStatus()` | [Удаление статуса](/api/profile/delete-status) |
 | `client.users.createUser()` | [Создать сотрудника](/api/users/create) |
 | `client.users.listUsers()` | [Список сотрудников](/api/users/list) |
 | `client.users.getUser()` | [Информация о сотруднике](/api/users/get) |
 | `client.users.getUserStatus()` | [Статус сотрудника](/api/users/get-status) |
 | `client.users.updateUser()` | [Редактирование сотрудника](/api/users/update) |
+| `client.users.updateUserAvatar()` | [Загрузка аватара сотрудника](/api/users/update-avatar) |
 | `client.users.updateUserStatus()` | [Новый статус сотрудника](/api/users/update-status) |
 | `client.users.deleteUser()` | [Удаление сотрудника](/api/users/delete) |
+| `client.users.deleteUserAvatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.users.deleteUserStatus()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.groupTags.createTag()` | [Новый тег](/api/group-tags/create) |
 | `client.groupTags.listTags()` | [Список тегов сотрудников](/api/group-tags/list) |
@@ -105,6 +113,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.members.leaveChat()` | [Выход из беседы или канала](/api/members/leave) |
 | `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.createThread()` | [Новый тред](/api/threads/add) |
+| `client.threads.listThreads()` | [Список тредов](/api/threads/list) |
 | `client.threads.getThread()` | [Информация о треде](/api/threads/get) |
 | `client.messages.createMessage()` | [Новое сообщение](/api/messages/create) |
 | `client.messages.pinMessage()` | [Закрепление сообщения](/api/messages/pin) |
@@ -143,8 +152,8 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 import PachcaSDK
 
 // Список чатов
-let response = try await client.chats.listChats(sortId: .desc, availability: .isMember, lastMessageAtAfter: "2025-01-01T00:00:00.000Z", lastMessageAtBefore: "2025-02-01T00:00:00.000Z", personal: false, limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
-// → ListChatsResponse(data: [Chat], meta: PaginationMeta?)
+let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, lastMessageAtAfter: "2025-01-01T00:00:00.000Z", lastMessageAtBefore: "2025-02-01T00:00:00.000Z", personal: false, limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+// → ListChatsResponse(data: [Chat], meta: PaginationMeta)
 ```
 
 
@@ -181,19 +190,26 @@ let response = try await client.chats.getChat(id: 334)
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta?.paginate?.nextPage` — курсор для следующей страницы.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.users.listUsers()`, `client.chats.listChats()`, `client.messages.listChatMessages()` и т.д.) — `meta.paginate` с полями `nextPage`, `prevPage`, `hasNext`, `hasPrev`. Признак конца — `hasNext == false`. Курсор `prevPage` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.search.searchUsers()`, `client.search.searchChats()`, `client.search.searchMessages()`) — `meta` с полями `total` и `paginate.nextPage` (без `prevPage`/`hasNext`/`hasPrev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
+
+Курсоры — непрозрачные токены, никогда не бывают `nil`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```swift
 var cursor: String? = nil
-repeat {
+var hasNext = true
+while hasNext {
     let response = try await client.users.listUsers(limit: 50, cursor: cursor)
     for user in response.data {
         print("\(user.firstName) \(user.lastName)")
     }
-    cursor = response.meta?.paginate?.nextPage
-} while cursor != nil
+    cursor = response.meta.paginate.nextPage
+    hasNext = response.meta.paginate.hasNext
+}
 ```
 
 ### Автопагинация
@@ -268,12 +284,13 @@ do {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Ожидание через `Task.sleep(nanoseconds:)` — не блокирует поток
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Типы
 
@@ -346,7 +363,7 @@ let response = try await client.messages.createMessage(body: body)
 
 // Список сотрудников
 let response = try await client.users.listUsers(query: "Олег", limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
-// → ListUsersResponse(data: [User], meta: PaginationMeta?)
+// → ListUsersResponse(data: [User], meta: PaginationMeta)
 
 // Создание задачи
 let body = TaskCreateRequest(
@@ -366,3 +383,10 @@ let response = try await client.tasks.createTask(body: body)
 ```
 
 
+
+
+## Связанные разделы
+
+- [SDK](/guides/sdk/overview)
+- [Авторизация](/api/authorization)
+- [Пагинация](/api/pagination)

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -71,7 +72,7 @@ public class User
     [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; } = default!;
     [JsonPropertyName("birthday")]
-    public DateOnly? Birthday { get; set; }
+    public string? Birthday { get; set; }
     [JsonPropertyName("tag_ids")]
     public List<int> TagIds { get; set; } = default!;
     [JsonPropertyName("custom_properties")]
@@ -198,6 +199,8 @@ public class OAuthError : Exception
 {
     [JsonPropertyName("error")]
     public string? Error { get; set; }
+
+    public override string Message => Error ?? "oauth error";
 }
 
 public class PaginationMetaPaginate

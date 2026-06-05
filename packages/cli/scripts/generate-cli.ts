@@ -25,7 +25,10 @@ const COMMANDS_DIR = path.join(CLI_SRC, 'commands');
 const DATA_DIR = path.join(CLI_SRC, 'data');
 
 // URL generation — single source of truth from apps/docs/lib/openapi/mapper.ts
-import { generateUrlFromOperation } from '../../../apps/docs/lib/openapi/mapper.js';
+import { generateUrlFromOperation, generateTitle } from '../../../apps/docs/lib/openapi/mapper.js';
+
+// D3 — single source of truth for global flags: BaseCommand.baseFlags
+import { BaseCommand } from '../src/base-command.js';
 
 // Entity ID → related list command (for agent hints in descriptions)
 const ENTITY_HINTS: Record<string, string> = {
@@ -355,6 +358,24 @@ function generateCommandCode(p: CommandGenParams): string {
     }),`;
   });
 
+  // For list commands with a single required ID query param, add it as an optional positional arg
+  // e.g., `pachca messages list 36988817` as a shortcut for `--chat-id=36988817`
+  let shortcutArg: { paramName: string; flagName: string; argType: string } | null = null;
+  if (p.isList && requiredQueryFlags.length === 1 && requiredQueryFlags[0].flagName.endsWith('-id')) {
+    const param = p.queryParams.find((q) => q.required && toKebabCase(q.name) === requiredQueryFlags[0].flagName);
+    if (param) {
+      shortcutArg = {
+        paramName: param.name,
+        flagName: requiredQueryFlags[0].flagName,
+        argType: getOclifArgType(param.schema),
+      };
+      argsCode.push(`    ${param.name}: Args.${shortcutArg.argType}({
+      description: ${JSON.stringify(param.description || param.name)},
+      required: false,
+    }),`);
+    }
+  }
+
   // Build flags for query params
   const queryFlagLines: string[] = [];
   for (const param of p.queryParams) {
@@ -383,12 +404,15 @@ function generateCommandCode(p: CommandGenParams): string {
     }
 
     const flagName = toKebabCase(param.name);
-    const flagType = getOclifFlagType(param.schema);
+    // Resolve allOf to get enum/type/default from $ref schemas (e.g., SortOrder, ChatSortField)
+    const resolvedParamSchema = resolveAllOf(param.schema);
+    const flagType = getOclifFlagType(resolvedParamSchema);
     const extras: string[] = [];
-    if (param.schema.enum) extras.push(`      options: ${JSON.stringify(param.schema.enum)},`);
+    if (resolvedParamSchema.enum) extras.push(`      options: ${JSON.stringify(resolvedParamSchema.enum)},`);
+    if (resolvedParamSchema.default !== undefined) extras.push(`      default: ${JSON.stringify(resolvedParamSchema.default)},`);
     if (flagType === 'boolean') extras.push(`      allowNo: true,`);
     const extrasStr = extras.length > 0 ? '\n' + extras.join('\n') : '';
-    const arrayHint = param.schema.type === 'array' ? ' (через запятую)' : '';
+    const arrayHint = resolvedParamSchema.type === 'array' ? ' (через запятую)' : '';
     queryFlagLines.push(`    '${flagName}': Flags.${flagType}({
       description: ${JSON.stringify(param.description || param.name)}${arrayHint ? ` + ${JSON.stringify(arrayHint)}` : ''},${extrasStr}
     }),`);
@@ -473,6 +497,14 @@ function generateCommandCode(p: CommandGenParams): string {
   // Parse args and flags
   runBodyLines.push(`    const { args, flags } = await this.parse(${p.className});`);
   runBodyLines.push(`    this.parsedFlags = flags;`);
+
+  // Populate flag from positional arg shortcut (e.g., `messages list 123` → --chat-id=123)
+  if (shortcutArg) {
+    runBodyLines.push('');
+    runBodyLines.push(`    if (args.${shortcutArg.paramName} !== undefined && (flags as Record<string, unknown>)['${shortcutArg.flagName}'] === undefined) {`);
+    runBodyLines.push(`      (flags as Record<string, unknown>)['${shortcutArg.flagName}'] = args.${shortcutArg.paramName};`);
+    runBodyLines.push(`    }`);
+  }
 
   // Stdin support for text fields
   if (p.stdinField) {
@@ -583,11 +615,11 @@ function generateCommandCode(p: CommandGenParams): string {
       continue;
     }
     const flagName = toKebabCase(param.name);
-    if (flagName !== param.name) {
-      queryEntries.push(`      '${param.name}': flags['${flagName}'],`);
-    } else {
-      queryEntries.push(`      ${param.name}: flags['${param.name}'],`);
-    }
+    const isArrayParam = param.schema.type === 'array';
+    const flagRef = flagName !== param.name ? `flags['${flagName}']` : `flags['${param.name}']`;
+    const value = isArrayParam ? `${flagRef}?.split(',')` : flagRef;
+    const key = flagName !== param.name ? `'${param.name}'` : param.name;
+    queryEntries.push(`      ${key}: ${value},`);
   }
   if (p.hasPagination) {
     queryEntries.push(`      limit: flags.limit,`);
@@ -629,7 +661,7 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`      const seenCursors = new Set<string>();`);
     runBodyLines.push('');
     runBodyLines.push(`      while (pages < 500) {`);
-    runBodyLines.push(`        const query: Record<string, string | number | boolean | undefined> = {`);
+    runBodyLines.push(`        const query: Record<string, string | number | boolean | string[] | undefined> = {`);
     for (const entry of queryEntries) {
       if (!entry.includes('cursor:')) runBodyLines.push(`  ${entry}`);
     }
@@ -643,6 +675,13 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`        const paginate = meta?.paginate as Record<string, unknown> | undefined;`);
     runBodyLines.push(`        nextCursor = paginate?.next_page as string | undefined;`);
     runBodyLines.push(`        pages++;`);
+    runBodyLines.push(`        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data`);
+    runBodyLines.push(`        const hasNext = paginate?.has_next;`);
+    runBodyLines.push(`        if (typeof hasNext === 'boolean') {`);
+    runBodyLines.push(`          if (!hasNext) break;`);
+    runBodyLines.push(`        } else if (!items || items.length === 0) {`);
+    runBodyLines.push(`          break;`);
+    runBodyLines.push(`        }`);
     runBodyLines.push('');
     runBodyLines.push(`        if (process.stderr.isTTY) {`);
     runBodyLines.push(`          const total = (paginate as Record<string, unknown> | undefined)?.total;`);
@@ -943,9 +982,193 @@ async function generateAlternativesData(commands: GeneratedCommand[]): Promise<v
   );
 }
 
+// ----- C1: Endpoint Index (self-documenting `pachca api`) -----
+
+/**
+ * Emit src/data/endpoints.json — a compact, machine-readable index of every
+ * API endpoint. Heavy logic (parse, $ref resolution, markdown, examples,
+ * curl, equivalent typed command) is REUSED from the apps/docs generators;
+ * the CLI runtime only reads this JSON (no YAML parser in the bundle).
+ *
+ * Uses the docs parser (apps/docs/lib/openapi/parser.ts) because its
+ * $ref-resolved `Endpoint` is the exact input shape generateEndpointMarkdown /
+ * generateCLI expect — not the build-only parser used for command codegen.
+ */
+async function generateEndpointsData(): Promise<void> {
+  try {
+    const { parseOpenAPI: parseDocsOpenAPI } = await import(
+      '../../../apps/docs/lib/openapi/parser.js'
+    );
+    const { generateEndpointMarkdown, schemaToMarkdown } = await import(
+      '../../../apps/docs/lib/markdown-generator.js'
+    );
+    const { generateCLI } = await import('../../../apps/docs/lib/code-generators/cli.js');
+
+    const SITE_URL = 'https://dev.pachca.com';
+    const api = await parseDocsOpenAPI();
+
+    const entries = api.endpoints.map((ep: Endpoint) => {
+      const url = generateUrlFromOperation(ep); // /api/<section>/<action>
+      const segments = url.split('/');
+      const section = segments[2] ?? '';
+      const action = segments[3] ?? '';
+      const command = `pachca ${section} ${action}`.trim();
+      const docLink = `${SITE_URL}${url}`;
+
+      const req = (ep.requirements ?? {}) as { scope?: string; plan?: string; auth?: boolean };
+      const scope = req.scope ?? null;
+      const plan = req.plan ?? null;
+      const auth = req.auth !== false;
+      const summary = ep.summary || generateTitle(ep) || `${ep.method} ${ep.path}`;
+      const paginated = ep.paginated ?? false;
+
+      const docs = generateEndpointMarkdown(ep);
+      const equivalentCmd = generateCLI(ep);
+      const describe = buildDescribe(ep, {
+        summary, scope, plan, auth, paginated, command, docLink, equivalentCmd, schemaToMarkdown,
+      });
+
+      const spec = {
+        method: ep.method,
+        path: ep.path,
+        summary: ep.summary,
+        description: ep.description,
+        parameters: ep.parameters,
+        requestBody: ep.requestBody,
+        responses: ep.responses,
+        requirements: ep.requirements,
+        paginated,
+      };
+
+      return {
+        method: ep.method, path: ep.path, summary, scope, plan, auth, paginated,
+        command, docLink, describe, spec, docs,
+      };
+    });
+
+    // Minified: machine-only index (like a lockfile), ~2 MB pretty → ~1 MB.
+    // Loaded lazily at runtime only for `api ls` / `--describe` / `--spec` / `--docs`.
+    fs.writeFileSync(
+      path.join(DATA_DIR, 'endpoints.json'),
+      JSON.stringify(entries),
+    );
+  } catch (error) {
+    // Endpoint index is optional at runtime; never block command generation.
+    console.warn('  ⚠ Skipped endpoints.json:', (error as Error).message);
+  }
+}
+
+function buildDescribe(
+  ep: Endpoint,
+  ctx: {
+    summary: string;
+    scope: string | null;
+    plan: string | null;
+    auth: boolean;
+    paginated: boolean;
+    command: string;
+    docLink: string;
+    equivalentCmd: string;
+    schemaToMarkdown: (s: unknown, depth?: number, required?: string[], examples?: boolean) => string;
+  },
+): string {
+  const planNames: Record<string, string> = { corporation: 'Корпорация' };
+  let md = `# ${ep.method} ${ep.path} — ${ctx.summary}\n\n`;
+  if (!ctx.auth) md += `> Авторизация не требуется\n\n`;
+  if (ctx.scope) md += `> **Скоуп:** \`${ctx.scope}\`\n\n`;
+  if (ctx.plan) md += `> **Тариф:** ${planNames[ctx.plan] ?? ctx.plan}\n\n`;
+  if (ctx.paginated) md += `> Пагинация: добавьте \`--all\` для автоматического обхода страниц\n\n`;
+
+  const params = ep.parameters ?? [];
+  if (params.length > 0) {
+    md += `## Параметры\n\n`;
+    for (const p of params) {
+      const req = p.required ? ' (обязательный)' : '';
+      const where = p.in === 'path' ? 'путь' : p.in;
+      md += `- \`${p.name}\` — ${where}${req}${p.description ? `: ${p.description}` : ''}\n`;
+    }
+    md += `\n`;
+  }
+
+  const bodyMedia = ep.requestBody?.content
+    ? (ep.requestBody.content['application/json'] ??
+       Object.values(ep.requestBody.content)[0])
+    : undefined;
+  if (bodyMedia?.schema) {
+    const required = (bodyMedia.schema as { required?: string[] }).required ?? [];
+    const bodyMd = ctx.schemaToMarkdown(bodyMedia.schema, 0, required, false).trim();
+    if (bodyMd) md += `## Тело запроса\n\n${bodyMd}\n\n`;
+  }
+
+  md += `## Эквивалентная команда\n\n\`\`\`bash\n${ctx.equivalentCmd}\n\`\`\`\n\n`;
+  md += `Документация: ${ctx.docLink}\n`;
+  md += `Полная справка: \`pachca api ${ep.method} ${ep.path} --docs\` · схема: \`--spec\`\n`;
+  return md;
+}
+
+// ----- D3: Global Flags Index (single source of truth) -----
+
+interface GlobalFlagEntry {
+  name: string;
+  char?: string;
+  type: 'boolean' | 'string';
+  description: string;
+  options?: string[];
+  hidden: boolean;
+}
+
+/**
+ * Russian descriptions for global flags — the ONE localized copy.
+ * Structure (which flags exist, char, type, options, hidden) comes from
+ * BaseCommand.baseFlags (the real oclif source of truth); only the RU text
+ * lives here, replacing the two hardcoded RU tables (README + guide) and
+ * the manual baseFlagNames Set.
+ */
+const GLOBAL_FLAG_DESCRIPTIONS_RU: Record<string, string> = {
+  output: 'Формат вывода: table, json, yaml, csv',
+  columns: 'Колонки для table-вывода (через запятую)',
+  'no-header': 'Скрыть заголовок таблицы',
+  'no-truncate': 'Не обрезать длинные значения',
+  profile: 'Профиль для этой команды',
+  token: 'Токен для этого вызова (без сохранения)',
+  quiet: 'Подавить вывод (только exit code и ошибки)',
+  'no-color': 'Отключить цвета',
+  verbose: 'Показывать HTTP-запросы и ответы',
+  'no-input': 'Отключить интерактивные промпты',
+  'dry-run': 'Показать запрос без отправки',
+  timeout: 'Таймаут запроса в секундах (по умолчанию 30)',
+  'no-retry': 'Отключить авто-retry при 429/503',
+  json: 'Алиас для --output json',
+  plain: 'Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов)',
+};
+
+function buildGlobalFlags(): GlobalFlagEntry[] {
+  const baseFlags = BaseCommand.baseFlags as Record<
+    string,
+    { char?: string; type?: string; options?: string[]; hidden?: boolean }
+  >;
+  return Object.entries(baseFlags).map(([name, def]) => ({
+    name,
+    ...(def.char ? { char: def.char } : {}),
+    type: def.type === 'boolean' ? 'boolean' : 'string',
+    description: GLOBAL_FLAG_DESCRIPTIONS_RU[name] ?? name,
+    ...(def.options ? { options: def.options } : {}),
+    hidden: !!def.hidden,
+  }));
+}
+
+function generateGlobalFlagsData(): GlobalFlagEntry[] {
+  const flags = buildGlobalFlags();
+  fs.writeFileSync(
+    path.join(DATA_DIR, 'global-flags.json'),
+    JSON.stringify(flags, null, 2),
+  );
+  return flags;
+}
+
 // ----- README Generation -----
 
-function generateReadme(commands: GeneratedCommand[]): void {
+function generateReadme(commands: GeneratedCommand[], globalFlags: GlobalFlagEntry[]): void {
   const templatePath = path.join(ROOT, 'packages', 'cli', 'README.template.md');
   if (!fs.existsSync(templatePath)) return;
 
@@ -974,24 +1197,19 @@ function generateReadme(commands: GeneratedCommand[]): void {
     `<!-- AUTO:COMMANDS -->\n${commandLines.join('\n')}\n<!-- AUTO:COMMANDS:END -->`,
   );
 
-  // Generate global flags table
+  // Generate global flags table — single source: D3 global-flags.json (from baseFlags)
   const flagsLines: string[] = [
     '## Глобальные флаги', '',
     '| Флаг | Короткий | Описание |',
     '|------|----------|----------|',
-    '| `--output <format>` | `-o` | Формат вывода: table, json, yaml, csv |',
-    '| `--columns <list>` | `-c` | Колонки для table-вывода |',
-    '| `--no-header` | | Скрыть заголовок таблицы |',
-    '| `--profile <name>` | `-p` | Профиль для этой команды |',
-    '| `--token <value>` | | Bearer-токен для этого вызова |',
-    '| `--quiet` | `-q` | Подавить вывод кроме ошибок |',
-    '| `--verbose` | `-v` | Показывать HTTP-детали |',
-    '| `--no-input` | | Отключить промпты |',
-    '| `--dry-run` | | Показать запрос без отправки |',
-    '| `--timeout <seconds>` | | Таймаут запроса |',
-    '| `--no-retry` | | Отключить авто-retry |',
-    '',
   ];
+  for (const f of globalFlags) {
+    if (f.hidden) continue;
+    const flag = f.type === 'boolean' ? `\`--${f.name}\`` : `\`--${f.name} <value>\``;
+    const short = f.char ? `\`-${f.char}\`` : '';
+    flagsLines.push(`| ${flag} | ${short} | ${f.description} |`);
+  }
+  flagsLines.push('');
 
   template = template.replace(
     /<!-- AUTO:FLAGS -->[\s\S]*?<!-- AUTO:FLAGS:END -->/,
@@ -1130,8 +1348,14 @@ async function main(): Promise<void> {
   await generateAlternativesData(commands);
   console.log('  Generated alternatives.json');
 
+  await generateEndpointsData();
+  console.log('  Generated endpoints.json');
+
+  const globalFlags = generateGlobalFlagsData();
+  console.log('  Generated global-flags.json');
+
   // Generate README
-  generateReadme(commands);
+  generateReadme(commands, globalFlags);
   console.log('  Generated README.md');
 
   console.log('Done!');

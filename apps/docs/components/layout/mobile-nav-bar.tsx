@@ -3,6 +3,9 @@
 import { usePathname } from 'next/navigation';
 import { ChevronRight, PanelLeft } from 'lucide-react';
 import type { NavigationSection } from '@/lib/openapi/types';
+import type { TabId } from '@/lib/tabs-config';
+import { parseSeasonSlug } from '@/lib/seasons';
+import { formatDateRu } from '@/lib/format-date';
 
 interface Breadcrumb {
   section: string;
@@ -30,21 +33,43 @@ function findBreadcrumb(navigation: NavigationSection[], pathname: string): Brea
   return null;
 }
 
-interface MobileNavBarProps {
-  guideNavigation: NavigationSection[];
-  apiNavigation: NavigationSection[];
+/**
+ * Updates sub-pages (/updates/<date>, /updates/season/<slug>) are mostly in
+ * the sidebar nav, but fall back to deriving from the path if not found.
+ */
+function updatesBreadcrumb(pathname: string): Breadcrumb | null {
+  const seasonMatch = pathname.match(/^\/updates\/season\/(.+)$/);
+  if (seasonMatch) {
+    const season = parseSeasonSlug(seasonMatch[1]);
+    if (season) {
+      return { section: 'Последние обновления', page: `${season.emoji} ${season.label}` };
+    }
+  }
+  const dateMatch = pathname.match(/^\/updates\/(\d{4}-\d{2}-\d{2})$/);
+  if (dateMatch) {
+    return { section: 'Последние обновления', page: formatDateRu(dateMatch[1]) };
+  }
+  return null;
 }
 
-export function MobileNavBar({ guideNavigation, apiNavigation }: MobileNavBarProps) {
+interface MobileNavBarProps {
+  navigationByTab: Record<TabId, NavigationSection[]>;
+}
+
+export function MobileNavBar({ navigationByTab }: MobileNavBarProps) {
   const pathname = usePathname();
 
-  const breadcrumb =
-    findBreadcrumb(guideNavigation, pathname) || findBreadcrumb(apiNavigation, pathname);
+  let breadcrumb: Breadcrumb | null = null;
+  for (const tab of Object.keys(navigationByTab) as TabId[]) {
+    breadcrumb = findBreadcrumb(navigationByTab[tab], pathname);
+    if (breadcrumb) break;
+  }
+  if (!breadcrumb) breadcrumb = updatesBreadcrumb(pathname);
 
   return (
     <div
-      className="lg:hidden fixed left-0 right-0 bg-background/80 backdrop-blur-xl border-b border-background-border z-50"
-      style={{ top: 'var(--mobile-header-height)', height: 'var(--mobile-nav-height)' }}
+      className="lg:hidden fixed left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-b border-background-border z-50"
+      style={{ top: 'var(--logo-row-height)', height: 'var(--mobile-nav-height)' }}
     >
       <button
         onClick={() => window.dispatchEvent(new CustomEvent('toggle-mobile-menu'))}

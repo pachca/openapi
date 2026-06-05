@@ -7,6 +7,7 @@ import {
 import { ApiMethodTemplate } from '@/components/api/method-template';
 import { getAdjacentItems } from '@/lib/navigation';
 import { getSdkExamples } from '@/lib/sdk-examples';
+import { formatMetaDescription } from '@/lib/meta-description';
 import { notFound } from 'next/navigation';
 
 export async function generateStaticParams() {
@@ -33,18 +34,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   endpoint.title = generateTitle(endpoint);
 
-  const description = endpoint.description || endpoint.summary;
-  const descriptionBody = (getDescriptionWithoutTitle(endpoint) || '')
-    .split('\n')
-    .filter((line) => line.trim() && !line.trim().startsWith('#'))
-    .join(' ')
-    .replace(/`([^`]*)`/g, '$1')
-    .trim();
+  const descriptionBody = formatMetaDescription(getDescriptionWithoutTitle(endpoint));
+  const description = descriptionBody || formatMetaDescription(endpoint.summary);
   const ogDescription =
     `${endpoint.method} ${endpoint.path}` + (descriptionBody ? `\n${descriptionBody}` : '');
 
   return {
-    title: endpoint.title,
+    title: { absolute: `${endpoint.title} | Документация API` },
     description,
     alternates: {
       canonical: path,
@@ -57,7 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       siteName: 'Пачка',
       locale: 'ru_RU',
       description: ogDescription,
-      images: [`/api/og?type=method&path=${path}`],
+      images: [`/internal/og?type=method&path=${path}`],
     },
   };
 }
@@ -92,7 +88,7 @@ export default async function ApiMethodPage({ params }: { params: Promise<{ slug
         description: endpoint.description || endpoint.summary,
         url: `https://dev.pachca.com${path}`,
         inLanguage: 'ru',
-        image: `https://dev.pachca.com/api/og?type=method&path=${path}`,
+        image: `https://dev.pachca.com/internal/og?type=method&path=${path}`,
         dateModified: new Date().toISOString(),
         isPartOf: {
           '@type': 'WebSite',

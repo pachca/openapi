@@ -1,0 +1,66 @@
+{
+  "name": "Напоминание о задачах",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 10 * * 1-5" }]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "resource": "task",
+        "operation": "getMany",
+        "returnAll": true
+      },
+      "name": "Получить задачи",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $json.due_at }}",
+              "rightValue": "={{ $now.toISO() }}",
+              "operator": { "type": "dateTime", "operation": "before" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "name": "IF просрочена",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityId": "CHAT_ID",
+        "content": "Просроченная задача: **{{ $json.content }}**\nДедлайн: {{ $json.due_at }}"
+      },
+      "name": "Уведомление",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [660, 0]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": { "main": [[{ "node": "Получить задачи", "type": "main", "index": 0 }]] },
+    "Получить задачи": { "main": [[{ "node": "IF просрочена", "type": "main", "index": 0 }]] },
+    "IF просрочена": { "main": [[{ "node": "Уведомление", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

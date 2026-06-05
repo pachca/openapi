@@ -14,6 +14,12 @@ guard let chatIdStr = ProcessInfo.processInfo.environment["PACHCA_CHAT_ID"],
 let client = PachcaClient(token: token)
 print("Echo Bot started for chat \(chatId)")
 
+// ── Step 0: Fetch chat (verifies datetime deserialization) ──────
+
+print("Step 0: Fetching chat...")
+let chat = try await client.chats.getChat(id: chatId)
+print("  Chat: \(chat.name), createdAt=\(chat.createdAt) (\(type(of: chat.createdAt))), lastMessageAt=\(chat.lastMessageAt) (\(type(of: chat.lastMessageAt)))")
+
 // ── Step 1: Send a message ─────────────────────────────────────
 
 print("Step 1: Sending message...")

@@ -37,7 +37,7 @@ function formatSchemaWithTitle(schema: Schema, title?: string): string {
     md += `### ${schemaTitle}\n\n`;
   }
 
-  md += schemaToMarkdown(schema, 0, schema.required || []);
+  md += schemaToMarkdown(schema, 0, schema.required || [], true);
   return md;
 }
 
@@ -198,6 +198,27 @@ function treeToMarkdown(jsx: string): string {
 // ============================================
 
 /**
+ * Strip the common leading indentation shared by all non-blank lines.
+ * MDX authors indent JSX children for readability (e.g. content under a
+ * <Step>); that cosmetic indentation must not survive into the generated
+ * Markdown, or a block whose opening fence inherits the indent while its
+ * closing fence does not produces an unbalanced (unclosed) code fence.
+ * No-op when the minimal indent is already 0, so flush-left content is
+ * never altered.
+ */
+function dedent(text: string): string {
+  const lines = text.split('\n');
+  let min = Infinity;
+  for (const line of lines) {
+    if (line.trim() === '') continue;
+    const indent = line.match(/^[ \t]*/)?.[0].length ?? 0;
+    if (indent < min) min = indent;
+  }
+  if (!isFinite(min) || min === 0) return text;
+  return lines.map((l) => l.slice(min)).join('\n');
+}
+
+/**
  * Expand MDX components in content to their markdown representation
  * This is used when generating raw .md files from .mdx sources
  */
@@ -211,7 +232,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
       /<Step\s+title="([^"]*)">([\s\S]*?)<\/Step>/g,
       (_: string, title: string, content: string) => {
         stepNum++;
-        return `### Шаг ${stepNum}. ${title}\n\n${content.trim()}\n\n`;
+        return `### Шаг ${stepNum}. ${title}\n\n${dedent(content).trim()}\n\n`;
       }
     );
   });
@@ -312,6 +333,9 @@ export async function expandMdxComponents(content: string): Promise<string> {
   // <CardRow>...</CardRow> -> expand inner content (wrapper for prose context)
   result = result.replace(/<CardRow>([\s\S]*?)<\/CardRow>/g, (_, inner) => inner.trim() + '\n');
 
+  // <ParamsTable>...</ParamsTable> -> unwrap (markdown table inside)
+  result = result.replace(/<ParamsTable>([\s\S]*?)<\/ParamsTable>/g, (_, inner) => inner.trim());
+
   // Standalone <Card compact ... >children</Card> -> markdown link
   result = result.replace(
     /<Card\s+compact\s+([\s\S]*?)>([\s\S]*?)<\/Card>/g,
@@ -342,6 +366,20 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return items.length > 0 ? items.join('\n') + '\n' : '';
   });
 
+  // Standalone non-compact <Card ...>children</Card> or <Card ... /> left
+  // after CardGroup/compact handling (e.g. download cards outside a group).
+  // Runs last so grouped/compact cards are already consumed.
+  result = result.replace(
+    /<Card\s+([\s\S]*?)(?:>([\s\S]*?)<\/Card>|\/>)/g,
+    (_, attrs, children) => {
+      const title = attrs.match(/title="([^"]+)"/)?.[1] ?? '';
+      const href = attrs.match(/href="([^"]+)"/)?.[1];
+      const text = (children ?? '').trim();
+      const link = href ? `[${title}](${href})` : `**${title}**`;
+      return text ? `${link} — ${text}\n` : `${link}\n`;
+    }
+  );
+
   // <Image src="..." alt="..." /> -> ![alt](src)
   result = result.replace(/<Image\s+src="([^"]+)"\s+alt="([^"]*)"[^/]*\/>/g, '![$2]($1)');
   result = result.replace(/<Image\s+alt="([^"]*)"\s+src="([^"]+)"[^/]*\/>/g, '![$1]($2)');
@@ -360,8 +398,21 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return md;
   });
 
-  // <Limit ... /> -> just remove (limit info is contextual)
-  result = result.replace(/<Limit\s+[^/]*\/>/g, '');
+  // <Limit ... /> -> just remove (limit info is contextual). Limit tags are
+  // multi-line and their attribute values contain "/" (HTML entities, inline
+  // tags), so match across newlines up to the first self-closing "/>".
+  result = result.replace(/<Limit\b[\s\S]*?\/>/g, '');
+
+  // <PackageBadge name="..." href="..." version="..." /> -> code-formatted
+  // package link (3rd registration site per AGENTS.md: component already in
+  // mdx-components.tsx + markdown-content.tsx).
+  result = result.replace(/<PackageBadge\b[\s\S]*?\/>/g, (tag) => {
+    const name = tag.match(/name="([^"]*)"/)?.[1] ?? '';
+    const href = tag.match(/href="([^"]*)"/)?.[1];
+    const version = tag.match(/version="([^"]*)"/)?.[1];
+    const label = `\`${name}${version ? `@${version}` : ''}\``;
+    return href ? `[${label}](${href})` : label;
+  });
 
   // <Updates /> -> generate full updates markdown from MDX file
   if (result.includes('<Updates')) {
@@ -388,7 +439,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
     if (schema) {
       const title = customTitle || schema.title || schemaName;
       let schemaMarkdown = `#### ${title}\n\n`;
-      schemaMarkdown += schemaToMarkdown(schema, 0, schema.required || []);
+      schemaMarkdown += schemaToMarkdown(schema, 0, schema.required || [], true);
       result = result.replace(fullMatch, schemaMarkdown);
     } else {
       result = result.replace(fullMatch, `*Схема ${schemaName} не найдена.*\n`);
@@ -619,21 +670,35 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return text + '\n';
   });
 
-  // <CliCommands /> -> markdown table of CLI commands
+  // <CliCommands /> -> one flat markdown table (command + method/summary).
+  // Lean on purpose: keeps llms-full.txt small; the HTML page renders the
+  // per-command params behind a per-row spoiler. Source: commands.json.
   if (result.includes('<CliCommands')) {
-    const sections = await generateNavigation();
-    const methodsSec = sections.find((s) => s.title === 'Методы API');
-    const allCommands = methodsSec ? methodsSec.items.flatMap((group) => group.children ?? []) : [];
-
-    let md = '| Команда | Описание |\n';
-    md += '|---------|----------|\n';
-    for (const item of allCommands) {
-      const command = `pachca ${item.href.replace(/^\/api\//, '').replace(/\//g, ' ')}`;
-      md += `| \`${command}\` | ${item.title} |\n`;
+    const { getCliSections } = await import('./cli-data');
+    let md = '| Команда | Метод API |\n';
+    md += '|---------|-----------|\n';
+    for (const section of getCliSections()) {
+      for (const cmd of section.commands) {
+        const method = cmd.method ? `\`${cmd.method}\` ` : '';
+        md += `| \`${cmd.command}\` | ${method}${cmd.summary} |\n`;
+      }
     }
     md += '\n';
-
     result = result.replace(/<CliCommands\s*\/>/g, md);
+  }
+
+  // <GlobalFlags /> -> markdown table of global CLI flags (D3 single source)
+  if (result.includes('<GlobalFlags')) {
+    const { getGlobalFlags } = await import('./cli-data');
+    let md = '| Флаг | Короткий | Описание |\n';
+    md += '|------|----------|----------|\n';
+    for (const f of getGlobalFlags()) {
+      const flag = f.type === 'boolean' ? `\`--${f.name}\`` : `\`--${f.name} <value>\``;
+      const short = f.char ? `\`-${f.char}\`` : '';
+      md += `| ${flag} | ${short} | ${f.description} |\n`;
+    }
+    md += '\n';
+    result = result.replace(/<GlobalFlags\s*\/>/g, md);
   }
 
   // <ScopeRoles /> -> OAuth scopes table with roles
@@ -692,6 +757,16 @@ export async function expandMdxComponents(content: string): Promise<string> {
 
   // Interactive playground components — remove (no markdown representation)
   result = result.replace(/<(?:WebhookPlayground|MessagePlayground|FormPlayground)\s*\/>\n?/g, '');
+
+  // ProductUpdatesLink — expand to plain markdown link
+  result = result.replace(
+    /<ProductUpdatesLink\s*\/>\n?/g,
+    '> **Обновление продукта** — [Показать все обновления](https://pachca.com/updates)\n\n'
+  );
+
+  // HTML entities used for typography (&nbsp;, &shy;, etc.) -> plain space / drop
+  result = result.replace(/&nbsp;/g, ' ');
+  result = result.replace(/&shy;/g, '');
 
   // Clean up multiple newlines
   result = result.replace(/\n{4,}/g, '\n\n\n');

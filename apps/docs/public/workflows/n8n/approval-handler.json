@@ -1,0 +1,88 @@
+{
+  "name": "Обработка согласования",
+  "nodes": [
+    {
+      "parameters": {
+        "events": ["button_pressed"]
+      },
+      "name": "Pachca Trigger",
+      "type": "n8n-nodes-pachca.pachcaTrigger",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data }}",
+                    "rightValue": "approve",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Одобрено"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data }}",
+                    "rightValue": "reject",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Отклонено"
+            }
+          ]
+        }
+      },
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "update",
+        "messageId": "={{ $('Pachca Trigger').item.json.message_id }}",
+        "content": "Запрос **одобрен**"
+      },
+      "name": "Одобрено",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [440, -100]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "update",
+        "messageId": "={{ $('Pachca Trigger').item.json.message_id }}",
+        "content": "Запрос **отклонён**"
+      },
+      "name": "Отклонено",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [440, 100]
+    }
+  ],
+  "connections": {
+    "Pachca Trigger": { "main": [[{ "node": "Switch", "type": "main", "index": 0 }]] },
+    "Switch": {
+      "main": [
+        [{ "node": "Одобрено", "type": "main", "index": 0 }],
+        [{ "node": "Отклонено", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

@@ -2,8 +2,9 @@ import type { Endpoint, Schema, Response } from './openapi/types';
 import { generateRequestExample, generateResponseExample } from './openapi/example-generator';
 import { generateCurl } from './code-generators/curl';
 import { generateTitle, getDescriptionWithoutTitle } from './openapi/mapper';
-import { getGuideContent } from './content-loader';
+import { getGuideData } from './content-loader';
 import { expandMdxComponents } from './mdx-expander';
+import { resolveRelatedItems } from './navigation';
 
 /**
  * Resolve property schema - unwrap allOf and get the actual schema
@@ -338,8 +339,16 @@ function formatRequestBody(endpoint: Endpoint): string {
 
   let content = '\n## Тело запроса\n\n';
 
-  const jsonContent = endpoint.requestBody.content?.['application/json'];
-  if (jsonContent?.schema) {
+  // Prefer application/json, fall back to multipart/form-data (e.g. avatar upload)
+  const contentType = endpoint.requestBody.content?.['application/json']
+    ? 'application/json'
+    : endpoint.requestBody.content?.['multipart/form-data']
+      ? 'multipart/form-data'
+      : null;
+  if (!contentType) return content;
+
+  const mediaContent = endpoint.requestBody.content?.[contentType];
+  if (mediaContent?.schema) {
     const required = endpoint.requestBody.required ? '**Обязательно**' : '**Опционально**';
     content += `${required}\n\n`;
 
@@ -347,27 +356,30 @@ function formatRequestBody(endpoint: Endpoint): string {
       content += `${endpoint.requestBody.description}\n\n`;
     }
 
-    content += 'Формат: `application/json`\n\n';
+    content += `Формат: \`${contentType}\`\n\n`;
 
     // Format schema structure
     content += '### Схема\n\n';
     const schemaFormatted = schemaToMarkdown(
-      jsonContent.schema,
+      mediaContent.schema,
       0,
-      jsonContent.schema.required || []
+      mediaContent.schema.required || [],
+      true
     );
     if (schemaFormatted) {
       content += schemaFormatted;
       content += '\n';
     }
 
-    // Generate example
-    const example = generateRequestExample(endpoint.requestBody);
-    if (example) {
-      content += '### Пример\n\n';
-      content += '```json\n';
-      content += JSON.stringify(example, null, 2);
-      content += '\n```\n';
+    // Generate JSON example (skip for multipart — binary blob makes no sense as JSON)
+    if (contentType === 'application/json') {
+      const example = generateRequestExample(endpoint.requestBody);
+      if (example) {
+        content += '### Пример\n\n';
+        content += '```json\n';
+        content += JSON.stringify(example, null, 2);
+        content += '\n```\n';
+      }
     }
   }
 
@@ -398,7 +410,8 @@ function formatResponses(endpoint: Endpoint): string {
         const schemaFormatted = schemaToMarkdown(
           jsonContent.schema,
           0,
-          jsonContent.schema.required || []
+          jsonContent.schema.required || [],
+          true
         );
         if (schemaFormatted) {
           content += schemaFormatted;
@@ -423,7 +436,8 @@ function formatResponses(endpoint: Endpoint): string {
         const schemaFormatted = schemaToMarkdown(
           jsonContent.schema,
           0,
-          jsonContent.schema.required || []
+          jsonContent.schema.required || [],
+          true
         );
         if (schemaFormatted) {
           content += schemaFormatted;
@@ -512,11 +526,22 @@ export async function generateStaticPageMarkdownAsync(pagePath: string): Promise
   }
 
   // Load markdown/mdx file for this path
-  const fileContent = getGuideContent(contentPath);
-  if (fileContent) {
-    // Expand MDX components to their markdown representation
-    return await expandMdxComponents(fileContent);
+  const data = getGuideData(contentPath);
+  if (!data) return null;
+
+  // Expand MDX components to their markdown representation
+  let markdown = await expandMdxComponents(data.content);
+
+  // Mirror the on-page "Связанные разделы" block so the .md / llms-full.txt
+  // twins carry the same cross-links (internal links stay relative, like the
+  // rest of the generated markdown).
+  const related = await resolveRelatedItems(data.frontmatter.related, pagePath);
+  if (related.length > 0) {
+    markdown += `\n\n## Связанные разделы\n\n`;
+    for (const item of related) {
+      markdown += `- [${item.title}](${item.href})\n`;
+    }
   }
 
-  return null;
+  return markdown;
 }

@@ -6,6 +6,7 @@ import { Search, SquareTerminal, Loader2, BookText, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { SearchResult } from '@/lib/search/indexer';
 import { SUGGESTED_QUERIES } from '@/lib/search/synonyms';
+import { useBodyScrollLock } from '@/lib/hooks/use-body-scroll-lock';
 
 function generateParamId(path: string): string {
   return `param-${path
@@ -23,11 +24,16 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
   const router = useRouter();
 
-  const handleResultClick = (result: SearchResult) => {
-    onClose();
+  // Delays the actual unmount so the close transition can play.
+  const requestClose = useCallback(() => {
+    setVisible(false);
+    setTimeout(onClose, 200);
+  }, [onClose]);
 
+  const handleResultClick = (result: SearchResult) => {
     if (result.matchedByField && result.matchedValue?.path) {
       const paramId = generateParamId(result.matchedValue.path);
       const url = `${result.url}#${paramId}`;
@@ -41,6 +47,11 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
     } else {
       router.push(result.url);
     }
+
+    // Закрываем синхронно, без exit-анимации: мы всё равно уходим на другую
+    // страницу. Отложенный unmount (requestClose) на Safari/WebKit гонится с
+    // re-render навигации, и диалог остаётся висеть поверх новой страницы.
+    onClose();
   };
 
   const removeTagsFromDescription = (text: string) => {
@@ -53,19 +64,34 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
 
   useEffect(() => {
     setMounted(true);
-    return () => setMounted(false);
+    // Double rAF: the first frame commits the opacity-0 render, the second
+    // flips it to opacity-100 so React's CSS transition has a paint to
+    // animate between.
+    let raf2: number | null = null;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setVisible(true));
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (raf2 !== null) cancelAnimationFrame(raf2);
+      setMounted(false);
+    };
   }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        requestClose();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [requestClose]);
+
+  // Блокируем скролл основной страницы, пока открыта модалка (диалог монтируется
+  // только когда открыт, поэтому без флага).
+  useBodyScrollLock();
 
   const performSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
@@ -75,7 +101,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const response = await fetch(`/internal/search?q=${encodeURIComponent(q)}`);
       const data = await response.json();
       setResults(data.results || []);
     } catch (error) {
@@ -148,17 +174,18 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
 
   const dialogContent = (
     <div
-      className="fixed inset-0 bg-[oklch(0%_0_0/0.6)] z-[9999] flex items-start justify-center pt-[60px] pb-[60px] px-4"
-      onClick={onClose}
+      className={`fixed inset-0 bg-[oklch(0%_0_0/0.2)] backdrop-blur-sm z-[9999] flex items-start justify-center pt-[60px] pb-[60px] px-4 transition-opacity duration-200 ease-out ${
+        visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}
+      onClick={requestClose}
     >
       <div
-        className="bg-glass-heavy backdrop-blur-xl rounded-xl shadow-xl w-full max-w-2xl max-h-[calc(100vh-120px)] overflow-hidden border border-glass-heavy-border"
+        className={`bg-glass-heavy backdrop-blur-xl rounded-xl shadow-xl w-full max-w-2xl max-h-[calc(100vh-120px)] overflow-hidden border border-glass-heavy-border transition-all duration-200 ease-out ${
+          visible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-2 scale-[0.98]'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className="flex items-center gap-3 px-4"
-          style={{ height: 'var(--mobile-header-height)' }}
-        >
+        <div className="flex items-center gap-3 px-4" style={{ height: 'var(--logo-row-height)' }}>
           <Search className="w-5 h-5 text-text-tertiary" />
           <input
             type="text"

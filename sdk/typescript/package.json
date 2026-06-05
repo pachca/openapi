@@ -2,18 +2,25 @@
   "name": "@pachca/sdk",
   "version": "0.0.0",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/cjs/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
     }
   },
   "files": ["dist", "src/generated"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/pachca/openapi.git",
+    "url": "git+https://github.com/pachca/openapi.git",
     "directory": "sdk/typescript"
   },
   "publishConfig": {
@@ -23,7 +30,10 @@
   "scripts": {
     "setup": "true",
     "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang typescript --examples && rm -rf src/generated && mv ts src/generated",
-    "build": "tsc"
+    "build": "tsc && tsc -p tsconfig.cjs.json && node -e \"require('fs').writeFileSync('dist/cjs/package.json','{\\\"type\\\":\\\"commonjs\\\"}')\"",
+    "typecheck": "tsc --noEmit",
+    "test:node": "node test/smoke.mjs && node test/smoke.cjs",
+    "verify": "node scripts/verify.mjs"
   },
   "dependencies": {},
   "devDependencies": {

@@ -15,11 +15,11 @@
   },
   "ChatOperations_getChat": {
     "usage": "val response = client.chats.getChat(id = 123)",
-    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String, memberIds: List<Int>?)"
+    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: OffsetDateTime, memberIds: List<Int>?)"
   },
   "ChatOperations_createChat": {
     "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"example\",\n        channel = true,\n        public = true,\n        memberIds = listOf(123)\n    )\n)\nval response = client.chats.createChat(request = request)",
-    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String, memberIds: List<Int>?)",
+    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: OffsetDateTime, memberIds: List<Int>?)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -27,7 +27,7 @@
   },
   "ChatOperations_updateChat": {
     "usage": "val request = ChatUpdateRequest(chat = ChatUpdateRequestChat(name = \"example\", public = true))\nval response = client.chats.updateChat(id = 123, request = request)",
-    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String, memberIds: List<Int>?)",
+    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: OffsetDateTime, memberIds: List<Int>?)",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

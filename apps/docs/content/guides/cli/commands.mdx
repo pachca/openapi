@@ -1,0 +1,43 @@
+---
+title: Команды
+description: "Справочник всех команд Pachca CLI: каждый метод API как команда, паттерн pachca [секция] [действие] [--флаги]. Параметры каждой команды — по клику."
+related:
+  - /guides/cli/api-requests
+  - /guides/cli/output
+  - /guides/cli/scripting
+---
+
+# Команды
+
+Паттерн всех команд: `pachca [секция] [действие] [--флаги]`
+
+Имена команд совпадают с URL документации:
+
+```text noCopy
+dev.pachca.com/api/messages/create  →  pachca messages create
+dev.pachca.com/api/chats/list       →  pachca chats list
+dev.pachca.com/api/members/add      →  pachca members add
+```
+
+Глобальные флаги (доступны для всех команд) и переменные окружения — в разделе [Флаги и скрипты](/guides/cli/scripting).
+
+## Все команды
+
+Раскройте строку, чтобы увидеть параметры команды. Обязательные аргументы и флаги помечены `*`.
+
+<CliCommands />
+
+## Справка
+
+```bash
+# Подробная справка по команде
+pachca messages create --help
+
+# Список всех команд
+pachca commands
+
+# Только команды, доступные текущему токену (фильтр по скоупам)
+pachca commands --available
+```
+
+Не знаете точный эндпоинт — посмотрите список и справку прямо в CLI: `pachca api ls`, затем `pachca api <МЕТОД> <путь> --describe`. Подробнее — в разделе [Прямые запросы](/guides/cli/api-requests).

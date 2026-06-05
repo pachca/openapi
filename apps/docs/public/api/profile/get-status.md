@@ -1,3 +1,7 @@
+> Расположение: Методы API → Профиль и статус
+> Краткое содержание: Метод для получения информации о своем статусе.
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
+
 # Текущий статус
 
 **Метод**: `GET`
@@ -22,12 +26,12 @@ curl "https://api.pachca.com/api/shared/v1/profile/status" \
 **Схема ответа:**
 
 - `data: object` (required) — Статус пользователя
-  - `emoji: string` (required) — Emoji символ статуса
-  - `title: string` (required) — Текст статуса
-  - `expires_at: date-time` (required) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-  - `is_away: boolean` (required) — Режим «Нет на месте»
+  - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
+  - `title: string` (required) — Текст статуса. Пример: `"Очень занят"`
+  - `expires_at: date-time` (required) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-04-08T10:00:00.000Z"`
+  - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
   - `away_message: object` (required) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
-    - `text: string` (required) — Текст сообщения
+    - `text: string` (required) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
 
 **Пример ответа:**
 
@@ -49,8 +53,8 @@ curl "https://api.pachca.com/api/shared/v1/profile/status" \
 
 **Схема ответа при ошибке:**
 
-- `error: string` (required) — Код ошибки
-- `error_description: string` (required) — Описание ошибки
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 **Пример ответа:**
 
@@ -65,8 +69,8 @@ curl "https://api.pachca.com/api/shared/v1/profile/status" \
 
 **Схема ответа при ошибке:**
 
-- `error: string` (required) — Код ошибки
-- `error_description: string` (required) — Описание ошибки
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 **Пример ответа:**
 

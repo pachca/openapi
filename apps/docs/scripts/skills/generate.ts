@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'node:crypto';
 import type { Endpoint, Schema, ParsedAPI } from '../../lib/openapi/types';
 import { generateTitle } from '../../lib/openapi/mapper';
-import { SKILL_TAG_MAP, COMMON_ENDPOINT_MAP, ROUTER_SKILL_CONFIG, TOP_OPERATIONS } from './config';
+import { SKILL_TAG_MAP, COMMON_ENDPOINT_MAP, ROUTER_SKILL_CONFIG } from './config';
 import type { SkillConfig } from './config';
 import { WORKFLOWS } from '@pachca/spec/workflows';
 import type { Workflow } from '@pachca/spec/workflows';
@@ -12,7 +13,13 @@ const REPO_ROOT = path.join(process.cwd(), '..', '..');
 const OUTPUT_DIRS = [
   path.join(REPO_ROOT, 'skills'),
   path.join(process.cwd(), 'public/.well-known/skills'),
+  path.join(process.cwd(), 'public/.well-known/agent-skills'),
 ];
+
+/** RFC digest format: `sha256:` + 64 lowercase hex chars. */
+function sha256(content: string): string {
+  return 'sha256:' + crypto.createHash('sha256').update(content, 'utf8').digest('hex');
+}
 
 function cleanOutputDirs() {
   for (const dir of OUTPUT_DIRS) {
@@ -77,6 +84,8 @@ export function generateAllSkills(api: ParsedAPI) {
   const baseUrl = api.servers[0]?.url || 'https://api.pachca.com/api/shared/v1';
   const skillEndpoints = groupEndpointsBySkill(api.endpoints);
   const results: { path: string; content: string }[] = [];
+  // name → sha256 of the served SKILL.md, for the RFC v0.2.0 discovery index
+  const skillDigests = new Map<string, string>();
 
   for (const config of SKILL_TAG_MAP) {
     if (config.description.length > 1024) {
@@ -95,6 +104,7 @@ export function generateAllSkills(api: ParsedAPI) {
     };
 
     const skillMd = generateSkillMd(ctx);
+    skillDigests.set(config.name, sha256(skillMd));
 
     const basePaths = [
       `skills/${config.name}`,
@@ -179,13 +189,28 @@ export function generateAllSkills(api: ParsedAPI) {
 
   // Generate router skill
   const routerMd = generateRouterSkillMd();
+  skillDigests.set(ROUTER_SKILL_CONFIG.name, sha256(routerMd));
   for (const base of ['skills/pachca', 'apps/docs/public/.well-known/skills/pachca']) {
     results.push({ path: `${base}/SKILL.md`, content: routerMd });
   }
 
+  // Agent Skills Discovery RFC v0.2.0 index. Canonical path is
+  // /.well-known/agent-skills/index.json; also served at the legacy
+  // /.well-known/skills/index.json (Mintlify-style path, referenced by
+  // llms.txt/skill.md) so both discovery conventions work.
+  const rfcIndex = generateIndexJson(skillDigests);
+  results.push({
+    path: 'apps/docs/public/.well-known/agent-skills/index.json',
+    content: rfcIndex,
+  });
   results.push({
     path: 'apps/docs/public/.well-known/skills/index.json',
-    content: generateIndexJson(),
+    content: rfcIndex,
+  });
+  // A2A Agent Card — same skills re-projected into the Agent2Agent schema.
+  results.push({
+    path: 'apps/docs/public/.well-known/agent-card.json',
+    content: generateAgentCardJson(skillDigests),
   });
   results.push({ path: 'AGENTS.md', content: generateAgentsMd() });
 
@@ -299,16 +324,16 @@ function generateSkillMd(ctx: SkillContext): string {
     lines.push('**Bot token only** — user tokens will not work.');
   }
   lines.push('');
-  lines.push('Run commands via `npx @pachca/cli` with the `--token` flag:');
+  lines.push('Run commands via `npx -y @pachca/cli` with the `--token` flag:');
   lines.push('');
-  lines.push('    npx @pachca/cli <command> --token $PACHCA_TOKEN');
+  lines.push('    npx -y @pachca/cli <command> --token $PACHCA_TOKEN');
   lines.push('');
   lines.push('Or set the `PACHCA_TOKEN` environment variable:');
   lines.push('');
   lines.push('    export PACHCA_TOKEN=<token>');
-  lines.push('    npx @pachca/cli <command>');
+  lines.push('    npx -y @pachca/cli <command>');
   lines.push('');
-  lines.push('Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`');
+  lines.push('Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`');
   lines.push('');
   lines.push(
     '> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`'
@@ -320,13 +345,13 @@ function generateSkillMd(ctx: SkillContext): string {
   lines.push('');
   lines.push('1. If the user has a saved profile — check:');
   lines.push('');
-  lines.push('       npx @pachca/cli auth status');
+  lines.push('       npx -y @pachca/cli auth status');
   lines.push('');
   lines.push('   If OK — run commands without `--token`.');
   lines.push('');
   lines.push('2. If no profile is configured — ask for a token and use `--token`:');
   lines.push('');
-  lines.push('       npx @pachca/cli auth status --token $PACHCA_TOKEN');
+  lines.push('       npx -y @pachca/cli auth status --token $PACHCA_TOKEN');
   lines.push('');
   lines.push("3. If you don't know the parameters — run `pachca <command> --help`.");
   lines.push('');
@@ -629,7 +654,7 @@ function generateRouterSkillMd(): string {
   lines.push('## Quick start');
   lines.push('');
   lines.push('```bash');
-  lines.push('npx @pachca/cli <command> --token <TOKEN>');
+  lines.push('npx -y @pachca/cli <command> --token <TOKEN>');
   lines.push('```');
   lines.push('');
   lines.push('## For regular use');
@@ -659,118 +684,144 @@ function generateRouterSkillMd(): string {
   return lines.join('\n');
 }
 
-function generateIndexJson(): string {
-  const skills = SKILL_TAG_MAP.map((config) => {
-    const workflows = WORKFLOWS[config.name] || [];
-    const refWorkflows = workflows.filter((wf) => wf.inline === false);
-    const files = ['SKILL.md'];
-    for (const wf of refWorkflows) {
-      files.push(`references/${slugify(wf.titleEn || wf.title)}.md`);
-    }
-    if (config.name === 'pachca-bots') {
-      files.push('references/webhook-events.md');
-    }
-    return {
-      name: config.name,
-      description: config.description.slice(0, 1024),
-      files,
-    };
-  });
+/**
+ * Agent Skills Discovery RFC v0.2.0 index.
+ * Schema: https://schemas.agentskills.io/discovery/0.2.0/schema.json
+ * Top-level: `$schema` + `skills[]`; each skill: name, type ("skill-md"),
+ * description (≤1024), url (path-absolute), digest ("sha256:<64 hex>").
+ * SKILL.md files are served under /.well-known/skills/<name>/SKILL.md.
+ */
+function generateIndexJson(digests: Map<string, string>): string {
+  const entries = [
+    ...SKILL_TAG_MAP.map((c) => ({ name: c.name, description: c.description })),
+    { name: ROUTER_SKILL_CONFIG.name, description: ROUTER_SKILL_CONFIG.description },
+  ];
 
-  // Add router and lite skills
-  skills.push({
-    name: ROUTER_SKILL_CONFIG.name,
-    description: ROUTER_SKILL_CONFIG.description.slice(0, 1024),
-    files: ['SKILL.md'],
-  });
+  const skills = entries
+    .filter((e) => digests.has(e.name))
+    .map((e) => ({
+      name: e.name,
+      type: 'skill-md' as const,
+      description: e.description.slice(0, 1024),
+      url: `/.well-known/skills/${e.name}/SKILL.md`,
+      digest: digests.get(e.name)!,
+    }));
+
   const index = {
-    repository: 'pachca/openapi',
-    install: 'npx skills add pachca/openapi',
-    documentation: 'https://dev.pachca.com',
+    $schema: 'https://schemas.agentskills.io/discovery/0.2.0/schema.json',
     skills,
   };
 
   return JSON.stringify(index, null, 2) + '\n';
 }
 
+/** "pachca-group-tags" → "Pachca Group Tags" — readable A2A skill name. */
+function humanizeSkillName(slug: string): string {
+  return slug
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+/**
+ * A2A (Agent2Agent) Agent Card, schema v0.2.0, served at
+ * /.well-known/agent-card.json. Re-projects the same skill set as the
+ * agentskills.io discovery index into the A2A shape so A2A-aware orchestrators
+ * can discover the docs as an agent. Does NOT require an MCP server.
+ */
+function generateAgentCardJson(digests: Map<string, string>): string {
+  const SITE = 'https://dev.pachca.com';
+  const configs = [...SKILL_TAG_MAP, ROUTER_SKILL_CONFIG].filter((c) => digests.has(c.name));
+
+  const card = {
+    schemaVersion: '0.2.0',
+    name: 'Pachca API Documentation',
+    description:
+      'Документация и agent-ready навыки для REST API мессенджера Пачка: сообщения, чаты, сотрудники, треды, задачи, боты, вебхуки.',
+    url: SITE,
+    version: '1.0.0',
+    documentationUrl: `${SITE}/llms.txt`,
+    capabilities: { streaming: false },
+    skills: configs.map((c) => ({
+      id: c.name,
+      name: humanizeSkillName(c.name),
+      description: c.description.slice(0, 1024),
+      tags: c.tags ?? [],
+      url: `${SITE}/.well-known/skills/${c.name}/SKILL.md`,
+    })),
+  };
+
+  return JSON.stringify(card, null, 2) + '\n';
+}
+
+/**
+ * AGENTS.md (agents.md / AAIF standard): instructions for AI coding agents
+ * working ON this repository — not for agents consuming the Pachca API
+ * (that lives in skill.md / llms.txt / skills/). Generated so it stays in
+ * sync; keep it concise and factual.
+ */
 function generateAgentsMd(): string {
-  const lines: string[] = [];
+  return `# AGENTS.md
 
-  lines.push('# Pachca API — Agent Skills');
-  lines.push('');
-  lines.push('Pachca — corporate messenger with REST API and CLI.');
-  lines.push('');
-  lines.push('## Quick start');
-  lines.push('');
-  lines.push('```bash');
-  lines.push('npx @pachca/cli <command> --token <TOKEN>');
-  lines.push('```');
-  lines.push('');
-  lines.push('For regular use:');
-  lines.push('');
-  lines.push('```bash');
-  lines.push('npm install -g @pachca/cli && pachca auth login');
-  lines.push('```');
-  lines.push('');
-  lines.push('## Authorization');
-  lines.push('');
-  lines.push(
-    'Use `--token <TOKEN>` flag or `PACHCA_TOKEN` environment variable. Get token: Settings → Automations → API (admin) or bot settings (bot).'
-  );
-  lines.push('');
-  lines.push('## Routing');
-  lines.push('');
-  lines.push('Identify the task and use the appropriate skill:');
-  lines.push('');
-  lines.push('| Task | Skill |');
-  lines.push('|------|-------|');
-  for (const config of SKILL_TAG_MAP) {
-    const shortDesc = config.description.split('.')[0];
-    lines.push(`| ${shortDesc} | \`${config.name}\` |`);
-  }
-  lines.push('');
-  lines.push('## Top 5 operations');
-  lines.push('');
-  lines.push('```bash');
-  for (let i = 0; i < TOP_OPERATIONS.length; i++) {
-    const op = TOP_OPERATIONS[i];
-    if (i > 0) lines.push('');
-    lines.push(`# ${op.comment}`);
-    lines.push(op.command);
-  }
-  lines.push('```');
-  lines.push('');
-  lines.push('## Available skills');
-  lines.push('');
-  lines.push('| Skill | Description | Path |');
-  lines.push('|-------|-------------|------|');
-  for (const config of SKILL_TAG_MAP) {
-    const shortDesc = config.description.split('.')[0];
-    lines.push(
-      `| ${config.name} | ${shortDesc} | [skills/${config.name}/SKILL.md](skills/${config.name}/SKILL.md) |`
-    );
-  }
-  lines.push('');
-  lines.push('## Limitations');
-  lines.push('');
-  lines.push(
-    '- Rate limit: ~4 req/sec per chat (messages), ~50 req/sec (other). Respect `Retry-After` on 429.'
-  );
-  lines.push('- Pagination: cursor-based (`limit` + `cursor`). Check `meta.paginate.next_page`.');
-  lines.push(
-    '- Admin operations (managing employees/tags, deleting messages) require an admin token.'
-  );
-  lines.push('');
-  lines.push('## Installation');
-  lines.push('');
-  lines.push('```bash');
-  lines.push('npx skills add pachca/openapi');
-  lines.push('```');
-  lines.push('');
-  lines.push(
-    'More info: [API Docs](https://dev.pachca.com) · [Full reference](https://dev.pachca.com/llms-full.txt) · [OpenAPI spec](https://dev.pachca.com/openapi.yaml) · CLI help: `pachca --help`'
-  );
-  lines.push('');
+Guidance for AI coding agents working in this repository. (Using the Pachca
+API instead of contributing here? See \`skill.md\`, \`/llms.txt\`, or the
+\`skills/\` directory — not this file.)
 
-  return lines.join('\n');
+## What this repo is
+
+Monorepo (Turborepo + bun) for the Pachca API platform. TypeSpec is the
+single source of truth; everything else is generated from it.
+
+| Path | What |
+|------|------|
+| \`packages/spec\` | TypeSpec (\`typespec.tsp\`) → \`openapi.yaml\`; overlay, \`workflows.ts\`, examples |
+| \`packages/cli\` | oclif CLI \`@pachca/cli\`, generated from OpenAPI |
+| \`packages/generator\` | Multi-language SDK generator |
+| \`packages/openapi-parser\` | Shared OpenAPI parser |
+| \`apps/docs\` | Next.js 16 docs site (dev.pachca.com): \`content/\` MDX, \`lib/\`, \`scripts/\` generators, \`public/\` generated artifacts |
+| \`n8n-nodes-pachca\` | n8n community node |
+
+## Build & check
+
+\`\`\`bash
+npx turbo build      # compiles TypeSpec + builds all packages + regenerates generated files
+npx turbo check      # lint + typecheck + knip + format:check + test — MUST pass before commit (CI runs this)
+bun turbo dev        # docs dev server (Next.js 16)
+\`\`\`
+
+Standard loop: edit source → \`npx turbo build\` → \`npx turbo check\` →
+review generated diffs → commit. Branch from \`origin/main\`; open a PR
+(never push to \`main\`).
+
+## Do NOT hand-edit generated files — edit the generator
+
+| Generated | Source of truth |
+|-----------|-----------------|
+| \`packages/spec/openapi.yaml\` | \`packages/spec/typespec.tsp\` (then \`npx turbo build --filter=@pachca/spec --force\`) |
+| \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, \`public/skill.md\`, \`public/.well-known/**\`, \`public/workflows.arazzo.yaml\`, Postman collection | \`apps/docs/scripts/generate-llms.ts\` + \`scripts/skills/\` |
+| \`packages/cli/src/commands/**\` (except \`auth\`/\`config\`), \`packages/cli/CHANGELOG.md\` | \`packages/cli/scripts/generate-cli.ts\`; \`src/data/changelog.json\` |
+| n8n node files | \`n8n-nodes-pachca\` generator |
+| \`AGENTS.md\` (this file) | \`apps/docs/scripts/skills/generate.ts\` (\`generateAgentsMd()\`) |
+
+CI enforces this: \`scripts/check-generated-sync.mjs\` runs \`bun turbo build\`
+and fails the PR if any generated path drifts from its source.
+\`scripts/check-changelog-sync.mjs\` separately enforces that every code
+change to a published package ships with a release entry (and vice versa).
+
+## Repo-specific gotchas
+
+- A new MDX component must be registered in **three** places: \`apps/docs/components/mdx/mdx-components.tsx\`, \`apps/docs/components/api/markdown-content.tsx\`, and a handler in \`apps/docs/lib/mdx-expander.ts\` (else raw tags leak into generated \`.md\`/\`llms-full.txt\`).
+- Next.js middleware lives in \`apps/docs/proxy.ts\` (Next 16 renamed \`middleware.ts\` → \`proxy.ts\`; both present fails the build).
+- After changing \`typespec.tsp\`, always \`npx turbo build --filter=@pachca/spec --force\` — otherwise \`openapi.yaml\` stays stale.
+- Snapshot regeneration for \`packages/generator\` is a bulk snapshot rewrite. Use \`cd packages/generator && npm run regen-snapshots\` (backed by top-level \`scripts/regen-generator-snapshots.ts\`) instead of ad-hoc \`bun -e\` one-offs or the old \`bin/\` / \`tests/\` helpers.
+- Restart the docs dev server after changing component registrations or new TS/TSX files (Turbopack HMR misses them).
+
+## Deep-dive docs (read before the relevant task)
+
+- \`CONTRIBUTING.md\` — full layout, generation pipeline, build/check, workflow.
+- \`docs/api-audit.md\` — **canonical** API-audit & backend-sync process (run on "проверь API"): scope, what to check, version/changelog bumps, backend sync checkpoint.
+- \`docs/updates-format.md\` — rules for the per-date entry files in \`apps/docs/content/updates/<date>.md\` and the package release entries in \`apps/docs/data/releases.json\` (breaking the parser rules breaks the updates page).
+- \`docs/docs-conventions.md\` — MDX 3-place registration, Turbopack/TypeSpec gotchas, headings & design-system rules.
+- \`docs/releases.md\` — **canonical** package publishing & versioning: how CLI/n8n/generator/SDK reach the registries, the \`check-changelog-sync\` build gate and \`check-release\` publish gate, version rules (CalVer/semver, exact next step), and how to cut a release.
+`;
 }

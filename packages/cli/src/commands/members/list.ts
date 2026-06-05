@@ -7,7 +7,7 @@ export default class MembersList extends BaseCommand {
 
   static override examples = [
       "Подписаться на тред сообщения:\n  $ pachca members add",
-      "Упомянуть пользователя по имени:\n  $ pachca members list",
+      "Упомянуть пользователя:\n  $ pachca members list",
       "Создать канал и пригласить участников:\n  $ pachca members add"
   ];
 
@@ -27,6 +27,8 @@ export default class MembersList extends BaseCommand {
     ...BaseCommand.baseFlags,
     'role': Flags.string({
       description: "Роль в чате",
+      options: ["all","owner","admin","editor","member"],
+      default: "all",
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',
@@ -52,7 +54,7 @@ export default class MembersList extends BaseCommand {
       const seenCursors = new Set<string>();
 
       while (pages < 500) {
-        const query: Record<string, string | number | boolean | undefined> = {
+        const query: Record<string, string | number | boolean | string[] | undefined> = {
         role: flags['role'],
         limit: flags.limit,
           cursor: nextCursor,
@@ -65,6 +67,13 @@ export default class MembersList extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
+        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data
+        const hasNext = paginate?.has_next;
+        if (typeof hasNext === 'boolean') {
+          if (!hasNext) break;
+        } else if (!items || items.length === 0) {
+          break;
+        }
 
         if (process.stderr.isTTY) {
           const total = (paginate as Record<string, unknown> | undefined)?.total;

@@ -1,0 +1,22 @@
+{
+  "Client_Init": {
+    "usage": "client = PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "EventOperations_listEvents": {
+    "usage": "params = ListEventsParams(\n    date_from=\"2024-01-01\",\n    date_to=\"2024-01-01\",\n    created_after=datetime.fromisoformat(\"2024-01-01T00:00:00Z\"),\n    limit=123\n)\nresponse = await client.export.list_events(params=params)",
+    "output": "ListEventsResponse(data: list[Event])",
+    "imports": [
+      "ListEventsParams"
+    ]
+  },
+  "ExportOperations_createExport": {
+    "usage": "request = ExportRequest(\n    start_at=\"2025-03-20\",\n    end_at=\"2025-03-20\",\n    webhook_url=\"example\"\n)\nresponse = await client.export.create_export(request=request)",
+    "output": "Export(id: int, start_at: str, end_at: str, status: str, created_at: datetime)",
+    "imports": [
+      "ExportRequest"
+    ]
+  }
+}

@@ -1,6 +1,10 @@
 ---
 title: Python
-description: Асинхронный типизированный клиент для Pachca API на Python с httpx
+description: "Асинхронный типизированный клиент для Pachca API на Python: httpx, type hints, dataclass-модели, автопагинация и retry. PyPI-пакет, требуется Python 3.10+"
+related:
+  - { path: /guides/sdk/overview, title: SDK }
+  - /api/authorization
+  - /api/pagination
 ---
 
 # Python
@@ -90,7 +94,12 @@ await client.close()
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta.paginate.next_page` — курсор для следующей страницы.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.users.list_users()`, `client.chats.list_chats()`, `client.messages.list_chat_messages()` и т.д.) — `meta.paginate` с полями `next_page`, `prev_page`, `has_next`, `has_prev`. Признак конца — `has_next == False`. Курсор `prev_page` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.search.search_users()`, `client.search.search_chats()`, `client.search.search_messages()`) — `meta` с полями `total` и `paginate.next_page` (без `prev_page`/`has_next`/`has_prev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
+
+Курсоры — непрозрачные токены, никогда не бывают `None`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -98,13 +107,13 @@ await client.close()
 from pachca.models import ListUsersParams
 
 cursor = None
-while True:
+has_next = True
+while has_next:
     response = await client.users.list_users(ListUsersParams(limit=50, cursor=cursor))
     for user in response.data:
         print(user.first_name, user.last_name)
-    if not response.meta or not response.meta.paginate or not response.meta.paginate.next_page:
-        break
     cursor = response.meta.paginate.next_page
+    has_next = response.meta.paginate.has_next
 ```
 
 ### Автопагинация
@@ -180,12 +189,13 @@ except OAuthError as error:
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Реализовано через `RetryTransport` — обёртку над httpx-транспортом
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Типы
 

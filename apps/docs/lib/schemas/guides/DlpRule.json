@@ -131,10 +131,11 @@
           "type": {
             "type": "string",
             "description": "Тип действия",
-            "enum": ["BLOCK", "AUDIT_LOG"],
+            "enum": ["BLOCK", "AUDIT_LOG", "BLOCK_AND_AUDIT_LOG"],
             "x-enum-descriptions": {
               "BLOCK": "удалить текст сообщения",
-              "AUDIT_LOG": "добавить запись в журнал событий"
+              "AUDIT_LOG": "добавить запись в журнал событий",
+              "BLOCK_AND_AUDIT_LOG": "удалить текст сообщения и добавить запись в журнал событий"
             }
           },
           "message": {

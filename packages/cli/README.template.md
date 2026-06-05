@@ -8,7 +8,7 @@
 npm install -g @pachca/cli
 
 # Или без установки:
-npx @pachca/cli users list
+npx -y @pachca/cli users list
 ```
 
 ## Быстрый старт
@@ -200,9 +200,9 @@ pachca changelog
 ## Shell completion
 
 ```
-pachca autocomplete zsh   # zsh completion
-pachca autocomplete bash  # bash completion
-pachca autocomplete fish  # fish completion
+pachca autocomplete zsh         # zsh completion
+pachca autocomplete bash        # bash completion
+pachca autocomplete powershell  # PowerShell completion
 ```
 
 ## Переменные окружения

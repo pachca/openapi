@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: Lint, typecheck, format
@@ -12,6 +16,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          # Full history so changelog-sync can diff against origin/main.
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -21,5 +28,21 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Changelog sync (code ↔ changelog)
+        run: |
+          git fetch --no-tags origin main
+          node scripts/check-changelog-sync.mjs
+        env:
+          CHANGELOG_SYNC_BASE: origin/main
+
       - name: Run checks
         run: bun turbo check
+
+      - name: Generated files in sync with their sources
+        # Runs `turbo build` (cached when possible) and asserts that no
+        # tracked or untracked generator output diverges from what's
+        # checked in. Catches drift like a bumped `changelog.json` without
+        # the matching regenerated `CHANGELOG.md`.
+        run: node scripts/check-generated-sync.mjs
+        env:
+          CI: '1'

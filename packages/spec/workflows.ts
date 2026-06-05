@@ -336,15 +336,67 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       notesEn: 'POST /messages/{id}/thread is idempotent — safe to call repeatedly.',
     },
     {
-      title: 'Упомянуть пользователя по имени',
-      titleEn: 'Mention user by name',
+      title: 'Получить список активных тредов за период',
+      titleEn: 'List active threads in a time window',
       inline: false,
       steps: [
         {
           description:
-            'Определи поисковый запрос — используй фамилию (она уникальнее). Имена не склоняются в API, приводи к именительному падежу',
+            'Запроси список тредов с фильтром по времени последнего сообщения и нужным `--limit`',
           descriptionEn:
-            'Determine search query — use last name (more unique). Names are not declined in API, use nominative case',
+            'Request the threads list filtered by last message time with the desired `--limit`',
+          command:
+            'pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --last-message-at-before=2026-05-20T00:00:00.000Z --limit=50',
+          apiMethod: 'GET',
+          apiPath: '/threads',
+          notes:
+            '`last_message_at_after`/`last_message_at_before` — ISO-8601, UTC+0. `limit` 1-50 (по умолчанию 50). Сортировка — по убыванию времени последнего сообщения.',
+          notesEn:
+            '`last_message_at_after`/`last_message_at_before` — ISO-8601, UTC+0. `limit` 1-50 (default 50). Sorted by last message time descending.',
+        },
+        {
+          description: 'Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`',
+          descriptionEn: 'If `meta.paginate.next_page` is set — iterate pages via `--cursor`',
+          command:
+            'pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --cursor=<next_page>',
+          apiMethod: 'GET',
+          apiPath: '/threads',
+        },
+        {
+          description:
+            'Для каждого треда возьми `chat_id` и подтяни сообщения: `pachca messages list --chat-id=<thread.chat_id>`',
+          descriptionEn:
+            'For each thread take `chat_id` and fetch messages: `pachca messages list --chat-id=<thread.chat_id>`',
+          apiMethod: 'GET',
+          apiPath: '/messages',
+        },
+      ],
+      notes:
+        'Выдача уже, чем `GET /threads/{id}`: возвращаются только треды, в чате треда или в чате с родительским сообщением которых вы состоите. Публичные чаты, в которых вас нет, в список не попадают — даже если `GET /threads/{id}` по конкретному id отдаст такой тред. Для дайджеста по публичному чату нужно быть участником чата с родительским сообщением или чата треда.',
+      notesEn:
+        'The list is narrower than `GET /threads/{id}`: returns only threads whose thread chat or parent message chat you are a member of. Public chats you have not joined are excluded from the list — even if `GET /threads/{id}` would return such a thread by id. For a digest over a public chat you must be a member of the chat with the parent message or of the thread chat.',
+      related: [
+        'Подписаться на тред сообщения',
+        'Получить историю сообщений чата',
+      ],
+      relatedEn: ['Subscribe to message thread', 'Get chat message history'],
+    },
+    {
+      title: 'Упомянуть пользователя',
+      titleEn: 'Mention user',
+      inline: false,
+      steps: [
+        {
+          description:
+            'Если знаешь `user_id` — вставь `<@user_id>` в текст сообщения (например `<@123>`). Бэкенд автоматически преобразует в `@nickname`. Дальнейшие шаги не нужны',
+          descriptionEn:
+            'If you know the `user_id` — insert `<@user_id>` into the message text (e.g. `<@123>`). Backend automatically converts to `@nickname`. No further steps needed',
+        },
+        {
+          description:
+            'Если знаешь только имя — определи поисковый запрос, используй фамилию (она уникальнее). Имена не склоняются в API, приводи к именительному падежу',
+          descriptionEn:
+            'If you only know the name — determine search query, use last name (more unique). Names are not declined in API, use nominative case',
         },
         {
           description: 'Ищи среди участников целевого чата',
@@ -374,13 +426,14 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           descriptionEn: 'One result → use `nickname`. Multiple → ask user to clarify',
         },
         {
-          description: 'Вставь `@nickname` в текст сообщения',
-          descriptionEn: 'Insert `@nickname` into message text',
+          description: 'Вставь `@nickname` или `<@user_id>` в текст сообщения',
+          descriptionEn: 'Insert `@nickname` or `<@user_id>` into message text',
         },
       ],
-      notes: 'Поиск среди участников чата точнее — пользователь явно связан с контекстом.',
+      notes:
+        'Если `user_id` известен, используй `<@user_id>` — это проще и не требует поиска. Поиск среди участников чата точнее — пользователь явно связан с контекстом.',
       notesEn:
-        'Searching among chat members is more precise — user is explicitly linked to context.',
+        'If `user_id` is known, use `<@user_id>` — simpler and requires no lookup. Searching among chat members is more precise — user is explicitly linked to context.',
     },
     {
       title: 'Отредактировать сообщение',
@@ -824,13 +877,13 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
         {
           description:
-            'При появлении ссылки бот получает вебхук `"event": "link_shared"` с массивом `links`',
+            'При появлении ссылки бот получает вебхук `"event": "link_shared"` с массивом `links`. Каждый объект содержит `url`, `domain` и `skip: boolean` — если `skip` равен `true`, автор скрыл превью и бот должен пропустить эту ссылку',
           descriptionEn:
-            'When a link appears, bot receives webhook `"event": "link_shared"` with `links` array',
+            'When a link appears, bot receives webhook `"event": "link_shared"` with `links` array. Each object has `url`, `domain` and `skip: boolean` — if `skip` is `true`, the author hid the preview and the bot must skip this link',
         },
         {
-          description: 'Извлеки данные из своей системы по URL из `links`',
-          descriptionEn: 'Extract data from your system by URL from `links`',
+          description: 'Извлеки данные из своей системы по URL из `links` (пропуская объекты с `skip: true`)',
+          descriptionEn: 'Extract data from your system by URL from `links` (skipping objects with `skip: true`)',
         },
         {
           description: 'Отправь превью-данные',
@@ -1234,6 +1287,41 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         'Creation available only to admins and owners (not bots). No separate "add user to tag" endpoint.',
     },
     {
+      title: 'Создать гостя в чат',
+      titleEn: 'Create a guest in a chat',
+      related: ['Массовое создание сотрудников с тегами'],
+      relatedEn: ['Bulk create employees with tags'],
+      steps: [
+        {
+          description: 'Выбери активный чат, в который добавить гостя — узнай его ID',
+          descriptionEn: 'Pick the active chat to add the guest to — get its ID',
+          command: 'pachca chats list',
+          apiMethod: 'GET',
+          apiPath: '/chats',
+          notes:
+            'Чат должен быть активным (не архивным) и принадлежать вашей компании. У токена должно быть право добавлять в него участников.',
+          notesEn:
+            'The chat must be active (not archived) and belong to your company. The token must have permission to add members to it.',
+        },
+        {
+          description: 'Создай гостя: роль `guest` и ровно один чат в `--chat-ids`',
+          descriptionEn: 'Create the guest: role `guest` and exactly one chat in `--chat-ids`',
+          command:
+            'pachca users create --email="guest@example.com" --role=guest --chat-ids=\'[12345]\'',
+          apiMethod: 'POST',
+          apiPath: '/users',
+          notes:
+            'Для роли `guest` `chat_ids` обязателен и должен содержать ровно один чат. Нарушение (не передан, пусто, больше одного, чат не существует, архивный или нет прав) → `400` с элементом `errors`, где `key` — `chat_ids`.',
+          notesEn:
+            'For the `guest` role `chat_ids` is required and must contain exactly one chat. Any violation (missing, empty, more than one, chat does not exist, archived, or no permission) → `400` with an `errors` item whose `key` is `chat_ids`.',
+        },
+      ],
+      notes:
+        'Для остальных ролей `chat_ids` опционален — можно сразу добавить в несколько чатов. Создание доступно только администраторам и владельцам (не ботам).',
+      notesEn:
+        'For other roles `chat_ids` is optional — you can add to several chats at once. Creation is available only to admins and owners (not bots).',
+    },
+    {
       title: 'Найти сотрудника по имени или email',
       titleEn: 'Find employee by name or email',
       steps: [
@@ -1364,6 +1452,36 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           command: 'pachca users remove-status <user_id> --force',
           apiMethod: 'DELETE',
           apiPath: '/users/{user_id}/status',
+        },
+      ],
+    },
+    {
+      title: 'Загрузить аватар сотрудника',
+      titleEn: 'Upload employee avatar',
+      steps: [
+        {
+          description: 'Загрузи аватар сотруднику',
+          descriptionEn: 'Upload avatar for employee',
+          command: 'pachca users update-avatar <user_id> --file=<путь_к_файлу>',
+          apiMethod: 'PUT',
+          apiPath: '/users/{user_id}/avatar',
+          notes: 'Требует прав администратора. Файл передается в формате multipart/form-data',
+          notesEn: 'Requires admin access. File is sent in multipart/form-data format',
+        },
+      ],
+    },
+    {
+      title: 'Удалить аватар сотрудника',
+      titleEn: 'Delete employee avatar',
+      steps: [
+        {
+          description: 'Удали аватар сотрудника',
+          descriptionEn: 'Delete employee avatar',
+          command: 'pachca users remove-avatar <user_id> --force',
+          apiMethod: 'DELETE',
+          apiPath: '/users/{user_id}/avatar',
+          notes: 'Требует прав администратора',
+          notesEn: 'Requires admin access',
         },
       ],
     },
@@ -1574,6 +1692,34 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       ],
       notes: 'Кастомные поля настраиваются администратором пространства.',
       notesEn: 'Custom fields are configured by workspace admin.',
+    },
+    {
+      title: 'Загрузить аватар профиля',
+      titleEn: 'Upload profile avatar',
+      steps: [
+        {
+          description: 'Загрузи аватар из файла',
+          descriptionEn: 'Upload avatar from file',
+          command: 'pachca profile update-avatar --file=<путь_к_файлу>',
+          apiMethod: 'PUT',
+          apiPath: '/profile/avatar',
+          notes: 'Файл изображения передается в формате multipart/form-data',
+          notesEn: 'Image file is sent in multipart/form-data format',
+        },
+      ],
+    },
+    {
+      title: 'Удалить аватар профиля',
+      titleEn: 'Delete profile avatar',
+      steps: [
+        {
+          description: 'Удали аватар',
+          descriptionEn: 'Delete avatar',
+          command: 'pachca profile delete-avatar --force',
+          apiMethod: 'DELETE',
+          apiPath: '/profile/avatar',
+        },
+      ],
     },
   ],
   'pachca-search': [

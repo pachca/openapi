@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, Copy, ChevronDown, FileText, Link, Bot } from 'lucide-react';
+import { Check, Copy, ChevronDown, FileText, Link, Bot, Rss } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { CopiedTooltip } from './copied-tooltip';
 
@@ -97,6 +97,21 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
         </svg>
         <span className="text-ellipsis overflow-hidden block w-full">Открыть как Markdown</span>
       </button>
+
+      {pageUrl === '/updates' && (
+        <>
+          <div className="w-px h-4 bg-glass-active" />
+          <a
+            href="/feed.xml"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-7 items-center gap-1 text-text-secondary! font-medium hover:text-text-primary! transition-colors duration-200 text-nowrap no-underline!"
+          >
+            <Rss className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+            <span>RSS</span>
+          </a>
+        </>
+      )}
 
       <div className="w-px h-4 bg-glass-active" />
 

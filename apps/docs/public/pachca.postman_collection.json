@@ -184,6 +184,54 @@
           }
         },
         {
+          "name": "Загрузка аватара",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile/avatar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile",
+                "avatar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image\": \"0101010101010101\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Удаление аватара",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profile/avatar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile",
+                "avatar"
+              ]
+            }
+          }
+        },
+        {
           "name": "Текущий статус",
           "request": {
             "method": "GET",
@@ -274,7 +322,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"email\": \"olegp@example.com\",\n    \"phone_number\": \"+79001234567\",\n    \"nickname\": \"olegpetrov\",\n    \"department\": \"Продукт\",\n    \"title\": \"CIO\",\n    \"role\": \"user\",\n    \"suspended\": false,\n    \"list_tags\": [\n      \"Product\",\n      \"Design\"\n    ],\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  },\n  \"skip_email_notify\": true\n}",
+              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"email\": \"olegp@example.com\",\n    \"phone_number\": \"+79001234567\",\n    \"nickname\": \"olegpetrov\",\n    \"department\": \"Продукт\",\n    \"title\": \"CIO\",\n    \"role\": \"user\",\n    \"suspended\": false,\n    \"list_tags\": [\n      \"Product\",\n      \"Design\"\n    ],\n    \"chat_ids\": [\n      12345\n    ],\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  },\n  \"skip_email_notify\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -376,6 +424,68 @@
               "variable": [
                 {
                   "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Загрузка аватара сотрудника",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:user_id/avatar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":user_id",
+                "avatar"
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image\": \"0101010101010101\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Удаление аватара сотрудника",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:user_id/avatar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":user_id",
+                "avatar"
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
                   "value": ""
                 }
               ]
@@ -1040,6 +1150,22 @@
                   "key": "id",
                   "value": ""
                 }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Список тредов",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/threads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "threads"
               ]
             }
           }

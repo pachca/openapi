@@ -51,7 +51,7 @@ export interface RequestOptions {
   path: string;
   token: string;
   body?: unknown;
-  query?: Record<string, string | number | boolean | undefined>;
+  query?: Record<string, string | number | boolean | string[] | undefined>;
   headers?: Record<string, string>;
   timeout?: number;
   noRetry?: boolean;
@@ -72,7 +72,7 @@ export interface ClientFlags {
 const MAX_RETRIES = 3;
 const DEFAULT_TIMEOUT = 30;
 
-function buildUrl(apiPath: string, query?: Record<string, string | number | boolean | undefined>): string {
+function buildUrl(apiPath: string, query?: Record<string, string | number | boolean | string[] | undefined>): string {
   const base = apiPath.startsWith('http://') || apiPath.startsWith('https://')
     ? apiPath
     : apiPath.startsWith('/') ? `${getBaseUrl()}${apiPath}` : `${getBaseUrl()}/${apiPath}`;
@@ -80,7 +80,13 @@ function buildUrl(apiPath: string, query?: Record<string, string | number | bool
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined) {
-        url.searchParams.set(key, String(value));
+        if (Array.isArray(value)) {
+          for (const v of value) {
+            url.searchParams.append(`${key}[]`, String(v));
+          }
+        } else {
+          url.searchParams.set(key, String(value));
+        }
       }
     }
   }

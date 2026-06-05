@@ -1,3 +1,7 @@
+> Расположение: SDK
+> Краткое содержание: Типизированный клиент для Pachca API на TypeScript: Node.js 18+ или любое окружение с fetch. Автодополнение, автопагинация и retry. npm-пакет @pachca/sdk
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
+
 
 # TypeScript
 
@@ -32,7 +36,7 @@ const client = new PachcaClient("YOUR_TOKEN")
 ```typescript
 // Получение профиля
 const response = client.profile.getProfile()
-// → User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })
+// → User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
 ```
 
 
@@ -67,15 +71,19 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.profile.getTokenInfo()` | [Информация о токене](/api/profile/get-info) |
 | `client.profile.getProfile()` | [Информация о профиле](/api/profile/get) |
 | `client.profile.getStatus()` | [Текущий статус](/api/profile/get-status) |
+| `client.profile.updateProfileAvatar()` | [Загрузка аватара](/api/profile/update-avatar) |
 | `client.profile.updateStatus()` | [Новый статус](/api/profile/update-status) |
+| `client.profile.deleteProfileAvatar()` | [Удаление аватара](/api/profile/delete-avatar) |
 | `client.profile.deleteStatus()` | [Удаление статуса](/api/profile/delete-status) |
 | `client.users.createUser()` | [Создать сотрудника](/api/users/create) |
 | `client.users.listUsers()` | [Список сотрудников](/api/users/list) |
 | `client.users.getUser()` | [Информация о сотруднике](/api/users/get) |
 | `client.users.getUserStatus()` | [Статус сотрудника](/api/users/get-status) |
 | `client.users.updateUser()` | [Редактирование сотрудника](/api/users/update) |
+| `client.users.updateUserAvatar()` | [Загрузка аватара сотрудника](/api/users/update-avatar) |
 | `client.users.updateUserStatus()` | [Новый статус сотрудника](/api/users/update-status) |
 | `client.users.deleteUser()` | [Удаление сотрудника](/api/users/delete) |
+| `client.users.deleteUserAvatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.users.deleteUserStatus()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.groupTags.createTag()` | [Новый тег](/api/group-tags/create) |
 | `client.groupTags.listTags()` | [Список тегов сотрудников](/api/group-tags/list) |
@@ -97,6 +105,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.members.leaveChat()` | [Выход из беседы или канала](/api/members/leave) |
 | `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.createThread()` | [Новый тред](/api/threads/add) |
+| `client.threads.listThreads()` | [Список тредов](/api/threads/list) |
 | `client.threads.getThread()` | [Информация о треде](/api/threads/get) |
 | `client.messages.createMessage()` | [Новое сообщение](/api/messages/create) |
 | `client.messages.pinMessage()` | [Закрепление сообщения](/api/messages/pin) |
@@ -132,11 +141,12 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 **GET с параметрами:**
 
 ```typescript
-import { ChatAvailability, SortOrder } from "@pachca/sdk"
+import { ChatAvailability, ChatSortField, SortOrder } from "@pachca/sdk"
 
 // Список чатов
 const response = client.chats.listChats({
-  sortId: SortOrder.Desc,
+  sort: ChatSortField.Id,
+  order: SortOrder.Desc,
   availability: ChatAvailability.IsMember,
   lastMessageAtAfter: "2025-01-01T00:00:00.000Z",
   lastMessageAtBefore: "2025-02-01T00:00:00.000Z",
@@ -144,7 +154,7 @@ const response = client.chats.listChats({
   limit: 1,
   cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
 })
-// → ListChatsResponse({ data: Chat[], meta?: PaginationMeta })
+// → ListChatsResponse({ data: Chat[], meta: PaginationMeta })
 ```
 
 
@@ -179,20 +189,27 @@ const response = client.chats.getChat(334)
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит поле `meta.paginate.nextPage` — курсор для следующей страницы.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.users.listUsers()`, `client.chats.listChats()`, `client.messages.listChatMessages()` и т.д.) — `meta.paginate` с полями `nextPage`, `prevPage`, `hasNext`, `hasPrev`. Признак конца — `hasNext: false`. Курсор `prevPage` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.search.searchUsers()`, `client.search.searchChats()`, `client.search.searchMessages()`) — `meta` с полями `total` и `paginate.nextPage` (без `prevPage`/`hasNext`/`hasPrev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
+
+Курсоры — непрозрачные токены, никогда не бывают `null`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```typescript
 let cursor: string | undefined
+let hasNext = true
 
-do {
+while (hasNext) {
   const response = await client.users.listUsers({ limit: 50, cursor })
   for (const user of response.data) {
     console.log(user.firstName, user.lastName)
   }
-  cursor = response.meta?.paginate?.nextPage
-} while (cursor)
+  cursor = response.meta.paginate.nextPage
+  hasNext = response.meta.paginate.hasNext
+}
 ```
 
 ### Автопагинация
@@ -274,12 +291,12 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- Все остальные ошибки возвращаются сразу без retry
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Сериализация
 
@@ -366,7 +383,7 @@ const response = client.users.listUsers({
   limit: 1,
   cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
 })
-// → ListUsersResponse({ data: User[], meta?: PaginationMeta })
+// → ListUsersResponse({ data: User[], meta: PaginationMeta })
 
 // Создание задачи
 const request: TaskCreateRequest = {
@@ -386,3 +403,10 @@ const response = client.tasks.createTask(request)
 ```
 
 
+
+
+## Связанные разделы
+
+- [SDK](/guides/sdk/overview)
+- [Авторизация](/api/authorization)
+- [Пагинация](/api/pagination)

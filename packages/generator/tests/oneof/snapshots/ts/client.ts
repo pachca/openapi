@@ -3,4 +3,4 @@ import {
   ImageContent,
   VideoContent,
   ContentBlock,
-} from "./types";
+} from "./types.js";

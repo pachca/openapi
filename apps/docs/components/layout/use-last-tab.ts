@@ -4,14 +4,14 @@ import { getActiveTab, type TabId } from '@/lib/tabs-config';
 
 /**
  * Module-level store for the last known tab.
- * Preserved across client-side navigations, resets to 'guide' on full page load.
+ * Preserved across client-side navigations, resets to 'guides' on full page load.
  */
-let storedTab: TabId = 'guide';
+let storedTab: TabId = 'guides';
 
 /**
  * Returns the active tab for the current pathname.
- * If the current page is tab-neutral (e.g. /updates), preserves the last known tab.
- * On full page load, defaults to 'guide'.
+ * If the current page is tab-neutral, preserves the last known tab.
+ * On full page load, defaults to 'guides'.
  */
 export function useActiveTab(): TabId {
   const pathname = usePathname();

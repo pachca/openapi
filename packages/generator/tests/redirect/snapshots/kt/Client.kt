@@ -13,11 +13,17 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-class CommonService internal constructor(
+interface CommonService {
+    suspend fun downloadExport(id: Int): String {
+        throw NotImplementedError("Common.downloadExport is not implemented")
+    }
+}
+
+class CommonServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) {
-    suspend fun downloadExport(id: Int): String {
+) : CommonService {
+    override suspend fun downloadExport(id: Int): String {
         val response = client.get("$baseUrl/exports/$id")
         return when (response.status.value) {
             302 -> response.headers[HttpHeaders.Location]
@@ -28,37 +34,67 @@ class CommonService internal constructor(
     }
 }
 
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1") : Closeable {
-    private val client = HttpClient {
-        expectSuccess = false
-        followRedirects = false
-        install(ContentNegotiation) {
-            json(Json { explicitNulls = false })
+const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
+class PachcaClient private constructor(
+    private val _client: HttpClient?,
+    val common: CommonService
+) : Closeable {
+
+    companion object {
+        operator fun invoke(
+            token: String,
+            baseUrl: String = PACHCA_API_URL,
+            common: CommonService? = null
+        ): PachcaClient {
+            val client = createClient(token)
+            return PachcaClient(
+                _client = client,
+                common = common ?: CommonServiceImpl(baseUrl, client)
+            )
         }
-        install(HttpRequestRetry) {
-            maxRetries = 3
-            retryIf { _, response ->
-                response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
-            }
-            delayMillis { retry ->
-                val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
-                if (retryAfter != null && response?.status?.value == 429) {
-                    retryAfter * 1000L
-                } else {
-                    val base = 10_000L * (1L shl retry)
-                    val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
-                    (base * jitter).toLong()
+
+        fun stub(
+            common: CommonService = object : CommonService {}
+        ): PachcaClient = PachcaClient(
+            _client = null,
+            common = common
+        )
+
+        private fun createClient(token: String): HttpClient = HttpClient {
+            expectSuccess = false
+            followRedirects = false
+            install(ContentNegotiation) { json(Json { explicitNulls = false }) }
+            install(HttpRequestRetry) {
+                maxRetries = 3
+                retryIf { _, response ->
+                    response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
+                }
+                delayMillis { retry ->
+                    val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
+                    if (retryAfter != null && response?.status?.value == 429) {
+                        retryAfter * 1000L
+                    } else {
+                        val base = 10_000L * (1L shl retry)
+                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
+                        (base * jitter).toLong()
+                    }
                 }
             }
-        }
-        defaultRequest {
-            bearerAuth(token)
+            defaultRequest { bearerAuth(token) }
         }
     }
 
-    val common = CommonService(baseUrl, client)
+    constructor(
+        client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
+        common: CommonService? = null
+    ) : this(
+        _client = client,
+        common = common ?: CommonServiceImpl(baseUrl, client)
+    )
 
     override fun close() {
-        client.close()
+        _client?.close()
     }
 }

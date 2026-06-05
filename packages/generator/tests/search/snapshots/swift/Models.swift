@@ -15,9 +15,9 @@ public struct MessageSearchResult: Codable {
     public let chatId: Int
     public let userId: Int
     public let content: String
-    public let createdAt: Date
+    public let createdAt: String
 
-    public init(id: Int, chatId: Int, userId: Int, content: String, createdAt: Date) {
+    public init(id: Int, chatId: Int, userId: Int, content: String, createdAt: String) {
         self.id = id
         self.chatId = chatId
         self.userId = userId
@@ -62,6 +62,8 @@ public struct OAuthError: Codable, Error {
     public init(error: String? = nil) {
         self.error = error
     }
+
+    public var localizedDescription: String { error }
 }
 
 public struct SearchMessagesResponse: Codable {

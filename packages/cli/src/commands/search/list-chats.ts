@@ -70,7 +70,7 @@ export default class SearchListChats extends BaseCommand {
       const seenCursors = new Set<string>();
 
       while (pages < 500) {
-        const query: Record<string, string | number | boolean | undefined> = {
+        const query: Record<string, string | number | boolean | string[] | undefined> = {
         query: flags['query'],
         order: flags['order'],
         'created_from': flags['created-from'],
@@ -89,6 +89,13 @@ export default class SearchListChats extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
+        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data
+        const hasNext = paginate?.has_next;
+        if (typeof hasNext === 'boolean') {
+          if (!hasNext) break;
+        } else if (!items || items.length === 0) {
+          break;
+        }
 
         if (process.stderr.isTTY) {
           const total = (paginate as Record<string, unknown> | undefined)?.total;

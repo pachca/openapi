@@ -23,6 +23,11 @@ public static class MainExample
 
         using var client = new PachcaClient(token);
 
+        // -- Step 0: GET -- Fetch chat (verifies datetime deserialization)
+        Console.WriteLine("0. Fetching chat...");
+        var chat = await client.Chats.GetChatAsync(chatId);
+        Console.WriteLine($"   Chat: {chat.Name}, createdAt={chat.CreatedAt} ({chat.CreatedAt.GetType().Name}), lastMessageAt={chat.LastMessageAt} ({chat.LastMessageAt.GetType().Name})");
+
         // -- Step 1: POST -- Create a message
         Console.WriteLine("1. Creating message...");
         var created = await client.Messages.CreateMessageAsync(new MessageCreateRequest

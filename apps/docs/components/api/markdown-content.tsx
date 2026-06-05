@@ -22,15 +22,18 @@ import {
   ApiCodeExample,
   ModelSchema,
   ScopeRoles,
+  ProductUpdatesLink,
 } from '@/components/mdx/mdx-components';
 import { Steps, Step } from '@/components/mdx/steps';
 
 import { CardGroup, CardRow, Card } from '@/components/mdx/cards';
+import { ParamsTable } from '@/components/mdx/params-table';
 import { Mermaid } from '@/components/mdx/mermaid';
 import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
+import { GlobalFlags } from '@/components/mdx/global-flags';
 import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
 import { PackageBadge } from '@/components/mdx/package-badge';
@@ -187,7 +190,7 @@ const components = {
     </th>
   ),
   td: ({ children }: { children: React.ReactNode }) => (
-    <td className="py-5 pl-0! text-text-primary w-[20%]">{children}</td>
+    <td className="py-5 pl-0! text-text-primary w-[20%] leading-relaxed align-top">{children}</td>
   ),
 
   // Other
@@ -215,6 +218,7 @@ const components = {
   CardGroup,
   CardRow,
   Card,
+  ParamsTable,
   GuideCards,
   ApiCards,
   EndpointLink,
@@ -228,6 +232,7 @@ const components = {
   ScopeRoles,
   AgentSkillsWorkflows,
   CliCommands,
+  GlobalFlags,
   SdkCommands,
   NpmBadge,
   PackageBadge,
@@ -239,6 +244,7 @@ const components = {
   WebhookPlayground,
   MessagePlayground,
   FormPlayground,
+  ProductUpdatesLink,
 };
 
 interface MarkdownContentProps {

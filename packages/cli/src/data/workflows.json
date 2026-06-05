@@ -149,7 +149,22 @@
     ]
   },
   {
-    "title": "Упомянуть пользователя по имени",
+    "title": "Получить список активных тредов за период",
+    "skill": "pachca-messages",
+    "steps": [
+      {
+        "description": "Запроси список тредов с фильтром по времени последнего сообщения и нужным `--limit`",
+        "command": "pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --last-message-at-before=2026-05-20T00:00:00.000Z --limit=50",
+        "notes": "`last_message_at_after`/`last_message_at_before` — ISO-8601, UTC+0. `limit` 1-50 (по умолчанию 50). Сортировка — по убыванию времени последнего сообщения."
+      },
+      {
+        "description": "Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`",
+        "command": "pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --cursor=<next_page>"
+      }
+    ]
+  },
+  {
+    "title": "Упомянуть пользователя",
     "skill": "pachca-messages",
     "steps": [
       {
@@ -523,6 +538,22 @@
     ]
   },
   {
+    "title": "Создать гостя в чат",
+    "skill": "pachca-users",
+    "steps": [
+      {
+        "description": "Выбери активный чат, в который добавить гостя — узнай его ID",
+        "command": "pachca chats list",
+        "notes": "Чат должен быть активным (не архивным) и принадлежать вашей компании. У токена должно быть право добавлять в него участников."
+      },
+      {
+        "description": "Создай гостя: роль `guest` и ровно один чат в `--chat-ids`",
+        "command": "pachca users create --email=\"guest@example.com\" --role=guest --chat-ids='[12345]'",
+        "notes": "Для роли `guest` `chat_ids` обязателен и должен содержать ровно один чат. Нарушение (не передан, пусто, больше одного, чат не существует, архивный или нет прав) → `400` с элементом `errors`, где `key` — `chat_ids`."
+      }
+    ]
+  },
+  {
     "title": "Найти сотрудника по имени или email",
     "skill": "pachca-users",
     "steps": [
@@ -595,6 +626,28 @@
       {
         "description": "Удалить статус",
         "command": "pachca users remove-status <user_id> --force"
+      }
+    ]
+  },
+  {
+    "title": "Загрузить аватар сотрудника",
+    "skill": "pachca-users",
+    "steps": [
+      {
+        "description": "Загрузи аватар сотруднику",
+        "command": "pachca users update-avatar <user_id> --file=<путь_к_файлу>",
+        "notes": "Требует прав администратора. Файл передается в формате multipart/form-data"
+      }
+    ]
+  },
+  {
+    "title": "Удалить аватар сотрудника",
+    "skill": "pachca-users",
+    "steps": [
+      {
+        "description": "Удали аватар сотрудника",
+        "command": "pachca users remove-avatar <user_id> --force",
+        "notes": "Требует прав администратора"
       }
     ]
   },
@@ -724,6 +777,27 @@
       {
         "description": "Получи профиль — в `custom_properties` содержатся значения полей",
         "command": "pachca profile get"
+      }
+    ]
+  },
+  {
+    "title": "Загрузить аватар профиля",
+    "skill": "pachca-profile",
+    "steps": [
+      {
+        "description": "Загрузи аватар из файла",
+        "command": "pachca profile update-avatar --file=<путь_к_файлу>",
+        "notes": "Файл изображения передается в формате multipart/form-data"
+      }
+    ]
+  },
+  {
+    "title": "Удалить аватар профиля",
+    "skill": "pachca-profile",
+    "steps": [
+      {
+        "description": "Удали аватар",
+        "command": "pachca profile delete-avatar --force"
       }
     ]
   },

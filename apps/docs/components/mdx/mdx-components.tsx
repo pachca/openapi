@@ -1,4 +1,11 @@
-import { getSchemaByName, getEndpointByOperation, getBaseUrl } from '@/lib/openapi/parser';
+import { ArrowUpRight, Zap } from 'lucide-react';
+import {
+  getSchemaByName,
+  getEndpointByOperation,
+  getBaseUrl,
+  parseOpenAPI,
+} from '@/lib/openapi/parser';
+import { processSchema } from '@/lib/openapi/resolve-links';
 import { getSdkExamples, getSdkExampleForLang } from '@/lib/sdk-examples';
 import { SchemaTable } from '@/components/api/schema-table';
 import { WebhookSchemaSection } from '@/components/api/webhook-schema-section';
@@ -9,11 +16,13 @@ import { UpdatesList } from '@/components/api/updates-list';
 import { Callout } from '@/components/api/callout';
 import { Steps, Step } from '@/components/mdx/steps';
 import { CardGroup, CardRow, Card, GUIDE_ICONS, API_SECTION_META } from '@/components/mdx/cards';
+import { ParamsTable } from '@/components/mdx/params-table';
 import { Mermaid } from '@/components/mdx/mermaid';
 import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
+import { GlobalFlags } from '@/components/mdx/global-flags';
 import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
 import { PackageBadge } from '@/components/mdx/package-badge';
@@ -421,7 +430,10 @@ export async function ModelSchema({ name }: ModelSchemaProps) {
     );
   }
 
-  return <SchemaTable schema={schema} />;
+  const api = await parseOpenAPI();
+  const resolved = processSchema(schema, api.endpoints);
+
+  return <SchemaTable schema={resolved} />;
 }
 
 // ============================================
@@ -442,6 +454,55 @@ export async function ScopeRoles() {
   return <ScopeRolesTable schema={schema} />;
 }
 
+// Update manually when a new product release goes out
+const LATEST_PRODUCT_UPDATE = {
+  date: '18 мая 2026',
+  title: 'Новое окно прочитавших и поставивших реакцию',
+};
+
+export function ProductUpdatesLink() {
+  return (
+    <a
+      href="https://pachca.com/updates"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group not-prose mb-10 flex flex-col rounded-xl border border-glass-border bg-glass backdrop-blur-md no-underline! transition-colors duration-200 hover:bg-glass-hover hover:border-glass-heavy-border"
+    >
+      <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex h-[21px] shrink-0 items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-white">
+            <Zap className="h-3 w-3 fill-white stroke-none" />
+            new
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="shrink-0 text-[13px] text-text-secondary font-medium">
+              {LATEST_PRODUCT_UPDATE.date}
+            </span>
+            <span className="hidden sm:inline text-text-tertiary text-[14px]">·</span>
+            <span className="hidden sm:inline truncate text-[14px] font-medium text-text-primary">
+              {LATEST_PRODUCT_UPDATE.title}
+            </span>
+          </div>
+        </div>
+        <span className="sm:hidden mt-1 text-[14px] font-medium text-text-primary">
+          {LATEST_PRODUCT_UPDATE.title}
+        </span>
+        <span className="ml-auto hidden  text-text-secondary font-normal shrink-0 items-center gap-0.5 text-[13px] transition-colors group-hover:text-text-primary lg:flex">
+          Обновления продукта
+          <ArrowUpRight className="h-3.5 w-3.5 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </span>
+      </div>
+      <div className="lg:hidden">
+        <div className="mx-4 border-t border-glass-divider" />
+        <div className="flex items-center  text-text-secondary font-normal gap-0.5 px-4 py-2.5 text-[13px]">
+          Обновления продукта
+          <ArrowUpRight className="h-3.5 w-3.5 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </div>
+      </div>
+    </a>
+  );
+}
+
 export const customMdxComponents = {
   SchemaBlock,
   HttpCodes,
@@ -458,6 +519,7 @@ export const customMdxComponents = {
   CardGroup,
   CardRow,
   Card,
+  ParamsTable,
   GuideCards,
   ApiCards,
   Mermaid,
@@ -475,10 +537,12 @@ export const customMdxComponents = {
   FormPlayground,
   AgentSkillsWorkflows,
   CliCommands,
+  GlobalFlags,
   SdkCommands,
   NpmBadge,
   PackageBadge,
   HomeHero,
   HomeHeroContent,
   HomeHeroCode,
+  ProductUpdatesLink,
 };

@@ -1,9 +1,13 @@
 ---
-title: CSharp
-description: Типизированный клиент для Pachca API на C# с async/await и автопагинацией
+title: "C#"
+description: "Типизированный клиент для Pachca API на C#: .NET 8+ с async/await, CancellationToken, автопагинацией и обработкой retry. NuGet-пакет Pachca.Sdk"
+related:
+  - { path: /guides/sdk/overview, title: SDK }
+  - /api/authorization
+  - /api/pagination
 ---
 
-# CSharp
+# C#
 
 <CardRow>
   <Card compact icon="Package" title="Pachca.Sdk" href="https://www.nuget.org/packages/Pachca.Sdk">NuGet</Card>
@@ -84,20 +88,27 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит поле `Meta.Paginate.NextPage` — курсор для следующей страницы.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `Meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.Users.ListUsersAsync()`, `client.Chats.ListChatsAsync()`, `client.Messages.ListChatMessagesAsync()` и т.д.) — `Meta.Paginate` с полями `NextPage`, `PrevPage`, `HasNext`, `HasPrev`. Признак конца — `HasNext == false`. Курсор `PrevPage` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.Search.SearchUsersAsync()`, `client.Search.SearchChatsAsync()`, `client.Search.SearchMessagesAsync()`) — `Meta` с полями `Total` и `Paginate.NextPage` (без `PrevPage`/`HasNext`/`HasPrev`). Признак конца — пустой `Data` или совпадение числа полученных записей с `Total`.
+
+Курсоры — непрозрачные токены, никогда не бывают `null`. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```csharp
 var chats = new List<Chat>();
 string? cursor = null;
+var hasNext = true;
 
-do
+while (hasNext)
 {
     var response = await client.Chats.ListChatsAsync(cursor: cursor);
     chats.AddRange(response.Data);
-    cursor = response.Meta?.Paginate?.NextPage;
-} while (cursor != null);
+    cursor = response.Meta.Paginate.NextPage;
+    hasNext = response.Meta.Paginate.HasNext;
+}
 ```
 
 ### Автопагинация
@@ -182,11 +193,11 @@ catch (OAuthError e)
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Отмена запросов

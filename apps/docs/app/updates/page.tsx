@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = data.frontmatter.description || extractFirstParagraph(data.content);
 
   return {
-    title: data.frontmatter.title,
+    title: { absolute: `${data.frontmatter.title} | Руководство разработчика` },
     description,
     alternates: {
       canonical: '/updates',
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'Пачка',
       locale: 'ru_RU',
       description,
-      images: ['/api/og?type=updates'],
+      images: ['/internal/og?type=updates'],
     },
   };
 }
@@ -38,5 +38,5 @@ export default async function UpdatesPage() {
     notFound();
   }
 
-  return <UpdatesPageContent />;
+  return <UpdatesPageContent variant="home" />;
 }

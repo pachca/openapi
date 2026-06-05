@@ -1,6 +1,10 @@
 ---
 title: Kotlin
-description: Типизированный клиент для Pachca API на Kotlin с корутинами и Ktor
+description: "Типизированный клиент для Pachca API на Kotlin: Ktor с корутинами, kotlinx.serialization и встроенным retry. JitPack, требуется Kotlin 2.2+ и Java 11+"
+related:
+  - { path: /guides/sdk/overview, title: SDK }
+  - /api/authorization
+  - /api/pagination
 ---
 
 # Kotlin
@@ -20,7 +24,7 @@ description: Типизированный клиент для Pachca API на Ko
 
 ```kotlin
 dependencies {
-    implementation("com.pachca:pachca-sdk:1.0.1")
+    implementation("com.pachca:pachca-sdk:latest.release")
 }
 ```
 
@@ -100,19 +104,26 @@ client.close()
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta?.paginate?.nextPage` — курсор для следующей страницы.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.users.listUsers()`, `client.chats.listChats()`, `client.messages.listChatMessages()` и т.д.) — `meta.paginate` с полями `nextPage`, `prevPage`, `hasNext`, `hasPrev`. Признак конца — `hasNext == false`. Курсор `prevPage` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.search.searchUsers()`, `client.search.searchChats()`, `client.search.searchMessages()`) — `meta` с полями `total` и `paginate.nextPage` (без `prevPage`/`hasNext`/`hasPrev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
+
+Курсоры — непрозрачные токены, никогда не бывают `null`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```kotlin
 var cursor: String? = null
-do {
+var hasNext = true
+while (hasNext) {
     val response = client.users.listUsers(limit = 50, cursor = cursor)
     for (user in response.data) {
         println("${user.firstName} ${user.lastName}")
     }
-    cursor = response.meta?.paginate?.nextPage
-} while (cursor != null)
+    cursor = response.meta.paginate.nextPage
+    hasNext = response.meta.paginate.hasNext
+}
 ```
 
 ### Автопагинация
@@ -191,12 +202,13 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests` или серверной ошибки (`5xx`):
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — линейный backoff: 1 сек, 2 сек, 3 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff с jitter
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Реализовано через плагин Ktor `HttpRequestRetry`
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Типы
 

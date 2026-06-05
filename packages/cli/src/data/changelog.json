@@ -1,5 +1,129 @@
 [
   {
+    "version": "2026.5.6",
+    "date": "21 мая 2026",
+    "changes": [
+      {
+        "type": "~",
+        "command": "api",
+        "description": "В выводе `pachca api <МЕТОД> <путь> --describe` у полей запроса и ответа появились примеры значений"
+      }
+    ]
+  },
+  {
+    "version": "2026.5.4",
+    "date": "20 мая 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "threads list",
+        "description": "Новая команда — список доступных тредов с фильтрами `--last-message-at-after` / `--last-message-at-before` и курсорной пагинацией"
+      }
+    ]
+  },
+  {
+    "version": "2026.5.2",
+    "date": "17 мая 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "users create",
+        "description": "Параметр `--chat-ids` — добавить сотрудника в указанные чаты сразу при создании. Параметр `--role` теперь принимает значение `guest`: для роли `guest` нужно передать `--chat-ids` ровно с одним активным чатом, иначе API вернёт `400`"
+      },
+      {
+        "type": "+",
+        "command": "api",
+        "description": "Список эндпоинтов и справка по API прямо в CLI: `pachca api ls` (список всех эндпоинтов), `pachca api <МЕТОД> <путь> --describe` / `--spec` / `--docs` (параметры, тело, схема, пример). Данные берутся из той же OpenAPI-спецификации, из которой собран CLI, — всегда совпадают с актуальным API. Агенту не нужно искать эндпоинт в документации"
+      },
+      {
+        "type": "+",
+        "command": "api",
+        "description": "Флаг `--data` — тело запроса инлайн JSON-строкой (`pachca api POST /messages --data '{...}'`)"
+      },
+      {
+        "type": "+",
+        "description": "Флаг `--plain` — плоский TSV-вывод для скриптов: без заголовка, колонка id первой, без цвета и обрезки"
+      },
+      {
+        "type": "+",
+        "description": "Переменная окружения `PACHCA_HOME` — переопределение каталога конфига (для изоляции в CI, тестах и у агентов)"
+      }
+    ]
+  },
+  {
+    "version": "2026.5.1",
+    "date": "6 мая 2026",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Поддержка обновлённого формата курсорной пагинации в list-командах"
+      }
+    ]
+  },
+  {
+    "version": "2026.5.0",
+    "date": "4 мая 2026",
+    "changes": [
+      {
+        "type": "~",
+        "command": "users list, users get, users create, users update, profile get",
+        "description": "В вывод модели сотрудника добавлено поле inviter_id — кто пригласил сотрудника (null для самостоятельной регистрации или удалённого пригласившего)"
+      },
+      {
+        "type": "~",
+        "command": "users list, users get, users create, users update, profile get",
+        "description": "Поля last_name, email, phone_number, department, title, time_zone, last_activity_at в модели сотрудника теперь корректно объявлены как nullable (email и phone_number возвращают null для ботов без права просмотра персональных данных)"
+      }
+    ]
+  },
+  {
+    "version": "2026.4.1",
+    "date": "8 апреля 2026",
+    "changes": [
+      {
+        "type": "~",
+        "command": "messages create, messages update",
+        "description": "Поддержка упоминаний по ID: `<@user_id>` в тексте сообщения автоматически преобразуется в `@nickname`"
+      }
+    ]
+  },
+  {
+    "version": "2026.4.0",
+    "date": "7 апреля 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "profile update-avatar",
+        "description": "Загрузка аватара профиля"
+      },
+      {
+        "type": "+",
+        "command": "profile delete-avatar",
+        "description": "Удаление аватара профиля"
+      },
+      {
+        "type": "+",
+        "command": "users update-avatar",
+        "description": "Загрузка аватара сотрудника"
+      },
+      {
+        "type": "+",
+        "command": "users remove-avatar",
+        "description": "Удаление аватара сотрудника"
+      },
+      {
+        "type": "~",
+        "command": "chats list, messages list",
+        "description": "Исправлена сортировка: --order без --sort теперь корректно работает (sort по умолчанию id, order по умолчанию desc)"
+      },
+      {
+        "type": "~",
+        "command": "messages list",
+        "description": "chat_id можно передать первым аргументом: pachca messages list 12345"
+      }
+    ]
+  },
+  {
     "version": "2026.3.10",
     "date": "21 марта 2026",
     "changes": [

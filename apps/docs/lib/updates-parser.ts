@@ -1,5 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import matter from 'gray-matter';
+import { formatDateRu } from './format-date';
+
+export { formatDateRu };
 
 export interface ParsedUpdate {
   date: string; // ISO format: YYYY-MM-DD
@@ -8,83 +12,127 @@ export interface ParsedUpdate {
   content: string; // Markdown content
 }
 
-const MONTHS_RU: Record<string, string> = {
-  '01': 'января',
-  '02': 'февраля',
-  '03': 'марта',
-  '04': 'апреля',
-  '05': 'мая',
-  '06': 'июня',
-  '07': 'июля',
-  '08': 'августа',
-  '09': 'сентября',
-  '10': 'октября',
-  '11': 'ноября',
-  '12': 'декабря',
-};
+export type ReleaseProduct = 'cli' | 'sdk' | 'generator' | 'n8n';
 
-/**
- * Convert ISO date (YYYY-MM-DD) to Russian display format (DD месяца YYYY)
- */
-function formatDateRu(isoDate: string): string {
-  const [year, month, day] = isoDate.split('-');
-  const monthName = MONTHS_RU[month] || month;
-  return `${day} ${monthName} ${year}`;
+export interface ReleaseChange {
+  type: '+' | '~' | '-';
+  description: string;
+}
+
+export interface ParsedRelease {
+  product: ReleaseProduct;
+  version: string;
+  date: string; // ISO format: YYYY-MM-DD
+  displayDate: string;
+  changes: ReleaseChange[];
+}
+
+export type TimelineEntry =
+  | { kind: 'update'; data: ParsedUpdate }
+  | { kind: 'release'; data: ParsedRelease };
+
+export interface DateGroup {
+  date: string;
+  displayDate: string;
+  entries: TimelineEntry[];
 }
 
 /**
- * Parse updates from markdown file with HTML comment markers:
- *
- * &lt;!-- update:YYYY-MM-DD --&gt;
- * ## Title
- * Content...
- */
-export function parseUpdatesFromMdx(mdxContent: string): ParsedUpdate[] {
-  const updates: ParsedUpdate[] = [];
-
-  // Split by update markers (HTML comment format)
-  const updatePattern = /<!--\s*update:(\d{4}-\d{2}-\d{2})\s*-->/g;
-  const parts = mdxContent.split(updatePattern);
-
-  // Parts will be: [intro, date1, content1, date2, content2, ...]
-  // Skip intro (index 0), then process pairs of (date, content)
-  for (let i = 1; i < parts.length; i += 2) {
-    const date = parts[i];
-    const rawContent = parts[i + 1];
-
-    if (!date || !rawContent) continue;
-
-    // Extract title from ## heading
-    const titleMatch = rawContent.match(/^[\s\n]*##\s+(.+)$/m);
-    const title = titleMatch ? titleMatch[1].trim() : 'Обновление';
-
-    // Get content after the title line
-    const contentAfterTitle = rawContent.replace(/^[\s\n]*##\s+.+$/m, '').trim();
-
-    updates.push({
-      date,
-      displayDate: formatDateRu(date),
-      title,
-      content: contentAfterTitle,
-    });
-  }
-
-  return updates;
-}
-
-/**
- * Load and parse updates from content/updates.mdx
+ * Load and parse updates from per-date files content/updates/<date>.md.
+ * Each file has YAML frontmatter (date, title) + markdown body.
+ * Returned sorted by date descending.
  */
 export function loadUpdates(): ParsedUpdate[] {
-  const updatesPath = path.join(process.cwd(), 'content', 'updates.mdx');
+  const updatesDir = path.join(process.cwd(), 'content', 'updates');
 
   try {
-    const content = fs.readFileSync(updatesPath, 'utf-8');
-    return parseUpdatesFromMdx(content);
+    const files = fs.readdirSync(updatesDir).filter((f) => f.endsWith('.md'));
+    const updates: ParsedUpdate[] = [];
+
+    for (const file of files) {
+      const fileContent = fs.readFileSync(path.join(updatesDir, file), 'utf-8');
+      const { data, content } = matter(fileContent);
+      const date = String(data.date || file.replace(/\.md$/, ''));
+      const title = String(data.title || 'Обновление');
+
+      updates.push({
+        date,
+        displayDate: formatDateRu(date),
+        title,
+        content: content.trim(),
+      });
+    }
+
+    updates.sort((a, b) => b.date.localeCompare(a.date));
+    return updates;
   } catch (error) {
     console.error('Error loading updates:', error);
     return [];
   }
+}
+
+/**
+ * Load and parse product releases from data/releases.json
+ */
+export function loadReleases(): ParsedRelease[] {
+  const releasesPath = path.join(process.cwd(), 'data', 'releases.json');
+
+  try {
+    const content = fs.readFileSync(releasesPath, 'utf-8');
+    const raw = JSON.parse(content) as Array<{
+      product: ReleaseProduct;
+      version: string;
+      date: string;
+      changes: ReleaseChange[];
+    }>;
+    return raw.map((r) => ({
+      ...r,
+      displayDate: formatDateRu(r.date),
+    }));
+  } catch (error) {
+    console.error('Error loading releases:', error);
+    return [];
+  }
+}
+
+/**
+ * Load unified timeline: API updates + product releases, sorted by date descending
+ */
+export function loadTimeline(): TimelineEntry[] {
+  const updates = loadUpdates();
+  const releases = loadReleases();
+
+  const entries: TimelineEntry[] = [
+    ...updates.map((u) => ({ kind: 'update' as const, data: u })),
+    ...releases.map((r) => ({ kind: 'release' as const, data: r })),
+  ];
+
+  entries.sort((a, b) => b.data.date.localeCompare(a.data.date));
+
+  return entries;
+}
+
+/**
+ * Group timeline entries by date
+ */
+export function groupTimelineByDate(entries: TimelineEntry[]): DateGroup[] {
+  const groups: Map<string, TimelineEntry[]> = new Map();
+
+  for (const entry of entries) {
+    const date = entry.data.date;
+    if (!groups.has(date)) {
+      groups.set(date, []);
+    }
+    groups.get(date)!.push(entry);
+  }
+
+  return Array.from(groups.entries())
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([date, items]) => ({
+      date,
+      displayDate: formatDateRu(date),
+      entries: items,
+    }));
 }
 
 /**

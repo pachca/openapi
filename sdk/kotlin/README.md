@@ -12,7 +12,7 @@ Kotlin клиент для [Pachca API](https://dev.pachca.com).
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.pachca:pachca-sdk:1.0.1")
+    implementation("com.pachca:pachca-sdk:latest.release")
 }
 ```
 
@@ -69,11 +69,12 @@ val message = pachca.messages.createMessage(...)  // Message, не MessageRespon
 // Вручную
 val chats = mutableListOf<Chat>()
 var cursor: String? = null
-do {
+while (true) {
     val response = pachca.chats.listChats(cursor = cursor)
+    if (response.data.isEmpty()) break
     chats.addAll(response.data)
-    cursor = response.meta?.paginate?.nextPage
-} while (cursor != null)
+    cursor = response.meta.paginate.nextPage
+}
 
 // Автоматически
 val allChats = pachca.chats.listChatsAll()
@@ -84,6 +85,30 @@ val allChats = pachca.chats.listChatsAll()
 ## Повторные запросы
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
+
+## Свой HTTP-клиент
+
+Для настройки прокси, сериализации и других параметров HTTP используйте конструктор с готовым Ktor `HttpClient`:
+
+```kotlin
+import com.pachca.sdk.PachcaClient
+import com.pachca.sdk.PACHCA_API_URL
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+
+val http = HttpClient(CIO) {
+    engine {
+        proxy = ProxyBuilder.http(Url("http://proxy:8080"))
+    }
+    defaultRequest {
+        headers.append("Authorization", "Bearer $token")
+    }
+}
+
+val client = PachcaClient(client = http, baseUrl = PACHCA_API_URL)
+```
+
+Полный пример: [`examples/httpclient.kt`](examples/httpclient.kt)
 
 ## Загрузка файлов
 
@@ -111,3 +136,31 @@ try {
     println("Ошибка API: ${e.errors}")
 }
 ```
+
+## Тестирование
+
+Для unit-тестов используйте `PachcaClient.stub()` — создаёт клиент без HTTP-подключения.
+
+Методы без переопределения выбрасывают `NotImplementedError("Service.method is not implemented")`:
+
+```kotlin
+import com.pachca.sdk.*
+import io.mockk.coEvery
+import io.mockk.mockk
+
+// Мок-сервис
+val mockMessages = mockk<MessagesService>()
+coEvery { mockMessages.getMessage(any()) } returns Message(
+    id = 1,
+    content = "Test message",
+    entityId = 123
+)
+
+// Тест
+val client = PachcaClient.stub(messages = mockMessages)
+
+val message = client.messages.getMessage(1)
+assertEquals("Test message", message.content)
+```
+
+Полный пример: [`examples/stub.kt`](examples/stub.kt)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -14,7 +15,7 @@ class MessageSearchResult:
     chat_id: int
     user_id: int
     content: str
-    created_at: str
+    created_at: datetime
 
 
 @dataclass
@@ -32,14 +33,17 @@ class SearchPaginationMeta:
 class OAuthError(Exception):
     error: str | None = None
 
+    def __str__(self) -> str:
+        return self.error
+
 
 @dataclass
 class SearchMessagesParams:
     query: str
     chat_ids: list[int] | None = None
     user_ids: list[int] | None = None
-    created_from: str | None = None
-    created_to: str | None = None
+    created_from: datetime | None = None
+    created_to: datetime | None = None
     sort: SearchSort | None = None
     limit: int | None = None
     cursor: str | None = None

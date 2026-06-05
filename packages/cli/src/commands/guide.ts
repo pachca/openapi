@@ -24,7 +24,7 @@ export default class Guide extends BaseCommand {
 
   static override args = {
     query: Args.string({
-      description: 'Search query',
+      description: 'Поисковый запрос',
       required: false,
     }),
   };

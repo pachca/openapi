@@ -1,6 +1,6 @@
 ---
 title: Обзор
-description: Руководство разработчика и документация API Пачки
+description: "Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n и Agent Skills для AI-агентов"
 hideTableOfContents: true
 ---
 
@@ -13,8 +13,10 @@ hideTableOfContents: true
     <Card compact title="Быстрый старт" icon="Zap" href="/guides/quickstart" />
     <Card compact title="Авторизация" icon="KeyRound" href="/api/authorization" />
     <Card compact title="Модели API" icon="Database" href="/api/models" />
-    <Card compact title="CLI" icon="Terminal" href="/guides/cli" />
+    <Card compact title="AI агенты" icon="Sparkles" href="/guides/ai-agents/overview" />
+    <Card compact title="CLI" icon="Terminal" href="/guides/cli/overview" />
     <Card compact title="SDK" icon="FileText" href="/guides/sdk/overview" />
+    <Card compact title="n8n" icon="Blocks" href="/guides/n8n/overview" />
   </HomeHeroContent>
   <HomeHeroCode>
     <ApiCodeExample defaultLang="cli" operationId="MessageOperations_createMessage" title="Отправка сообщения" show="request" />
@@ -26,7 +28,7 @@ hideTableOfContents: true
 Создавайте ботов, обрабатывайте команды, добавляйте кнопки и формы в сообщения, получайте события через вебхуки.
 
 <CardGroup>
-  <Card title="Боты" icon="Bot" href="/guides/bots">
+  <Card title="Боты" icon="Bot" href="/guides/bots/overview">
     Создание и настройка ботов
   </Card>
   <Card title="Кнопки" icon="MousePointerClick" href="/guides/buttons">
@@ -38,7 +40,7 @@ hideTableOfContents: true
   <Card title="Входящие вебхуки" icon="ArrowDownToLine" href="/guides/incoming-webhooks">
     Сообщения по URL без кода
   </Card>
-  <Card title="Исходящие вебхуки" icon="Webhook" href="/guides/webhook">
+  <Card title="Исходящие вебхуки" icon="Webhook" href="/guides/webhook/overview">
     События в реальном времени
   </Card>
   <Card title="Разворачивание ссылок" icon="LinkIcon" href="/guides/link-previews">
@@ -46,16 +48,25 @@ hideTableOfContents: true
   </Card>
 </CardGroup>
 
-## No-code интеграции
+## Основы API
 
-Подключайте Пачку к внешним сервисам без написания кода.
+Базовые концепции для работы с API: формат запросов, обработка ошибок, лимиты, пагинация и загрузка файлов.
 
 <CardGroup>
-  <Card title="n8n" icon="Blocks" href="/guides/n8n">
-    Визуальные автоматизации
+  <Card title="Запросы и ответы" icon="ArrowLeftRight" href="/api/requests-responses">
+    Базовый URL, заголовки, формат данных
   </Card>
-  <Card title="Albato" icon="Zap" href="/guides/albato">
-    Подключение 250+ сервисов
+  <Card title="Ошибки" icon="AlertTriangle" href="/api/errors">
+    HTTP-коды и структуры ответов
+  </Card>
+  <Card title="Лимиты" icon="Gauge" href="/api/limits">
+    Rate limits и повторные запросы
+  </Card>
+  <Card title="Пагинация" icon="ListOrdered" href="/api/pagination">
+    Обход больших списков по курсору
+  </Card>
+  <Card title="Загрузка файлов" icon="Upload" href="/api/file-uploads">
+    Прямая загрузка в S3 одной командой
   </Card>
 </CardGroup>
 
@@ -84,12 +95,18 @@ hideTableOfContents: true
     Описание всех методов в YAML
   </Card>
   <Card title="Коллекция Postman" icon="LayoutList" href="/pachca.postman_collection.json" download>
-    Все методы с примерами для Postman и Bruno
+    Все методы с примерами
+  </Card>
+  <Card title="Arazzo-сценарии" icon="Route" href="/workflows.arazzo.yaml" download>
+    Многошаговые сценарии API для агентов
   </Card>
   <Card title="llms.txt" icon="Sparkles" href="/llms.txt" download>
     Краткое описание API для LLM
   </Card>
   <Card title="llms-full.txt" icon="Sparkles" href="/llms-full.txt" download>
     Полное описание API для LLM
+  </Card>
+  <Card title="llms-en.txt" icon="Sparkles" href="/llms-en.txt" download>
+    English API documentation for LLM
   </Card>
 </CardGroup>

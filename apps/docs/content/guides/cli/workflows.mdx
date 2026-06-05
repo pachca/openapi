@@ -1,0 +1,44 @@
+---
+title: Сценарии
+description: "Готовые пошаговые сценарии Pachca CLI через pachca guide: поиск рецептов по задаче, последовательности команд с комментариями."
+related:
+  - /guides/cli/scripting
+  - /guides/cli/commands
+  - { path: /guides/ai-agents/overview, title: AI-агенты }
+---
+
+# Сценарии
+
+CLI включает готовые пошаговые [сценарии](/guides/workflows) для типичных задач. Каждый сценарий — это последовательность команд с комментариями: какой метод вызвать, какие параметры передать, на что обратить внимание. Не знаете, какую команду использовать — поищите по задаче:
+
+```bash
+# Поиск сценариев по ключевым словам
+pachca guide "отправить файл"
+pachca guide "создать беседу и добавить участников"
+
+# Список всех сценариев
+pachca guide
+```
+
+```bash title="Примеры сценариев"
+pachca guide "создать напоминание"
+
+#  Сценарий: Создать напоминание  (pachca-tasks)
+#
+#  1. $ pachca tasks create --kind=reminder --content="Позвонить клиенту" --due-at=<дата> --chat-id=<chat_id>
+
+pachca guide "кастомные поля профиля"
+
+#  Сценарий: Получить кастомные поля профиля  (pachca-profile)
+#
+#  1. $ pachca common custom-properties  # entity_type=User
+#  2. $ pachca profile get  # custom_properties содержит значения полей
+
+pachca guide "активные чаты"
+
+#  Сценарий: Найти активные чаты за период  (pachca-chats)
+#
+#  1. $ pachca chats list --last-message-at-after=<дата> --all
+```
+
+Полный каталог сценариев с описаниями — в разделе [Сценарии](/guides/workflows). Он полезен обеим аудиториям: человеку как шпаргалка, агенту — как готовая последовательность вызовов под задачу.

@@ -2,6 +2,7 @@
 
 import React, { useState, type ReactNode } from 'react';
 import { CopiedTooltip } from './copied-tooltip';
+import { EndpointLink } from './endpoint-link';
 import type { Schema } from '@/lib/openapi/types';
 
 interface SchemaTableProps {
@@ -152,20 +153,42 @@ function collectProperties(schema: Schema): PropertyInfo[] {
 }
 
 function renderInlineMarkdown(text: string): ReactNode {
-  const parts = text.split(/(`[^`]+`)/g);
+  // Split on inline code OR markdown link.
+  // Link form after resolveEndpointLinks(mdx: false) is `[text](METHOD:url)`
+  // for resolved endpoints, or `[text](url)` for plain links / unresolved.
+  const parts = text.split(/(`[^`]+`|\[[^\]]+\]\([^)]+\))/g);
   if (parts.length === 1) return text;
-  return parts.map((part, i) =>
-    part.startsWith('`') && part.endsWith('`') ? (
-      <code
-        key={i}
-        className="text-[12px] font-mono text-text-primary bg-glass px-1 py-0.5 rounded-md border border-glass-border"
-      >
-        {part.slice(1, -1)}
-      </code>
-    ) : (
-      part
-    )
-  );
+  return parts.map((part, i) => {
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code
+          key={i}
+          className="text-[12px] font-mono text-text-primary bg-glass px-1 py-0.5 rounded-md border border-glass-border"
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (link) {
+      const [, label, href] = link;
+      const method = href.match(/^(GET|POST|PUT|DELETE|PATCH):(.+)$/);
+      if (method) {
+        const [, m, url] = method;
+        return (
+          <EndpointLink key={i} method={m} href={url}>
+            {label}
+          </EndpointLink>
+        );
+      }
+      return (
+        <a key={i} href={href} className="underline">
+          {label}
+        </a>
+      );
+    }
+    return part;
+  });
 }
 
 function CopyableCell({ text, children }: { text: string; children: ReactNode }) {
@@ -263,13 +286,13 @@ export function SchemaTable({ schema }: SchemaTableProps) {
                 {prop.example ? (
                   prop.example.startsWith('{') || prop.example.startsWith('[') ? (
                     <CopyableCell text={JSON.stringify(JSON.parse(prop.example), null, 2)}>
-                      <pre className="text-[12px] font-mono text-text-primary whitespace-pre m-0 px-2 py-1.5 rounded-md bg-glass border border-glass-border overflow-x-auto hover:border-accent/50 transition-colors">
+                      <pre className="text-[13px] font-mono font-normal text-text-primary whitespace-pre m-0 px-2 py-1.5 rounded-md bg-glass border border-glass-border overflow-x-auto hover:border-accent/50 transition-colors">
                         {JSON.stringify(JSON.parse(prop.example), null, 2)}
                       </pre>
                     </CopyableCell>
                   ) : (
                     <CopyableCell text={prop.example}>
-                      <code className="text-[12px] font-mono text-text-primary bg-glass px-1.5 py-0.5 rounded-md border border-glass-border inline-block break-all! whitespace-normal! overflow-wrap-anywhere hover:border-accent/50 transition-colors">
+                      <code className="text-[13px] font-mono text-text-primary bg-glass px-1.5 py-0.5 rounded-md border border-glass-border inline-block break-all! whitespace-normal! overflow-wrap-anywhere hover:border-accent/50 transition-colors">
                         {prop.example}
                       </code>
                     </CopyableCell>

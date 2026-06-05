@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -19,7 +20,7 @@ class Chat:
     name: str
     is_channel: bool
     is_public: bool
-    created_at: str
+    created_at: datetime
     member_ids: list[int] | None = None
 
 
@@ -61,6 +62,9 @@ class ApiError(Exception):
 @dataclass
 class OAuthError(Exception):
     error: str | None = None
+
+    def __str__(self) -> str:
+        return self.error
 
 
 @dataclass

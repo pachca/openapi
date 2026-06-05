@@ -1,0 +1,190 @@
+> Расположение: Исходящие вебхуки
+> Краткое содержание: Безопасность исходящих вебхуков Пачки: подпись HMAC-SHA256, проверка timestamp, IP-адрес отправителя, примеры обработчика на TypeScript и Python, идемпотентная обработка и доставка
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
+
+
+# Безопасность и обработчик
+
+## Безопасность
+
+Каждый исходящий вебхук защищён с помощью подписи, основанной на хешировании содержимого. Подпись `HMAC` с использованием алгоритма `SHA256` вычисляется из тела запроса и передаётся в заголовке `Pachca-Signature`.
+
+В теле вебхука также содержится поле `webhook_timestamp` — метка времени в формате UNIX, указывающая момент отправки вебхука. Рекомендуется проверять, что это значение находится в пределах одной минуты от времени получения запроса, чтобы предотвратить атаки повторной отправки (replay attacks).
+
+```http title="Пример исходящего вебхука (новое сообщение)"
+POST https://yourweb.site/read HTTP/1.1
+host: yourweb.site
+content-Type: application/json
+pachca-signature: a805d3470c263f4628cafc4ed66235d8fe2229891d1fcf4e400331adff5d8e5a
+user-agent: Faraday v2.12.2
+content-length: 358
+
+{
+    "event": "new",
+    "type": "message",
+    "webhook_timestamp": 1744618734,
+    "chat_id": 918264,
+    "content": "Клиент просит поправить шапку, подробности в документе",
+    "user_id": 134412,
+    "id": 56431,
+    "created_at": "2025-04-14T08:18:54.000Z",
+    "parent_message_id": null,
+    "entity_type": "discussion",
+    "entity_id": 918264,
+    "thread": null,
+    "url": "https://app.pachca.com/chats/124511?message=56431"
+}
+```
+
+
+  ### Шаг 1. Проверьте подпись
+
+Для проверки подписи необходимо вычислить её самостоятельно, используя секрет вебхука `Signing secret`, который доступен в настройках бота во вкладке «Исходящий webhook». Рекомендуется использовать сырой (raw) контент тела запроса для вычисления хеша, так как при JSON-парсинге содержимое может быть изменено.
+
+```javascript title="Вычисление и сравнение подписи"
+// WEBHOOK_SECRET - значение поля Signing secret во вкладке «Исходящий webhook» в настройках бота
+
+const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
+if (signature !== request.headers['pachca-signature']) {
+    throw "Invalid signature"
+}
+```
+
+
+  ### Шаг 2. Валидируйте IP-адрес отправителя
+
+Кроме проверки подписи, также рекомендуется валидировать IP-адреса отправителя.
+
+IP-адрес Пачки: `37.200.70.177`
+
+
+## Реализация webhook handler
+
+Полный пример обработки вебхуков на TypeScript (Express.js) и Python (Flask) с проверкой подписи, защитой от replay-атак и обработкой всех типов событий.
+
+### TypeScript (Express.js)
+
+```typescript
+import express from "express"
+import crypto from "crypto"
+
+const SIGNING_SECRET = "your_signing_secret" // Из настроек бота → Исходящий Webhook → Signing Secret
+const app = express()
+
+// Важно: используем express.raw для получения сырого тела запроса (для корректной проверки HMAC)
+app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  // 1. Проверка подписи HMAC-SHA256
+  const signature = crypto.createHmac("sha256", SIGNING_SECRET)
+    .update(req.body).digest("hex")
+  if (signature !== req.headers["pachca-signature"]) {
+    return res.status(401).send("Invalid signature")
+  }
+
+  // 2. Защита от replay-атак (±60 секунд)
+  const event = JSON.parse(req.body.toString())
+  if (Math.abs(Date.now() / 1000 - event.webhook_timestamp) > 60) {
+    return res.status(401).send("Expired event")
+  }
+
+  // 3. Обработка события по типу
+  switch (event.type) {
+    case "message":
+      if (event.event === "new") {
+        console.log(`Новое сообщение от ${event.user_id}: ${event.content}`)
+      } else if (event.event === "update") {
+        console.log(`Сообщение ${event.id} отредактировано`)
+      } else if (event.event === "delete") {
+        console.log(`Сообщение ${event.id} удалено`)
+      }
+      break
+    case "reaction":
+      console.log(`${event.event === "new" ? "Добавлена" : "Удалена"} реакция ${event.emoji}`)
+      break
+    case "button":
+      console.log(`Нажата кнопка: ${event.data}`)
+      // trigger_id доступен 3 секунды — используйте его для открытия формы
+      break
+    case "view_submit":
+      console.log(`Форма заполнена:`, event.payload)
+      break
+  }
+
+  res.status(200).send("OK")
+})
+app.listen(3000)
+```
+
+### Python (Flask)
+
+```python
+import hmac, hashlib, json, time
+from flask import Flask, request, abort
+
+SIGNING_SECRET = "your_signing_secret"  # Из настроек бота → Исходящий Webhook → Signing Secret
+app = Flask(__name__)
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    raw_body = request.get_data()
+
+    # 1. Проверка подписи HMAC-SHA256
+    expected = hmac.new(SIGNING_SECRET.encode(), raw_body, hashlib.sha256).hexdigest()
+    if expected != request.headers.get("Pachca-Signature"):
+        abort(401)
+
+    # 2. Защита от replay-атак (±60 секунд)
+    event = json.loads(raw_body)
+    if abs(time.time() - event["webhook_timestamp"]) > 60:
+        abort(401)
+
+    # 3. Обработка события
+    if event["type"] == "message" and event["event"] == "new":
+        print(f"Новое сообщение от {event['user_id']}: {event['content']}")
+    elif event["type"] == "button":
+        print(f"Нажата кнопка: {event['data']}")
+    elif event["type"] == "view_submit":
+        print(f"Форма заполнена: {event['payload']}")
+
+    return "OK", 200
+```
+
+### Идемпотентная обработка
+
+Пачка использует **at-least-once delivery** — один и тот же вебхук может прийти повторно. Обработчик должен быть идемпотентным:
+
+```typescript
+// Дедупликация по уникальным полям события
+const processed = new Set<string>()
+
+function getEventKey(event: any): string {
+  // Уникальный ключ: тип + событие + id объекта
+  return `${event.type}:${event.event}:${event.id || event.message_id || ""}`
+}
+
+app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  // ... проверка подписи ...
+  const event = JSON.parse(req.body.toString())
+  const key = getEventKey(event)
+  if (processed.has(key)) {
+    return res.status(200).send("Already processed")
+  }
+  processed.add(key)
+  processEvent(event) // Ваша логика обработки
+  res.status(200).send("OK")
+})
+```
+
+### Обработка ошибок доставки
+
+Если ваш сервер не ответил `2xx` в течение таймаута, Пачка повторит попытку доставки. Рекомендации:
+
+- Отвечайте `200 OK` как можно быстрее — выносите тяжёлую обработку в фоновую очередь
+- При временных ошибках отвечайте `503` — Пачка повторит позже
+- При постоянных ошибках (невалидные данные) — `200 OK` чтобы избежать бесконечных повторов
+
+
+## Связанные разделы
+
+- [Настройка и типы событий](/guides/webhook/events)
+- [Поллинг](/guides/webhook/polling)
+- [Формы: Обработка форм](/guides/forms/handling)

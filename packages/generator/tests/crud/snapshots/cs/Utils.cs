@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -52,7 +53,7 @@ internal static class PachcaUtils
             {
                 var delay = response.Headers.RetryAfter?.Delta
                     ?? TimeSpan.FromSeconds(Math.Pow(2, attempt));
-                await System.Threading.Tasks.Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                await System.Threading.Tasks.Task.Delay(AddJitter(delay), cancellationToken).ConfigureAwait(false);
                 response.Dispose();
                 continue;
             }

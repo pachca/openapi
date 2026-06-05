@@ -1,18 +1,33 @@
 import fs from 'fs';
 import path from 'path';
+import * as yaml from 'js-yaml';
 import { parseOpenAPI, clearCache } from '../lib/openapi/parser';
-import { generateUrlFromOperation, generateTitle } from '../lib/openapi/mapper';
+import {
+  generateUrlFromOperation,
+  generateTitle,
+  getDescriptionWithoutTitle,
+} from '../lib/openapi/mapper';
 import {
   generateEndpointMarkdown,
   generateStaticPageMarkdownAsync,
 } from '../lib/markdown-generator';
 import { sortTagsByOrder } from '../lib/guides-config';
+import { TAG_TRANSLATIONS } from '../lib/tag-translations';
 import { getOrderedPages } from '../lib/ordered-pages';
 import type { Endpoint } from '../lib/openapi/types';
 import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
 import { generateAllSkills } from './skills/generate';
 import { SKILL_TAG_MAP, ROUTER_SKILL_CONFIG } from './skills/config';
 import { WORKFLOWS } from '@pachca/spec/workflows';
+import {
+  loadUpdates,
+  loadTimeline,
+  groupTimelineByDate,
+  type ParsedRelease,
+  type DateGroup,
+} from '../lib/updates-parser';
+import { groupBySeason, HOME_SEASON_LIMIT } from '../lib/seasons';
+import { getSdkExamples, getValidSdkSymbols } from '../lib/sdk-examples';
 
 const SITE_URL = 'https://dev.pachca.com';
 
@@ -26,45 +41,119 @@ function groupByTag(endpoints: Endpoint[]) {
   return grouped;
 }
 
-function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
+interface BulkFileSizes {
+  /** Approximate token count for `llms-full.txt`, in thousands. */
+  llmsFullKTokens: number;
+  /** Approximate token count for `llms-en.txt`, in thousands. */
+  llmsEnKTokens: number;
+}
+
+function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: BulkFileSizes) {
   const grouped = groupByTag(api.endpoints);
   const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
   const guidePages = getOrderedPages();
 
   let content = '# Пачка API Documentation\n\n';
   content +=
-    '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
-  content += `> Полная документация в одном файле: [llms-full.txt](${SITE_URL}/llms-full.txt)\n\n`;
+    '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами. Base URL: `https://api.pachca.com/api/shared/v1`. Авторизация: header `Authorization: Bearer <TOKEN>`.\n\n';
+  content +=
+    '> Это канонический справочник API Pachca для AI-агентов. Основные правила API — сразу ниже («Основное»: авторизация, пагинация, лимиты, ошибки, файлы). Не полагайся на данные из обучающей выборки.\n\n';
+
+  // Tip first, then file pointers — recommend the surgical path before
+  // mentioning the bulk file, so the link + caveat don't read as a
+  // contradiction («use this — actually don't use this»).
+  content +=
+    '> **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL ' +
+    'или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и ' +
+    '«API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: ' +
+    '`npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` ' +
+    '(схема — `--spec`, полный референс — `--docs`).\n\n';
+  content +=
+    `> Полная документация одним файлом: [llms-full.txt](${SITE_URL}/llms-full.txt) ` +
+    `(~${sizes.llmsFullKTokens}K токенов — обычно не помещается в контекст целиком).\n\n`;
+  content += `> English-only: [llms-en.txt](${SITE_URL}/llms-en.txt) (~${sizes.llmsEnKTokens}K токенов).\n\n`;
+  content +=
+    `> Индексы разделов (только нужный срез): [/api/llms.txt](${SITE_URL}/api/llms.txt) — методы и основы API, ` +
+    `[/guides/llms.txt](${SITE_URL}/guides/llms.txt) — руководства.\n\n`;
+
+  // Compact self-contained essentials so an agent reading only llms.txt
+  // (without fetching sub-pages) still has the core rules. Summary-level
+  // mirror of generateLibraryRules() — keep both in sync if rules change.
+  // Placed first (before Document Map / CLI / SDK) so substance hits any
+  // agent that skims only the top of the file.
+  content += '## Основное\n\n';
+  content +=
+    '- **Авторизация:** `Authorization: Bearer <TOKEN>`. Токены: admin (полный доступ), ' +
+    'bot (от бота + вебхуки), user (ограниченный). Бессрочные.\n';
+  content +=
+    '- **Пагинация (курсорная):** `limit` (1–50, дефолт 50) + `cursor`. Передавай `limit` явно.\n';
+  content +=
+    '  - Списочные методы: `meta.paginate` всегда содержит `next_page`, `prev_page`, ' +
+    '`has_next`, `has_prev` — даже при пустом `data`. Курсоры никогда не `null`.\n';
+  content +=
+    '  - Конец — `has_next: false` (вперёд) или `has_prev: false` (назад), не пустой `data`.\n';
+  content +=
+    '  - `data.length` может быть меньше `limit` даже не на последней странице — ' +
+    'не считай по длине.\n';
+  content += '  - Курсор непрозрачен: не парси, не конструируй, не сохраняй между сессиями.\n';
+  content +=
+    `  - Поиск: \`prev_page\`/\`has_next\`/\`has_prev\` отсутствуют, ` +
+    `\`prev_page\`-polling не работает. Конец — \`count == total\` или пустой \`data\`. ` +
+    `Полный гайд — [${SITE_URL}/api/pagination.md](${SITE_URL}/api/pagination.md).\n`;
+  content +=
+    '- **Rate limit:** сообщения ~4 rps на чат (burst 30 за 5s), чтение сообщений ~10 rps, ' +
+    'остальное ~50 rps, чтение `/webhooks/events` ~5 req / 2s. ' +
+    'Входящие вебхуки — ~10 rps на webhook id (по идентификатору в пути). ' +
+    'На `429` — жди `Retry-After`.\n';
+  content +=
+    '- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), ' +
+    '`401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.\n';
+  content +=
+    '- **Идемпотентность:** запросы не идемпотентны — дедуплицируй на клиенте. ' +
+    'Вебхуки at-least-once — обработчики идемпотентны.\n';
+  content +=
+    '- **Файлы:** 3 шага: `POST /uploads` → upload на `direct_url` ' +
+    '(внешний S3, без Authorization) → `key` в `files[]` сообщения.\n';
+  content +=
+    '- Детали метода — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`. ' +
+    'Полный референс — `llms-full.txt` или `.md`-страницы из разделов ниже.\n\n';
+
+  content += '## Частые задачи\n\n';
+  for (const [label, mdPath] of [
+    ['Авторизация и типы токенов', '/api/authorization.md'],
+    ['Отправить сообщение', '/api/messages/create.md'],
+    ['Создать чат или канал', '/api/chats/create.md'],
+    ['Добавить участников в чат', '/api/members/add.md'],
+    ['Ответить в тред', '/api/threads/add.md'],
+    ['Загрузка файлов', '/api/file-uploads.md'],
+    ['Пагинация по спискам', '/api/pagination.md'],
+    ['Обработка ошибок и коды', '/api/errors.md'],
+    ['Лимиты запросов', '/api/limits.md'],
+    ['Получать события через вебхуки', '/guides/webhook/overview.md'],
+    ['Боты: создание и подключение', '/guides/bots/overview.md'],
+    ['Быстрый старт за 5 минут', '/guides/quickstart.md'],
+  ] as const) {
+    content += `- [${label}](${SITE_URL}${mdPath})\n`;
+  }
+  content += '\n';
 
   content += '## CLI Quick Start\n\n';
   content += '```bash\n';
   content += '# Zero-install (npx)\n';
-  content += 'npx @pachca/cli <command> --token <TOKEN>\n';
+  content += 'npx -y @pachca/cli <command> --token <TOKEN>\n';
   content += '\n';
   content += '# For regular use\n';
   content += 'npm install -g @pachca/cli\n';
   content += 'pachca auth login\n';
   content += 'pachca messages create --entity-id=<chat_id> --content="Hello"\n';
   content += 'pachca guide "отправить сообщение"  # CLI guide for humans\n';
-  content += '```\n\n';
-
-  content += '## Руководства\n';
-  for (const guide of guidePages) {
-    const mdPath = guide.path === '/' ? '/.md' : `${guide.path}.md`;
-    content += `- [${guide.title}](${SITE_URL}${mdPath}): ${guide.description}\n`;
-  }
   content += '\n';
-
-  for (const tag of sortedTags) {
-    const endpoints = grouped.get(tag)!;
-    content += `## ${tag}\n`;
-    for (const endpoint of endpoints) {
-      const title = generateTitle(endpoint);
-      const url = generateUrlFromOperation(endpoint);
-      content += `- [${title}](${SITE_URL}${url}.md): ${endpoint.method} ${endpoint.path}\n`;
-    }
-    content += '\n';
-  }
+  content += '# Docs for any endpoint — without loading llms-full.txt\n';
+  content += 'npx -y @pachca/cli api ls                         # list every endpoint\n';
+  content += 'npx -y @pachca/cli api POST /messages --describe  # params, body, scope\n';
+  content += 'npx -y @pachca/cli api GET /messages --spec       # OpenAPI fragment\n';
+  content += 'npx -y @pachca/cli api POST /messages --docs      # full Markdown reference\n';
+  content += '```\n\n';
 
   content += '## SDK\n\n';
   content +=
@@ -107,14 +196,1040 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += `| ${ROUTER_SKILL_CONFIG.name} | ${ROUTER_SKILL_CONFIG.description.split('.')[0]} |\n`;
   content += '\n';
   content += 'Установка: `npx skills add pachca/openapi`\n\n';
-  content += `Индекс скиллов: [${SITE_URL}/.well-known/skills/index.json](${SITE_URL}/.well-known/skills/index.json)\n\n`;
+  // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
+  // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
+  content += `Индекс скиллов: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
+  content += `Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.\n\n`;
+
+  content += '## Руководства\n';
+  for (const guide of guidePages) {
+    const mdPath = guide.path === '/' ? '/.md' : `${guide.path}.md`;
+    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}, ${guide.title}` : guide.title;
+    content += `- [${displayTitle}](${SITE_URL}${mdPath}): ${guide.description}\n`;
+  }
+  content += '\n';
+
+  for (const tag of sortedTags) {
+    const endpoints = grouped.get(tag)!;
+    content += `## ${tag}\n`;
+    for (const endpoint of endpoints) {
+      const title = generateTitle(endpoint);
+      const url = generateUrlFromOperation(endpoint);
+      content += `- [${title}](${SITE_URL}${url}.md): ${endpoint.method} ${endpoint.path}\n`;
+    }
+    content += '\n';
+  }
+
+  content += '## Обновления\n';
+  for (const u of loadUpdates()) {
+    content += `- [${u.displayDate} — ${u.title}](${SITE_URL}/updates/${u.date}.md)\n`;
+  }
+  content += '\n';
 
   content += '## Дополнительно\n';
+  // Машиночитаемые ресурсы: URL как код, а не markdown-ссылки — это спецификации
+  // и коллекции для инструментов, а не doc-страницы (иначе их сэмплят как страницы).
+  content += `- OpenAPI 3.0 spec: \`${SITE_URL}/openapi.yaml\` — машиночитаемая спецификация API для кодогенерации и инструментов\n`;
+  content += `- Postman collection: \`${SITE_URL}/pachca.postman_collection.json\` — готовая коллекция для импорта в Postman/Bruno/Insomnia\n`;
+  content += `- Arazzo 1.0.1: \`${SITE_URL}/workflows.arazzo.yaml\` — многошаговые сценарии API, порядок вызовов для агентов\n`;
   content += `- [Agent Skill](${SITE_URL}/skill.md): Описание API для AI-агентов (SKILL.md)\n`;
   content += '- [Веб-сайт](https://pachca.com/)\n';
   content += '- [Получить помощь](mailto:team@pachca.com)\n';
   content += '\n____\n';
 
+  content = insertLlmsDocumentMap(content);
+
+  return content;
+}
+
+/**
+ * Post-process llms.txt: scan for top-level section headers, build a
+ * Document Map with real line ranges, and insert it before the first
+ * section. Mirrors insertDocumentMap() for llms-full.txt — coarse
+ * sections only (CLI, SDK, Skills, Guides, API, Additional).
+ */
+function insertLlmsDocumentMap(content: string): string {
+  const lines = content.split('\n');
+  const idxOf = (h: string) => lines.findIndex((l) => l === h);
+
+  const cliIdx = idxOf('## CLI Quick Start');
+  const sdkIdx = idxOf('## SDK');
+  const skillsIdx = idxOf('## Agent Skills');
+  const coreIdx = idxOf('## Основное');
+  const guidesIdx = idxOf('## Руководства');
+  const updIdx = idxOf('## Обновления');
+  const addIdx = idxOf('## Дополнительно');
+  if ([cliIdx, sdkIdx, skillsIdx, coreIdx, guidesIdx, updIdx, addIdx].some((i) => i < 0))
+    return content;
+
+  // First API tag section: first `## ` header after Руководства that is not Дополнительно
+  let apiIdx = -1;
+  for (let i = guidesIdx + 1; i < lines.length; i++) {
+    if (lines[i].startsWith('## ') && lines[i] !== '## Дополнительно') {
+      apiIdx = i;
+      break;
+    }
+  }
+  if (apiIdx < 0) return content;
+
+  // Array order must match file order (ascending idx): rows compute `end`
+  // from sections[i + 1].idx, so any inversion produces negative ranges.
+  const sections = [
+    { name: 'Основное', desc: 'Авторизация, пагинация, лимиты, ошибки, файлы', idx: coreIdx },
+    { name: 'CLI Quick Start', desc: 'Установка, команды, точечная справка по API', idx: cliIdx },
+    { name: 'SDK', desc: 'Типизированные клиенты для 6 языков', idx: sdkIdx },
+    { name: 'Agent Skills', desc: 'Скиллы для AI-агентов и установка', idx: skillsIdx },
+    { name: 'Руководства', desc: 'Страницы-руководства (Markdown по `.md`)', idx: guidesIdx },
+    { name: 'API-методы', desc: 'Все эндпоинты, сгруппированы по разделам', idx: apiIdx },
+    { name: 'Обновления', desc: 'Журнал обновлений по датам', idx: updIdx },
+    { name: 'Дополнительно', desc: 'Прочие ссылки и контакты', idx: addIdx },
+  ];
+
+  const head = [
+    '',
+    '## Document Map',
+    '',
+    '| Раздел | Описание | Строки |',
+    '|--------|----------|--------|',
+  ];
+  const blockSize = head.length + sections.length + 1; // head + rows + trailing ''
+  // content ends with a newline → split() yields a trailing '' that is not a
+  // real line; exclude it so the last range end matches the actual file.
+  const trailingEmpty = lines[lines.length - 1] === '' ? 1 : 0;
+  const totalLines = lines.length + blockSize - trailingEmpty;
+
+  // Document Map is inserted at cliIdx. Sections before that point keep
+  // their original 1-based line; sections from cliIdx onward shift by
+  // blockSize. For a section whose successor crosses the insertion
+  // boundary, `end` clamps to cliIdx so its row doesn't swallow the
+  // Document Map's own lines.
+  const shift = (idx: number) => (idx >= cliIdx ? blockSize : 0);
+  const rows = sections.map((s, i) => {
+    const next = sections[i + 1];
+    const start = s.idx + shift(s.idx) + 1;
+    let end: number;
+    if (next === undefined) {
+      end = totalLines;
+    } else if (s.idx < cliIdx && next.idx >= cliIdx) {
+      end = cliIdx;
+    } else {
+      end = next.idx + shift(next.idx);
+    }
+    return `| ${s.name} | ${s.desc} | ${start}–${end} |`;
+  });
+
+  const blockLines = [...head, ...rows, ''];
+  const newLines = [...lines.slice(0, cliIdx), ...blockLines, ...lines.slice(cliIdx)];
+  return newLines.join('\n');
+}
+
+function generateLibraryRules(): string {
+  return `# LIBRARY RULES
+
+## Authentication
+- All requests require Bearer token in Authorization header: \`Authorization: Bearer <TOKEN>\`
+- Token types: **admin** (full access — manage users, tags, delete messages), **bot** (send messages with custom name/avatar, receive webhooks), **user** (limited access)
+- Get admin token: Settings → Automations → API. Get bot token: per-bot in Settings → Automations → Integrations
+- Tokens are long-lived and do not expire. Can be reset by admin in Settings
+- TypeScript SDK: \`const client = new PachcaClient("YOUR_TOKEN")\`
+- Python SDK: \`client = PachcaClient("YOUR_TOKEN")\`
+
+## Pagination
+- Cursor-based: use \`limit\` (1–50, default 50) and \`cursor\` query parameters. Always set \`limit\` explicitly — do not rely on the default
+- Response includes \`meta.paginate\` with \`next_page\`, \`prev_page\`, \`has_next\`, \`has_prev\`. In list methods these fields are ALWAYS present — even when \`data\` is empty. Cursors are never \`null\`
+- \`next_page\` — cursor to advance forward. \`prev_page\` — cursor to poll for new records "above" the list. \`has_next\` / \`has_prev\` — booleans for whether more data exists in that direction
+- End of data: \`has_next: false\` (forward) or \`has_prev: false\` (backward) — NOT an empty \`data\` array
+- The number of items in \`data\` may be smaller than \`limit\`, including on intermediate pages — do not rely on the array length
+- Cursors are opaque tokens — do not parse, construct by hand, or persist them across sessions
+- Search endpoints (\`/search/users\`, \`/search/chats\`, \`/search/messages\`) have NO \`prev_page\`/\`has_next\`/\`has_prev\` — \`prev_page\` polling does not apply. Detect end by received count == \`total\` or an empty \`data\`. \`SearchPaginationMeta\` exposes only \`next_page\` and \`total\`
+- TypeScript auto-pagination: \`client.users.listUsersAll()\` returns flat array of all results
+- Python auto-pagination: \`await client.users.list_users_all()\` returns list of all results
+- Available for: users, chats, messages, members, tags, reactions, tasks, audit events, webhook events
+
+## Rate Limiting
+- Messages (POST/PUT/DELETE /messages): ~4 req/sec per chat (burst: 30/sec for 5s)
+- Message read (GET /messages): ~10 req/sec per token
+- Other endpoints: ~50 req/sec per token
+- Webhook events read (GET /webhooks/events): ~5 req / 2 sec per token
+- Incoming webhooks: ~10 req/sec per webhook id (counted by the identifier in the path, e.g. \`/webhooks/user123\`)
+- On \`429 Too Many Requests\`: respect \`Retry-After\` header value (seconds)
+- Recommended retry strategy: exponential backoff with jitter — base delay × 2^attempt × random(0.5–1.5)
+- SDK (@pachca/sdk, pachca-sdk) handles retry automatically: 3 retries, respects Retry-After, exponential backoff for 5xx
+
+## Webhooks (Real-time Events)
+- Create a bot in Pachca: Automations → Integrations → Bots
+- Set webhook URL in bot settings → Outgoing Webhook tab
+- Events: \`new_message\`, \`edit_message\`, \`delete_message\`, \`new_reaction\`, \`delete_reaction\`, \`button_pressed\`, \`view_submit\`, \`chat_member_changed\`, \`company_member_changed\`, \`link_shared\`
+- Verify: HMAC-SHA256 of raw body with bot's Signing Secret
+- Header: \`Pachca-Signature\` contains hex digest
+- Replay protection: check \`webhook_timestamp\` within ±60 seconds of current time
+- Alternative to webhooks: polling via GET /webhooks/events (enable "Save event history" in bot settings)
+- IP whitelist: Pachca webhook IP is \`37.200.70.177\`
+
+## File Uploads (3-step process)
+- Step 1: POST /uploads → get S3 presigned params (\`direct_url\`, \`key\`, \`policy\`, \`x-amz-signature\`, etc.)
+- Step 2: POST to \`direct_url\` (external S3 URL, NOT a Pachca API endpoint) with multipart/form-data — all params + \`file\` as LAST field
+- Step 3: Replace \`\${filename}\` in \`key\` with actual filename, include in message \`files\` array
+- Note: \`direct_url\` is an external S3 presigned URL and does not require Authorization header
+
+## User Status
+- Get any user's status: GET /users/{id}/status → \`{ emoji, title, expires_at, is_away, away_message }\`
+- Set own status: PUT /profile/status \`{ status: { emoji, title, expires_at, is_away, away_message } }\`
+- Clear own status: DELETE /profile/status
+- Admin can manage any user: PUT /users/{id}/status, DELETE /users/{id}/status
+- No real-time presence webhooks — use polling with ≥60s interval for monitoring status changes
+
+## Error Handling
+- \`400\`: validation errors — \`{ errors: [{ key, value, message, code }] }\` with codes: \`blank\`, \`invalid\`, \`taken\`, \`too_short\`, \`too_long\`, \`not_a_number\`
+- \`401\`: unauthorized — \`{ error, error_description }\` (OAuthError)
+- \`403\`: forbidden — insufficient permissions. May return ApiError (business logic) or OAuthError (\`insufficient_scope\`)
+- \`404\`: not found
+- \`409\`: conflict (duplicate)
+- \`422\`: unprocessable — \`{ errors: [{ key, value, message, code }] }\`
+- \`429\`: rate limited — respect \`Retry-After\` header, use exponential backoff with jitter
+- SDK auto-retries \`429\` and \`5xx\` errors (3 attempts with exponential backoff)
+
+## Idempotency and Reliability
+- Pachca API operations are NOT idempotent by default — duplicate POST requests create duplicate resources
+- Client-side deduplication: track request IDs, check before sending, store results with TTL
+- Webhooks use at-least-once delivery — handlers MUST be idempotent (dedup by event fields: id + type + event)
+- For multi-step operations: implement compensating actions (saga pattern) for failure recovery
+- Separate critical operations (create chat) from non-critical (send welcome message) with independent error handling
+
+## SDK (Typed Clients for 6 Languages)
+- Unified pattern: \`PachcaClient(token)\` → \`client.service.method(request)\`
+- **Input**: path params and body fields (≤2) expand to method arguments; otherwise a single request object
+- **Output**: if API response has a single \`data\` field, SDK returns its contents directly
+- Service, method, and field names match operationId and parameters from OpenAPI
+
+| Language | Package | Install |
+|----------|---------|---------|
+| TypeScript | \`@pachca/sdk\` | \`npm install @pachca/sdk\` |
+| Python | \`pachca-sdk\` | \`pip install pachca-sdk\` |
+| Go | \`github.com/pachca/go-sdk\` | \`go get github.com/pachca/openapi/sdk/go/generated\` |
+| Kotlin | \`com.pachca:sdk\` | \`implementation("com.pachca:pachca-sdk:1.0.1")\` |
+| Swift | \`PachcaSDK\` | SPM: \`https://github.com/pachca/openapi\` |
+| C# | \`Pachca.Sdk\` | \`dotnet add package Pachca.Sdk\` |
+
+## CLI (Command-Line Interface)
+- Zero-install: \`npx -y @pachca/cli <command> --token <TOKEN>\` (always latest). Or \`npm install -g @pachca/cli\`
+- Every API endpoint is a typed command: \`pachca <section> <action> --flags\` (e.g. \`pachca messages create --entity-id=123 --content="Hi"\`)
+- Non-interactive by default in pipes/CI: emits JSON, no prompts or spinner; a missing required flag returns an error instead of prompting
+- Token via \`PACHCA_TOKEN\` env or \`--token\` flag — nothing is written to disk
+- Branch on exit codes (\`0\` success, \`3\` forbidden, \`4\` not found); JSON errors carry a \`type\` field (\`PACHCA_AUTH_ERROR\`, \`PACHCA_VALIDATION_ERROR\`, …)
+- **Per-endpoint docs on demand — you do not need to load this whole file.** To get just the endpoint you need:
+  - \`npx -y @pachca/cli api ls\` — list every endpoint (\`METHOD PATH SUMMARY SCOPE\`; add \`--json\` for machine-readable)
+  - \`npx -y @pachca/cli api <METHOD> <path> --describe\` — parameters, body, scope, equivalent typed command
+  - \`npx -y @pachca/cli api <METHOD> <path> --spec\` — OpenAPI fragment (request/response schemas)
+  - \`npx -y @pachca/cli api <METHOD> <path> --docs\` — full Markdown reference for that one endpoint
+- Arbitrary request to any endpoint: \`npx -y @pachca/cli api <METHOD> <path> -f field=value\` (or \`-F\` typed, \`--input body.json\`, \`--data '{...}'\`)
+- Any documentation page is also available as Markdown — append \`.md\` to its URL (e.g. \`${SITE_URL}/guides/webhook/overview.md\`)
+
+`;
+}
+
+// SDK types that are valid exports but never appear in examples.json operation imports
+const ALWAYS_VALID_SDK_IMPORTS = new Set(['PachcaClient', 'ApiError', 'OAuthError']);
+
+/**
+ * Build-time validation: extracts client.service.method() calls and SDK imports
+ * from How-to Guide code blocks, validates them against examples.json data.
+ * Throws on first batch of errors to fail the build with a clear message.
+ */
+function validateSdkCodeBlocks(sectionName: string, content: string): void {
+  const tsSymbols = getValidSdkSymbols('typescript');
+  const pySymbols = getValidSdkSymbols('python');
+
+  const codeBlockRegex = /```(typescript|python)\n([\s\S]*?)```/g;
+  const errors: string[] = [];
+
+  let match;
+  while ((match = codeBlockRegex.exec(content)) !== null) {
+    const lang = match[1] as 'typescript' | 'python';
+    const code = match[2];
+    const symbols = lang === 'typescript' ? tsSymbols : pySymbols;
+
+    // Validate client.service.method() calls
+    const methodRegex = /client\.(\w+)\.(\w+)\s*\(/g;
+    const hasMethodCalls = methodRegex.test(code);
+    methodRegex.lastIndex = 0;
+
+    let m;
+    while ((m = methodRegex.exec(code)) !== null) {
+      const [, service, method] = m;
+      if (!symbols.methods.has(service)) {
+        errors.push(
+          `[${lang}] Unknown service: client.${service}.${method}() — valid services: ${[...symbols.methods.keys()].join(', ')}`
+        );
+      } else if (!symbols.methods.get(service)!.has(method)) {
+        errors.push(
+          `[${lang}] Unknown method: client.${service}.${method}() — valid for ${service}: ${[...symbols.methods.get(service)!].join(', ')}`
+        );
+      }
+    }
+
+    // Only validate imports in code blocks with actual SDK method calls
+    // (skip showcase/reference blocks that just list all available types)
+    if (!hasMethodCalls) continue;
+
+    // Validate TypeScript SDK imports
+    if (lang === 'typescript') {
+      const importRegex = /import\s*\{([^}]+)\}\s*from\s*["']@pachca\/sdk["']/g;
+      let im;
+      while ((im = importRegex.exec(code)) !== null) {
+        const names = im[1]
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+        for (const name of names) {
+          if (!symbols.imports.has(name) && !ALWAYS_VALID_SDK_IMPORTS.has(name)) {
+            errors.push(`[typescript] Unknown SDK import: ${name}`);
+          }
+        }
+      }
+    }
+
+    // Validate Python SDK imports (single-line and parenthesized multiline)
+    if (lang === 'python') {
+      const pyImportRegex = /from\s+pachca\.models\s+import\s+(?:\(([\s\S]*?)\)|([^\n]+))/g;
+      let im;
+      while ((im = pyImportRegex.exec(code)) !== null) {
+        const raw = im[1] || im[2];
+        // Strip Python comments and extract only PascalCase type names
+        const names = raw
+          .split('\n')
+          .map((line) => line.replace(/#.*/, ''))
+          .join(',')
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0 && /^[A-Z]/.test(s));
+        for (const name of names) {
+          if (!symbols.imports.has(name) && !ALWAYS_VALID_SDK_IMPORTS.has(name)) {
+            errors.push(`[python] Unknown SDK import: ${name} from pachca.models`);
+          }
+        }
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `\n❌ SDK code validation failed in "${sectionName}"!\n` +
+        `The following SDK symbols don't match examples.json:\n\n` +
+        errors.map((e) => `  • ${e}`).join('\n') +
+        `\n\nFix the code or update the SDK.\n`
+    );
+  }
+}
+
+function generateHowToGuides(): string {
+  let content = '# How-to Guides\n\n';
+
+  // Q1: Auth + TypeScript SDK
+  content += `## How to authenticate with the API
+
+All API requests require a Bearer token in the Authorization header.
+
+### curl
+\`\`\`bash
+curl -H "Authorization: Bearer YOUR_TOKEN" https://api.pachca.com/api/shared/v1/users
+\`\`\`
+
+### TypeScript SDK
+\`\`\`typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+const profile = await client.profile.getProfile()
+console.log(profile.id, profile.firstName)
+\`\`\`
+
+### Python SDK
+\`\`\`python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+profile = await client.profile.get_profile()
+print(profile.id, profile.first_name)
+\`\`\`
+
+Token types: **admin** (full access, get in Settings → Automations → API), **bot** (messaging + webhooks, per-bot in Integrations), **user** (limited).
+
+`;
+
+  // Q2: Pagination SDK
+  content += `## How to paginate through results
+
+### TypeScript SDK — auto-pagination
+\`\`\`typescript
+// Returns all results as a flat array (handles cursors automatically)
+const allUsers = await client.users.listUsersAll()
+console.log(\`Total: \${allUsers.length}\`)
+
+// Manual pagination with cursor control using has_next
+let cursor: string | undefined
+let hasNext = true
+while (hasNext) {
+  const response = await client.users.listUsers({ limit: 50, cursor })
+  for (const user of response.data) {
+    console.log(user.firstName, user.lastName)
+  }
+  cursor = response.meta.paginate.nextPage
+  hasNext = response.meta.paginate.hasNext
+}
+\`\`\`
+
+### Python SDK — auto-pagination
+\`\`\`python
+# Returns all results as a list (handles cursors automatically)
+all_users = await client.users.list_users_all()
+print(f"Total: {len(all_users)}")
+
+# Manual pagination with cursor control using has_next
+from pachca.models import ListUsersParams
+
+cursor = None
+has_next = True
+while has_next:
+    response = await client.users.list_users(ListUsersParams(limit=50, cursor=cursor))
+    for user in response.data:
+        print(user.first_name, user.last_name)
+    cursor = response.meta.paginate.next_page
+    has_next = response.meta.paginate.has_next
+\`\`\`
+
+Auto-pagination methods: \`listUsersAll()\`, \`listChatsAll()\`, \`listChatMessagesAll()\`, \`listMembersAll()\`, \`listTagsAll()\`, \`listTasksAll()\`, \`searchMessagesAll()\`, \`searchChatsAll()\`, \`searchUsersAll()\`, \`listReactionsAll()\`, \`getAuditEventsAll()\`, \`getWebhookEventsAll()\`.
+
+### Polling new data with prev_page
+
+Use the \`prev_page\` cursor to efficiently poll for new records that appear "above" the list (newer than your first page) without refetching everything:
+
+\`\`\`typescript
+// Initial fetch — save prev_page
+const initial = await client.chats.listChats({ limit: 50 })
+let prevCursor = initial.meta.paginate.prevPage
+const chats = new Map(initial.data.map(c => [c.id, c]))
+
+// Poll periodically — drain newer records via prev_page until has_prev is false
+setInterval(async () => {
+  let hasPrev = true
+  while (hasPrev) {
+    const response = await client.chats.listChats({ limit: 50, cursor: prevCursor })
+    // Deduplicate by id — records may reappear if their sort field changed
+    for (const chat of response.data) {
+      chats.set(chat.id, chat)
+    }
+    prevCursor = response.meta.paginate.prevPage
+    hasPrev = response.meta.paginate.hasPrev
+  }
+}, 5000)
+\`\`\`
+
+`;
+
+  // Q4: Create chat + add members (SDK)
+  content += `## How to create chats and manage members
+
+### TypeScript SDK
+\`\`\`typescript
+import { PachcaClient, MessageEntityType } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+// Create a group chat with initial members
+const chat = await client.chats.createChat({
+  chat: { name: "Project Discussion", memberIds: [1, 2, 3], channel: false, public: false }
+})
+console.log("Created chat:", chat.id, chat.name)
+
+// Add more members later
+await client.members.addMembers(chat.id, { memberIds: [4, 5] })
+
+// Remove a member
+await client.members.removeMember(chat.id, 5)
+
+// List current members
+const members = await client.members.listMembersAll(chat.id)
+console.log("Members:", members.map(m => m.firstName))
+
+// Send a message to the chat
+await client.messages.createMessage({
+  message: { entityType: MessageEntityType.Discussion, entityId: chat.id, content: "Welcome everyone!" }
+})
+\`\`\`
+
+### Python SDK
+\`\`\`python
+from pachca.client import PachcaClient
+from pachca.models import ChatCreateRequest, ChatCreateRequestChat, MessageCreateRequest, MessageCreateRequestMessage, AddMembersRequest
+
+client = PachcaClient("YOUR_TOKEN")
+
+# Create a group chat with initial members
+chat = await client.chats.create_chat(ChatCreateRequest(
+    chat=ChatCreateRequestChat(name="Project Discussion", member_ids=[1, 2, 3], channel=False, public=False)
+))
+print("Created chat:", chat.id, chat.name)
+
+# Add more members later
+await client.members.add_members(chat.id, AddMembersRequest(member_ids=[4, 5]))
+
+# List current members
+members = await client.members.list_members_all(chat.id)
+
+# Send a message to the chat
+await client.messages.create_message(MessageCreateRequest(
+    message=MessageCreateRequestMessage(entity_type="discussion", entity_id=chat.id, content="Welcome everyone!")
+))
+\`\`\`
+
+Chat types: \`channel: true\` creates a channel (one-way announcements), \`channel: false\` creates a group chat (everyone can write). \`public: true\` makes it visible to all workspace members.
+
+`;
+
+  // Q3+Q7: Webhooks
+  content += `## How to set up webhooks for real-time updates
+
+### Step-by-step setup
+1. Create a bot in Pachca: **Automations** → **Integrations** → **Bots**
+2. In bot settings, go to **Outgoing Webhook** tab and set your HTTPS URL
+3. Copy the **Signing Secret** for signature verification
+4. Select event types: new messages, reactions, button presses, form submissions, etc.
+5. Add the bot to chats where you want to receive events (global events like company member changes work without adding to chat)
+
+### TypeScript webhook handler (Express.js)
+\`\`\`typescript
+import express from "express"
+import crypto from "crypto"
+
+const SIGNING_SECRET = "your_signing_secret" // From bot settings → Outgoing Webhook
+const app = express()
+
+app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  // Step 1: Verify HMAC-SHA256 signature
+  const signature = crypto.createHmac("sha256", SIGNING_SECRET)
+    .update(req.body).digest("hex")
+  if (signature !== req.headers["pachca-signature"]) {
+    return res.status(401).send("Invalid signature")
+  }
+
+  // Step 2: Check timestamp for replay protection (±60 seconds)
+  const event = JSON.parse(req.body.toString())
+  if (Math.abs(Date.now() / 1000 - event.webhook_timestamp) > 60) {
+    return res.status(401).send("Expired event")
+  }
+
+  // Step 3: Process event by type
+  switch (event.type) {
+    case "message":
+      if (event.event === "new") console.log("New message:", event.content, "from user:", event.user_id)
+      if (event.event === "update") console.log("Message edited:", event.id)
+      if (event.event === "delete") console.log("Message deleted:", event.id)
+      break
+    case "reaction":
+      console.log(event.event === "new" ? "Reaction added:" : "Reaction removed:", event.emoji)
+      break
+    case "button":
+      console.log("Button pressed:", event.data, "by user:", event.user_id)
+      // Use event.trigger_id within 3 seconds to open a form
+      break
+    case "view_submit":
+      console.log("Form submitted:", event.payload)
+      break
+  }
+
+  res.status(200).send("OK")
+})
+app.listen(3000)
+\`\`\`
+
+### Python webhook handler (Flask)
+\`\`\`python
+import hmac, hashlib, json, time
+from flask import Flask, request, abort
+
+SIGNING_SECRET = "your_signing_secret"  # From bot settings → Outgoing Webhook
+app = Flask(__name__)
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    raw_body = request.get_data()
+
+    # Step 1: Verify HMAC-SHA256 signature
+    expected = hmac.new(SIGNING_SECRET.encode(), raw_body, hashlib.sha256).hexdigest()
+    if expected != request.headers.get("Pachca-Signature"):
+        abort(401)
+
+    # Step 2: Check timestamp for replay protection
+    event = json.loads(raw_body)
+    if abs(time.time() - event["webhook_timestamp"]) > 60:
+        abort(401)
+
+    # Step 3: Process event by type
+    if event["type"] == "message" and event["event"] == "new":
+        print("New message:", event["content"], "from user:", event["user_id"])
+    elif event["type"] == "button":
+        print("Button pressed:", event["data"])
+
+    return "OK", 200
+\`\`\`
+
+### Webhook event types
+| Event type | Description | Fields |
+|-----------|-------------|--------|
+| message (new) | New message in chat | id, content, user_id, chat_id, entity_type, entity_id, created_at, url |
+| message (update) | Message edited | id, content, user_id, chat_id |
+| message (delete) | Message deleted | id, user_id, chat_id |
+| reaction (new/delete) | Reaction added/removed | message_id, user_id, emoji, chat_id |
+| button | Button pressed | message_id, user_id, data, trigger_id, chat_id |
+| view_submit | Form submitted | payload (form field values), user_id, trigger_id |
+| chat_member (new/delete) | Member added/removed from chat | chat_id, user_id, event |
+| company_member (new/update/delete) | Workspace member changes | user_id, event (no chat needed) |
+| link_shared | URL shared (unfurl bots) | url, message_id, chat_id |
+
+### Alternative: Polling (when webhook URL is not available)
+Enable "Save event history" in bot settings, then poll:
+\`\`\`typescript
+// Poll for events periodically
+const events = await client.bots.getWebhookEvents()
+for (const event of events.data) {
+  processEvent(event)
+  await client.bots.deleteWebhookEvent(event.id) // Remove processed event
+}
+\`\`\`
+
+`;
+
+  // Q5: Rate limiting + retry
+  content += `## How to handle rate limits and implement retry logic
+
+Both SDKs handle retry automatically — 3 retries with exponential backoff for \`429\` and \`5xx\` errors. No extra code needed:
+
+### TypeScript SDK
+\`\`\`typescript
+import { PachcaClient, ApiError } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+// SDK retries 429 and 5xx automatically (3 attempts, exponential backoff)
+// Just call methods normally — retries are transparent
+const users = await client.users.listUsersAll()
+
+// If all retries are exhausted, ApiError is thrown
+try {
+  await client.messages.createMessage({
+    message: { entityId: 12345, content: "Hello" }
+  })
+} catch (error) {
+  if (error instanceof ApiError) {
+    // After 3 retries, the error is surfaced — check error.errors for details
+    for (const e of error.errors ?? []) {
+      console.error(e.key, e.message)
+    }
+  }
+}
+\`\`\`
+
+### Python SDK
+\`\`\`python
+from pachca.client import PachcaClient
+from pachca.models import ApiError
+
+client = PachcaClient("YOUR_TOKEN")
+
+# SDK retries 429 and 5xx automatically (3 attempts, exponential backoff)
+# Just call methods normally — retries are transparent
+users = await client.users.list_users_all()
+
+# If all retries are exhausted, ApiError is raised
+try:
+    await client.messages.create_message(request)
+except ApiError as e:
+    # After 3 retries, the error is surfaced — check e.errors for details
+    for err in e.errors:
+        print(err.key, err.message)
+\`\`\`
+
+Rate limits by endpoint category:
+- Messages send/edit/delete: ~4 req/sec per chat (burst: 30/sec for 5s)
+- Messages read: ~10 req/sec per token
+- All other endpoints: ~50 req/sec per token
+- Webhook events read (GET /webhooks/events): ~5 req / 2 sec per token
+- Incoming webhooks: ~10 req/sec per webhook id (counted by path identifier)
+- On 429: SDK respects \`Retry-After\` header automatically
+
+`;
+
+  // Q6: File upload
+  content += `## How to upload files and attach to messages
+
+File upload is a 3-step process: get presigned params → upload to S3 → attach to message.
+
+### TypeScript SDK
+\`\`\`typescript
+import { PachcaClient, FileType } from "@pachca/sdk"
+import fs from "fs"
+import path from "path"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const filePath = "./report.pdf"
+const fileName = path.basename(filePath)
+const fileBuffer = fs.readFileSync(filePath)
+
+// Step 1: Get S3 presigned upload parameters
+const params = await client.common.getUploadParams()
+
+// Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+await client.common.uploadFile(params.directUrl, {
+  contentDisposition: params.contentDisposition,
+  acl: params.acl,
+  policy: params.policy,
+  xAmzCredential: params.xAmzCredential,
+  xAmzAlgorithm: params.xAmzAlgorithm,
+  xAmzDate: params.xAmzDate,
+  xAmzSignature: params.xAmzSignature,
+  key: params.key,
+  file: new File([fileBuffer], fileName)
+})
+
+// Step 3: Attach file to message (replace ${'$'}{filename} in key with actual name)
+const fileKey = params.key.replace("${'$'}{filename}", fileName)
+await client.messages.createMessage({
+  message: {
+    entityId: 12345,
+    content: "Report attached",
+    files: [{ key: fileKey, name: fileName, fileType: FileType.File, size: fileBuffer.length }]
+  }
+})
+\`\`\`
+
+### Python SDK
+\`\`\`python
+from pachca.client import PachcaClient
+from pachca.models import (
+    FileUploadRequest, MessageCreateRequest, MessageCreateRequestMessage,
+    MessageCreateRequestFile, FileType
+)
+import os
+
+client = PachcaClient("YOUR_TOKEN")
+
+file_path = "report.pdf"
+file_name = os.path.basename(file_path)
+
+# Step 1: Get S3 presigned upload parameters
+params = await client.common.get_upload_params()
+
+# Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+with open(file_path, "rb") as f:
+    await client.common.upload_file(
+        direct_url=params.direct_url,
+        request=FileUploadRequest(
+            content_disposition=params.content_disposition,
+            acl=params.acl,
+            policy=params.policy,
+            x_amz_credential=params.x_amz_credential,
+            x_amz_algorithm=params.x_amz_algorithm,
+            x_amz_date=params.x_amz_date,
+            x_amz_signature=params.x_amz_signature,
+            key=params.key,
+            file=f.read()
+        )
+    )
+
+# Step 3: Attach file to message (replace ${'$'}{filename} in key with actual name)
+file_key = params.key.replace("${'$'}{filename}", file_name)
+await client.messages.create_message(MessageCreateRequest(
+    message=MessageCreateRequestMessage(
+        entity_id=12345,
+        content="Report attached",
+        files=[MessageCreateRequestFile(key=file_key, name=file_name, file_type=FileType.FILE, size=os.path.getsize(file_path))]
+    )
+))
+\`\`\`
+
+File types: \`FileType.File\` / \`FileType.FILE\` (any file), \`FileType.Image\` / \`FileType.IMAGE\` (add \`width\` and \`height\`).
+
+`;
+
+  // Q8: User status + presence
+  content += `## How to monitor user status and presence
+
+### TypeScript SDK
+\`\`\`typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+// Get any user's status
+const status = await client.users.getUserStatus(userId)
+console.log(status.emoji, status.title, status.isAway, status.awayMessage)
+
+// Set your own status
+await client.profile.updateStatus({
+  status: { emoji: "🏖️", title: "On vacation", isAway: true, awayMessage: "Back on Monday" }
+})
+
+// Set status with expiration
+await client.profile.updateStatus({
+  status: { emoji: "🍽️", title: "Lunch break", expiresAt: new Date(Date.now() + 3600000).toISOString() }
+})
+
+// Clear your status
+await client.profile.deleteStatus()
+\`\`\`
+
+### Python SDK
+\`\`\`python
+from pachca.client import PachcaClient
+from pachca.models import StatusUpdateRequest, StatusUpdateRequestStatus
+
+client = PachcaClient("YOUR_TOKEN")
+
+# Get any user's status
+status = await client.users.get_user_status(user_id)
+print(status.emoji, status.title, status.is_away, status.away_message)
+
+# Set your own status
+await client.profile.update_status(StatusUpdateRequest(
+    status=StatusUpdateRequestStatus(emoji="🏖️", title="On vacation", is_away=True, away_message="Back on Monday")
+))
+
+# Clear your status
+await client.profile.delete_status()
+\`\`\`
+
+### Polling pattern for monitoring status changes
+Pachca does not provide real-time webhooks for status/presence changes. Use polling with caching:
+
+\`\`\`typescript
+const cache = new Map<number, { status: any; fetchedAt: number }>()
+const CACHE_TTL = 60_000 // Minimum 60 seconds between polls per user
+
+async function getUserPresence(userId: number) {
+  const cached = cache.get(userId)
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) return cached.status
+  const status = await client.users.getUserStatus(userId)
+  cache.set(userId, { status, fetchedAt: Date.now() })
+  return status
+}
+
+// Batch refresh for a team
+async function refreshTeamPresences(userIds: number[]) {
+  const results = []
+  for (const id of userIds) {
+    cache.delete(id)
+    results.push(await getUserPresence(id))
+  }
+  return results
+}
+\`\`\`
+
+Status fields: \`emoji\` (string), \`title\` (string), \`expires_at\` (ISO datetime or null), \`is_away\` (boolean), \`away_message\` (string). Admin can manage any user's status via PUT/DELETE /users/{id}/status.
+
+`;
+
+  // Q10: Idempotency, eventual consistency, saga pattern
+  content += `## How to handle idempotency and partial failures in multi-service workflows
+
+Pachca API is **NOT idempotent** — duplicate POST requests create duplicate resources. Webhooks use **at-least-once** delivery. Both require explicit handling in distributed systems.
+
+### 1. Client-side request deduplication
+
+\`\`\`typescript
+import { PachcaClient, ApiError } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+// Idempotency layer: track requests to prevent duplicates
+const requestLog = new Map<string, { result: any; expiresAt: number }>()
+const DEDUP_TTL = 300_000 // 5 minutes
+
+async function idempotentCreateMessage(idempotencyKey: string, entityId: number, content: string) {
+  // Check if this request was already processed
+  const existing = requestLog.get(idempotencyKey)
+  if (existing && Date.now() < existing.expiresAt) {
+    return existing.result // Return cached result, no duplicate created
+  }
+
+  const result = await client.messages.createMessage({
+    message: { entityId, content }
+  })
+
+  // Cache result with TTL for deduplication window
+  requestLog.set(idempotencyKey, { result, expiresAt: Date.now() + DEDUP_TTL })
+  return result
+}
+
+// Usage: same key = same result, no duplicate message
+await idempotentCreateMessage("onboard-user-42", chatId, "Welcome!")
+await idempotentCreateMessage("onboard-user-42", chatId, "Welcome!") // returns cached, no duplicate
+\`\`\`
+
+### 2. Webhook event deduplication
+
+\`\`\`typescript
+// Webhooks deliver at-least-once — same event may arrive multiple times
+const processedEvents = new Set<string>()
+
+function handleWebhookEvent(event: any) {
+  // Build unique key from event fields: type + event + id
+  const eventKey = \`\${event.type}:\${event.event}:\${event.id}:\${event.webhook_timestamp}\`
+
+  if (processedEvents.has(eventKey)) {
+    return // Already processed, skip duplicate
+  }
+  processedEvents.add(eventKey)
+
+  // Process event (idempotent handler)
+  switch (event.type) {
+    case "message":
+      syncMessageToExternalSystem(event)
+      break
+    case "button":
+      handleButtonPress(event)
+      break
+  }
+}
+\`\`\`
+
+### 3. Saga pattern for multi-step operations
+
+\`\`\`typescript
+import { PachcaClient, MessageEntityType } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+// Saga: create project workspace (chat + members + welcome message + task)
+// Each step has a compensating action for rollback on failure
+
+interface SagaStep {
+  name: string
+  execute: () => Promise<any>
+  compensate: (result: any) => Promise<void>
+}
+
+async function executeSaga(steps: SagaStep[]) {
+  const completed: { step: SagaStep; result: any }[] = []
+
+  for (const step of steps) {
+    try {
+      const result = await step.execute()
+      completed.push({ step, result })
+    } catch (error) {
+      console.error(\`Saga failed at step "\${step.name}":\`, error)
+
+      // Compensate in reverse order (undo completed steps)
+      for (const { step: completedStep, result } of completed.reverse()) {
+        try {
+          await completedStep.compensate(result)
+          console.log(\`Compensated: \${completedStep.name}\`)
+        } catch (compensateError) {
+          // Log for manual intervention — compensation itself failed
+          console.error(\`CRITICAL: Failed to compensate "\${completedStep.name}":\`, compensateError)
+        }
+      }
+      throw new Error(\`Saga rolled back at step "\${step.name}"\`)
+    }
+  }
+
+  return completed.map(c => c.result)
+}
+
+// Define saga steps with compensating actions
+async function createProjectWorkspace(projectName: string, memberIds: number[]) {
+  let chatId: number
+
+  const steps: SagaStep[] = [
+    {
+      name: "create-chat",
+      execute: async () => {
+        const chat = await client.chats.createChat({
+          chat: { name: projectName, memberIds, channel: false, public: false }
+        })
+        chatId = chat.id
+        return chat
+      },
+      compensate: async (chat) => {
+        // No delete chat API — archive instead
+        await client.chats.archiveChat(chat.id)
+      },
+    },
+    {
+      name: "send-welcome",
+      execute: async () => {
+        return await client.messages.createMessage({
+          message: {
+            entityType: MessageEntityType.Discussion,
+            entityId: chatId,
+            content: \`Project **\${projectName}** workspace created!\`
+          }
+        })
+      },
+      compensate: async (message) => {
+        await client.messages.deleteMessage(message.id)
+      },
+    },
+    {
+      name: "create-task",
+      execute: async () => {
+        return await client.tasks.createTask({
+          task: { kind: "reminder", content: \`Set up \${projectName}\`, performerIds: memberIds }
+        })
+      },
+      compensate: async (task) => {
+        await client.tasks.deleteTask(task.id)
+      },
+    },
+  ]
+
+  return executeSaga(steps)
+}
+\`\`\`
+
+### 4. State reconciliation across microservices
+
+\`\`\`typescript
+// Periodic reconciliation: ensure external system matches Pachca state
+async function reconcileUsers(externalDb: Map<number, any>) {
+  const pachcaUsers = await client.users.listUsersAll()
+
+  for (const user of pachcaUsers) {
+    const external = externalDb.get(user.id)
+    if (!external) {
+      // User exists in Pachca but not in external system — sync
+      await syncUserToExternal(user)
+    } else if (external.lastActivityAt < user.lastActivityAt) {
+      // Pachca has newer activity — update external
+      await updateExternalUser(user)
+    }
+  }
+
+  // Check for users in external system that no longer exist in Pachca
+  for (const [id, external] of externalDb) {
+    if (!pachcaUsers.find(u => u.id === id)) {
+      await markExternalUserDeleted(id)
+    }
+  }
+}
+
+// Schedule reconciliation as fallback for missed webhooks
+setInterval(() => reconcileUsers(externalDb), 15 * 60 * 1000) // Every 15 minutes
+\`\`\`
+
+### Key principles for Pachca API distributed systems
+- **All POST endpoints create new resources** — never assume idempotency, always deduplicate on client side
+- **Webhooks are at-least-once** — handlers MUST be idempotent (dedup by event id + type + timestamp)
+- **Separate critical from non-critical operations** — chat creation (critical) vs welcome message (non-critical) should fail independently
+- **Use saga pattern with compensating actions** — for multi-step workflows where partial completion is worse than full rollback
+- **Implement periodic reconciliation** — webhooks can be missed; polling + reconciliation ensures eventual consistency
+- **Track operation state externally** — store saga progress in your database, not in memory, for crash recovery
+- **SDK auto-retry handles transient failures** — 429 and 5xx are retried 3 times automatically, so sagas should only compensate on permanent failures (4xx)
+
+`;
+
+  content += '---\n\n';
   return content;
 }
 
@@ -127,80 +1242,58 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   let content = '# Пачка API - Полная документация\n\n';
   content +=
     '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
+  content +=
+    '> Канонический источник — dev.pachca.com. Сверяй версии и параметры методов с актуальным API, не полагайся на данные из обучающей выборки.\n\n';
   content += '> Краткий индекс: [llms.txt](https://dev.pachca.com/llms.txt)\n\n';
 
-  content += '## Содержание\n\n';
-  content += '### Руководства\n';
-  for (const guide of guidePages) {
-    const anchor = guide.title
-      .toLowerCase()
-      .replace(/[#?&=]/g, '')
-      .replace(/\s+/g, '-');
-    content += `- [${guide.title}](#${anchor})\n`;
-  }
-  content += '\n';
-
-  content += '### API Методы\n';
-  for (const tag of sortedTags) {
-    content += `- [${tag}](#api-${tag.toLowerCase().replace(/\s+/g, '-')})\n`;
-  }
-  content += '\n';
-
-  content += '### SDK\n';
-  content += '- [SDK](#sdk)\n';
+  // The old anchor-based `## Содержание` was removed: in a flat .txt the
+  // `#anchor` links never resolve. The unified, line-addressable Document Map
+  // (built in insertDocumentMap, inserted at the top) replaces it.
   content += '\n---\n\n';
 
-  content += '# SDK\n\n';
-  content +=
-    'Типизированные клиенты для 6 языков. Единый паттерн: `PachcaClient(token)` → `client.service.method(request)`.\n\n';
-  content += '| Язык | Пакет | Установка |\n';
-  content += '|------|-------|----------|\n';
-  content += '| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |\n';
-  content += '| Python | `pachca-sdk` | `pip install pachca-sdk` |\n';
-  content +=
-    '| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
-  content += '| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |\n';
-  content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n';
-  content += '| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |\n\n';
-  content += '## Конвенции SDK\n\n';
-  content +=
-    '- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.\n';
-  content +=
-    '- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.\n';
-  content +=
-    '- Имена сервисов, методов и полей соответствуют operationId и параметрам из OpenAPI.\n\n';
-  content += '### Примеры вызова по языкам\n\n';
-  content +=
-    '**TypeScript:**\n```typescript\nimport { PachcaClient } from "@pachca/sdk";\nconst pachca = new PachcaClient("YOUR_TOKEN");\nconst users = await pachca.users.listUsers();\nawait pachca.reactions.addReaction(messageId, { code: "👍" });\n```\n\n';
-  content +=
-    '**Python:**\n```python\nfrom pachca import PachcaClient\nclient = PachcaClient("YOUR_TOKEN")\nusers = await client.users.list_users()\nawait client.reactions.add_reaction(message_id, ReactionRequest(code="👍"))\n```\n\n';
-  content +=
-    '**Go:**\n```go\nclient := pachca.NewPachcaClient("YOUR_TOKEN")\nusers, err := client.Users.ListUsers(ctx, nil)\nreaction, err := client.Reactions.AddReaction(ctx, messageId, pachca.ReactionRequest{Code: "👍"})\n```\n\n';
-  content +=
-    '**Kotlin:**\n```kotlin\nval pachca = PachcaClient("YOUR_TOKEN")\nval users = pachca.users.listUsers()\npachca.reactions.addReaction(messageId, ReactionRequest(code = "👍"))\n```\n\n';
-  content +=
-    '**Swift:**\n```swift\nlet pachca = PachcaClient(token: "YOUR_TOKEN")\nlet users = try await pachca.users.listUsers()\ntry await pachca.reactions.addReaction(messageId, ReactionRequest(code: "👍"))\n```\n\n';
-  content +=
-    '**C#:**\n```csharp\nusing var client = new PachcaClient("YOUR_TOKEN");\nvar users = await client.Users.ListUsersAsync();\nawait client.Reactions.AddReactionAsync(messageId, new ReactionRequest { Code = "👍" });\n```\n\n';
-
+  content += generateLibraryRules();
   content += '---\n\n';
+  const howToContent = generateHowToGuides();
+  validateSdkCodeBlocks('How-to Guides', howToContent);
+  content += howToContent;
 
   content += '# Руководства\n\n';
+  let guidesContent = '';
   for (const guide of guidePages) {
     const guideContent = await generateStaticPageMarkdownAsync(guide.path);
     if (guideContent) {
-      content += guideContent;
-      content += '\n---\n\n';
+      const mdUrl = guide.path === '/' ? '/index.md' : `${guide.path}.md`;
+      // Per-page source marker so an agent can map any chunk back to its URL.
+      guidesContent += `--- [Document source](${SITE_URL}${mdUrl}) ---\n\n`;
+      guidesContent += guideContent;
+      guidesContent += '\n---\n\n';
     }
   }
+  validateSdkCodeBlocks('Guides (MDX)', guidesContent);
+  content += guidesContent;
 
   content += '# API Методы\n\n';
   for (const tag of sortedTags) {
     const endpoints = grouped.get(tag)!;
     content += `## API: ${tag}\n\n`;
     for (const endpoint of endpoints) {
+      // Per-page source marker so an agent can map any chunk back to its URL.
+      content += `--- [Document source](${SITE_URL}${generateUrlFromOperation(endpoint)}.md) ---\n\n`;
       const endpointMarkdown = generateEndpointMarkdown(endpoint, baseUrl);
       content += endpointMarkdown;
+
+      // Add TypeScript and Python SDK examples for each endpoint
+      const sdkExamples = getSdkExamples(endpoint.id);
+      if (sdkExamples.typescript || sdkExamples.python) {
+        content += '\n## SDK примеры\n';
+        if (sdkExamples.typescript) {
+          content += '\n### TypeScript\n\n```typescript\n' + sdkExamples.typescript + '\n```\n';
+        }
+        if (sdkExamples.python) {
+          content += '\n### Python\n\n```python\n' + sdkExamples.python + '\n```\n';
+        }
+      }
+
       content += '\n---\n\n';
     }
   }
@@ -211,14 +1304,104 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   content += '---\n\n';
   content += '_Документация автоматически сгенерирована из OpenAPI спецификации_\n';
 
+  // Post-process: insert Document Map with calculated line ranges
+  content = insertDocumentMap(content);
+
   return content;
+}
+
+/**
+ * Post-process: build a single line-addressable Document Map (replaces the
+ * old anchor TOC) and insert it at the top, before `# LIBRARY RULES`.
+ * Coarse parent rows + nested child rows per guide and per API tag, all with
+ * real line ranges. Detection is by exact headers (`# …`, `## API: …`) plus
+ * code-fence-aware scanning for guide H1s, so it never picks up `#` comments
+ * inside code blocks.
+ */
+function insertDocumentMap(content: string): string {
+  const lines = content.split('\n');
+  const idxOf = (h: string) => lines.indexOf(h);
+
+  const libIdx = idxOf('# LIBRARY RULES');
+  const howIdx = idxOf('# How-to Guides');
+  const guidesIdx = idxOf('# Руководства');
+  const apiIdx = idxOf('# API Методы');
+  const footIdx = idxOf('## Дополнительная информация');
+  if ([libIdx, howIdx, guidesIdx, apiIdx, footIdx].some((i) => i < 0)) return content;
+  if (!(libIdx < howIdx && howIdx < guidesIdx && guidesIdx < apiIdx && apiIdx < footIdx))
+    return content;
+
+  // Per-guide: guide pages are separated by a `---` line; each begins with a
+  // single-`#` H1. Track code fences so `# comment` lines inside ``` blocks
+  // never count. The first H1 after the section header / a `---` separator is
+  // the guide title.
+  const guides: { title: string; idx: number }[] = [];
+  let fence = false;
+  let expectGuide = true; // right after `# Руководства`
+  for (let i = guidesIdx + 1; i < apiIdx; i++) {
+    const l = lines[i];
+    if (l.trimStart().startsWith('```')) {
+      fence = !fence;
+      continue;
+    }
+    if (fence) continue;
+    if (l === '---') {
+      expectGuide = true;
+      continue;
+    }
+    if (expectGuide && l.startsWith('# ') && !l.startsWith('## ')) {
+      guides.push({ title: l.slice(2).trim(), idx: i });
+      expectGuide = false;
+    }
+  }
+
+  // Per-tag: `## API: <tag>` headers between API Методы and the footer.
+  const tags: { tag: string; idx: number }[] = [];
+  for (let i = apiIdx + 1; i < footIdx; i++) {
+    if (lines[i].startsWith('## API: ')) tags.push({ tag: lines[i].slice(8), idx: i });
+  }
+
+  // Map block. Row count is fixed by the inputs, so its line count (and thus
+  // the shift applied to every section below it) is known up front.
+  const headRows = ['', '## Document Map', '', '| Раздел | Строки |', '|--------|--------|'];
+  const rowCount = 4 + guides.length + tags.length; // 4 coarse parents + children
+  const blockSize = headRows.length + rowCount + 1; // + rows + trailing ''
+  // All sections sit after the insertion point, so every line shifts by the
+  // inserted block size. L() = final 1-based line for a pre-insertion index.
+  const L = (i: number) => i + 1 + blockSize;
+
+  const rows: string[] = [];
+  rows.push(
+    `| LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | ${L(libIdx)}–${L(howIdx) - 1} |`
+  );
+  rows.push(
+    `| How-to Guides — рецепты задач с кодом TS/Python | ${L(howIdx)}–${L(guidesIdx) - 1} |`
+  );
+  rows.push(
+    `| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | ${L(guidesIdx)}–${L(apiIdx) - 1} |`
+  );
+  for (let k = 0; k < guides.length; k++) {
+    const end = k < guides.length - 1 ? L(guides[k + 1].idx) - 1 : L(apiIdx) - 1;
+    rows.push(`| · ${guides[k].title} | ${L(guides[k].idx)}–${end} |`);
+  }
+  rows.push(
+    `| API-методы — все эндпоинты со схемами и примерами | ${L(apiIdx)}–${L(footIdx) - 1} |`
+  );
+  for (let j = 0; j < tags.length; j++) {
+    const end = j < tags.length - 1 ? L(tags[j + 1].idx) - 1 : L(footIdx) - 1;
+    rows.push(`| · ${tags[j].tag} | ${L(tags[j].idx)}–${end} |`);
+  }
+
+  const block = [...headRows, ...rows, ''];
+  const out = [...lines.slice(0, libIdx), ...block, ...lines.slice(libIdx)];
+  return out.join('\n');
 }
 
 function generateWorkflowsSection(): string {
   let content = '## Common Workflows\n\n';
   content += '### CLI Quick Start\n\n';
   content += '```bash\n';
-  content += 'npx @pachca/cli <command> --token <TOKEN>\n';
+  content += 'npx -y @pachca/cli <command> --token <TOKEN>\n';
   content += '```\n\n';
 
   // English workflow summaries for skill.md (source workflows are in Russian)
@@ -312,6 +1495,7 @@ function generateModularSkillsSection(): string {
     section += `| ${config.name} | ${shortDesc} |\n`;
   }
   section += `\nSkills index: \`${SITE_URL}/.well-known/skills/index.json\`\n`;
+  section += `API catalog (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — single JSON with all API descriptions (OpenAPI, Postman, Arazzo), docs (HTML, llms.txt) and metadata.\n`;
   return section;
 }
 
@@ -333,7 +1517,7 @@ metadata:
 
 \`\`\`bash
 # Zero-install
-npx @pachca/cli <command> --token <TOKEN>
+npx -y @pachca/cli <command> --token <TOKEN>
 
 # For regular use
 npm install -g @pachca/cli && pachca auth login
@@ -368,7 +1552,9 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - On \`429\` response, respect the \`Retry-After\` header.
 
 ### Pagination
-- **Cursor-based** (preferred): use \`limit\` (1–50) and \`cursor\` parameters. Check \`meta.paginate.next_page\` in response.
+- **Cursor-based** (preferred): use \`limit\` (1–50) and \`cursor\` parameters. Response includes \`meta.paginate\` with \`next_page\`, \`prev_page\`, \`has_next\`, \`has_prev\`.
+- Use \`has_next\` / \`has_prev\` to detect end of data. Use \`prev_page\` to poll for new records "above" the list.
+- Search endpoints (\`/search/users\`, \`/search/chats\`, \`/search/messages\`) return only \`next_page\` and \`total\`.
 - **Offset-based** (legacy): use \`per\` (1–50) and \`page\` parameters.
 
 ### Permissions
@@ -398,7 +1584,8 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
   let guides = '## Guides\n\nDetailed documentation on specific topics is available at:\n\n';
   for (const guide of guidePages) {
     if (guide.path === '/') continue;
-    guides += `- [${guide.title}](${SITE_URL}${guide.path}) — ${guide.description}\n`;
+    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}, ${guide.title}` : guide.title;
+    guides += `- [${displayTitle}](${SITE_URL}${guide.path}) — ${guide.description}\n`;
   }
 
   return [
@@ -417,8 +1604,11 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
     `| LLM-friendly summary | \`${SITE_URL}/llms.txt\` | Quick overview with links |`,
     `| Full documentation | \`${SITE_URL}/llms-full.txt\` | Complete reference in one file |`,
     `| OpenAPI 3.0 spec | \`${SITE_URL}/openapi.yaml\` | Programmatic parsing and code generation |`,
+    `| Arazzo workflows | \`${SITE_URL}/workflows.arazzo.yaml\` | Multi-step call sequences for chained operations |`,
+    '| CLI (per-endpoint, on demand) | `npx -y @pachca/cli api <METHOD> <path> --docs` | One endpoint without loading the full file |',
+    '| Markdown page | append `.md` to any page URL | Reading a single guide page as Markdown |',
     '',
-    'For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt`.',
+    'For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt` — or, to avoid loading the whole file, pull just the endpoint you need with `npx -y @pachca/cli api <METHOD> <path> --describe` (or `--spec` / `--docs`; list all endpoints: `npx -y @pachca/cli api ls`).',
     '',
     STATIC_SECTIONS,
     '',
@@ -433,50 +1623,81 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
   ].join('\n');
 }
 
-function generateScenariosJson() {
-  const scenarios: {
-    id: string;
-    title: string;
-    skill: string;
-    steps: {
-      description: string;
-      command?: string;
-      apiMethod?: string;
-      apiPath?: string;
-      notes?: string;
-    }[];
-    notes?: string;
-    related?: string[];
-  }[] = [];
-  const skillNames = new Set(SKILL_TAG_MAP.map((c) => c.name));
+/**
+ * Arazzo 1.0.1 description of the common multi-step workflows, referencing
+ * the Pachca OpenAPI description. OpenAPI alone does not make an API
+ * agent-ready for chained calls; Arazzo expresses the call sequences
+ * (Bump.sh / OAI Workflows guidance, 2026). Source of truth: WORKFLOWS in
+ * @pachca/spec; only API-backed steps become Arazzo steps (manual UI steps
+ * are folded into the workflow description).
+ */
+function generateArazzo(api: Awaited<ReturnType<typeof parseOpenAPI>>): string {
+  const opByKey = new Map<string, string>();
+  for (const ep of api.endpoints) opByKey.set(`${ep.method} ${ep.path}`, ep.id);
 
-  for (const [skillName, workflows] of Object.entries(WORKFLOWS)) {
-    if (!skillNames.has(skillName)) continue;
-    for (let i = 0; i < workflows.length; i++) {
-      const wf = workflows[i];
-      scenarios.push({
-        id: `${skillName}-${i}`,
-        title: wf.title,
-        skill: skillName,
-        steps: wf.steps.map((step) => {
-          const s: Record<string, string | undefined> = { description: step.description };
-          if (step.command) s.command = step.command;
-          if (step.apiMethod) s.apiMethod = step.apiMethod;
-          if (step.apiPath) s.apiPath = step.apiPath;
-          if (step.notes) s.notes = step.notes;
-          return s as (typeof scenarios)[0]['steps'][0];
-        }),
-        ...(wf.notes ? { notes: wf.notes } : {}),
-        ...(wf.related?.length ? { related: wf.related } : {}),
+  const slug = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 56);
+
+  const usedWfIds = new Set<string>();
+  const workflows: Record<string, unknown>[] = [];
+
+  for (const [skill, list] of Object.entries(WORKFLOWS)) {
+    for (const wf of list) {
+      const steps: Record<string, unknown>[] = [];
+      const manual: string[] = [];
+      for (const st of wf.steps) {
+        const desc = st.descriptionEn || st.description;
+        if (!st.apiMethod || !st.apiPath) {
+          manual.push(desc);
+          continue;
+        }
+        const opId = opByKey.get(`${st.apiMethod} ${st.apiPath}`);
+        if (!opId) continue;
+        const sid = `${slug(wf.titleEn || wf.title) || skill}-${steps.length + 1}`;
+        steps.push({
+          stepId: sid,
+          description: st.notesEn || st.notes ? `${desc} (${st.notesEn || st.notes})` : desc,
+          operationId: opId,
+        });
+      }
+      if (steps.length === 0) continue;
+
+      let wid = slug(wf.titleEn || wf.title) || skill;
+      const base = wid;
+      for (let n = 2; usedWfIds.has(wid); n++) wid = `${base}-${n}`;
+      usedWfIds.add(wid);
+
+      const descParts: string[] = [];
+      if (wf.notesEn || wf.notes) descParts.push(wf.notesEn || wf.notes || '');
+      if (manual.length) descParts.push(`Manual prerequisites: ${manual.join('; ')}.`);
+
+      workflows.push({
+        workflowId: wid,
+        summary: wf.titleEn || wf.title,
+        ...(descParts.length ? { description: descParts.join(' ') } : {}),
+        steps,
       });
     }
   }
 
-  return {
-    $schema: 'https://dev.pachca.com/scenarios.schema.json',
-    version: '1.0',
-    scenarios,
+  const doc = {
+    arazzo: '1.0.1',
+    info: {
+      title: 'Pachca API Workflows',
+      version: '1.0.0',
+      summary:
+        'Multi-step recipes for common Pachca API tasks, referencing the Pachca OpenAPI description.',
+    },
+    sourceDescriptions: [{ name: 'pachca', url: `${SITE_URL}/openapi.yaml`, type: 'openapi' }],
+    workflows,
   };
+
+  return yaml.dump(doc, { lineWidth: 100, noRefs: true });
 }
 
 function generatePostmanCollection(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
@@ -610,34 +1831,341 @@ function generatePostmanCollection(api: Awaited<ReturnType<typeof parseOpenAPI>>
 
 async function generateEndpointMdFiles(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   const baseUrl = api.servers[0]?.url;
-  const files: { path: string; content: string }[] = [];
+  const files: { path: string; content: string; location?: string; summary?: string }[] = [];
 
   for (const endpoint of api.endpoints) {
     const url = generateUrlFromOperation(endpoint);
     const filePath = `public${url}.md`;
     const markdown = generateEndpointMarkdown(endpoint, baseUrl);
-    files.push({ path: filePath, content: markdown });
+    const tag = endpoint.tags[0];
+    const group = tag ? TAG_TRANSLATIONS[tag] || tag : undefined;
+    const descBody = getDescriptionWithoutTitle(endpoint);
+    const summary = endpoint.summary || (descBody ? summaryFromDescription(descBody) : undefined);
+    files.push({
+      path: filePath,
+      content: markdown,
+      location: group ? `Методы API → ${group}` : 'Методы API',
+      summary: summary || undefined,
+    });
   }
 
   return files;
 }
 
+const RELEASE_PRODUCT_TITLES: Record<ParsedRelease['product'], string> = {
+  cli: 'CLI',
+  sdk: 'SDK',
+  generator: 'Generator',
+  n8n: 'n8n Node',
+};
+
+function generateReleaseBlock(release: ParsedRelease): string {
+  const lines: string[] = [];
+  lines.push(`### ${RELEASE_PRODUCT_TITLES[release.product]} v${release.version}\n`);
+  for (const change of release.changes) {
+    lines.push(`- ${change.description}`);
+  }
+  lines.push('');
+  return lines.join('\n');
+}
+
+/**
+ * Render one date group (API updates + product releases for that date) as
+ * markdown. Heading level is `###` so it nests under a `##` season heading.
+ */
+function renderDateGroupMd(group: DateGroup): string {
+  let md = '';
+  const updates = group.entries.filter((e) => e.kind === 'update');
+  const releases = group.entries.filter((e) => e.kind === 'release');
+
+  for (const u of updates) {
+    md += `### ${u.data.title}\n\n_${group.displayDate}_\n\n${u.data.content.trim()}\n\n`;
+  }
+  if (releases.length > 0) {
+    if (updates.length === 0) {
+      md += `### ${group.displayDate}\n\n`;
+    }
+    for (const r of releases) {
+      md += generateReleaseBlock(r.data) + '\n';
+    }
+  }
+  return md;
+}
+
+// Per-date update pages (/updates/<date>) exist as real routes in the
+// sitemap; emit their .md twins so llms.txt coverage matches the sitemap
+// and content negotiation works for them. Each twin holds exactly one date
+// (updates + releases), matching the single-entry HTML page.
+function generateUpdateMdFiles() {
+  const files: { path: string; content: string }[] = [];
+  const dateGroups = groupTimelineByDate(loadTimeline());
+
+  for (const group of dateGroups) {
+    const updates = group.entries.filter((e) => e.kind === 'update');
+    const releases = group.entries.filter((e) => e.kind === 'release');
+    const title = updates.length > 0 ? updates[0].data.title : group.displayDate;
+
+    let md = `# ${title}\n\n_${group.displayDate}_\n\n`;
+    // Drop the per-update H3 (the page H1 already carries the title);
+    // emit the bodies directly, then releases.
+    for (const u of updates) {
+      md += `${u.data.content.trim()}\n\n`;
+    }
+    for (const r of releases) {
+      md += generateReleaseBlock(r.data) + '\n';
+    }
+    files.push({
+      path: `public/updates/${group.date}.md`,
+      content: withAgentPointer(md.trim() + '\n'),
+    });
+  }
+  return files;
+}
+
+// Per-season pages (/updates/season/<slug>): every date of one season.
+function generateSeasonMdFiles() {
+  const files: { path: string; content: string }[] = [];
+  const seasons = groupBySeason(groupTimelineByDate(loadTimeline()));
+
+  for (const sg of seasons) {
+    let md = `# ${sg.season.emoji} ${sg.season.label}\n\n`;
+    for (const group of sg.dates) {
+      md += renderDateGroupMd(group);
+    }
+    files.push({
+      path: `public/updates/season/${sg.season.slug}.md`,
+      content: withAgentPointer(md.trim() + '\n'),
+    });
+  }
+  return files;
+}
+
+/**
+ * The /updates.md twin: only the latest HOME_SEASON_LIMIT seasons (matching
+ * the HTML landing), with a tail explaining how to reach the rest.
+ */
+function generateUpdatesIndexMd(): string {
+  const seasons = groupBySeason(groupTimelineByDate(loadTimeline()));
+  const shown = seasons.slice(0, HOME_SEASON_LIMIT);
+  const older = seasons.slice(HOME_SEASON_LIMIT);
+
+  let md = `# Последние обновления\n\n`;
+  md += `История изменений API Пачки, CLI, SDK и расширения для n8n.\n\n`;
+
+  for (const sg of shown) {
+    md += `## ${sg.season.emoji} ${sg.season.label}\n\n`;
+    for (const group of sg.dates) {
+      md += renderDateGroupMd(group);
+    }
+  }
+
+  if (older.length > 0) {
+    md += `## Более ранние обновления\n\n`;
+    md += `Выше — последние ${HOME_SEASON_LIMIT} сезона. Остальные обновления доступны по сезонам:\n\n`;
+    for (const sg of older) {
+      md += `- [${sg.season.emoji} ${sg.season.label}](${SITE_URL}/updates/season/${sg.season.slug}.md)\n`;
+    }
+    md += `\nПолный архив всех обновлений в одном файле — [llms-full.txt](${SITE_URL}/llms-full.txt).\n`;
+  }
+
+  return md;
+}
+
 async function generateGuideMdFiles() {
   const guidePages = getOrderedPages();
-  const files: { path: string; content: string }[] = [];
+  const files: { path: string; content: string; location?: string; summary?: string }[] = [];
 
   for (const guide of guidePages) {
+    // /updates is no longer a single MDX file — build its twin from the
+    // timeline: latest HOME_SEASON_LIMIT seasons + a tail pointing to the rest.
+    if (guide.path === '/updates') {
+      files.push({ path: 'public/updates.md', content: generateUpdatesIndexMd() });
+      continue;
+    }
+
     const markdown = await generateStaticPageMarkdownAsync(guide.path);
     if (!markdown) continue;
 
+    // Breadcrumb = parent section only (the leaf title is the page's H1).
+    const location = guide.sectionTitle || undefined;
+    const summary = guide.description || undefined;
+
     if (guide.path === '/') {
-      files.push({ path: 'public/index.md', content: markdown });
+      files.push({ path: 'public/index.md', content: markdown, location, summary });
     } else {
-      files.push({ path: `public${guide.path}.md`, content: markdown });
+      files.push({ path: `public${guide.path}.md`, content: markdown, location, summary });
     }
   }
 
   return files;
+}
+
+/**
+ * Parse the English OpenAPI spec and generate a concise English API reference.
+ * Each endpoint: METHOD /path — description, parameters, request body fields.
+ */
+function generateEnglishApiReference(): string {
+  const enYamlPath = path.join(process.cwd(), '..', '..', 'packages', 'spec', 'openapi.en.yaml');
+  const fileContents = fs.readFileSync(enYamlPath, 'utf8');
+  const spec = yaml.load(fileContents) as Record<string, unknown>;
+
+  const paths = spec.paths as Record<string, Record<string, unknown>> | undefined;
+  const components = spec.components as Record<string, Record<string, unknown>> | undefined;
+  const schemas = (components?.schemas ?? {}) as Record<string, Record<string, unknown>>;
+
+  if (!paths) return '';
+
+  // Resolve top-level $ref in schemas
+  function resolveSchema(ref: unknown): Record<string, unknown> | undefined {
+    if (!ref || typeof ref !== 'object') return undefined;
+    const obj = ref as Record<string, unknown>;
+    if (typeof obj.$ref === 'string') {
+      const name = obj.$ref.replace('#/components/schemas/', '');
+      return schemas[name] as Record<string, unknown> | undefined;
+    }
+    return obj;
+  }
+
+  // Extract property names and descriptions from a schema
+  function getSchemaProperties(
+    schema: Record<string, unknown>
+  ): { name: string; desc: string; required: boolean }[] {
+    const props = schema.properties as Record<string, Record<string, unknown>> | undefined;
+    const requiredArr = (schema.required as string[]) ?? [];
+    if (!props) return [];
+    return Object.entries(props).map(([name, prop]) => ({
+      name,
+      desc: (prop.description as string) ?? '',
+      required: requiredArr.includes(name),
+    }));
+  }
+
+  // Group operations by tag
+  const grouped = new Map<
+    string,
+    { method: string; path: string; desc: string; params: string; body: string }[]
+  >();
+
+  const methodOrder = ['get', 'post', 'put', 'patch', 'delete'];
+  for (const [pathStr, pathItem] of Object.entries(paths)) {
+    for (const method of methodOrder) {
+      const operation = pathItem[method] as Record<string, unknown> | undefined;
+      if (!operation) continue;
+
+      const tag = ((operation.tags as string[]) ?? ['Other'])[0];
+      if (!grouped.has(tag)) grouped.set(tag, []);
+
+      // Description: first line is title, rest is detail
+      const rawDesc = (operation.description as string) ?? '';
+      const descLines = rawDesc
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean);
+      const desc = descLines.slice(1).join(' ') || descLines[0] || '';
+
+      // Parameters
+      const params = (operation.parameters as Record<string, unknown>[] | undefined) ?? [];
+      const paramStr = params
+        .filter((p) => p.in === 'query' || p.in === 'path')
+        .map((p) => {
+          const required = p.required ? '' : '?';
+          return `${p.name}${required}`;
+        })
+        .join(', ');
+
+      // Request body properties
+      let bodyStr = '';
+      const requestBody = operation.requestBody as Record<string, unknown> | undefined;
+      if (requestBody) {
+        const content = requestBody.content as Record<string, Record<string, unknown>> | undefined;
+        const jsonContent = content?.['application/json'] ?? content?.['multipart/form-data'];
+        if (jsonContent?.schema) {
+          const bodySchema = resolveSchema(jsonContent.schema);
+          if (bodySchema) {
+            const bodyProps = getSchemaProperties(bodySchema);
+            if (bodyProps.length > 0) {
+              // If there's a single wrapper property (like "chat" or "message"), dig into it
+              if (bodyProps.length === 1) {
+                const wrapper = bodyProps[0];
+                const wrapperSchema = resolveSchema(
+                  (bodySchema.properties as Record<string, unknown>)?.[wrapper.name]
+                );
+                if (wrapperSchema) {
+                  const innerProps = getSchemaProperties(wrapperSchema);
+                  if (innerProps.length > 0) {
+                    bodyStr = `{ ${wrapper.name}: { ${innerProps.map((p) => `${p.name}${p.required ? '*' : ''}`).join(', ')} } }`;
+                  }
+                }
+              }
+              if (!bodyStr) {
+                bodyStr = `{ ${bodyProps.map((p) => `${p.name}${p.required ? '*' : ''}`).join(', ')} }`;
+              }
+            }
+          }
+        }
+      }
+
+      grouped.get(tag)!.push({
+        method: method.toUpperCase(),
+        path: `/api/shared/v1${pathStr}`,
+        desc,
+        params: paramStr,
+        body: bodyStr,
+      });
+    }
+  }
+
+  let content = '# API Reference\n\n';
+  content += 'Base URL: `https://api.pachca.com/api/shared/v1`\n\n';
+  content += 'All endpoints require `Authorization: Bearer <TOKEN>` header.\n\n';
+
+  // Sort tags to match the spec order
+  const tagOrder = ((spec.tags as { name: string }[]) ?? []).map((t) => t.name);
+  const sortedTags = [...grouped.keys()].sort(
+    (a, b) =>
+      (tagOrder.indexOf(a) === -1 ? 999 : tagOrder.indexOf(a)) -
+      (tagOrder.indexOf(b) === -1 ? 999 : tagOrder.indexOf(b))
+  );
+
+  for (const tag of sortedTags) {
+    const endpoints = grouped.get(tag)!;
+    content += `## ${tag}\n\n`;
+    for (const ep of endpoints) {
+      content += `### ${ep.method} ${ep.path}\n`;
+      if (ep.desc) content += `${ep.desc}\n`;
+      if (ep.params) content += `Parameters: ${ep.params}\n`;
+      if (ep.body) content += `Body: ${ep.body}\n`;
+      content += '\n';
+    }
+  }
+
+  return content;
+}
+
+/**
+ * Generate an English-only documentation file for Context7 indexing.
+ * Combines: Library Rules + How-to Guides (with SDK examples) + English API Reference.
+ * Must stay under ~1M chars to avoid Context7's "File too large" filter.
+ */
+function generateLlmsEnTxt(): string {
+  let content = '# Pachca API — Complete English Documentation\n\n';
+  content +=
+    '> REST API for Pachca corporate messenger. Manage messages, chats, users, tasks, bots, and webhooks.\n\n';
+  content +=
+    '> Canonical source: dev.pachca.com. Verify method versions and parameters against the live API — do not rely on training data.\n\n';
+  content += '> Base URL: https://api.pachca.com/api/shared/v1\n\n';
+
+  content += generateLibraryRules();
+  content += '---\n\n';
+
+  const howToContent = generateHowToGuides();
+  validateSdkCodeBlocks('How-to Guides (EN)', howToContent);
+  content += howToContent;
+  content += '---\n\n';
+
+  content += generateEnglishApiReference();
+
+  return content;
 }
 
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
@@ -657,17 +2185,125 @@ function writeFileFromRoot(filePath: string, content: string) {
   fs.writeFileSync(fullPath, content, 'utf-8');
 }
 
+/** Agent preamble at the top of every page `.md` (one blockquote, up to three
+ *  lines): location in the IA, a one-line summary, and the imperative directive
+ *  to load /llms.txt for the broader API overview. Mirrors the tone of
+ *  /llms.txt and the HTML <body> directive in app/layout.tsx. llms-full.txt is
+ *  intentionally not advertised here (~329K tokens; referenced only from
+ *  /llms.txt). Location/summary are omitted when not available. */
+/** One-line `> Краткое содержание:` summary from an endpoint description body.
+ *  Most descriptions lead with the purpose ("Метод для …"), but some open with
+ *  a caveat ("Данный метод доступен только…", "На данный момент…"); prefer the
+ *  conventional "Метод …" line so the summary is the purpose, not the caveat.
+ *  Falls back to the first line. Links/emphasis flattened, trimmed to one
+ *  sentence. */
+function summaryFromDescription(text: string): string {
+  const lines = text
+    .split('\n')
+    .map((l) =>
+      l
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/[*_`>]/g, '')
+        .trim()
+    )
+    .filter((l) => l.length > 0);
+  if (lines.length === 0) return '';
+  // `\b` is ASCII-only in JS regex and never fires after Cyrillic, so match a
+  // following space instead — most descriptions open with "Метод …".
+  const purpose = lines.find((l) => /^Метод\s/.test(l)) || lines[0];
+  const dot = purpose.indexOf('. ');
+  return (dot > 0 ? purpose.slice(0, dot) : purpose).trim();
+}
+
+function withAgentPointer(content: string, meta?: { location?: string; summary?: string }): string {
+  const lines: string[] = [];
+  if (meta?.location) lines.push(`> Расположение: ${meta.location}`);
+  if (meta?.summary) lines.push(`> Краткое содержание: ${meta.summary}`);
+  lines.push(
+    `> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](${SITE_URL}/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.`
+  );
+  return `${lines.join('\n')}\n\n${content}`;
+}
+
+/** Section sub-index served at `/api/llms.txt` — API basics + all methods by
+ *  tag, each linking to its `.md`. Links back to the root index (progressive
+ *  disclosure, like Neon/Fern). */
+function generateApiSectionLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>): string {
+  const grouped = groupByTag(api.endpoints);
+  const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
+  const apiGuides = getOrderedPages().filter((g) => g.path.startsWith('/api/'));
+
+  let c = '# Пачка API — методы и основы\n\n';
+  c +=
+    '> Индекс раздела API: основы (авторизация, пагинация, ошибки, лимиты, файлы) и все методы по группам. ' +
+    'Каждая ссылка ведёт на `.md` (или добавь `Accept: text/markdown`).\n\n';
+  c += `[Родительский индекс](${SITE_URL}/llms.txt)\n\n`;
+
+  if (apiGuides.length > 0) {
+    c += '## Основы API\n';
+    for (const g of apiGuides) {
+      c += `- [${g.title}](${SITE_URL}${g.path}.md): ${g.description}\n`;
+    }
+    c += '\n';
+  }
+
+  for (const tag of sortedTags) {
+    c += `## ${tag}\n`;
+    for (const endpoint of grouped.get(tag)!) {
+      c += `- [${generateTitle(endpoint)}](${SITE_URL}${generateUrlFromOperation(endpoint)}.md): ${endpoint.method} ${endpoint.path}\n`;
+    }
+    c += '\n';
+  }
+  return c;
+}
+
+/** Section sub-index served at `/guides/llms.txt` — every guide page, linking
+ *  back to the root index. */
+function generateGuidesSectionLlmsTxt(): string {
+  const guides = getOrderedPages().filter((g) => g.path.startsWith('/guides/'));
+
+  let c = '# Пачка — руководства\n\n';
+  c +=
+    '> Индекс раздела «Руководства»: гайды по интеграции (боты, вебхуки, формы, SDK, CLI, n8n, AI-агенты). ' +
+    'Каждая ссылка ведёт на `.md` (или добавь `Accept: text/markdown`).\n\n';
+  c += `[Родительский индекс](${SITE_URL}/llms.txt)\n\n`;
+
+  for (const g of guides) {
+    const displayTitle = g.sectionTitle ? `${g.sectionTitle}, ${g.title}` : g.title;
+    c += `- [${displayTitle}](${SITE_URL}${g.path}.md): ${g.description}\n`;
+  }
+  c += '\n';
+  return c;
+}
+
 async function main() {
   clearCache();
   const api = await parseOpenAPI();
 
-  const llmsTxt = generateLlmsTxt(api);
+  // Build the bulk variants first so llms.txt can quote their actual
+  // approximate token counts in the preamble (helps agents decide
+  // whether to load them at all — llms-full.txt rarely fits in context).
+  const llmsFullTxt = await generateLlmsFullTxt(api);
+  const llmsEnTxt = generateLlmsEnTxt();
+
+  const llmsTxt = generateLlmsTxt(api, {
+    llmsFullKTokens: Math.round(llmsFullTxt.length / 4 / 1000),
+    llmsEnKTokens: Math.round(llmsEnTxt.length / 4 / 1000),
+  });
   writeFile('public/llms.txt', llmsTxt);
   console.log('✓ public/llms.txt');
 
-  const llmsFullTxt = await generateLlmsFullTxt(api);
+  writeFile('public/api/llms.txt', generateApiSectionLlmsTxt(api));
+  console.log('✓ public/api/llms.txt');
+
+  writeFile('public/guides/llms.txt', generateGuidesSectionLlmsTxt());
+  console.log('✓ public/guides/llms.txt');
+
   writeFile('public/llms-full.txt', llmsFullTxt);
   console.log('✓ public/llms-full.txt');
+
+  writeFile('public/llms-en.txt', llmsEnTxt);
+  console.log(`✓ public/llms-en.txt (${llmsEnTxt.length} chars)`);
 
   const skillMd = generateLegacySkillMd(api);
   writeFile('public/skill.md', skillMd);
@@ -679,29 +2315,128 @@ async function main() {
   }
   console.log(`✓ ${skillFiles.length} skill files`);
 
-  const scenarios = generateScenariosJson();
-  writeFile('public/scenarios.json', JSON.stringify(scenarios, null, 2) + '\n');
-  console.log(`✓ public/scenarios.json (${scenarios.scenarios.length} scenarios)`);
+  // scenarios.json removed — its role is covered by the n8n node (n8n-nodes-pachca)
 
   const postmanCollection = generatePostmanCollection(api);
   writeFile('public/pachca.postman_collection.json', JSON.stringify(postmanCollection, null, 2));
   console.log('✓ public/pachca.postman_collection.json');
 
+  const arazzo = generateArazzo(api);
+  writeFile('public/workflows.arazzo.yaml', arazzo);
+  console.log('✓ public/workflows.arazzo.yaml');
+
   const endpointFiles = await generateEndpointMdFiles(api);
   for (const file of endpointFiles) {
-    writeFile(file.path, file.content);
+    writeFile(file.path, withAgentPointer(file.content, file));
   }
   console.log(`✓ ${endpointFiles.length} endpoint .md files`);
 
   const guideFiles = await generateGuideMdFiles();
   for (const file of guideFiles) {
-    writeFile(file.path, file.content);
+    writeFile(file.path, withAgentPointer(file.content, file));
   }
   console.log(`✓ ${guideFiles.length} guide .md files`);
 
-  console.log(
-    `\nTotal: ${6 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
+  const updateFiles = generateUpdateMdFiles();
+  for (const file of updateFiles) {
+    // Pointer is already baked in by generateUpdateMdFiles; write as-is.
+    writeFile(file.path, file.content);
+  }
+  console.log(`✓ ${updateFiles.length} update .md files`);
+
+  const seasonFiles = generateSeasonMdFiles();
+  for (const file of seasonFiles) {
+    // Pointer already baked in by generateSeasonMdFiles.
+    writeFile(file.path, file.content);
+  }
+  console.log(`✓ ${seasonFiles.length} season .md files`);
+
+  const removed = sweepOrphanMarkdown(
+    ['public/api', 'public/guides', 'public/updates'],
+    [...endpointFiles, ...guideFiles, ...updateFiles, ...seasonFiles].map((f) => f.path)
   );
+  if (removed.length > 0)
+    console.log(`✓ removed ${removed.length} orphan .md: ${removed.join(', ')}`);
+
+  assertGeneratedMarkdownIntegrity(llmsTxt);
+
+  console.log(
+    `\nTotal: ${8 + skillFiles.length + endpointFiles.length + guideFiles.length + updateFiles.length} files generated`
+  );
+}
+
+/**
+ * Delete generated .md files that the current run did NOT write (orphans left
+ * behind when a page is renamed or redirected, e.g. /api/sdk → /guides/...).
+ * Scoped to generator-owned dirs only; never touches other public/ assets.
+ */
+function sweepOrphanMarkdown(dirs: string[], writtenPaths: string[]): string[] {
+  const keep = new Set(writtenPaths.map((p) => path.resolve(process.cwd(), p)));
+  const removed: string[] = [];
+  for (const dir of dirs) {
+    const abs = path.join(process.cwd(), dir);
+    if (!fs.existsSync(abs)) continue;
+    const walk = (d: string) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) walk(p);
+        else if (e.name.endsWith('.md') && !keep.has(path.resolve(p))) {
+          fs.rmSync(p);
+          removed.push(path.relative(process.cwd(), p));
+        }
+      }
+    };
+    walk(abs);
+  }
+  return removed;
+}
+
+/**
+ * Build-time guards (afdocs regressions): every generated page .md must have
+ * balanced code fences and no leaked registered MDX component tag, and every
+ * same-origin .md link in llms.txt must resolve to a generated file.
+ */
+function assertGeneratedMarkdownIntegrity(llmsTxt: string) {
+  const publicDir = path.join(process.cwd(), 'public');
+  const mdFiles: string[] = [];
+  const walk = (dir: string) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith('.md')) mdFiles.push(p);
+    }
+  };
+  walk(publicDir);
+
+  const LEAK_TAGS =
+    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero)\b/;
+  const errors: string[] = [];
+
+  for (const file of mdFiles) {
+    const body = fs.readFileSync(file, 'utf-8');
+    const rel = path.relative(publicDir, file);
+    let inFence = false;
+    for (const line of body.split('\n')) {
+      if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence;
+      else if (!inFence && LEAK_TAGS.test(line)) {
+        errors.push(`leaked component tag in public/${rel}: ${line.trim().slice(0, 80)}`);
+        break;
+      }
+    }
+    if (inFence) errors.push(`unbalanced code fence in public/${rel}`);
+  }
+
+  for (const m of llmsTxt.matchAll(/\]\((https:\/\/dev\.pachca\.com(\/[^)]+\.md))\)/g)) {
+    const filePath = path.join(publicDir, m[2] === '/.md' ? 'index.md' : m[2]);
+    if (!fs.existsSync(filePath)) errors.push(`stale llms.txt link (no file): ${m[1]}`);
+  }
+
+  if (errors.length > 0) {
+    console.error('✗ generated markdown integrity check failed:');
+    for (const e of errors) console.error(`  - ${e}`);
+    throw new Error(`${errors.length} generated-markdown integrity error(s)`);
+  }
+  console.log(`✓ markdown integrity: ${mdFiles.length} .md files, fences balanced, no leaks`);
 }
 
 main().catch((err) => {

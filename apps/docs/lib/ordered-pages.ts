@@ -4,16 +4,30 @@
  * tabs-config.ts must remain client-safe (imported by 'use client' components).
  */
 
-import { GUIDE_SECTIONS, API_GUIDE_PAGES, SIDEBAR_FOOTER } from './tabs-config';
-import type { SidebarPageItem } from './tabs-config';
+import {
+  GUIDE_SECTIONS,
+  CLI_SECTIONS,
+  SDK_SECTIONS,
+  N8N_SECTIONS,
+  API_GUIDE_PAGES,
+} from './tabs-config';
+import type { SidebarPageItem, SidebarSection } from './tabs-config';
 import { getGuideData } from './content-loader';
 
 /**
  * Get all ordered guide pages (for generators/sitemap).
- * Returns pages from all guide sections + API guide pages + home.
+ * Returns pages from all guide sections + API guide pages + home + updates.
  */
-export function getOrderedPages(): { path: string; title: string; description: string }[] {
-  const pages: { path: string; title: string; description: string }[] = [];
+export interface OrderedPage {
+  path: string;
+  title: string;
+  description: string;
+  /** Parent section/group title (e.g. "SDK" for child page "Обзор") */
+  sectionTitle?: string;
+}
+
+export function getOrderedPages(): OrderedPage[] {
+  const pages: OrderedPage[] = [];
 
   // Home page
   const homeData = getGuideData('home');
@@ -25,30 +39,41 @@ export function getOrderedPages(): { path: string; title: string; description: s
     });
   }
 
-  // Guide sections
-  for (const section of GUIDE_SECTIONS) {
-    for (const item of section.items) {
-      if (item.children) {
-        for (const child of item.children) {
-          addPage(pages, child, '/guides/');
+  // All sidebar sections that live under /guides. CLI/SDK/n8n pages get a
+  // tab-level prefix ("CLI: Обзор" etc.) so titles read unambiguously in
+  // llms.txt, browser tabs, and search results.
+  const guideSidebars: { sections: SidebarSection[]; tabPrefix?: string }[] = [
+    { sections: GUIDE_SECTIONS },
+    { sections: CLI_SECTIONS, tabPrefix: 'CLI' },
+    { sections: SDK_SECTIONS, tabPrefix: 'SDK' },
+    { sections: N8N_SECTIONS, tabPrefix: 'n8n' },
+  ];
+
+  for (const { sections, tabPrefix } of guideSidebars) {
+    for (const section of sections) {
+      for (const item of section.items) {
+        // Skip pseudo-item pointing at "/" (already added above as homeData)
+        if (item.path === '/') continue;
+
+        if (item.children) {
+          for (const child of item.children) {
+            addPage(pages, child, '/guides/', item.title);
+          }
+        } else {
+          addPage(pages, item, '/guides/', tabPrefix);
         }
-      } else {
-        addPage(pages, item, '/guides/');
       }
     }
   }
 
-  // Footer pages (updates)
-  for (const item of SIDEBAR_FOOTER) {
-    if (item.external) continue;
-    const data = getGuideData(item.path.replace('/', ''));
-    if (data) {
-      pages.push({
-        path: item.path,
-        title: data.frontmatter.title || item.title,
-        description: data.frontmatter.description || '',
-      });
-    }
+  // Updates landing page
+  const updatesData = getGuideData('updates');
+  if (updatesData) {
+    pages.push({
+      path: '/updates',
+      title: updatesData.frontmatter.title || 'Последние обновления',
+      description: updatesData.frontmatter.description || '',
+    });
   }
 
   // API guide pages
@@ -59,6 +84,7 @@ export function getOrderedPages(): { path: string; title: string; description: s
         path: item.path,
         title: data.frontmatter.title || item.title,
         description: data.frontmatter.description || '',
+        sectionTitle: 'Основы API',
       });
     } else {
       // Dynamic pages without MDX (e.g. /api/models)
@@ -66,6 +92,7 @@ export function getOrderedPages(): { path: string; title: string; description: s
         path: item.path,
         title: item.title,
         description: '',
+        sectionTitle: 'Основы API',
       });
     }
   }
@@ -74,9 +101,10 @@ export function getOrderedPages(): { path: string; title: string; description: s
 }
 
 function addPage(
-  pages: { path: string; title: string; description: string }[],
+  pages: OrderedPage[],
   item: SidebarPageItem,
-  prefix: string
+  prefix: string,
+  sectionTitle?: string
 ) {
   const data = getGuideData(item.path.replace(prefix, ''));
   if (data) {
@@ -84,6 +112,7 @@ function addPage(
       path: item.path,
       title: data.frontmatter.title || item.title,
       description: data.frontmatter.description || '',
+      sectionTitle,
     });
   }
 }

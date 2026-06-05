@@ -5,9 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -21,50 +19,32 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.base.RoundTrip(req)
 }
 
-const maxRetries = 3
-
-var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}
-
-func jitter(d time.Duration) time.Duration {
-	return time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))
+type TasksService interface {
+	GetTask(ctx context.Context, projectId int32, taskId int32) (*Task, error)
+	UpdateTask(ctx context.Context, projectId int32, taskId int32, request TaskUpdateRequest) (*Task, error)
+	DeleteComment(ctx context.Context, projectId int32, taskId int32, commentId int32) error
 }
 
-func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
-	for attempt := 0; ; attempt++ {
-		if attempt > 0 && req.GetBody != nil {
-			req.Body, _ = req.GetBody()
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-			resp.Body.Close()
-			delay := time.Duration(1<<uint(attempt)) * time.Second
-			if ra := resp.Header.Get("Retry-After"); ra != "" {
-				if secs, err := strconv.Atoi(ra); err == nil {
-					delay = time.Duration(secs) * time.Second
-				}
-			}
-			time.Sleep(delay)
-			continue
-		}
-		if retryable5xx[resp.StatusCode] && attempt < maxRetries {
-			resp.Body.Close()
-			delay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)
-			time.Sleep(delay)
-			continue
-		}
-		return resp, nil
-	}
+type TasksServiceStub struct{}
+
+func (s *TasksServiceStub) GetTask(ctx context.Context, projectId int32, taskId int32) (*Task, error) {
+	return nil, NotImplementedError{Method: "Tasks.getTask"}
 }
 
-type TasksService struct {
+func (s *TasksServiceStub) UpdateTask(ctx context.Context, projectId int32, taskId int32, request TaskUpdateRequest) (*Task, error) {
+	return nil, NotImplementedError{Method: "Tasks.updateTask"}
+}
+
+func (s *TasksServiceStub) DeleteComment(ctx context.Context, projectId int32, taskId int32, commentId int32) error {
+	return NotImplementedError{Method: "Tasks.deleteComment"}
+}
+
+type TasksServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *TasksService) GetTask(ctx context.Context, projectId int32, taskId int32) (*Task, error) {
+func (s *TasksServiceImpl) GetTask(ctx context.Context, projectId int32, taskId int32) (*Task, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/projects/%v/tasks/%v", s.baseURL, projectId, taskId), nil)
 	if err != nil {
 		return nil, err
@@ -88,7 +68,7 @@ func (s *TasksService) GetTask(ctx context.Context, projectId int32, taskId int3
 	}
 }
 
-func (s *TasksService) UpdateTask(ctx context.Context, projectId int32, taskId int32, request TaskUpdateRequest) (*Task, error) {
+func (s *TasksServiceImpl) UpdateTask(ctx context.Context, projectId int32, taskId int32, request TaskUpdateRequest) (*Task, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -117,7 +97,7 @@ func (s *TasksService) UpdateTask(ctx context.Context, projectId int32, taskId i
 	}
 }
 
-func (s *TasksService) DeleteComment(ctx context.Context, projectId int32, taskId int32, commentId int32) error {
+func (s *TasksServiceImpl) DeleteComment(ctx context.Context, projectId int32, taskId int32, commentId int32) error {
 	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/projects/%v/tasks/%v/comments/%v", s.baseURL, projectId, taskId, commentId), nil)
 	if err != nil {
 		return err
@@ -136,18 +116,77 @@ func (s *TasksService) DeleteComment(ctx context.Context, projectId int32, taskI
 }
 
 type PachcaClient struct {
-	Tasks *TasksService
+	Tasks TasksService
 }
 
-const DefaultBaseURL = "https://api.example.com/v1"
+type clientConfig struct {
+	baseURL string
+	tasks TasksService
+}
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := DefaultBaseURL
-	if len(baseURL) > 0 { url = baseURL[0] }
+type ClientOption func(*clientConfig)
+
+type stubClientConfig struct {
+	tasks TasksService
+}
+
+type StubClientOption func(*stubClientConfig)
+
+const PachcaAPIURL = "https://api.example.com/v1"
+
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithTasks(service TasksService) ClientOption {
+	return func(cfg *clientConfig) { cfg.tasks = service }
+}
+
+func WithStubTasks(service TasksService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.tasks = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: PachcaAPIURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
+	var tasks TasksService = &TasksServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.tasks != nil {
+		tasks = cfg.tasks
+	}
 	return &PachcaClient{
-		Tasks: &TasksService{baseURL: url, client: client},
+		Tasks: tasks,
+	}
+}
+
+func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: baseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var tasks TasksService = &TasksServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.tasks != nil {
+		tasks = cfg.tasks
+	}
+	return &PachcaClient{
+		Tasks: tasks,
+	}
+}
+
+func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
+	cfg := stubClientConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var tasks TasksService = &TasksServiceStub{}
+	if cfg.tasks != nil {
+		tasks = cfg.tasks
+	}
+	return &PachcaClient{
+		Tasks: tasks,
 	}
 }

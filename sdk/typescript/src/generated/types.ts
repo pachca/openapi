@@ -104,6 +104,14 @@ export enum ChatMemberRoleFilter {
   Member = "member",
 }
 
+/** Поле сортировки чатов */
+export enum ChatSortField {
+  /** По идентификатору чата */
+  Id = "id",
+  /** По дате и времени создания последнего сообщения */
+  LastMessageAt = "last_message_at",
+}
+
 /** Тип чата */
 export enum ChatSubtype {
   /** Канал или беседа */
@@ -156,6 +164,11 @@ export enum MessageEntityType {
   Thread = "thread",
   /** Пользователь */
   User = "user",
+}
+
+export enum MessageSortField {
+  /** По идентификатору сообщения */
+  Id = "id",
 }
 
 /** Скоуп доступа OAuth токена */
@@ -218,10 +231,14 @@ export enum OAuthScope {
   ProfileStatusRead = "profile_status:read",
   /** Изменение и удаление статуса профиля */
   ProfileStatusWrite = "profile_status:write",
+  /** Изменение и удаление аватара профиля */
+  ProfileAvatarWrite = "profile_avatar:write",
   /** Просмотр статуса сотрудника */
   UserStatusRead = "user_status:read",
   /** Изменение и удаление статуса сотрудника */
   UserStatusWrite = "user_status:write",
+  /** Изменение и удаление аватара сотрудника */
+  UserAvatarWrite = "user_avatar:write",
   /** Просмотр дополнительных полей */
   CustomPropertiesRead = "custom_properties:read",
   /** Просмотр журнала аудита */
@@ -312,6 +329,18 @@ export enum TaskStatus {
   Undone = "undone",
 }
 
+/** Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат. */
+export enum UserCreateRole {
+  /** Администратор */
+  Admin = "admin",
+  /** Сотрудник */
+  User = "user",
+  /** Мульти-гость */
+  MultiGuest = "multi_guest",
+  /** Гость */
+  Guest = "guest",
+}
+
 /** Тип события webhook для пользователей */
 export enum UserEventType {
   /** Приглашение */
@@ -340,7 +369,7 @@ export enum UserRole {
   Guest = "guest",
 }
 
-/** Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API. */
+/** Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`). */
 export enum UserRoleInput {
   /** Администратор */
   Admin = "admin",
@@ -555,6 +584,10 @@ export interface AuditEvent {
   details: AuditEventDetailsUnion;
   ipAddress: string;
   userAgent: string;
+}
+
+export interface AvatarData {
+  imageUrl: string;
 }
 
 export interface BotResponse {
@@ -843,8 +876,11 @@ export interface OpenViewRequest {
 }
 
 export interface PaginationMeta {
-  paginate?: {
-    nextPage?: string;
+  paginate: {
+    nextPage: string;
+    prevPage?: string;
+    hasNext?: boolean;
+    hasPrev?: boolean;
   };
 }
 
@@ -863,6 +899,7 @@ export interface ReactionRequest {
 export interface ReactionWebhookPayload {
   type: "reaction";
   event: ReactionEventType;
+  chatId: number | null;
   messageId: number;
   code: string;
   name: string;
@@ -886,9 +923,6 @@ export interface StatusUpdateRequest {
     isAway?: boolean;
     awayMessage?: string;
   };
-}
-
-export interface TagNamesFilter {
 }
 
 export interface Task {
@@ -971,23 +1005,24 @@ export interface UploadParams {
 export interface User {
   id: number;
   firstName: string;
-  lastName: string;
+  lastName: string | null;
   nickname: string;
-  email: string;
-  phoneNumber: string;
-  department: string;
-  title: string;
+  email: string | null;
+  phoneNumber: string | null;
+  department: string | null;
+  title: string | null;
   role: UserRole;
   suspended: boolean;
   inviteStatus: InviteStatus;
+  inviterId: number | null;
   listTags: string[];
   customProperties: CustomProperty[];
   userStatus: UserStatus | null;
   bot: boolean;
   sso: boolean;
   createdAt: string;
-  lastActivityAt: string;
-  timeZone: string;
+  lastActivityAt: string | null;
+  timeZone: string | null;
   imageUrl: string | null;
 }
 
@@ -1005,9 +1040,10 @@ export interface UserCreateRequest {
     nickname?: string;
     department?: string;
     title?: string;
-    role?: UserRoleInput;
+    role?: UserCreateRole;
     suspended?: boolean;
     listTags?: string[];
+    chatIds?: number[];
     customProperties?: UserCreateRequestCustomProperty[];
   };
   skipEmailNotify?: boolean;
@@ -1154,6 +1190,17 @@ export interface ViewBlockTime {
   hint?: string;
 }
 
+export interface ViewSubmitWebhookPayload {
+  type: "view";
+  event: "submit";
+  callbackId: string | null;
+  privateMetadata: string | null;
+  chatId: number | null;
+  userId: number;
+  data: Record<string, string>;
+  webhookTimestamp: number;
+}
+
 export interface WebhookEvent {
   id: string;
   eventType: string;
@@ -1164,6 +1211,7 @@ export interface WebhookEvent {
 export interface WebhookLink {
   url: string;
   domain: string;
+  skip: boolean;
 }
 
 export interface WebhookMessageThread {
@@ -1171,11 +1219,19 @@ export interface WebhookMessageThread {
   messageChatId: number;
 }
 
+export interface UpdateProfileAvatarRequest {
+  image: Blob;
+}
+
+export interface UpdateUserAvatarRequest {
+  image: Blob;
+}
+
 export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch;
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 
-export type WebhookPayloadUnion = MessageWebhookPayload | ReactionWebhookPayload | ButtonWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | LinkSharedWebhookPayload;
+export type WebhookPayloadUnion = MessageWebhookPayload | ReactionWebhookPayload | ButtonWebhookPayload | ViewSubmitWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | LinkSharedWebhookPayload;
 
 export interface GetAuditEventsParams {
   startTime?: string;
@@ -1190,7 +1246,8 @@ export interface GetAuditEventsParams {
 }
 
 export interface ListChatsParams {
-  sortId?: SortOrder;
+  sort?: ChatSortField;
+  order?: SortOrder;
   availability?: ChatAvailability;
   lastMessageAtAfter?: string;
   lastMessageAtBefore?: string;
@@ -1210,7 +1267,7 @@ export interface ListPropertiesParams {
 }
 
 export interface ListTagsParams {
-  names?: TagNamesFilter;
+  names?: string[];
   limit?: number;
   cursor?: string;
 }
@@ -1222,7 +1279,8 @@ export interface GetTagUsersParams {
 
 export interface ListChatMessagesParams {
   chatId: number;
-  sortId?: SortOrder;
+  sort?: MessageSortField;
+  order?: SortOrder;
   limit?: number;
   cursor?: string;
 }
@@ -1282,6 +1340,13 @@ export interface ListTasksParams {
   cursor?: string;
 }
 
+export interface ListThreadsParams {
+  lastMessageAtAfter?: string;
+  lastMessageAtBefore?: string;
+  limit?: number;
+  cursor?: string;
+}
+
 export interface ListUsersParams {
   query?: string;
   limit?: number;
@@ -1295,17 +1360,17 @@ export interface GetWebhookEventsParams {
 
 export interface GetAuditEventsResponse {
   data: AuditEvent[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface ListChatsResponse {
   data: Chat[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface ListMembersResponse {
   data: User[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface ListPropertiesResponse {
@@ -1314,22 +1379,22 @@ export interface ListPropertiesResponse {
 
 export interface ListTagsResponse {
   data: GroupTag[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface GetTagUsersResponse {
   data: User[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface ListChatMessagesResponse {
   data: Message[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface ListReactionsResponse {
   data: Reaction[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface SearchChatsResponse {
@@ -1349,15 +1414,20 @@ export interface SearchUsersResponse {
 
 export interface ListTasksResponse {
   data: Task[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
+}
+
+export interface ListThreadsResponse {
+  data: Thread[];
+  meta: PaginationMeta;
 }
 
 export interface ListUsersResponse {
   data: User[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface GetWebhookEventsResponse {
   data: WebhookEvent[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }

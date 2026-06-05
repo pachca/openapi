@@ -17,6 +17,7 @@ from .models import (
     ListChatsParams,
     ListChatsResponse,
     Chat,
+    ChatSortField,
     SortOrder,
     ChatAvailability,
     ChatCreateRequest,
@@ -36,12 +37,13 @@ from .models import (
     ListTagsParams,
     ListTagsResponse,
     GroupTag,
-    TagNamesFilter,
     GetTagUsersParams,
+    GetTagUsersResponse,
     GroupTagRequest,
     ListChatMessagesParams,
     ListChatMessagesResponse,
     Message,
+    MessageSortField,
     MessageCreateRequest,
     MessageUpdateRequest,
     LinkPreviewsRequest,
@@ -51,14 +53,20 @@ from .models import (
     ReactionRequest,
     RemoveReactionParams,
     ListReadMembersParams,
+    ListThreadsParams,
+    ListThreadsResponse,
     Thread,
     AccessTokenInfo,
+    AvatarData,
     StatusUpdateRequest,
     UserStatus,
     SearchChatsParams,
+    SearchChatsResponse,
     ChatSubtype,
     SearchMessagesParams,
+    SearchMessagesResponse,
     SearchUsersParams,
+    SearchUsersResponse,
     SearchSortOrder,
     ListTasksParams,
     ListTasksResponse,
@@ -66,6 +74,7 @@ from .models import (
     TaskCreateRequest,
     TaskUpdateRequest,
     ListUsersParams,
+    ListUsersResponse,
     UserCreateRequest,
     UserUpdateRequest,
     OpenViewRequest,
@@ -73,6 +82,20 @@ from .models import (
 from .utils import deserialize, serialize, RetryTransport
 
 class SecurityService:
+    async def get_audit_events(
+        self,
+        params: GetAuditEventsParams | None = None,
+    ) -> GetAuditEventsResponse:
+        raise NotImplementedError("Security.getAuditEvents is not implemented")
+
+    async def get_audit_events_all(
+        self,
+        params: GetAuditEventsParams | None = None,
+    ) -> list[AuditEvent]:
+        raise NotImplementedError("Security.getAuditEventsAll is not implemented")
+
+
+class SecurityServiceImpl(SecurityService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -82,9 +105,9 @@ class SecurityService:
     ) -> GetAuditEventsResponse:
         query: dict[str, str] = {}
         if params is not None and params.start_time is not None:
-            query["start_time"] = params.start_time
+            query["start_time"] = params.start_time.isoformat()
         if params is not None and params.end_time is not None:
-            query["end_time"] = params.end_time
+            query["end_time"] = params.end_time.isoformat()
         if params is not None and params.event_key is not None:
             query["event_key"] = params.event_key
         if params is not None and params.actor_id is not None:
@@ -118,19 +141,49 @@ class SecurityService:
     ) -> list[AuditEvent]:
         items: list[AuditEvent] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = GetAuditEventsParams()
             params.cursor = cursor
             response = await self.get_audit_events(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
 
 class BotsService:
+    async def get_webhook_events(
+        self,
+        params: GetWebhookEventsParams | None = None,
+    ) -> GetWebhookEventsResponse:
+        raise NotImplementedError("Bots.getWebhookEvents is not implemented")
+
+    async def get_webhook_events_all(
+        self,
+        params: GetWebhookEventsParams | None = None,
+    ) -> list[WebhookEvent]:
+        raise NotImplementedError("Bots.getWebhookEventsAll is not implemented")
+
+    async def update_bot(
+        self,
+        id: int,
+        request: BotUpdateRequest,
+    ) -> BotResponse:
+        raise NotImplementedError("Bots.updateBot is not implemented")
+
+    async def delete_webhook_event(
+        self,
+        id: str,
+    ) -> None:
+        raise NotImplementedError("Bots.deleteWebhookEvent is not implemented")
+
+
+class BotsServiceImpl(BotsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -162,15 +215,18 @@ class BotsService:
     ) -> list[WebhookEvent]:
         items: list[WebhookEvent] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = GetWebhookEventsParams()
             params.cursor = cursor
             response = await self.get_webhook_events(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def update_bot(
@@ -208,6 +264,51 @@ class BotsService:
 
 
 class ChatsService:
+    async def list_chats(
+        self,
+        params: ListChatsParams | None = None,
+    ) -> ListChatsResponse:
+        raise NotImplementedError("Chats.listChats is not implemented")
+
+    async def list_chats_all(
+        self,
+        params: ListChatsParams | None = None,
+    ) -> list[Chat]:
+        raise NotImplementedError("Chats.listChatsAll is not implemented")
+
+    async def get_chat(
+        self,
+        id: int,
+    ) -> Chat:
+        raise NotImplementedError("Chats.getChat is not implemented")
+
+    async def create_chat(
+        self,
+        request: ChatCreateRequest,
+    ) -> Chat:
+        raise NotImplementedError("Chats.createChat is not implemented")
+
+    async def update_chat(
+        self,
+        id: int,
+        request: ChatUpdateRequest,
+    ) -> Chat:
+        raise NotImplementedError("Chats.updateChat is not implemented")
+
+    async def archive_chat(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Chats.archiveChat is not implemented")
+
+    async def unarchive_chat(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Chats.unarchiveChat is not implemented")
+
+
+class ChatsServiceImpl(ChatsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -216,14 +317,16 @@ class ChatsService:
         params: ListChatsParams | None = None,
     ) -> ListChatsResponse:
         query: dict[str, str] = {}
-        if params is not None and params.sort_id is not None:
-            query["sort[{field}]"] = params.sort_id
+        if params is not None and params.sort is not None:
+            query["sort"] = params.sort
+        if params is not None and params.order is not None:
+            query["order"] = params.order
         if params is not None and params.availability is not None:
             query["availability"] = params.availability
         if params is not None and params.last_message_at_after is not None:
-            query["last_message_at_after"] = params.last_message_at_after
+            query["last_message_at_after"] = params.last_message_at_after.isoformat()
         if params is not None and params.last_message_at_before is not None:
-            query["last_message_at_before"] = params.last_message_at_before
+            query["last_message_at_before"] = params.last_message_at_before.isoformat()
         if params is not None and params.personal is not None:
             query["personal"] = str(params.personal).lower()
         if params is not None and params.limit is not None:
@@ -249,15 +352,18 @@ class ChatsService:
     ) -> list[Chat]:
         items: list[Chat] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListChatsParams()
             params.cursor = cursor
             response = await self.list_chats(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def get_chat(
@@ -343,6 +449,37 @@ class ChatsService:
 
 
 class CommonService:
+    async def download_export(
+        self,
+        id: int,
+    ) -> str:
+        raise NotImplementedError("Common.downloadExport is not implemented")
+
+    async def list_properties(
+        self,
+        params: ListPropertiesParams,
+    ) -> ListPropertiesResponse:
+        raise NotImplementedError("Common.listProperties is not implemented")
+
+    async def request_export(
+        self,
+        request: ExportRequest,
+    ) -> None:
+        raise NotImplementedError("Common.requestExport is not implemented")
+
+    async def upload_file(
+        self,
+        direct_url: str,
+        request: FileUploadRequest,
+    ) -> None:
+        raise NotImplementedError("Common.uploadFile is not implemented")
+
+    async def get_upload_params(
+        self) -> UploadParams:
+        raise NotImplementedError("Common.getUploadParams is not implemented")
+
+
+class CommonServiceImpl(CommonService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -444,6 +581,64 @@ class CommonService:
 
 
 class MembersService:
+    async def list_members(
+        self,
+        id: int,
+        params: ListMembersParams | None = None,
+    ) -> ListMembersResponse:
+        raise NotImplementedError("Members.listMembers is not implemented")
+
+    async def list_members_all(
+        self,
+        id: int,
+        params: ListMembersParams | None = None,
+    ) -> list[User]:
+        raise NotImplementedError("Members.listMembersAll is not implemented")
+
+    async def add_tags(
+        self,
+        id: int,
+        group_tag_ids: list[int],
+    ) -> None:
+        raise NotImplementedError("Members.addTags is not implemented")
+
+    async def add_members(
+        self,
+        id: int,
+        request: AddMembersRequest,
+    ) -> None:
+        raise NotImplementedError("Members.addMembers is not implemented")
+
+    async def update_member_role(
+        self,
+        id: int,
+        user_id: int,
+        role: ChatMemberRole,
+    ) -> None:
+        raise NotImplementedError("Members.updateMemberRole is not implemented")
+
+    async def remove_tag(
+        self,
+        id: int,
+        tag_id: int,
+    ) -> None:
+        raise NotImplementedError("Members.removeTag is not implemented")
+
+    async def leave_chat(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Members.leaveChat is not implemented")
+
+    async def remove_member(
+        self,
+        id: int,
+        user_id: int,
+    ) -> None:
+        raise NotImplementedError("Members.removeMember is not implemented")
+
+
+class MembersServiceImpl(MembersService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -479,15 +674,18 @@ class MembersService:
     ) -> list[User]:
         items: list[User] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListMembersParams()
             params.cursor = cursor
             response = await self.list_members(id, params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def add_tags(
@@ -591,6 +789,59 @@ class MembersService:
 
 
 class GroupTagsService:
+    async def list_tags(
+        self,
+        params: ListTagsParams | None = None,
+    ) -> ListTagsResponse:
+        raise NotImplementedError("Group tags.listTags is not implemented")
+
+    async def list_tags_all(
+        self,
+        params: ListTagsParams | None = None,
+    ) -> list[GroupTag]:
+        raise NotImplementedError("Group tags.listTagsAll is not implemented")
+
+    async def get_tag(
+        self,
+        id: int,
+    ) -> GroupTag:
+        raise NotImplementedError("Group tags.getTag is not implemented")
+
+    async def get_tag_users(
+        self,
+        id: int,
+        params: GetTagUsersParams | None = None,
+    ) -> GetTagUsersResponse:
+        raise NotImplementedError("Group tags.getTagUsers is not implemented")
+
+    async def get_tag_users_all(
+        self,
+        id: int,
+        params: GetTagUsersParams | None = None,
+    ) -> list[User]:
+        raise NotImplementedError("Group tags.getTagUsersAll is not implemented")
+
+    async def create_tag(
+        self,
+        request: GroupTagRequest,
+    ) -> GroupTag:
+        raise NotImplementedError("Group tags.createTag is not implemented")
+
+    async def update_tag(
+        self,
+        id: int,
+        request: GroupTagRequest,
+    ) -> GroupTag:
+        raise NotImplementedError("Group tags.updateTag is not implemented")
+
+    async def delete_tag(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Group tags.deleteTag is not implemented")
+
+
+class GroupTagsServiceImpl(GroupTagsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -598,13 +849,14 @@ class GroupTagsService:
         self,
         params: ListTagsParams | None = None,
     ) -> ListTagsResponse:
-        query: dict[str, str] = {}
+        query: list[tuple[str, str]] = []
         if params is not None and params.names is not None:
-            query["names"] = params.names
+            for v in params.names:
+                query.append(("names[]", str(v)))
         if params is not None and params.limit is not None:
-            query["limit"] = str(params.limit)
+            query.append(("limit", str(params.limit)))
         if params is not None and params.cursor is not None:
-            query["cursor"] = params.cursor
+            query.append(("cursor", params.cursor))
         response = await self._client.get(
             "/group_tags",
             params=query,
@@ -624,15 +876,18 @@ class GroupTagsService:
     ) -> list[GroupTag]:
         items: list[GroupTag] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListTagsParams()
             params.cursor = cursor
             response = await self.list_tags(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def get_tag(
@@ -655,7 +910,7 @@ class GroupTagsService:
         self,
         id: int,
         params: GetTagUsersParams | None = None,
-    ) -> ListMembersResponse:
+    ) -> GetTagUsersResponse:
         query: dict[str, str] = {}
         if params is not None and params.limit is not None:
             query["limit"] = str(params.limit)
@@ -668,7 +923,7 @@ class GroupTagsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListMembersResponse, body)
+                return deserialize(GetTagUsersResponse, body)
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -681,15 +936,18 @@ class GroupTagsService:
     ) -> list[User]:
         items: list[User] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = GetTagUsersParams()
             params.cursor = cursor
             response = await self.get_tag_users(id, params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def create_tag(
@@ -744,6 +1002,57 @@ class GroupTagsService:
 
 
 class MessagesService:
+    async def list_chat_messages(
+        self,
+        params: ListChatMessagesParams,
+    ) -> ListChatMessagesResponse:
+        raise NotImplementedError("Messages.listChatMessages is not implemented")
+
+    async def list_chat_messages_all(
+        self,
+        params: ListChatMessagesParams,
+    ) -> list[Message]:
+        raise NotImplementedError("Messages.listChatMessagesAll is not implemented")
+
+    async def get_message(
+        self,
+        id: int,
+    ) -> Message:
+        raise NotImplementedError("Messages.getMessage is not implemented")
+
+    async def create_message(
+        self,
+        request: MessageCreateRequest,
+    ) -> Message:
+        raise NotImplementedError("Messages.createMessage is not implemented")
+
+    async def pin_message(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Messages.pinMessage is not implemented")
+
+    async def update_message(
+        self,
+        id: int,
+        request: MessageUpdateRequest,
+    ) -> Message:
+        raise NotImplementedError("Messages.updateMessage is not implemented")
+
+    async def delete_message(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Messages.deleteMessage is not implemented")
+
+    async def unpin_message(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Messages.unpinMessage is not implemented")
+
+
+class MessagesServiceImpl(MessagesService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -753,8 +1062,10 @@ class MessagesService:
     ) -> ListChatMessagesResponse:
         query: list[tuple[str, str]] = []
         query.append(("chat_id", str(params.chat_id)))
-        if params is not None and params.sort_id is not None:
-            query.append(("sort[{field}]", params.sort_id))
+        if params is not None and params.sort is not None:
+            query.append(("sort", params.sort))
+        if params is not None and params.order is not None:
+            query.append(("order", params.order))
         if params is not None and params.limit is not None:
             query.append(("limit", str(params.limit)))
         if params is not None and params.cursor is not None:
@@ -778,15 +1089,18 @@ class MessagesService:
     ) -> list[Message]:
         items: list[Message] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListChatMessagesParams()
             params.cursor = cursor
             response = await self.list_chat_messages(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def get_message(
@@ -887,6 +1201,15 @@ class MessagesService:
 
 
 class LinkPreviewsService:
+    async def create_link_previews(
+        self,
+        id: int,
+        request: LinkPreviewsRequest,
+    ) -> None:
+        raise NotImplementedError("Link Previews.createLinkPreviews is not implemented")
+
+
+class LinkPreviewsServiceImpl(LinkPreviewsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -909,6 +1232,36 @@ class LinkPreviewsService:
 
 
 class ReactionsService:
+    async def list_reactions(
+        self,
+        id: int,
+        params: ListReactionsParams | None = None,
+    ) -> ListReactionsResponse:
+        raise NotImplementedError("Reactions.listReactions is not implemented")
+
+    async def list_reactions_all(
+        self,
+        id: int,
+        params: ListReactionsParams | None = None,
+    ) -> list[Reaction]:
+        raise NotImplementedError("Reactions.listReactionsAll is not implemented")
+
+    async def add_reaction(
+        self,
+        id: int,
+        request: ReactionRequest,
+    ) -> Reaction:
+        raise NotImplementedError("Reactions.addReaction is not implemented")
+
+    async def remove_reaction(
+        self,
+        id: int,
+        params: RemoveReactionParams,
+    ) -> None:
+        raise NotImplementedError("Reactions.removeReaction is not implemented")
+
+
+class ReactionsServiceImpl(ReactionsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -942,15 +1295,18 @@ class ReactionsService:
     ) -> list[Reaction]:
         items: list[Reaction] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListReactionsParams()
             params.cursor = cursor
             response = await self.list_reactions(id, params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def add_reaction(
@@ -994,6 +1350,15 @@ class ReactionsService:
 
 
 class ReadMembersService:
+    async def list_read_members(
+        self,
+        id: int,
+        params: ListReadMembersParams | None = None,
+    ) -> object:
+        raise NotImplementedError("Read members.listReadMembers is not implemented")
+
+
+class ReadMembersServiceImpl(ReadMembersService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -1022,8 +1387,80 @@ class ReadMembersService:
 
 
 class ThreadsService:
+    async def list_threads(
+        self,
+        params: ListThreadsParams | None = None,
+    ) -> ListThreadsResponse:
+        raise NotImplementedError("Threads.listThreads is not implemented")
+
+    async def list_threads_all(
+        self,
+        params: ListThreadsParams | None = None,
+    ) -> list[Thread]:
+        raise NotImplementedError("Threads.listThreadsAll is not implemented")
+
+    async def get_thread(
+        self,
+        id: int,
+    ) -> Thread:
+        raise NotImplementedError("Threads.getThread is not implemented")
+
+    async def create_thread(
+        self,
+        id: int,
+    ) -> Thread:
+        raise NotImplementedError("Threads.createThread is not implemented")
+
+
+class ThreadsServiceImpl(ThreadsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
+
+    async def list_threads(
+        self,
+        params: ListThreadsParams | None = None,
+    ) -> ListThreadsResponse:
+        query: dict[str, str] = {}
+        if params is not None and params.last_message_at_after is not None:
+            query["last_message_at_after"] = params.last_message_at_after.isoformat()
+        if params is not None and params.last_message_at_before is not None:
+            query["last_message_at_before"] = params.last_message_at_before.isoformat()
+        if params is not None and params.limit is not None:
+            query["limit"] = str(params.limit)
+        if params is not None and params.cursor is not None:
+            query["cursor"] = params.cursor
+        response = await self._client.get(
+            "/threads",
+            params=query,
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(ListThreadsResponse, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def list_threads_all(
+        self,
+        params: ListThreadsParams | None = None,
+    ) -> list[Thread]:
+        items: list[Thread] = []
+        cursor: str | None = None
+        has_next = True
+        while has_next:
+            if params is None:
+                params = ListThreadsParams()
+            params.cursor = cursor
+            response = await self.list_threads(params=params)
+            items.extend(response.data)
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
+        return items
 
     async def get_thread(
         self,
@@ -1059,6 +1496,40 @@ class ThreadsService:
 
 
 class ProfileService:
+    async def get_token_info(
+        self) -> AccessTokenInfo:
+        raise NotImplementedError("Profile.getTokenInfo is not implemented")
+
+    async def get_profile(
+        self) -> User:
+        raise NotImplementedError("Profile.getProfile is not implemented")
+
+    async def get_status(
+        self) -> object:
+        raise NotImplementedError("Profile.getStatus is not implemented")
+
+    async def update_profile_avatar(
+        self,
+        image: bytes,
+    ) -> AvatarData:
+        raise NotImplementedError("Profile.updateProfileAvatar is not implemented")
+
+    async def update_status(
+        self,
+        request: StatusUpdateRequest,
+    ) -> UserStatus:
+        raise NotImplementedError("Profile.updateStatus is not implemented")
+
+    async def delete_profile_avatar(
+        self) -> None:
+        raise NotImplementedError("Profile.deleteProfileAvatar is not implemented")
+
+    async def delete_status(
+        self) -> None:
+        raise NotImplementedError("Profile.deleteStatus is not implemented")
+
+
+class ProfileServiceImpl(ProfileService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -1104,6 +1575,25 @@ class ProfileService:
             case _:
                 raise deserialize(ApiError, body)
 
+    async def update_profile_avatar(
+        self,
+        image: bytes,
+    ) -> AvatarData:
+        data: dict[str, str] = {}
+        response = await self._client.post(
+            "/profile/avatar",
+            data=data,
+            files={"image": image},
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(AvatarData, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
     async def update_status(
         self,
         request: StatusUpdateRequest,
@@ -1121,6 +1611,19 @@ class ProfileService:
             case _:
                 raise deserialize(ApiError, body)
 
+    async def delete_profile_avatar(
+        self) -> None:
+        response = await self._client.delete(
+            "/profile/avatar",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
+
     async def delete_status(
         self) -> None:
         response = await self._client.delete(
@@ -1136,13 +1639,51 @@ class ProfileService:
 
 
 class SearchService:
+    async def search_chats(
+        self,
+        params: SearchChatsParams | None = None,
+    ) -> SearchChatsResponse:
+        raise NotImplementedError("Search.searchChats is not implemented")
+
+    async def search_chats_all(
+        self,
+        params: SearchChatsParams | None = None,
+    ) -> list[Chat]:
+        raise NotImplementedError("Search.searchChatsAll is not implemented")
+
+    async def search_messages(
+        self,
+        params: SearchMessagesParams | None = None,
+    ) -> SearchMessagesResponse:
+        raise NotImplementedError("Search.searchMessages is not implemented")
+
+    async def search_messages_all(
+        self,
+        params: SearchMessagesParams | None = None,
+    ) -> list[Message]:
+        raise NotImplementedError("Search.searchMessagesAll is not implemented")
+
+    async def search_users(
+        self,
+        params: SearchUsersParams | None = None,
+    ) -> SearchUsersResponse:
+        raise NotImplementedError("Search.searchUsers is not implemented")
+
+    async def search_users_all(
+        self,
+        params: SearchUsersParams | None = None,
+    ) -> list[User]:
+        raise NotImplementedError("Search.searchUsersAll is not implemented")
+
+
+class SearchServiceImpl(SearchService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
     async def search_chats(
         self,
         params: SearchChatsParams | None = None,
-    ) -> ListChatsResponse:
+    ) -> SearchChatsResponse:
         query: dict[str, str] = {}
         if params is not None and params.query is not None:
             query["query"] = params.query
@@ -1153,9 +1694,9 @@ class SearchService:
         if params is not None and params.order is not None:
             query["order"] = params.order
         if params is not None and params.created_from is not None:
-            query["created_from"] = params.created_from
+            query["created_from"] = params.created_from.isoformat()
         if params is not None and params.created_to is not None:
-            query["created_to"] = params.created_to
+            query["created_to"] = params.created_to.isoformat()
         if params is not None and params.active is not None:
             query["active"] = str(params.active).lower()
         if params is not None and params.chat_subtype is not None:
@@ -1169,7 +1710,7 @@ class SearchService:
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListChatsResponse, body)
+                return deserialize(SearchChatsResponse, body)
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -1187,34 +1728,36 @@ class SearchService:
             params.cursor = cursor
             response = await self.search_chats(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def search_messages(
         self,
         params: SearchMessagesParams | None = None,
-    ) -> ListChatMessagesResponse:
-        query: dict[str, str] = {}
+    ) -> SearchMessagesResponse:
+        query: list[tuple[str, str]] = []
         if params is not None and params.query is not None:
-            query["query"] = params.query
+            query.append(("query", params.query))
         if params is not None and params.limit is not None:
-            query["limit"] = str(params.limit)
+            query.append(("limit", str(params.limit)))
         if params is not None and params.cursor is not None:
-            query["cursor"] = params.cursor
+            query.append(("cursor", params.cursor))
         if params is not None and params.order is not None:
-            query["order"] = params.order
+            query.append(("order", params.order))
         if params is not None and params.created_from is not None:
-            query["created_from"] = params.created_from
+            query.append(("created_from", params.created_from.isoformat()))
         if params is not None and params.created_to is not None:
-            query["created_to"] = params.created_to
+            query.append(("created_to", params.created_to.isoformat()))
         if params is not None and params.chat_ids is not None:
-            query["chat_ids"] = params.chat_ids
+            for v in params.chat_ids:
+                query.append(("chat_ids[]", str(v)))
         if params is not None and params.user_ids is not None:
-            query["user_ids"] = params.user_ids
+            for v in params.user_ids:
+                query.append(("user_ids[]", str(v)))
         if params is not None and params.active is not None:
-            query["active"] = str(params.active).lower()
+            query.append(("active", str(params.active).lower()))
         response = await self._client.get(
             "/search/messages",
             params=query,
@@ -1222,7 +1765,7 @@ class SearchService:
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListChatMessagesResponse, body)
+                return deserialize(SearchMessagesResponse, body)
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -1240,32 +1783,33 @@ class SearchService:
             params.cursor = cursor
             response = await self.search_messages(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def search_users(
         self,
         params: SearchUsersParams | None = None,
-    ) -> ListMembersResponse:
-        query: dict[str, str] = {}
+    ) -> SearchUsersResponse:
+        query: list[tuple[str, str]] = []
         if params is not None and params.query is not None:
-            query["query"] = params.query
+            query.append(("query", params.query))
         if params is not None and params.limit is not None:
-            query["limit"] = str(params.limit)
+            query.append(("limit", str(params.limit)))
         if params is not None and params.cursor is not None:
-            query["cursor"] = params.cursor
+            query.append(("cursor", params.cursor))
         if params is not None and params.sort is not None:
-            query["sort"] = params.sort
+            query.append(("sort", params.sort))
         if params is not None and params.order is not None:
-            query["order"] = params.order
+            query.append(("order", params.order))
         if params is not None and params.created_from is not None:
-            query["created_from"] = params.created_from
+            query.append(("created_from", params.created_from.isoformat()))
         if params is not None and params.created_to is not None:
-            query["created_to"] = params.created_to
+            query.append(("created_to", params.created_to.isoformat()))
         if params is not None and params.company_roles is not None:
-            query["company_roles"] = params.company_roles
+            for v in params.company_roles:
+                query.append(("company_roles[]", str(v)))
         response = await self._client.get(
             "/search/users",
             params=query,
@@ -1273,7 +1817,7 @@ class SearchService:
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListMembersResponse, body)
+                return deserialize(SearchUsersResponse, body)
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -1291,13 +1835,52 @@ class SearchService:
             params.cursor = cursor
             response = await self.search_users(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
 
 class TasksService:
+    async def list_tasks(
+        self,
+        params: ListTasksParams | None = None,
+    ) -> ListTasksResponse:
+        raise NotImplementedError("Tasks.listTasks is not implemented")
+
+    async def list_tasks_all(
+        self,
+        params: ListTasksParams | None = None,
+    ) -> list[Task]:
+        raise NotImplementedError("Tasks.listTasksAll is not implemented")
+
+    async def get_task(
+        self,
+        id: int,
+    ) -> Task:
+        raise NotImplementedError("Tasks.getTask is not implemented")
+
+    async def create_task(
+        self,
+        request: TaskCreateRequest,
+    ) -> Task:
+        raise NotImplementedError("Tasks.createTask is not implemented")
+
+    async def update_task(
+        self,
+        id: int,
+        request: TaskUpdateRequest,
+    ) -> Task:
+        raise NotImplementedError("Tasks.updateTask is not implemented")
+
+    async def delete_task(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Tasks.deleteTask is not implemented")
+
+
+class TasksServiceImpl(TasksService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -1329,15 +1912,18 @@ class TasksService:
     ) -> list[Task]:
         items: list[Task] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListTasksParams()
             params.cursor = cursor
             response = await self.list_tasks(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def get_task(
@@ -1408,13 +1994,84 @@ class TasksService:
 
 
 class UsersService:
+    async def list_users(
+        self,
+        params: ListUsersParams | None = None,
+    ) -> ListUsersResponse:
+        raise NotImplementedError("Users.listUsers is not implemented")
+
+    async def list_users_all(
+        self,
+        params: ListUsersParams | None = None,
+    ) -> list[User]:
+        raise NotImplementedError("Users.listUsersAll is not implemented")
+
+    async def get_user(
+        self,
+        id: int,
+    ) -> User:
+        raise NotImplementedError("Users.getUser is not implemented")
+
+    async def get_user_status(
+        self,
+        user_id: int,
+    ) -> object:
+        raise NotImplementedError("Users.getUserStatus is not implemented")
+
+    async def create_user(
+        self,
+        request: UserCreateRequest,
+    ) -> User:
+        raise NotImplementedError("Users.createUser is not implemented")
+
+    async def update_user(
+        self,
+        id: int,
+        request: UserUpdateRequest,
+    ) -> User:
+        raise NotImplementedError("Users.updateUser is not implemented")
+
+    async def update_user_avatar(
+        self,
+        user_id: int,
+        image: bytes,
+    ) -> AvatarData:
+        raise NotImplementedError("Users.updateUserAvatar is not implemented")
+
+    async def update_user_status(
+        self,
+        user_id: int,
+        request: StatusUpdateRequest,
+    ) -> UserStatus:
+        raise NotImplementedError("Users.updateUserStatus is not implemented")
+
+    async def delete_user(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Users.deleteUser is not implemented")
+
+    async def delete_user_avatar(
+        self,
+        user_id: int,
+    ) -> None:
+        raise NotImplementedError("Users.deleteUserAvatar is not implemented")
+
+    async def delete_user_status(
+        self,
+        user_id: int,
+    ) -> None:
+        raise NotImplementedError("Users.deleteUserStatus is not implemented")
+
+
+class UsersServiceImpl(UsersService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
     async def list_users(
         self,
         params: ListUsersParams | None = None,
-    ) -> ListMembersResponse:
+    ) -> ListUsersResponse:
         query: dict[str, str] = {}
         if params is not None and params.query is not None:
             query["query"] = params.query
@@ -1429,7 +2086,7 @@ class UsersService:
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListMembersResponse, body)
+                return deserialize(ListUsersResponse, body)
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -1441,15 +2098,18 @@ class UsersService:
     ) -> list[User]:
         items: list[User] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListUsersParams()
             params.cursor = cursor
             response = await self.list_users(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def get_user(
@@ -1519,6 +2179,26 @@ class UsersService:
             case _:
                 raise deserialize(ApiError, body)
 
+    async def update_user_avatar(
+        self,
+        user_id: int,
+        image: bytes,
+    ) -> AvatarData:
+        data: dict[str, str] = {}
+        response = await self._client.post(
+            f"/users/{user_id}/avatar",
+            data=data,
+            files={"image": image},
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(AvatarData, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
     async def update_user_status(
         self,
         user_id: int,
@@ -1552,6 +2232,21 @@ class UsersService:
             case _:
                 raise deserialize(ApiError, response.json())
 
+    async def delete_user_avatar(
+        self,
+        user_id: int,
+    ) -> None:
+        response = await self._client.delete(
+            f"/users/{user_id}/avatar",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
+
     async def delete_user_status(
         self,
         user_id: int,
@@ -1569,6 +2264,14 @@ class UsersService:
 
 
 class ViewsService:
+    async def open_view(
+        self,
+        request: OpenViewRequest,
+    ) -> None:
+        raise NotImplementedError("Views.openView is not implemented")
+
+
+class ViewsServiceImpl(ViewsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -1589,29 +2292,113 @@ class ViewsService:
                 raise deserialize(ApiError, response.json())
 
 
+PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1") -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, group_tags: GroupTagsService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.bots = BotsService(self._client)
-        self.chats = ChatsService(self._client)
-        self.common = CommonService(self._client)
-        self.group_tags = GroupTagsService(self._client)
-        self.link_previews = LinkPreviewsService(self._client)
-        self.members = MembersService(self._client)
-        self.messages = MessagesService(self._client)
-        self.profile = ProfileService(self._client)
-        self.reactions = ReactionsService(self._client)
-        self.read_members = ReadMembersService(self._client)
-        self.search = SearchService(self._client)
-        self.security = SecurityService(self._client)
-        self.tasks = TasksService(self._client)
-        self.threads = ThreadsService(self._client)
-        self.users = UsersService(self._client)
-        self.views = ViewsService(self._client)
+        self.bots: BotsService = bots or BotsServiceImpl(self._client)
+        self.chats: ChatsService = chats or ChatsServiceImpl(self._client)
+        self.common: CommonService = common or CommonServiceImpl(self._client)
+        self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(self._client)
+        self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(self._client)
+        self.members: MembersService = members or MembersServiceImpl(self._client)
+        self.messages: MessagesService = messages or MessagesServiceImpl(self._client)
+        self.profile: ProfileService = profile or ProfileServiceImpl(self._client)
+        self.reactions: ReactionsService = reactions or ReactionsServiceImpl(self._client)
+        self.read_members: ReadMembersService = read_members or ReadMembersServiceImpl(self._client)
+        self.search: SearchService = search or SearchServiceImpl(self._client)
+        self.security: SecurityService = security or SecurityServiceImpl(self._client)
+        self.tasks: TasksService = tasks or TasksServiceImpl(self._client)
+        self.threads: ThreadsService = threads or ThreadsServiceImpl(self._client)
+        self.users: UsersService = users or UsersServiceImpl(self._client)
+        self.views: ViewsService = views or ViewsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        bots: BotsService | None = None,
+        chats: ChatsService | None = None,
+        common: CommonService | None = None,
+        group_tags: GroupTagsService | None = None,
+        link_previews: LinkPreviewsService | None = None,
+        members: MembersService | None = None,
+        messages: MessagesService | None = None,
+        profile: ProfileService | None = None,
+        reactions: ReactionsService | None = None,
+        read_members: ReadMembersService | None = None,
+        search: SearchService | None = None,
+        security: SecurityService | None = None,
+        tasks: TasksService | None = None,
+        threads: ThreadsService | None = None,
+        users: UsersService | None = None,
+        views: ViewsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.bots: BotsService = bots or BotsServiceImpl(client)
+        self.chats: ChatsService = chats or ChatsServiceImpl(client)
+        self.common: CommonService = common or CommonServiceImpl(client)
+        self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(client)
+        self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(client)
+        self.members: MembersService = members or MembersServiceImpl(client)
+        self.messages: MessagesService = messages or MessagesServiceImpl(client)
+        self.profile: ProfileService = profile or ProfileServiceImpl(client)
+        self.reactions: ReactionsService = reactions or ReactionsServiceImpl(client)
+        self.read_members: ReadMembersService = read_members or ReadMembersServiceImpl(client)
+        self.search: SearchService = search or SearchServiceImpl(client)
+        self.security: SecurityService = security or SecurityServiceImpl(client)
+        self.tasks: TasksService = tasks or TasksServiceImpl(client)
+        self.threads: ThreadsService = threads or ThreadsServiceImpl(client)
+        self.users: UsersService = users or UsersServiceImpl(client)
+        self.views: ViewsService = views or ViewsServiceImpl(client)
+        return self
+
+    @classmethod
+    def stub(
+        cls,
+        bots: BotsService | None = None,
+        chats: ChatsService | None = None,
+        common: CommonService | None = None,
+        group_tags: GroupTagsService | None = None,
+        link_previews: LinkPreviewsService | None = None,
+        members: MembersService | None = None,
+        messages: MessagesService | None = None,
+        profile: ProfileService | None = None,
+        reactions: ReactionsService | None = None,
+        read_members: ReadMembersService | None = None,
+        search: SearchService | None = None,
+        security: SecurityService | None = None,
+        tasks: TasksService | None = None,
+        threads: ThreadsService | None = None,
+        users: UsersService | None = None,
+        views: ViewsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = None
+        self.bots = bots or BotsService()
+        self.chats = chats or ChatsService()
+        self.common = common or CommonService()
+        self.group_tags = group_tags or GroupTagsService()
+        self.link_previews = link_previews or LinkPreviewsService()
+        self.members = members or MembersService()
+        self.messages = messages or MessagesService()
+        self.profile = profile or ProfileService()
+        self.reactions = reactions or ReactionsService()
+        self.read_members = read_members or ReadMembersService()
+        self.search = search or SearchService()
+        self.security = security or SecurityService()
+        self.tasks = tasks or TasksService()
+        self.threads = threads or ThreadsService()
+        self.users = users or UsersService()
+        self.views = views or ViewsService()
+        return self

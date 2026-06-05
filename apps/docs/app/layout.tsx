@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Fira_Code } from 'next/font/google';
 import { Sidebar } from '@/components/layout/sidebar-wrapper';
 import { HeaderServer } from '@/components/layout/header-wrapper';
 import { TransitionProvider } from '@/components/layout/transition-provider';
@@ -13,6 +13,12 @@ const inter = Inter({
   display: 'swap',
 });
 
+const firaCode = Fira_Code({
+  subsets: ['cyrillic', 'latin'],
+  display: 'swap',
+  variable: '--font-mono',
+});
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -23,8 +29,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://dev.pachca.com'),
   title: {
-    default: 'Обзор - Пачка для разработчиков',
-    template: '%s - Пачка для разработчиков',
+    default: 'Обзор | Пачка для разработчиков',
+    template: '%s | Пачка для разработчиков',
   },
   description: 'Создавайте уникальные решения на одной платформе',
   openGraph: {
@@ -95,7 +101,11 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={`min-h-screen ${inter.className}`} suppressHydrationWarning>
+    <html
+      lang="ru"
+      className={`min-h-screen ${inter.className} ${firaCode.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#36373d" media="(prefers-color-scheme: dark)" />
@@ -105,9 +115,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           title="Пачка API — Обновления"
           href="/feed.xml"
         />
-        <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
-        <link rel="alternate" type="text/plain" title="llms-full.txt" href="/llms-full.txt" />
-        <link rel="alternate" type="text/markdown" title="skill.md" href="/skill.md" />
+        <link rel="llms-txt" type="text/plain" title="llms.txt" href="/llms.txt" />
+        <link rel="llms-full-txt" type="text/plain" title="llms-full.txt" href="/llms-full.txt" />
+        {/* Per-page <link rel="alternate" type="text/markdown"> is emitted by
+            each page's generateMetadata() (alternates.types['text/markdown'])
+            so it points to that page's own .md twin. Do NOT add a global one
+            here — it would shadow the per-page tag with a constant href. */}
         <link rel="skills" href="/.well-known/skills/index.json" />
         <link
           rel="alternate"
@@ -147,12 +160,45 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className="min-h-screen m-0 text-text-primary antialiased bg-background"
         suppressHydrationWarning
       >
-        <Tooltip.Provider delayDuration={0}>
+        {/* Agent-facing directive, server-rendered into the HTML body so
+            websearch agents that do one fetch + read body text (not just
+            those sending Accept: text/markdown or reading HTTP headers)
+            discover the docs index. This is the ONLY llms.txt pointer on
+            the websearch→single-fetch path (validated by afdocs
+            `llms-txt-directive-html`) — do NOT remove it.
+            aria-hidden + non-focusable link keep it out of the a11y tree
+            and tab order; raw-HTML/text agents still read it because
+            CSS/ARIA/tabindex don't affect text extractors. Kept first +
+            near the top on purpose. */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            padding: 0,
+            margin: -1,
+            overflow: 'hidden',
+            clip: 'rect(0, 0, 0, 0)',
+            whiteSpace: 'nowrap',
+            border: 0,
+          }}
+        >
+          Для AI-агентов:{' '}
+          <a href="https://dev.pachca.com/llms.txt" tabIndex={-1}>
+            https://dev.pachca.com/llms.txt
+          </a>{' '}
+          — компактный Markdown-справочник Pachca API: ключевые правила (авторизация, пагинация,
+          лимиты, ошибки) и полный индекс методов и гайдов. Даёт полную картину дешевле, чем парсинг
+          HTML. Markdown-версию любой страницы можно получить, добавив .md к URL или заголовок
+          Accept: text/markdown.
+        </div>
+        <Tooltip.Provider delayDuration={0} disableHoverableContent>
           <DisplaySettingsProvider>
             <TransitionProvider />
             <HeaderServer />
             <MobileTableOfContents />
-            <div className="flex min-h-screen pt-[calc(var(--mobile-header-height)+var(--mobile-nav-height))]">
+            <div className="flex min-h-screen pt-[var(--header-height)]">
               <Sidebar />
               <main className="flex-1 bg-background flex flex-col min-w-0 lg:pl-[300px]">
                 {children}

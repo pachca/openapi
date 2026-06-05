@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
 jobs:
   build-site:
     name: Build & push image

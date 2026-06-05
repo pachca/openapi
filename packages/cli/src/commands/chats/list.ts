@@ -22,16 +22,20 @@ export default class ChatsList extends BaseCommand {
 
   static override flags = {
     ...BaseCommand.baseFlags,
-    sort: Flags.string({
-      description: "Поле сортировки (id — идентификатор чата, last-message-at — дата и время создания последнего сообщения)",
-      options: ["id","last-message-at"],
+    'sort': Flags.string({
+      description: "Поле сортировки",
+      options: ["id","last_message_at"],
+      default: "id",
     }),
-    order: Flags.string({
-      description: "Порядок сортировки",
+    'order': Flags.string({
+      description: "Направление сортировки",
       options: ["asc","desc"],
+      default: "desc",
     }),
     'availability': Flags.string({
       description: "Параметр, который отвечает за доступность и выборку чатов для пользователя",
+      options: ["is_member","public"],
+      default: "is_member",
     }),
     'last-message-at-after': Flags.string({
       description: "Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).",
@@ -67,8 +71,9 @@ export default class ChatsList extends BaseCommand {
       const seenCursors = new Set<string>();
 
       while (pages < 500) {
-        const query: Record<string, string | number | boolean | undefined> = {
-        ...(flags.sort ? { [`sort[${flags.sort.replace(/-/g, '_')}]`]: flags.order || 'desc' } : {}),
+        const query: Record<string, string | number | boolean | string[] | undefined> = {
+        sort: flags['sort'],
+        order: flags['order'],
         availability: flags['availability'],
         'last_message_at_after': flags['last-message-at-after'],
         'last_message_at_before': flags['last-message-at-before'],
@@ -84,6 +89,13 @@ export default class ChatsList extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
+        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data
+        const hasNext = paginate?.has_next;
+        if (typeof hasNext === 'boolean') {
+          if (!hasNext) break;
+        } else if (!items || items.length === 0) {
+          break;
+        }
 
         if (process.stderr.isTTY) {
           const total = (paginate as Record<string, unknown> | undefined)?.total;
@@ -111,7 +123,8 @@ export default class ChatsList extends BaseCommand {
       method: 'GET',
       path: '/chats',
       query: {
-      ...(flags.sort ? { [`sort[${flags.sort.replace(/-/g, '_')}]`]: flags.order || 'desc' } : {}),
+      sort: flags['sort'],
+      order: flags['order'],
       availability: flags['availability'],
       'last_message_at_after': flags['last-message-at-after'],
       'last_message_at_before': flags['last-message-at-before'],

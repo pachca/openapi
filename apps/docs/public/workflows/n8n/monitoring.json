@@ -1,0 +1,66 @@
+{
+  "name": "Мониторинг + алерт",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 5 }]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://YOUR_SERVICE/health",
+        "options": { "timeout": 10000 }
+      },
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $response.statusCode }}",
+              "rightValue": "200",
+              "operator": { "type": "number", "operation": "notEquals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "name": "IF не 200",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityId": "CHAT_ID_МОНИТОРИНГА",
+        "content": "**Алерт:** сервис недоступен!\n\nСтатус: {{ $('HTTP Request').item.json.statusCode }}\nВремя: {{ $now.format('HH:mm:ss') }}"
+      },
+      "name": "Алерт в Пачку",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [660, 0]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": { "main": [[{ "node": "HTTP Request", "type": "main", "index": 0 }]] },
+    "HTTP Request": { "main": [[{ "node": "IF не 200", "type": "main", "index": 0 }]] },
+    "IF не 200": { "main": [[{ "node": "Алерт в Пачку", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

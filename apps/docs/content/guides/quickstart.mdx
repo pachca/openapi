@@ -1,13 +1,20 @@
 ---
 title: Быстрый старт
-description: Первый запрос к API Пачки за 5 минут
+description: "Первый запрос к API Пачки за 5 минут: получение персонального токена, проверка авторизации и отправка сообщения через cURL, Postman или официальный CLI"
+related:
+  - /api/authorization
+  - /api/requests-responses
+  - /api/errors
+  - /api/limits
+  - /api/pagination
+  - /api/file-uploads
 ---
 
 # Быстрый старт
 
 Это руководство поможет вам выполнить первый запрос к API Пачки — от получения токена до создания чата.
 
-<Info>Для работы с API нужен аккаунт Пачки с доступом к API (настраивается [владельцем пространства](/api/authorization#nastroyka-dostupa)) и любой HTTP-клиент — терминал с cURL, [Postman или Bruno](/api/requests-responses#postman-bruno). Также можно использовать [CLI](/guides/cli) — все методы доступны как команды.</Info>
+<Info>Для работы с API нужен аккаунт Пачки с доступом к API (настраивается [владельцем пространства](/api/authorization#kto-mozhet-sozdavat-tokeny)) и любой HTTP-клиент — терминал с cURL, [Postman или Bruno](/api/requests-responses#postman-bruno). Также можно использовать [CLI](/guides/cli/overview) — все методы доступны как команды.</Info>
 
 ## Первые запросы
 
@@ -40,11 +47,18 @@ description: Первый запрос к API Пачки за 5 минут
   </Step>
 </Steps>
 
-## Следующие шаги
+## Выберите путь работы с API
 
-- [Авторизация](/api/authorization) — типы токенов, скоупы и разрешения
-- [Запросы и ответы](/api/requests-responses) — формат данных и инструменты тестирования
-- [Ошибки и лимиты](/api/errors) — коды ошибок и rate limits
-- [Пагинация](/api/pagination) — обход больших списков
-- [Боты](/guides/bots) — создание ботов и автоматизаций
-- [SDK](/guides/sdk/overview) — типизированные клиентские библиотеки
+<CardGroup columns={3}>
+  <Card title="Боты" icon="Bot" href="/guides/bots/overview">
+    Интеграции с вебхуками, кнопками и формами
+  </Card>
+  <Card title="CLI" icon="Terminal" href="/guides/cli/overview">
+    Скрипты и одноразовые задачи из терминала
+  </Card>
+  <Card title="n8n" icon="Blocks" href="/guides/n8n/overview">
+    No-code workflow с готовыми нодами
+  </Card>
+</CardGroup>
+
+Если нужен типизированный клиент — [SDK](/guides/sdk/overview) для TypeScript, Python, Go, Kotlin, Swift и C#.

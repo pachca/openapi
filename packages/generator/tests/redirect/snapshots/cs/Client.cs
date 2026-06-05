@@ -11,18 +11,27 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public sealed class CommonService
+public class CommonService
+{
+
+    public virtual async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.downloadExport is not implemented");
+    }
+}
+
+public sealed class CommonServiceImpl : CommonService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal CommonService(string baseUrl, HttpClient client)
+    internal CommonServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/exports/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -41,13 +50,23 @@ public sealed class CommonService
     }
 }
 
+public static class PachcaConstants
+{
+    public const string PachcaApiUrl = "https://api.pachca.com/api/shared/v1";
+}
+
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public CommonService Common { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1")
+    private PachcaClient(CommonService common)
+    {
+        Common = common;
+    }
+
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, CommonService? common = null)
     {
         var handler = new SocketsHttpHandler
         {
@@ -57,12 +76,24 @@ public sealed class PachcaClient : IDisposable
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Common = new CommonService(baseUrl, _client);
+        Common = common ?? new CommonServiceImpl(baseUrl, _client);
+    }
+
+    public PachcaClient(string baseUrl, HttpClient client, CommonService? common = null)
+    {
+        _client = client;
+
+        Common = common ?? new CommonServiceImpl(baseUrl, _client);
+    }
+
+    public static PachcaClient Stub(CommonService? common = null)
+    {
+        return new PachcaClient(common ?? new CommonService());
     }
 
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

@@ -1,0 +1,11 @@
+# Build output (covered by root .gitignore, explicit for clarity)
+dist/
+
+# E2e tests (local only, not run in CI)
+e2e/
+
+# Test artifacts
+test-results/
+
+# npm pack output
+*.tgz

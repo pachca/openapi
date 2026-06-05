@@ -3,14 +3,26 @@ import {
   SearchMessagesResponse,
   MessageSearchResult,
   OAuthError,
-} from "./types";
-import { deserialize, fetchWithRetry } from "./utils";
+} from "./types.js";
+import { deserialize, fetchWithRetry } from "./utils.js";
 
-class SearchService {
+export class SearchService {
+  async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
+    throw new Error("Search.searchMessages is not implemented");
+  }
+
+  async searchMessagesAll(params: Omit<SearchMessagesParams, 'cursor'>): Promise<MessageSearchResult[]> {
+    throw new Error("Search.searchMessagesAll is not implemented");
+  }
+}
+
+export class SearchServiceImpl extends SearchService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
     const query = new URLSearchParams();
@@ -46,17 +58,37 @@ class SearchService {
     do {
       const response = await this.searchMessages({ ...params, cursor } as SearchMessagesParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 }
 
+export const PACHCA_API_URL = "https://api.pachca.com/api/shared/v1";
+
 export class PachcaClient {
   readonly search: SearchService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.search = new SearchService(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; search?: SearchService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; search?: SearchService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? PACHCA_API_URL;
+      this.search = new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? PACHCA_API_URL;
+      this.search = tokenOrConfig.search ?? new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
+  }
+
+  static stub(overrides: { search?: SearchService } = {}): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.search = overrides.search ?? new SearchService();
+    return client;
   }
 }

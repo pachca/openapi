@@ -27,4 +27,6 @@ public struct OAuthError: Codable, Error {
     public init(error: String? = nil) {
         self.error = error
     }
+
+    public var localizedDescription: String { error }
 }

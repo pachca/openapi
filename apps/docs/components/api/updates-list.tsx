@@ -1,54 +1,346 @@
-import { loadUpdates, isNewUpdate } from '@/lib/updates-parser';
+import {
+  isNewUpdate,
+  type DateGroup,
+  type TimelineEntry,
+  type ParsedRelease,
+  type ReleaseProduct,
+} from '@/lib/updates-parser';
+import { groupBySeason } from '@/lib/seasons';
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { toSlug } from '@/lib/utils/transliterate';
 import { MarkdownContent } from './markdown-content';
 import { HeadingLink } from './heading-link';
+import { InlineCodeText } from './inline-code-text';
+import { ArrowUpRight, Package } from 'lucide-react';
+
+const PRODUCT_LABELS: Record<ReleaseProduct, string> = {
+  cli: 'CLI',
+  sdk: 'SDK',
+  generator: 'Generator',
+  n8n: 'n8n',
+};
+
+// Canonical order of release blocks within a single date (and of the
+// package badges row below them). Don't rely on JSON order in
+// `data/releases.json` — entries get added in different sequences.
+const PRODUCT_ORDER: Record<ReleaseProduct, number> = {
+  n8n: 0,
+  cli: 1,
+  sdk: 2,
+  generator: 3,
+};
+
+const PRODUCT_COLORS: Record<ReleaseProduct, string> = {
+  cli: 'bg-method-get/10 text-method-get',
+  sdk: 'bg-method-post/10 text-method-post',
+  generator: 'bg-method-post/10 text-method-post',
+  n8n: 'bg-primary/10 text-primary',
+};
+
+type PackageInfo = { href: (v: string) => string; title: string };
+
+const PRODUCT_PACKAGES: Record<ReleaseProduct, PackageInfo[]> = {
+  cli: [{ href: (v) => `https://www.npmjs.com/package/@pachca/cli/v/${v}`, title: 'CLI' }],
+  sdk: [
+    { href: (v) => `https://www.npmjs.com/package/@pachca/sdk/v/${v}`, title: 'TypeScript' },
+    { href: (v) => `https://pypi.org/project/pachca-sdk/${v}/`, title: 'Python' },
+    {
+      href: (v) => `https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated@v${v}`,
+      title: 'Go',
+    },
+    {
+      href: () => 'https://github.com/pachca/openapi/tree/main/sdk/kotlin',
+      title: 'Kotlin',
+    },
+    {
+      href: () => 'https://github.com/pachca/openapi/tree/main/sdk/swift',
+      title: 'Swift',
+    },
+    {
+      href: (v) => `https://www.nuget.org/packages/Pachca.Sdk/${v}`,
+      title: 'C#',
+    },
+  ],
+  generator: [
+    {
+      href: (v) => `https://www.npmjs.com/package/@pachca/generator/v/${v}`,
+      title: 'Generator',
+    },
+  ],
+  n8n: [
+    {
+      href: (v) => `https://www.npmjs.com/package/n8n-nodes-pachca/v/${v}`,
+      title: 'n8n',
+    },
+  ],
+};
+
+const CHANGE_TYPE_ICONS: Record<string, { icon: string; color: string }> = {
+  '+': { icon: '+', color: 'text-text-tertiary' },
+  '~': { icon: '~', color: 'text-text-tertiary' },
+  '-': { icon: '−', color: 'text-text-tertiary' },
+};
+
+/** Extract the last version from a range like "2.0.1–2.0.4" → "2.0.4" */
+function resolveVersion(version: string): string {
+  const parts = version.split('–');
+  return parts[parts.length - 1];
+}
+
+function ProductBadge({ product }: { product: ReleaseProduct }) {
+  return (
+    <span
+      className={`inline-block px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${PRODUCT_COLORS[product]}`}
+    >
+      {PRODUCT_LABELS[product]}
+    </span>
+  );
+}
+
+function PackageLink({ href, title }: { href: string; title: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group no-underline! flex items-center gap-2 px-3 py-2 text-[14px] font-medium rounded-xl border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover hover:border-glass-heavy-border transition-all duration-200"
+    >
+      <Package className="w-4 h-4 shrink-0 text-text-primary" strokeWidth={2} />
+      <span className="text-[14px] font-medium text-text-primary">{title}</span>
+      <ArrowUpRight className="ml-auto shrink-0 w-3.5 h-3.5 text-text-tertiary transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+    </a>
+  );
+}
+
+function ReleaseEntry({ release }: { release: ParsedRelease }) {
+  return (
+    <div className="overflow-x-auto rounded-lg border border-glass-border bg-glass px-3 py-3 backdrop-blur-sm">
+      <div className="flex items-center gap-2 mb-2">
+        <ProductBadge product={release.product} />
+        <span className="text-[13px] font-mono font-semibold text-text-tertiary">
+          v{release.version}
+        </span>
+      </div>
+      <div className="space-y-1">
+        {release.changes.map((change, i) => {
+          const typeInfo = CHANGE_TYPE_ICONS[change.type] || CHANGE_TYPE_ICONS['~'];
+          return (
+            <div key={i} className="flex gap-2 text-[14px] leading-relaxed text-text-primary">
+              <span className={`shrink-0 font-mono font-bold ${typeInfo.color} w-3 text-center`}>
+                {typeInfo.icon}
+              </span>
+              <div className="min-w-0">
+                <InlineCodeText text={change.description} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function UpdateEntry({
+  entry,
+  allEndpoints,
+  sectionId,
+  anchored,
+}: {
+  entry: TimelineEntry & { kind: 'update' };
+  allEndpoints: Awaited<ReturnType<typeof parseOpenAPI>>['endpoints'];
+  sectionId: string;
+  anchored: boolean;
+}) {
+  const update = entry.data;
+  return (
+    <>
+      <h3 className="group/heading relative text-[32px] font-semibold! text-text-primary leading-tight mt-0! mb-3!">
+        {anchored && <HeadingLink id={sectionId} searchParam={update.date} />}
+        {update.title}
+      </h3>
+      <div className="text-text-primary leading-relaxed space-y-2 max-w-3xl">
+        <MarkdownContent content={update.content} allEndpoints={allEndpoints} />
+      </div>
+    </>
+  );
+}
 
 /**
- * Server component that renders updates from MDX file
- * Reads content/updates.mdx and renders each update entry
+ * Render a single date group (timeline node with updates + releases).
+ * `anchored` controls whether the section gets an `id` + copy-link heading
+ * button.
+ * `flat=true` strips the timeline marker, date subtitle and the inner h3
+ * (the single-date page renders its own h1 and MarkdownActions instead).
  */
-export async function UpdatesList() {
-  const updates = loadUpdates();
+function DateGroupBlock({
+  group,
+  allEndpoints,
+  anchored = true,
+  flat = false,
+}: {
+  group: DateGroup;
+  allEndpoints: Awaited<ReturnType<typeof parseOpenAPI>>['endpoints'];
+  anchored?: boolean;
+  flat?: boolean;
+}) {
+  const isNew = isNewUpdate(group.date);
+  const updates = group.entries.filter(
+    (e): e is TimelineEntry & { kind: 'update' } => e.kind === 'update'
+  );
+  const releases = group.entries
+    .filter((e): e is TimelineEntry & { kind: 'release' } => e.kind === 'release')
+    .sort((a, b) => PRODUCT_ORDER[a.data.product] - PRODUCT_ORDER[b.data.product]);
+
+  const firstUpdate = updates[0];
+  const sectionId = firstUpdate ? toSlug(firstUpdate.data.title) : `releases-${group.date}`;
+
+  return (
+    <section
+      className="relative"
+      id={anchored ? sectionId : undefined}
+      style={{ scrollMarginTop: 'var(--scroll-offset)' }}
+    >
+      {!flat && (
+        <div
+          className={`absolute -left-[45.5px] top-0 w-3 h-3 rounded-full border-2 border-background z-10 ${
+            isNew ? 'bg-primary' : 'bg-background-border'
+          }`}
+        />
+      )}
+      <div className="flex flex-col mb-3">
+        {!flat && (
+          <span className="text-[13px] font-medium text-text-secondary leading-none mb-2">
+            {group.displayDate}
+          </span>
+        )}
+
+        {/* API updates */}
+        {updates.map((entry, i) => (
+          <div key={`update-${i}`} className={i > 0 ? 'mt-8' : ''}>
+            {flat ? (
+              <div className="text-text-primary leading-relaxed space-y-2 max-w-3xl">
+                <MarkdownContent content={entry.data.content} allEndpoints={allEndpoints} />
+              </div>
+            ) : (
+              <UpdateEntry
+                entry={entry}
+                allEndpoints={allEndpoints}
+                sectionId={sectionId}
+                anchored={anchored}
+              />
+            )}
+          </div>
+        ))}
+
+        {/* Product releases */}
+        {releases.length > 0 && (
+          <div className={`space-y-4 ${updates.length > 0 ? 'mt-4' : 'mt-3'}`}>
+            {releases.map((entry, i) => (
+              <ReleaseEntry key={`release-${i}`} release={entry.data} />
+            ))}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {releases.flatMap((entry) =>
+                PRODUCT_PACKAGES[entry.data.product].map((pkg) => (
+                  <PackageLink
+                    key={`${entry.data.product}-${pkg.title}`}
+                    href={pkg.href(resolveVersion(entry.data.version))}
+                    title={pkg.title}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/** Timeline column wrapper with the vertical line. */
+function Timeline({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative ml-4 pl-10 space-y-16 pb-10">
+      <div className="absolute left-0 top-[5.5px] bottom-0 w-px bg-background-border/50" />
+      {children}
+    </div>
+  );
+}
+
+/**
+ * Render API updates + product releases for the given date groups.
+ * When `showSeasonHeaders` is set, dates are grouped under season headers
+ * (🌷 Весна 2026 …); otherwise a flat timeline is rendered.
+ * `flat=true` drops the timeline column entirely (used by the single-date
+ * page where the h1 is already supplied by the page wrapper).
+ */
+export async function UpdatesList({
+  dateGroups,
+  showSeasonHeaders = false,
+  anchored = true,
+  flat = false,
+}: {
+  dateGroups: DateGroup[];
+  showSeasonHeaders?: boolean;
+  /** Single-date page passes false to avoid hash auto-scroll past the CTA. */
+  anchored?: boolean;
+  /** Drop the timeline marker + date subtitle + inner h3. */
+  flat?: boolean;
+}) {
   const api = await parseOpenAPI();
   const allEndpoints = api.endpoints;
 
+  if (flat) {
+    return (
+      <div className="space-y-12">
+        {dateGroups.map((group) => (
+          <DateGroupBlock
+            key={group.date}
+            group={group}
+            allEndpoints={allEndpoints}
+            anchored={anchored}
+            flat
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (!showSeasonHeaders) {
+    return (
+      <Timeline>
+        {dateGroups.map((group) => (
+          <DateGroupBlock
+            key={group.date}
+            group={group}
+            allEndpoints={allEndpoints}
+            anchored={anchored}
+          />
+        ))}
+      </Timeline>
+    );
+  }
+
+  const seasons = groupBySeason(dateGroups);
+
   return (
-    <div className="relative ml-4 pl-10 space-y-16 pb-10">
-      {/* Вертикальная линия */}
-      <div className="absolute left-0 top-[5.5px] bottom-0 w-px bg-background-border/50" />
-
-      {updates.map((update, index) => {
-        const isNew = isNewUpdate(update.date);
-        const sectionId = toSlug(update.title);
-
-        return (
-          <section
-            key={`${update.date}-${index}`}
-            className="relative"
-            id={sectionId}
-            style={{ scrollMarginTop: 'var(--scroll-offset)' }}
-          >
-            <div
-              className={`absolute -left-[45.5px] top-0 w-3 h-3 rounded-full border-2 border-background z-10 ${
-                isNew ? 'bg-primary' : 'bg-background-border'
-              }`}
-            />
-            <div className="flex flex-col mb-3">
-              <span className="text-[11px] font-mono font-bold text-text-tertiary uppercase tracking-widest leading-none mb-2">
-                {update.displayDate}
-              </span>
-              <h3 className="group/heading relative text-[32px] font-semibold! text-text-primary leading-tight m-0!">
-                <HeadingLink id={sectionId} searchParam={update.date} />
-                {update.title}
-              </h3>
-            </div>
-            <div className="text-text-primary leading-relaxed space-y-2 max-w-3xl">
-              <MarkdownContent content={update.content} allEndpoints={allEndpoints} />
-            </div>
-          </section>
-        );
-      })}
+    <div className="space-y-12">
+      {seasons.map((sg) => (
+        <section
+          key={sg.season.slug}
+          id={sg.season.slug}
+          style={{ scrollMarginTop: 'var(--scroll-offset)' }}
+        >
+          <h2 className="flex items-center gap-2 text-[22px] font-semibold! text-text-primary mt-0! mb-6!">
+            <span aria-hidden>{sg.season.emoji}</span>
+            {sg.season.label}
+          </h2>
+          <Timeline>
+            {sg.dates.map((group) => (
+              <DateGroupBlock key={group.date} group={group} allEndpoints={allEndpoints} />
+            ))}
+          </Timeline>
+        </section>
+      ))}
     </div>
   );
 }

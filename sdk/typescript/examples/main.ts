@@ -22,6 +22,11 @@ if (!token || !chatIdStr) {
 const chatId = Number(chatIdStr);
 const client = new PachcaClient(token);
 
+// ── Step 0: GET — Fetch chat (verifies datetime deserialization) ─
+console.log("0. Fetching chat...");
+const chat = await client.chats.getChat(chatId);
+console.log(`   Chat: ${chat.name}, createdAt=${chat.createdAt} (${typeof chat.createdAt}), lastMessageAt=${chat.lastMessageAt} (${typeof chat.lastMessageAt})`);
+
 // ── Step 1: POST — Create a message ──────────────────────────────
 console.log("1. Creating message...");
 const created = await client.messages.createMessage({

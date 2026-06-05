@@ -7,13 +7,17 @@
   },
   "scripts": {
     "setup": "true",
-    "generate": "tsp compile typespec.tsp --config tspconfig.yaml"
+    "generate": "tsp compile typespec.tsp --config tspconfig.yaml",
+    "overlay:apply": "bun scripts/apply-overlay.ts",
+    "overlay:validate": "bun scripts/validate-overlay.ts"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@typespec/compiler": "^1.7.1",
     "@typespec/http": "^1.7.0",
     "@typespec/openapi": "^1.7.0",
     "@typespec/openapi3": "^1.7.0",
-    "@typespec/rest": "^0.77.0"
+    "@typespec/rest": "^0.77.0",
+    "js-yaml": "^4.1.1"
   }
 }

@@ -1,9 +1,9 @@
 import { StaticPageWrapper } from '@/components/layout/static-page-wrapper';
-import { getAdjacentItems } from '@/lib/navigation';
+import { getAdjacentItems, resolveRelatedItems } from '@/lib/navigation';
 import { StaticPageHeader } from '@/components/api/static-page-header';
 import { MarkdownContent } from '@/components/api/markdown-content';
 import { getGuideData, getAllGuideSlugs, extractFirstParagraph } from '@/lib/content-loader';
-import { getSectionTitle } from '@/lib/tabs-config';
+import { getSectionTitle, getNestedParentTitle, getActiveTab, TABS } from '@/lib/tabs-config';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
@@ -30,13 +30,22 @@ export async function generateMetadata({
   const firstParagraph = extractFirstParagraph(data.content);
   const pageTitle = data.frontmatter.title;
   const pageUrl = `/guides/${slugPath}`;
-  const section = getSectionTitle(pageUrl);
-  const title = section ? `${section}: ${pageTitle}` : pageTitle;
+  const parent = getNestedParentTitle(pageUrl);
+  const activeTab = getActiveTab(pageUrl);
+  const tabPrefix =
+    activeTab && (['cli', 'sdk', 'n8n'] as const).includes(activeTab as 'cli' | 'sdk' | 'n8n')
+      ? TABS.find((t) => t.id === activeTab)?.title
+      : null;
+  const baseTitle = parent
+    ? `${parent}, ${pageTitle}`
+    : tabPrefix
+      ? `${tabPrefix}, ${pageTitle}`
+      : pageTitle;
   const description: string | undefined = data.frontmatter.description || firstParagraph;
-  const ogImage = `/api/og?type=guide&slug=${slugPath}`;
+  const ogImage = `/internal/og?type=guide&slug=${slugPath}`;
 
   return {
-    title,
+    title: { absolute: `${baseTitle} | Руководство разработчика` },
     description,
     alternates: {
       canonical: pageUrl,
@@ -64,8 +73,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   }
 
   const pageUrl = `/guides/${slugPath}`;
-  const ogImage = `/api/og?type=guide&slug=${slugPath}`;
+  const ogImage = `/internal/og?type=guide&slug=${slugPath}`;
   const adjacent = await getAdjacentItems(pageUrl);
+  const relatedItems = await resolveRelatedItems(data.frontmatter.related, pageUrl);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -106,6 +116,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   return (
     <StaticPageWrapper
       adjacent={adjacent}
+      relatedItems={relatedItems}
       hideTableOfContents={data.frontmatter.hideTableOfContents}
     >
       <script

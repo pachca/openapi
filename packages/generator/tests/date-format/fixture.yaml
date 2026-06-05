@@ -1,0 +1,161 @@
+openapi: 3.0.0
+info:
+  title: Test API — Date Format
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Export
+paths:
+  /exports:
+    post:
+      operationId: ExportOperations_createExport
+      description: Создание экспорта с date-only и date-time полями
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Export'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Export
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+  /events:
+    get:
+      operationId: EventOperations_listEvents
+      description: Получение событий с date query параметрами
+      parameters:
+        - name: date_from
+          in: query
+          required: true
+          description: Дата начала (date-only)
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          required: false
+          description: Дата окончания (date-only)
+          schema:
+            type: string
+            format: date
+        - name: created_after
+          in: query
+          required: false
+          description: Создано после (date-time)
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          required: false
+          description: Количество записей
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+      tags:
+        - Export
+components:
+  schemas:
+    ExportRequest:
+      type: object
+      required:
+        - start_at
+        - end_at
+        - webhook_url
+      properties:
+        start_at:
+          type: string
+          format: date
+          description: Дата начала (YYYY-MM-DD)
+          example: '2025-03-20'
+        end_at:
+          type: string
+          format: date
+          description: Дата окончания (YYYY-MM-DD)
+          example: '2025-03-20'
+        webhook_url:
+          type: string
+          description: URL для вебхука
+
+    Export:
+      type: object
+      required:
+        - id
+        - start_at
+        - end_at
+        - status
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int32
+        start_at:
+          type: string
+          format: date
+          description: Дата начала
+        end_at:
+          type: string
+          format: date
+          description: Дата окончания
+        status:
+          type: string
+          description: Статус экспорта
+        created_at:
+          type: string
+          format: date-time
+          description: Дата создания
+
+    Event:
+      type: object
+      required:
+        - id
+        - type
+        - occurred_at
+      properties:
+        id:
+          type: integer
+          format: int32
+        type:
+          type: string
+        occurred_at:
+          type: string
+          format: date-time
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string

@@ -31,7 +31,7 @@ export default class MessagesCreate extends BaseCommand {
       description: "Идентификатор сущности (pachca chats list | pachca users list)",
     }),
     'content': Flags.string({
-      description: "Текст сообщения",
+      description: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).",
     }),
     'files': Flags.string({
       description: "Прикрепляемые файлы",
@@ -73,7 +73,7 @@ export default class MessagesCreate extends BaseCommand {
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
       { flag: 'entity-id', label: "Идентификатор сущности", type: 'integer' },
-      { flag: 'content', label: "Текст сообщения", type: 'string' },
+      { flag: 'content', label: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {

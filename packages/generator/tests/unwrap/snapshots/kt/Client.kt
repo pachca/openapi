@@ -13,11 +13,17 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-class MembersService internal constructor(
+interface MembersService {
+    suspend fun addMembers(id: Int, memberIds: List<Int>) {
+        throw NotImplementedError("Members.addMembers is not implemented")
+    }
+}
+
+class MembersServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) {
-    suspend fun addMembers(id: Int, memberIds: List<Int>) {
+) : MembersService {
+    override suspend fun addMembers(id: Int, memberIds: List<Int>) {
         val response = client.post("$baseUrl/chats/$id/members") {
             contentType(ContentType.Application.Json)
             setBody(AddMembersRequest(memberIds = memberIds))
@@ -30,11 +36,21 @@ class MembersService internal constructor(
     }
 }
 
-class ChatsService internal constructor(
+interface ChatsService {
+    suspend fun createChat(request: ChatCreateRequest): Chat {
+        throw NotImplementedError("Chats.createChat is not implemented")
+    }
+
+    suspend fun archiveChat(id: Int) {
+        throw NotImplementedError("Chats.archiveChat is not implemented")
+    }
+}
+
+class ChatsServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) {
-    suspend fun createChat(request: ChatCreateRequest): Chat {
+) : ChatsService {
+    override suspend fun createChat(request: ChatCreateRequest): Chat {
         val response = client.post("$baseUrl/chats") {
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -46,7 +62,7 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun archiveChat(id: Int) {
+    override suspend fun archiveChat(id: Int) {
         val response = client.put("$baseUrl/chats/$id/archive")
         when (response.status.value) {
             204 -> return
@@ -56,37 +72,73 @@ class ChatsService internal constructor(
     }
 }
 
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1") : Closeable {
-    private val client = HttpClient {
-        expectSuccess = false
-        install(ContentNegotiation) {
-            json(Json { explicitNulls = false })
+const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
+class PachcaClient private constructor(
+    private val _client: HttpClient?,
+    val chats: ChatsService,
+    val members: MembersService
+) : Closeable {
+
+    companion object {
+        operator fun invoke(
+            token: String,
+            baseUrl: String = PACHCA_API_URL,
+            chats: ChatsService? = null,
+            members: MembersService? = null
+        ): PachcaClient {
+            val client = createClient(token)
+            return PachcaClient(
+                _client = client,
+                chats = chats ?: ChatsServiceImpl(baseUrl, client),
+                members = members ?: MembersServiceImpl(baseUrl, client)
+            )
         }
-        install(HttpRequestRetry) {
-            maxRetries = 3
-            retryIf { _, response ->
-                response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
-            }
-            delayMillis { retry ->
-                val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
-                if (retryAfter != null && response?.status?.value == 429) {
-                    retryAfter * 1000L
-                } else {
-                    val base = 10_000L * (1L shl retry)
-                    val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
-                    (base * jitter).toLong()
+
+        fun stub(
+            chats: ChatsService = object : ChatsService {},
+            members: MembersService = object : MembersService {}
+        ): PachcaClient = PachcaClient(
+            _client = null,
+            chats = chats,
+            members = members
+        )
+
+        private fun createClient(token: String): HttpClient = HttpClient {
+            expectSuccess = false
+            install(ContentNegotiation) { json(Json { explicitNulls = false }) }
+            install(HttpRequestRetry) {
+                maxRetries = 3
+                retryIf { _, response ->
+                    response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
+                }
+                delayMillis { retry ->
+                    val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
+                    if (retryAfter != null && response?.status?.value == 429) {
+                        retryAfter * 1000L
+                    } else {
+                        val base = 10_000L * (1L shl retry)
+                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
+                        (base * jitter).toLong()
+                    }
                 }
             }
-        }
-        defaultRequest {
-            bearerAuth(token)
+            defaultRequest { bearerAuth(token) }
         }
     }
 
-    val chats = ChatsService(baseUrl, client)
-    val members = MembersService(baseUrl, client)
+    constructor(
+        client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
+        chats: ChatsService? = null,
+        members: MembersService? = null
+    ) : this(
+        _client = client,
+        chats = chats ?: ChatsServiceImpl(baseUrl, client),
+        members = members ?: MembersServiceImpl(baseUrl, client)
+    )
 
     override fun close() {
-        client.close()
+        _client?.close()
     }
 }

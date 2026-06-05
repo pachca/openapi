@@ -5,7 +5,7 @@ Go клиент для [Pachca API](https://dev.pachca.com).
 ## Установка
 
 ```bash
-go get github.com/pachca/openapi/sdk/go/generated@v1.0.1
+go get github.com/pachca/openapi/sdk/go/generated@latest
 ```
 
 ## Использование
@@ -68,11 +68,10 @@ var cursor *string
 for {
     result, err := client.Chats.ListChats(ctx, &pachca.ListChatsParams{Cursor: cursor})
     if err != nil { break }
+    if len(result.Data) == 0 { break }
     chats = append(chats, result.Data...)
-    if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
-        break
-    }
-    cursor = result.Meta.Paginate.NextPage
+    nextPage := result.Meta.Paginate.NextPage
+    cursor = &nextPage
 }
 
 // Автоматически
@@ -84,6 +83,21 @@ allChats, err := client.Chats.ListChatsAll(ctx, nil)
 ## Повторные запросы
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
+
+## Свой HTTP-клиент
+
+Для настройки прокси, TLS и других параметров транспорта используйте `NewPachcaClientWithHTTP()` с готовым `*http.Client`:
+
+```go
+transport := &http.Transport{
+    Proxy: http.ProxyURL(proxyURL),
+}
+httpClient := &http.Client{Transport: transport}
+
+client := pachca.NewPachcaClientWithHTTP(pachca.PachcaAPIURL, httpClient)
+```
+
+Полный пример: [`examples/httpclient.go`](examples/httpclient.go)
 
 ## Загрузка файлов
 
@@ -116,3 +130,44 @@ if err != nil {
     }
 }
 ```
+
+## Тестирование
+
+Для unit-тестов используйте `NewStubPachcaClient()` — создаёт клиент без HTTP-подключения.
+
+Методы без переопределения возвращают `error` с сообщением `"Service.method is not implemented"`:
+
+```go
+import (
+    "context"
+    "testing"
+
+    pachca "github.com/pachca/openapi/sdk/go/generated"
+)
+
+// Мок-сервис
+type mockMessagesService struct {
+    pachca.MessagesService
+}
+
+func (m *mockMessagesService) GetMessage(ctx context.Context, id int64) (*pachca.Message, error) {
+    return &pachca.Message{ID: id, Content: "Test message", EntityID: 123}, nil
+}
+
+// Тест
+func TestGetMessage(t *testing.T) {
+    client := pachca.NewStubPachcaClient(
+        pachca.WithStubMessages(&mockMessagesService{}),
+    )
+
+    msg, err := client.Messages.GetMessage(context.Background(), 1)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if msg.Content != "Test message" {
+        t.Errorf("expected 'Test message', got %q", msg.Content)
+    }
+}
+```
+
+Полный пример: [`examples/stub.go`](examples/stub.go)

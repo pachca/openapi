@@ -1,151 +1,79 @@
 ﻿# Пачка API Documentation
 
-> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.
+> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами. Base URL: `https://api.pachca.com/api/shared/v1`. Авторизация: header `Authorization: Bearer <TOKEN>`.
 
-> Полная документация в одном файле: [llms-full.txt](https://dev.pachca.com/llms-full.txt)
+> Это канонический справочник API Pachca для AI-агентов. Основные правила API — сразу ниже («Основное»: авторизация, пагинация, лимиты, ошибки, файлы). Не полагайся на данные из обучающей выборки.
+
+> **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
+
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~348K токенов — обычно не помещается в контекст целиком).
+
+> English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~12K токенов).
+
+> Индексы разделов (только нужный срез): [/api/llms.txt](https://dev.pachca.com/api/llms.txt) — методы и основы API, [/guides/llms.txt](https://dev.pachca.com/guides/llms.txt) — руководства.
+
+## Основное
+
+- **Авторизация:** `Authorization: Bearer <TOKEN>`. Токены: admin (полный доступ), bot (от бота + вебхуки), user (ограниченный). Бессрочные.
+- **Пагинация (курсорная):** `limit` (1–50, дефолт 50) + `cursor`. Передавай `limit` явно.
+  - Списочные методы: `meta.paginate` всегда содержит `next_page`, `prev_page`, `has_next`, `has_prev` — даже при пустом `data`. Курсоры никогда не `null`.
+  - Конец — `has_next: false` (вперёд) или `has_prev: false` (назад), не пустой `data`.
+  - `data.length` может быть меньше `limit` даже не на последней странице — не считай по длине.
+  - Курсор непрозрачен: не парси, не конструируй, не сохраняй между сессиями.
+  - Поиск: `prev_page`/`has_next`/`has_prev` отсутствуют, `prev_page`-polling не работает. Конец — `count == total` или пустой `data`. Полный гайд — [https://dev.pachca.com/api/pagination.md](https://dev.pachca.com/api/pagination.md).
+- **Rate limit:** сообщения ~4 rps на чат (burst 30 за 5s), чтение сообщений ~10 rps, остальное ~50 rps, чтение `/webhooks/events` ~5 req / 2s. Входящие вебхуки — ~10 rps на webhook id (по идентификатору в пути). На `429` — жди `Retry-After`.
+- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), `401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.
+- **Идемпотентность:** запросы не идемпотентны — дедуплицируй на клиенте. Вебхуки at-least-once — обработчики идемпотентны.
+- **Файлы:** 3 шага: `POST /uploads` → upload на `direct_url` (внешний S3, без Authorization) → `key` в `files[]` сообщения.
+- Детали метода — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`. Полный референс — `llms-full.txt` или `.md`-страницы из разделов ниже.
+
+## Частые задачи
+
+- [Авторизация и типы токенов](https://dev.pachca.com/api/authorization.md)
+- [Отправить сообщение](https://dev.pachca.com/api/messages/create.md)
+- [Создать чат или канал](https://dev.pachca.com/api/chats/create.md)
+- [Добавить участников в чат](https://dev.pachca.com/api/members/add.md)
+- [Ответить в тред](https://dev.pachca.com/api/threads/add.md)
+- [Загрузка файлов](https://dev.pachca.com/api/file-uploads.md)
+- [Пагинация по спискам](https://dev.pachca.com/api/pagination.md)
+- [Обработка ошибок и коды](https://dev.pachca.com/api/errors.md)
+- [Лимиты запросов](https://dev.pachca.com/api/limits.md)
+- [Получать события через вебхуки](https://dev.pachca.com/guides/webhook/overview.md)
+- [Боты: создание и подключение](https://dev.pachca.com/guides/bots/overview.md)
+- [Быстрый старт за 5 минут](https://dev.pachca.com/guides/quickstart.md)
+
+
+## Document Map
+
+| Раздел | Описание | Строки |
+|--------|----------|--------|
+| Основное | Авторизация, пагинация, лимиты, ошибки, файлы | 15–44 |
+| CLI Quick Start | Установка, команды, точечная справка по API | 59–77 |
+| SDK | Типизированные клиенты для 6 языков | 78–104 |
+| Agent Skills | Скиллы для AI-агентов и установка | 105–127 |
+| Руководства | Страницы-руководства (Markdown по `.md`) | 128–187 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 188–288 |
+| Обновления | Журнал обновлений по датам | 289–337 |
+| Дополнительно | Прочие ссылки и контакты | 338–346 |
 
 ## CLI Quick Start
 
 ```bash
 # Zero-install (npx)
-npx @pachca/cli <command> --token <TOKEN>
+npx -y @pachca/cli <command> --token <TOKEN>
 
 # For regular use
 npm install -g @pachca/cli
 pachca auth login
 pachca messages create --entity-id=<chat_id> --content="Hello"
 pachca guide "отправить сообщение"  # CLI guide for humans
+
+# Docs for any endpoint — without loading llms-full.txt
+npx -y @pachca/cli api ls                         # list every endpoint
+npx -y @pachca/cli api POST /messages --describe  # params, body, scope
+npx -y @pachca/cli api GET /messages --spec       # OpenAPI fragment
+npx -y @pachca/cli api POST /messages --docs      # full Markdown reference
 ```
-
-## Руководства
-- [Обзор](https://dev.pachca.com/.md): Руководство разработчика и документация API Пачки
-- [Быстрый старт](https://dev.pachca.com/guides/quickstart.md): Первый запрос к API Пачки за 5 минут
-- [AI агенты](https://dev.pachca.com/guides/ai-agents.md): Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
-- [CLI](https://dev.pachca.com/guides/cli.md): Управление Пачкой из терминала — все API-методы одной командой
-- [Обзор](https://dev.pachca.com/guides/sdk/overview.md): Типизированные клиентские библиотеки и генератор для Pachca API
-- [TypeScript](https://dev.pachca.com/guides/sdk/typescript.md): Типизированный клиент для Pachca API на TypeScript с автодополнением и автопагинацией
-- [Python](https://dev.pachca.com/guides/sdk/python.md): Асинхронный типизированный клиент для Pachca API на Python с httpx
-- [Go](https://dev.pachca.com/guides/sdk/go.md): Типизированный клиент для Pachca API на Go с контекстами и автопагинацией
-- [Kotlin](https://dev.pachca.com/guides/sdk/kotlin.md): Типизированный клиент для Pachca API на Kotlin с корутинами и Ktor
-- [Swift](https://dev.pachca.com/guides/sdk/swift.md): Типизированный клиент для Pachca API на Swift с async/await и Codable
-- [CSharp](https://dev.pachca.com/guides/sdk/csharp.md): Типизированный клиент для Pachca API на C# с async/await и автопагинацией
-- [Сценарии](https://dev.pachca.com/guides/workflows.md): Пошаговые сценарии для типичных задач с API
-- [Боты](https://dev.pachca.com/guides/bots.md): Создание, настройка и возможности ботов в Пачке
-- [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks.md): Отправка сообщений от имени бота без использования API
-- [Исходящие вебхуки](https://dev.pachca.com/guides/webhook.md): Получение уведомлений о событиях в реальном времени
-- [Кнопки в сообщениях](https://dev.pachca.com/guides/buttons.md): Интерактивные кнопки в сообщениях ботов для навигации и обработки действий
-- [Обзор](https://dev.pachca.com/guides/forms/overview.md): Модальные формы ботов: поля ввода, жизненный цикл и валидация
-- [Блоки представления](https://dev.pachca.com/guides/forms/blocks.md): 10 типов блоков для построения форм в Пачке
-- [Обработка форм](https://dev.pachca.com/guides/forms/handling.md): Открытие представлений, получение результатов и валидация
-- [Разворачивание ссылок](https://dev.pachca.com/guides/link-previews.md): Создание превью ссылок из внутренних сервисов прямо в чате
-- [Экспорт сообщений](https://dev.pachca.com/guides/export.md): Экспорт сообщений из чатов: запрос, скачивание и структура архива
-- [DLP-система](https://dev.pachca.com/guides/dlp.md): Создание правил DLP: условия, контексты и действия
-- [Журнал аудита событий](https://dev.pachca.com/guides/audit-events.md): Журнал аудита: типы событий, фильтрация и примеры запросов
-- [n8n](https://dev.pachca.com/guides/n8n.md): Автоматизации в Пачке через платформу n8n без программирования
-- [Albato](https://dev.pachca.com/guides/albato.md): Интеграция Пачки с Albato — подключение сотен сервисов без кода
-- [Последние обновления](https://dev.pachca.com/updates.md): История изменений и новые возможности API
-- [Авторизация](https://dev.pachca.com/api/authorization.md): Типы токенов, скоупы и настройка доступа к API
-- [Запросы и ответы](https://dev.pachca.com/api/requests-responses.md): Формат запросов и ответов, тестирование API
-- [Пагинация](https://dev.pachca.com/api/pagination.md): Cursor-based pagination в API Пачки
-- [Загрузка файлов](https://dev.pachca.com/api/file-uploads.md): Трёхшаговый процесс загрузки файлов через presigned URL
-- [Ошибки и лимиты](https://dev.pachca.com/api/errors.md): Коды ошибок HTTP и rate limits
-- [Модели](https://dev.pachca.com/api/models.md): Справочник всех моделей данных Pachca API — объекты, возвращаемые в ответах методов.
-
-## Common
-- [Экспорт сообщений](https://dev.pachca.com/api/common/request-export.md): POST /chats/exports
-- [Скачать архив экспорта](https://dev.pachca.com/api/common/get-exports.md): GET /chats/exports/{id}
-- [Список дополнительных полей](https://dev.pachca.com/api/common/custom-properties.md): GET /custom_properties
-- [Загрузка файла](https://dev.pachca.com/api/common/direct-url.md): POST /direct_url
-- [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/common/uploads.md): POST /uploads
-
-## Profile
-- [Информация о токене](https://dev.pachca.com/api/profile/get-info.md): GET /oauth/token/info
-- [Информация о профиле](https://dev.pachca.com/api/profile/get.md): GET /profile
-- [Текущий статус](https://dev.pachca.com/api/profile/get-status.md): GET /profile/status
-- [Новый статус](https://dev.pachca.com/api/profile/update-status.md): PUT /profile/status
-- [Удаление статуса](https://dev.pachca.com/api/profile/delete-status.md): DELETE /profile/status
-
-## Users
-- [Создать сотрудника](https://dev.pachca.com/api/users/create.md): POST /users
-- [Список сотрудников](https://dev.pachca.com/api/users/list.md): GET /users
-- [Информация о сотруднике](https://dev.pachca.com/api/users/get.md): GET /users/{id}
-- [Редактирование сотрудника](https://dev.pachca.com/api/users/update.md): PUT /users/{id}
-- [Удаление сотрудника](https://dev.pachca.com/api/users/delete.md): DELETE /users/{id}
-- [Статус сотрудника](https://dev.pachca.com/api/users/get-status.md): GET /users/{user_id}/status
-- [Новый статус сотрудника](https://dev.pachca.com/api/users/update-status.md): PUT /users/{user_id}/status
-- [Удаление статуса сотрудника](https://dev.pachca.com/api/users/remove-status.md): DELETE /users/{user_id}/status
-
-## Group tags
-- [Новый тег](https://dev.pachca.com/api/group-tags/create.md): POST /group_tags
-- [Список тегов сотрудников](https://dev.pachca.com/api/group-tags/list.md): GET /group_tags
-- [Информация о теге](https://dev.pachca.com/api/group-tags/get.md): GET /group_tags/{id}
-- [Редактирование тега](https://dev.pachca.com/api/group-tags/update.md): PUT /group_tags/{id}
-- [Удаление тега](https://dev.pachca.com/api/group-tags/delete.md): DELETE /group_tags/{id}
-- [Список сотрудников тега](https://dev.pachca.com/api/group-tags/list-users.md): GET /group_tags/{id}/users
-
-## Chats
-- [Новый чат](https://dev.pachca.com/api/chats/create.md): POST /chats
-- [Список чатов](https://dev.pachca.com/api/chats/list.md): GET /chats
-- [Информация о чате](https://dev.pachca.com/api/chats/get.md): GET /chats/{id}
-- [Обновление чата](https://dev.pachca.com/api/chats/update.md): PUT /chats/{id}
-- [Архивация чата](https://dev.pachca.com/api/chats/archive.md): PUT /chats/{id}/archive
-- [Разархивация чата](https://dev.pachca.com/api/chats/unarchive.md): PUT /chats/{id}/unarchive
-
-## Members
-- [Добавление тегов](https://dev.pachca.com/api/members/add-group-tags.md): POST /chats/{id}/group_tags
-- [Исключение тега](https://dev.pachca.com/api/members/remove-group-tag.md): DELETE /chats/{id}/group_tags/{tag_id}
-- [Выход из беседы или канала](https://dev.pachca.com/api/members/leave.md): DELETE /chats/{id}/leave
-- [Список участников чата](https://dev.pachca.com/api/members/list.md): GET /chats/{id}/members
-- [Добавление пользователей](https://dev.pachca.com/api/members/add.md): POST /chats/{id}/members
-- [Исключение пользователя](https://dev.pachca.com/api/members/remove.md): DELETE /chats/{id}/members/{user_id}
-- [Редактирование роли](https://dev.pachca.com/api/members/update.md): PUT /chats/{id}/members/{user_id}
-
-## Threads
-- [Новый тред](https://dev.pachca.com/api/threads/add.md): POST /messages/{id}/thread
-- [Информация о треде](https://dev.pachca.com/api/threads/get.md): GET /threads/{id}
-
-## Messages
-- [Новое сообщение](https://dev.pachca.com/api/messages/create.md): POST /messages
-- [Список сообщений чата](https://dev.pachca.com/api/messages/list.md): GET /messages
-- [Информация о сообщении](https://dev.pachca.com/api/messages/get.md): GET /messages/{id}
-- [Редактирование сообщения](https://dev.pachca.com/api/messages/update.md): PUT /messages/{id}
-- [Удаление сообщения](https://dev.pachca.com/api/messages/delete.md): DELETE /messages/{id}
-- [Закрепление сообщения](https://dev.pachca.com/api/messages/pin.md): POST /messages/{id}/pin
-- [Открепление сообщения](https://dev.pachca.com/api/messages/unpin.md): DELETE /messages/{id}/pin
-
-## Read members
-- [Список прочитавших сообщение](https://dev.pachca.com/api/read-member/list-readers.md): GET /messages/{id}/read_member_ids
-
-## Reactions
-- [Добавление реакции](https://dev.pachca.com/api/reactions/add.md): POST /messages/{id}/reactions
-- [Удаление реакции](https://dev.pachca.com/api/reactions/remove.md): DELETE /messages/{id}/reactions
-- [Список реакций](https://dev.pachca.com/api/reactions/list.md): GET /messages/{id}/reactions
-
-## Link Previews
-- [Unfurl (разворачивание ссылок)](https://dev.pachca.com/api/link-previews/add.md): POST /messages/{id}/link_previews
-
-## Search
-- [Поиск чатов](https://dev.pachca.com/api/search/list-chats.md): GET /search/chats
-- [Поиск сообщений](https://dev.pachca.com/api/search/list-messages.md): GET /search/messages
-- [Поиск сотрудников](https://dev.pachca.com/api/search/list-users.md): GET /search/users
-
-## Tasks
-- [Новое напоминание](https://dev.pachca.com/api/tasks/create.md): POST /tasks
-- [Список напоминаний](https://dev.pachca.com/api/tasks/list.md): GET /tasks
-- [Информация о напоминании](https://dev.pachca.com/api/tasks/get.md): GET /tasks/{id}
-- [Редактирование напоминания](https://dev.pachca.com/api/tasks/update.md): PUT /tasks/{id}
-- [Удаление напоминания](https://dev.pachca.com/api/tasks/delete.md): DELETE /tasks/{id}
-
-## Views
-- [Открытие представления](https://dev.pachca.com/api/views/open.md): POST /views/open
-
-## Bots
-- [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
-- [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
-- [Удаление события](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}
-
-## Security
-- [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
 
 ## SDK
 
@@ -193,9 +121,224 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 
 Установка: `npx skills add pachca/openapi`
 
-Индекс скиллов: [https://dev.pachca.com/.well-known/skills/index.json](https://dev.pachca.com/.well-known/skills/index.json)
+Индекс скиллов: `https://dev.pachca.com/.well-known/skills/index.json`
+
+Каталог API (RFC 9727): `https://dev.pachca.com/.well-known/api-catalog` — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.
+
+## Руководства
+- [Обзор](https://dev.pachca.com/.md): Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n и Agent Skills для AI-агентов
+- [Быстрый старт](https://dev.pachca.com/guides/quickstart.md): Первый запрос к API Пачки за 5 минут: получение персонального токена, проверка авторизации и отправка сообщения через cURL, Postman или официальный CLI
+- [AI агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview.md): Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — llms.txt, CLI как основной путь, Agent Skills, OpenAPI, Arazzo, Context7
+- [AI агенты, Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction.md): Как агент в Пачке получает события через вебхук, собирает контекст треда, выполняет действия и отвечает. Реакция-индикатор и таймер agent-thinking
+- [AI агенты, Markdown и документы](https://dev.pachca.com/guides/ai-agents/markdown.md): Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чеклисты, подсветка кода, diff, диаграммы Mermaid
+- [Треды](https://dev.pachca.com/guides/threads.md): Треды в Пачке для разработчиков: сквозные треды как уникальная особенность, создание через POST /messages/{id}/thread, отправка комментариев, добавление участников, видимость родительского чата, нюансы API и поля Message.thread/root_chat_id
+- [Боты, Обзор](https://dev.pachca.com/guides/bots/overview.md): Боты в Пачке: что это, типы ботов, доступность в чатах и подмена имени и аватара отправителя в сообщениях
+- [Боты, Создание и настройка](https://dev.pachca.com/guides/bots/setup.md): Как создать бота в Пачке: выбор типа, копирование токена, настройка имени и аватара, настройка доступов и вкладок вебхуков и API
+- [Боты, Доступы к чатам и сообщениям](https://dev.pachca.com/guides/bots/access.md): Как бот получает доступ к закрытым каналам и беседам, тредам и личным сообщениям в Пачке
+- [Боты, Готовые примеры реализации](https://dev.pachca.com/guides/bots/examples.md): Открытые примеры ботов для Пачки: Welcome Bot для приветствия новых сотрудников, Review Bot для интеграции с GitHub Pull Requests и Unfurl-бот для предпросмотра ссылок
+- [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks.md): Входящие вебхуки в Пачке: отправка сообщений от имени бота одним HTTP POST без API, шаблонизатор для форматирования, интеграции с CI/CD и мониторингом
+- [Исходящие вебхуки, Обзор](https://dev.pachca.com/guides/webhook/overview.md): Исходящие вебхуки в Пачке: что это, как настроить и какие настройки доступны на вкладке Исходящий Webhook в боте
+- [Исходящие вебхуки, Настройка и типы событий](https://dev.pachca.com/guides/webhook/events.md): Настройки исходящих вебхуков Пачки и список доступных типов событий: сообщения, реакции, нажатия кнопок, заполнение форм, изменение участников чатов и пространства, отправка ссылок
+- [Исходящие вебхуки, Безопасность и обработчик](https://dev.pachca.com/guides/webhook/handler.md): Безопасность исходящих вебхуков Пачки: подпись HMAC-SHA256, проверка timestamp, IP-адрес отправителя, примеры обработчика на TypeScript и Python, идемпотентная обработка и доставка
+- [Исходящие вебхуки, Поллинг](https://dev.pachca.com/guides/webhook/polling.md): Поллинг исходящих вебхуков Пачки через API: получение накопленных событий, удаление обработанных, пример кода для локальной разработки и сред с жёсткими firewall-правилами
+- [Кнопки в сообщениях](https://dev.pachca.com/guides/buttons.md): Интерактивные кнопки в сообщениях ботов Пачки: ссылки и действия, обработка нажатий через исходящий вебхук, открытие форм и переходы на внешние ресурсы
+- [Формы, Обзор](https://dev.pachca.com/guides/forms/overview.md): Модальные формы ботов в Пачке: поля ввода, списки, даты и кнопки, жизненный цикл представления — от нажатия кнопки до валидации и закрытия модального окна
+- [Формы, Блоки представления](https://dev.pachca.com/guides/forms/blocks.md): 10 типов блоков представлений в формах ботов Пачки: заголовок, текст, поля ввода, выбор из списка, дата, кнопки. До 100 блоков в одном представлении
+- [Формы, Обработка форм](https://dev.pachca.com/guides/forms/handling.md): Обработка форм в Пачке: открытие представлений по trigger_id (3 секунды), приём результатов через исходящий вебхук, валидация полей и отображение ошибок
+- [Разворачивание ссылок](https://dev.pachca.com/guides/link-previews.md): Unfurl в Пачке: превью ссылок внутренних сервисов прямо в чатах — бот ловит URL, подтягивает заголовок, описание, изображение и отправляет обратно в чат
+- [Экспорт сообщений](https://dev.pachca.com/guides/export.md): Экспорт сообщений из чатов Пачки: запрос архива за период до 45 дней, скачивание JSON-файлов, структура архива и ограничения по чатам. Тариф «Корпорация»
+- [DLP-система](https://dev.pachca.com/guides/dlp.md): DLP-система Пачки для защиты от утечек конфиденциальной информации: правила с условиями и действиями, приоритеты, контексты применения. Тариф «Корпорация»
+- [Журнал аудита событий](https://dev.pachca.com/guides/audit-events.md): Журнал аудита событий Пачки для команд безопасности: типы событий, фильтрация по пользователю, периоду и типу, 90 дней хранения. Тариф «Корпорация»
+- [Форматирование текста](https://dev.pachca.com/guides/markdown.md): Какой markdown понимает Пачка в тексте сообщений, входящих вебхуках и блоках форм: жирный, курсив, зачёркнутый, ссылки, строчный код и блоки кода. Списки, цитаты и заголовки остаются обычным текстом.
+- [Сценарии](https://dev.pachca.com/guides/workflows.md): Пошаговые сценарии для типичных задач с API Пачки: какие методы вызывать и в каком порядке. Основа Agent Skills для AI-агентов и команды pachca guide в CLI
+- [CLI, Обзор](https://dev.pachca.com/guides/cli/overview.md): Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+
+- [CLI, Установка](https://dev.pachca.com/guides/cli/installation.md): Установка @pachca/cli: глобально через npm или без установки через npx (для агентов и CI). Автодополнение, настройки по умолчанию, диагностика и обновление.
+- [CLI, Авторизация](https://dev.pachca.com/guides/cli/authentication.md): Авторизация Pachca CLI: профили для нескольких токенов, приоритет источников токена, headless-режим для CI и агентов.
+- [CLI, Вывод](https://dev.pachca.com/guides/cli/output.md): Форматы вывода Pachca CLI (table, json, yaml, csv), выбор колонок, плоский TSV-режим, пайпы и перенаправление, курсорная пагинация.
+- [CLI, Флаги и скрипты](https://dev.pachca.com/guides/cli/scripting.md): Глобальные флаги Pachca CLI, сортировка, kebab-case, boolean-флаги, dry-run, деструктивные операции, exit codes, таксономия ошибок, переменные окружения, неинтерактивный режим.
+- [CLI, Сценарии](https://dev.pachca.com/guides/cli/workflows.md): Готовые пошаговые сценарии Pachca CLI через pachca guide: поиск рецептов по задаче, последовательности команд с комментариями.
+- [CLI, Файлы](https://dev.pachca.com/guides/cli/files.md): Загрузка файлов через Pachca CLI: pachca upload автоматически получает подпись и загружает на S3 одной командой.
+- [CLI, Прямые запросы](https://dev.pachca.com/guides/cli/api-requests.md): Команда pachca api: прямые HTTP-запросы к любому методу (поля -f/-F, инлайн JSON, stdin) и встроенный справочник по API (ls, --describe, --spec, --docs) прямо в терминале, без сайта документации.
+- [CLI, Команды](https://dev.pachca.com/guides/cli/commands.md): Справочник всех команд Pachca CLI: каждый метод API как команда, паттерн pachca [секция] [действие] [--флаги]. Параметры каждой команды — по клику.
+- [SDK, Обзор](https://dev.pachca.com/guides/sdk/overview.md): Типизированные SDK для Pachca API на TypeScript, Python, Go, Kotlin, Swift и C#: автодополнение, retry и пагинация. Или свой клиент через OpenAPI-генератор
+- [SDK, TypeScript](https://dev.pachca.com/guides/sdk/typescript.md): Типизированный клиент для Pachca API на TypeScript: Node.js 18+ или любое окружение с fetch. Автодополнение, автопагинация и retry. npm-пакет @pachca/sdk
+- [SDK, Python](https://dev.pachca.com/guides/sdk/python.md): Асинхронный типизированный клиент для Pachca API на Python: httpx, type hints, dataclass-модели, автопагинация и retry. PyPI-пакет, требуется Python 3.10+
+- [SDK, Go](https://dev.pachca.com/guides/sdk/go.md): Типизированный клиент для Pachca API на Go: синхронный, с context.Context, автопагинацией и обработкой retry. Установка через go get, требуется Go 1.24+
+- [SDK, Kotlin](https://dev.pachca.com/guides/sdk/kotlin.md): Типизированный клиент для Pachca API на Kotlin: Ktor с корутинами, kotlinx.serialization и встроенным retry. JitPack, требуется Kotlin 2.2+ и Java 11+
+- [SDK, Swift](https://dev.pachca.com/guides/sdk/swift.md): Типизированный клиент для Pachca API на Swift: URLSession, async throws, Codable и встроенный retry. Swift Package, Swift 5.9+, macOS 13+ или iOS 16+
+- [SDK, C#](https://dev.pachca.com/guides/sdk/csharp.md): Типизированный клиент для Pachca API на C#: .NET 8+ с async/await, CancellationToken, автопагинацией и обработкой retry. NuGet-пакет Pachca.Sdk
+- [n8n, Обзор](https://dev.pachca.com/guides/n8n/overview.md): Расширение Пачки для n8n со статусом verified by n8n: 18 ресурсов, триггер событий и AI-агент. Визуальные workflow без кода для CRM, CI/CD и уведомлений
+- [n8n, Начало работы](https://dev.pachca.com/guides/n8n/setup.md): Установка расширения Пачки для n8n из официальной витрины: верифицированная нода, установка через Nodes panel, n8n Cloud и self-hosted, настройка Credentials и первый workflow
+- [n8n, Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources.md): 18 ресурсов и более 60 операций расширения Пачки для n8n: сообщения, чаты, задачи, сотрудники, боты, теги и вебхуки в модели Resource → Operation
+- [n8n, Триггер](https://dev.pachca.com/guides/n8n/trigger.md): Триггер Pachca Trigger для n8n: 16 типов событий Пачки, автоматическая и ручная регистрация вебхука, проверка подписи запроса и IP-фильтр для безопасности
+- [n8n, Тестирование](https://dev.pachca.com/guides/n8n/testing.md): Тестирование n8n-узлов Пачки: Listen for test event, Pin Data и Execute Step для экшн-узлов, защита webhook-слота бота и локальная разработка через туннель
+- [n8n, Примеры workflow](https://dev.pachca.com/guides/n8n/workflows.md): Готовые сценарии автоматизации Пачки в n8n: приветствие сотрудника, пересылка сообщений, задачи из обсуждений, согласование, мониторинг и заявки на отпуск
+- [n8n, Продвинутые функции](https://dev.pachca.com/guides/n8n/advanced.md): Продвинутые функции n8n-расширения Пачки: загрузка файлов через S3, интерактивные кнопки, формы, AI-агент, разворачивание ссылок и журнал безопасности
+- [n8n, Устранение ошибок](https://dev.pachca.com/guides/n8n/troubleshooting.md): Частые ошибки при работе с Пачкой в n8n: неверный Access Token, 401 Unauthorized, 403 Forbidden, 429 Too Many Requests и проблемы с доставкой вебхука
+- [n8n, Миграция с v1](https://dev.pachca.com/guides/n8n/migration.md): Обновление расширения Пачки для n8n с v1 на v2: таблицы переименований, новые возможности и полная обратная совместимость для существующих workflow
+- [Последние обновления](https://dev.pachca.com/updates.md): История изменений API Пачки, CLI, SDK и расширения для n8n. Новые методы, параметры и возможности. RSS-лента и markdown-версия для AI-агентов и интеграций
+- [Основы API, Авторизация](https://dev.pachca.com/api/authorization.md): Авторизация в API Пачки: персональный токен и токен бота, скоупы методов, настройка доступа для администраторов и сотрудников, смена владельца пространства
+- [Основы API, Запросы и ответы](https://dev.pachca.com/api/requests-responses.md): Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
+- [Основы API, Пагинация](https://dev.pachca.com/api/pagination.md): Пагинация в API Пачки по курсору: две группы методов (списочные и поиск) с разной структурой meta, поля next_page, prev_page, has_next, has_prev, обход всех записей и polling новых данных через prev_page
+- [Основы API, Загрузка файлов](https://dev.pachca.com/api/file-uploads.md): Трёхшаговая загрузка файлов в API Пачки через presigned URL S3: получение подписи, отправка multipart/form-data и прикрепление к сообщению или задаче
+- [Основы API, Ошибки](https://dev.pachca.com/api/errors.md): Коды ошибок HTTP в API Пачки и структуры тела ответа: ApiError (400/402/403/404/409/410/422) и OAuthError (401/403) с описанием полей и кодов
+- [Основы API, Лимиты](https://dev.pachca.com/api/limits.md): Лимиты запросов (rate limits) в API Пачки: числа по типам операций, поведение ответа 429, заголовок Retry-After, готовые примеры экспоненциального backoff на TypeScript и Python
+- [Основы API, Модели](https://dev.pachca.com/api/models.md): Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, задачи, теги, вебхуки и другие сущности
+
+## Common
+- [Экспорт сообщений](https://dev.pachca.com/api/common/request-export.md): POST /chats/exports
+- [Скачать архив экспорта](https://dev.pachca.com/api/common/get-exports.md): GET /chats/exports/{id}
+- [Список дополнительных полей](https://dev.pachca.com/api/common/custom-properties.md): GET /custom_properties
+- [Загрузка файла](https://dev.pachca.com/api/common/direct-url.md): POST /direct_url
+- [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/common/uploads.md): POST /uploads
+
+## Profile
+- [Информация о токене](https://dev.pachca.com/api/profile/get-info.md): GET /oauth/token/info
+- [Информация о профиле](https://dev.pachca.com/api/profile/get.md): GET /profile
+- [Загрузка аватара](https://dev.pachca.com/api/profile/update-avatar.md): PUT /profile/avatar
+- [Удаление аватара](https://dev.pachca.com/api/profile/delete-avatar.md): DELETE /profile/avatar
+- [Текущий статус](https://dev.pachca.com/api/profile/get-status.md): GET /profile/status
+- [Новый статус](https://dev.pachca.com/api/profile/update-status.md): PUT /profile/status
+- [Удаление статуса](https://dev.pachca.com/api/profile/delete-status.md): DELETE /profile/status
+
+## Users
+- [Создать сотрудника](https://dev.pachca.com/api/users/create.md): POST /users
+- [Список сотрудников](https://dev.pachca.com/api/users/list.md): GET /users
+- [Информация о сотруднике](https://dev.pachca.com/api/users/get.md): GET /users/{id}
+- [Редактирование сотрудника](https://dev.pachca.com/api/users/update.md): PUT /users/{id}
+- [Удаление сотрудника](https://dev.pachca.com/api/users/delete.md): DELETE /users/{id}
+- [Загрузка аватара сотрудника](https://dev.pachca.com/api/users/update-avatar.md): PUT /users/{user_id}/avatar
+- [Удаление аватара сотрудника](https://dev.pachca.com/api/users/remove-avatar.md): DELETE /users/{user_id}/avatar
+- [Статус сотрудника](https://dev.pachca.com/api/users/get-status.md): GET /users/{user_id}/status
+- [Новый статус сотрудника](https://dev.pachca.com/api/users/update-status.md): PUT /users/{user_id}/status
+- [Удаление статуса сотрудника](https://dev.pachca.com/api/users/remove-status.md): DELETE /users/{user_id}/status
+
+## Group tags
+- [Новый тег](https://dev.pachca.com/api/group-tags/create.md): POST /group_tags
+- [Список тегов сотрудников](https://dev.pachca.com/api/group-tags/list.md): GET /group_tags
+- [Информация о теге](https://dev.pachca.com/api/group-tags/get.md): GET /group_tags/{id}
+- [Редактирование тега](https://dev.pachca.com/api/group-tags/update.md): PUT /group_tags/{id}
+- [Удаление тега](https://dev.pachca.com/api/group-tags/delete.md): DELETE /group_tags/{id}
+- [Список сотрудников тега](https://dev.pachca.com/api/group-tags/list-users.md): GET /group_tags/{id}/users
+
+## Chats
+- [Новый чат](https://dev.pachca.com/api/chats/create.md): POST /chats
+- [Список чатов](https://dev.pachca.com/api/chats/list.md): GET /chats
+- [Информация о чате](https://dev.pachca.com/api/chats/get.md): GET /chats/{id}
+- [Обновление чата](https://dev.pachca.com/api/chats/update.md): PUT /chats/{id}
+- [Архивация чата](https://dev.pachca.com/api/chats/archive.md): PUT /chats/{id}/archive
+- [Разархивация чата](https://dev.pachca.com/api/chats/unarchive.md): PUT /chats/{id}/unarchive
+
+## Members
+- [Добавление тегов](https://dev.pachca.com/api/members/add-group-tags.md): POST /chats/{id}/group_tags
+- [Исключение тега](https://dev.pachca.com/api/members/remove-group-tag.md): DELETE /chats/{id}/group_tags/{tag_id}
+- [Выход из беседы или канала](https://dev.pachca.com/api/members/leave.md): DELETE /chats/{id}/leave
+- [Список участников чата](https://dev.pachca.com/api/members/list.md): GET /chats/{id}/members
+- [Добавление пользователей](https://dev.pachca.com/api/members/add.md): POST /chats/{id}/members
+- [Исключение пользователя](https://dev.pachca.com/api/members/remove.md): DELETE /chats/{id}/members/{user_id}
+- [Редактирование роли](https://dev.pachca.com/api/members/update.md): PUT /chats/{id}/members/{user_id}
+
+## Threads
+- [Новый тред](https://dev.pachca.com/api/threads/add.md): POST /messages/{id}/thread
+- [Список тредов](https://dev.pachca.com/api/threads/list.md): GET /threads
+- [Информация о треде](https://dev.pachca.com/api/threads/get.md): GET /threads/{id}
+
+## Messages
+- [Новое сообщение](https://dev.pachca.com/api/messages/create.md): POST /messages
+- [Список сообщений чата](https://dev.pachca.com/api/messages/list.md): GET /messages
+- [Информация о сообщении](https://dev.pachca.com/api/messages/get.md): GET /messages/{id}
+- [Редактирование сообщения](https://dev.pachca.com/api/messages/update.md): PUT /messages/{id}
+- [Удаление сообщения](https://dev.pachca.com/api/messages/delete.md): DELETE /messages/{id}
+- [Закрепление сообщения](https://dev.pachca.com/api/messages/pin.md): POST /messages/{id}/pin
+- [Открепление сообщения](https://dev.pachca.com/api/messages/unpin.md): DELETE /messages/{id}/pin
+
+## Read members
+- [Список прочитавших сообщение](https://dev.pachca.com/api/read-member/list-readers.md): GET /messages/{id}/read_member_ids
+
+## Reactions
+- [Добавление реакции](https://dev.pachca.com/api/reactions/add.md): POST /messages/{id}/reactions
+- [Удаление реакции](https://dev.pachca.com/api/reactions/remove.md): DELETE /messages/{id}/reactions
+- [Список реакций](https://dev.pachca.com/api/reactions/list.md): GET /messages/{id}/reactions
+
+## Link Previews
+- [Unfurl (разворачивание ссылок)](https://dev.pachca.com/api/link-previews/add.md): POST /messages/{id}/link_previews
+
+## Search
+- [Поиск чатов](https://dev.pachca.com/api/search/list-chats.md): GET /search/chats
+- [Поиск сообщений](https://dev.pachca.com/api/search/list-messages.md): GET /search/messages
+- [Поиск сотрудников](https://dev.pachca.com/api/search/list-users.md): GET /search/users
+
+## Tasks
+- [Новое напоминание](https://dev.pachca.com/api/tasks/create.md): POST /tasks
+- [Список напоминаний](https://dev.pachca.com/api/tasks/list.md): GET /tasks
+- [Информация о напоминании](https://dev.pachca.com/api/tasks/get.md): GET /tasks/{id}
+- [Редактирование напоминания](https://dev.pachca.com/api/tasks/update.md): PUT /tasks/{id}
+- [Удаление напоминания](https://dev.pachca.com/api/tasks/delete.md): DELETE /tasks/{id}
+
+## Views
+- [Открытие представления](https://dev.pachca.com/api/views/open.md): POST /views/open
+
+## Bots
+- [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
+- [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
+- [Удаление события](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}
+
+## Security
+- [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
+
+## Обновления
+- [20 мая 2026 — Список тредов](https://dev.pachca.com/updates/2026-05-20.md)
+- [17 мая 2026 — Гостевая роль и чаты при создании сотрудника, справка по API в CLI](https://dev.pachca.com/updates/2026-05-17.md)
+- [06 мая 2026 — Курсорная пагинация и параметр skip в unfurl-вебхуке](https://dev.pachca.com/updates/2026-05-06.md)
+- [05 мая 2026 — Расширение n8n опубликовано в официальной витрине](https://dev.pachca.com/updates/2026-05-05.md)
+- [04 мая 2026 — Поле inviter_id, nullable-уточнения и chat_id в вебхуках](https://dev.pachca.com/updates/2026-05-04.md)
+- [13 апреля 2026 — Документация n8n и обновление Trigger](https://dev.pachca.com/updates/2026-04-13.md)
+- [08 апреля 2026 — Упоминания пользователей по ID](https://dev.pachca.com/updates/2026-04-08.md)
+- [07 апреля 2026 — Аватары и сортировка](https://dev.pachca.com/updates/2026-04-07.md)
+- [27 марта 2026 — Примеры кода на C#](https://dev.pachca.com/updates/2026-03-27.md)
+- [25 марта 2026 — Конструктор форм](https://dev.pachca.com/updates/2026-03-25.md)
+- [24 марта 2026 — Интерактивный playground сообщений и вебхуков](https://dev.pachca.com/updates/2026-03-24.md)
+- [21 марта 2026 — Ошибки оплаты, роли сотрудников, закрепление сообщений](https://dev.pachca.com/updates/2026-03-21.md)
+- [19 марта 2026 — Редактирование скоупов, исправления в моделях](https://dev.pachca.com/updates/2026-03-19.md)
+- [17 марта 2026 — Справочник моделей данных](https://dev.pachca.com/updates/2026-03-17.md)
+- [14 марта 2026 — Новые руководства и реструктуризация документации](https://dev.pachca.com/updates/2026-03-14.md)
+- [05 марта 2026 — Сценарии](https://dev.pachca.com/updates/2026-03-05.md)
+- [03 марта 2026 — CLI для работы с API](https://dev.pachca.com/updates/2026-03-03.md)
+- [27 февраля 2026 — Полнотекстовый поиск, сообщение о недоступности и новые поля сообщений](https://dev.pachca.com/updates/2026-02-27.md)
+- [26 февраля 2026 — Режим «Нет на месте» и управление статусами](https://dev.pachca.com/updates/2026-02-26.md)
+- [25 февраля 2026 — Привязка напоминаний к чатам](https://dev.pachca.com/updates/2026-02-25.md)
+- [24 февраля 2026 — Авторизация и скоупы](https://dev.pachca.com/updates/2026-02-24.md)
+- [22 февраля 2026 — Инструменты для тестирования API](https://dev.pachca.com/updates/2026-02-22.md)
+- [21 февраля 2026 — Ресурсы для AI-агентов](https://dev.pachca.com/updates/2026-02-21.md)
+- [20 февраля 2026 — Аудит-события сообщений, тредов и реакций](https://dev.pachca.com/updates/2026-02-20.md)
+- [19 февраля 2026 — Аудит-события безопасности и токенов](https://dev.pachca.com/updates/2026-02-19.md)
+- [16 февраля 2026 — Курсорная пагинация](https://dev.pachca.com/updates/2026-02-16.md)
+- [12 февраля 2026 — Добавление участников в тред](https://dev.pachca.com/updates/2026-02-12.md)
+- [09 февраля 2026 — Управление напоминаниями](https://dev.pachca.com/updates/2026-02-09.md)
+- [29 января 2026 — Фильтрация тегов по названию](https://dev.pachca.com/updates/2026-01-29.md)
+- [20 ноября 2025 — История событий бота](https://dev.pachca.com/updates/2025-11-20.md)
+- [09 сентября 2025 — Новая пагинация в списке сотрудников](https://dev.pachca.com/updates/2025-09-09.md)
+- [01 сентября 2025 — Редактирование бота](https://dev.pachca.com/updates/2025-09-01.md)
+- [28 августа 2025 — Обновленные лимиты запросов](https://dev.pachca.com/updates/2025-08-28.md)
+- [20 августа 2025 — Новая пагинация в списке чатов](https://dev.pachca.com/updates/2025-08-20.md)
+- [12 августа 2025 — Формы](https://dev.pachca.com/updates/2025-08-12.md)
+- [07 августа 2025 — Признак SSO авторизации](https://dev.pachca.com/updates/2025-08-07.md)
+- [02 июня 2025 — Список участников чата и название реакции](https://dev.pachca.com/updates/2025-06-02.md)
+- [21 мая 2025 — API Аудит Событий](https://dev.pachca.com/updates/2025-05-21.md)
+- [27 апреля 2025 — Markdown версия документации](https://dev.pachca.com/updates/2025-04-27.md)
+- [07 апреля 2025 — Сортировка сообщений](https://dev.pachca.com/updates/2025-04-07.md)
+- [21 марта 2025 — Экспорт сообщений](https://dev.pachca.com/updates/2025-03-21.md)
+- [18 марта 2025 — Информация о профиле](https://dev.pachca.com/updates/2025-03-18.md)
+- [17 марта 2025 — Сортировка чатов](https://dev.pachca.com/updates/2025-03-17.md)
+- [06 марта 2025 — Аватарки и имена отправителей](https://dev.pachca.com/updates/2025-03-06.md)
+- [27 февраля 2025 — Ширина и высота изображения](https://dev.pachca.com/updates/2025-02-27.md)
+- [31 января 2025 — Ссылка на сообщение](https://dev.pachca.com/updates/2025-01-31.md)
+- [20 января 2025 — Дата последней активности пользователя](https://dev.pachca.com/updates/2025-01-20.md)
 
 ## Дополнительно
+- OpenAPI 3.0 spec: `https://dev.pachca.com/openapi.yaml` — машиночитаемая спецификация API для кодогенерации и инструментов
+- Postman collection: `https://dev.pachca.com/pachca.postman_collection.json` — готовая коллекция для импорта в Postman/Bruno/Insomnia
+- Arazzo 1.0.1: `https://dev.pachca.com/workflows.arazzo.yaml` — многошаговые сценарии API, порядок вызовов для агентов
 - [Agent Skill](https://dev.pachca.com/skill.md): Описание API для AI-агентов (SKILL.md)
 - [Веб-сайт](https://pachca.com/)
 - [Получить помощь](mailto:team@pachca.com)

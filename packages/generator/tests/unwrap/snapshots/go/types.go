@@ -1,6 +1,7 @@
 package pachca
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -15,6 +16,22 @@ type ChatCreateRequestChat struct {
 	Channel   *bool   `json:"channel,omitempty"`
 	Public    *bool   `json:"public,omitempty"`
 	MemberIDs []int32 `json:"member_ids,omitempty"`
+}
+
+func (m ChatCreateRequestChat) MarshalJSON() ([]byte, error) {
+	type Alias ChatCreateRequestChat
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.MemberIDs != nil {
+		raw["member_ids"] = m.MemberIDs
+	}
+	return json.Marshal(raw)
 }
 
 type ChatCreateRequest struct {
@@ -36,6 +53,22 @@ type ApiErrorItem struct {
 
 type ApiError struct {
 	Errors []ApiErrorItem `json:"errors,omitempty"`
+}
+
+func (m ApiError) MarshalJSON() ([]byte, error) {
+	type Alias ApiError
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Errors != nil {
+		raw["errors"] = m.Errors
+	}
+	return json.Marshal(raw)
 }
 
 func (e *ApiError) Error() string {

@@ -14,45 +14,63 @@ import { useDisplaySettings } from './display-settings-context';
 import { SearchButton } from './search-button';
 import { useActiveTab } from './use-last-tab';
 
-export function Header() {
+interface HeaderProps {
+  hasNewUpdates: boolean;
+}
+
+export function Header({ hasNewUpdates }: HeaderProps) {
   const activeTab = useActiveTab();
 
   return (
-    <header
-      className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-b border-background-border z-50 flex items-center px-3"
-      style={{ height: 'var(--mobile-header-height)' }}
-    >
-      {/* Logo */}
-      <LogoLink />
+    <header className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-b border-background-border z-50 flex flex-col">
+      {/* Top row: logo, centered search (desktop), right-side buttons */}
+      <div className="flex items-center lg:px-5 px-3" style={{ height: 'var(--logo-row-height)' }}>
+        <LogoLink />
 
-      <div className="flex-1 min-w-2 lg:hidden" />
+        {/* Centered search on desktop */}
+        <div className="hidden lg:flex flex-1 justify-center px-6 min-w-0">
+          <div className="w-full max-w-[480px]">
+            <SearchButton />
+          </div>
+        </div>
 
-      {/* Tabs — space-between on mobile, absolute-centered on desktop */}
-      <nav className="flex items-center gap-0.5 px-1 py-1 rounded-full bg-glass backdrop-blur-md border border-glass-border lg:absolute lg:left-1/2 lg:-translate-x-1/2 min-w-0 shrink lg:shrink-0">
+        <div className="flex-1 lg:hidden" />
+
+        <RightSideButtons />
+      </div>
+
+      {/* Bottom row: tabs under the logo (desktop only) */}
+      <nav
+        className="hidden lg:flex items-center gap-1 px-5"
+        style={{ height: 'var(--header-tabs-height)' }}
+      >
         {TABS.map((tab) => {
-          const href = tab.id === 'guide' ? '/guides/quickstart' : '/api/authorization';
           const isActive = activeTab === tab.id;
+          const showBadge = tab.id === 'updates' && hasNewUpdates;
           return (
             <Link
               key={tab.id}
-              href={href}
-              className={`flex items-center justify-center ${tab.id === 'guide' ? 'min-w-0' : 'shrink-0'} h-[26px] px-2.5 text-[13px] font-medium rounded-full whitespace-nowrap transition-colors duration-200 ${
-                isActive
-                  ? 'bg-primary/15 text-primary'
-                  : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary'
+              href={tab.defaultHref}
+              className={`flex items-center h-full mr-4 text-[14px] font-medium whitespace-nowrap transition-colors duration-200 ${
+                isActive ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary'
               }`}
             >
-              <span className="lg:hidden truncate">{tab.shortTitle}</span>
-              <span className="hidden lg:inline whitespace-nowrap">{tab.title}</span>
+              <span className="relative inline-flex items-center h-full">
+                {tab.title}
+                {showBadge && (
+                  <span
+                    className="ml-1.5 w-1.5 h-1.5 rounded-full bg-primary"
+                    aria-label="новые обновления"
+                  />
+                )}
+                {isActive && (
+                  <span className="absolute left-0 right-0 -bottom-px h-px bg-primary" />
+                )}
+              </span>
             </Link>
           );
         })}
       </nav>
-
-      <div className="flex-1 min-w-2 lg:min-w-0" />
-
-      {/* Right side — all buttons flat in one container */}
-      <RightSideButtons />
     </header>
   );
 }

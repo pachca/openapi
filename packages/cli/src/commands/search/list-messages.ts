@@ -67,13 +67,13 @@ export default class SearchListMessages extends BaseCommand {
       const seenCursors = new Set<string>();
 
       while (pages < 500) {
-        const query: Record<string, string | number | boolean | undefined> = {
+        const query: Record<string, string | number | boolean | string[] | undefined> = {
         query: flags['query'],
         order: flags['order'],
         'created_from': flags['created-from'],
         'created_to': flags['created-to'],
-        'chat_ids': flags['chat-ids'],
-        'user_ids': flags['user-ids'],
+        'chat_ids': flags['chat-ids']?.split(','),
+        'user_ids': flags['user-ids']?.split(','),
         active: flags['active'],
         limit: flags.limit,
           cursor: nextCursor,
@@ -86,6 +86,13 @@ export default class SearchListMessages extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
+        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data
+        const hasNext = paginate?.has_next;
+        if (typeof hasNext === 'boolean') {
+          if (!hasNext) break;
+        } else if (!items || items.length === 0) {
+          break;
+        }
 
         if (process.stderr.isTTY) {
           const total = (paginate as Record<string, unknown> | undefined)?.total;
@@ -117,8 +124,8 @@ export default class SearchListMessages extends BaseCommand {
       order: flags['order'],
       'created_from': flags['created-from'],
       'created_to': flags['created-to'],
-      'chat_ids': flags['chat-ids'],
-      'user_ids': flags['user-ids'],
+      'chat_ids': flags['chat-ids']?.split(','),
+      'user_ids': flags['user-ids']?.split(','),
       active: flags['active'],
       limit: flags.limit,
       cursor: flags.cursor,

@@ -12,7 +12,7 @@ Swift клиент для [Pachca API](https://dev.pachca.com).
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.1")
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
 ]
 ```
 
@@ -70,9 +70,10 @@ var chats: [Chat] = []
 var cursor: String? = nil
 repeat {
     let response = try await pachca.chats.listChats(cursor: cursor)
+    if response.data.isEmpty { break }
     chats.append(contentsOf: response.data)
-    cursor = response.meta?.paginate?.nextPage
-} while cursor != nil
+    cursor = response.meta.paginate.nextPage
+} while true
 
 // Автоматически
 let allChats = try await pachca.chats.listChatsAll()
@@ -83,6 +84,25 @@ let allChats = try await pachca.chats.listChatsAll()
 ## Повторные запросы
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
+
+## Свой HTTP-клиент
+
+Для настройки прокси, сертификатов и других параметров HTTP используйте конструктор с заголовками и `URLSession`:
+
+```swift
+let config = URLSessionConfiguration.default
+config.connectionProxyDictionary = [
+    kCFNetworkProxiesHTTPEnable: true,
+    kCFNetworkProxiesHTTPProxy: "proxy.example.com",
+    kCFNetworkProxiesHTTPPort: 8080,
+]
+let session = URLSession(configuration: config)
+
+let headers = ["Authorization": "Bearer \(token)"]
+let client = PachcaClient(headers: headers, session: session)
+```
+
+Полный пример: [`examples/Sources/HttpClient/main.swift`](examples/Sources/HttpClient/main.swift)
 
 ## Загрузка файлов
 
@@ -110,3 +130,33 @@ do {
     print("Ошибка авторизации: \(error.message)")
 }
 ```
+
+## Тестирование
+
+Для unit-тестов используйте `PachcaClient.stub()` — создаёт клиент без HTTP-подключения.
+
+Методы без переопределения выбрасывают `NSError` с описанием `"Service.method is not implemented"`:
+
+```swift
+import XCTest
+import PachcaSDK
+
+// Мок-сервис
+class MockMessagesService: MessagesService {
+    override func getMessage(_ id: Int64) async throws -> Message {
+        return Message(id: id, content: "Test message", entityId: 123)
+    }
+}
+
+// Тест
+final class MessagesTests: XCTestCase {
+    func testGetMessage() async throws {
+        let client = PachcaClient.stub(messages: MockMessagesService())
+
+        let message = try await client.messages.getMessage(1)
+        XCTAssertEqual(message.content, "Test message")
+    }
+}
+```
+
+Полный пример: [`examples/Sources/Stub/main.swift`](examples/Sources/Stub/main.swift)

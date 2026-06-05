@@ -11,8 +11,8 @@ export default class ConfigSet extends BaseCommand {
   ];
 
   static override args = {
-    key: Args.string({ description: 'Configuration key', required: true }),
-    value: Args.string({ description: 'Configuration value', required: true }),
+    key: Args.string({ description: 'Ключ настройки', required: true }),
+    value: Args.string({ description: 'Значение настройки', required: true }),
   };
 
   static override flags = {

@@ -12,18 +12,51 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public sealed class SecurityService
+public class SecurityService
+{
+
+    public virtual async System.Threading.Tasks.Task<GetAuditEventsResponse> GetAuditEventsAsync(
+        DateTimeOffset? startTime = null,
+        DateTimeOffset? endTime = null,
+        AuditEventKey? eventKey = null,
+        string? actorId = null,
+        string? actorType = null,
+        string? entityId = null,
+        string? entityType = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Security.getAuditEvents is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<AuditEvent>> GetAuditEventsAllAsync(
+        DateTimeOffset? startTime = null,
+        DateTimeOffset? endTime = null,
+        AuditEventKey? eventKey = null,
+        string? actorId = null,
+        string? actorType = null,
+        string? entityId = null,
+        string? entityType = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Security.getAuditEventsAll is not implemented");
+    }
+}
+
+public sealed class SecurityServiceImpl : SecurityService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal SecurityService(string baseUrl, HttpClient client)
+    internal SecurityServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<GetAuditEventsResponse> GetAuditEventsAsync(
+    public override async System.Threading.Tasks.Task<GetAuditEventsResponse> GetAuditEventsAsync(
         DateTimeOffset? startTime = null,
         DateTimeOffset? endTime = null,
         AuditEventKey? eventKey = null,
@@ -51,7 +84,7 @@ public sealed class SecurityService
         if (entityType != null)
             queryParts.Add($"entity_type={Uri.EscapeDataString(entityType)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/audit_events" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -69,7 +102,7 @@ public sealed class SecurityService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<AuditEvent>> GetAuditEventsAllAsync(
+    public override async System.Threading.Tasks.Task<List<AuditEvent>> GetAuditEventsAllAsync(
         DateTimeOffset? startTime = null,
         DateTimeOffset? endTime = null,
         AuditEventKey? eventKey = null,
@@ -82,35 +115,70 @@ public sealed class SecurityService
     {
         var items = new List<AuditEvent>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await GetAuditEventsAsync(startTime: startTime, endTime: endTime, eventKey: eventKey, actorId: actorId, actorType: actorType, entityId: entityId, entityType: entityType, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 }
 
-public sealed class BotsService
+public class BotsService
+{
+
+    public virtual async System.Threading.Tasks.Task<GetWebhookEventsResponse> GetWebhookEventsAsync(
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.getWebhookEvents is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<WebhookEvent>> GetWebhookEventsAllAsync(
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.getWebhookEventsAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<BotResponse> UpdateBotAsync(
+        int id,
+        BotUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.updateBot is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteWebhookEventAsync(string id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.deleteWebhookEvent is not implemented");
+    }
+}
+
+public sealed class BotsServiceImpl : BotsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal BotsService(string baseUrl, HttpClient client)
+    internal BotsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<GetWebhookEventsResponse> GetWebhookEventsAsync(
+    public override async System.Threading.Tasks.Task<GetWebhookEventsResponse> GetWebhookEventsAsync(
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/webhooks/events" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -128,22 +196,25 @@ public sealed class BotsService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<WebhookEvent>> GetWebhookEventsAllAsync(
+    public override async System.Threading.Tasks.Task<List<WebhookEvent>> GetWebhookEventsAllAsync(
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
         var items = new List<WebhookEvent>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await GetWebhookEventsAsync(limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
-    public async System.Threading.Tasks.Task<BotResponse> UpdateBotAsync(
+    public override async System.Threading.Tasks.Task<BotResponse> UpdateBotAsync(
         int id,
         BotUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -164,7 +235,7 @@ public sealed class BotsService
         }
     }
 
-    public async System.Threading.Tasks.Task DeleteWebhookEventAsync(string id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task DeleteWebhookEventAsync(string id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/webhooks/events/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -182,19 +253,79 @@ public sealed class BotsService
     }
 }
 
-public sealed class ChatsService
+public class ChatsService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListChatsResponse> ListChatsAsync(
+        ChatSortField? sort = null,
+        SortOrder? order = null,
+        ChatAvailability? availability = null,
+        DateTimeOffset? lastMessageAtAfter = null,
+        DateTimeOffset? lastMessageAtBefore = null,
+        bool? personal = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.listChats is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<Chat>> ListChatsAllAsync(
+        ChatSortField? sort = null,
+        SortOrder? order = null,
+        ChatAvailability? availability = null,
+        DateTimeOffset? lastMessageAtAfter = null,
+        DateTimeOffset? lastMessageAtBefore = null,
+        bool? personal = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.listChatsAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Chat> GetChatAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.getChat is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.createChat is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Chat> UpdateChatAsync(
+        int id,
+        ChatUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.updateChat is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.archiveChat is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task UnarchiveChatAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.unarchiveChat is not implemented");
+    }
+}
+
+public sealed class ChatsServiceImpl : ChatsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal ChatsService(string baseUrl, HttpClient client)
+    internal ChatsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListChatsResponse> ListChatsAsync(
-        SortOrder? sortId = null,
+    public override async System.Threading.Tasks.Task<ListChatsResponse> ListChatsAsync(
+        ChatSortField? sort = null,
+        SortOrder? order = null,
         ChatAvailability? availability = null,
         DateTimeOffset? lastMessageAtAfter = null,
         DateTimeOffset? lastMessageAtBefore = null,
@@ -204,8 +335,10 @@ public sealed class ChatsService
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
-        if (sortId != null)
-            queryParts.Add($"sort[{{field}}]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sortId.Value))}");
+        if (sort != null)
+            queryParts.Add($"sort={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sort.Value))}");
+        if (order != null)
+            queryParts.Add($"order={Uri.EscapeDataString(PachcaUtils.EnumToApiString(order.Value))}");
         if (availability != null)
             queryParts.Add($"availability={Uri.EscapeDataString(PachcaUtils.EnumToApiString(availability.Value))}");
         if (lastMessageAtAfter != null)
@@ -215,7 +348,7 @@ public sealed class ChatsService
         if (personal != null)
             queryParts.Add($"personal={Uri.EscapeDataString((personal.Value ? "true" : "false"))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/chats" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -233,8 +366,9 @@ public sealed class ChatsService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<Chat>> ListChatsAllAsync(
-        SortOrder? sortId = null,
+    public override async System.Threading.Tasks.Task<List<Chat>> ListChatsAllAsync(
+        ChatSortField? sort = null,
+        SortOrder? order = null,
         ChatAvailability? availability = null,
         DateTimeOffset? lastMessageAtAfter = null,
         DateTimeOffset? lastMessageAtBefore = null,
@@ -244,16 +378,19 @@ public sealed class ChatsService
     {
         var items = new List<Chat>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
-            var response = await ListChatsAsync(sortId: sortId, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await ListChatsAsync(sort: sort, order: order, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
-    public async System.Threading.Tasks.Task<Chat> GetChatAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<Chat> GetChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -270,7 +407,7 @@ public sealed class ChatsService
         }
     }
 
-    public async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -288,7 +425,7 @@ public sealed class ChatsService
         }
     }
 
-    public async System.Threading.Tasks.Task<Chat> UpdateChatAsync(
+    public override async System.Threading.Tasks.Task<Chat> UpdateChatAsync(
         int id,
         ChatUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -309,7 +446,7 @@ public sealed class ChatsService
         }
     }
 
-    public async System.Threading.Tasks.Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}/archive";
         using var request = new HttpRequestMessage(HttpMethod.Put, url);
@@ -326,7 +463,7 @@ public sealed class ChatsService
         }
     }
 
-    public async System.Threading.Tasks.Task UnarchiveChatAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task UnarchiveChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}/unarchive";
         using var request = new HttpRequestMessage(HttpMethod.Put, url);
@@ -344,18 +481,50 @@ public sealed class ChatsService
     }
 }
 
-public sealed class CommonService
+public class CommonService
+{
+
+    public virtual async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.downloadExport is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.listProperties is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.requestExport is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task UploadFileAsync(
+        string directUrl,
+        FileUploadRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.uploadFile is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.getUploadParams is not implemented");
+    }
+}
+
+public sealed class CommonServiceImpl : CommonService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal CommonService(string baseUrl, HttpClient client)
+    internal CommonServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/exports/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -373,7 +542,7 @@ public sealed class CommonService
         }
     }
 
-    public async System.Threading.Tasks.Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
         queryParts.Add($"entity_type={Uri.EscapeDataString(PachcaUtils.EnumToApiString(entityType))}");
@@ -392,7 +561,7 @@ public sealed class CommonService
         }
     }
 
-    public async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/exports";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -410,7 +579,7 @@ public sealed class CommonService
         }
     }
 
-    public async System.Threading.Tasks.Task UploadFileAsync(
+    public override async System.Threading.Tasks.Task UploadFileAsync(
         string directUrl,
         FileUploadRequest request,
         CancellationToken cancellationToken = default)
@@ -440,7 +609,7 @@ public sealed class CommonService
         }
     }
 
-    public async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/uploads";
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -458,18 +627,87 @@ public sealed class CommonService
     }
 }
 
-public sealed class MembersService
+public class MembersService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListMembersResponse> ListMembersAsync(
+        int id,
+        ChatMemberRoleFilter? role = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Members.listMembers is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<User>> ListMembersAllAsync(
+        int id,
+        ChatMemberRoleFilter? role = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Members.listMembersAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task AddTagsAsync(
+        int id,
+        List<int> groupTagIds,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Members.addTags is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task AddMembersAsync(
+        int id,
+        AddMembersRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Members.addMembers is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task UpdateMemberRoleAsync(
+        int id,
+        int userId,
+        ChatMemberRole role,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Members.updateMemberRole is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task RemoveTagAsync(
+        int id,
+        int tagId,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Members.removeTag is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task LeaveChatAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Members.leaveChat is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task RemoveMemberAsync(
+        int id,
+        int userId,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Members.removeMember is not implemented");
+    }
+}
+
+public sealed class MembersServiceImpl : MembersService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal MembersService(string baseUrl, HttpClient client)
+    internal MembersServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListMembersResponse> ListMembersAsync(
+    public override async System.Threading.Tasks.Task<ListMembersResponse> ListMembersAsync(
         int id,
         ChatMemberRoleFilter? role = null,
         int? limit = null,
@@ -480,7 +718,7 @@ public sealed class MembersService
         if (role != null)
             queryParts.Add($"role={Uri.EscapeDataString(PachcaUtils.EnumToApiString(role.Value))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/chats/{id}/members" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -498,7 +736,7 @@ public sealed class MembersService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<User>> ListMembersAllAsync(
+    public override async System.Threading.Tasks.Task<List<User>> ListMembersAllAsync(
         int id,
         ChatMemberRoleFilter? role = null,
         int? limit = null,
@@ -506,16 +744,19 @@ public sealed class MembersService
     {
         var items = new List<User>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListMembersAsync(id, role: role, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
-    public async System.Threading.Tasks.Task AddTagsAsync(
+    public override async System.Threading.Tasks.Task AddTagsAsync(
         int id,
         List<int> groupTagIds,
         CancellationToken cancellationToken = default)
@@ -537,7 +778,7 @@ public sealed class MembersService
         }
     }
 
-    public async System.Threading.Tasks.Task AddMembersAsync(
+    public override async System.Threading.Tasks.Task AddMembersAsync(
         int id,
         AddMembersRequest request,
         CancellationToken cancellationToken = default)
@@ -558,7 +799,7 @@ public sealed class MembersService
         }
     }
 
-    public async System.Threading.Tasks.Task UpdateMemberRoleAsync(
+    public override async System.Threading.Tasks.Task UpdateMemberRoleAsync(
         int id,
         int userId,
         ChatMemberRole role,
@@ -581,7 +822,7 @@ public sealed class MembersService
         }
     }
 
-    public async System.Threading.Tasks.Task RemoveTagAsync(
+    public override async System.Threading.Tasks.Task RemoveTagAsync(
         int id,
         int tagId,
         CancellationToken cancellationToken = default)
@@ -601,7 +842,7 @@ public sealed class MembersService
         }
     }
 
-    public async System.Threading.Tasks.Task LeaveChatAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task LeaveChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}/leave";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -618,7 +859,7 @@ public sealed class MembersService
         }
     }
 
-    public async System.Threading.Tasks.Task RemoveMemberAsync(
+    public override async System.Threading.Tasks.Task RemoveMemberAsync(
         int id,
         int userId,
         CancellationToken cancellationToken = default)
@@ -639,28 +880,90 @@ public sealed class MembersService
     }
 }
 
-public sealed class GroupTagsService
+public class GroupTagsService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListTagsResponse> ListTagsAsync(
+        List<string>? names = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Group tags.listTags is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<GroupTag>> ListTagsAllAsync(
+        List<string>? names = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Group tags.listTagsAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<GroupTag> GetTagAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Group tags.getTag is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<GetTagUsersResponse> GetTagUsersAsync(
+        int id,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Group tags.getTagUsers is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<User>> GetTagUsersAllAsync(
+        int id,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Group tags.getTagUsersAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<GroupTag> CreateTagAsync(GroupTagRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Group tags.createTag is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<GroupTag> UpdateTagAsync(
+        int id,
+        GroupTagRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Group tags.updateTag is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteTagAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Group tags.deleteTag is not implemented");
+    }
+}
+
+public sealed class GroupTagsServiceImpl : GroupTagsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal GroupTagsService(string baseUrl, HttpClient client)
+    internal GroupTagsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListTagsResponse> ListTagsAsync(
-        TagNamesFilter? names = null,
+    public override async System.Threading.Tasks.Task<ListTagsResponse> ListTagsAsync(
+        List<string>? names = null,
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
         if (names != null)
-            queryParts.Add($"names={Uri.EscapeDataString(names.ToString())}");
+            foreach (var item in names)
+                queryParts.Add($"names[]={Uri.EscapeDataString(item.ToString()!)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/group_tags" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -678,23 +981,26 @@ public sealed class GroupTagsService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<GroupTag>> ListTagsAllAsync(
-        TagNamesFilter? names = null,
+    public override async System.Threading.Tasks.Task<List<GroupTag>> ListTagsAllAsync(
+        List<string>? names = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
         var items = new List<GroupTag>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListTagsAsync(names: names, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
-    public async System.Threading.Tasks.Task<GroupTag> GetTagAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<GroupTag> GetTagAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/group_tags/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -711,7 +1017,7 @@ public sealed class GroupTagsService
         }
     }
 
-    public async System.Threading.Tasks.Task<ListMembersResponse> GetTagUsersAsync(
+    public override async System.Threading.Tasks.Task<GetTagUsersResponse> GetTagUsersAsync(
         int id,
         int? limit = null,
         string? cursor = null,
@@ -719,7 +1025,7 @@ public sealed class GroupTagsService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/group_tags/{id}/users" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -729,7 +1035,7 @@ public sealed class GroupTagsService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<ListMembersResponse>(json);
+                return PachcaUtils.Deserialize<GetTagUsersResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -737,23 +1043,26 @@ public sealed class GroupTagsService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<User>> GetTagUsersAllAsync(
+    public override async System.Threading.Tasks.Task<List<User>> GetTagUsersAllAsync(
         int id,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
         var items = new List<User>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await GetTagUsersAsync(id, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
-    public async System.Threading.Tasks.Task<GroupTag> CreateTagAsync(GroupTagRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<GroupTag> CreateTagAsync(GroupTagRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/group_tags";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -771,7 +1080,7 @@ public sealed class GroupTagsService
         }
     }
 
-    public async System.Threading.Tasks.Task<GroupTag> UpdateTagAsync(
+    public override async System.Threading.Tasks.Task<GroupTag> UpdateTagAsync(
         int id,
         GroupTagRequest request,
         CancellationToken cancellationToken = default)
@@ -792,7 +1101,7 @@ public sealed class GroupTagsService
         }
     }
 
-    public async System.Threading.Tasks.Task DeleteTagAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task DeleteTagAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/group_tags/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -810,30 +1119,91 @@ public sealed class GroupTagsService
     }
 }
 
-public sealed class MessagesService
+public class MessagesService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(
+        int chatId,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.listChatMessages is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<Message>> ListChatMessagesAllAsync(
+        int chatId,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.listChatMessagesAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Message> GetMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.getMessage is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Message> CreateMessageAsync(MessageCreateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.createMessage is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.pinMessage is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Message> UpdateMessageAsync(
+        int id,
+        MessageUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.updateMessage is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.deleteMessage is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task UnpinMessageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.unpinMessage is not implemented");
+    }
+}
+
+public sealed class MessagesServiceImpl : MessagesService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal MessagesService(string baseUrl, HttpClient client)
+    internal MessagesServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(
+    public override async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(
         int chatId,
-        SortOrder? sortId = null,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
-        queryParts.Add($"chat_id={Uri.EscapeDataString(chatId.ToString())}");
-        if (sortId != null)
-            queryParts.Add($"sort[{{field}}]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sortId.Value))}");
+        queryParts.Add($"chat_id={Uri.EscapeDataString(chatId.ToString()!)}");
+        if (sort != null)
+            queryParts.Add($"sort={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sort.Value))}");
+        if (order != null)
+            queryParts.Add($"order={Uri.EscapeDataString(PachcaUtils.EnumToApiString(order.Value))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/messages" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -851,24 +1221,28 @@ public sealed class MessagesService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<Message>> ListChatMessagesAllAsync(
+    public override async System.Threading.Tasks.Task<List<Message>> ListChatMessagesAllAsync(
         int chatId,
-        SortOrder? sortId = null,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
         var items = new List<Message>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
-            var response = await ListChatMessagesAsync(chatId: chatId, sortId: sortId, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await ListChatMessagesAsync(chatId: chatId, sort: sort, order: order, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
-    public async System.Threading.Tasks.Task<Message> GetMessageAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<Message> GetMessageAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -885,7 +1259,7 @@ public sealed class MessagesService
         }
     }
 
-    public async System.Threading.Tasks.Task<Message> CreateMessageAsync(MessageCreateRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<Message> CreateMessageAsync(MessageCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -903,7 +1277,7 @@ public sealed class MessagesService
         }
     }
 
-    public async System.Threading.Tasks.Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}/pin";
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -920,7 +1294,7 @@ public sealed class MessagesService
         }
     }
 
-    public async System.Threading.Tasks.Task<Message> UpdateMessageAsync(
+    public override async System.Threading.Tasks.Task<Message> UpdateMessageAsync(
         int id,
         MessageUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -941,7 +1315,7 @@ public sealed class MessagesService
         }
     }
 
-    public async System.Threading.Tasks.Task DeleteMessageAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task DeleteMessageAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -958,7 +1332,7 @@ public sealed class MessagesService
         }
     }
 
-    public async System.Threading.Tasks.Task UnpinMessageAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task UnpinMessageAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}/pin";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -976,18 +1350,30 @@ public sealed class MessagesService
     }
 }
 
-public sealed class LinkPreviewsService
+public class LinkPreviewsService
+{
+
+    public virtual async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
+        int id,
+        LinkPreviewsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Link Previews.createLinkPreviews is not implemented");
+    }
+}
+
+public sealed class LinkPreviewsServiceImpl : LinkPreviewsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal LinkPreviewsService(string baseUrl, HttpClient client)
+    internal LinkPreviewsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
+    public override async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
         int id,
         LinkPreviewsRequest request,
         CancellationToken cancellationToken = default)
@@ -1009,18 +1395,56 @@ public sealed class LinkPreviewsService
     }
 }
 
-public sealed class ReactionsService
+public class ReactionsService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListReactionsResponse> ListReactionsAsync(
+        int id,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Reactions.listReactions is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<Reaction>> ListReactionsAllAsync(
+        int id,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Reactions.listReactionsAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Reaction> AddReactionAsync(
+        int id,
+        ReactionRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Reactions.addReaction is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task RemoveReactionAsync(
+        int id,
+        string code,
+        string? name = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Reactions.removeReaction is not implemented");
+    }
+}
+
+public sealed class ReactionsServiceImpl : ReactionsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal ReactionsService(string baseUrl, HttpClient client)
+    internal ReactionsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListReactionsResponse> ListReactionsAsync(
+    public override async System.Threading.Tasks.Task<ListReactionsResponse> ListReactionsAsync(
         int id,
         int? limit = null,
         string? cursor = null,
@@ -1028,7 +1452,7 @@ public sealed class ReactionsService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/messages/{id}/reactions" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1046,23 +1470,26 @@ public sealed class ReactionsService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<Reaction>> ListReactionsAllAsync(
+    public override async System.Threading.Tasks.Task<List<Reaction>> ListReactionsAllAsync(
         int id,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
         var items = new List<Reaction>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListReactionsAsync(id, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
-    public async System.Threading.Tasks.Task<Reaction> AddReactionAsync(
+    public override async System.Threading.Tasks.Task<Reaction> AddReactionAsync(
         int id,
         ReactionRequest request,
         CancellationToken cancellationToken = default)
@@ -1083,7 +1510,7 @@ public sealed class ReactionsService
         }
     }
 
-    public async System.Threading.Tasks.Task RemoveReactionAsync(
+    public override async System.Threading.Tasks.Task RemoveReactionAsync(
         int id,
         string code,
         string? name = null,
@@ -1109,18 +1536,31 @@ public sealed class ReactionsService
     }
 }
 
-public sealed class ReadMembersService
+public class ReadMembersService
+{
+
+    public virtual async System.Threading.Tasks.Task<object> ListReadMembersAsync(
+        int id,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Read members.listReadMembers is not implemented");
+    }
+}
+
+public sealed class ReadMembersServiceImpl : ReadMembersService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal ReadMembersService(string baseUrl, HttpClient client)
+    internal ReadMembersServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<object> ListReadMembersAsync(
+    public override async System.Threading.Tasks.Task<object> ListReadMembersAsync(
         int id,
         int? limit = null,
         string? cursor = null,
@@ -1128,7 +1568,7 @@ public sealed class ReadMembersService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/messages/{id}/read_member_ids" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1147,18 +1587,102 @@ public sealed class ReadMembersService
     }
 }
 
-public sealed class ThreadsService
+public class ThreadsService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListThreadsResponse> ListThreadsAsync(
+        DateTimeOffset? lastMessageAtAfter = null,
+        DateTimeOffset? lastMessageAtBefore = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Threads.listThreads is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<Pachca.Sdk.Thread>> ListThreadsAllAsync(
+        DateTimeOffset? lastMessageAtAfter = null,
+        DateTimeOffset? lastMessageAtBefore = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Threads.listThreadsAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Pachca.Sdk.Thread> GetThreadAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Threads.getThread is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Pachca.Sdk.Thread> CreateThreadAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Threads.createThread is not implemented");
+    }
+}
+
+public sealed class ThreadsServiceImpl : ThreadsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal ThreadsService(string baseUrl, HttpClient client)
+    internal ThreadsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<Pachca.Sdk.Thread> GetThreadAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<ListThreadsResponse> ListThreadsAsync(
+        DateTimeOffset? lastMessageAtAfter = null,
+        DateTimeOffset? lastMessageAtBefore = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        var queryParts = new List<string>();
+        if (lastMessageAtAfter != null)
+            queryParts.Add($"last_message_at_after={Uri.EscapeDataString(lastMessageAtAfter.Value.ToString("o"))}");
+        if (lastMessageAtBefore != null)
+            queryParts.Add($"last_message_at_before={Uri.EscapeDataString(lastMessageAtBefore.Value.ToString("o"))}");
+        if (limit != null)
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
+        if (cursor != null)
+            queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
+        var url = $"{_baseUrl}/threads" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListThreadsResponse>(json);
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<List<Pachca.Sdk.Thread>> ListThreadsAllAsync(
+        DateTimeOffset? lastMessageAtAfter = null,
+        DateTimeOffset? lastMessageAtBefore = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        var items = new List<Pachca.Sdk.Thread>();
+        string? cursor = null;
+        var hasNext = true;
+        while (hasNext)
+        {
+            var response = await ListThreadsAsync(lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            items.AddRange(response.Data);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
+        return items;
+    }
+
+    public override async System.Threading.Tasks.Task<Pachca.Sdk.Thread> GetThreadAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/threads/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1175,7 +1699,7 @@ public sealed class ThreadsService
         }
     }
 
-    public async System.Threading.Tasks.Task<Pachca.Sdk.Thread> CreateThreadAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<Pachca.Sdk.Thread> CreateThreadAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}/thread";
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -1193,18 +1717,57 @@ public sealed class ThreadsService
     }
 }
 
-public sealed class ProfileService
+public class ProfileService
+{
+
+    public virtual async System.Threading.Tasks.Task<AccessTokenInfo> GetTokenInfoAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Profile.getTokenInfo is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<User> GetProfileAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Profile.getProfile is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<object> GetStatusAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Profile.getStatus is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<AvatarData> UpdateProfileAvatarAsync(byte[] image, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Profile.updateProfileAvatar is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<UserStatus> UpdateStatusAsync(StatusUpdateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Profile.updateStatus is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteProfileAvatarAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Profile.deleteProfileAvatar is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteStatusAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Profile.deleteStatus is not implemented");
+    }
+}
+
+public sealed class ProfileServiceImpl : ProfileService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal ProfileService(string baseUrl, HttpClient client)
+    internal ProfileServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<AccessTokenInfo> GetTokenInfoAsync(CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<AccessTokenInfo> GetTokenInfoAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/oauth/token/info";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1221,7 +1784,7 @@ public sealed class ProfileService
         }
     }
 
-    public async System.Threading.Tasks.Task<User> GetProfileAsync(CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<User> GetProfileAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/profile";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1238,7 +1801,7 @@ public sealed class ProfileService
         }
     }
 
-    public async System.Threading.Tasks.Task<object> GetStatusAsync(CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<object> GetStatusAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/profile/status";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1255,7 +1818,27 @@ public sealed class ProfileService
         }
     }
 
-    public async System.Threading.Tasks.Task<UserStatus> UpdateStatusAsync(StatusUpdateRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<AvatarData> UpdateProfileAvatarAsync(byte[] image, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/profile/avatar";
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(image), "image", "image");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = content;
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AvatarDataDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<UserStatus> UpdateStatusAsync(StatusUpdateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/profile/status";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
@@ -1273,7 +1856,24 @@ public sealed class ProfileService
         }
     }
 
-    public async System.Threading.Tasks.Task DeleteStatusAsync(CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task DeleteProfileAvatarAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/profile/avatar";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task DeleteStatusAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/profile/status";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -1291,18 +1891,107 @@ public sealed class ProfileService
     }
 }
 
-public sealed class SearchService
+public class SearchService
+{
+
+    public virtual async System.Threading.Tasks.Task<SearchChatsResponse> SearchChatsAsync(
+        string? query = null,
+        int? limit = null,
+        string? cursor = null,
+        SortOrder? order = null,
+        DateTimeOffset? createdFrom = null,
+        DateTimeOffset? createdTo = null,
+        bool? active = null,
+        ChatSubtype? chatSubtype = null,
+        bool? personal = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Search.searchChats is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<Chat>> SearchChatsAllAsync(
+        string? query = null,
+        int? limit = null,
+        SortOrder? order = null,
+        DateTimeOffset? createdFrom = null,
+        DateTimeOffset? createdTo = null,
+        bool? active = null,
+        ChatSubtype? chatSubtype = null,
+        bool? personal = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Search.searchChatsAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<SearchMessagesResponse> SearchMessagesAsync(
+        string? query = null,
+        int? limit = null,
+        string? cursor = null,
+        SortOrder? order = null,
+        DateTimeOffset? createdFrom = null,
+        DateTimeOffset? createdTo = null,
+        List<int>? chatIds = null,
+        List<int>? userIds = null,
+        bool? active = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Search.searchMessages is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<Message>> SearchMessagesAllAsync(
+        string? query = null,
+        int? limit = null,
+        SortOrder? order = null,
+        DateTimeOffset? createdFrom = null,
+        DateTimeOffset? createdTo = null,
+        List<int>? chatIds = null,
+        List<int>? userIds = null,
+        bool? active = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Search.searchMessagesAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<SearchUsersResponse> SearchUsersAsync(
+        string? query = null,
+        int? limit = null,
+        string? cursor = null,
+        SearchSortOrder? sort = null,
+        SortOrder? order = null,
+        DateTimeOffset? createdFrom = null,
+        DateTimeOffset? createdTo = null,
+        List<UserRole>? companyRoles = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Search.searchUsers is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<User>> SearchUsersAllAsync(
+        string? query = null,
+        int? limit = null,
+        SearchSortOrder? sort = null,
+        SortOrder? order = null,
+        DateTimeOffset? createdFrom = null,
+        DateTimeOffset? createdTo = null,
+        List<UserRole>? companyRoles = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Search.searchUsersAll is not implemented");
+    }
+}
+
+public sealed class SearchServiceImpl : SearchService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal SearchService(string baseUrl, HttpClient client)
+    internal SearchServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListChatsResponse> SearchChatsAsync(
+    public override async System.Threading.Tasks.Task<SearchChatsResponse> SearchChatsAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1318,7 +2007,7 @@ public sealed class SearchService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (order != null)
@@ -1340,7 +2029,7 @@ public sealed class SearchService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<ListChatsResponse>(json);
+                return PachcaUtils.Deserialize<SearchChatsResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1348,7 +2037,7 @@ public sealed class SearchService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<Chat>> SearchChatsAllAsync(
+    public override async System.Threading.Tasks.Task<List<Chat>> SearchChatsAllAsync(
         string? query = null,
         int? limit = null,
         SortOrder? order = null,
@@ -1365,12 +2054,13 @@ public sealed class SearchService
         {
             var response = await SearchChatsAsync(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, active: active, chatSubtype: chatSubtype, personal: personal, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
-    public async System.Threading.Tasks.Task<ListChatMessagesResponse> SearchMessagesAsync(
+    public override async System.Threading.Tasks.Task<SearchMessagesResponse> SearchMessagesAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1386,7 +2076,7 @@ public sealed class SearchService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (order != null)
@@ -1396,9 +2086,11 @@ public sealed class SearchService
         if (createdTo != null)
             queryParts.Add($"created_to={Uri.EscapeDataString(createdTo.Value.ToString("o"))}");
         if (chatIds != null)
-            queryParts.Add($"chat_ids={Uri.EscapeDataString(chatIds.ToString())}");
+            foreach (var item in chatIds)
+                queryParts.Add($"chat_ids[]={Uri.EscapeDataString(item.ToString()!)}");
         if (userIds != null)
-            queryParts.Add($"user_ids={Uri.EscapeDataString(userIds.ToString())}");
+            foreach (var item in userIds)
+                queryParts.Add($"user_ids[]={Uri.EscapeDataString(item.ToString()!)}");
         if (active != null)
             queryParts.Add($"active={Uri.EscapeDataString((active.Value ? "true" : "false"))}");
         var url = $"{_baseUrl}/search/messages" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1408,7 +2100,7 @@ public sealed class SearchService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<ListChatMessagesResponse>(json);
+                return PachcaUtils.Deserialize<SearchMessagesResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1416,7 +2108,7 @@ public sealed class SearchService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<Message>> SearchMessagesAllAsync(
+    public override async System.Threading.Tasks.Task<List<Message>> SearchMessagesAllAsync(
         string? query = null,
         int? limit = null,
         SortOrder? order = null,
@@ -1433,12 +2125,13 @@ public sealed class SearchService
         {
             var response = await SearchMessagesAsync(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, chatIds: chatIds, userIds: userIds, active: active, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
-    public async System.Threading.Tasks.Task<ListMembersResponse> SearchUsersAsync(
+    public override async System.Threading.Tasks.Task<SearchUsersResponse> SearchUsersAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1453,7 +2146,7 @@ public sealed class SearchService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (sort != null)
@@ -1465,7 +2158,8 @@ public sealed class SearchService
         if (createdTo != null)
             queryParts.Add($"created_to={Uri.EscapeDataString(createdTo.Value.ToString("o"))}");
         if (companyRoles != null)
-            queryParts.Add($"company_roles={Uri.EscapeDataString(companyRoles.ToString())}");
+            foreach (var item in companyRoles)
+                queryParts.Add($"company_roles[]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(item))}");
         var url = $"{_baseUrl}/search/users" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
@@ -1473,7 +2167,7 @@ public sealed class SearchService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<ListMembersResponse>(json);
+                return PachcaUtils.Deserialize<SearchUsersResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1481,7 +2175,7 @@ public sealed class SearchService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<User>> SearchUsersAllAsync(
+    public override async System.Threading.Tasks.Task<List<User>> SearchUsersAllAsync(
         string? query = null,
         int? limit = null,
         SearchSortOrder? sort = null,
@@ -1497,31 +2191,74 @@ public sealed class SearchService
         {
             var response = await SearchUsersAsync(query: query, limit: limit, cursor: cursor, sort: sort, order: order, createdFrom: createdFrom, createdTo: createdTo, companyRoles: companyRoles, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 }
 
-public sealed class TasksService
+public class TasksService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListTasksResponse> ListTasksAsync(
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Tasks.listTasks is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<Pachca.Sdk.Task>> ListTasksAllAsync(
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Tasks.listTasksAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Pachca.Sdk.Task> GetTaskAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Tasks.getTask is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Pachca.Sdk.Task> CreateTaskAsync(TaskCreateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Tasks.createTask is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Pachca.Sdk.Task> UpdateTaskAsync(
+        int id,
+        TaskUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Tasks.updateTask is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteTaskAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Tasks.deleteTask is not implemented");
+    }
+}
+
+public sealed class TasksServiceImpl : TasksService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal TasksService(string baseUrl, HttpClient client)
+    internal TasksServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListTasksResponse> ListTasksAsync(
+    public override async System.Threading.Tasks.Task<ListTasksResponse> ListTasksAsync(
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/tasks" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1539,22 +2276,25 @@ public sealed class TasksService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<Pachca.Sdk.Task>> ListTasksAllAsync(
+    public override async System.Threading.Tasks.Task<List<Pachca.Sdk.Task>> ListTasksAllAsync(
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
         var items = new List<Pachca.Sdk.Task>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListTasksAsync(limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
-    public async System.Threading.Tasks.Task<Pachca.Sdk.Task> GetTaskAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<Pachca.Sdk.Task> GetTaskAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/tasks/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1571,7 +2311,7 @@ public sealed class TasksService
         }
     }
 
-    public async System.Threading.Tasks.Task<Pachca.Sdk.Task> CreateTaskAsync(TaskCreateRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<Pachca.Sdk.Task> CreateTaskAsync(TaskCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/tasks";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -1589,7 +2329,7 @@ public sealed class TasksService
         }
     }
 
-    public async System.Threading.Tasks.Task<Pachca.Sdk.Task> UpdateTaskAsync(
+    public override async System.Threading.Tasks.Task<Pachca.Sdk.Task> UpdateTaskAsync(
         int id,
         TaskUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -1610,7 +2350,7 @@ public sealed class TasksService
         }
     }
 
-    public async System.Threading.Tasks.Task DeleteTaskAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task DeleteTaskAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/tasks/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -1628,18 +2368,93 @@ public sealed class TasksService
     }
 }
 
-public sealed class UsersService
+public class UsersService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListUsersResponse> ListUsersAsync(
+        string? query = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Users.listUsers is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<User>> ListUsersAllAsync(
+        string? query = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Users.listUsersAll is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<User> GetUserAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Users.getUser is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<object> GetUserStatusAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Users.getUserStatus is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<User> CreateUserAsync(UserCreateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Users.createUser is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<User> UpdateUserAsync(
+        int id,
+        UserUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Users.updateUser is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<AvatarData> UpdateUserAvatarAsync(
+        int userId,
+        byte[] image,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Users.updateUserAvatar is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<UserStatus> UpdateUserStatusAsync(
+        int userId,
+        StatusUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Users.updateUserStatus is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteUserAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Users.deleteUser is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteUserAvatarAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Users.deleteUserAvatar is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteUserStatusAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Users.deleteUserStatus is not implemented");
+    }
+}
+
+public sealed class UsersServiceImpl : UsersService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal UsersService(string baseUrl, HttpClient client)
+    internal UsersServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListMembersResponse> ListUsersAsync(
+    public override async System.Threading.Tasks.Task<ListUsersResponse> ListUsersAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1649,7 +2464,7 @@ public sealed class UsersService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/users" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1659,7 +2474,7 @@ public sealed class UsersService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<ListMembersResponse>(json);
+                return PachcaUtils.Deserialize<ListUsersResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1667,23 +2482,26 @@ public sealed class UsersService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<User>> ListUsersAllAsync(
+    public override async System.Threading.Tasks.Task<List<User>> ListUsersAllAsync(
         string? query = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
         var items = new List<User>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListUsersAsync(query: query, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
-    public async System.Threading.Tasks.Task<User> GetUserAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<User> GetUserAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1700,7 +2518,7 @@ public sealed class UsersService
         }
     }
 
-    public async System.Threading.Tasks.Task<object> GetUserStatusAsync(int userId, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<object> GetUserStatusAsync(int userId, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users/{userId}/status";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1717,7 +2535,7 @@ public sealed class UsersService
         }
     }
 
-    public async System.Threading.Tasks.Task<User> CreateUserAsync(UserCreateRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<User> CreateUserAsync(UserCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -1735,7 +2553,7 @@ public sealed class UsersService
         }
     }
 
-    public async System.Threading.Tasks.Task<User> UpdateUserAsync(
+    public override async System.Threading.Tasks.Task<User> UpdateUserAsync(
         int id,
         UserUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -1756,7 +2574,30 @@ public sealed class UsersService
         }
     }
 
-    public async System.Threading.Tasks.Task<UserStatus> UpdateUserStatusAsync(
+    public override async System.Threading.Tasks.Task<AvatarData> UpdateUserAvatarAsync(
+        int userId,
+        byte[] image,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/users/{userId}/avatar";
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(image), "image", "image");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = content;
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AvatarDataDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<UserStatus> UpdateUserStatusAsync(
         int userId,
         StatusUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -1777,7 +2618,7 @@ public sealed class UsersService
         }
     }
 
-    public async System.Threading.Tasks.Task DeleteUserAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task DeleteUserAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -1794,7 +2635,24 @@ public sealed class UsersService
         }
     }
 
-    public async System.Threading.Tasks.Task DeleteUserStatusAsync(int userId, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task DeleteUserAvatarAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/users/{userId}/avatar";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task DeleteUserStatusAsync(int userId, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users/{userId}/status";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -1812,18 +2670,27 @@ public sealed class UsersService
     }
 }
 
-public sealed class ViewsService
+public class ViewsService
+{
+
+    public virtual async System.Threading.Tasks.Task OpenViewAsync(OpenViewRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Views.openView is not implemented");
+    }
+}
+
+public sealed class ViewsServiceImpl : ViewsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal ViewsService(string baseUrl, HttpClient client)
+    internal ViewsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task OpenViewAsync(OpenViewRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task OpenViewAsync(OpenViewRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/views/open";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -1842,9 +2709,14 @@ public sealed class ViewsService
     }
 }
 
+public static class PachcaConstants
+{
+    public const string PachcaApiUrl = "https://api.pachca.com/api/shared/v1";
+}
+
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public BotsService Bots { get; }
     public ChatsService Chats { get; }
@@ -1863,7 +2735,27 @@ public sealed class PachcaClient : IDisposable
     public UsersService Users { get; }
     public ViewsService Views { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1")
+    private PachcaClient(BotsService bots, ChatsService chats, CommonService common, GroupTagsService groupTags, LinkPreviewsService linkPreviews, MembersService members, MessagesService messages, ProfileService profile, ReactionsService reactions, ReadMembersService readMembers, SearchService search, SecurityService security, TasksService tasks, ThreadsService threads, UsersService users, ViewsService views)
+    {
+        Bots = bots;
+        Chats = chats;
+        Common = common;
+        GroupTags = groupTags;
+        LinkPreviews = linkPreviews;
+        Members = members;
+        Messages = messages;
+        Profile = profile;
+        Reactions = reactions;
+        ReadMembers = readMembers;
+        Search = search;
+        Security = security;
+        Tasks = tasks;
+        Threads = threads;
+        Users = users;
+        Views = views;
+    }
+
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
         var handler = new SocketsHttpHandler
         {
@@ -1873,27 +2765,54 @@ public sealed class PachcaClient : IDisposable
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Bots = new BotsService(baseUrl, _client);
-        Chats = new ChatsService(baseUrl, _client);
-        Common = new CommonService(baseUrl, _client);
-        GroupTags = new GroupTagsService(baseUrl, _client);
-        LinkPreviews = new LinkPreviewsService(baseUrl, _client);
-        Members = new MembersService(baseUrl, _client);
-        Messages = new MessagesService(baseUrl, _client);
-        Profile = new ProfileService(baseUrl, _client);
-        Reactions = new ReactionsService(baseUrl, _client);
-        ReadMembers = new ReadMembersService(baseUrl, _client);
-        Search = new SearchService(baseUrl, _client);
-        Security = new SecurityService(baseUrl, _client);
-        Tasks = new TasksService(baseUrl, _client);
-        Threads = new ThreadsService(baseUrl, _client);
-        Users = new UsersService(baseUrl, _client);
-        Views = new ViewsService(baseUrl, _client);
+        Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
+        Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
+        Common = common ?? new CommonServiceImpl(baseUrl, _client);
+        GroupTags = groupTags ?? new GroupTagsServiceImpl(baseUrl, _client);
+        LinkPreviews = linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
+        Members = members ?? new MembersServiceImpl(baseUrl, _client);
+        Messages = messages ?? new MessagesServiceImpl(baseUrl, _client);
+        Profile = profile ?? new ProfileServiceImpl(baseUrl, _client);
+        Reactions = reactions ?? new ReactionsServiceImpl(baseUrl, _client);
+        ReadMembers = readMembers ?? new ReadMembersServiceImpl(baseUrl, _client);
+        Search = search ?? new SearchServiceImpl(baseUrl, _client);
+        Security = security ?? new SecurityServiceImpl(baseUrl, _client);
+        Tasks = tasks ?? new TasksServiceImpl(baseUrl, _client);
+        Threads = threads ?? new ThreadsServiceImpl(baseUrl, _client);
+        Users = users ?? new UsersServiceImpl(baseUrl, _client);
+        Views = views ?? new ViewsServiceImpl(baseUrl, _client);
+    }
+
+    public PachcaClient(string baseUrl, HttpClient client, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    {
+        _client = client;
+
+        Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
+        Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
+        Common = common ?? new CommonServiceImpl(baseUrl, _client);
+        GroupTags = groupTags ?? new GroupTagsServiceImpl(baseUrl, _client);
+        LinkPreviews = linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
+        Members = members ?? new MembersServiceImpl(baseUrl, _client);
+        Messages = messages ?? new MessagesServiceImpl(baseUrl, _client);
+        Profile = profile ?? new ProfileServiceImpl(baseUrl, _client);
+        Reactions = reactions ?? new ReactionsServiceImpl(baseUrl, _client);
+        ReadMembers = readMembers ?? new ReadMembersServiceImpl(baseUrl, _client);
+        Search = search ?? new SearchServiceImpl(baseUrl, _client);
+        Security = security ?? new SecurityServiceImpl(baseUrl, _client);
+        Tasks = tasks ?? new TasksServiceImpl(baseUrl, _client);
+        Threads = threads ?? new ThreadsServiceImpl(baseUrl, _client);
+        Users = users ?? new UsersServiceImpl(baseUrl, _client);
+        Views = views ?? new ViewsServiceImpl(baseUrl, _client);
+    }
+
+    public static PachcaClient Stub(BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    {
+        return new PachcaClient(bots ?? new BotsService(), chats ?? new ChatsService(), common ?? new CommonService(), groupTags ?? new GroupTagsService(), linkPreviews ?? new LinkPreviewsService(), members ?? new MembersService(), messages ?? new MessagesService(), profile ?? new ProfileService(), reactions ?? new ReactionsService(), readMembers ?? new ReadMembersService(), search ?? new SearchService(), security ?? new SecurityService(), tasks ?? new TasksService(), threads ?? new ThreadsService(), users ?? new UsersService(), views ?? new ViewsService());
     }
 
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

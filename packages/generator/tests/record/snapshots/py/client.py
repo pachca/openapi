@@ -6,6 +6,15 @@ from .models import LinkPreviewsRequest, OAuthError, ApiError
 from .utils import deserialize, serialize, RetryTransport
 
 class LinkPreviewsService:
+    async def create_link_previews(
+        self,
+        id: int,
+        request: LinkPreviewsRequest,
+    ) -> None:
+        raise NotImplementedError("Link Previews.createLinkPreviews is not implemented")
+
+
+class LinkPreviewsServiceImpl(LinkPreviewsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -27,14 +36,38 @@ class LinkPreviewsService:
                 raise deserialize(ApiError, response.json())
 
 
+PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1") -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, link_previews: LinkPreviewsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.link_previews = LinkPreviewsService(self._client)
+        self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        link_previews: LinkPreviewsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(client)
+        return self
+
+    @classmethod
+    def stub(
+        cls,
+        link_previews: LinkPreviewsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = None
+        self.link_previews = link_previews or LinkPreviewsService()
+        return self

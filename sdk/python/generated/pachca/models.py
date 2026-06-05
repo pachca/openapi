@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Union
@@ -69,6 +70,13 @@ class ChatMemberRoleFilter(StrEnum):
     MEMBER = "member"  # Участник/подписчик
 
 
+class ChatSortField(StrEnum):
+    """Поле сортировки чатов"""
+
+    ID = "id"  # По идентификатору чата
+    LAST_MESSAGE_AT = "last_message_at"  # По дате и времени создания последнего сообщения
+
+
 class ChatSubtype(StrEnum):
     """Тип чата"""
 
@@ -114,6 +122,10 @@ class MessageEntityType(StrEnum):
     USER = "user"  # Пользователь
 
 
+class MessageSortField(StrEnum):
+    ID = "id"  # По идентификатору сообщения
+
+
 class OAuthScope(StrEnum):
     """Скоуп доступа OAuth токена"""
 
@@ -146,8 +158,10 @@ class OAuthScope(StrEnum):
     PROFILE_READ = "profile:read"  # Просмотр информации о своем профиле
     PROFILE_STATUS_READ = "profile_status:read"  # Просмотр статуса профиля
     PROFILE_STATUS_WRITE = "profile_status:write"  # Изменение и удаление статуса профиля
+    PROFILE_AVATAR_WRITE = "profile_avatar:write"  # Изменение и удаление аватара профиля
     USER_STATUS_READ = "user_status:read"  # Просмотр статуса сотрудника
     USER_STATUS_WRITE = "user_status:write"  # Изменение и удаление статуса сотрудника
+    USER_AVATAR_WRITE = "user_avatar:write"  # Изменение и удаление аватара сотрудника
     CUSTOM_PROPERTIES_READ = "custom_properties:read"  # Просмотр дополнительных полей
     AUDIT_EVENTS_READ = "audit_events:read"  # Просмотр журнала аудита
     TASKS_READ = "tasks:read"  # Просмотр задач
@@ -212,6 +226,15 @@ class TaskStatus(StrEnum):
     UNDONE = "undone"  # Активно
 
 
+class UserCreateRole(StrEnum):
+    """Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат."""
+
+    ADMIN = "admin"  # Администратор
+    USER = "user"  # Сотрудник
+    MULTI_GUEST = "multi_guest"  # Мульти-гость
+    GUEST = "guest"  # Гость
+
+
 class UserEventType(StrEnum):
     """Тип события webhook для пользователей"""
 
@@ -233,7 +256,7 @@ class UserRole(StrEnum):
 
 
 class UserRoleInput(StrEnum):
-    """Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API."""
+    """Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`)."""
 
     ADMIN = "admin"  # Администратор
     USER = "user"  # Сотрудник
@@ -295,11 +318,11 @@ class AccessTokenInfo:
     token: str
     user_id: int
     scopes: list[OAuthScope]
-    created_at: str
+    created_at: datetime
     name: str | None = None
-    revoked_at: str | None = None
+    revoked_at: datetime | None = None
     expires_in: int | None = None
-    last_used_at: str | None = None
+    last_used_at: datetime | None = None
 
 
 @dataclass
@@ -316,6 +339,13 @@ class AddTagsRequest:
 @dataclass
 class ApiError(Exception):
     errors: list[ApiErrorItem]
+
+    def __str__(self) -> str:
+        if not self.errors:
+            return "api error"
+        if len(self.errors) == 1:
+            return self.errors[0].message
+        return "Errors: " + "; ".join(e.message for e in self.errors)
 
 
 @dataclass
@@ -416,7 +446,7 @@ class AuditDetailsUserUpdated:
 @dataclass
 class AuditEvent:
     id: str
-    created_at: str
+    created_at: datetime
     event_key: AuditEventKey
     entity_id: str
     entity_type: str
@@ -425,6 +455,11 @@ class AuditEvent:
     details: AuditEventDetailsUnion
     ip_address: str
     user_agent: str
+
+
+@dataclass
+class AvatarData:
+    image_url: str
 
 
 @dataclass
@@ -476,14 +511,14 @@ class ButtonWebhookPayload:
 class Chat:
     id: int
     name: str
-    created_at: str
+    created_at: datetime
     owner_id: int
     member_ids: list[int]
     group_tag_ids: list[int]
     channel: bool
     personal: bool
     public: bool
-    last_message_at: str
+    last_message_at: datetime
     meet_room_url: str
 
 
@@ -507,7 +542,7 @@ class ChatMemberWebhookPayload:
     event: MemberEventType
     chat_id: int
     user_ids: list[int]
-    created_at: str
+    created_at: datetime
     webhook_timestamp: int
     thread_id: int | None = None
 
@@ -528,7 +563,7 @@ class CompanyMemberWebhookPayload:
     type: str  # literal "company_member"
     event: UserEventType
     user_ids: list[int]
-    created_at: str
+    created_at: datetime
     webhook_timestamp: int
 
 
@@ -585,7 +620,7 @@ class Forwarding:
     original_message_id: int
     original_chat_id: int
     author_id: int
-    original_created_at: str
+    original_created_at: datetime
     original_thread_id: int | None = None
     original_thread_message_id: int | None = None
     original_thread_parent_chat_id: int | None = None
@@ -636,7 +671,7 @@ class LinkSharedWebhookPayload:
     message_id: int
     links: list[WebhookLink]
     user_id: int
-    created_at: str
+    created_at: datetime
     webhook_timestamp: int
 
 
@@ -655,7 +690,7 @@ class Message:
     root_chat_id: int
     content: str
     user_id: int
-    created_at: str
+    created_at: datetime
     url: str
     files: list[File]
     buttons: list[list[Button]] | None = None
@@ -664,8 +699,8 @@ class Message:
     parent_message_id: int | None = None
     display_avatar_url: str | None = None
     display_name: str | None = None
-    changed_at: str | None = None
-    deleted_at: str | None = None
+    changed_at: datetime | None = None
+    deleted_at: datetime | None = None
 
 
 @dataclass
@@ -730,7 +765,7 @@ class MessageWebhookPayload:
     entity_id: int
     content: str
     user_id: int
-    created_at: str
+    created_at: datetime
     url: str
     chat_id: int
     webhook_timestamp: int
@@ -742,6 +777,9 @@ class MessageWebhookPayload:
 class OAuthError(Exception):
     error: str
     error_description: str
+
+    def __str__(self) -> str:
+        return self.error
 
 
 @dataclass
@@ -763,18 +801,21 @@ class OpenViewRequest:
 
 @dataclass
 class PaginationMetaPaginate:
-    next_page: str | None = None
+    next_page: str
+    prev_page: str | None = None
+    has_next: bool | None = None
+    has_prev: bool | None = None
 
 
 @dataclass
 class PaginationMeta:
-    paginate: PaginationMetaPaginate | None = None
+    paginate: PaginationMetaPaginate
 
 
 @dataclass
 class Reaction:
     user_id: int
-    created_at: str
+    created_at: datetime
     code: str
     name: str | None = None
 
@@ -793,8 +834,9 @@ class ReactionWebhookPayload:
     code: str
     name: str
     user_id: int
-    created_at: str
+    created_at: datetime
     webhook_timestamp: int
+    chat_id: int | None = None
 
 
 @dataclass
@@ -812,7 +854,7 @@ class SearchPaginationMeta:
 class StatusUpdateRequestStatus:
     emoji: str
     title: str
-    expires_at: str | None = None
+    expires_at: datetime | None = None
     is_away: bool | None = None
     away_message: str | None = None
 
@@ -823,11 +865,6 @@ class StatusUpdateRequest:
 
 
 @dataclass
-class TagNamesFilter:
-    pass
-
-
-@dataclass
 class Task:
     id: int
     kind: TaskKind
@@ -835,11 +872,11 @@ class Task:
     priority: int
     user_id: int
     status: TaskStatus
-    created_at: str
+    created_at: datetime
     performer_ids: list[int]
     all_day: bool
     custom_properties: list[CustomProperty]
-    due_at: str | None = None
+    due_at: datetime | None = None
     chat_id: int | None = None
 
 
@@ -853,7 +890,7 @@ class TaskCreateRequestCustomProperty:
 class TaskCreateRequestTask:
     kind: TaskKind
     content: str | None = None
-    due_at: str | None = None
+    due_at: datetime | None = None
     priority: int | None = 1
     performer_ids: list[int] | None = None
     chat_id: int | None = None
@@ -876,12 +913,12 @@ class TaskUpdateRequestCustomProperty:
 class TaskUpdateRequestTask:
     kind: TaskKind | None = None
     content: str | None = None
-    due_at: str | None = None
+    due_at: datetime | None = None
     priority: int | None = None
     performer_ids: list[int] | None = None
     status: TaskStatus | None = None
     all_day: bool | None = None
-    done_at: str | None = None
+    done_at: datetime | None = None
     custom_properties: list[TaskUpdateRequestCustomProperty] | None = None
 
 
@@ -896,7 +933,7 @@ class Thread:
     chat_id: int
     message_id: int
     message_chat_id: int
-    updated_at: str
+    updated_at: datetime
 
 
 @dataclass
@@ -921,12 +958,7 @@ class UploadParams:
 class User:
     id: int
     first_name: str
-    last_name: str
     nickname: str
-    email: str
-    phone_number: str
-    department: str
-    title: str
     role: UserRole
     suspended: bool
     invite_status: InviteStatus
@@ -934,10 +966,16 @@ class User:
     custom_properties: list[CustomProperty]
     bot: bool
     sso: bool
-    created_at: str
-    last_activity_at: str
-    time_zone: str
+    created_at: datetime
+    last_name: str | None = None
+    email: str | None = None
+    phone_number: str | None = None
+    department: str | None = None
+    title: str | None = None
+    inviter_id: int | None = None
     user_status: UserStatus | None = None
+    last_activity_at: datetime | None = None
+    time_zone: str | None = None
     image_url: str | None = None
 
 
@@ -956,9 +994,10 @@ class UserCreateRequestUser:
     nickname: str | None = None
     department: str | None = None
     title: str | None = None
-    role: UserRoleInput | None = None
+    role: UserCreateRole | None = None
     suspended: bool | None = None
     list_tags: list[str] | None = None
+    chat_ids: list[int] | None = None
     custom_properties: list[UserCreateRequestCustomProperty] | None = None
 
 
@@ -978,7 +1017,7 @@ class UserStatus:
     emoji: str
     title: str
     is_away: bool
-    expires_at: str | None = None
+    expires_at: datetime | None = None
     away_message: UserStatusAwayMessage | None = None
 
 
@@ -1014,7 +1053,7 @@ class ViewBlock:
     text: str | None = None
     name: str | None = None
     label: str | None = None
-    initial_date: str | None = None
+    initial_date: datetime | None = None
 
 
 @dataclass
@@ -1132,17 +1171,30 @@ class ViewBlockTime:
 
 
 @dataclass
+class ViewSubmitWebhookPayload:
+    type: str  # literal "view"
+    event: str  # literal "submit"
+    user_id: int
+    data: dict[str, str]
+    webhook_timestamp: int
+    callback_id: str | None = None
+    private_metadata: str | None = None
+    chat_id: int | None = None
+
+
+@dataclass
 class WebhookEvent:
     id: str
     event_type: str
     payload: WebhookPayloadUnion
-    created_at: str
+    created_at: datetime
 
 
 @dataclass
 class WebhookLink:
     url: str
     domain: str
+    skip: bool
 
 
 @dataclass
@@ -1151,19 +1203,29 @@ class WebhookMessageThread:
     message_chat_id: int
 
 
+@dataclass
+class UpdateProfileAvatarRequest:
+    image: bytes
+
+
+@dataclass
+class UpdateUserAvatarRequest:
+    image: bytes
+
+
 AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch]
 
 
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]
 
 
-WebhookPayloadUnion = Union[MessageWebhookPayload, ReactionWebhookPayload, ButtonWebhookPayload, ChatMemberWebhookPayload, CompanyMemberWebhookPayload, LinkSharedWebhookPayload]
+WebhookPayloadUnion = Union[MessageWebhookPayload, ReactionWebhookPayload, ButtonWebhookPayload, ViewSubmitWebhookPayload, ChatMemberWebhookPayload, CompanyMemberWebhookPayload, LinkSharedWebhookPayload]
 
 
 @dataclass
 class GetAuditEventsParams:
-    start_time: str | None = None
-    end_time: str | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
     event_key: AuditEventKey | None = None
     actor_id: str | None = None
     actor_type: str | None = None
@@ -1175,10 +1237,11 @@ class GetAuditEventsParams:
 
 @dataclass
 class ListChatsParams:
-    sort_id: SortOrder | None = None
+    sort: ChatSortField | None = None
+    order: SortOrder | None = None
     availability: ChatAvailability | None = None
-    last_message_at_after: str | None = None
-    last_message_at_before: str | None = None
+    last_message_at_after: datetime | None = None
+    last_message_at_before: datetime | None = None
     personal: bool | None = None
     limit: int | None = None
     cursor: str | None = None
@@ -1198,7 +1261,7 @@ class ListPropertiesParams:
 
 @dataclass
 class ListTagsParams:
-    names: TagNamesFilter | None = None
+    names: list[str] | None = None
     limit: int | None = None
     cursor: str | None = None
 
@@ -1212,7 +1275,8 @@ class GetTagUsersParams:
 @dataclass
 class ListChatMessagesParams:
     chat_id: int
-    sort_id: SortOrder | None = None
+    sort: MessageSortField | None = None
+    order: SortOrder | None = None
     limit: int | None = None
     cursor: str | None = None
 
@@ -1241,8 +1305,8 @@ class SearchChatsParams:
     limit: int | None = None
     cursor: str | None = None
     order: SortOrder | None = None
-    created_from: str | None = None
-    created_to: str | None = None
+    created_from: datetime | None = None
+    created_to: datetime | None = None
     active: bool | None = None
     chat_subtype: ChatSubtype | None = None
     personal: bool | None = None
@@ -1254,8 +1318,8 @@ class SearchMessagesParams:
     limit: int | None = None
     cursor: str | None = None
     order: SortOrder | None = None
-    created_from: str | None = None
-    created_to: str | None = None
+    created_from: datetime | None = None
+    created_to: datetime | None = None
     chat_ids: list[int] | None = None
     user_ids: list[int] | None = None
     active: bool | None = None
@@ -1268,13 +1332,21 @@ class SearchUsersParams:
     cursor: str | None = None
     sort: SearchSortOrder | None = None
     order: SortOrder | None = None
-    created_from: str | None = None
-    created_to: str | None = None
+    created_from: datetime | None = None
+    created_to: datetime | None = None
     company_roles: list[UserRole] | None = None
 
 
 @dataclass
 class ListTasksParams:
+    limit: int | None = None
+    cursor: str | None = None
+
+
+@dataclass
+class ListThreadsParams:
+    last_message_at_after: datetime | None = None
+    last_message_at_before: datetime | None = None
     limit: int | None = None
     cursor: str | None = None
 
@@ -1295,19 +1367,19 @@ class GetWebhookEventsParams:
 @dataclass
 class GetAuditEventsResponse:
     data: list[AuditEvent]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class ListChatsResponse:
     data: list[Chat]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class ListMembersResponse:
     data: list[User]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
@@ -1318,25 +1390,25 @@ class ListPropertiesResponse:
 @dataclass
 class ListTagsResponse:
     data: list[GroupTag]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class GetTagUsersResponse:
     data: list[User]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class ListChatMessagesResponse:
     data: list[Message]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class ListReactionsResponse:
     data: list[Reaction]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
@@ -1360,16 +1432,22 @@ class SearchUsersResponse:
 @dataclass
 class ListTasksResponse:
     data: list[Task]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
+
+
+@dataclass
+class ListThreadsResponse:
+    data: list[Thread]
+    meta: PaginationMeta
 
 
 @dataclass
 class ListUsersResponse:
     data: list[User]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class GetWebhookEventsResponse:
     data: list[WebhookEvent]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta

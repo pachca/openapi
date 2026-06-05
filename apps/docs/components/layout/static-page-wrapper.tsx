@@ -1,6 +1,8 @@
 import { Footer } from '@/components/layout/footer';
 import { ReactNode } from 'react';
 import type { NavigationItem } from '@/lib/openapi/types';
+import type { RelatedItem } from '@/lib/content-loader';
+import { RelatedTopics } from './related-topics';
 import { TableOfContents } from './table-of-contents';
 
 interface StaticPageWrapperProps {
@@ -9,13 +11,19 @@ interface StaticPageWrapperProps {
     prev: NavigationItem | null;
     next: NavigationItem | null;
   };
+  relatedItems?: RelatedItem[];
   hideTableOfContents?: boolean;
+  prevLabel?: string;
+  nextLabel?: string;
 }
 
 export function StaticPageWrapper({
   children,
   adjacent,
+  relatedItems,
   hideTableOfContents,
+  prevLabel,
+  nextLabel,
 }: StaticPageWrapperProps) {
   return (
     <div
@@ -31,10 +39,16 @@ export function StaticPageWrapper({
               >
                 {children}
               </div>
-              <Footer adjacent={adjacent} noMargin={true} />
+              {relatedItems && relatedItems.length > 0 && <RelatedTopics items={relatedItems} />}
+              <Footer
+                adjacent={adjacent}
+                noMargin={true}
+                prevLabel={prevLabel}
+                nextLabel={nextLabel}
+              />
             </div>
             {!hideTableOfContents && (
-              <aside className="hidden xl:block w-64 shrink-0 sticky top-[calc(var(--mobile-header-height)+40px)] max-h-[calc(100vh-var(--mobile-header-height)-80px)] self-start">
+              <aside className="hidden xl:block w-64 shrink-0 sticky top-[calc(var(--header-height)+40px)] max-h-[calc(100vh-var(--header-height)-80px)] self-start">
                 <TableOfContents />
               </aside>
             )}

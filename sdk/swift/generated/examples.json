@@ -7,14 +7,14 @@
   },
   "SecurityOperations_getAuditEvents": {
     "usage": "let response = try await client.security.getAuditEvents(startTime: \"2025-05-01T09:11:00Z\", endTime: \"2025-05-02T09:11:00Z\", eventKey: .userLogin, actorId: \"98765\", actorType: \"User\", entityId: \"98765\", entityType: \"User\", limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "GetAuditEventsResponse(data: [AuditEvent], meta: PaginationMeta?)",
+    "output": "GetAuditEventsResponse(data: [AuditEvent], meta: PaginationMeta)",
     "imports": [
       "AuditEventKey"
     ]
   },
   "BotOperations_getWebhookEvents": {
     "usage": "let response = try await client.bots.getWebhookEvents(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "GetWebhookEventsResponse(data: [WebhookEvent], meta: PaginationMeta?)"
+    "output": "GetWebhookEventsResponse(data: [WebhookEvent], meta: PaginationMeta)"
   },
   "BotOperations_updateBot": {
     "usage": "let body = BotUpdateRequest(bot: BotUpdateRequestBot(webhook: BotUpdateRequestBotWebhook(outgoingUrl: \"https://www.website.com/tasks/new\")))\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
@@ -29,10 +29,11 @@
     "usage": "try await client.bots.deleteWebhookEvent(id: \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "let response = try await client.chats.listChats(sortId: .desc, availability: .isMember, lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\", personal: false, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListChatsResponse(data: [Chat], meta: PaginationMeta?)",
+    "usage": "let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\", personal: false, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListChatsResponse(data: [Chat], meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
+      "ChatSortField",
       "SortOrder"
     ]
   },
@@ -91,7 +92,7 @@
   },
   "ChatMemberOperations_listMembers": {
     "usage": "let response = try await client.members.listMembers(id: 334, role: .all, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListMembersResponse(data: [User], meta: PaginationMeta?)",
+    "output": "ListMembersResponse(data: [User], meta: PaginationMeta)",
     "imports": [
       "ChatMemberRoleFilter"
     ]
@@ -121,11 +122,8 @@
     "usage": "try await client.members.removeMember(id: 334, userId: 186)"
   },
   "GroupTagOperations_listTags": {
-    "usage": "let names = TagNamesFilter()\nlet response = try await client.groupTags.listTags(names: names, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListTagsResponse(data: [GroupTag], meta: PaginationMeta?)",
-    "imports": [
-      "TagNamesFilter"
-    ]
+    "usage": "let names = [\"example\"]\nlet response = try await client.groupTags.listTags(names: names, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListTagsResponse(data: [GroupTag], meta: PaginationMeta)"
   },
   "GroupTagOperations_getTag": {
     "usage": "let response = try await client.groupTags.getTag(id: 9111)",
@@ -133,7 +131,7 @@
   },
   "GroupTagOperations_getTagUsers": {
     "usage": "let response = try await client.groupTags.getTagUsers(id: 9111, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "GetTagUsersResponse(data: [User], meta: PaginationMeta?)"
+    "output": "GetTagUsersResponse(data: [User], meta: PaginationMeta)"
   },
   "GroupTagOperations_createTag": {
     "usage": "let body = GroupTagRequest(groupTag: GroupTagRequestGroupTag(name: \"Новое название тега\"))\nlet response = try await client.groupTags.createTag(body: body)",
@@ -155,9 +153,10 @@
     "usage": "try await client.groupTags.deleteTag(id: 9111)"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "let response = try await client.messages.listChatMessages(chatId: 198, sortId: .desc, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListChatMessagesResponse(data: [Message], meta: PaginationMeta?)",
+    "usage": "let response = try await client.messages.listChatMessages(chatId: 198, sort: .id, order: .desc, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListChatMessagesResponse(data: [Message], meta: PaginationMeta)",
     "imports": [
+      "MessageSortField",
       "SortOrder"
     ]
   },
@@ -206,7 +205,7 @@
   },
   "ReactionOperations_listReactions": {
     "usage": "let response = try await client.reactions.listReactions(id: 194275, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListReactionsResponse(data: [Reaction], meta: PaginationMeta?)"
+    "output": "ListReactionsResponse(data: [Reaction], meta: PaginationMeta)"
   },
   "ReactionOperations_addReaction": {
     "usage": "let body = ReactionRequest(code: \"👍\", name: \":+1:\")\nlet response = try await client.reactions.addReaction(id: 7231942, body: body)",
@@ -222,6 +221,10 @@
     "usage": "let response = try await client.readMembers.listReadMembers(id: 194275, limit: 300, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "String"
   },
+  "ThreadOperations_listThreads": {
+    "usage": "let response = try await client.threads.listThreads(lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\", limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListThreadsResponse(data: [Thread], meta: PaginationMeta)"
+  },
   "ThreadOperations_getThread": {
     "usage": "let response = try await client.threads.getThread(id: 265142)",
     "output": "Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)"
@@ -236,11 +239,15 @@
   },
   "ProfileOperations_getProfile": {
     "usage": "let response = try await client.profile.getProfile()",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
+    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)"
   },
   "ProfileOperations_getStatus": {
     "usage": "let response = try await client.profile.getStatus()",
     "output": "String"
+  },
+  "ProfileAvatarOperations_updateProfileAvatar": {
+    "usage": "let image = Data()\nlet response = try await client.profile.updateProfileAvatar(image: image)",
+    "output": "AvatarData(imageUrl: String)"
   },
   "ProfileOperations_updateStatus": {
     "usage": "let body = StatusUpdateRequest(\n    status: StatusUpdateRequestStatus(\n        emoji: \"🎮\",\n        title: \"Очень занят\",\n        expiresAt: \"2024-04-08T10:00:00.000Z\",\n        isAway: true,\n        awayMessage: \"Вернусь после 15:00\"\n    )\n)\nlet response = try await client.profile.updateStatus(body: body)",
@@ -249,6 +256,9 @@
       "StatusUpdateRequest",
       "StatusUpdateRequestStatus"
     ]
+  },
+  "ProfileAvatarOperations_deleteProfileAvatar": {
+    "usage": "try await client.profile.deleteProfileAvatar()"
   },
   "ProfileOperations_deleteStatus": {
     "usage": "try await client.profile.deleteStatus()"
@@ -279,7 +289,7 @@
   },
   "TaskOperations_listTasks": {
     "usage": "let response = try await client.tasks.listTasks(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListTasksResponse(data: [Task], meta: PaginationMeta?)"
+    "output": "ListTasksResponse(data: [Task], meta: PaginationMeta)"
   },
   "TaskOperations_getTask": {
     "usage": "let response = try await client.tasks.getTask(id: 22283)",
@@ -311,35 +321,39 @@
   },
   "UserOperations_listUsers": {
     "usage": "let response = try await client.users.listUsers(query: \"Олег\", limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListUsersResponse(data: [User], meta: PaginationMeta?)"
+    "output": "ListUsersResponse(data: [User], meta: PaginationMeta)"
   },
   "UserOperations_getUser": {
     "usage": "let response = try await client.users.getUser(id: 12)",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
+    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)"
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "let response = try await client.users.getUserStatus(userId: 12)",
     "output": "String"
   },
   "UserOperations_createUser": {
-    "usage": "let body = UserCreateRequest(\n    user: UserCreateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegp@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Продукт\",\n        title: \"CIO\",\n        role: .user,\n        suspended: false,\n        listTags: [\"example\"],\n        customProperties: [UserCreateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    ),\n    skipEmailNotify: true\n)\nlet response = try await client.users.createUser(body: body)",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)",
+    "usage": "let body = UserCreateRequest(\n    user: UserCreateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegp@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Продукт\",\n        title: \"CIO\",\n        role: .user,\n        suspended: false,\n        listTags: [\"example\"],\n        chatIds: [123],\n        customProperties: [UserCreateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    ),\n    skipEmailNotify: true\n)\nlet response = try await client.users.createUser(body: body)",
+    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
       "UserCreateRequestUser",
-      "UserRoleInput"
+      "UserCreateRole"
     ]
   },
   "UserOperations_updateUser": {
     "usage": "let body = UserUpdateRequest(\n    user: UserUpdateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegpetrov@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Отдел разработки\",\n        title: \"Старший разработчик\",\n        role: .user,\n        suspended: false,\n        listTags: [\"example\"],\n        customProperties: [UserUpdateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    )\n)\nlet response = try await client.users.updateUser(id: 12, body: body)",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)",
+    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)",
     "imports": [
       "UserRoleInput",
       "UserUpdateRequest",
       "UserUpdateRequestCustomProperty",
       "UserUpdateRequestUser"
     ]
+  },
+  "UserAvatarOperations_updateUserAvatar": {
+    "usage": "let image = Data()\nlet response = try await client.users.updateUserAvatar(userId: 12, image: image)",
+    "output": "AvatarData(imageUrl: String)"
   },
   "UserStatusOperations_updateUserStatus": {
     "usage": "let body = StatusUpdateRequest(\n    status: StatusUpdateRequestStatus(\n        emoji: \"🎮\",\n        title: \"Очень занят\",\n        expiresAt: \"2024-04-08T10:00:00.000Z\",\n        isAway: true,\n        awayMessage: \"Вернусь после 15:00\"\n    )\n)\nlet response = try await client.users.updateUserStatus(userId: 12, body: body)",
@@ -351,6 +365,9 @@
   },
   "UserOperations_deleteUser": {
     "usage": "try await client.users.deleteUser(id: 12)"
+  },
+  "UserAvatarOperations_deleteUserAvatar": {
+    "usage": "try await client.users.deleteUserAvatar(userId: 12)"
   },
   "UserStatusOperations_deleteUserStatus": {
     "usage": "try await client.users.deleteUserStatus(userId: 12)"

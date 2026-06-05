@@ -20,16 +20,16 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands via `npx @pachca/cli` with the `--token` flag:
+Run commands via `npx -y @pachca/cli` with the `--token` flag:
 
-    npx @pachca/cli <command> --token $PACHCA_TOKEN
+    npx -y @pachca/cli <command> --token $PACHCA_TOKEN
 
 Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
-    npx @pachca/cli <command>
+    npx -y @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
+Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
@@ -37,13 +37,13 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 1. If the user has a saved profile — check:
 
-       npx @pachca/cli auth status
+       npx -y @pachca/cli auth status
 
    If OK — run commands without `--token`.
 
 2. If no profile is configured — ask for a token and use `--token`:
 
-       npx @pachca/cli auth status --token $PACHCA_TOKEN
+       npx -y @pachca/cli auth status --token $PACHCA_TOKEN
 
 3. If you don't know the parameters — run `pachca <command> --help`.
 
@@ -78,6 +78,23 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
    ```
 
 > Создание доступно только администраторам и владельцам (не ботам). Нет отдельного эндпоинта "добавить юзера в тег".
+
+
+### Создать гостя в чат
+
+1. Выбери активный чат, в который добавить гостя — узнай его ID:
+   ```bash
+   pachca chats list
+   ```
+   > Чат должен быть активным (не архивным) и принадлежать вашей компании. У токена должно быть право добавлять в него участников.
+
+2. Создай гостя: роль `guest` и ровно один чат в `--chat-ids`:
+   ```bash
+   pachca users create --email="guest@example.com" --role=guest --chat-ids='[12345]'
+   ```
+   > Для роли `guest` `chat_ids` обязателен и должен содержать ровно один чат. Нарушение (не передан, пусто, больше одного, чат не существует, архивный или нет прав) → `400` с элементом `errors`, где `key` — `chat_ids`.
+
+> Для остальных ролей `chat_ids` опционален — можно сразу добавить в несколько чатов. Создание доступно только администраторам и владельцам (не ботам).
 
 
 ### Найти сотрудника по имени или email
@@ -158,10 +175,28 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
    ```
 
 
+### Загрузить аватар сотрудника
+
+1. Загрузи аватар сотруднику:
+   ```bash
+   pachca users update-avatar <user_id> --file=<путь_к_файлу>
+   ```
+   > Требует прав администратора. Файл передается в формате multipart/form-data
+
+
+### Удалить аватар сотрудника
+
+1. Удали аватар сотрудника:
+   ```bash
+   pachca users remove-avatar <user_id> --force
+   ```
+   > Требует прав администратора
+
+
 ## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
-- `user.role`: allowed values — `admin` (Администратор), `user` (Сотрудник), `multi_guest` (Мульти-гость)
+- `user.role`: allowed values — `admin` (Администратор), `user` (Сотрудник), `multi_guest` (Мульти-гость), `guest` (Гость)
 - `status.away_message`: max 1024 characters
 - `limit`: max 50
 - Pagination: cursor-based (limit + cursor)
@@ -181,6 +216,8 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 | GET | /users/{id} | Информация о сотруднике |
 | PUT | /users/{id} | Редактирование сотрудника |
 | DELETE | /users/{id} | Удаление сотрудника |
+| PUT | /users/{user_id}/avatar | Загрузка аватара сотрудника |
+| DELETE | /users/{user_id}/avatar | Удаление аватара сотрудника |
 | GET | /users/{user_id}/status | Статус сотрудника |
 | PUT | /users/{user_id}/status | Новый статус сотрудника |
 | DELETE | /users/{user_id}/status | Удаление статуса сотрудника |

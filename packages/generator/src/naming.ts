@@ -47,6 +47,16 @@ export function tagToServiceName(tag: string): string {
   return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('') + 'Service';
 }
 
+/** Service class name → implementation class name: "ChatsService" → "ChatsServiceImpl" */
+export function serviceToImplName(serviceName: string): string {
+  return `${serviceName}Impl`;
+}
+
+/** Service class name → stub class name: "ChatsService" → "ChatsServiceStub" */
+export function serviceToStubName(serviceName: string): string {
+  return `${serviceName}Stub`;
+}
+
 /** "ChatOperations_listChats" → "listChats" */
 export function operationIdToMethod(operationId: string): string {
   const parts = operationId.split('_');

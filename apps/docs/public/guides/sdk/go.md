@@ -1,3 +1,7 @@
+> Расположение: SDK
+> Краткое содержание: Типизированный клиент для Pachca API на Go: синхронный, с context.Context, автопагинацией и обработкой retry. Установка через go get, требуется Go 1.24+
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
+
 
 # Go
 
@@ -34,7 +38,7 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Получение профиля
 response, err := client.Profile.GetProfile(ctx)
-// → User{ID: int32, FirstName: string, LastName: string, Nickname: string, Email: string, PhoneNumber: string, Department: string, Title: string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: string, TimeZone: string, ImageURL: *string}
+// → User{ID: int32, FirstName: string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}
 ```
 
 
@@ -76,15 +80,19 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Profile.GetTokenInfo()` | [Информация о токене](/api/profile/get-info) |
 | `client.Profile.GetProfile()` | [Информация о профиле](/api/profile/get) |
 | `client.Profile.GetStatus()` | [Текущий статус](/api/profile/get-status) |
+| `client.Profile.UpdateProfileAvatar()` | [Загрузка аватара](/api/profile/update-avatar) |
 | `client.Profile.UpdateStatus()` | [Новый статус](/api/profile/update-status) |
+| `client.Profile.DeleteProfileAvatar()` | [Удаление аватара](/api/profile/delete-avatar) |
 | `client.Profile.DeleteStatus()` | [Удаление статуса](/api/profile/delete-status) |
 | `client.Users.CreateUser()` | [Создать сотрудника](/api/users/create) |
 | `client.Users.ListUsers()` | [Список сотрудников](/api/users/list) |
 | `client.Users.GetUser()` | [Информация о сотруднике](/api/users/get) |
 | `client.Users.GetUserStatus()` | [Статус сотрудника](/api/users/get-status) |
 | `client.Users.UpdateUser()` | [Редактирование сотрудника](/api/users/update) |
+| `client.Users.UpdateUserAvatar()` | [Загрузка аватара сотрудника](/api/users/update-avatar) |
 | `client.Users.UpdateUserStatus()` | [Новый статус сотрудника](/api/users/update-status) |
 | `client.Users.DeleteUser()` | [Удаление сотрудника](/api/users/delete) |
+| `client.Users.DeleteUserAvatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.Users.DeleteUserStatus()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.GroupTags.CreateTag()` | [Новый тег](/api/group-tags/create) |
 | `client.GroupTags.ListTags()` | [Список тегов сотрудников](/api/group-tags/list) |
@@ -106,6 +114,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Members.LeaveChat()` | [Выход из беседы или канала](/api/members/leave) |
 | `client.Members.RemoveMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.Threads.CreateThread()` | [Новый тред](/api/threads/add) |
+| `client.Threads.ListThreads()` | [Список тредов](/api/threads/list) |
 | `client.Threads.GetThread()` | [Информация о треде](/api/threads/get) |
 | `client.Messages.CreateMessage()` | [Новое сообщение](/api/messages/create) |
 | `client.Messages.PinMessage()` | [Закрепление сообщения](/api/messages/pin) |
@@ -145,7 +154,8 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Список чатов
 params := &ListChatsParams{
-	SortID: Ptr(SortOrderDesc),
+	Sort: Ptr(ChatSortFieldID),
+	Order: Ptr(SortOrderDesc),
 	Availability: Ptr(ChatAvailabilityIsMember),
 	LastMessageAtAfter: Ptr("2025-01-01T00:00:00.000Z"),
 	LastMessageAtBefore: Ptr("2025-02-01T00:00:00.000Z"),
@@ -154,7 +164,7 @@ params := &ListChatsParams{
 	Cursor: Ptr("eyJpZCI6MTAsImRpciI6ImFzYyJ9"),
 }
 response, err := client.Chats.ListChats(ctx, params)
-// → ListChatsResponse{Data: []Chat, Meta: *PaginationMeta}
+// → ListChatsResponse{Data: []Chat, Meta: PaginationMeta}
 ```
 
 
@@ -204,13 +214,19 @@ request := pachca.ChatUpdateRequest{
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `Meta.Paginate.NextPage` — курсор для следующей страницы.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `Meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.Users.ListUsers()`, `client.Chats.ListChats()`, `client.Messages.ListChatMessages()` и т.д.) — `Meta.Paginate` с полями `NextPage`, `PrevPage`, `HasNext`, `HasPrev`. Признак конца — `HasNext == false`. Курсор `PrevPage` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.Search.SearchUsers()`, `client.Search.SearchChats()`, `client.Search.SearchMessages()`) — `Meta` с полями `Total` и `Paginate.NextPage` (без `PrevPage`/`HasNext`/`HasPrev`). Признак конца — пустой `Data` или совпадение числа полученных записей с `Total`.
+
+Курсоры — непрозрачные токены, никогда не бывают пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```go
 var cursor *string
-for {
+hasNext := true
+for hasNext {
     params := &pachca.ListUsersParams{Limit: pachca.Ptr(int32(50)), Cursor: cursor}
     response, err := client.Users.ListUsers(ctx, params)
     if err != nil {
@@ -219,10 +235,9 @@ for {
     for _, user := range response.Data {
         fmt.Println(user.FirstName, user.LastName)
     }
-    if response.Meta == nil || response.Meta.Paginate == nil || response.Meta.Paginate.NextPage == nil {
-        break
-    }
-    cursor = response.Meta.Paginate.NextPage
+    nextPage := response.Meta.Paginate.NextPage
+    cursor = &nextPage
+    hasNext = response.Meta.Paginate.HasNext
 }
 ```
 
@@ -305,12 +320,13 @@ if err != nil {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Тело запроса пересоздаётся через `req.GetBody()` при каждой попытке
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Типы
 
@@ -383,7 +399,7 @@ params := &ListUsersParams{
 	Cursor: Ptr("eyJpZCI6MTAsImRpciI6ImFzYyJ9"),
 }
 response, err := client.Users.ListUsers(ctx, params)
-// → ListUsersResponse{Data: []User, Meta: *PaginationMeta}
+// → ListUsersResponse{Data: []User, Meta: PaginationMeta}
 
 // Создание задачи
 request := TaskCreateRequest{
@@ -406,3 +422,10 @@ response, err := client.Tasks.CreateTask(ctx, request)
 ```
 
 
+
+
+## Связанные разделы
+
+- [SDK](/guides/sdk/overview)
+- [Авторизация](/api/authorization)
+- [Пагинация](/api/pagination)

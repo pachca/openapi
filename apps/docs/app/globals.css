@@ -5,6 +5,7 @@
   /* Primary — warm orange (Pachca brand), AA-compliant white text (4.82:1) */
   --color-primary: oklch(48% 0.17 50);
   --color-primary-dark: oklch(42% 0.17 50);
+  --color-primary-inverted: oklch(72% 0.15 50);
 
   /* Text — 4-level hierarchy, warm stone neutrals */
   --color-text-primary: oklch(20% 0.01 70);
@@ -38,6 +39,7 @@
   --color-callout-tip-text: var(--color-accent-green);
 
   --color-method-get: oklch(60.2% 0.193 263);
+  --color-method-get-inverted: oklch(66% 0.193 263);
   --color-method-post: oklch(63.8% 0.142 143.5);
   --color-method-put: oklch(55.4% 0.116 77);
   --color-method-delete: oklch(63.9% 0.179 28);
@@ -53,19 +55,27 @@
   --color-glass-active: oklch(0% 0 0 / 10%);
 
   --boxed-header-height: 40px;
-  --mobile-header-height: 56px;
-  --mobile-nav-height: 0px;
-  --scroll-offset: calc(var(--mobile-header-height) + var(--mobile-nav-height) + 24px);
 
-  /* Font Families — sans is set by next/font on <html>, mono is for code blocks */
-  --font-mono:
-    'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  /* Font Families — sans is set by next/font on <html>, mono is set via --font-mono CSS variable from next/font (JetBrains Mono) */
 }
 
-@media (max-width: 1023px) {
-  :root {
-    --mobile-nav-height: 41px;
-  }
+/* Header layout metrics — in :root (not @theme) so they're always emitted as
+   CSS custom properties, same reasoning as the category colors below.
+   The fixed top bar's bottom edge is the same at every width: a logo row plus a
+   second row (desktop tab links / mobile breadcrumb) that net to the same
+   height once borders are counted. --header-height is the single offset for
+   everything below the header (content padding, scroll-margin, sticky tops);
+   the row vars only size the individual rows. */
+:root {
+  --logo-row-height: 56px; /* top row (logo + search) — present at all widths */
+  --header-tabs-height: 40px; /* desktop-only second row (tab links) */
+  --mobile-nav-height: 41px; /* mobile-only second row (breadcrumb) */
+  /* Constant header bottom at every width = logo row (56) + second row (40 tab
+     links + the header's 1px border, or the 41px breadcrumb) = 97px. Kept as a
+     plain literal (not calc) so getScrollOffset() can parseInt it in JS —
+     getComputedStyle returns custom properties unresolved. */
+  --header-height: 97px;
+  --scroll-offset: calc(var(--header-height) + 24px);
 }
 
 /* Category badge colors — outside @theme so they're always emitted as CSS vars */
@@ -85,6 +95,7 @@ html.dark {
   /* Primary — lighter warm orange for dark mode, desaturated */
   --color-primary: oklch(72% 0.15 50);
   --color-primary-dark: oklch(78% 0.13 50);
+  --color-primary-inverted: oklch(48% 0.17 50);
 
   /* Text — warm off-white, clear 3-level separation */
   --color-text-primary: oklch(93% 0.007 70);
@@ -128,6 +139,7 @@ html.dark {
 
   /* HTTP methods — lighter for dark mode readability */
   --color-method-get: oklch(66% 0.193 263);
+  --color-method-get-inverted: oklch(60.2% 0.193 263);
   --color-method-post: oklch(68% 0.142 143.5);
   --color-method-put: oklch(68% 0.116 77);
   --color-method-delete: oklch(67.1% 0.145 17);
@@ -149,6 +161,7 @@ html.dark {
   html:not(.light):not(.dark) {
     --color-primary: oklch(72% 0.15 50);
     --color-primary-dark: oklch(78% 0.13 50);
+    --color-primary-inverted: oklch(48% 0.17 50);
 
     --color-text-primary: oklch(93% 0.007 70);
     --color-text-secondary: oklch(70% 0.012 70);
@@ -187,6 +200,7 @@ html.dark {
     --color-glass-active: oklch(100% 0 0 / 12%);
 
     --color-method-get: oklch(66% 0.193 263);
+    --color-method-get-inverted: oklch(60.2% 0.193 263);
     --color-method-post: oklch(68% 0.142 143.5);
     --color-method-put: oklch(68% 0.116 77);
     --color-method-delete: oklch(67.1% 0.145 17);
@@ -365,7 +379,7 @@ a:focus:not(:focus-visible) {
 }
 
 .prose code:not(pre code) {
-  @apply bg-glass text-text-primary px-1.5 py-0.5 rounded-md text-[13px] font-mono font-medium border border-glass-border whitespace-nowrap;
+  @apply bg-glass text-text-primary px-1.5 py-0.5 rounded-md text-[13px] font-mono font-normal border border-glass-border whitespace-nowrap;
 }
 
 .prose table {
@@ -378,6 +392,21 @@ a:focus:not(:focus-visible) {
 
 .prose td {
   @apply py-3 px-4 border-b border-background-border text-sm text-text-primary;
+}
+
+/* Таблица параметров: фиксированные ширины первых двух колонок */
+.params-table table {
+  table-layout: fixed;
+}
+
+.params-table table th:nth-child(1),
+.params-table table td:nth-child(1) {
+  width: 200px;
+}
+
+.params-table table th:nth-child(2),
+.params-table table td:nth-child(2) {
+  width: 120px;
 }
 
 /* Code Block Styling */

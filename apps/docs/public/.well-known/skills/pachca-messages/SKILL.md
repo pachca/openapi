@@ -21,16 +21,16 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands via `npx @pachca/cli` with the `--token` flag:
+Run commands via `npx -y @pachca/cli` with the `--token` flag:
 
-    npx @pachca/cli <command> --token $PACHCA_TOKEN
+    npx -y @pachca/cli <command> --token $PACHCA_TOKEN
 
 Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
-    npx @pachca/cli <command>
+    npx -y @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
+Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
@@ -38,13 +38,13 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 1. If the user has a saved profile — check:
 
-       npx @pachca/cli auth status
+       npx -y @pachca/cli auth status
 
    If OK — run commands without `--token`.
 
 2. If no profile is configured — ask for a token and use `--token`:
 
-       npx @pachca/cli auth status --token $PACHCA_TOKEN
+       npx -y @pachca/cli auth status --token $PACHCA_TOKEN
 
 3. If you don't know the parameters — run `pachca <command> --help`.
 
@@ -268,7 +268,7 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 - `message.entity_type`: allowed values — `discussion` (Беседа или канал), `thread` (Тред), `user` (Пользователь)
 - `message.display_avatar_url`: max 255 characters
 - `message.display_name`: max 255 characters
-- `limit`: max — 50 (GET /messages), 50 (GET /messages/{id}/reactions), 300 (GET /messages/{id}/read_member_ids)
+- `limit`: max — 50 (GET /messages), 50 (GET /messages/{id}/reactions), 300 (GET /messages/{id}/read_member_ids), 50 (GET /threads)
 - Pagination: cursor-based (limit + cursor)
 
 ## Endpoints
@@ -288,6 +288,7 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 | GET | /messages/{id}/reactions | Список реакций |
 | GET | /messages/{id}/read_member_ids | Список прочитавших сообщение |
 | POST | /messages/{id}/thread | Новый тред |
+| GET | /threads | Список тредов |
 | GET | /threads/{id} | Информация о треде |
 | POST | /uploads | Получение подписи, ключа и других параметров |
 
@@ -296,6 +297,7 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 For advanced workflows, read the files in references/:
   references/reply-to-user-who-messaged-the-bot.md — Reply to user who messaged the bot
   references/send-message-with-files.md — Send message with files
-  references/mention-user-by-name.md — Mention user by name
+  references/list-active-threads-in-a-time-window.md — List active threads in a time window
+  references/mention-user.md — Mention user
 
 > If unsure how to complete a task, read the corresponding file from references/.

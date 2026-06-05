@@ -1,1 +1,1 @@
-import { Category, TreeNode } from "./types";
+import { Category, TreeNode } from "./types.js";

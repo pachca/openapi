@@ -6,14 +6,46 @@ import {
   ApiError,
   ChatCreateRequest,
   ChatUpdateRequest,
-} from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+} from "./types.js";
+import { deserialize, serialize, fetchWithRetry } from "./utils.js";
 
-class ChatsService {
+export class ChatsService {
+  async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
+    throw new Error("Chats.listChats is not implemented");
+  }
+
+  async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
+    throw new Error("Chats.listChatsAll is not implemented");
+  }
+
+  async getChat(id: number): Promise<Chat> {
+    throw new Error("Chats.getChat is not implemented");
+  }
+
+  async createChat(request: ChatCreateRequest): Promise<Chat> {
+    throw new Error("Chats.createChat is not implemented");
+  }
+
+  async updateChat(id: number, request: ChatUpdateRequest): Promise<Chat> {
+    throw new Error("Chats.updateChat is not implemented");
+  }
+
+  async archiveChat(id: number): Promise<void> {
+    throw new Error("Chats.archiveChat is not implemented");
+  }
+
+  async deleteChat(id: number): Promise<void> {
+    throw new Error("Chats.deleteChat is not implemented");
+  }
+}
+
+export class ChatsServiceImpl extends ChatsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
     const query = new URLSearchParams();
@@ -40,11 +72,14 @@ class ChatsService {
   async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
     const items: Chat[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listChats({ ...params, cursor } as ListChatsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta?.paginate.nextPage;
+      hasNext = response.meta?.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -128,11 +163,30 @@ class ChatsService {
   }
 }
 
+export const PACHCA_API_URL = "https://api.pachca.com/api/shared/v1";
+
 export class PachcaClient {
   readonly chats: ChatsService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.chats = new ChatsService(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; chats?: ChatsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; chats?: ChatsService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? PACHCA_API_URL;
+      this.chats = new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? PACHCA_API_URL;
+      this.chats = tokenOrConfig.chats ?? new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
+  }
+
+  static stub(overrides: { chats?: ChatsService } = {}): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.chats = overrides.chats ?? new ChatsService();
+    return client;
   }
 }

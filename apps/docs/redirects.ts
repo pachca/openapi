@@ -5,6 +5,10 @@ type Redirect = {
 };
 
 const redirects: Redirect[] = [
+  // ===== Корни разделов → стартовые страницы (иначе 404) =====
+  { source: '/api', destination: '/api/authorization', permanent: false },
+  { source: '/guides', destination: '/guides/quickstart', permanent: false },
+
   // ===== Guides → Standalone (temporary to avoid browser 308 cache issues) =====
   { source: '/guides/updates', destination: '/updates', permanent: false },
   { source: '/guides/updates.md', destination: '/updates.md', permanent: false },
@@ -13,6 +17,16 @@ const redirects: Redirect[] = [
   // ===== Guides: accordion parent → first child =====
   { source: '/guides/forms', destination: '/guides/forms/overview' },
   { source: '/guides/forms.md', destination: '/guides/forms/overview.md' },
+  { source: '/guides/n8n', destination: '/guides/n8n/overview' },
+  { source: '/guides/n8n.md', destination: '/guides/n8n/overview.md' },
+  { source: '/guides/cli', destination: '/guides/cli/overview' },
+  { source: '/guides/cli.md', destination: '/guides/cli/overview.md' },
+  { source: '/guides/ai-agents', destination: '/guides/ai-agents/overview' },
+  { source: '/guides/ai-agents.md', destination: '/guides/ai-agents/overview.md' },
+  { source: '/guides/bots', destination: '/guides/bots/overview' },
+  { source: '/guides/bots.md', destination: '/guides/bots/overview.md' },
+  { source: '/guides/webhook', destination: '/guides/webhook/overview' },
+  { source: '/guides/webhook.md', destination: '/guides/webhook/overview.md' },
 
   // ===== SDK → Guides =====
   { source: '/api/sdk', destination: '/guides/sdk/overview' },

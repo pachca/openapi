@@ -1,0 +1,70 @@
+---
+title: Авторизация
+description: "Авторизация Pachca CLI: профили для нескольких токенов, приоритет источников токена, headless-режим для CI и агентов."
+related:
+  - /guides/cli/installation
+  - /guides/cli/scripting
+  - /api/authorization
+---
+
+# Авторизация
+
+Для работы CLI нужен API-токен Пачки. Получить его можно в интерфейсе: **Настройки** > **Автоматизации** > **API**. Типы токенов (персональный и бота), скоупы и настройка доступа описаны в руководстве [Авторизация](/api/authorization). Ниже — как передать токен в CLI: профили, приоритет источников, headless-режим для CI и агентов.
+
+## Профили
+
+CLI поддерживает несколько профилей — удобно, если вы работаете с персональным токеном и токенами ботов одновременно:
+
+```bash
+# Добавить профили
+pachca auth login --profile personal
+pachca auth login --profile bot-notify
+
+# Для CI — передайте токен через флаг
+pachca auth login --profile bot-notify --token YOUR_ACCESS_TOKEN
+
+# Список профилей
+pachca auth list
+
+# Переключить активный профиль
+pachca auth switch bot-notify
+
+# Статус текущего профиля
+pachca auth status
+
+# Удалить профиль
+pachca auth logout bot-notify
+```
+
+Токены хранятся в `~/.config/pachca/config.toml` с правами `chmod 600`.
+
+## Приоритет токена
+
+При выполнении команды CLI определяет токен в следующем порядке:
+
+1. Флаг `--token` — разовое использование, без сохранения
+2. Переменная `PACHCA_TOKEN` — удобно для CI
+3. Флаг `--profile` или переменная `PACHCA_PROFILE` — конкретный профиль
+4. Активный профиль — выбранный через `pachca auth switch`
+
+```bash
+# Токен через флаг (разово, без сохранения)
+pachca users list --token YOUR_ACCESS_TOKEN
+
+# Токен через переменную окружения (CI)
+PACHCA_TOKEN=YOUR_ACCESS_TOKEN pachca users list
+
+# Конкретный профиль для одной команды
+pachca messages create --profile bot-notify --entity-id 123 --content "Уведомление"
+```
+
+## CI и агенты (headless)
+
+**Если вы в терминале** — `pachca auth login` сохраняет токен в профиль один раз, дальше команды работают без флагов.
+
+**Если подключаете агента или настраиваете CI** — не сохраняйте токен в файл: передавайте `PACHCA_TOKEN` через переменную окружения (или `--token` для разового вызова). Это headless-путь: ничего не пишется на диск, токен берётся из секретов CI/агента. Не коммитьте токен в репозиторий.
+
+```bash
+# CI: токен из секрета, неинтерактивный режим
+PACHCA_TOKEN=$PACHCA_SECRET pachca messages create --entity-id 123 --content "Деплой завершён" --no-input
+```

@@ -24,6 +24,12 @@ export interface ConfigData {
 const CONFIG_FILENAME = 'config.toml';
 
 function getConfigDir(): string {
+  // C8 — explicit override (highest priority). Guarded: when PACHCA_HOME is
+  // unset the path is byte-identical to before, so existing behavior is
+  // preserved. Useful for isolating config in CI/tests/agents.
+  if (process.env.PACHCA_HOME) {
+    return path.join(process.env.PACHCA_HOME, 'pachca');
+  }
   // XDG_CONFIG_HOME on Unix, LOCALAPPDATA on Windows
   if (process.env.XDG_CONFIG_HOME) {
     return path.join(process.env.XDG_CONFIG_HOME, 'pachca');

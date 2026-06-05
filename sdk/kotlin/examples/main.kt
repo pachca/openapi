@@ -28,6 +28,11 @@ fun main() = runBlocking {
 
     val client = PachcaClient(token)
 
+    // ── Step 0: GET — Fetch chat (verifies datetime deserialization) ─
+    println("0. Fetching chat...")
+    val chat = client.chats.getChat(chatId)
+    println("   Chat: ${chat.name}, createdAt=${chat.createdAt} (${chat.createdAt::class.simpleName}), lastMessageAt=${chat.lastMessageAt} (${chat.lastMessageAt::class.simpleName})")
+
     // ── Step 1: POST — Create a message ──────────────────────────────
     println("1. Creating message...")
     val created = client.messages.createMessage(

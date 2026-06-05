@@ -1,3 +1,7 @@
+> Расположение: SDK
+> Краткое содержание: Асинхронный типизированный клиент для Pachca API на Python: httpx, type hints, dataclass-модели, автопагинация и retry. PyPI-пакет, требуется Python 3.10+
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
+
 
 # Python
 
@@ -32,7 +36,7 @@ client = PachcaClient("YOUR_TOKEN")
 ```python
 # Получение профиля
 response = await client.profile.get_profile()
-# → User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: str | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: str, last_activity_at: str, time_zone: str, image_url: str | None)
+# → User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
 ```
 
 
@@ -74,15 +78,19 @@ await client.close()
 | `client.profile.get_token_info()` | [Информация о токене](/api/profile/get-info) |
 | `client.profile.get_profile()` | [Информация о профиле](/api/profile/get) |
 | `client.profile.get_status()` | [Текущий статус](/api/profile/get-status) |
+| `client.profile.update_profile_avatar()` | [Загрузка аватара](/api/profile/update-avatar) |
 | `client.profile.update_status()` | [Новый статус](/api/profile/update-status) |
+| `client.profile.delete_profile_avatar()` | [Удаление аватара](/api/profile/delete-avatar) |
 | `client.profile.delete_status()` | [Удаление статуса](/api/profile/delete-status) |
 | `client.users.create_user()` | [Создать сотрудника](/api/users/create) |
 | `client.users.list_users()` | [Список сотрудников](/api/users/list) |
 | `client.users.get_user()` | [Информация о сотруднике](/api/users/get) |
 | `client.users.get_user_status()` | [Статус сотрудника](/api/users/get-status) |
 | `client.users.update_user()` | [Редактирование сотрудника](/api/users/update) |
+| `client.users.update_user_avatar()` | [Загрузка аватара сотрудника](/api/users/update-avatar) |
 | `client.users.update_user_status()` | [Новый статус сотрудника](/api/users/update-status) |
 | `client.users.delete_user()` | [Удаление сотрудника](/api/users/delete) |
+| `client.users.delete_user_avatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.users.delete_user_status()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.group_tags.create_tag()` | [Новый тег](/api/group-tags/create) |
 | `client.group_tags.list_tags()` | [Список тегов сотрудников](/api/group-tags/list) |
@@ -104,6 +112,7 @@ await client.close()
 | `client.members.leave_chat()` | [Выход из беседы или канала](/api/members/leave) |
 | `client.members.remove_member()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.create_thread()` | [Новый тред](/api/threads/add) |
+| `client.threads.list_threads()` | [Список тредов](/api/threads/list) |
 | `client.threads.get_thread()` | [Информация о треде](/api/threads/get) |
 | `client.messages.create_message()` | [Новое сообщение](/api/messages/create) |
 | `client.messages.pin_message()` | [Закрепление сообщения](/api/messages/pin) |
@@ -139,20 +148,21 @@ await client.close()
 **GET с параметрами:**
 
 ```python
-from pachca.models import ChatAvailability, ListChatsParams, SortOrder
+from pachca.models import ChatAvailability, ChatSortField, ListChatsParams, SortOrder
 
 # Список чатов
 params = ListChatsParams(
-    sort_id=SortOrder.DESC,
+    sort=ChatSortField.ID,
+    order=SortOrder.DESC,
     availability=ChatAvailability.IS_MEMBER,
-    last_message_at_after="2025-01-01T00:00:00.000Z",
-    last_message_at_before="2025-02-01T00:00:00.000Z",
+    last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
+    last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
     personal=False,
     limit=1,
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
 )
 response = await client.chats.list_chats(params=params)
-# → ListChatsResponse(data: list[Chat], meta: PaginationMeta | None)
+# → ListChatsResponse(data: list[Chat], meta: PaginationMeta)
 ```
 
 
@@ -172,7 +182,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → Chat(id: int, name: str, created_at: str, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: str, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 
@@ -181,13 +191,18 @@ response = await client.chats.create_chat(request=request)
 ```python
 # Получение чата
 response = await client.chats.get_chat(id=334)
-# → Chat(id: int, name: str, created_at: str, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: str, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta.paginate.next_page` — курсор для следующей страницы.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.users.list_users()`, `client.chats.list_chats()`, `client.messages.list_chat_messages()` и т.д.) — `meta.paginate` с полями `next_page`, `prev_page`, `has_next`, `has_prev`. Признак конца — `has_next == False`. Курсор `prev_page` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.search.search_users()`, `client.search.search_chats()`, `client.search.search_messages()`) — `meta` с полями `total` и `paginate.next_page` (без `prev_page`/`has_next`/`has_prev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
+
+Курсоры — непрозрачные токены, никогда не бывают `None`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -195,13 +210,13 @@ response = await client.chats.get_chat(id=334)
 from pachca.models import ListUsersParams
 
 cursor = None
-while True:
+has_next = True
+while has_next:
     response = await client.users.list_users(ListUsersParams(limit=50, cursor=cursor))
     for user in response.data:
         print(user.first_name, user.last_name)
-    if not response.meta or not response.meta.paginate or not response.meta.paginate.next_page:
-        break
     cursor = response.meta.paginate.next_page
+    has_next = response.meta.paginate.has_next
 ```
 
 ### Автопагинация
@@ -277,12 +292,13 @@ except OAuthError as error:
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Реализовано через `RetryTransport` — обёртку над httpx-транспортом
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Типы
 
@@ -352,7 +368,7 @@ request = MessageCreateRequest(
     link_preview=False
 )
 response = await client.messages.create_message(request=request)
-# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: str, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: str, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: str | None, deleted_at: str | None)
+# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)
 
 # Список сотрудников
 params = ListUsersParams(
@@ -361,14 +377,14 @@ params = ListUsersParams(
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
 )
 response = await client.users.list_users(params=params)
-# → ListUsersResponse(data: list[User], meta: PaginationMeta | None)
+# → ListUsersResponse(data: list[User], meta: PaginationMeta)
 
 # Создание задачи
 request = TaskCreateRequest(
     task=TaskCreateRequestTask(
         kind=TaskKind.REMINDER,
         content="Забрать со склада 21 заказ",
-        due_at="2020-06-05T12:00:00.000+03:00",
+        due_at=datetime.fromisoformat("2020-06-05T12:00:00.000+03:00"),
         priority=2,
         performer_ids=[123],
         chat_id=456,
@@ -377,7 +393,14 @@ request = TaskCreateRequest(
     )
 )
 response = await client.tasks.create_task(request=request)
-# → Task(id: int, kind: TaskKind, content: str, due_at: str | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: str, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
+# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
 ```
 
 
+
+
+## Связанные разделы
+
+- [SDK](/guides/sdk/overview)
+- [Авторизация](/api/authorization)
+- [Пагинация](/api/pagination)

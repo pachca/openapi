@@ -11,7 +11,7 @@ import {
   type IRUnion,
 } from '../ir.js';
 import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
-import { snakeToCamel, tagToProperty, tagToServiceName } from '../naming.js';
+import { snakeToCamel, tagToProperty, tagToServiceName, serviceToImplName } from '../naming.js';
 
 const SWIFT_KEYWORDS = new Set([
   'as', 'break', 'case', 'catch', 'class', 'continue', 'default', 'defer', 'do', 'else',
@@ -35,7 +35,6 @@ function swiftType(ft: IRFieldType, opts: { nullable?: boolean } = {}): string {
       else if (ft.primitive === 'number') base = 'Double';
       else if (ft.primitive === 'boolean') base = 'Bool';
       else if (ft.primitive === 'any') base = 'AnyCodable';
-      else if (ft.format === 'date' || ft.format === 'date-time') base = opts.nullable ? 'String' : 'Date';
       else base = 'String';
       break;
     case 'enum':
@@ -109,7 +108,7 @@ function isSelfReferencing(m: IRModel): boolean {
   return m.fields.some((f) => fieldRefsModel(f.type, m.name));
 }
 
-function emitModel(lines: string[], m: IRModel): void {
+function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
   const proto = m.isError ? 'Codable, Error' : 'Codable';
   const keyword = isSelfReferencing(m) ? 'class' : 'struct';
   lines.push(`public ${keyword} ${m.name}: ${proto} {`);
@@ -137,6 +136,32 @@ function emitModel(lines: string[], m: IRModel): void {
     lines.push(`        self.${fi.name} = ${fi.name}`);
   }
   lines.push('    }');
+
+  if (m.name === 'ApiError') {
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
+    if (hasMessage) {
+      lines.push('');
+      lines.push('    public var localizedDescription: String {');
+      lines.push('        guard !errors.isEmpty else { return "api error" }');
+      lines.push('        if errors.count == 1 { return errors[0].message }');
+      lines.push('        return "Errors: " + errors.map(\\.message).joined(separator: "; ")');
+      lines.push('    }');
+    }
+  }
+  if (m.name === 'OAuthError') {
+    const errField = m.fields.find((f) => f.name === 'error');
+    if (errField) {
+      lines.push('');
+      lines.push(`    public var localizedDescription: String { ${swiftIdentifier(errField.name)} }`);
+    }
+  }
+
   emitCodingKeys(lines, m.fields);
   lines.push('}');
 }
@@ -156,22 +181,42 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   } else {
     lines.push(`        case ${discSwiftName} = ${JSON.stringify(discField)}`);
   }
+  if (u.unionDeserializer === 'webhook-payload') {
+    lines.push('        case event');
+  }
   lines.push('    }');
   lines.push('');
   lines.push('    public init(from decoder: Decoder) throws {');
   lines.push('        let container = try decoder.container(keyedBy: CodingKeys.self)');
   lines.push(`        let type = try container.decode(String.self, forKey: .${discSwiftName})`);
-  lines.push('        switch type {');
-  const seenDiscs = new Set<string>();
-  for (const ref of u.memberRefs) {
-    const c = ref.charAt(0).toLowerCase() + ref.slice(1);
-    const model = models.find((m) => m.name === ref);
-    const typeField = model?.fields.find((f) => f.type.kind === 'literal');
-    const disc = typeField?.type.literalValue ?? c;
-    if (seenDiscs.has(String(disc))) continue;
-    seenDiscs.add(String(disc));
-    lines.push(`        case ${JSON.stringify(disc)}:`);
-    lines.push(`            self = .${c}(try ${ref}(from: decoder))`);
+  if (u.unionDeserializer === 'webhook-payload') {
+    lines.push('        let event = try? container.decode(String.self, forKey: .event)');
+    lines.push('        switch (type, event) {');
+    lines.push('        case ("message", "link_shared"):');
+    lines.push('            self = .linkSharedWebhookPayload(try LinkSharedWebhookPayload(from: decoder))');
+    lines.push('        case ("message", _):');
+    lines.push('            self = .messageWebhookPayload(try MessageWebhookPayload(from: decoder))');
+    for (const ref of u.memberRefs.filter((ref) => ref !== 'MessageWebhookPayload' && ref !== 'LinkSharedWebhookPayload')) {
+      const c = ref.charAt(0).toLowerCase() + ref.slice(1);
+      const model = models.find((m) => m.name === ref);
+      const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+      const disc = typeField?.type.literalValue ?? c;
+      lines.push(`        case (${JSON.stringify(disc)}, _):`);
+      lines.push(`            self = .${c}(try ${ref}(from: decoder))`);
+    }
+  } else {
+    lines.push('        switch type {');
+    const seenDiscs = new Set<string>();
+    for (const ref of u.memberRefs) {
+      const c = ref.charAt(0).toLowerCase() + ref.slice(1);
+      const model = models.find((m) => m.name === ref);
+      const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+      const disc = typeField?.type.literalValue ?? c;
+      if (seenDiscs.has(String(disc))) continue;
+      seenDiscs.add(String(disc));
+      lines.push(`        case ${JSON.stringify(disc)}:`);
+      lines.push(`            self = .${c}(try ${ref}(from: decoder))`);
+    }
   }
   lines.push('        default:');
   lines.push('            throw DecodingError.dataCorrupted(');
@@ -211,10 +256,10 @@ function generateModels(ir: IR): string {
   }
   for (const m of ir.models) {
     for (const inl of m.inlineObjects) {
-      emitModel(lines, inl);
+      emitModel(lines, inl, ir.models);
       lines.push('');
     }
-    emitModel(lines, m);
+    emitModel(lines, m, ir.models);
     lines.push('');
   }
   for (const u of ir.unions) {
@@ -249,13 +294,13 @@ function opReturn(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'String';
   if (!op.successResponse.hasBody) return 'Void';
   if (op.successResponse.isList) {
-    const rt = ir.responses.find((r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray);
+    const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return rt?.name ?? 'String';
   }
   return op.successResponse.dataRef ?? 'String';
 }
 
-function emitOperation(lines: string[], op: IROperation, ir: IR): void {
+function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'public func'): void {
   const args: string[] = [];
   if (op.externalUrl) {
     args.push(`${op.externalUrl}: String`);
@@ -276,20 +321,20 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   }
 
   if (op.deprecated) lines.push('    @available(*, deprecated)');
-  lines.push(`    public func ${op.methodName}(${args.join(', ')}) async throws -> ${opReturn(op, ir)} {`);
+  lines.push(`    ${fnPrefix} ${op.methodName}(${args.join(', ')}) async throws -> ${opReturn(op, ir)} {`);
   if (op.queryParams.length > 0) {
-    const swiftUrlBase = op.externalUrl ? `\\(${op.externalUrl})` : `\\(baseURL)${op.path}`;
+    let swiftUrlBase = op.externalUrl ? `\\(${op.externalUrl})` : `\\(baseURL)${op.path}`;
+    for (const p of op.pathParams) {
+      swiftUrlBase = swiftUrlBase.replace(`{${p.name}}`, `\\(${snakeToCamel(p.sdkName)})`);
+    }
     lines.push(`        var components = URLComponents(string: "${swiftUrlBase}")!`);
     lines.push('        var queryItems: [URLQueryItem] = []');
     for (const q of op.queryParams) {
       const n = snakeToCamel(q.sdkName);
       const isEnum = q.type.kind === 'enum';
-      const isDate = q.type.kind === 'primitive' && (q.type.format === 'date' || q.type.format === 'date-time');
       const isModel = q.type.kind === 'model' || q.type.kind === 'record';
       function valueExpr(varName: string): string {
         if (isEnum) return `${varName}.rawValue`;
-         if (isDate && q.required) return `ISO8601DateFormatter().string(from: ${varName})`;
-        if (isDate) return varName; // optional dates are typed as String
         if (isModel) return `String(data: try serialize(${varName}), encoding: .utf8)!`;
         return `String(${varName})`;
       }
@@ -330,7 +375,14 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push('        request.setValue("application/json", forHTTPHeaderField: "Content-Type")');
     if (shouldUnwrapBody(rb)) {
       const f = rb.unwrapField!;
-      lines.push(`        request.httpBody = try JSONSerialization.data(withJSONObject: [${JSON.stringify(f.name)}: ${swiftIdentifier(f.name)}])`);
+      const varName = swiftIdentifier(f.name);
+      let valueExpr = varName;
+      if (f.type.kind === 'enum') {
+        valueExpr = `${varName}.rawValue`;
+      } else if (f.type.kind === 'array' && f.type.items?.kind === 'enum') {
+        valueExpr = `${varName}.map { $0.rawValue }`;
+      }
+      lines.push(`        request.httpBody = try JSONSerialization.data(withJSONObject: [${JSON.stringify(f.name)}: ${valueExpr}])`);
     } else {
       lines.push('        request.httpBody = try serialize(body)');
     }
@@ -346,19 +398,22 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push('            data.append("\\(value)\\r\\n".data(using: .utf8)!)');
     lines.push('        }');
     const req = ir.models.find((m) => m.name === op.requestBody!.schemaRef);
+    const isUnwrapped = shouldUnwrapBody(op.requestBody!);
     if (req) {
       for (const f of req.fields.filter((x) => x.type.kind !== 'binary')) {
         const n = swiftIdentifier(f.name);
-        if (isOptionalField(f)) lines.push(`        if let v = body.${n} { appendField(${JSON.stringify(f.name)}, String(describing: v)) }`);
-        else lines.push(`        appendField(${JSON.stringify(f.name)}, String(describing: body.${n}))`);
+        const ref = isUnwrapped ? n : `body.${n}`;
+        if (isOptionalField(f)) lines.push(`        if let v = ${ref} { appendField(${JSON.stringify(f.name)}, String(describing: v)) }`);
+        else lines.push(`        appendField(${JSON.stringify(f.name)}, String(describing: ${ref}))`);
       }
       const bin = req.fields.find((x) => x.type.kind === 'binary');
       if (bin) {
         const n = swiftIdentifier(bin.name);
+        const binRef = isUnwrapped ? n : `body.${n}`;
         lines.push('        data.append("--\\(boundary)\\r\\n".data(using: .utf8)!)');
         lines.push(`        data.append("Content-Disposition: form-data; name=\\"${bin.name}\\"; filename=\\"upload\\"\\r\\n".data(using: .utf8)!)`);
         lines.push('        data.append("Content-Type: application/octet-stream\\r\\n\\r\\n".data(using: .utf8)!)');
-        lines.push(`        data.append(body.${n})`);
+        lines.push(`        data.append(${binRef})`);
         lines.push('        data.append("\\r\\n".data(using: .utf8)!)');
       }
     }
@@ -418,7 +473,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   lines.push('    }');
 }
 
-function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, fnPrefix = 'public func'): void {
   const itemType = op.successResponse.dataRef ?? 'Any';
 
   // Build params minus cursor
@@ -431,10 +486,9 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     args.push(`${snakeToCamel(q.sdkName)}: ${t}${q.required ? '' : ' = nil'}`);
   }
 
-  lines.push(`    public func ${op.methodName}All(${args.join(', ')}) async throws -> [${itemType}] {`);
+  lines.push(`    ${fnPrefix} ${op.methodName}All(${args.join(', ')}) async throws -> [${itemType}] {`);
   lines.push(`        var items: [${itemType}] = []`);
   lines.push('        var cursor: String? = nil');
-  lines.push('        repeat {');
 
   // Build call args for original method
   const callArgs: string[] = [];
@@ -452,11 +506,64 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     }
   }
 
-  lines.push(`            let response = try await ${op.methodName}(${callArgs.join(', ')})`);
-  lines.push('            items.append(contentsOf: response.data)');
-  lines.push('            cursor = response.meta?.paginate?.nextPage');
-  lines.push('        } while cursor != nil');
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const useHasNext = rt?.metaRef === 'PaginationMeta';
+
+  if (useHasNext) {
+    const cursorExpr = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate.nextPage';
+    const hasNextExpr = rt?.metaIsRequired ? 'response.meta.paginate.hasNext ?? true' : 'response.meta?.paginate.hasNext ?? true';
+    lines.push('        var hasNext = true');
+    lines.push('        while hasNext {');
+    lines.push(`            let response = try await ${op.methodName}(${callArgs.join(', ')})`);
+    lines.push('            items.append(contentsOf: response.data)');
+    lines.push('            if response.data.isEmpty { break }');
+    lines.push(`            cursor = ${cursorExpr}`);
+    lines.push(`            hasNext = ${hasNextExpr}`);
+    lines.push('        }');
+  } else {
+    const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate.nextPage';
+    lines.push('        repeat {');
+    lines.push(`            let response = try await ${op.methodName}(${callArgs.join(', ')})`);
+    lines.push('            items.append(contentsOf: response.data)');
+    lines.push('            if response.data.isEmpty { break }');
+    lines.push(`            cursor = ${metaAccess}`);
+    lines.push(rt?.metaIsRequired ? '        } while true' : '        } while cursor != nil');
+  }
   lines.push('        return items');
+  lines.push('    }');
+}
+
+function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${op.externalUrl}: String`);
+  for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)}: ${swiftType(p.type)}`);
+  if (op.requestBody) {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb)) args.push(`${swiftIdentifier(rb.unwrapField!.name)}: ${swiftType(rb.unwrapField!.type)}`);
+    else if (rb.schemaRef) args.push(`request body: ${rb.schemaRef}`);
+  }
+  for (const q of op.queryParams) {
+    const t = swiftType(q.type, { nullable: !q.required });
+    args.push(`${snakeToCamel(q.sdkName)}: ${t}${q.required ? '' : ' = nil'}`);
+  }
+  if (op.deprecated) lines.push('    @available(*, deprecated)');
+  lines.push(`    open func ${op.methodName}(${args.join(', ')}) async throws -> ${opReturn(op, ir)} {`);
+  lines.push(`        throw pachcaNotImplemented(${JSON.stringify(`${op.tag}.${op.methodName}`)})`);
+  lines.push('    }');
+}
+
+function emitThrowingPaginationMethod(lines: string[], op: IROperation): void {
+  const itemType = op.successResponse.dataRef ?? 'Any';
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${op.externalUrl}: String`);
+  for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)}: ${swiftType(p.type)}`);
+  for (const q of op.queryParams) {
+    if (q.name === 'cursor') continue;
+    const t = swiftType(q.type, { nullable: !q.required });
+    args.push(`${snakeToCamel(q.sdkName)}: ${t}${q.required ? '' : ' = nil'}`);
+  }
+  lines.push(`    open func ${op.methodName}All(${args.join(', ')}) async throws -> [${itemType}] {`);
+  lines.push(`        throw pachcaNotImplemented(${JSON.stringify(`${op.tag}.${op.methodName}All`)})`);
   lines.push('    }');
 }
 
@@ -464,9 +571,30 @@ function generateClient(ir: IR): string {
   const lines: string[] = [];
   lines.push(...FOUNDATION_IMPORTS);
   lines.push('');
+  const hasServices = ir.services.length > 0;
+  if (hasServices) {
+    lines.push('private func pachcaNotImplemented(_ method: String) -> Error {');
+    lines.push('    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])');
+    lines.push('}');
+    lines.push('');
+  }
   for (const s of ir.services) {
     const cls = tagToServiceName(s.tag);
-    lines.push(`public struct ${cls} {`);
+    const implName = serviceToImplName(cls);
+    lines.push(`open class ${cls} {`);
+    lines.push('    public init() {}');
+    lines.push('');
+    for (let i = 0; i < s.operations.length; i++) {
+      emitThrowingOperation(lines, s.operations[i], ir);
+      if (s.operations[i].isPaginated && s.operations[i].successResponse.dataRef) {
+        lines.push('');
+        emitThrowingPaginationMethod(lines, s.operations[i]);
+      }
+      if (i < s.operations.length - 1) lines.push('');
+    }
+    lines.push('}');
+    lines.push('');
+    lines.push(`public final class ${implName}: ${cls} {`);
     lines.push('    let baseURL: String');
     lines.push('    let headers: [String: String]');
     lines.push('    let session: URLSession');
@@ -475,13 +603,14 @@ function generateClient(ir: IR): string {
     lines.push('        self.baseURL = baseURL');
     lines.push('        self.headers = headers');
     lines.push('        self.session = session');
+    lines.push('        super.init()');
     lines.push('    }');
     lines.push('');
     for (let i = 0; i < s.operations.length; i++) {
-      emitOperation(lines, s.operations[i], ir);
+      emitOperation(lines, s.operations[i], ir, 'public override func');
       if (s.operations[i].isPaginated && s.operations[i].successResponse.dataRef) {
         lines.push('');
-        emitPaginationMethod(lines, s.operations[i], ir);
+        emitPaginationMethod(lines, s.operations[i], ir, 'public override func');
       }
       if (i < s.operations.length - 1) lines.push('');
     }
@@ -504,16 +633,66 @@ function generateClient(ir: IR): string {
     lines.push('');
   }
 
-  lines.push('public struct PachcaClient {');
   const svcs = ir.services
     .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
     .sort((a, b) => a.prop.localeCompare(b.prop));
+  if (ir.baseUrl) {
+    lines.push(`public let pachcaAPIURL = ${JSON.stringify(ir.baseUrl)}`);
+    lines.push('');
+  }
+  lines.push('public struct PachcaClient {');
   for (const s of svcs) lines.push(`    public let ${s.prop}: ${s.cls}`);
   lines.push('');
-  const swiftDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-  lines.push(`    public init(token: String, baseURL: String${swiftDefault}) {`);
+
+  // Private init taking only services (for stub)
+  const privateInitArgs = svcs.map((s) => `${s.prop}: ${s.cls}`);
+  lines.push(`    private init(${privateInitArgs.join(', ')}) {`);
+  for (const s of svcs) {
+    lines.push(`        self.${s.prop} = ${s.prop}`);
+  }
+  lines.push('    }');
+  lines.push('');
+
+  // Public init with token/baseURL delegating to private init
+  const swiftDefault = ir.baseUrl ? ' = pachcaAPIURL' : '';
+  const initArgs = [`token: String`, `baseURL: String${swiftDefault}`];
+  for (const s of svcs) initArgs.push(`${s.prop}: ${s.cls}? = nil`);
+  lines.push(`    public init(${initArgs.join(', ')}) {`);
   lines.push('        let headers = ["Authorization": "Bearer \\(token)"]');
-  for (const s of svcs) lines.push(`        self.${s.prop} = ${s.cls}(baseURL: baseURL, headers: headers)`);
+  lines.push('        self.init(');
+  for (let i = 0; i < svcs.length; i++) {
+    const s = svcs[i];
+    const suffix = i < svcs.length - 1 ? ',' : '';
+    lines.push(`            ${s.prop}: ${s.prop} ?? ${serviceToImplName(s.cls)}(baseURL: baseURL, headers: headers)${suffix}`);
+  }
+  lines.push('        )');
+  lines.push('    }');
+  lines.push('');
+
+  // Public init with headers/baseURL/session (no token)
+  const headersInitArgs = [`baseURL: String${swiftDefault}`, 'headers: [String: String]', 'session: URLSession = .shared'];
+  for (const s of svcs) headersInitArgs.push(`${s.prop}: ${s.cls}? = nil`);
+  lines.push(`    public init(${headersInitArgs.join(', ')}) {`);
+  lines.push('        self.init(');
+  for (let i = 0; i < svcs.length; i++) {
+    const s = svcs[i];
+    const suffix = i < svcs.length - 1 ? ',' : '';
+    lines.push(`            ${s.prop}: ${s.prop} ?? ${serviceToImplName(s.cls)}(baseURL: baseURL, headers: headers, session: session)${suffix}`);
+  }
+  lines.push('        )');
+  lines.push('    }');
+  lines.push('');
+
+  // Static stub() factory
+  const stubArgs = svcs.map((s) => `${s.prop}: ${s.cls} = ${s.cls}()`);
+  lines.push(`    public static func stub(${stubArgs.join(', ')}) -> PachcaClient {`);
+  lines.push('        PachcaClient(');
+  for (let i = 0; i < svcs.length; i++) {
+    const s = svcs[i];
+    const suffix = i < svcs.length - 1 ? ',' : '';
+    lines.push(`            ${s.prop}: ${s.prop}${suffix}`);
+  }
+  lines.push('        )');
   lines.push('    }');
   lines.push('}');
   lines.push('');
@@ -526,13 +705,11 @@ function generateUtils(ir: IR): string {
     '',
     'let pachcaDecoder: JSONDecoder = {',
     '    let decoder = JSONDecoder()',
-    '    decoder.dateDecodingStrategy = .iso8601',
     '    return decoder',
     '}()',
     '',
     'let pachcaEncoder: JSONEncoder = {',
     '    let encoder = JSONEncoder()',
-    '    encoder.dateEncodingStrategy = .iso8601',
     '    return encoder',
     '}()',
     '',
@@ -596,20 +773,22 @@ function generateUtils(ir: IR): string {
     'func dataWithRetry(session: URLSession, for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {',
     '    for attempt in 0...maxRetries {',
     '        let (data, response) = try await session.data(for: request, delegate: delegate)',
-    '        if let http = response as? HTTPURLResponse, http.statusCode == 429, attempt < maxRetries {',
-    '            let delay: UInt64',
-    '            if let ra = http.value(forHTTPHeaderField: "Retry-After"), let secs = UInt64(ra) {',
-    '                delay = secs * 1_000_000_000',
-    '            } else {',
-    '                delay = UInt64(pow(2.0, Double(attempt))) * 1_000_000_000',
+    '        if let http = response as? HTTPURLResponse {',
+    '            if http.statusCode == 429, attempt < maxRetries {',
+    '                let delay: UInt64',
+    '                if let ra = http.value(forHTTPHeaderField: "Retry-After"), let secs = UInt64(ra) {',
+    '                    delay = secs * 1_000_000_000',
+    '                } else {',
+    '                    delay = UInt64(pow(2.0, Double(attempt))) * 1_000_000_000',
+    '                }',
+    '                try await _Concurrency.Task.sleep(nanoseconds: jitter(delay))',
+    '                continue',
     '            }',
-    '            try await _Concurrency.Task.sleep(nanoseconds: delay)',
-    '            continue',
-    '        }',
-    '        if let http = response as? HTTPURLResponse, retryable5xx.contains(http.statusCode), attempt < maxRetries {',
-    '            let delay = jitter(10 * UInt64(pow(2.0, Double(attempt))) * 1_000_000_000)',
-    '            try await _Concurrency.Task.sleep(nanoseconds: delay)',
-    '            continue',
+    '            if retryable5xx.contains(http.statusCode), attempt < maxRetries {',
+    '                let delay = UInt64(attempt + 1) * 1_000_000_000',
+    '                try await _Concurrency.Task.sleep(nanoseconds: jitter(delay))',
+    '                continue',
+    '            }',
     '        }',
     '        return (data, response)',
     '    }',

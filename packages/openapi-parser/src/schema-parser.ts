@@ -75,6 +75,7 @@ export function parseSchema(
     readOnly: getBoolean(schema, 'readOnly'),
     writeOnly: getBoolean(schema, 'writeOnly'),
     deprecated: getBoolean(schema, 'deprecated'),
+    'x-union-deserializer': getString(schema, 'x-union-deserializer'),
   };
 
   // Properties

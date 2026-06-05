@@ -15,6 +15,7 @@ import {
   camelToSnake,
   snakeToUpperSnake,
   tagToServiceName,
+  serviceToImplName,
 } from '../naming.js';
 
 const PYTHON_KEYWORDS = new Set([
@@ -63,6 +64,13 @@ function hasAnyTypeInField(ft: IRFieldType): boolean {
   return false;
 }
 
+function hasDateTimeInField(ft: IRFieldType): boolean {
+  if (ft.kind === 'primitive' && ft.primitive === 'string' && ft.format === 'date-time') return true;
+  if (ft.items) return hasDateTimeInField(ft.items);
+  if (ft.valueType) return hasDateTimeInField(ft.valueType);
+  return false;
+}
+
 function hasAnyType(model: IRModel): boolean {
   return model.fields.some((f) => hasAnyTypeInField(f.type)) ||
     model.inlineObjects.some((m) => hasAnyType(m));
@@ -75,6 +83,7 @@ function pyType(ft: IRFieldType): string {
       if (ft.primitive === 'number') return 'float';
       if (ft.primitive === 'boolean') return 'bool';
       if (ft.primitive === 'any') return 'Any';
+      if (ft.primitive === 'string' && ft.format === 'date-time') return 'datetime';
       return 'str';
     case 'enum':
     case 'model':
@@ -125,6 +134,7 @@ function emitEnum(lines: string[], e: IREnum): void {
 function emitModel(
   lines: string[],
   m: IRModel,
+  allModels: IRModel[],
 ): void {
   lines.push('@dataclass');
   if (m.isError) {
@@ -163,6 +173,33 @@ function emitModel(
       lines.push(`    ${name}: ${fullType} = None`);
     } else {
       lines.push(`    ${name}: ${fullType}`);
+    }
+  }
+
+  if (m.name === 'ApiError') {
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
+    if (hasMessage) {
+      lines.push('');
+      lines.push('    def __str__(self) -> str:');
+      lines.push('        if not self.errors:');
+      lines.push('            return "api error"');
+      lines.push('        if len(self.errors) == 1:');
+      lines.push('            return self.errors[0].message');
+      lines.push('        return "Errors: " + "; ".join(e.message for e in self.errors)');
+    }
+  }
+  if (m.name === 'OAuthError') {
+    const errField = m.fields.find((f) => f.name === 'error');
+    if (errField) {
+      lines.push('');
+      lines.push('    def __str__(self) -> str:');
+      lines.push(`        return self.${pyFieldName(errField)}`);
     }
   }
 }
@@ -209,9 +246,11 @@ function generateModels(ir: IR): string {
   const needEnum = ir.enums.length > 0;
   const needUnion = ir.unions.length > 0;
   const needAny = ir.models.some((m) => hasAnyType(m)) || ir.params.some((p) => p.params.some((q) => hasAnyTypeInField(q.type)));
+  const needDatetime = ir.models.some((m) => m.fields.some((f) => hasDateTimeInField(f.type))) || ir.params.some((p) => p.params.some((q) => hasDateTimeInField(q.type)));
 
   lines.push('from __future__ import annotations');
   lines.push('');
+  if (needDatetime) lines.push('from datetime import datetime');
   if (needDataclass) {
     lines.push('from dataclasses import dataclass');
     if (needEnum) lines.push('from enum import StrEnum');
@@ -235,17 +274,17 @@ function generateModels(ir: IR): string {
 
   for (const m of ir.models) {
     for (const inl of m.inlineObjects) {
-      emitModel(lines, inl);
+      emitModel(lines, inl, ir.models);
       lines.push('');
       lines.push('');
     }
     if (unionMembers.has(m.name)) {
-      emitModel(lines, m);
+      emitModel(lines, m, ir.models);
       lines.push('');
       lines.push('');
       continue;
     }
-    emitModel(lines, m);
+    emitModel(lines, m, ir.models);
     lines.push('');
     lines.push('');
   }
@@ -277,9 +316,7 @@ function opReturnType(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'str';
   if (!op.successResponse.hasBody) return 'None';
   if (op.successResponse.isList) {
-    const rt = ir.responses.find(
-      (r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return rt?.name ?? 'object';
   }
   return op.successResponse.dataRef ?? 'object';
@@ -336,9 +373,7 @@ function collectClientImports(ir: IR): string[] {
       }
       if (op.successResponse.hasBody && !op.successResponse.isRedirect) {
         if (op.successResponse.isList) {
-          const rt = ir.responses.find(
-            (r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray,
-          );
+          const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
           if (rt) add(rt.name);
           if (op.isPaginated && op.successResponse.dataRef) {
             add(op.successResponse.dataRef);
@@ -413,22 +448,28 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   if (isMultipart) {
     lines.push(`        data: dict[str, str] = {}`);
     const req = ir.models.find((m) => m.name === op.requestBody!.schemaRef);
+    const isUnwrapped = shouldUnwrapBody(op.requestBody!);
     if (req) {
       const binary = req.fields.find((f) => f.type.kind === 'binary');
       const nonBinary = req.fields.filter((f) => f.type.kind !== 'binary');
       for (const f of nonBinary.filter((x) => !isOptionalField(x))) {
+        const ref = isUnwrapped ? pyFieldName(f) : `request.${pyFieldName(f)}`;
         lines.push(
-          `        data[${JSON.stringify(f.name)}] = request.${pyFieldName(f)}`,
+          `        data[${JSON.stringify(f.name)}] = ${ref}`,
         );
       }
       for (const f of nonBinary.filter((x) => isOptionalField(x))) {
-        lines.push(`        if request.${pyFieldName(f)} is not None:`);
+        const ref = isUnwrapped ? pyFieldName(f) : `request.${pyFieldName(f)}`;
+        lines.push(`        if ${ref} is not None:`);
         lines.push(
-          `            data[${JSON.stringify(f.name)}] = request.${pyFieldName(f)}`,
+          `            data[${JSON.stringify(f.name)}] = ${ref}`,
         );
       }
+      const binaryRef = binary
+        ? (isUnwrapped ? pyFieldName(binary) : `request.${pyFieldName(binary)}`)
+        : undefined;
       const filesExpr = binary
-        ? `{"${binary.name}": request.${pyFieldName(binary)}}`
+        ? `{"${binary.name}": ${binaryRef}}`
         : '{}';
       const mpPathStr = op.externalUrl
         ? camelToSnake(op.externalUrl)
@@ -472,16 +513,20 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
         const v = `params.${paramName}`;
         const maybe = p.required ? v : `params.${paramName}`;
         if (p.isArray) {
-          lines.push(`        if ${maybe} is not None:`);
+          const guard = p.required ? `${maybe} is not None` : `params is not None and ${maybe} is not None`;
+          lines.push(`        if ${guard}:`);
           lines.push(`            for v in ${v}:`);
           lines.push(`                query.append((${JSON.stringify(p.name)}, str(v)))`);
         } else {
+          const isDateTime = p.type.kind === 'primitive' && p.type.primitive === 'string' && p.type.format === 'date-time';
           const rhs = p.type.kind === 'primitive' && p.type.primitive === 'boolean'
             ? `str(${v}).lower()`
             : p.type.kind === 'primitive' &&
               (p.type.primitive === 'integer' || p.type.primitive === 'number')
               ? `str(${v})`
-              : v;
+              : isDateTime
+                ? `${v}.isoformat()`
+                : v;
           if (p.required) {
             if (op.queryParams.some((x) => x.isArray) || op.queryParams.some((x) => x.required)) {
               lines.push(`        query.append((${JSON.stringify(p.name)}, ${rhs}))`);
@@ -560,9 +605,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push(`            case ${op.successResponse.statusCode}:`);
     lines.push('                return');
   } else if (op.successResponse.isList) {
-    const rt = ir.responses.find(
-      (r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     lines.push(`            case ${op.successResponse.statusCode}:`);
     lines.push(`                return deserialize(${rt?.name ?? 'object'}, body)`);
   } else if (op.successResponse.isUnwrap && op.successResponse.dataRef) {
@@ -614,24 +657,101 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push(`    ) -> list[${itemType}]:`);
   lines.push(`        items: list[${itemType}] = []`);
   lines.push('        cursor: str | None = None');
-  lines.push('        while True:');
-  {
-    const callParts: string[] = [];
-    if (op.externalUrl) callParts.push(camelToSnake(op.externalUrl));
-    for (const p of op.pathParams) callParts.push(pyParamName(p.sdkName));
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const useHasNext = rt?.metaRef === 'PaginationMeta';
+
+  const callParts: string[] = [];
+  if (op.externalUrl) callParts.push(camelToSnake(op.externalUrl));
+  for (const p of op.pathParams) callParts.push(pyParamName(p.sdkName));
+  if (paramsType) callParts.push('params=params');
+
+  if (useHasNext) {
+    lines.push('        has_next = True');
+    lines.push('        while has_next:');
     if (paramsType) {
       lines.push('            if params is None:');
       lines.push(`                params = ${paramsType}()`);
       lines.push('            params.cursor = cursor');
-      callParts.push('params=params');
     }
     lines.push(`            response = await self.${pyMethodName(op)}(${callParts.join(', ')})`);
+    lines.push('            items.extend(response.data)');
+    lines.push('            if not response.data:');
+    lines.push('                break');
+    lines.push('            cursor = response.meta.paginate.next_page');
+    lines.push('            reported_has_next = getattr(response.meta.paginate, "has_next", None)');
+    lines.push('            has_next = True if reported_has_next is None else reported_has_next');
+  } else {
+    const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.next_page' : 'response.meta.paginate.next_page if response.meta else None';
+    lines.push('        while True:');
+    if (paramsType) {
+      lines.push('            if params is None:');
+      lines.push(`                params = ${paramsType}()`);
+      lines.push('            params.cursor = cursor');
+    }
+    lines.push(`            response = await self.${pyMethodName(op)}(${callParts.join(', ')})`);
+    lines.push('            items.extend(response.data)');
+    lines.push('            if not response.data:');
+    lines.push('                break');
+    lines.push(`            cursor = ${metaAccess}`);
+    if (!rt?.metaIsRequired) {
+      lines.push('            if not cursor:');
+      lines.push('                break');
+    }
   }
-  lines.push('            items.extend(response.data)');
-  lines.push('            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None');
-  lines.push('            if not cursor:');
-  lines.push('                break');
   lines.push('        return items');
+}
+
+function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${camelToSnake(op.externalUrl)}: str`);
+  for (const p of op.pathParams) args.push(`${pyParamName(p.sdkName)}: ${pyType(p.type)}`);
+
+  if (op.requestBody) {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb)) {
+      const f = rb.unwrapField!;
+      args.push(`${pyFieldName(f)}: ${pyType(f.type)}`);
+    } else if (rb.schemaRef) {
+      args.push(`request: ${rb.schemaRef}`);
+    }
+  }
+
+  if (op.queryParams.length > 0) {
+    const pascal = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
+    const hasRequired = op.queryParams.some((p) => p.required);
+    args.push(hasRequired ? `params: ${pascal}Params` : `params: ${pascal}Params | None = None`);
+  }
+
+  if (op.deprecated) lines.push('    # Deprecated');
+  lines.push(`    async def ${pyMethodName(op)}(`);
+  if (args.length === 0) {
+    lines.push(`        self) -> ${opReturnType(op, ir)}:`);
+  } else {
+    lines.push('        self,');
+    for (const a of args) lines.push(`        ${a},`);
+    lines.push(`    ) -> ${opReturnType(op, ir)}:`);
+  }
+  lines.push(`        raise NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)})`);
+}
+
+function emitThrowingPaginationMethod(lines: string[], op: IROperation): void {
+  const itemType = op.successResponse.dataRef ?? 'object';
+  const pascal = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
+  const paramsType = op.queryParams.length > 0 ? `${pascal}Params` : null;
+
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${camelToSnake(op.externalUrl)}: str`);
+  for (const p of op.pathParams) args.push(`${pyParamName(p.sdkName)}: ${pyType(p.type)}`);
+  if (paramsType) {
+    const hasRequired = op.queryParams.some((p) => p.required && p.name !== 'cursor');
+    args.push(hasRequired ? `params: ${paramsType}` : `params: ${paramsType} | None = None`);
+  }
+
+  lines.push(`    async def ${pyMethodName(op)}_all(`);
+  lines.push('        self,');
+  for (const a of args) lines.push(`        ${a},`);
+  lines.push(`    ) -> list[${itemType}]:`);
+  lines.push(`        raise NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)})`);
 }
 
 function generateClient(ir: IR): { content: string; needUtils: boolean } {
@@ -669,7 +789,20 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
 
   lines.push('');
   for (const svc of ir.services) {
-    lines.push(`class ${tagToServiceName(svc.tag)}:`);
+    const serviceName = tagToServiceName(svc.tag);
+    const implName = serviceToImplName(serviceName);
+    lines.push(`class ${serviceName}:`);
+    for (let i = 0; i < svc.operations.length; i++) {
+      emitThrowingOperation(lines, svc.operations[i], ir);
+      if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
+        lines.push('');
+        emitThrowingPaginationMethod(lines, svc.operations[i]);
+      }
+      if (i < svc.operations.length - 1) lines.push('');
+    }
+    lines.push('');
+    lines.push('');
+    lines.push(`class ${implName}(${serviceName}):`);
     lines.push('    def __init__(self, client: httpx.AsyncClient) -> None:');
     lines.push('        self._client = client');
     lines.push('');
@@ -685,48 +818,107 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     lines.push('');
   }
 
+  const serviceEntries = ir.services
+    .map((s) => ({ prop: pyServiceProp(s.tag), cls: tagToServiceName(s.tag) }))
+    .sort((a, b) => a.prop.localeCompare(b.prop));
+  if (ir.baseUrl) {
+    lines.push(`PACHCA_API_URL = ${JSON.stringify(ir.baseUrl)}`);
+    lines.push('');
+    lines.push('');
+  }
   lines.push('class PachcaClient:');
-  const pyDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-  lines.push(`    def __init__(self, token: str, base_url: str${pyDefault}) -> None:`);
+  const pyDefault = ir.baseUrl ? ' = PACHCA_API_URL' : '';
+  const constructorArgs = serviceEntries.map((s) => `${s.prop}: ${s.cls} | None = None`);
+  const signature = ['self', `token: str`, `base_url: str${pyDefault}`, ...constructorArgs].join(', ');
+  lines.push(`    def __init__(${signature}) -> None:`);
   lines.push('        self._client = httpx.AsyncClient(');
   lines.push('            base_url=base_url,');
   lines.push('            headers={"Authorization": f"Bearer {token}"},');
   lines.push('            transport=RetryTransport(httpx.AsyncHTTPTransport()),');
   lines.push('        )');
-  const services = ir.services
-    .map((s) => ({ prop: pyServiceProp(s.tag), cls: tagToServiceName(s.tag) }))
-    .sort((a, b) => a.prop.localeCompare(b.prop));
-  for (const s of services) {
-    lines.push(`        self.${s.prop} = ${s.cls}(self._client)`);
+  for (const s of serviceEntries) {
+    lines.push(`        self.${s.prop}: ${s.cls} = ${s.prop} or ${serviceToImplName(s.cls)}(self._client)`);
   }
   lines.push('');
   lines.push('    async def close(self) -> None:');
   lines.push('        await self._client.aclose()');
+  lines.push('');
+
+  // from_client classmethod
+  lines.push('    @classmethod');
+  lines.push('    def from_client(');
+  lines.push('        cls,');
+  lines.push('        client: httpx.AsyncClient,');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.prop}: ${s.cls} | None = None,`);
+  }
+  lines.push('    ) -> "PachcaClient":');
+  lines.push('        self = cls.__new__(cls)');
+  lines.push('        self._client = client');
+  for (const s of serviceEntries) {
+    lines.push(`        self.${s.prop}: ${s.cls} = ${s.prop} or ${serviceToImplName(s.cls)}(client)`);
+  }
+  lines.push('        return self');
+  lines.push('');
+
+  // stub classmethod
+  lines.push('    @classmethod');
+  lines.push('    def stub(');
+  lines.push('        cls,');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.prop}: ${s.cls} | None = None,`);
+  }
+  lines.push('    ) -> "PachcaClient":');
+  lines.push('        self = cls.__new__(cls)');
+  lines.push('        self._client = None');
+  for (const s of serviceEntries) {
+    lines.push(`        self.${s.prop} = ${s.prop} or ${s.cls}()`);
+  }
+  lines.push('        return self');
 
   while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
   lines.push('');
   return { content: lines.join('\n'), needUtils };
 }
 
-function generateUtils(): string {
-  return [
+function generateUtils(ir: IR): string {
+  const lines: string[] = [
     'from __future__ import annotations',
     '',
     'import dataclasses',
     'import keyword',
     'from dataclasses import asdict, fields',
-    'from typing import Type, TypeVar, get_args, get_origin, get_type_hints',
+    'from datetime import datetime',
+    'from typing import Callable, Type, TypeVar, get_args, get_origin, get_type_hints',
     '',
     'import httpx',
+  ];
+
+  const customUnions = ir.unions.filter((u) => u.unionDeserializer === 'webhook-payload');
+  if (customUnions.length > 0) {
+    const importNames = new Set<string>();
+    for (const u of customUnions) {
+      importNames.add(u.name);
+      for (const ref of u.memberRefs) importNames.add(ref);
+    }
+    lines.push('');
+    lines.push('from .models import (');
+    for (const name of [...importNames].sort()) {
+      lines.push(`    ${name},`);
+    }
+    lines.push(')');
+  }
+
+  lines.push(
     '',
     'T = TypeVar("T")',
     '',
     '',
-    'def _is_dataclass_type(tp: type) -> bool:',
+    'def _is_dataclass_type(tp: object) -> bool:',
     '    return isinstance(tp, type) and dataclasses.is_dataclass(tp)',
     '',
     '',
-    'def _resolve_type(tp: type) -> type | None:',
+    'def _resolve_type(tp: object) -> type | None:',
     '    """Extract a concrete dataclass type from Optional[X] or X | None."""',
     '    origin = get_origin(tp)',
     '    if origin is list:',
@@ -740,7 +932,7 @@ function generateUtils(): string {
     '    return None',
     '',
     '',
-    'def _resolve_list_item_type(tp: type) -> type | None:',
+    'def _resolve_list_item_type(tp: object) -> object | None:',
     '    """Extract the item type from list[X]."""',
     '    origin = get_origin(tp)',
     '    if origin is list:',
@@ -750,8 +942,34 @@ function generateUtils(): string {
     '    return None',
     '',
     '',
-    'def deserialize(cls: Type[T], data: dict) -> T:',
-    '    """Create a dataclass instance from a dict, recursively deserializing nested dataclasses."""',
+    'CustomUnionDeserializer = Callable[[dict], object]',
+    '',
+    '',
+    'def _deserialize_instance(tp: object, value: object) -> object:',
+    '    custom = _CUSTOM_UNION_DESERIALIZERS.get(tp)',
+    '    if custom is not None and isinstance(value, dict):',
+    '        return custom(value)',
+    '    if isinstance(value, dict):',
+    '        nested = _resolve_type(tp)',
+    '        if nested is not None:',
+    '            return _deserialize_dataclass(nested, value)',
+    '    if isinstance(value, list):',
+    '        item_tp = _resolve_list_item_type(tp)',
+    '        if item_tp is not None:',
+    '            return [_deserialize_instance(item_tp, item) for item in value]',
+    '    if isinstance(value, str):',
+    '        raw_tp = tp',
+    '        if get_origin(tp) is not None:',
+    '            for arg in get_args(tp):',
+    '                if arg is not type(None):',
+    '                    raw_tp = arg',
+    '                    break',
+    '        if raw_tp is datetime:',
+    '            return datetime.fromisoformat(value)',
+    '    return value',
+    '',
+    '',
+    'def _deserialize_dataclass(cls: Type[T], data: dict) -> T:',
     '    field_map = {f.name: f for f in fields(cls)}',
     '    hints = get_type_hints(cls)',
     '    norm = {k.replace("-", "_").lower(): v for k, v in data.items()}',
@@ -762,67 +980,101 @@ function generateUtils(): string {
     '            if k not in field_map:',
     '                continue',
     '        f = field_map[k]',
-    '        if isinstance(v, dict):',
-    '            nested = _resolve_type(hints[f.name])',
-    '            if nested is not None:',
-    '                v = deserialize(nested, v)',
-    '        elif isinstance(v, list) and v:',
-    '            item_tp = _resolve_list_item_type(hints[f.name])',
-    '            if item_tp is not None and _is_dataclass_type(item_tp):',
-    '                v = [deserialize(item_tp, i) if isinstance(i, dict) else i for i in v]',
-    '        kwargs[k] = v',
+    '        kwargs[k] = _deserialize_instance(hints[f.name], v)',
     '    return cls(**kwargs)',
-    '',
-    '',
-    'def _strip_nones(val: object) -> object:',
-    '    if isinstance(val, dict):',
-    '        return {',
-    '            (k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): _strip_nones(v)',
-    '            for k, v in val.items() if v is not None',
-    '        }',
-    '    if isinstance(val, list):',
-    '        return [_strip_nones(v) for v in val]',
-    '    return val',
-    '',
-    '',
-    'def serialize(obj: object) -> dict:',
-    '    """Convert a dataclass to a dict, recursively omitting None values."""',
-    '    return _strip_nones(asdict(obj))',
-    '',
-    '',
-    '_MAX_RETRIES = 3',
-    '_RETRYABLE_5XX = {500, 502, 503, 504}',
-    '',
-    '',
-    'def _jitter(delay: float) -> float:',
-    '    import random',
-    '    return delay * (0.5 + random.random() * 0.5)',
-    '',
-    '',
-    'class RetryTransport(httpx.AsyncBaseTransport):',
-    '    """Wraps an httpx transport with retry on 429 Too Many Requests and 5xx errors."""',
-    '',
-    '    def __init__(self, transport: httpx.AsyncBaseTransport, max_retries: int = _MAX_RETRIES) -> None:',
-    '        self._transport = transport',
-    '        self._max_retries = max_retries',
-    '',
-    '    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:',
-    '        import asyncio',
-    '        for attempt in range(self._max_retries + 1):',
-    '            response = await self._transport.handle_async_request(request)',
-    '            if response.status_code == 429 and attempt < self._max_retries:',
-    '                retry_after = response.headers.get("retry-after")',
-    '                delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt',
-    '                await asyncio.sleep(delay)',
-    '                continue',
-    '            if response.status_code in _RETRYABLE_5XX and attempt < self._max_retries:',
-    '                delay = _jitter(10 * (2 ** attempt))',
-    '                await asyncio.sleep(delay)',
-    '                continue',
-    '            return response',
-    '        return response  # unreachable',
-    '',
-  ].join('\n');
+    ''
+  );
+
+  if (customUnions.length > 0) {
+    for (const u of customUnions) {
+      const fnName = `_${camelToSnake(u.name)}_deserialize`;
+      if (u.unionDeserializer === 'webhook-payload') {
+        lines.push(`def ${fnName}(data: dict) -> ${u.name}:`);
+        lines.push('    match (data.get("type"), data.get("event")):');
+        lines.push('        case ("message", "link_shared"):');
+        lines.push('            return _deserialize_instance(LinkSharedWebhookPayload, data)');
+        lines.push('        case ("message", _):');
+        lines.push('            return _deserialize_instance(MessageWebhookPayload, data)');
+        for (const ref of u.memberRefs.filter((ref) => ref !== 'MessageWebhookPayload' && ref !== 'LinkSharedWebhookPayload')) {
+          const model = ir.models.find((m) => m.name === ref);
+          const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+          const disc = typeField?.type.literalValue;
+          if (disc) {
+            lines.push(`        case (${JSON.stringify(disc)}, _):`);
+            lines.push(`            return _deserialize_instance(${ref}, data)`);
+          }
+        }
+        lines.push('        case _:');
+        lines.push(`            raise ValueError(f"Unknown ${u.name} discriminator: {data.get('type')}")`);
+        lines.push('');
+      }
+    }
+  }
+
+  lines.push('_CUSTOM_UNION_DESERIALIZERS: dict[object, CustomUnionDeserializer] = {');
+  for (const u of customUnions) {
+    lines.push(`    ${u.name}: _${camelToSnake(u.name)}_deserialize,`);
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push('');
+  lines.push('def deserialize(cls: Type[T], data: dict) -> T:');
+  lines.push('    """Create a typed instance from a dict, recursively deserializing nested values."""');
+  lines.push('    return _deserialize_instance(cls, data)');
+  lines.push('');
+  lines.push('');
+  lines.push('def _strip_nones(val: object) -> object:');
+  lines.push('    if isinstance(val, dict):');
+  lines.push('        return {');
+  lines.push('            (k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): _strip_nones(v)');
+  lines.push('            for k, v in val.items() if v is not None');
+  lines.push('        }');
+  lines.push('    if isinstance(val, list):');
+  lines.push('        return [_strip_nones(v) for v in val]');
+  lines.push('    if isinstance(val, datetime):');
+  lines.push('        return val.isoformat()');
+  lines.push('    return val');
+  lines.push('');
+  lines.push('');
+  lines.push('def serialize(obj: object) -> dict:');
+  lines.push('    """Convert a dataclass to a dict, recursively omitting None values."""');
+  lines.push('    return _strip_nones(asdict(obj))');
+  lines.push('');
+  lines.push('');
+  lines.push('_MAX_RETRIES = 3');
+  lines.push('_RETRYABLE_5XX = {500, 502, 503, 504}');
+  lines.push('');
+  lines.push('');
+  lines.push('def _jitter(delay: float) -> float:');
+  lines.push('    import random');
+  lines.push('    return delay * (0.5 + random.random() * 0.5)');
+  lines.push('');
+  lines.push('');
+  lines.push('class RetryTransport(httpx.AsyncBaseTransport):');
+  lines.push('    """Wraps an httpx transport with retry on 429 Too Many Requests and 5xx errors."""');
+  lines.push('');
+  lines.push('    def __init__(self, transport: httpx.AsyncBaseTransport, max_retries: int = _MAX_RETRIES) -> None:');
+  lines.push('        self._transport = transport');
+  lines.push('        self._max_retries = max_retries');
+  lines.push('');
+  lines.push('    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:');
+  lines.push('        import asyncio');
+  lines.push('        for attempt in range(self._max_retries + 1):');
+  lines.push('            response = await self._transport.handle_async_request(request)');
+  lines.push('            if response.status_code == 429 and attempt < self._max_retries:');
+  lines.push('                retry_after = response.headers.get("retry-after")');
+  lines.push('                delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt');
+  lines.push('                await asyncio.sleep(_add_jitter(delay))');
+  lines.push('                continue');
+  lines.push('            if response.status_code in _RETRYABLE_5XX and attempt < self._max_retries:');
+  lines.push('                delay = attempt + 1');
+  lines.push('                await asyncio.sleep(_add_jitter(delay))');
+  lines.push('                continue');
+  lines.push('            return response');
+  lines.push('        return response  # unreachable');
+  lines.push('');
+
+  return lines.join('\n');
 }
 
 // ── Examples ──────────────────────────────────────────────────────────
@@ -838,7 +1090,10 @@ function pyLiteral(
     if (ft.kind === 'primitive') {
       if ((ft.primitive === 'integer' || ft.primitive === 'number') && typeof ft.example === 'number') return String(ft.example);
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return ft.example ? 'True' : 'False';
-      if (ft.primitive === 'string' && typeof ft.example === 'string') return JSON.stringify(ft.example);
+      if (ft.primitive === 'string' && typeof ft.example === 'string') {
+        if (ft.format === 'date-time') return `datetime.fromisoformat(${JSON.stringify(ft.example)})`;
+        return JSON.stringify(ft.example);
+      }
     }
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
@@ -853,7 +1108,7 @@ function pyLiteral(
       if (ft.primitive === 'boolean') return 'True';
       if (ft.primitive === 'any') return '{}';
       if (ft.primitive === 'string') {
-        if (ft.format === 'date-time') return '"2024-01-01T00:00:00Z"';
+        if (ft.format === 'date-time') return 'datetime.fromisoformat("2024-01-01T00:00:00Z")';
         if (ft.format === 'date') return '"2024-01-01"';
       }
       return '"example"';
@@ -1117,7 +1372,7 @@ export class PythonGenerator implements LanguageGenerator {
     const client = generateClient(ir);
     files.push({ path: 'client.py', content: client.content });
     if (client.needUtils) {
-      files.push({ path: 'utils.py', content: generateUtils() });
+      files.push({ path: 'utils.py', content: generateUtils(ir) });
     }
     if (options?.examples) {
       files.push({ path: 'examples.json', content: generateExamples(ir) });

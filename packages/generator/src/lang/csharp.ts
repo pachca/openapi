@@ -18,6 +18,7 @@ import {
   snakeToUpperSnake,
   tagToProperty,
   tagToServiceName,
+  serviceToImplName,
 } from '../naming.js';
 
 const CSHARP_KEYWORDS = new Set([
@@ -59,7 +60,6 @@ function csType(ft: IRFieldType): string {
       if (ft.primitive === 'any') return 'object';
       if (ft.primitive === 'string') {
         if (ft.format === 'date-time') return 'DateTimeOffset';
-        if (ft.format === 'date') return 'DateOnly';
       }
       return 'string';
     case 'enum':
@@ -82,7 +82,7 @@ function csType(ft: IRFieldType): string {
 function isValueType(ft: IRFieldType): boolean {
   if (ft.kind === 'primitive') {
     if (ft.primitive === 'integer' || ft.primitive === 'number' || ft.primitive === 'boolean') return true;
-    if (ft.primitive === 'string' && (ft.format === 'date-time' || ft.format === 'date')) return true;
+    if (ft.primitive === 'string' && ft.format === 'date-time') return true;
   }
   if (ft.kind === 'enum') return true;
   return false;
@@ -149,7 +149,7 @@ function queryParamValueExpr(p: IRParam): string {
     return `PachcaUtils.EnumToApiString(${paramName}${valueSuffix})`;
   if (p.type.kind === 'primitive' && p.type.primitive === 'string')
     return paramName;
-  return `${paramName}${valueSuffix}.ToString()`;
+  return `${paramName}${valueSuffix}.ToString()!`;
 }
 
 /** Check if ApiError model exists in IR */
@@ -181,6 +181,7 @@ function generateModels(ir: IR): string {
   lines.push('');
   lines.push('using System;');
   lines.push('using System.Collections.Generic;');
+  lines.push('using System.Linq;');
   lines.push('using System.Text.Json;');
   lines.push('using System.Text.Json.Serialization;');
   lines.push('');
@@ -203,10 +204,10 @@ function generateModels(ir: IR): string {
     if (unionMemberRefs.has(m.name)) continue;
     for (const inl of m.inlineObjects) {
       lines.push('');
-      emitModel(lines, inl);
+      emitModel(lines, inl, ir.models);
     }
     lines.push('');
-    emitModel(lines, m);
+    emitModel(lines, m, ir.models);
   }
 
   // Response types
@@ -286,18 +287,54 @@ function emitUnion(
     .filter(Boolean) as IRModel[];
 
   const discriminatorField = u.discriminatorField;
+  const useWebhookPayloadDeserializer = u.unionDeserializer === 'webhook-payload';
 
-  lines.push(`[JsonPolymorphic(TypeDiscriminatorPropertyName = "${discriminatorField}")]`);
-  for (const memberModel of memberModels) {
-    const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
-    const litValue = litField?.type.literalValue ?? '';
-    lines.push(`[JsonDerivedType(typeof(${memberModel.name}), "${litValue}")]`);
+  if (useWebhookPayloadDeserializer) {
+    lines.push(`[JsonConverter(typeof(${u.name}Converter))]`);
+  } else {
+    lines.push(`[JsonPolymorphic(TypeDiscriminatorPropertyName = "${discriminatorField}")]`);
+    for (const memberModel of memberModels) {
+      const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
+      const litValue = litField?.type.literalValue ?? '';
+      lines.push(`[JsonDerivedType(typeof(${memberModel.name}), "${litValue}")]`);
+    }
   }
   lines.push(`public abstract class ${u.name}`);
   lines.push('{');
   lines.push(`    [JsonPropertyName("${discriminatorField}")]`);
   lines.push(`    public abstract string ${snakeToPascal(discriminatorField)} { get; }`);
   lines.push('}');
+
+  if (useWebhookPayloadDeserializer) {
+    lines.push('');
+    lines.push(`internal sealed class ${u.name}Converter : JsonConverter<${u.name}>`);
+    lines.push('{');
+    lines.push(`    public override ${u.name} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)`);
+    lines.push('    {');
+    lines.push('        using var document = JsonDocument.ParseValue(ref reader);');
+    lines.push('        var root = document.RootElement;');
+    lines.push(`        var type = root.GetProperty(${JSON.stringify(discriminatorField)}).GetString();`);
+    lines.push('        var eventValue = root.TryGetProperty("event", out var eventProperty) ? eventProperty.GetString() : null;');
+    lines.push('        var raw = root.GetRawText();');
+    lines.push('        return type switch');
+    lines.push('        {');
+    lines.push('            "message" when eventValue == "link_shared" => JsonSerializer.Deserialize<LinkSharedWebhookPayload>(raw, options)!,');
+    lines.push('            "message" => JsonSerializer.Deserialize<MessageWebhookPayload>(raw, options)!,');
+    for (const memberModel of memberModels.filter((m) => m.name !== 'MessageWebhookPayload' && m.name !== 'LinkSharedWebhookPayload')) {
+      const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
+      const litValue = litField?.type.literalValue ?? '';
+      lines.push(`            ${JSON.stringify(litValue)} => JsonSerializer.Deserialize<${memberModel.name}>(raw, options)!,`);
+    }
+    lines.push(`            _ => throw new JsonException($"Unknown ${u.name} ${discriminatorField}: {type}")`);
+    lines.push('        };');
+    lines.push('    }');
+    lines.push('');
+    lines.push(`    public override void Write(Utf8JsonWriter writer, ${u.name} value, JsonSerializerOptions options)`);
+    lines.push('    {');
+    lines.push('        JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);');
+    lines.push('    }');
+    lines.push('}');
+  }
 
   for (const memberModel of memberModels) {
     const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
@@ -329,6 +366,7 @@ function emitUnion(
 function emitModel(
   lines: string[],
   m: IRModel,
+  allModels: IRModel[],
 ): void {
   const fields = m.fields;
   const ext = m.isError ? ' : Exception' : '';
@@ -380,6 +418,30 @@ function emitModel(
     }
   }
 
+  if (m.name === 'ApiError') {
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
+    if (hasMessage) {
+      lines.push('');
+      lines.push('    public override string Message => Errors is not { Count: > 0 }');
+      lines.push('        ? "api error"');
+      lines.push('        : Errors.Count == 1 ? Errors[0].Message');
+      lines.push('        : $"Errors: {string.Join("; ", Errors.Select(t => t.Message))}";');
+    }
+  }
+  if (m.name === 'OAuthError') {
+    const errField = m.fields.find((f) => f.name === 'error');
+    if (errField) {
+      lines.push('');
+      lines.push(`    public override string Message => ${fieldSdkName(errField)} ?? "oauth error";`);
+    }
+  }
+
   lines.push('}');
 }
 
@@ -402,6 +464,7 @@ function generateUtils(): string {
   return `#nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -453,7 +516,7 @@ internal static class PachcaUtils
             {
                 var delay = response.Headers.RetryAfter?.Delta
                     ?? TimeSpan.FromSeconds(Math.Pow(2, attempt));
-                await System.Threading.Tasks.Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                await System.Threading.Tasks.Task.Delay(AddJitter(delay), cancellationToken).ConfigureAwait(false);
                 response.Dispose();
                 continue;
             }
@@ -561,13 +624,26 @@ function emitService(
   globalHasApiError: boolean,
 ): void {
   const serviceName = tagToServiceName(svc.tag);
+  const implName = serviceToImplName(serviceName);
 
-  lines.push(`public sealed class ${serviceName}`);
+  lines.push(`public class ${serviceName}`);
+  lines.push('{');
+  for (let i = 0; i < svc.operations.length; i++) {
+    lines.push('');
+    emitThrowingOperation(lines, svc.operations[i], ir);
+    if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
+      lines.push('');
+      emitThrowingPaginationMethod(lines, svc.operations[i], ir);
+    }
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push(`public sealed class ${implName} : ${serviceName}`);
   lines.push('{');
   lines.push('    private readonly string _baseUrl;');
   lines.push('    private readonly HttpClient _client;');
   lines.push('');
-  lines.push(`    internal ${serviceName}(string baseUrl, HttpClient client)`);
+  lines.push(`    internal ${implName}(string baseUrl, HttpClient client)`);
   lines.push('    {');
   lines.push('        _baseUrl = baseUrl;');
   lines.push('        _client = client;');
@@ -585,7 +661,7 @@ function emitService(
   lines.push('}');
 }
 
-function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, modifier = 'public override'): void {
   const indent = '    ';
   const indent2 = '        ';
   const itemType = csClientTypeRef(op.successResponse.dataRef ?? 'object');
@@ -607,7 +683,7 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
 
   const methodName = `${snakeToPascal(op.methodName)}AllAsync`;
 
-  lines.push(`${indent}public async System.Threading.Tasks.Task<List<${itemType}>> ${methodName}(`);
+  lines.push(`${indent}${modifier} async System.Threading.Tasks.Task<List<${itemType}>> ${methodName}(`);
   for (let i = 0; i < params.length; i++) {
     const comma = i < params.length - 1 ? ',' : ')';
     lines.push(`${indent2}${params[i]}${comma}`);
@@ -615,8 +691,6 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push(`${indent}{`);
   lines.push(`${indent2}var items = new List<${itemType}>();`);
   lines.push(`${indent2}string? cursor = null;`);
-  lines.push(`${indent2}do`);
-  lines.push(`${indent2}{`);
 
   // Build call args
   const callArgs: string[] = [];
@@ -643,10 +717,31 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   callArgs.push('cancellationToken: cancellationToken');
 
   const baseName = `${snakeToPascal(op.methodName)}Async`;
-  lines.push(`${indent2}    var response = await ${baseName}(${callArgs.join(', ')}).ConfigureAwait(false);`);
-  lines.push(`${indent2}    items.AddRange(response.Data);`);
-  lines.push(`${indent2}    cursor = response.Meta?.Paginate?.NextPage;`);
-  lines.push(`${indent2}} while (cursor != null);`);
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const useHasNext = rt?.metaRef === 'PaginationMeta';
+
+  if (useHasNext) {
+    const cursorExpr = rt?.metaIsRequired ? 'response.Meta.Paginate.NextPage' : 'response.Meta?.Paginate?.NextPage';
+    const hasNextExpr = rt?.metaIsRequired ? 'response.Meta.Paginate.HasNext ?? true' : 'response.Meta?.Paginate?.HasNext ?? true';
+    lines.push(`${indent2}var hasNext = true;`);
+    lines.push(`${indent2}while (hasNext)`);
+    lines.push(`${indent2}{`);
+    lines.push(`${indent2}    var response = await ${baseName}(${callArgs.join(', ')}).ConfigureAwait(false);`);
+    lines.push(`${indent2}    items.AddRange(response.Data);`);
+    lines.push(`${indent2}    if (response.Data.Count == 0) break;`);
+    lines.push(`${indent2}    cursor = ${cursorExpr};`);
+    lines.push(`${indent2}    hasNext = ${hasNextExpr};`);
+    lines.push(`${indent2}}`);
+  } else {
+    const metaAccess = rt?.metaIsRequired ? 'response.Meta.Paginate.NextPage' : 'response.Meta?.Paginate?.NextPage';
+    lines.push(`${indent2}do`);
+    lines.push(`${indent2}{`);
+    lines.push(`${indent2}    var response = await ${baseName}(${callArgs.join(', ')}).ConfigureAwait(false);`);
+    lines.push(`${indent2}    items.AddRange(response.Data);`);
+    lines.push(`${indent2}    if (response.Data.Count == 0) break;`);
+    lines.push(`${indent2}    cursor = ${metaAccess};`);
+    lines.push(rt?.metaIsRequired ? `${indent2}} while (true);` : `${indent2}} while (cursor != null);`);
+  }
   lines.push(`${indent2}return items;`);
   lines.push(`${indent}}`);
 }
@@ -656,6 +751,7 @@ function emitOperation(
   op: IROperation,
   ir: IR,
   globalHasApiError: boolean,
+  modifier = 'public override',
 ): void {
   const indent = '    ';
   const indent2 = '        ';
@@ -670,11 +766,11 @@ function emitOperation(
   if (op.deprecated) lines.push(`${indent}[Obsolete("This method is deprecated")]`);
 
   if (params.length === 0) {
-    lines.push(`${indent}public async ${taskType} ${methodName}(CancellationToken cancellationToken = default)`);
+    lines.push(`${indent}${modifier} async ${taskType} ${methodName}(CancellationToken cancellationToken = default)`);
   } else if (params.length === 1) {
-    lines.push(`${indent}public async ${taskType} ${methodName}(${params[0]}, CancellationToken cancellationToken = default)`);
+    lines.push(`${indent}${modifier} async ${taskType} ${methodName}(${params[0]}, CancellationToken cancellationToken = default)`);
   } else {
-    lines.push(`${indent}public async ${taskType} ${methodName}(`);
+    lines.push(`${indent}${modifier} async ${taskType} ${methodName}(`);
     for (const p of params) {
       lines.push(`${indent2}${p},`);
     }
@@ -687,6 +783,52 @@ function emitOperation(
   lines.push(`${indent}}`);
 }
 
+function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
+  const returnType = getReturnType(op, ir);
+  const taskType = returnType ? `System.Threading.Tasks.Task<${returnType}>` : 'System.Threading.Tasks.Task';
+  const params = buildMethodParams(op, ir);
+  const methodName = `${snakeToPascal(op.methodName)}Async`;
+  const indent = '    ';
+  const indent2 = '        ';
+  if (op.deprecated) lines.push(`${indent}[Obsolete("This method is deprecated")]`);
+  if (params.length === 0) {
+    lines.push(`${indent}public virtual async ${taskType} ${methodName}(CancellationToken cancellationToken = default)`);
+  } else if (params.length === 1) {
+    lines.push(`${indent}public virtual async ${taskType} ${methodName}(${params[0]}, CancellationToken cancellationToken = default)`);
+  } else {
+    lines.push(`${indent}public virtual async ${taskType} ${methodName}(`);
+    for (const p of params) lines.push(`${indent2}${p},`);
+    lines.push(`${indent2}CancellationToken cancellationToken = default)`);
+  }
+  lines.push(`${indent}{`);
+  lines.push(`${indent2}throw new NotImplementedException(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)});`);
+  lines.push(`${indent}}`);
+}
+
+function emitThrowingPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const indent = '    ';
+  const indent2 = '        ';
+  const itemType = csClientTypeRef(op.successResponse.dataRef ?? 'object');
+  const params: string[] = [];
+  if (op.externalUrl) params.push(`string ${paramSdkName(op.externalUrl)}`);
+  for (const p of op.pathParams) params.push(`${csType(p.type)} ${paramSdkName(p.sdkName)}`);
+  for (const p of op.queryParams) {
+    if (p.name === 'cursor') continue;
+    const typeName = csType(p.type);
+    params.push(p.required ? `${typeName} ${paramSdkName(p.sdkName)}` : `${typeName}? ${paramSdkName(p.sdkName)} = null`);
+  }
+  params.push('CancellationToken cancellationToken = default');
+  const methodName = `${snakeToPascal(op.methodName)}AllAsync`;
+  lines.push(`${indent}public virtual async System.Threading.Tasks.Task<List<${itemType}>> ${methodName}(`);
+  for (let i = 0; i < params.length; i++) {
+    const comma = i < params.length - 1 ? ',' : ')';
+    lines.push(`${indent2}${params[i]}${comma}`);
+  }
+  lines.push(`${indent}{`);
+  lines.push(`${indent2}throw new NotImplementedException(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)});`);
+  lines.push(`${indent}}`);
+}
+
 function getReturnType(
   op: IROperation,
   ir: IR,
@@ -695,9 +837,7 @@ function getReturnType(
   if (resp.isRedirect) return 'string';
   if (!resp.hasBody) return null;
   if (resp.isList) {
-    const rt = ir.responses.find(
-      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
     return rt?.name ?? 'object';
   }
   if (resp.isUnwrap && resp.dataRef) return csClientTypeRef(resp.dataRef);
@@ -776,13 +916,15 @@ function emitMethodBody(
       // Escape curly braces in param name for C# string interpolation
       const paramKey = p.name.replace(/\{/g, '{{').replace(/\}/g, '}}');
       if (p.isArray) {
+        const itemIsEnum = p.type.kind === 'array' && p.type.items?.kind === 'enum';
+        const itemExpr = itemIsEnum ? 'PachcaUtils.EnumToApiString(item)' : 'item.ToString()!';
         if (p.required) {
           lines.push(`${indent2}foreach (var item in ${paramName})`);
-          lines.push(`${indent2}    queryParts.Add($"${paramKey}={Uri.EscapeDataString(item.ToString())}");`);
+          lines.push(`${indent2}    queryParts.Add($"${paramKey}={Uri.EscapeDataString(${itemExpr})}");`);
         } else {
           lines.push(`${indent2}if (${paramName} != null)`);
           lines.push(`${indent2}    foreach (var item in ${paramName})`);
-          lines.push(`${indent2}        queryParts.Add($"${paramKey}={Uri.EscapeDataString(item.ToString())}");`);
+          lines.push(`${indent2}        queryParts.Add($"${paramKey}={Uri.EscapeDataString(${itemExpr})}");`);
         }
       } else {
         const valueExpr = queryParamValueExpr(p);
@@ -856,6 +998,7 @@ function emitMultipartBody(
 
   const binaryField = reqModel.fields.find((f) => f.type.kind === 'binary');
   const nonBinaryFields = reqModel.fields.filter((f) => f.type.kind !== 'binary');
+  const isUnwrapped = shouldUnwrapBody(op.requestBody!);
 
   if (op.externalUrl) {
     lines.push(`${indent2}var url = ${paramSdkName(op.externalUrl)};`);
@@ -866,19 +1009,19 @@ function emitMultipartBody(
   lines.push(`${indent2}using var content = new MultipartFormDataContent();`);
 
   for (const f of nonBinaryFields) {
-    const sdkName = fieldSdkName(f);
+    const sdk = isUnwrapped ? paramSdkName(f.name) : `request.${fieldSdkName(f)}`;
     const isOptional = !f.required || f.nullable;
     if (isOptional) {
-      lines.push(`${indent2}if (request.${sdkName} != null)`);
-      lines.push(`${indent2}    content.Add(new StringContent($"{request.${sdkName}}"), "${f.name}");`);
+      lines.push(`${indent2}if (${sdk} != null)`);
+      lines.push(`${indent2}    content.Add(new StringContent($"{${sdk}}"), "${f.name}");`);
     } else {
-      lines.push(`${indent2}content.Add(new StringContent($"{request.${sdkName}}"), "${f.name}");`);
+      lines.push(`${indent2}content.Add(new StringContent($"{${sdk}}"), "${f.name}");`);
     }
   }
 
   if (binaryField) {
-    const sdkName = fieldSdkName(binaryField);
-    lines.push(`${indent2}content.Add(new ByteArrayContent(request.${sdkName}), "${binaryField.name}", "${binaryField.name}");`);
+    const sdk = isUnwrapped ? paramSdkName(binaryField.name) : `request.${fieldSdkName(binaryField)}`;
+    lines.push(`${indent2}content.Add(new ByteArrayContent(${sdk}), "${binaryField.name}", "${binaryField.name}");`);
   }
 
   lines.push(`${indent2}using var httpRequest = new HttpRequestMessage(HttpMethod.${httpMethodName(op.method.toUpperCase())}, url);`);
@@ -915,9 +1058,7 @@ function emitResponseHandling(
   } else if (resp.isList) {
     lines.push(`${indent2}    case ${resp.statusCode}:`);
     // Use same lookup as getReturnType for consistency
-    const foundResp = ir.responses.find(
-      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
-    );
+    const foundResp = ir.responses.find((r) => r.name === resp.responseRef);
     const rt = foundResp?.name ?? 'object';
     lines.push(`${indent2}        return PachcaUtils.Deserialize<${rt}>(json);`);
   } else if (resp.isUnwrap && resp.dataRef) {
@@ -949,27 +1090,47 @@ function emitPachcaClient(
   ir: IR,
   hasRedirect: boolean,
 ): void {
-  const csDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
+  if (ir.baseUrl) {
+    lines.push(`public static class PachcaConstants`);
+    lines.push('{');
+    lines.push(`    public const string PachcaApiUrl = ${JSON.stringify(ir.baseUrl)};`);
+    lines.push('}');
+    lines.push('');
+  }
+  const csDefault = ir.baseUrl ? ' = PachcaConstants.PachcaApiUrl' : '';
 
   lines.push('public sealed class PachcaClient : IDisposable');
   lines.push('{');
-  lines.push('    private readonly HttpClient _client;');
+  lines.push('    private readonly HttpClient? _client;');
   lines.push('');
-
-  // Service properties
   const serviceEntries = ir.services
     .map((svc) => ({
       propName: snakeToPascal(tagToProperty(svc.tag)),
+      paramName: tagToProperty(svc.tag),
       className: tagToServiceName(svc.tag),
     }))
     .sort((a, b) => a.propName.localeCompare(b.propName));
-
   for (const s of serviceEntries) {
     lines.push(`    public ${s.className} ${s.propName} { get; }`);
   }
 
+  // Private constructor taking only services
   lines.push('');
-  lines.push(`    public PachcaClient(string token, string baseUrl${csDefault})`);
+  const privateParams = serviceEntries.map((s) => `${s.className} ${s.paramName}`);
+  lines.push(`    private PachcaClient(${privateParams.join(', ')})`);
+  lines.push('    {');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.propName} = ${s.paramName};`);
+  }
+  lines.push('    }');
+
+  // Public constructor with token, baseUrl, and optional service overrides
+  lines.push('');
+  const constructorParams = ['string token', `string baseUrl${csDefault}`];
+  for (const s of serviceEntries) {
+    constructorParams.push(`${s.className}? ${s.paramName} = null`);
+  }
+  lines.push(`    public PachcaClient(${constructorParams.join(', ')})`);
   lines.push('    {');
 
   if (hasRedirect) {
@@ -987,14 +1148,39 @@ function emitPachcaClient(
   lines.push('');
 
   for (const s of serviceEntries) {
-    lines.push(`        ${s.propName} = new ${s.className}(baseUrl, _client);`);
+    lines.push(`        ${s.propName} = ${s.paramName} ?? new ${serviceToImplName(s.className)}(baseUrl, _client);`);
   }
 
   lines.push('    }');
+
+  // Public constructor with pre-configured HttpClient
+  lines.push('');
+  const httpConstructorParams = ['string baseUrl', 'HttpClient client'];
+  for (const s of serviceEntries) {
+    httpConstructorParams.push(`${s.className}? ${s.paramName} = null`);
+  }
+  lines.push(`    public PachcaClient(${httpConstructorParams.join(', ')})`);
+  lines.push('    {');
+  lines.push('        _client = client;');
+  lines.push('');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.propName} = ${s.paramName} ?? new ${serviceToImplName(s.className)}(baseUrl, _client);`);
+  }
+  lines.push('    }');
+
+  // Static Stub() factory method
+  lines.push('');
+  const stubParams = serviceEntries.map((s) => `${s.className}? ${s.paramName} = null`);
+  lines.push(`    public static PachcaClient Stub(${stubParams.join(', ')})`);
+  lines.push('    {');
+  const stubArgs = serviceEntries.map((s) => `${s.paramName} ?? new ${s.className}()`);
+  lines.push(`        return new PachcaClient(${stubArgs.join(', ')});`);
+  lines.push('    }');
+
   lines.push('');
   lines.push('    public void Dispose()');
   lines.push('    {');
-  lines.push('        _client.Dispose();');
+  lines.push('        _client?.Dispose();');
   lines.push('        GC.SuppressFinalize(this);');
   lines.push('    }');
   lines.push('}');
@@ -1016,7 +1202,10 @@ function csLiteral(
         return `${ft.example}d`;
       }
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return String(ft.example);
-      if (ft.primitive === 'string' && typeof ft.example === 'string') return `"${ft.example}"`;
+      if (ft.primitive === 'string' && typeof ft.example === 'string') {
+        if (ft.format === 'date-time') return `DateTimeOffset.Parse(${JSON.stringify(ft.example)})`;
+        return JSON.stringify(ft.example);
+      }
     }
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
@@ -1032,7 +1221,6 @@ function csLiteral(
       if (ft.primitive === 'any') return 'new object()';
       if (ft.primitive === 'string') {
         if (ft.format === 'date-time') return 'DateTimeOffset.UtcNow';
-        if (ft.format === 'date') return '"2024-01-01"';
       }
       return '"example"';
     }
@@ -1062,7 +1250,7 @@ function csLiteral(
       return `default(${ft.ref ?? 'object'})!`;
     }
     case 'literal':
-      return `"${ft.literalValue}"`;
+      return JSON.stringify(ft.literalValue);
     case 'binary':
       return 'Array.Empty<byte>()';
   }
@@ -1085,7 +1273,7 @@ function csModelLiteral(
   const isCyclic = (f: IRField) =>
     f.type.kind === 'model' && f.type.ref != null && nextVisited.has(f.type.ref);
   const fields = model.fields.filter(
-    (f) => (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
+    (f) => f.type.kind !== 'literal' && (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
   );
   if (fields.length === 0) return `new ${modelName}()`;
 

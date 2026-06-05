@@ -84,7 +84,7 @@ enum UserRole {
   guest: "guest",
 }
 
-@doc("Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API.")
+@doc("Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`).")
 @extension("x-enum-descriptions", #{
   admin: "Администратор",
   user: "Сотрудник",
@@ -99,6 +99,27 @@ enum UserRoleInput {
 
   @doc("Мульти-гость")
   multi_guest: "multi_guest",
+}
+
+@doc("Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат.")
+@extension("x-enum-descriptions", #{
+  admin: "Администратор",
+  user: "Сотрудник",
+  multi_guest: "Мульти-гость",
+  guest: "Гость",
+})
+enum UserCreateRole {
+  @doc("Администратор")
+  admin: "admin",
+
+  @doc("Сотрудник")
+  user: "user",
+
+  @doc("Мульти-гость")
+  multi_guest: "multi_guest",
+
+  @doc("Гость")
+  guest: "guest",
 }
 
 @doc("Статус приглашения пользователя")
@@ -219,9 +240,31 @@ enum TaskStatus {
 enum SortOrder {
   @doc("По возрастанию")
   asc: "asc",
-  
+
   @doc("По убыванию")
   desc: "desc",
+}
+
+@doc("Поле сортировки чатов")
+@extension("x-enum-descriptions", #{
+  id: "По идентификатору чата",
+  last_message_at: "По дате и времени создания последнего сообщения",
+})
+enum ChatSortField {
+  @doc("По идентификатору чата")
+  id: "id",
+
+  @doc("По дате и времени создания последнего сообщения")
+  last_message_at: "last_message_at",
+}
+
+@doc("Поле сортировки сообщений")
+@extension("x-enum-descriptions", #{
+  id: "По идентификатору сообщения",
+})
+enum MessageSortField {
+  @doc("По идентификатору сообщения")
+  id: "id",
 }
 
 @doc("Сортировка результатов поиска")
@@ -824,27 +867,27 @@ model User {
   
   @doc("Фамилия")
   @example("Петров")
-  last_name: string;
-  
+  last_name: string | null;
+
   @doc("Имя пользователя")
-  @example("")
+  @example("olegpetrov")
   nickname: string;
-  
-  @doc("Электронная почта")
+
+  @doc("Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.")
   @example("olegp@example.com")
-  email: string;
-  
-  @doc("Телефон")
-  @example("")
-  phone_number: string;
-  
+  email: string | null;
+
+  @doc("Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.")
+  @example("+79001234567")
+  phone_number: string | null;
+
   @doc("Департамент")
   @example("Продукт")
-  department: string;
-  
+  department: string | null;
+
   @doc("Должность")
   @example("CIO")
-  title: string;
+  title: string | null;
   
   @doc("Уровень доступа")
   @example(UserRole.admin)
@@ -857,7 +900,11 @@ model User {
   @doc("Статус приглашения")
   @example(InviteStatus.confirmed)
   invite_status: InviteStatus;
-  
+
+  @doc("Идентификатор сотрудника, который пригласил данного сотрудника. Возвращает `null`, если сотрудник зарегистрировался самостоятельно или если пригласивший сотрудник был удалён.")
+  @example(185)
+  inviter_id: int32 | null;
+
   @doc("Массив тегов, привязанных к сотруднику")
   @example(#["Product", "Design"])
   list_tags: string[];
@@ -882,11 +929,11 @@ model User {
   
   @doc("Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
   @example(utcDateTime.fromISO("2025-01-20T13:40:07.000Z"))
-  last_activity_at: utcDateTime;
-  
+  last_activity_at: utcDateTime | null;
+
   @doc("Часовой пояс пользователя")
   @example("Europe/Moscow")
-  time_zone: string;
+  time_zone: string | null;
   
   @doc("Ссылка на скачивание аватарки пользователя")
   @example("https://app.pachca.com/users/12/photo.jpg")
@@ -1110,10 +1157,22 @@ model Task {
 @doc("Метаданные пагинации")
 model PaginationMeta {
   @doc("Вспомогательная информация")
-  paginate?: {
+  paginate: {
     @doc("Курсор пагинации следующей страницы")
     @example("eyJxZCO2MiwiZGlyIjomSNYjIn3")
-    next_page?: string;
+    next_page: string;
+
+    @doc("Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка.")
+    @example("eyJxZCO2MiwiZGlyIjoiYXNjIn0")
+    prev_page?: string;
+
+    @doc("Есть ли ещё данные на следующей странице. На последней странице — `false`.")
+    @example(true)
+    has_next?: boolean;
+
+    @doc("Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`.")
+    @example(false)
+    has_prev?: boolean;
   };
 }
 
@@ -1145,9 +1204,16 @@ model DataResponse<T> {
 @doc("Обертка ответа с данными и пагинацией")
 model PaginatedDataResponse<T> {
   data: T;
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
+
+@doc("Данные аватара")
+model AvatarData {
+  @doc("URL аватара")
+  @example("https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg")
+  image_url: string;
+}
 
 // ============================================================================
 // OAuth Models
@@ -1185,8 +1251,10 @@ model PaginatedDataResponse<T> {
   profile_read: "Просмотр информации о своем профиле",
   profile_status_read: "Просмотр статуса профиля",
   profile_status_write: "Изменение и удаление статуса профиля",
+  profile_avatar_write: "Изменение и удаление аватара профиля",
   user_status_read: "Просмотр статуса сотрудника",
   user_status_write: "Изменение и удаление статуса сотрудника",
+  user_avatar_write: "Изменение и удаление аватара сотрудника",
   custom_properties_read: "Просмотр дополнительных полей",
   audit_events_read: "Просмотр журнала аудита",
   tasks_read: "Просмотр задач",
@@ -1235,8 +1303,10 @@ model PaginatedDataResponse<T> {
   profile_read: #["owner", "admin", "user", "bot"],
   profile_status_read: #["owner", "admin", "user", "bot"],
   profile_status_write: #["owner", "admin", "user", "bot"],
+  profile_avatar_write: #["owner", "admin", "user", "bot"],
   user_status_read: #["owner", "admin"],
   user_status_write: #["owner", "admin"],
+  user_avatar_write: #["owner", "admin"],
   custom_properties_read: #["owner", "admin", "user", "bot"],
   audit_events_read: #["owner"],
   tasks_read: #["owner", "admin", "user", "bot"],
@@ -1342,11 +1412,17 @@ enum OAuthScope {
   @doc("Изменение и удаление статуса профиля")
   profile_status_write: "profile_status:write",
 
+  @doc("Изменение и удаление аватара профиля")
+  profile_avatar_write: "profile_avatar:write",
+
   @doc("Просмотр статуса сотрудника")
   user_status_read: "user_status:read",
 
   @doc("Изменение и удаление статуса сотрудника")
   user_status_write: "user_status:write",
+
+  @doc("Изменение и удаление аватара сотрудника")
+  user_avatar_write: "user_avatar:write",
 
   @doc("Просмотр дополнительных полей")
   custom_properties_read: "custom_properties:read",
@@ -1562,8 +1638,8 @@ model UserCreateRequest {
     title?: string;
 
     @doc("Уровень доступа")
-    @example(UserRoleInput.user)
-    role?: UserRoleInput;
+    @example(UserCreateRole.user)
+    role?: UserCreateRole;
 
     @doc("Деактивация пользователя")
     @example(false)
@@ -1572,19 +1648,23 @@ model UserCreateRequest {
     @doc("Массив тегов, привязываемых к сотруднику")
     @example(#["Product", "Design"])
     list_tags?: string[];
-    
+
+    @doc("Идентификаторы чатов, в которые сотрудник будет добавлен сразу при создании. Для роли `guest` параметр обязателен и должен содержать ровно один активный чат.")
+    @example(#[12345])
+    chat_ids?: int32[];
+
     @doc("Задаваемые дополнительные поля")
     custom_properties?: {
       @doc("Идентификатор поля")
       @example(1678)
       id: int32;
-      
+
       @doc("Устанавливаемое значение")
       @example("Санкт-Петербург")
       value: string;
     }[];
   };
-  
+
   @doc("Пропуск этапа отправки приглашения сотруднику. Сотруднику не будет отправлено письмо на электронную почту с приглашением создать аккаунт. Полезно при предварительном создании аккаунтов перед входом через SSO.")
   @example(true)
   skip_email_notify?: boolean;
@@ -1759,10 +1839,10 @@ model MessageCreateRequest {
     @example(334)
     entity_id: int32;
     
-    @doc("Текст сообщения")
+    @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).")
     @example("Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)")
     content: string;
-    
+
     @doc("Прикрепляемые файлы")
     files?: {
       @doc("Путь к файлу, полученный в результате [загрузки файла](POST /direct_url)")
@@ -1822,7 +1902,7 @@ model MessageCreateRequest {
 model MessageUpdateRequest {
   @doc("Собранный объект параметров редактируемого сообщения")
   message: {
-    @doc("Текст сообщения")
+    @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).")
     @example("Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.")
     content?: string;
     
@@ -2725,15 +2805,19 @@ model ReactionWebhookPayload {
     reaction: "Для реакций всегда reaction"
   })
   type: "reaction";
-  
+
   @doc("Тип события")
   @example(ReactionEventType.new)
   event: ReactionEventType;
-  
+
+  @doc("Идентификатор чата, в котором находится сообщение. Поле всегда присутствует в payload. В редких случаях (например, если сообщение было удалено к моменту отправки вебхука) может быть `null`.")
+  @example(9012)
+  chat_id: int32 | null;
+
   @doc("Идентификатор сообщения, к которому относится реакция")
   @example(1245817)
   message_id: int32;
-  
+
   @doc("Emoji символ реакции")
   @example("👍")
   code: string;
@@ -2793,6 +2877,46 @@ model ButtonWebhookPayload {
   
   @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
   @example(1747574400)
+  webhook_timestamp: int32;
+}
+
+@doc("Структура исходящего вебхука о заполнении формы")
+model ViewSubmitWebhookPayload {
+  @doc("Тип объекта")
+  @example("view")
+  @extension("x-enum-descriptions", #{
+    view: "Для формы всегда view"
+  })
+  type: "view";
+
+  @doc("Тип события")
+  @example("submit")
+  @extension("x-enum-descriptions", #{
+    submit: "Отправка формы"
+  })
+  event: "submit";
+
+  @doc("Идентификатор обратного вызова, указанный при открытии представления")
+  @example("timeoff_request_form")
+  callback_id: string | null;
+
+  @doc("Приватные метаданные, указанные при открытии представления")
+  @example("{'timeoff_id':4378}")
+  private_metadata: string | null;
+
+  @doc("Идентификатор чата, в котором было нажатие кнопки, открывшей форму. Значение фиксируется в момент **открытия** формы, а не отправки — если форма провисела открытой длительное время, `chat_id` всё равно ссылается на чат с кнопкой. Поле всегда присутствует в payload. Для форм, открытых до выкатки этого изменения, `chat_id` придёт как `null` — такие формы постепенно вымоются по TTL сохранённого представления (30 дней).")
+  @example(9012)
+  chat_id: int32 | null;
+
+  @doc("Идентификатор пользователя, который отправил форму")
+  @example(1235523)
+  user_id: int32;
+
+  @doc("Данные заполненных полей представления. Ключ — `action_id` поля, значение — введённые данные")
+  data: Record<unknown>;
+
+  @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
+  @example(1755075544)
   webhook_timestamp: int32;
 }
 
@@ -2865,6 +2989,10 @@ model WebhookLink {
   @doc("Домен ссылки")
   @example("example.com")
   domain: string;
+
+  @doc("Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью")
+  @example(false)
+  skip: boolean;
 }
 
 @doc("Структура исходящего вебхука о разворачивании ссылок")
@@ -2908,10 +3036,12 @@ model LinkSharedWebhookPayload {
 }
 
 @doc("Объединение всех типов payload вебхуков")
+@extension("x-union-deserializer", "webhook-payload")
 union WebhookPayloadUnion {
   MessageWebhookPayload,
   ReactionWebhookPayload,
   ButtonWebhookPayload,
+  ViewSubmitWebhookPayload,
   ChatMemberWebhookPayload,
   CompanyMemberWebhookPayload,
   LinkSharedWebhookPayload,
@@ -3248,6 +3378,69 @@ interface ProfileOperations {
 }
 
 // ============================================================================
+// Profile Avatar Operations
+// ============================================================================
+
+@route("/profile")
+@tag("Profile")
+interface ProfileAvatarOperations {
+  @extension("x-requirements", #{
+    scope: "profile_avatar:write",
+  })
+  @doc("""
+Загрузка аватара
+
+Метод для загрузки или обновления аватара своего профиля. Файл передается в формате `multipart/form-data`.
+""")
+  @route("/avatar")
+  @put
+  updateProfileAvatar(
+    @multipartBody body: {
+      @doc("Файл изображения для аватара")
+      image: HttpPart<bytes>;
+    }
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<AvatarData>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "profile_avatar:write",
+  })
+  @doc("""
+Удаление аватара
+
+Метод для удаления аватара своего профиля.
+""")
+  @route("/avatar")
+  @delete
+  deleteProfileAvatar(): {
+    @statusCode _: 204;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+}
+
+// ============================================================================
 // User Operations
 // ============================================================================
 
@@ -3263,6 +3456,8 @@ interface UserOperations {
 Метод для создания нового сотрудника в вашей компании.
 
 Вы можете заполнять дополнительные поля сотрудника, которые созданы в вашей компании. Получить актуальный список идентификаторов дополнительных полей сотрудника вы можете в методе [Список дополнительных полей](GET /custom_properties).
+
+Через параметр `chat_ids` сотрудника можно сразу добавить в указанные чаты. Чтобы создать гостя, передайте `role: "guest"` — для этой роли `chat_ids` обязателен и должен содержать ровно один активный чат, в который у токена есть право добавлять участников. При нарушении правил гостевого доступа возвращается `400` с ошибкой по полю `chat_ids`.
 """)
   @post
   createUser(@body request: UserCreateRequest): {
@@ -3305,7 +3500,7 @@ interface UserOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -3535,6 +3730,82 @@ interface UserStatusOperations {
 }
 
 // ============================================================================
+// User Avatar Operations
+// ============================================================================
+
+@route("/users")
+@tag("Users")
+interface UserAvatarOperations {
+  @extension("x-requirements", #{
+    scope: "user_avatar:write",
+  })
+  @doc("""
+Загрузка аватара сотрудника
+
+Метод для загрузки или обновления аватара сотрудника. Файл передается в формате `multipart/form-data`.
+""")
+  @route("/{user_id}/avatar")
+  @put
+  updateUserAvatar(
+    @doc("Идентификатор пользователя")
+    @extension("example", 12)
+    @path user_id: int32,
+    @multipartBody body: {
+      @doc("Файл изображения для аватара")
+      image: HttpPart<bytes>;
+    }
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<AvatarData>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "user_avatar:write",
+  })
+  @doc("""
+Удаление аватара сотрудника
+
+Метод для удаления аватара сотрудника.
+""")
+  @route("/{user_id}/avatar")
+  @delete
+  deleteUserAvatar(
+    @doc("Идентификатор пользователя")
+    @extension("example", 12)
+    @path user_id: int32
+  ): {
+    @statusCode _: 204;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+}
+
+// ============================================================================
 // Group Tag Operations
 // ============================================================================
 
@@ -3624,7 +3895,7 @@ interface GroupTagOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -3668,7 +3939,7 @@ interface GroupTagOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -3851,13 +4122,12 @@ interface ChatOperations {
   @extension("x-paginated", true)
   @get
   listChats(
-    @doc("Составной параметр сортировки сущностей выборки")
-    @extension("x-param-names", #[
-      #{ name: "sort[id]", description: "Идентификатор чата" },
-      #{ name: "sort[last_message_at]", description: "Дата и время создания последнего сообщения" }
-    ])
+    @doc("Поле сортировки")
+    @extension("example", "id")
+    @query sort?: ChatSortField = ChatSortField.id,
+    @doc("Направление сортировки")
     @extension("example", "desc")
-    @query("sort[{field}]") sortField?: SortOrder = SortOrder.desc,
+    @query order?: SortOrder = SortOrder.desc,
     @doc("Параметр, который отвечает за доступность и выборку чатов для пользователя")
     @extension("example", "is_member")
     @query availability?: ChatAvailability = ChatAvailability.is_member,
@@ -3876,7 +4146,7 @@ interface ChatOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -4033,7 +4303,7 @@ interface ChatMemberOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -4345,6 +4615,57 @@ interface ThreadOperations {
     @statusCode _: 402;
     @body body: ApiError;
   };
+
+  @extension("x-requirements", #{
+    scope: "threads:read",
+  })
+  @doc("""
+Список тредов
+
+Метод для получения списка доступных тредов.
+
+Возвращаются треды, у которых вы являетесь участником чата треда либо чата, в котором был создан тред. Публичные чаты, в которых вы не состоите, в выдачу не попадают — чтобы такой тред попал в список, нужно быть участником чата треда или чата, в котором был создан тред.
+
+Сортировка — по убыванию времени последнего сообщения в треде.
+""")
+  @extension("x-paginated", true)
+  @route("/threads")
+  @get
+  listThreads(
+    @doc("Фильтрация по времени последнего сообщения в треде. Будут возвращены только те треды, время последнего сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).")
+    @extension("example", "2025-01-01T00:00:00.000Z")
+    @query last_message_at_after?: utcDateTime,
+    @doc("Фильтрация по времени последнего сообщения в треде. Будут возвращены только те треды, время последнего сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).")
+    @extension("example", "2025-02-01T00:00:00.000Z")
+    @query last_message_at_before?: utcDateTime,
+    @doc("Количество возвращаемых сущностей за один запрос")
+    @query
+    @extension("example", 1)
+    @minValue(1)
+    @maxValue(50)
+    limit?: int32 = 50,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+    @query cursor?: string
+  ): {
+    @statusCode _: 200;
+    @body body: PaginatedDataResponse<Thread[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
 }
 
 // ============================================================================
@@ -4577,19 +4898,19 @@ interface ChatMessageOperations {
     @doc("Идентификатор чата (беседа, канал, диалог или чат треда)")
     @extension("example", 198)
     @query chat_id: int32,
-    @doc("Составной параметр сортировки сущностей выборки")
-    @extension("x-param-names", #[
-      #{ name: "sort[id]", description: "Идентификатор сообщения" }
-    ])
+    @doc("Поле сортировки")
+    @extension("example", "id")
+    @query sort?: MessageSortField = MessageSortField.id,
+    @doc("Направление сортировки")
     @extension("example", "desc")
-    @query("sort[{field}]") sortField?: SortOrder = SortOrder.desc,
+    @query order?: SortOrder = SortOrder.desc,
     @doc("Количество возвращаемых сущностей за один запрос")
     @query
     @extension("example", 1)
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -4643,7 +4964,7 @@ interface ReadMemberOperations {
     @minValue(1)
     @maxValue(300)
     limit?: int32 = 300,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -4786,7 +5107,7 @@ interface ReactionOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -4878,7 +5199,7 @@ interface SearchOperations {
     @extension("example", 10)
     @query @maxValue(200)
     limit?: int32 = 200,
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Сортировка результатов")
@@ -4932,7 +5253,7 @@ interface SearchOperations {
     @extension("example", 10)
     @query @maxValue(100)
     limit?: int32 = 100,
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Направление сортировки")
@@ -4989,7 +5310,7 @@ interface SearchOperations {
     @extension("example", 10)
     @query @maxValue(200)
     limit?: int32 = 200,
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Направление сортировки")
@@ -5092,7 +5413,7 @@ interface TaskOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -5332,7 +5653,7 @@ interface BotOperations {
     @maxValue(50)
     limit?: int32 = 50,
     
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -5445,7 +5766,7 @@ interface SecurityOperations {
     @maxValue(50)
     limit?: int32 = 50,
     
-    @doc("Курсор для пагинации из meta.paginate.next_page")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {

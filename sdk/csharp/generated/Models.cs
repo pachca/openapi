@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -295,6 +296,41 @@ internal class ChatMemberRoleFilterConverter : JsonConverter<ChatMemberRoleFilte
     }
 }
 
+/// <summary>Поле сортировки чатов</summary>
+[JsonConverter(typeof(ChatSortFieldConverter))]
+public enum ChatSortField
+{
+    /// <summary>По идентификатору чата</summary>
+    Id,
+    /// <summary>По дате и времени создания последнего сообщения</summary>
+    LastMessageAt,
+}
+
+internal class ChatSortFieldConverter : JsonConverter<ChatSortField>
+{
+    public override ChatSortField Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "id" => ChatSortField.Id,
+            "last_message_at" => ChatSortField.LastMessageAt,
+            _ => throw new JsonException($"Unknown ChatSortField value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, ChatSortField value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            ChatSortField.Id => "id",
+            ChatSortField.LastMessageAt => "last_message_at",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Тип чата</summary>
 [JsonConverter(typeof(ChatSubtypeConverter))]
 public enum ChatSubtype
@@ -517,6 +553,36 @@ internal class MessageEntityTypeConverter : JsonConverter<MessageEntityType>
     }
 }
 
+[JsonConverter(typeof(MessageSortFieldConverter))]
+public enum MessageSortField
+{
+    /// <summary>По идентификатору сообщения</summary>
+    Id,
+}
+
+internal class MessageSortFieldConverter : JsonConverter<MessageSortField>
+{
+    public override MessageSortField Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "id" => MessageSortField.Id,
+            _ => throw new JsonException($"Unknown MessageSortField value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, MessageSortField value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            MessageSortField.Id => "id",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Скоуп доступа OAuth токена</summary>
 [JsonConverter(typeof(OAuthScopeConverter))]
 public enum OAuthScope
@@ -579,10 +645,14 @@ public enum OAuthScope
     ProfileStatusRead,
     /// <summary>Изменение и удаление статуса профиля</summary>
     ProfileStatusWrite,
+    /// <summary>Изменение и удаление аватара профиля</summary>
+    ProfileAvatarWrite,
     /// <summary>Просмотр статуса сотрудника</summary>
     UserStatusRead,
     /// <summary>Изменение и удаление статуса сотрудника</summary>
     UserStatusWrite,
+    /// <summary>Изменение и удаление аватара сотрудника</summary>
+    UserAvatarWrite,
     /// <summary>Просмотр дополнительных полей</summary>
     CustomPropertiesRead,
     /// <summary>Просмотр журнала аудита</summary>
@@ -655,8 +725,10 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             "profile:read" => OAuthScope.ProfileRead,
             "profile_status:read" => OAuthScope.ProfileStatusRead,
             "profile_status:write" => OAuthScope.ProfileStatusWrite,
+            "profile_avatar:write" => OAuthScope.ProfileAvatarWrite,
             "user_status:read" => OAuthScope.UserStatusRead,
             "user_status:write" => OAuthScope.UserStatusWrite,
+            "user_avatar:write" => OAuthScope.UserAvatarWrite,
             "custom_properties:read" => OAuthScope.CustomPropertiesRead,
             "audit_events:read" => OAuthScope.AuditEventsRead,
             "tasks:read" => OAuthScope.TasksRead,
@@ -711,8 +783,10 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             OAuthScope.ProfileRead => "profile:read",
             OAuthScope.ProfileStatusRead => "profile_status:read",
             OAuthScope.ProfileStatusWrite => "profile_status:write",
+            OAuthScope.ProfileAvatarWrite => "profile_avatar:write",
             OAuthScope.UserStatusRead => "user_status:read",
             OAuthScope.UserStatusWrite => "user_status:write",
+            OAuthScope.UserAvatarWrite => "user_avatar:write",
             OAuthScope.CustomPropertiesRead => "custom_properties:read",
             OAuthScope.AuditEventsRead => "audit_events:read",
             OAuthScope.TasksRead => "tasks:read",
@@ -958,6 +1032,49 @@ internal class TaskStatusConverter : JsonConverter<TaskStatus>
     }
 }
 
+/// <summary>Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат.</summary>
+[JsonConverter(typeof(UserCreateRoleConverter))]
+public enum UserCreateRole
+{
+    /// <summary>Администратор</summary>
+    Admin,
+    /// <summary>Сотрудник</summary>
+    User,
+    /// <summary>Мульти-гость</summary>
+    MultiGuest,
+    /// <summary>Гость</summary>
+    Guest,
+}
+
+internal class UserCreateRoleConverter : JsonConverter<UserCreateRole>
+{
+    public override UserCreateRole Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "admin" => UserCreateRole.Admin,
+            "user" => UserCreateRole.User,
+            "multi_guest" => UserCreateRole.MultiGuest,
+            "guest" => UserCreateRole.Guest,
+            _ => throw new JsonException($"Unknown UserCreateRole value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, UserCreateRole value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            UserCreateRole.Admin => "admin",
+            UserCreateRole.User => "user",
+            UserCreateRole.MultiGuest => "multi_guest",
+            UserCreateRole.Guest => "guest",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Тип события webhook для пользователей</summary>
 [JsonConverter(typeof(UserEventTypeConverter))]
 public enum UserEventType
@@ -1052,7 +1169,7 @@ internal class UserRoleConverter : JsonConverter<UserRole>
     }
 }
 
-/// <summary>Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API.</summary>
+/// <summary>Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`).</summary>
 [JsonConverter(typeof(UserRoleInputConverter))]
 public enum UserRoleInput
 {
@@ -1570,7 +1687,7 @@ public class ViewBlockDate : ViewBlockUnion
     [JsonPropertyName("label")]
     public string Label { get; set; } = default!;
     [JsonPropertyName("initial_date")]
-    public DateOnly? InitialDate { get; set; }
+    public string? InitialDate { get; set; }
     [JsonPropertyName("required")]
     public bool? Required { get; set; }
     [JsonPropertyName("hint")]
@@ -1609,17 +1726,39 @@ public class ViewBlockFileInput : ViewBlockUnion
     public string? Hint { get; set; }
 }
 
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[JsonDerivedType(typeof(MessageWebhookPayload), "message")]
-[JsonDerivedType(typeof(ReactionWebhookPayload), "reaction")]
-[JsonDerivedType(typeof(ButtonWebhookPayload), "button")]
-[JsonDerivedType(typeof(ChatMemberWebhookPayload), "chat_member")]
-[JsonDerivedType(typeof(CompanyMemberWebhookPayload), "company_member")]
-[JsonDerivedType(typeof(LinkSharedWebhookPayload), "message")]
+[JsonConverter(typeof(WebhookPayloadUnionConverter))]
 public abstract class WebhookPayloadUnion
 {
     [JsonPropertyName("type")]
     public abstract string Type { get; }
+}
+
+internal sealed class WebhookPayloadUnionConverter : JsonConverter<WebhookPayloadUnion>
+{
+    public override WebhookPayloadUnion Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var document = JsonDocument.ParseValue(ref reader);
+        var root = document.RootElement;
+        var type = root.GetProperty("type").GetString();
+        var eventValue = root.TryGetProperty("event", out var eventProperty) ? eventProperty.GetString() : null;
+        var raw = root.GetRawText();
+        return type switch
+        {
+            "message" when eventValue == "link_shared" => JsonSerializer.Deserialize<LinkSharedWebhookPayload>(raw, options)!,
+            "message" => JsonSerializer.Deserialize<MessageWebhookPayload>(raw, options)!,
+            "reaction" => JsonSerializer.Deserialize<ReactionWebhookPayload>(raw, options)!,
+            "button" => JsonSerializer.Deserialize<ButtonWebhookPayload>(raw, options)!,
+            "view" => JsonSerializer.Deserialize<ViewSubmitWebhookPayload>(raw, options)!,
+            "chat_member" => JsonSerializer.Deserialize<ChatMemberWebhookPayload>(raw, options)!,
+            "company_member" => JsonSerializer.Deserialize<CompanyMemberWebhookPayload>(raw, options)!,
+            _ => throw new JsonException($"Unknown WebhookPayloadUnion type: {type}")
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, WebhookPayloadUnion value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
+    }
 }
 
 public class MessageWebhookPayload : WebhookPayloadUnion
@@ -1656,6 +1795,8 @@ public class ReactionWebhookPayload : WebhookPayloadUnion
     public override string Type => "reaction";
     [JsonPropertyName("event")]
     public ReactionEventType @Event { get; set; } = default!;
+    [JsonPropertyName("chat_id")]
+    public int? ChatId { get; set; }
     [JsonPropertyName("message_id")]
     public int MessageId { get; set; } = default!;
     [JsonPropertyName("code")]
@@ -1683,6 +1824,23 @@ public class ButtonWebhookPayload : WebhookPayloadUnion
     public int UserId { get; set; } = default!;
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
+    [JsonPropertyName("webhook_timestamp")]
+    public int WebhookTimestamp { get; set; } = default!;
+}
+
+public class ViewSubmitWebhookPayload : WebhookPayloadUnion
+{
+    public override string Type => "view";
+    [JsonPropertyName("callback_id")]
+    public string? CallbackId { get; set; }
+    [JsonPropertyName("private_metadata")]
+    public string? PrivateMetadata { get; set; }
+    [JsonPropertyName("chat_id")]
+    public int? ChatId { get; set; }
+    [JsonPropertyName("user_id")]
+    public int UserId { get; set; } = default!;
+    [JsonPropertyName("data")]
+    public Dictionary<string, string> Data { get; set; } = default!;
     [JsonPropertyName("webhook_timestamp")]
     public int WebhookTimestamp { get; set; } = default!;
 }
@@ -1774,6 +1932,11 @@ public class ApiError : Exception
 {
     [JsonPropertyName("errors")]
     public List<ApiErrorItem> Errors { get; set; } = default!;
+
+    public override string Message => Errors is not { Count: > 0 }
+        ? "api error"
+        : Errors.Count == 1 ? Errors[0].Message
+        : $"Errors: {string.Join("; ", Errors.Select(t => t.Message))}";
 }
 
 public class ApiErrorItem
@@ -1812,6 +1975,12 @@ public class AuditEvent
     public string IpAddress { get; set; } = default!;
     [JsonPropertyName("user_agent")]
     public string UserAgent { get; set; } = default!;
+}
+
+public class AvatarData
+{
+    [JsonPropertyName("image_url")]
+    public string ImageUrl { get; set; } = default!;
 }
 
 public class BotResponseWebhook
@@ -1941,9 +2110,9 @@ public class CustomPropertyDefinition
 public class ExportRequest
 {
     [JsonPropertyName("start_at")]
-    public DateOnly StartAt { get; set; } = default!;
+    public string StartAt { get; set; } = default!;
     [JsonPropertyName("end_at")]
-    public DateOnly EndAt { get; set; } = default!;
+    public string EndAt { get; set; } = default!;
     [JsonPropertyName("webhook_url")]
     public string WebhookUrl { get; set; } = default!;
     [JsonPropertyName("chat_ids")]
@@ -2196,6 +2365,8 @@ public class OAuthError : Exception
     public string Error { get; set; } = default!;
     [JsonPropertyName("error_description")]
     public string ErrorDescription { get; set; } = default!;
+
+    public override string Message => Error ?? "oauth error";
 }
 
 public class OpenViewRequestView
@@ -2227,13 +2398,19 @@ public class OpenViewRequest
 public class PaginationMetaPaginate
 {
     [JsonPropertyName("next_page")]
-    public string? NextPage { get; set; }
+    public string NextPage { get; set; } = default!;
+    [JsonPropertyName("prev_page")]
+    public string? PrevPage { get; set; }
+    [JsonPropertyName("has_next")]
+    public bool? HasNext { get; set; }
+    [JsonPropertyName("has_prev")]
+    public bool? HasPrev { get; set; }
 }
 
 public class PaginationMeta
 {
     [JsonPropertyName("paginate")]
-    public PaginationMetaPaginate? Paginate { get; set; }
+    public PaginationMetaPaginate Paginate { get; set; } = default!;
 }
 
 public class Reaction
@@ -2289,8 +2466,6 @@ public class StatusUpdateRequest
     [JsonPropertyName("status")]
     public StatusUpdateRequestStatus Status { get; set; } = default!;
 }
-
-public class TagNamesFilter { }
 
 public class Task
 {
@@ -2439,23 +2614,25 @@ public class User
     [JsonPropertyName("first_name")]
     public string FirstName { get; set; } = default!;
     [JsonPropertyName("last_name")]
-    public string LastName { get; set; } = default!;
+    public string? LastName { get; set; }
     [JsonPropertyName("nickname")]
     public string Nickname { get; set; } = default!;
     [JsonPropertyName("email")]
-    public string Email { get; set; } = default!;
+    public string? Email { get; set; }
     [JsonPropertyName("phone_number")]
-    public string PhoneNumber { get; set; } = default!;
+    public string? PhoneNumber { get; set; }
     [JsonPropertyName("department")]
-    public string Department { get; set; } = default!;
+    public string? Department { get; set; }
     [JsonPropertyName("title")]
-    public string Title { get; set; } = default!;
+    public string? Title { get; set; }
     [JsonPropertyName("role")]
     public UserRole Role { get; set; } = default!;
     [JsonPropertyName("suspended")]
     public bool Suspended { get; set; } = default!;
     [JsonPropertyName("invite_status")]
     public InviteStatus InviteStatus { get; set; } = default!;
+    [JsonPropertyName("inviter_id")]
+    public int? InviterId { get; set; }
     [JsonPropertyName("list_tags")]
     public List<string> ListTags { get; set; } = default!;
     [JsonPropertyName("custom_properties")]
@@ -2469,9 +2646,9 @@ public class User
     [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; } = default!;
     [JsonPropertyName("last_activity_at")]
-    public DateTimeOffset LastActivityAt { get; set; } = default!;
+    public DateTimeOffset? LastActivityAt { get; set; }
     [JsonPropertyName("time_zone")]
-    public string TimeZone { get; set; } = default!;
+    public string? TimeZone { get; set; }
     [JsonPropertyName("image_url")]
     public string? ImageUrl { get; set; }
 }
@@ -2501,11 +2678,13 @@ public class UserCreateRequestUser
     [JsonPropertyName("title")]
     public string? Title { get; set; }
     [JsonPropertyName("role")]
-    public UserRoleInput? Role { get; set; }
+    public UserCreateRole? Role { get; set; }
     [JsonPropertyName("suspended")]
     public bool? Suspended { get; set; }
     [JsonPropertyName("list_tags")]
     public List<string>? ListTags { get; set; }
+    [JsonPropertyName("chat_ids")]
+    public List<int>? ChatIds { get; set; }
     [JsonPropertyName("custom_properties")]
     public List<UserCreateRequestCustomProperty>? CustomProperties { get; set; }
 }
@@ -2634,6 +2813,8 @@ public class WebhookLink
     public string Url { get; set; } = default!;
     [JsonPropertyName("domain")]
     public string Domain { get; set; } = default!;
+    [JsonPropertyName("skip")]
+    public bool Skip { get; set; } = default!;
 }
 
 public class WebhookMessageThread
@@ -2644,12 +2825,24 @@ public class WebhookMessageThread
     public int MessageChatId { get; set; } = default!;
 }
 
+public class UpdateProfileAvatarRequest
+{
+    [JsonIgnore]
+    public byte[] Image { get; set; } = Array.Empty<byte>();
+}
+
+public class UpdateUserAvatarRequest
+{
+    [JsonIgnore]
+    public byte[] Image { get; set; } = Array.Empty<byte>();
+}
+
 public class GetAuditEventsResponse
 {
     [JsonPropertyName("data")]
     public List<AuditEvent> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListChatsResponse
@@ -2657,7 +2850,7 @@ public class ListChatsResponse
     [JsonPropertyName("data")]
     public List<Chat> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListMembersResponse
@@ -2665,7 +2858,7 @@ public class ListMembersResponse
     [JsonPropertyName("data")]
     public List<User> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListPropertiesResponse
@@ -2679,7 +2872,7 @@ public class ListTagsResponse
     [JsonPropertyName("data")]
     public List<GroupTag> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class GetTagUsersResponse
@@ -2687,7 +2880,7 @@ public class GetTagUsersResponse
     [JsonPropertyName("data")]
     public List<User> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListChatMessagesResponse
@@ -2695,7 +2888,7 @@ public class ListChatMessagesResponse
     [JsonPropertyName("data")]
     public List<Message> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListReactionsResponse
@@ -2703,7 +2896,7 @@ public class ListReactionsResponse
     [JsonPropertyName("data")]
     public List<Reaction> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class SearchChatsResponse
@@ -2735,7 +2928,15 @@ public class ListTasksResponse
     [JsonPropertyName("data")]
     public List<Task> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
+}
+
+public class ListThreadsResponse
+{
+    [JsonPropertyName("data")]
+    public List<Thread> Data { get; set; } = new();
+    [JsonPropertyName("meta")]
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListUsersResponse
@@ -2743,7 +2944,7 @@ public class ListUsersResponse
     [JsonPropertyName("data")]
     public List<User> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class GetWebhookEventsResponse
@@ -2751,7 +2952,7 @@ public class GetWebhookEventsResponse
     [JsonPropertyName("data")]
     public List<WebhookEvent> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class BotResponseDataWrapper
@@ -2794,6 +2995,12 @@ public class UserDataWrapper
 {
     [JsonPropertyName("data")]
     public User Data { get; set; } = default!;
+}
+
+public class AvatarDataDataWrapper
+{
+    [JsonPropertyName("data")]
+    public AvatarData Data { get; set; } = default!;
 }
 
 public class UserStatusDataWrapper

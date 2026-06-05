@@ -17,6 +17,7 @@ import {
   snakeToUpperSnake,
   tagToProperty,
   tagToServiceName,
+  serviceToImplName,
 } from '../naming.js';
 
 const KOTLIN_KEYWORDS = new Set([
@@ -36,6 +37,7 @@ function ktType(ft: IRFieldType): string {
       if (ft.primitive === 'number') return 'Double';
       if (ft.primitive === 'boolean') return 'Boolean';
       if (ft.primitive === 'any') return 'Any';
+      if (ft.primitive === 'string' && ft.format === 'date-time') return 'OffsetDateTime';
       return 'String';
     case 'enum':
     case 'model':
@@ -130,6 +132,7 @@ function generateModels(ir: IR): string {
   // Determine imports
   let needSerialName = false;
   let needTransient = false;
+  const needWebhookPayloadUnionSerializer = ir.unions.some((u) => u.unionDeserializer === 'webhook-payload');
 
   if (ir.enums.length > 0) needSerialName = true;
   if (ir.unions.length > 0) needSerialName = true;
@@ -150,11 +153,37 @@ function generateModels(ir: IR): string {
   lines.push('package com.pachca.sdk');
   lines.push('');
 
+  const needDateTime = ir.models.some((m) => m.fields.some((f) => f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time'))
+    || ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
+
   const imports: string[] = [];
+  if (needDateTime) imports.push('import java.time.OffsetDateTime');
+  if (needDateTime) imports.push('import java.time.format.DateTimeFormatter');
+  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.KSerializer');
   if (needSerialName) imports.push('import kotlinx.serialization.SerialName');
   imports.push('import kotlinx.serialization.Serializable');
   if (needTransient) imports.push('import kotlinx.serialization.Transient');
+  if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveKind');
+  if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.descriptors.buildClassSerialDescriptor');
+  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.encoding.Decoder');
+  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.encoding.Encoder');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.JsonDecoder');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.JsonEncoder');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.contentOrNull');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.decodeFromJsonElement');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.jsonObject');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.jsonPrimitive');
   lines.push(imports.join('\n'));
+
+  if (needDateTime) {
+    lines.push('');
+    lines.push('object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {');
+    lines.push('    override val descriptor = PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)');
+    lines.push('    override fun serialize(encoder: Encoder, value: OffsetDateTime) = encoder.encodeString(value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))');
+    lines.push('    override fun deserialize(decoder: Decoder): OffsetDateTime = OffsetDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)');
+    lines.push('}');
+  }
 
   // Enums
   for (const e of ir.enums) {
@@ -174,10 +203,10 @@ function generateModels(ir: IR): string {
     // Emit inline objects before parent
     for (const inl of m.inlineObjects) {
       lines.push('');
-      emitModel(lines, inl);
+      emitModel(lines, inl, ir.models);
     }
     lines.push('');
-    emitModel(lines, m);
+    emitModel(lines, m, ir.models);
   }
 
   // Response types
@@ -224,11 +253,53 @@ function emitUnion(
     .filter(Boolean) as IRModel[];
 
   const discriminatorField = u.discriminatorField;
+  const useWebhookPayloadDeserializer = u.unionDeserializer === 'webhook-payload';
 
-  lines.push('@Serializable');
+  if (useWebhookPayloadDeserializer) {
+    lines.push('@Serializable(with = WebhookPayloadUnionSerializer::class)');
+  } else {
+    lines.push('@Serializable');
+  }
   lines.push(`sealed interface ${u.name} {`);
   lines.push(`    val ${snakeToCamel(discriminatorField)}: String`);
   lines.push('}');
+
+  if (useWebhookPayloadDeserializer) {
+    lines.push('');
+    lines.push('object WebhookPayloadUnionSerializer : KSerializer<WebhookPayloadUnion> {');
+    lines.push('    override val descriptor = buildClassSerialDescriptor("WebhookPayloadUnion")');
+    lines.push('');
+    lines.push('    override fun serialize(encoder: Encoder, value: WebhookPayloadUnion) {');
+    lines.push('        val jsonEncoder = encoder as? JsonEncoder ?: error("WebhookPayloadUnionSerializer only supports JSON")');
+    lines.push('        when (value) {');
+    lines.push('            is MessageWebhookPayload -> jsonEncoder.encodeSerializableValue(MessageWebhookPayload.serializer(), value)');
+    lines.push('            is ReactionWebhookPayload -> jsonEncoder.encodeSerializableValue(ReactionWebhookPayload.serializer(), value)');
+    lines.push('            is ButtonWebhookPayload -> jsonEncoder.encodeSerializableValue(ButtonWebhookPayload.serializer(), value)');
+    lines.push('            is ViewSubmitWebhookPayload -> jsonEncoder.encodeSerializableValue(ViewSubmitWebhookPayload.serializer(), value)');
+    lines.push('            is ChatMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(ChatMemberWebhookPayload.serializer(), value)');
+    lines.push('            is CompanyMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(CompanyMemberWebhookPayload.serializer(), value)');
+    lines.push('            is LinkSharedWebhookPayload -> jsonEncoder.encodeSerializableValue(LinkSharedWebhookPayload.serializer(), value)');
+    lines.push('        }');
+    lines.push('    }');
+    lines.push('');
+    lines.push('    override fun deserialize(decoder: Decoder): WebhookPayloadUnion {');
+    lines.push('        val jsonDecoder = decoder as? JsonDecoder ?: error("WebhookPayloadUnionSerializer only supports JSON")');
+    lines.push('        val element = jsonDecoder.decodeJsonElement()');
+    lines.push('        val type = element.jsonObject["type"]?.jsonPrimitive?.contentOrNull');
+    lines.push('        val event = element.jsonObject["event"]?.jsonPrimitive?.contentOrNull');
+    lines.push('        return when {');
+    lines.push('            type == "message" && event == "link_shared" -> jsonDecoder.json.decodeFromJsonElement(LinkSharedWebhookPayload.serializer(), element)');
+    lines.push('            type == "message" -> jsonDecoder.json.decodeFromJsonElement(MessageWebhookPayload.serializer(), element)');
+    lines.push('            type == "reaction" -> jsonDecoder.json.decodeFromJsonElement(ReactionWebhookPayload.serializer(), element)');
+    lines.push('            type == "button" -> jsonDecoder.json.decodeFromJsonElement(ButtonWebhookPayload.serializer(), element)');
+    lines.push('            type == "view" -> jsonDecoder.json.decodeFromJsonElement(ViewSubmitWebhookPayload.serializer(), element)');
+    lines.push('            type == "chat_member" -> jsonDecoder.json.decodeFromJsonElement(ChatMemberWebhookPayload.serializer(), element)');
+    lines.push('            type == "company_member" -> jsonDecoder.json.decodeFromJsonElement(CompanyMemberWebhookPayload.serializer(), element)');
+    lines.push('            else -> error("Unknown WebhookPayloadUnion type: $type")');
+    lines.push('        }');
+    lines.push('    }');
+    lines.push('}');
+  }
 
   for (const memberModel of memberModels) {
     const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
@@ -250,8 +321,10 @@ function emitUnion(
       const isOpt = !f.required;
       const fullType = isOpt ? `${typeName}?` : typeName;
       const default_ = isOpt ? ' = null' : '';
+      const isDateTime = f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time';
+      const dtAnnotation = isDateTime ? '@Serializable(with = OffsetDateTimeSerializer::class) ' : '';
       const serialName =
-        needsSerialName(f) ? `@SerialName("${f.name}") ` : '';
+        needsSerialName(f) ? `${dtAnnotation}@SerialName("${f.name}") ` : dtAnnotation;
       lines.push(`    ${serialName}val ${sdkName}: ${fullType}${default_},`);
     }
     lines.push(`) : ${u.name}`);
@@ -261,6 +334,7 @@ function emitUnion(
 function emitModel(
   lines: string[],
   m: IRModel,
+  allModels: IRModel[],
 ): void {
   const fields = m.fields;
 
@@ -315,17 +389,47 @@ function emitModel(
       default_ = '';
     }
 
+    const isDateTime = f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time';
+    const dtAnnotation = isDateTime ? '@Serializable(with = OffsetDateTimeSerializer::class) ' : '';
     const annotation = isBinary
       ? '@Transient '
       : needsSerialName(f)
-        ? `@SerialName("${f.name}") `
-        : '';
+        ? `${dtAnnotation}@SerialName("${f.name}") `
+        : dtAnnotation;
 
     lines.push(`    ${annotation}val ${sdkName}: ${fullType}${default_},`);
   }
 
   const ext = m.isError ? ' : Exception()' : '';
   lines.push(`)${ext}`);
+
+  if (m.name === 'ApiError') {
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
+    if (hasMessage) {
+      lines.push(' {');
+      lines.push('    override val message: String');
+      lines.push('        get() = when {');
+      lines.push('            errors.isEmpty() -> "api error"');
+      lines.push('            errors.size == 1 -> errors[0].message');
+      lines.push('            else -> "Errors: " + errors.joinToString("; ") { it.message }');
+      lines.push('        }');
+      lines.push('}');
+    }
+  }
+  if (m.name === 'OAuthError') {
+    const errField = m.fields.find((f) => f.name === 'error');
+    if (errField) {
+      lines.push(' {');
+      lines.push(`    override val message: String get() = ${fieldSdkName(errField)}`);
+      lines.push('}');
+    }
+  }
 }
 
 function emitResponseType(lines: string[], rt: IRResponseType): void {
@@ -375,6 +479,10 @@ function generateClient(ir: IR): string {
   lines.push('import io.ktor.serialization.kotlinx.json.*');
   lines.push('import kotlinx.serialization.json.Json');
   lines.push('import java.io.Closeable');
+  const clientNeedDateTime = ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
+  if (clientNeedDateTime) {
+    lines.push('import java.time.OffsetDateTime');
+  }
 
   // Services
   for (const svc of ir.services) {
@@ -397,11 +505,23 @@ function emitService(
   globalHasApiError: boolean,
 ): void {
   const serviceName = tagToServiceName(svc.tag);
+  const implName = serviceToImplName(serviceName);
 
-  lines.push(`class ${serviceName} internal constructor(`);
+  lines.push(`interface ${serviceName} {`);
+  for (let i = 0; i < svc.operations.length; i++) {
+    if (i > 0) lines.push('');
+    emitInterfaceOperation(lines, svc.operations[i], ir);
+    if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
+      lines.push('');
+      emitInterfacePaginationMethod(lines, svc.operations[i], ir);
+    }
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push(`class ${implName} internal constructor(`);
   lines.push('    private val baseUrl: String,');
   lines.push('    private val client: HttpClient,');
-  lines.push(') {');
+  lines.push(`) : ${serviceName} {`);
 
   for (let i = 0; i < svc.operations.length; i++) {
     if (i > 0) lines.push('');
@@ -415,12 +535,33 @@ function emitService(
   lines.push('}');
 }
 
-function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+function emitInterfaceOperation(lines: string[], op: IROperation, ir: IR): void {
+  const indent = '    ';
+  const indent2 = '        ';
+  const returnType = getReturnType(op, ir);
+  const returnSuffix = returnType ? `: ${returnType}` : '';
+  const params = buildMethodParams(op, ir);
+
+  if (op.deprecated) lines.push(`${indent}@Deprecated("This method is deprecated")`);
+  if (params.length === 0) {
+    lines.push(`${indent}suspend fun ${op.methodName}()${returnSuffix} {`);
+  } else if (params.length === 1) {
+    lines.push(`${indent}suspend fun ${op.methodName}(${params[0]})${returnSuffix} {`);
+  } else if (params.length <= 2) {
+    lines.push(`${indent}suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} {`);
+  } else {
+    lines.push(`${indent}suspend fun ${op.methodName}(`);
+    for (const p of params) lines.push(`${indent2}${p},`);
+    lines.push(`${indent})${returnSuffix} {`);
+  }
+  lines.push(`${indent2}throw NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)})`);
+  lines.push(`${indent}}`);
+}
+
+function emitInterfacePaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   const indent = '    ';
   const indent2 = '        ';
   const itemType = op.successResponse.dataRef ?? 'Any';
-
-  // Build params: same as original minus cursor
   const params: string[] = [];
   if (op.externalUrl) params.push(`${op.externalUrl}: String`);
   for (const p of op.pathParams) params.push(`${p.sdkName}: ${ktType(p.type)}`);
@@ -437,10 +578,41 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     for (const p of params) lines.push(`${indent2}${p},`);
     lines.push(`${indent}): List<${itemType}> {`);
   }
+  lines.push(`${indent2}throw NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)})`);
+  lines.push(`${indent}}`);
+}
+
+function stripKotlinDefaultValue(param: string): string {
+  const index = param.indexOf(' = ');
+  return index === -1 ? param : param.slice(0, index);
+}
+
+function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const indent = '    ';
+  const indent2 = '        ';
+  const itemType = op.successResponse.dataRef ?? 'Any';
+
+  // Build params: same as original minus cursor
+  const params: string[] = [];
+  if (op.externalUrl) params.push(`${op.externalUrl}: String`);
+  for (const p of op.pathParams) params.push(`${p.sdkName}: ${ktType(p.type)}`);
+  for (const p of op.queryParams) {
+    if (p.name === 'cursor') continue;
+    const typeName = ktType(p.type);
+    params.push(p.required ? `${p.sdkName}: ${typeName}` : `${p.sdkName}: ${typeName}? = null`);
+  }
+  const overrideParams = params.map(stripKotlinDefaultValue);
+
+  if (overrideParams.length <= 2) {
+    lines.push(`${indent}override suspend fun ${op.methodName}All(${overrideParams.join(', ')}): List<${itemType}> {`);
+  } else {
+    lines.push(`${indent}override suspend fun ${op.methodName}All(`);
+    for (const p of overrideParams) lines.push(`${indent2}${p},`);
+    lines.push(`${indent}): List<${itemType}> {`);
+  }
 
   lines.push(`${indent2}val items = mutableListOf<${itemType}>()`);
   lines.push(`${indent2}var cursor: String? = null`);
-  lines.push(`${indent2}do {`);
 
   // Build call args for original method
   const callArgs: string[] = [];
@@ -457,10 +629,30 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   const callStr = callArgs.length <= 3
     ? `${op.methodName}(${callArgs.join(', ')})`
     : `${op.methodName}(\n${callArgs.map(a => `${indent2}        ${a},`).join('\n')}\n${indent2}    )`;
-  lines.push(`${indent2}    val response = ${callStr}`);
-  lines.push(`${indent2}    items.addAll(response.data)`);
-  lines.push(`${indent2}    cursor = response.meta?.paginate?.nextPage`);
-  lines.push(`${indent2}} while (cursor != null)`);
+
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const useHasNext = rt?.metaRef === 'PaginationMeta';
+
+  if (useHasNext) {
+    const cursorExpr = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate?.nextPage';
+    const hasNextExpr = rt?.metaIsRequired ? 'response.meta.paginate.hasNext ?: true' : 'response.meta?.paginate?.hasNext ?: true';
+    lines.push(`${indent2}var hasNext = true`);
+    lines.push(`${indent2}while (hasNext) {`);
+    lines.push(`${indent2}    val response = ${callStr}`);
+    lines.push(`${indent2}    items.addAll(response.data)`);
+    lines.push(`${indent2}    if (response.data.isEmpty()) break`);
+    lines.push(`${indent2}    cursor = ${cursorExpr}`);
+    lines.push(`${indent2}    hasNext = ${hasNextExpr}`);
+    lines.push(`${indent2}}`);
+  } else {
+    const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate?.nextPage';
+    lines.push(`${indent2}do {`);
+    lines.push(`${indent2}    val response = ${callStr}`);
+    lines.push(`${indent2}    items.addAll(response.data)`);
+    lines.push(`${indent2}    if (response.data.isEmpty()) break`);
+    lines.push(`${indent2}    cursor = ${metaAccess}`);
+    lines.push(rt?.metaIsRequired ? `${indent2}} while (true)` : `${indent2}} while (cursor != null)`);
+  }
   lines.push(`${indent2}return items`);
   lines.push(`${indent}}`);
 }
@@ -476,21 +668,21 @@ function emitOperation(
 
   const returnType = getReturnType(op, ir);
   const returnSuffix = returnType ? `: ${returnType}` : '';
-  const params = buildMethodParams(op, ir);
+  const params = buildMethodParams(op, ir).map(stripKotlinDefaultValue);
 
   if (op.deprecated) lines.push(`${indent}@Deprecated("This method is deprecated")`);
   if (params.length === 0) {
-    lines.push(`${indent}suspend fun ${op.methodName}()${returnSuffix} {`);
+    lines.push(`${indent}override suspend fun ${op.methodName}()${returnSuffix} {`);
   } else if (params.length === 1) {
     lines.push(
-      `${indent}suspend fun ${op.methodName}(${params[0]})${returnSuffix} {`,
+      `${indent}override suspend fun ${op.methodName}(${params[0]})${returnSuffix} {`,
     );
   } else if (params.length <= 2) {
     lines.push(
-      `${indent}suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} {`,
+      `${indent}override suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} {`,
     );
   } else {
-    lines.push(`${indent}suspend fun ${op.methodName}(`);
+    lines.push(`${indent}override suspend fun ${op.methodName}(`);
     for (const p of params) {
       lines.push(`${indent2}${p},`);
     }
@@ -510,9 +702,7 @@ function getReturnType(
   if (resp.isRedirect) return 'String';
   if (!resp.hasBody) return null;
   if (resp.isList) {
-    const rt = ir.responses.find(
-      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
     return rt?.name ?? 'Any';
   }
   if (resp.isUnwrap && resp.dataRef) return resp.dataRef;
@@ -593,21 +783,26 @@ function emitMethodBody(
     );
     for (const p of op.queryParams) {
       if (p.isArray) {
+        const itemIsEnum = p.type.kind === 'array' && p.type.items?.kind === 'enum';
+        const itemExpr = itemIsEnum ? 'it.value' : 'it';
         if (p.required) {
           lines.push(
-            `${indent3}${p.sdkName}.forEach { parameter("${p.name}", it) }`,
+            `${indent3}${p.sdkName}.forEach { parameter("${p.name}", ${itemExpr}) }`,
           );
         } else {
           lines.push(
-            `${indent3}${p.sdkName}?.forEach { parameter("${p.name}", it) }`,
+            `${indent3}${p.sdkName}?.forEach { parameter("${p.name}", ${itemExpr}) }`,
           );
         }
       } else {
-        const valueExpr = p.type.kind === 'enum' ? 'it.value' : 'it';
+        const isDateTime = p.type.kind === 'primitive' && p.type.primitive === 'string' && p.type.format === 'date-time';
+        const valueExpr = p.type.kind === 'enum' ? 'it.value' : isDateTime ? 'it.toString()' : 'it';
         if (p.required) {
           const reqExpr = p.type.kind === 'enum'
             ? `${p.sdkName}.value`
-            : p.sdkName;
+            : isDateTime
+              ? `${p.sdkName}.toString()`
+              : p.sdkName;
           lines.push(`${indent3}parameter("${p.name}", ${reqExpr})`);
         } else {
           lines.push(
@@ -678,29 +873,34 @@ function emitMultipartBody(
     (f) => f.type.kind !== 'binary',
   );
 
+  const isUnwrapped = shouldUnwrapBody(op.requestBody!);
+
   // Optional fields first (in schema order)
   for (const f of nonBinaryFields) {
     const sdkName = fieldSdkName(f);
+    const ref = isUnwrapped ? sdkName : `request.${sdkName}`;
     const isOptional = !f.required || f.nullable;
     if (isOptional) {
       lines.push(
-        `${indent4}request.${sdkName}?.let { append("${f.name}", it) }`,
+        `${indent4}${ref}?.let { append("${f.name}", it) }`,
       );
     }
   }
   // Required fields
   for (const f of nonBinaryFields) {
     const sdkName = fieldSdkName(f);
+    const ref = isUnwrapped ? sdkName : `request.${sdkName}`;
     const isOptional = !f.required || f.nullable;
     if (!isOptional) {
-      lines.push(`${indent4}append("${f.name}", request.${sdkName})`);
+      lines.push(`${indent4}append("${f.name}", ${ref})`);
     }
   }
   // Binary field
   if (binaryField) {
     const sdkName = fieldSdkName(binaryField);
+    const ref = isUnwrapped ? sdkName : `request.${sdkName}`;
     lines.push(
-      `${indent4}append("${binaryField.name}", request.${sdkName}, Headers.build {`,
+      `${indent4}append("${binaryField.name}", ${ref}, Headers.build {`,
     );
     lines.push(
       `${indent4}    append(HttpHeaders.ContentDisposition, "filename=\\"${binaryField.name}\\"")`,
@@ -778,38 +978,11 @@ function emitPachcaClient(
   ir: IR,
   hasRedirect: boolean,
 ): void {
-  const ktDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-  lines.push(`class PachcaClient(token: String, baseUrl: String${ktDefault}) : Closeable {`);
-  lines.push('    private val client = HttpClient {');
-  lines.push('        expectSuccess = false');
-  if (hasRedirect) {
-    lines.push('        followRedirects = false');
+  if (ir.baseUrl) {
+    lines.push(`const val PACHCA_API_URL = ${JSON.stringify(ir.baseUrl)}`);
+    lines.push('');
   }
-  lines.push('        install(ContentNegotiation) {');
-  lines.push('            json(Json { explicitNulls = false })');
-  lines.push('        }');
-  lines.push('        install(HttpRequestRetry) {');
-  lines.push('            maxRetries = 3');
-  lines.push('            retryIf { _, response ->');
-  lines.push('                response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)');
-  lines.push('            }');
-  lines.push('            delayMillis { retry ->');
-  lines.push('                val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()');
-  lines.push('                if (retryAfter != null && response?.status?.value == 429) {');
-  lines.push('                    retryAfter * 1000L');
-  lines.push('                } else {');
-  lines.push('                    val base = 10_000L * (1L shl retry)');
-  lines.push('                    val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5');
-  lines.push('                    (base * jitter).toLong()');
-  lines.push('                }');
-  lines.push('            }');
-  lines.push('        }');
-  lines.push('        defaultRequest {');
-  lines.push('            bearerAuth(token)');
-  lines.push('        }');
-  lines.push('    }');
-  lines.push('');
-
+  const ktDefault = ir.baseUrl ? ' = PACHCA_API_URL' : '';
   const serviceEntries = ir.services
     .map((svc) => ({
       propName: tagToProperty(svc.tag),
@@ -817,13 +990,107 @@ function emitPachcaClient(
     }))
     .sort((a, b) => a.propName.localeCompare(b.propName));
 
-  for (const s of serviceEntries) {
-    lines.push(`    val ${s.propName} = ${s.className}(baseUrl, client)`);
+  // Private constructor taking nullable client + all services
+  lines.push('class PachcaClient private constructor(');
+  lines.push('    private val _client: HttpClient?,');
+  for (let i = 0; i < serviceEntries.length; i++) {
+    const s = serviceEntries[i];
+    const suffix = i < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`    val ${s.propName}: ${s.className}${suffix}`);
   }
+  lines.push(') : Closeable {');
+  lines.push('');
+  lines.push('    companion object {');
 
+  // operator fun invoke - creates HttpClient and real services
+  const invokeArgs = [`token: String`, `baseUrl: String${ktDefault}`];
+  for (const s of serviceEntries) {
+    invokeArgs.push(`${s.propName}: ${s.className}? = null`);
+  }
+  lines.push('        operator fun invoke(');
+  for (let i = 0; i < invokeArgs.length; i++) {
+    const suffix = i < invokeArgs.length - 1 ? ',' : '';
+    lines.push(`            ${invokeArgs[i]}${suffix}`);
+  }
+  lines.push('        ): PachcaClient {');
+  lines.push('            val client = createClient(token)');
+  lines.push('            return PachcaClient(');
+  lines.push('                _client = client,');
+  for (let i = 0; i < serviceEntries.length; i++) {
+    const s = serviceEntries[i];
+    const suffix = i < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`                ${s.propName} = ${s.propName} ?: ${serviceToImplName(s.className)}(baseUrl, client)${suffix}`);
+  }
+  lines.push('            )');
+  lines.push('        }');
+  lines.push('');
+
+  // fun stub - creates client without HttpClient
+  lines.push('        fun stub(');
+  for (let i = 0; i < serviceEntries.length; i++) {
+    const s = serviceEntries[i];
+    const suffix = i < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`            ${s.propName}: ${s.className} = object : ${s.className} {}${suffix}`);
+  }
+  lines.push('        ): PachcaClient = PachcaClient(');
+  lines.push('            _client = null,');
+  for (let i = 0; i < serviceEntries.length; i++) {
+    const s = serviceEntries[i];
+    const suffix = i < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`            ${s.propName} = ${s.propName}${suffix}`);
+  }
+  lines.push('        )');
+  lines.push('');
+
+  // private fun createClient
+  lines.push('        private fun createClient(token: String): HttpClient = HttpClient {');
+  lines.push('            expectSuccess = false');
+  if (hasRedirect) {
+    lines.push('            followRedirects = false');
+  }
+  lines.push('            install(ContentNegotiation) { json(Json { explicitNulls = false }) }');
+  lines.push('            install(HttpRequestRetry) {');
+  lines.push('                maxRetries = 3');
+  lines.push('                retryIf { _, response ->');
+  lines.push('                    response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)');
+  lines.push('                }');
+  lines.push('                delayMillis { retry ->');
+  lines.push('                    val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()');
+  lines.push('                    if (retryAfter != null && response?.status?.value == 429) {');
+  lines.push('                        retryAfter * 1000L');
+  lines.push('                    } else {');
+  lines.push('                        val base = 10_000L * (1L shl retry)');
+  lines.push('                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5');
+  lines.push('                        (base * jitter).toLong()');
+  lines.push('                    }');
+  lines.push('                }');
+  lines.push('            }');
+  lines.push('            defaultRequest { bearerAuth(token) }');
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('');
+
+  // Secondary constructor from pre-configured HttpClient
+  const secondaryArgs = [`client: HttpClient`, `baseUrl: String${ktDefault}`];
+  for (const s of serviceEntries) {
+    secondaryArgs.push(`${s.propName}: ${s.className}? = null`);
+  }
+  lines.push(`    constructor(`);
+  for (let i = 0; i < secondaryArgs.length; i++) {
+    const suffix = i < secondaryArgs.length - 1 ? ',' : '';
+    lines.push(`        ${secondaryArgs[i]}${suffix}`);
+  }
+  lines.push('    ) : this(');
+  lines.push('        _client = client,');
+  for (let i = 0; i < serviceEntries.length; i++) {
+    const s = serviceEntries[i];
+    const suffix = i < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`        ${s.propName} = ${s.propName} ?: ${serviceToImplName(s.className)}(baseUrl, client)${suffix}`);
+  }
+  lines.push('    )');
   lines.push('');
   lines.push('    override fun close() {');
-  lines.push('        client.close()');
+  lines.push('        _client?.close()');
   lines.push('    }');
   lines.push('}');
 }
@@ -844,7 +1111,10 @@ function ktLiteral(
         return String(ft.example);
       }
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return String(ft.example);
-      if (ft.primitive === 'string' && typeof ft.example === 'string') return JSON.stringify(ft.example);
+      if (ft.primitive === 'string' && typeof ft.example === 'string') {
+        if (ft.format === 'date-time') return `OffsetDateTime.parse(${JSON.stringify(ft.example)})`;
+        return JSON.stringify(ft.example);
+      }
     }
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
@@ -860,7 +1130,7 @@ function ktLiteral(
       if (ft.primitive === 'any') return 'mapOf<String, Any>()';
       // string with format variants
       if (ft.primitive === 'string') {
-        if (ft.format === 'date-time') return '"2024-01-01T00:00:00Z"';
+        if (ft.format === 'date-time') return 'OffsetDateTime.parse("2024-01-01T00:00:00Z")';
         if (ft.format === 'date') return '"2024-01-01"';
       }
       return '"example"';

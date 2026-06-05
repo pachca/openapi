@@ -28,6 +28,7 @@ import {
   ListTagsResponse,
   GroupTag,
   GetTagUsersParams,
+  GetTagUsersResponse,
   GroupTagRequest,
   ListChatMessagesParams,
   ListChatMessagesResponse,
@@ -41,30 +42,49 @@ import {
   ReactionRequest,
   RemoveReactionParams,
   ListReadMembersParams,
+  ListThreadsParams,
+  ListThreadsResponse,
   Thread,
   AccessTokenInfo,
+  AvatarData,
   StatusUpdateRequest,
   UserStatus,
   SearchChatsParams,
+  SearchChatsResponse,
   SearchMessagesParams,
+  SearchMessagesResponse,
   SearchUsersParams,
+  SearchUsersResponse,
   ListTasksParams,
   ListTasksResponse,
   Task,
   TaskCreateRequest,
   TaskUpdateRequest,
   ListUsersParams,
+  ListUsersResponse,
   UserCreateRequest,
   UserUpdateRequest,
   OpenViewRequest,
-} from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+} from "./types.js";
+import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
 
-class SecurityService {
+export class SecurityService {
+  async getAuditEvents(params?: GetAuditEventsParams): Promise<GetAuditEventsResponse> {
+    throw new Error("Security.getAuditEvents is not implemented");
+  }
+
+  async getAuditEventsAll(params?: Omit<GetAuditEventsParams, 'cursor'>): Promise<AuditEvent[]> {
+    throw new Error("Security.getAuditEventsAll is not implemented");
+  }
+}
+
+export class SecurityServiceImpl extends SecurityService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async getAuditEvents(params?: GetAuditEventsParams): Promise<GetAuditEventsResponse> {
     const query = new URLSearchParams();
@@ -95,20 +115,43 @@ class SecurityService {
   async getAuditEventsAll(params?: Omit<GetAuditEventsParams, 'cursor'>): Promise<AuditEvent[]> {
     const items: AuditEvent[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.getAuditEvents({ ...params, cursor } as GetAuditEventsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 }
 
-class BotsService {
+export class BotsService {
+  async getWebhookEvents(params?: GetWebhookEventsParams): Promise<GetWebhookEventsResponse> {
+    throw new Error("Bots.getWebhookEvents is not implemented");
+  }
+
+  async getWebhookEventsAll(params?: Omit<GetWebhookEventsParams, 'cursor'>): Promise<WebhookEvent[]> {
+    throw new Error("Bots.getWebhookEventsAll is not implemented");
+  }
+
+  async updateBot(id: number, request: BotUpdateRequest): Promise<BotResponse> {
+    throw new Error("Bots.updateBot is not implemented");
+  }
+
+  async deleteWebhookEvent(id: string): Promise<void> {
+    throw new Error("Bots.deleteWebhookEvent is not implemented");
+  }
+}
+
+export class BotsServiceImpl extends BotsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async getWebhookEvents(params?: GetWebhookEventsParams): Promise<GetWebhookEventsResponse> {
     const query = new URLSearchParams();
@@ -121,7 +164,7 @@ class BotsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as GetWebhookEventsResponse;
+        return { ...(deserialize(body) as GetWebhookEventsResponse), data: Array.isArray(body.data) ? body.data.map((item: unknown) => deserializeType("WebhookEvent", item) as WebhookEvent) : [] } as GetWebhookEventsResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -132,11 +175,14 @@ class BotsService {
   async getWebhookEventsAll(params?: Omit<GetWebhookEventsParams, 'cursor'>): Promise<WebhookEvent[]> {
     const items: WebhookEvent[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.getWebhookEvents({ ...params, cursor } as GetWebhookEventsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -144,12 +190,12 @@ class BotsService {
     const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("BotUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as BotResponse;
+        return deserializeType("BotResponse", body.data) as BotResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -173,15 +219,48 @@ class BotsService {
   }
 }
 
-class ChatsService {
+export class ChatsService {
+  async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
+    throw new Error("Chats.listChats is not implemented");
+  }
+
+  async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
+    throw new Error("Chats.listChatsAll is not implemented");
+  }
+
+  async getChat(id: number): Promise<Chat> {
+    throw new Error("Chats.getChat is not implemented");
+  }
+
+  async createChat(request: ChatCreateRequest): Promise<Chat> {
+    throw new Error("Chats.createChat is not implemented");
+  }
+
+  async updateChat(id: number, request: ChatUpdateRequest): Promise<Chat> {
+    throw new Error("Chats.updateChat is not implemented");
+  }
+
+  async archiveChat(id: number): Promise<void> {
+    throw new Error("Chats.archiveChat is not implemented");
+  }
+
+  async unarchiveChat(id: number): Promise<void> {
+    throw new Error("Chats.unarchiveChat is not implemented");
+  }
+}
+
+export class ChatsServiceImpl extends ChatsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
     const query = new URLSearchParams();
-    if (params?.sortId !== undefined) query.set("sort[{field}]", params.sortId);
+    if (params?.sort !== undefined) query.set("sort", params.sort);
+    if (params?.order !== undefined) query.set("order", params.order);
     if (params?.availability !== undefined) query.set("availability", params.availability);
     if (params?.lastMessageAtAfter !== undefined) query.set("last_message_at_after", params.lastMessageAtAfter);
     if (params?.lastMessageAtBefore !== undefined) query.set("last_message_at_before", params.lastMessageAtBefore);
@@ -206,11 +285,14 @@ class ChatsService {
   async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
     const items: Chat[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listChats({ ...params, cursor } as ListChatsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -221,7 +303,7 @@ class ChatsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Chat;
+        return deserializeType("Chat", body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -233,12 +315,12 @@ class ChatsService {
     const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("ChatCreateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as Chat;
+        return deserializeType("Chat", body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -250,12 +332,12 @@ class ChatsService {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("ChatUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Chat;
+        return deserializeType("Chat", body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -294,11 +376,35 @@ class ChatsService {
   }
 }
 
-class CommonService {
+export class CommonService {
+  async downloadExport(id: number): Promise<string> {
+    throw new Error("Common.downloadExport is not implemented");
+  }
+
+  async listProperties(params: ListPropertiesParams): Promise<ListPropertiesResponse> {
+    throw new Error("Common.listProperties is not implemented");
+  }
+
+  async requestExport(request: ExportRequest): Promise<void> {
+    throw new Error("Common.requestExport is not implemented");
+  }
+
+  async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
+    throw new Error("Common.uploadFile is not implemented");
+  }
+
+  async getUploadParams(): Promise<UploadParams> {
+    throw new Error("Common.getUploadParams is not implemented");
+  }
+}
+
+export class CommonServiceImpl extends CommonService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async downloadExport(id: number): Promise<string> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/exports/${id}`, {
@@ -341,7 +447,7 @@ class CommonService {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/exports`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("ExportRequest", request)),
     });
     switch (response.status) {
       case 204:
@@ -384,7 +490,7 @@ class CommonService {
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body) as UploadParams;
+        return deserializeType("UploadParams", body) as UploadParams;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -393,11 +499,47 @@ class CommonService {
   }
 }
 
-class MembersService {
+export class MembersService {
+  async listMembers(id: number, params?: ListMembersParams): Promise<ListMembersResponse> {
+    throw new Error("Members.listMembers is not implemented");
+  }
+
+  async listMembersAll(id: number, params?: Omit<ListMembersParams, 'cursor'>): Promise<User[]> {
+    throw new Error("Members.listMembersAll is not implemented");
+  }
+
+  async addTags(id: number, groupTagIds: number[]): Promise<void> {
+    throw new Error("Members.addTags is not implemented");
+  }
+
+  async addMembers(id: number, request: AddMembersRequest): Promise<void> {
+    throw new Error("Members.addMembers is not implemented");
+  }
+
+  async updateMemberRole(id: number, userId: number, role: ChatMemberRole): Promise<void> {
+    throw new Error("Members.updateMemberRole is not implemented");
+  }
+
+  async removeTag(id: number, tagId: number): Promise<void> {
+    throw new Error("Members.removeTag is not implemented");
+  }
+
+  async leaveChat(id: number): Promise<void> {
+    throw new Error("Members.leaveChat is not implemented");
+  }
+
+  async removeMember(id: number, userId: number): Promise<void> {
+    throw new Error("Members.removeMember is not implemented");
+  }
+}
+
+export class MembersServiceImpl extends MembersService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listMembers(id: number, params?: ListMembersParams): Promise<ListMembersResponse> {
     const query = new URLSearchParams();
@@ -422,11 +564,14 @@ class MembersService {
   async listMembersAll(id: number, params?: Omit<ListMembersParams, 'cursor'>): Promise<User[]> {
     const items: User[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listMembers(id, { ...params, cursor } as ListMembersParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -450,7 +595,7 @@ class MembersService {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("AddMembersRequest", request)),
     });
     switch (response.status) {
       case 204:
@@ -524,15 +669,53 @@ class MembersService {
   }
 }
 
-class GroupTagsService {
+export class GroupTagsService {
+  async listTags(params?: ListTagsParams): Promise<ListTagsResponse> {
+    throw new Error("Group tags.listTags is not implemented");
+  }
+
+  async listTagsAll(params?: Omit<ListTagsParams, 'cursor'>): Promise<GroupTag[]> {
+    throw new Error("Group tags.listTagsAll is not implemented");
+  }
+
+  async getTag(id: number): Promise<GroupTag> {
+    throw new Error("Group tags.getTag is not implemented");
+  }
+
+  async getTagUsers(id: number, params?: GetTagUsersParams): Promise<GetTagUsersResponse> {
+    throw new Error("Group tags.getTagUsers is not implemented");
+  }
+
+  async getTagUsersAll(id: number, params?: Omit<GetTagUsersParams, 'cursor'>): Promise<User[]> {
+    throw new Error("Group tags.getTagUsersAll is not implemented");
+  }
+
+  async createTag(request: GroupTagRequest): Promise<GroupTag> {
+    throw new Error("Group tags.createTag is not implemented");
+  }
+
+  async updateTag(id: number, request: GroupTagRequest): Promise<GroupTag> {
+    throw new Error("Group tags.updateTag is not implemented");
+  }
+
+  async deleteTag(id: number): Promise<void> {
+    throw new Error("Group tags.deleteTag is not implemented");
+  }
+}
+
+export class GroupTagsServiceImpl extends GroupTagsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listTags(params?: ListTagsParams): Promise<ListTagsResponse> {
     const query = new URLSearchParams();
-    if (params?.names !== undefined) query.set("names", String(params.names));
+    if (params?.names !== undefined) {
+      params.names.forEach((v) => query.append("names[]", String(v)));
+    }
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/group_tags${query.toString() ? `?${query}` : ""}`;
@@ -553,11 +736,14 @@ class GroupTagsService {
   async listTagsAll(params?: Omit<ListTagsParams, 'cursor'>): Promise<GroupTag[]> {
     const items: GroupTag[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listTags({ ...params, cursor } as ListTagsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -568,7 +754,7 @@ class GroupTagsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as GroupTag;
+        return deserializeType("GroupTag", body.data) as GroupTag;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -576,7 +762,7 @@ class GroupTagsService {
     }
   }
 
-  async getTagUsers(id: number, params?: GetTagUsersParams): Promise<ListMembersResponse> {
+  async getTagUsers(id: number, params?: GetTagUsersParams): Promise<GetTagUsersResponse> {
     const query = new URLSearchParams();
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
@@ -587,7 +773,7 @@ class GroupTagsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as ListMembersResponse;
+        return deserialize(body) as GetTagUsersResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -598,11 +784,14 @@ class GroupTagsService {
   async getTagUsersAll(id: number, params?: Omit<GetTagUsersParams, 'cursor'>): Promise<User[]> {
     const items: User[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.getTagUsers(id, { ...params, cursor } as GetTagUsersParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -610,12 +799,12 @@ class GroupTagsService {
     const response = await fetchWithRetry(`${this.baseUrl}/group_tags`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("GroupTagRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as GroupTag;
+        return deserializeType("GroupTag", body.data) as GroupTag;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -627,12 +816,12 @@ class GroupTagsService {
     const response = await fetchWithRetry(`${this.baseUrl}/group_tags/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("GroupTagRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as GroupTag;
+        return deserializeType("GroupTag", body.data) as GroupTag;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -656,16 +845,53 @@ class GroupTagsService {
   }
 }
 
-class MessagesService {
+export class MessagesService {
+  async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {
+    throw new Error("Messages.listChatMessages is not implemented");
+  }
+
+  async listChatMessagesAll(params: Omit<ListChatMessagesParams, 'cursor'>): Promise<Message[]> {
+    throw new Error("Messages.listChatMessagesAll is not implemented");
+  }
+
+  async getMessage(id: number): Promise<Message> {
+    throw new Error("Messages.getMessage is not implemented");
+  }
+
+  async createMessage(request: MessageCreateRequest): Promise<Message> {
+    throw new Error("Messages.createMessage is not implemented");
+  }
+
+  async pinMessage(id: number): Promise<void> {
+    throw new Error("Messages.pinMessage is not implemented");
+  }
+
+  async updateMessage(id: number, request: MessageUpdateRequest): Promise<Message> {
+    throw new Error("Messages.updateMessage is not implemented");
+  }
+
+  async deleteMessage(id: number): Promise<void> {
+    throw new Error("Messages.deleteMessage is not implemented");
+  }
+
+  async unpinMessage(id: number): Promise<void> {
+    throw new Error("Messages.unpinMessage is not implemented");
+  }
+}
+
+export class MessagesServiceImpl extends MessagesService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {
     const query = new URLSearchParams();
     query.set("chat_id", String(params.chatId));
-    if (params?.sortId !== undefined) query.set("sort[{field}]", params.sortId);
+    if (params?.sort !== undefined) query.set("sort", params.sort);
+    if (params?.order !== undefined) query.set("order", params.order);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const response = await fetchWithRetry(`${this.baseUrl}/messages?${query}`, {
@@ -685,11 +911,14 @@ class MessagesService {
   async listChatMessagesAll(params: Omit<ListChatMessagesParams, 'cursor'>): Promise<Message[]> {
     const items: Message[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listChatMessages({ ...params, cursor } as ListChatMessagesParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -700,7 +929,7 @@ class MessagesService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Message;
+        return deserializeType("Message", body.data) as Message;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -712,12 +941,12 @@ class MessagesService {
     const response = await fetchWithRetry(`${this.baseUrl}/messages`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("MessageCreateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as Message;
+        return deserializeType("Message", body.data) as Message;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -744,12 +973,12 @@ class MessagesService {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("MessageUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Message;
+        return deserializeType("Message", body.data) as Message;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -788,17 +1017,25 @@ class MessagesService {
   }
 }
 
-class LinkPreviewsService {
+export class LinkPreviewsService {
+  async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
+    throw new Error("Link Previews.createLinkPreviews is not implemented");
+  }
+}
+
+export class LinkPreviewsServiceImpl extends LinkPreviewsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("LinkPreviewsRequest", request)),
     });
     switch (response.status) {
       case 204:
@@ -811,11 +1048,31 @@ class LinkPreviewsService {
   }
 }
 
-class ReactionsService {
+export class ReactionsService {
+  async listReactions(id: number, params?: ListReactionsParams): Promise<ListReactionsResponse> {
+    throw new Error("Reactions.listReactions is not implemented");
+  }
+
+  async listReactionsAll(id: number, params?: Omit<ListReactionsParams, 'cursor'>): Promise<Reaction[]> {
+    throw new Error("Reactions.listReactionsAll is not implemented");
+  }
+
+  async addReaction(id: number, request: ReactionRequest): Promise<Reaction> {
+    throw new Error("Reactions.addReaction is not implemented");
+  }
+
+  async removeReaction(id: number, params: RemoveReactionParams): Promise<void> {
+    throw new Error("Reactions.removeReaction is not implemented");
+  }
+}
+
+export class ReactionsServiceImpl extends ReactionsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listReactions(id: number, params?: ListReactionsParams): Promise<ListReactionsResponse> {
     const query = new URLSearchParams();
@@ -839,11 +1096,14 @@ class ReactionsService {
   async listReactionsAll(id: number, params?: Omit<ListReactionsParams, 'cursor'>): Promise<Reaction[]> {
     const items: Reaction[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listReactions(id, { ...params, cursor } as ListReactionsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -851,12 +1111,12 @@ class ReactionsService {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/reactions`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("ReactionRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body) as Reaction;
+        return deserializeType("Reaction", body) as Reaction;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -883,11 +1143,19 @@ class ReactionsService {
   }
 }
 
-class ReadMembersService {
+export class ReadMembersService {
+  async listReadMembers(id: number, params?: ListReadMembersParams): Promise<unknown> {
+    throw new Error("Read members.listReadMembers is not implemented");
+  }
+}
+
+export class ReadMembersServiceImpl extends ReadMembersService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listReadMembers(id: number, params?: ListReadMembersParams): Promise<unknown> {
     const query = new URLSearchParams();
@@ -909,11 +1177,66 @@ class ReadMembersService {
   }
 }
 
-class ThreadsService {
+export class ThreadsService {
+  async listThreads(params?: ListThreadsParams): Promise<ListThreadsResponse> {
+    throw new Error("Threads.listThreads is not implemented");
+  }
+
+  async listThreadsAll(params?: Omit<ListThreadsParams, 'cursor'>): Promise<Thread[]> {
+    throw new Error("Threads.listThreadsAll is not implemented");
+  }
+
+  async getThread(id: number): Promise<Thread> {
+    throw new Error("Threads.getThread is not implemented");
+  }
+
+  async createThread(id: number): Promise<Thread> {
+    throw new Error("Threads.createThread is not implemented");
+  }
+}
+
+export class ThreadsServiceImpl extends ThreadsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
+
+  async listThreads(params?: ListThreadsParams): Promise<ListThreadsResponse> {
+    const query = new URLSearchParams();
+    if (params?.lastMessageAtAfter !== undefined) query.set("last_message_at_after", params.lastMessageAtAfter);
+    if (params?.lastMessageAtBefore !== undefined) query.set("last_message_at_before", params.lastMessageAtBefore);
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
+    const url = `${this.baseUrl}/threads${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserialize(body) as ListThreadsResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async listThreadsAll(params?: Omit<ListThreadsParams, 'cursor'>): Promise<Thread[]> {
+    const items: Thread[] = [];
+    let cursor: string | undefined;
+    let hasNext = true;
+    while (hasNext) {
+      const response = await this.listThreads({ ...params, cursor } as ListThreadsParams);
+      items.push(...response.data);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
+    return items;
+  }
 
   async getThread(id: number): Promise<Thread> {
     const response = await fetchWithRetry(`${this.baseUrl}/threads/${id}`, {
@@ -922,7 +1245,7 @@ class ThreadsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Thread;
+        return deserializeType("Thread", body.data) as Thread;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -938,7 +1261,7 @@ class ThreadsService {
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as Thread;
+        return deserializeType("Thread", body.data) as Thread;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -947,11 +1270,43 @@ class ThreadsService {
   }
 }
 
-class ProfileService {
+export class ProfileService {
+  async getTokenInfo(): Promise<AccessTokenInfo> {
+    throw new Error("Profile.getTokenInfo is not implemented");
+  }
+
+  async getProfile(): Promise<User> {
+    throw new Error("Profile.getProfile is not implemented");
+  }
+
+  async getStatus(): Promise<unknown> {
+    throw new Error("Profile.getStatus is not implemented");
+  }
+
+  async updateProfileAvatar(image: Blob): Promise<AvatarData> {
+    throw new Error("Profile.updateProfileAvatar is not implemented");
+  }
+
+  async updateStatus(request: StatusUpdateRequest): Promise<UserStatus> {
+    throw new Error("Profile.updateStatus is not implemented");
+  }
+
+  async deleteProfileAvatar(): Promise<void> {
+    throw new Error("Profile.deleteProfileAvatar is not implemented");
+  }
+
+  async deleteStatus(): Promise<void> {
+    throw new Error("Profile.deleteStatus is not implemented");
+  }
+}
+
+export class ProfileServiceImpl extends ProfileService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async getTokenInfo(): Promise<AccessTokenInfo> {
     const response = await fetchWithRetry(`${this.baseUrl}/oauth/token/info`, {
@@ -960,7 +1315,7 @@ class ProfileService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as AccessTokenInfo;
+        return deserializeType("AccessTokenInfo", body.data) as AccessTokenInfo;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -975,7 +1330,7 @@ class ProfileService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as User;
+        return deserializeType("User", body.data) as User;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -990,7 +1345,26 @@ class ProfileService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as unknown;
+        return deserializeType("unknown", body) as unknown;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async updateProfileAvatar(image: Blob): Promise<AvatarData> {
+    const form = new FormData();
+    form.set("image", image, "upload");
+    const response = await fetchWithRetry(`${this.baseUrl}/profile/avatar`, {
+      method: "PUT",
+      headers: this.headers,
+      body: form,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("AvatarData", body.data) as AvatarData;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1002,16 +1376,31 @@ class ProfileService {
     const response = await fetchWithRetry(`${this.baseUrl}/profile/status`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("StatusUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as UserStatus;
+        return deserializeType("UserStatus", body.data) as UserStatus;
       case 401:
         throw new OAuthError(body.error);
       default:
         throw new ApiError(body.errors);
+    }
+  }
+
+  async deleteProfileAvatar(): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/profile/avatar`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
     }
   }
 
@@ -1031,13 +1420,41 @@ class ProfileService {
   }
 }
 
-class SearchService {
+export class SearchService {
+  async searchChats(params?: SearchChatsParams): Promise<SearchChatsResponse> {
+    throw new Error("Search.searchChats is not implemented");
+  }
+
+  async searchChatsAll(params?: Omit<SearchChatsParams, 'cursor'>): Promise<Chat[]> {
+    throw new Error("Search.searchChatsAll is not implemented");
+  }
+
+  async searchMessages(params?: SearchMessagesParams): Promise<SearchMessagesResponse> {
+    throw new Error("Search.searchMessages is not implemented");
+  }
+
+  async searchMessagesAll(params?: Omit<SearchMessagesParams, 'cursor'>): Promise<Message[]> {
+    throw new Error("Search.searchMessagesAll is not implemented");
+  }
+
+  async searchUsers(params?: SearchUsersParams): Promise<SearchUsersResponse> {
+    throw new Error("Search.searchUsers is not implemented");
+  }
+
+  async searchUsersAll(params?: Omit<SearchUsersParams, 'cursor'>): Promise<User[]> {
+    throw new Error("Search.searchUsersAll is not implemented");
+  }
+}
+
+export class SearchServiceImpl extends SearchService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
-  async searchChats(params?: SearchChatsParams): Promise<ListChatsResponse> {
+  async searchChats(params?: SearchChatsParams): Promise<SearchChatsResponse> {
     const query = new URLSearchParams();
     if (params?.query !== undefined) query.set("query", params.query);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
@@ -1055,7 +1472,7 @@ class SearchService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as ListChatsResponse;
+        return deserialize(body) as SearchChatsResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1069,12 +1486,13 @@ class SearchService {
     do {
       const response = await this.searchChats({ ...params, cursor } as SearchChatsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
-  async searchMessages(params?: SearchMessagesParams): Promise<ListChatMessagesResponse> {
+  async searchMessages(params?: SearchMessagesParams): Promise<SearchMessagesResponse> {
     const query = new URLSearchParams();
     if (params?.query !== undefined) query.set("query", params.query);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
@@ -1082,8 +1500,12 @@ class SearchService {
     if (params?.order !== undefined) query.set("order", params.order);
     if (params?.createdFrom !== undefined) query.set("created_from", params.createdFrom);
     if (params?.createdTo !== undefined) query.set("created_to", params.createdTo);
-    if (params?.chatIds !== undefined) query.set("chat_ids", String(params.chatIds));
-    if (params?.userIds !== undefined) query.set("user_ids", String(params.userIds));
+    if (params?.chatIds !== undefined) {
+      params.chatIds.forEach((v) => query.append("chat_ids[]", String(v)));
+    }
+    if (params?.userIds !== undefined) {
+      params.userIds.forEach((v) => query.append("user_ids[]", String(v)));
+    }
     if (params?.active !== undefined) query.set("active", String(params.active));
     const url = `${this.baseUrl}/search/messages${query.toString() ? `?${query}` : ""}`;
     const response = await fetchWithRetry(url, {
@@ -1092,7 +1514,7 @@ class SearchService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as ListChatMessagesResponse;
+        return deserialize(body) as SearchMessagesResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1106,12 +1528,13 @@ class SearchService {
     do {
       const response = await this.searchMessages({ ...params, cursor } as SearchMessagesParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
-  async searchUsers(params?: SearchUsersParams): Promise<ListMembersResponse> {
+  async searchUsers(params?: SearchUsersParams): Promise<SearchUsersResponse> {
     const query = new URLSearchParams();
     if (params?.query !== undefined) query.set("query", params.query);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
@@ -1120,7 +1543,9 @@ class SearchService {
     if (params?.order !== undefined) query.set("order", params.order);
     if (params?.createdFrom !== undefined) query.set("created_from", params.createdFrom);
     if (params?.createdTo !== undefined) query.set("created_to", params.createdTo);
-    if (params?.companyRoles !== undefined) query.set("company_roles", String(params.companyRoles));
+    if (params?.companyRoles !== undefined) {
+      params.companyRoles.forEach((v) => query.append("company_roles[]", String(v)));
+    }
     const url = `${this.baseUrl}/search/users${query.toString() ? `?${query}` : ""}`;
     const response = await fetchWithRetry(url, {
       headers: this.headers,
@@ -1128,7 +1553,7 @@ class SearchService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as ListMembersResponse;
+        return deserialize(body) as SearchUsersResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1142,17 +1567,46 @@ class SearchService {
     do {
       const response = await this.searchUsers({ ...params, cursor } as SearchUsersParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 }
 
-class TasksService {
+export class TasksService {
+  async listTasks(params?: ListTasksParams): Promise<ListTasksResponse> {
+    throw new Error("Tasks.listTasks is not implemented");
+  }
+
+  async listTasksAll(params?: Omit<ListTasksParams, 'cursor'>): Promise<Task[]> {
+    throw new Error("Tasks.listTasksAll is not implemented");
+  }
+
+  async getTask(id: number): Promise<Task> {
+    throw new Error("Tasks.getTask is not implemented");
+  }
+
+  async createTask(request: TaskCreateRequest): Promise<Task> {
+    throw new Error("Tasks.createTask is not implemented");
+  }
+
+  async updateTask(id: number, request: TaskUpdateRequest): Promise<Task> {
+    throw new Error("Tasks.updateTask is not implemented");
+  }
+
+  async deleteTask(id: number): Promise<void> {
+    throw new Error("Tasks.deleteTask is not implemented");
+  }
+}
+
+export class TasksServiceImpl extends TasksService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listTasks(params?: ListTasksParams): Promise<ListTasksResponse> {
     const query = new URLSearchParams();
@@ -1176,11 +1630,14 @@ class TasksService {
   async listTasksAll(params?: Omit<ListTasksParams, 'cursor'>): Promise<Task[]> {
     const items: Task[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listTasks({ ...params, cursor } as ListTasksParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -1191,7 +1648,7 @@ class TasksService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Task;
+        return deserializeType("Task", body.data) as Task;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1203,12 +1660,12 @@ class TasksService {
     const response = await fetchWithRetry(`${this.baseUrl}/tasks`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("TaskCreateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as Task;
+        return deserializeType("Task", body.data) as Task;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1220,12 +1677,12 @@ class TasksService {
     const response = await fetchWithRetry(`${this.baseUrl}/tasks/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("TaskUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Task;
+        return deserializeType("Task", body.data) as Task;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1249,13 +1706,61 @@ class TasksService {
   }
 }
 
-class UsersService {
+export class UsersService {
+  async listUsers(params?: ListUsersParams): Promise<ListUsersResponse> {
+    throw new Error("Users.listUsers is not implemented");
+  }
+
+  async listUsersAll(params?: Omit<ListUsersParams, 'cursor'>): Promise<User[]> {
+    throw new Error("Users.listUsersAll is not implemented");
+  }
+
+  async getUser(id: number): Promise<User> {
+    throw new Error("Users.getUser is not implemented");
+  }
+
+  async getUserStatus(userId: number): Promise<unknown> {
+    throw new Error("Users.getUserStatus is not implemented");
+  }
+
+  async createUser(request: UserCreateRequest): Promise<User> {
+    throw new Error("Users.createUser is not implemented");
+  }
+
+  async updateUser(id: number, request: UserUpdateRequest): Promise<User> {
+    throw new Error("Users.updateUser is not implemented");
+  }
+
+  async updateUserAvatar(userId: number, image: Blob): Promise<AvatarData> {
+    throw new Error("Users.updateUserAvatar is not implemented");
+  }
+
+  async updateUserStatus(userId: number, request: StatusUpdateRequest): Promise<UserStatus> {
+    throw new Error("Users.updateUserStatus is not implemented");
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    throw new Error("Users.deleteUser is not implemented");
+  }
+
+  async deleteUserAvatar(userId: number): Promise<void> {
+    throw new Error("Users.deleteUserAvatar is not implemented");
+  }
+
+  async deleteUserStatus(userId: number): Promise<void> {
+    throw new Error("Users.deleteUserStatus is not implemented");
+  }
+}
+
+export class UsersServiceImpl extends UsersService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
-  async listUsers(params?: ListUsersParams): Promise<ListMembersResponse> {
+  async listUsers(params?: ListUsersParams): Promise<ListUsersResponse> {
     const query = new URLSearchParams();
     if (params?.query !== undefined) query.set("query", params.query);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
@@ -1267,7 +1772,7 @@ class UsersService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as ListMembersResponse;
+        return deserialize(body) as ListUsersResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1278,11 +1783,14 @@ class UsersService {
   async listUsersAll(params?: Omit<ListUsersParams, 'cursor'>): Promise<User[]> {
     const items: User[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listUsers({ ...params, cursor } as ListUsersParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -1293,7 +1801,7 @@ class UsersService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as User;
+        return deserializeType("User", body.data) as User;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1308,7 +1816,7 @@ class UsersService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as unknown;
+        return deserializeType("unknown", body) as unknown;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1320,12 +1828,12 @@ class UsersService {
     const response = await fetchWithRetry(`${this.baseUrl}/users`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("UserCreateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as User;
+        return deserializeType("User", body.data) as User;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1337,12 +1845,31 @@ class UsersService {
     const response = await fetchWithRetry(`${this.baseUrl}/users/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("UserUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as User;
+        return deserializeType("User", body.data) as User;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async updateUserAvatar(userId: number, image: Blob): Promise<AvatarData> {
+    const form = new FormData();
+    form.set("image", image, "upload");
+    const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/avatar`, {
+      method: "PUT",
+      headers: this.headers,
+      body: form,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("AvatarData", body.data) as AvatarData;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1354,12 +1881,12 @@ class UsersService {
     const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/status`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("StatusUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as UserStatus;
+        return deserializeType("UserStatus", body.data) as UserStatus;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1369,6 +1896,21 @@ class UsersService {
 
   async deleteUser(id: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/users/${id}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+
+  async deleteUserAvatar(userId: number): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/avatar`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -1398,17 +1940,25 @@ class UsersService {
   }
 }
 
-class ViewsService {
+export class ViewsService {
+  async openView(request: OpenViewRequest): Promise<void> {
+    throw new Error("Views.openView is not implemented");
+  }
+}
+
+export class ViewsServiceImpl extends ViewsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async openView(request: OpenViewRequest): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/views/open`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("OpenViewRequest", request)),
     });
     switch (response.status) {
       case 201:
@@ -1420,6 +1970,8 @@ class ViewsService {
     }
   }
 }
+
+export const PACHCA_API_URL = "https://api.pachca.com/api/shared/v1";
 
 export class PachcaClient {
   readonly bots: BotsService;
@@ -1439,23 +1991,70 @@ export class PachcaClient {
   readonly users: UsersService;
   readonly views: ViewsService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.bots = new BotsService(baseUrl, headers);
-    this.chats = new ChatsService(baseUrl, headers);
-    this.common = new CommonService(baseUrl, headers);
-    this.groupTags = new GroupTagsService(baseUrl, headers);
-    this.linkPreviews = new LinkPreviewsService(baseUrl, headers);
-    this.members = new MembersService(baseUrl, headers);
-    this.messages = new MessagesService(baseUrl, headers);
-    this.profile = new ProfileService(baseUrl, headers);
-    this.reactions = new ReactionsService(baseUrl, headers);
-    this.readMembers = new ReadMembersService(baseUrl, headers);
-    this.search = new SearchService(baseUrl, headers);
-    this.security = new SecurityService(baseUrl, headers);
-    this.tasks = new TasksService(baseUrl, headers);
-    this.threads = new ThreadsService(baseUrl, headers);
-    this.users = new UsersService(baseUrl, headers);
-    this.views = new ViewsService(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? PACHCA_API_URL;
+      this.bots = new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.chats = new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.common = new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.groupTags = new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.linkPreviews = new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.members = new MembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.messages = new MessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.profile = new ProfileServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.reactions = new ReactionsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.readMembers = new ReadMembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.search = new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.security = new SecurityServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.tasks = new TasksServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.threads = new ThreadsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.users = new UsersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.views = new ViewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? PACHCA_API_URL;
+      this.bots = tokenOrConfig.bots ?? new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.chats = tokenOrConfig.chats ?? new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.common = tokenOrConfig.common ?? new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.groupTags = tokenOrConfig.groupTags ?? new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.linkPreviews = tokenOrConfig.linkPreviews ?? new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.members = tokenOrConfig.members ?? new MembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.messages = tokenOrConfig.messages ?? new MessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.profile = tokenOrConfig.profile ?? new ProfileServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.reactions = tokenOrConfig.reactions ?? new ReactionsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.readMembers = tokenOrConfig.readMembers ?? new ReadMembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.search = tokenOrConfig.search ?? new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.security = tokenOrConfig.security ?? new SecurityServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.tasks = tokenOrConfig.tasks ?? new TasksServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.threads = tokenOrConfig.threads ?? new ThreadsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.users = tokenOrConfig.users ?? new UsersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.views = tokenOrConfig.views ?? new ViewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
+  }
+
+  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.bots = overrides.bots ?? new BotsService();
+    client.chats = overrides.chats ?? new ChatsService();
+    client.common = overrides.common ?? new CommonService();
+    client.groupTags = overrides.groupTags ?? new GroupTagsService();
+    client.linkPreviews = overrides.linkPreviews ?? new LinkPreviewsService();
+    client.members = overrides.members ?? new MembersService();
+    client.messages = overrides.messages ?? new MessagesService();
+    client.profile = overrides.profile ?? new ProfileService();
+    client.reactions = overrides.reactions ?? new ReactionsService();
+    client.readMembers = overrides.readMembers ?? new ReadMembersService();
+    client.search = overrides.search ?? new SearchService();
+    client.security = overrides.security ?? new SecurityService();
+    client.tasks = overrides.tasks ?? new TasksService();
+    client.threads = overrides.threads ?? new ThreadsService();
+    client.users = overrides.users ?? new UsersService();
+    client.views = overrides.views ?? new ViewsService();
+    return client;
   }
 }

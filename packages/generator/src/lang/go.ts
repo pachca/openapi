@@ -1475,6 +1475,14 @@ function generateExamples(ir: IR): string {
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
       result[op.operationId] = entry;
+      if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+        result[`${op.operationId}_pollWebhookEvents`] = {
+          usage: `err := client.${serviceField}.PollWebhookEvents(ctx, nil, func(event pachca.WebhookEvent) error {\n\t_ = event\n\treturn nil\n})`,
+        };
+        result[`${op.operationId}_pollWebhookPayloads`] = {
+          usage: `err := client.${serviceField}.PollWebhookPayloads(ctx, nil, func(payload pachca.WebhookPayloadUnion) error {\n\t_ = payload\n\treturn nil\n})`,
+        };
+      }
     }
   }
 

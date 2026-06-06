@@ -1454,6 +1454,16 @@ function generateExamples(ir: IR): string {
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
       result[op.operationId] = entry;
+      if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+        result[`${op.operationId}_pollWebhookEvents`] = {
+          usage: `client.${serviceProp}.pollWebhookEvents().collect { event ->\n    println(event)\n}`,
+          imports: ['pollWebhookEvents'],
+        };
+        result[`${op.operationId}_pollWebhookPayloads`] = {
+          usage: `client.${serviceProp}.pollWebhookPayloads<WebhookPayloadUnion>().collect { payload ->\n    println(payload)\n}`,
+          imports: ['WebhookPayloadUnion', 'pollWebhookPayloads'],
+        };
+      }
     }
   }
 

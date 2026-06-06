@@ -15,33 +15,17 @@ related:
 
 <Info>SDK helpers по умолчанию начинают читать только события, созданные после запуска воркера, и дедуплицируют уже обработанные delivery ID в памяти.</Info>
 
-## Пример поллинга (TypeScript)
+## Пример поллинга
 
-```typescript
-import { PachcaClient } from "@pachca/sdk"
+<ApiCodeExample title="Polling событий" operations={[
+  { id: "BotOperations_getWebhookEvents_pollWebhookEvents" }
+]} langs={["typescript", "python", "go", "kotlin", "swift", "csharp"]} />
 
-const client = new PachcaClient(process.env.PACHCA_TOKEN!)
-const startedAt = new Date()
+Если вам нужен только payload вебхука, используйте helper для polling payload'ов:
 
-for await (const event of client.bots.pollWebhookEvents({
-  limit: 50,
-  intervalMs: 5_000,
-  createdAfter: startedAt,
-})) {
-  console.log("Событие:", event.eventType, event.payload)
-  // Обработать событие...
-}
-```
-
-Если вам нужен только payload вебхука, используйте `pollWebhookPayloads`:
-
-```typescript
-for await (const payload of client.bots.pollWebhookPayloads({
-  intervalMs: 5_000,
-})) {
-  console.log("Payload:", payload)
-}
-```
+<ApiCodeExample title="Polling payload'ов" operations={[
+  { id: "BotOperations_getWebhookEvents_pollWebhookPayloads" }
+]} langs={["typescript", "python", "go", "kotlin", "swift", "csharp"]} />
 
 ## Ручная работа через API
 

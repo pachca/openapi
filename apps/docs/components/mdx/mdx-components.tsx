@@ -362,6 +362,41 @@ export async function ApiCodeExample({
     return <GuideCodeBlock language={lang} code={code} />;
   }
 
+  // Multi-language SDK-only mode: render CodeExamples-style dropdown from examples.json.
+  if (!operationId && operations?.length) {
+    const sdkLangs = ['typescript', 'python', 'go', 'kotlin', 'swift', 'csharp'] as const;
+    type SdkLang = (typeof sdkLangs)[number];
+    const isSdkLang = (value: string): value is SdkLang =>
+      (sdkLangs as readonly string[]).includes(value);
+    const requestedSdkLangs = langs?.filter(isSdkLang);
+    const visibleSdkLangs = requestedSdkLangs?.length ? requestedSdkLangs : [...sdkLangs];
+    const sdkDefaultLang = defaultLang && isSdkLang(defaultLang) ? defaultLang : undefined;
+    const sdkExamples = Object.fromEntries(
+      sdkLangs.map((sdkLang) => [sdkLang, getSdkExampleForLang(sdkLang, operations, showInit)])
+    );
+    const syntheticEndpoint = {
+      id: operations[0]?.id ?? 'sdk-example',
+      method: 'GET' as const,
+      path: '',
+      tags: [],
+      title: title ?? 'SDK example',
+      parameters: [],
+      responses: { '200': { description: 'OK' } },
+    };
+
+    return (
+      <CodeExamples
+        endpoint={syntheticEndpoint}
+        show="request"
+        title={title}
+        sdkExamples={sdkExamples}
+        langs={visibleSdkLangs}
+        defaultLang={sdkDefaultLang}
+        className="my-4"
+      />
+    );
+  }
+
   // Multi-language mode: render CodeExamples with dropdown
   if (!operationId) {
     return (

@@ -98,7 +98,7 @@ open class BotsService {
         maxSeenDeliveryIds: Int = 5_000
     ) -> AsyncThrowingStream<WebhookEvent, Error> {
         AsyncThrowingStream { continuation in
-            let task = Swift.Task {
+            let task = _Concurrency.Task {
                 do {
                     guard maxSeenDeliveryIds > 0 else {
                         throw NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: "maxSeenDeliveryIds must be greater than 0"])
@@ -117,10 +117,10 @@ open class BotsService {
                         return true
                     }
 
-                    while !Swift.Task.isCancelled {
+                    while !_Concurrency.Task.isCancelled {
                         var cursor: String? = nil
                         var hasNext = true
-                        while hasNext && !Swift.Task.isCancelled {
+                        while hasNext && !_Concurrency.Task.isCancelled {
                             let response = try await getWebhookEvents(limit: limit, cursor: cursor)
                             var pageHasRecentEvents = false
                             for event in response.data.reversed() {
@@ -135,7 +135,7 @@ open class BotsService {
                             hasNext = (response.meta.paginate.hasNext ?? !response.data.isEmpty) && pageHasRecentEvents
                             cursor = response.meta.paginate.nextPage
                         }
-                        try await Swift.Task.sleep(nanoseconds: UInt64(max(interval, 0) * 1_000_000_000))
+                        try await _Concurrency.Task.sleep(nanoseconds: UInt64(max(interval, 0) * 1_000_000_000))
                     }
                     continuation.finish()
                 } catch {
@@ -154,7 +154,7 @@ open class BotsService {
         includePayload: @escaping (WebhookPayloadUnion) -> Bool = { _ in true }
     ) -> AsyncThrowingStream<WebhookPayloadUnion, Error> {
         AsyncThrowingStream { continuation in
-            let task = Swift.Task {
+            let task = _Concurrency.Task {
                 do {
                     for try await event in pollWebhookEvents(
                         limit: limit,

@@ -16,6 +16,19 @@
     "usage": "val response = client.bots.getWebhookEvents(limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "GetWebhookEventsResponse(data: List<WebhookEvent>, meta: PaginationMeta)"
   },
+  "BotOperations_getWebhookEvents_pollWebhookEvents": {
+    "usage": "client.bots.pollWebhookEvents().collect { event ->\n    println(event)\n}",
+    "imports": [
+      "pollWebhookEvents"
+    ]
+  },
+  "BotOperations_getWebhookEvents_pollWebhookPayloads": {
+    "usage": "client.bots.pollWebhookPayloads<WebhookPayloadUnion>().collect { payload ->\n    println(payload)\n}",
+    "imports": [
+      "WebhookPayloadUnion",
+      "pollWebhookPayloads"
+    ]
+  },
   "BotOperations_updateBot": {
     "usage": "val request = BotUpdateRequest(bot = BotUpdateRequestBot(webhook = BotUpdateRequestBotWebhook(outgoingUrl = \"https://www.website.com/tasks/new\")))\nval response = client.bots.updateBot(id = 1738816, request = request)",
     "output": "BotResponse(id: Int, webhook: BotResponseWebhook(outgoingUrl: String))",

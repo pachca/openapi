@@ -1464,13 +1464,11 @@ function generateExamples(ir: IR): string {
       if (ex.imports.length > 0) entry.imports = ex.imports;
       result[op.operationId] = entry;
       if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
-        result[`${op.operationId}_poll_webhook_events`] = {
+        result[`${op.operationId}_pollWebhookEvents`] = {
           usage: `async for event in client.${serviceProp}.poll_webhook_events(interval_seconds=5.0):\n    print(event)`,
-          imports: ['PachcaClient'],
         };
-        result[`${op.operationId}_poll_webhook_payloads`] = {
+        result[`${op.operationId}_pollWebhookPayloads`] = {
           usage: `async for payload in client.${serviceProp}.poll_webhook_payloads(interval_seconds=5.0):\n    print(payload)`,
-          imports: ['PachcaClient'],
         };
       }
     }

@@ -17,16 +17,10 @@
     "output": "GetWebhookEventsResponse({ data: WebhookEvent[], meta: PaginationMeta })"
   },
   "BotOperations_getWebhookEvents_pollWebhookEvents": {
-    "usage": "for await (const event of client.bots.pollWebhookEvents({ intervalMs: 5_000 })) {\n  console.log(event)\n}",
-    "imports": [
-      "PachcaClient"
-    ]
+    "usage": "for await (const event of client.bots.pollWebhookEvents({ intervalMs: 5_000 })) {\n  console.log(event)\n}"
   },
   "BotOperations_getWebhookEvents_pollWebhookPayloads": {
-    "usage": "for await (const payload of client.bots.pollWebhookPayloads({ intervalMs: 5_000 })) {\n  console.log(payload)\n}",
-    "imports": [
-      "PachcaClient"
-    ]
+    "usage": "for await (const payload of client.bots.pollWebhookPayloads({ intervalMs: 5_000 })) {\n  console.log(payload)\n}"
   },
   "BotOperations_updateBot": {
     "usage": "const request: BotUpdateRequest = { bot: { webhook: { outgoingUrl: \"https://www.website.com/tasks/new\" } } }\nconst response = client.bots.updateBot(1738816, request)",

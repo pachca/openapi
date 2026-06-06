@@ -16,6 +16,12 @@
     "usage": "let response = try await client.bots.getWebhookEvents(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "GetWebhookEventsResponse(data: [WebhookEvent], meta: PaginationMeta)"
   },
+  "BotOperations_getWebhookEvents_pollWebhookEvents": {
+    "usage": "for try await event in client.bots.pollWebhookEvents(interval: 5) {\n    print(event)\n}"
+  },
+  "BotOperations_getWebhookEvents_pollWebhookPayloads": {
+    "usage": "for try await payload in client.bots.pollWebhookPayloads(interval: 5) {\n    print(payload)\n}"
+  },
   "BotOperations_updateBot": {
     "usage": "let body = BotUpdateRequest(bot: BotUpdateRequestBot(webhook: BotUpdateRequestBotWebhook(outgoingUrl: \"https://www.website.com/tasks/new\")))\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
     "output": "BotResponse(id: Int, webhook: BotResponseWebhook(outgoingUrl: String))",

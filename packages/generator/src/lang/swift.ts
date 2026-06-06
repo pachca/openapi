@@ -583,7 +583,7 @@ function emitWebhookPollingMethods(lines: string[], prefix: string): void {
   lines.push('        maxSeenDeliveryIds: Int = 5_000');
   lines.push('    ) -> AsyncThrowingStream<WebhookEvent, Error> {');
   lines.push('        AsyncThrowingStream { continuation in');
-  lines.push('            let task = Swift.Task {');
+  lines.push('            let task = _Concurrency.Task {');
   lines.push('                do {');
   lines.push('                    guard maxSeenDeliveryIds > 0 else {');
   lines.push('                        throw NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: "maxSeenDeliveryIds must be greater than 0"])');
@@ -602,10 +602,10 @@ function emitWebhookPollingMethods(lines: string[], prefix: string): void {
   lines.push('                        return true');
   lines.push('                    }');
   lines.push('');
-  lines.push('                    while !Swift.Task.isCancelled {');
+  lines.push('                    while !_Concurrency.Task.isCancelled {');
   lines.push('                        var cursor: String? = nil');
   lines.push('                        var hasNext = true');
-  lines.push('                        while hasNext && !Swift.Task.isCancelled {');
+  lines.push('                        while hasNext && !_Concurrency.Task.isCancelled {');
   lines.push('                            let response = try await getWebhookEvents(limit: limit, cursor: cursor)');
   lines.push('                            var pageHasRecentEvents = false');
   lines.push('                            for event in response.data.reversed() {');
@@ -620,7 +620,7 @@ function emitWebhookPollingMethods(lines: string[], prefix: string): void {
   lines.push('                            hasNext = (response.meta.paginate.hasNext ?? !response.data.isEmpty) && pageHasRecentEvents');
   lines.push('                            cursor = response.meta.paginate.nextPage');
   lines.push('                        }');
-  lines.push('                        try await Swift.Task.sleep(nanoseconds: UInt64(max(interval, 0) * 1_000_000_000))');
+  lines.push('                        try await _Concurrency.Task.sleep(nanoseconds: UInt64(max(interval, 0) * 1_000_000_000))');
   lines.push('                    }');
   lines.push('                    continuation.finish()');
   lines.push('                } catch {');
@@ -639,7 +639,7 @@ function emitWebhookPollingMethods(lines: string[], prefix: string): void {
   lines.push('        includePayload: @escaping (WebhookPayloadUnion) -> Bool = { _ in true }');
   lines.push('    ) -> AsyncThrowingStream<WebhookPayloadUnion, Error> {');
   lines.push('        AsyncThrowingStream { continuation in');
-  lines.push('            let task = Swift.Task {');
+  lines.push('            let task = _Concurrency.Task {');
   lines.push('                do {');
   lines.push('                    for try await event in pollWebhookEvents(');
   lines.push('                        limit: limit,');
@@ -1187,6 +1187,14 @@ function swiftGenerateExamples(ir: IR): string {
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
       result[op.operationId] = entry;
+      if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+        result[`${op.operationId}_pollWebhookEvents`] = {
+          usage: `for try await event in client.${serviceProp}.pollWebhookEvents(interval: 5) {\n    print(event)\n}`,
+        };
+        result[`${op.operationId}_pollWebhookPayloads`] = {
+          usage: `for try await payload in client.${serviceProp}.pollWebhookPayloads(interval: 5) {\n    print(payload)\n}`,
+        };
+      }
     }
   }
 

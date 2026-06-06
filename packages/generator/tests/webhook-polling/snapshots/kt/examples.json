@@ -8,5 +8,18 @@
   "BotOperations_getWebhookEvents": {
     "usage": "val response = client.bots.getWebhookEvents(limit = 123, cursor = \"example\")",
     "output": "GetWebhookEventsResponse(data: List<WebhookEvent>, meta: PaginationMeta)"
+  },
+  "BotOperations_getWebhookEvents_pollWebhookEvents": {
+    "usage": "client.bots.pollWebhookEvents().collect { event ->\n    println(event)\n}",
+    "imports": [
+      "pollWebhookEvents"
+    ]
+  },
+  "BotOperations_getWebhookEvents_pollWebhookPayloads": {
+    "usage": "client.bots.pollWebhookPayloads<WebhookPayloadUnion>().collect { payload ->\n    println(payload)\n}",
+    "imports": [
+      "WebhookPayloadUnion",
+      "pollWebhookPayloads"
+    ]
   }
 }

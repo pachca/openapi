@@ -8,5 +8,14 @@
   "BotOperations_getWebhookEvents": {
     "usage": "var response = await client.Bots.GetWebhookEventsAsync(123, \"example\");",
     "output": "GetWebhookEventsResponse(Data: List<WebhookEvent>, Meta: PaginationMeta)"
+  },
+  "BotOperations_getWebhookEvents_pollWebhookEvents": {
+    "usage": "await foreach (var webhookEvent in client.Bots.PollWebhookEventsAsync())\n{\n    _ = webhookEvent;\n}"
+  },
+  "BotOperations_getWebhookEvents_pollWebhookPayloads": {
+    "usage": "await foreach (var payload in client.Bots.PollWebhookPayloadsAsync<WebhookPayloadUnion>())\n{\n    _ = payload;\n}",
+    "imports": [
+      "WebhookPayloadUnion"
+    ]
   }
 }

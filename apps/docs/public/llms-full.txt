@@ -16,7 +16,7 @@
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 96–198 |
 | How-to Guides — рецепты задач с кодом TS/Python | 199–882 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 883–11131 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 883–11271 |
 | · Обзор | 888–991 |
 | · Быстрый старт | 992–1082 |
 | · AI агенты | 1083–1218 |
@@ -31,67 +31,67 @@
 | · Исходящие вебхуки | 1890–1934 |
 | · Настройка и типы событий | 1935–2109 |
 | · Безопасность и обработчик | 2110–2300 |
-| · Поллинг | 2301–2344 |
-| · Кнопки в сообщениях | 2345–2501 |
-| · Формы | 2502–2571 |
-| · Блоки представления | 2572–2786 |
-| · Обработка форм | 2787–2926 |
-| · Разворачивание ссылок | 2927–3039 |
-| · Экспорт сообщений | 3040–3181 |
-| · DLP-система | 3182–3389 |
-| · Пачка Audit Events API | 3390–3464 |
-| · Форматирование текста | 3465–3545 |
-| · Сценарии | 3546–4034 |
-| · CLI | 4035–4128 |
-| · Установка | 4129–4221 |
-| · Авторизация | 4222–4295 |
-| · Вывод | 4296–4399 |
-| · Флаги и скрипты | 4400–4626 |
-| · Сценарии | 4627–4674 |
-| · Файлы | 4675–4709 |
-| · Прямые запросы | 4710–4820 |
-| · Команды | 4821–4955 |
-| · SDK и генератор | 4956–5041 |
-| · TypeScript | 5042–5454 |
-| · Python | 5455–5861 |
-| · Go | 5862–6293 |
-| · Kotlin | 6294–6717 |
-| · Swift | 6718–7110 |
-| · C# | 7111–7564 |
-| · n8n | 7565–7640 |
-| · Начало работы | 7641–7868 |
-| · Ресурсы и операции | 7869–8243 |
-| · Триггер | 8244–8493 |
-| · Тестирование | 8494–8767 |
-| · Примеры workflow | 8768–8983 |
-| · Продвинутые функции | 8984–9220 |
-| · Устранение ошибок | 9221–9413 |
-| · Миграция с v1 | 9414–9535 |
-| · Последние обновления | 9536–9545 |
-| · Авторизация | 9546–9724 |
-| · Запросы и ответы | 9725–9917 |
-| · Пагинация | 9918–10154 |
-| · Загрузка файлов | 10155–10372 |
-| · Ошибки | 10373–10446 |
-| · Лимиты | 10447–10564 |
-| · Модели | 10565–11131 |
-| API-методы — все эндпоинты со схемами и примерами | 11132–26543 |
-| · Common | 11134–11928 |
-| · Profile | 11929–12930 |
-| · Users | 12931–15316 |
-| · Group tags | 15317–16664 |
-| · Chats | 16665–17932 |
-| · Members | 17933–19277 |
-| · Threads | 19278–19835 |
-| · Messages | 19836–21665 |
-| · Read members | 21666–21912 |
-| · Reactions | 21913–22559 |
-| · Link Previews | 22560–22815 |
-| · Search | 22816–23616 |
-| · Tasks | 23617–24908 |
-| · Views | 24909–25480 |
-| · Bots | 25481–26231 |
-| · Security | 26232–26543 |
+| · Поллинг | 2301–2484 |
+| · Кнопки в сообщениях | 2485–2641 |
+| · Формы | 2642–2711 |
+| · Блоки представления | 2712–2926 |
+| · Обработка форм | 2927–3066 |
+| · Разворачивание ссылок | 3067–3179 |
+| · Экспорт сообщений | 3180–3321 |
+| · DLP-система | 3322–3529 |
+| · Пачка Audit Events API | 3530–3604 |
+| · Форматирование текста | 3605–3685 |
+| · Сценарии | 3686–4174 |
+| · CLI | 4175–4268 |
+| · Установка | 4269–4361 |
+| · Авторизация | 4362–4435 |
+| · Вывод | 4436–4539 |
+| · Флаги и скрипты | 4540–4766 |
+| · Сценарии | 4767–4814 |
+| · Файлы | 4815–4849 |
+| · Прямые запросы | 4850–4960 |
+| · Команды | 4961–5095 |
+| · SDK и генератор | 5096–5181 |
+| · TypeScript | 5182–5594 |
+| · Python | 5595–6001 |
+| · Go | 6002–6433 |
+| · Kotlin | 6434–6857 |
+| · Swift | 6858–7250 |
+| · C# | 7251–7704 |
+| · n8n | 7705–7780 |
+| · Начало работы | 7781–8008 |
+| · Ресурсы и операции | 8009–8383 |
+| · Триггер | 8384–8633 |
+| · Тестирование | 8634–8907 |
+| · Примеры workflow | 8908–9123 |
+| · Продвинутые функции | 9124–9360 |
+| · Устранение ошибок | 9361–9553 |
+| · Миграция с v1 | 9554–9675 |
+| · Последние обновления | 9676–9685 |
+| · Авторизация | 9686–9864 |
+| · Запросы и ответы | 9865–10057 |
+| · Пагинация | 10058–10294 |
+| · Загрузка файлов | 10295–10512 |
+| · Ошибки | 10513–10586 |
+| · Лимиты | 10587–10704 |
+| · Модели | 10705–11271 |
+| API-методы — все эндпоинты со схемами и примерами | 11272–26683 |
+| · Common | 11274–12068 |
+| · Profile | 12069–13070 |
+| · Users | 13071–15456 |
+| · Group tags | 15457–16804 |
+| · Chats | 16805–18072 |
+| · Members | 18073–19417 |
+| · Threads | 19418–19975 |
+| · Messages | 19976–21805 |
+| · Read members | 21806–22052 |
+| · Reactions | 22053–22699 |
+| · Link Previews | 22700–22955 |
+| · Search | 22956–23756 |
+| · Tasks | 23757–25048 |
+| · Views | 25049–25620 |
+| · Bots | 25621–26371 |
+| · Security | 26372–26683 |
 
 # LIBRARY RULES
 
@@ -2300,35 +2300,175 @@ app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
 
 # Поллинг
 
-Если у вас нет возможности принимать входящие HTTP-запросы (локальная разработка, жёсткие firewall-правила), используйте **поллинг** — получение событий через API.
+Если у вас нет возможности принимать входящие HTTP-запросы (локальная разработка, жёсткие firewall-правила), используйте **поллинг** — получение событий через API или готовые helpers в SDK.
 
-Включите настройку **Сохранять историю событий** на вкладке **Исходящий Webhook** в настройках бота (подробнее — в разделе [Настройка и типы событий](/guides/webhook/events#obschie-nastroiki)), чтобы получать события через API:
+Включите настройку **Сохранять историю событий** на вкладке **Исходящий Webhook** в настройках бота (подробнее — в разделе [Настройка и типы событий](/guides/webhook/events#obschie-nastroiki)), чтобы получать события через метод [История событий](GET /webhooks/events).
 
-- [Список событий бота](GET /webhooks/events) — получить накопленные события
-- [Удалить событие](DELETE /webhooks/events/{id}) — удалить обработанное событие из очереди
-
-> Периодически запрашивайте список событий, обрабатывайте каждое и удаляйте обработанные.
+> SDK helpers по умолчанию начинают читать только события, созданные после запуска воркера, и дедуплицируют уже обработанные delivery ID в памяти.
 
 
-## Пример поллинга (TypeScript)
+## Пример поллинга
+
+**Polling событий**
+
+### typescript
 
 ```typescript
 import { PachcaClient } from "@pachca/sdk"
 
-const client = new PachcaClient("YOUR_BOT_TOKEN")
+const client = new PachcaClient("YOUR_TOKEN")
 
-async function pollEvents() {
-  const events = await client.bots.getWebhookEvents()
-  for (const event of events.data) {
-    console.log("Событие:", event.type, event.event)
-    // Обработать событие...
-    await client.bots.deleteWebhookEvent(event.id) // Удалить из очереди
-  }
+for await (const event of client.bots.pollWebhookEvents({ intervalMs: 5_000 })) {
+  console.log(event)
 }
-
-// Запускать каждые 5 секунд
-setInterval(pollEvents, 5000)
 ```
+
+### python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+async for event in client.bots.poll_webhook_events(interval_seconds=5.0):
+    print(event)
+```
+
+### go
+
+```go
+import pachca "github.com/pachca/openapi/sdk/go/generated"
+
+client := pachca.NewPachcaClient("YOUR_TOKEN")
+
+err := client.Bots.PollWebhookEvents(ctx, nil, func(event pachca.WebhookEvent) error {
+	_ = event
+	return nil
+})
+```
+
+### kotlin
+
+```kotlin
+import com.pachca.sdk.PachcaClient
+import com.pachca.sdk.pollWebhookEvents
+
+val client = PachcaClient("YOUR_TOKEN")
+
+client.bots.pollWebhookEvents().collect { event ->
+    println(event)
+}
+```
+
+### swift
+
+```swift
+import PachcaSDK
+
+let client = PachcaClient(token: "YOUR_TOKEN")
+
+for try await event in client.bots.pollWebhookEvents(interval: 5) {
+    print(event)
+}
+```
+
+### csharp
+
+```csharp
+using Pachca.Sdk;
+
+using var client = new PachcaClient("YOUR_TOKEN");
+
+await foreach (var webhookEvent in client.Bots.PollWebhookEventsAsync())
+{
+    _ = webhookEvent;
+}
+```
+
+
+Если вам нужен только payload вебхука, используйте helper для polling payload'ов:
+
+**Polling payload'ов**
+
+### typescript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+for await (const payload of client.bots.pollWebhookPayloads({ intervalMs: 5_000 })) {
+  console.log(payload)
+}
+```
+
+### python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+async for payload in client.bots.poll_webhook_payloads(interval_seconds=5.0):
+    print(payload)
+```
+
+### go
+
+```go
+import pachca "github.com/pachca/openapi/sdk/go/generated"
+
+client := pachca.NewPachcaClient("YOUR_TOKEN")
+
+err := client.Bots.PollWebhookPayloads(ctx, nil, func(payload pachca.WebhookPayloadUnion) error {
+	_ = payload
+	return nil
+})
+```
+
+### kotlin
+
+```kotlin
+import com.pachca.sdk.PachcaClient
+import com.pachca.sdk.WebhookPayloadUnion
+import com.pachca.sdk.pollWebhookPayloads
+
+val client = PachcaClient("YOUR_TOKEN")
+
+client.bots.pollWebhookPayloads<WebhookPayloadUnion>().collect { payload ->
+    println(payload)
+}
+```
+
+### swift
+
+```swift
+import PachcaSDK
+
+let client = PachcaClient(token: "YOUR_TOKEN")
+
+for try await payload in client.bots.pollWebhookPayloads(interval: 5) {
+    print(payload)
+}
+```
+
+### csharp
+
+```csharp
+using Pachca.Sdk;
+
+using var client = new PachcaClient("YOUR_TOKEN");
+
+await foreach (var payload in client.Bots.PollWebhookPayloadsAsync<WebhookPayloadUnion>())
+{
+    _ = payload;
+}
+```
+
+
+## Ручная работа через API
+
+SDK helpers используют метод [История событий](GET /webhooks/events) и курсорную пагинацию. Если вы пишете собственный polling loop без SDK, периодически запрашивайте список событий, обрабатывайте новые delivery ID и храните дедупликацию на своей стороне. Метод [Удаление события](DELETE /webhooks/events/{id}) можно использовать для ручной очистки обработанных записей истории.
 
 
 ## Связанные разделы

@@ -238,21 +238,46 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   lines.push(`func (u *${u.name}) UnmarshalJSON(data []byte) error {`);
   lines.push('\tvar disc struct {');
   lines.push(`\t\t${discGoName} string \`json:"${discField}"\``);
+  if (u.unionDeserializer === 'webhook-payload') {
+    lines.push('\t\tEvent string `json:"event"`');
+  }
   lines.push('\t}');
   lines.push('\tif err := json.Unmarshal(data, &disc); err != nil {');
   lines.push('\t\treturn err');
   lines.push('\t}');
-  lines.push(`\tswitch disc.${discGoName} {`);
-  const seenDiscs = new Set<string>();
-  for (const ref of u.memberRefs) {
-    const model = models.find((m) => m.name === ref);
-    const typeField = model?.fields.find((f) => f.type.kind === 'literal');
-    const disc = typeField?.type.literalValue ?? ref;
-    if (seenDiscs.has(String(disc))) continue;
-    seenDiscs.add(String(disc));
-    lines.push(`\tcase ${JSON.stringify(disc)}:`);
-    lines.push(`\t\tu.${ref} = &${ref}{}`);
-    lines.push(`\t\treturn json.Unmarshal(data, u.${ref})`);
+  if (u.unionDeserializer === 'webhook-payload') {
+    lines.push('\tswitch {');
+    lines.push('\tcase disc.Type == "message" && disc.Event == "link_shared":');
+    lines.push('\t\tu.LinkSharedWebhookPayload = &LinkSharedWebhookPayload{}');
+    lines.push('\t\treturn json.Unmarshal(data, u.LinkSharedWebhookPayload)');
+    lines.push('\tcase disc.Type == "message":');
+    lines.push('\t\tu.MessageWebhookPayload = &MessageWebhookPayload{}');
+    lines.push('\t\treturn json.Unmarshal(data, u.MessageWebhookPayload)');
+    for (const ref of u.memberRefs.filter((ref) => ref !== 'MessageWebhookPayload' && ref !== 'LinkSharedWebhookPayload')) {
+      const model = models.find((m) => m.name === ref);
+      const typeField = model?.fields.find(
+        (f) => f.name === discField && f.type.kind === 'literal',
+      ) ?? model?.fields.find((f) => f.type.kind === 'literal');
+      const disc = typeField?.type.literalValue ?? ref;
+      lines.push(`\tcase disc.${discGoName} == ${JSON.stringify(disc)}:`);
+      lines.push(`\t\tu.${ref} = &${ref}{}`);
+      lines.push(`\t\treturn json.Unmarshal(data, u.${ref})`);
+    }
+  } else {
+    lines.push(`\tswitch disc.${discGoName} {`);
+    const seenDiscs = new Set<string>();
+    for (const ref of u.memberRefs) {
+      const model = models.find((m) => m.name === ref);
+      const typeField = model?.fields.find(
+        (f) => f.name === discField && f.type.kind === 'literal',
+      ) ?? model?.fields.find((f) => f.type.kind === 'literal');
+      const disc = typeField?.type.literalValue ?? ref;
+      if (seenDiscs.has(String(disc))) continue;
+      seenDiscs.add(String(disc));
+      lines.push(`\tcase ${JSON.stringify(disc)}:`);
+      lines.push(`\t\tu.${ref} = &${ref}{}`);
+      lines.push(`\t\treturn json.Unmarshal(data, u.${ref})`);
+    }
   }
   lines.push('\tdefault:');
   lines.push(`\t\treturn fmt.Errorf("unknown ${u.name} ${discField}: %s", disc.${discGoName})`);
@@ -700,6 +725,10 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push('}');
 }
 
+function hasWebhookPolling(svc: IRService): boolean {
+  return svc.operations.some((op) => op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent');
+}
+
 function emitServiceContract(lines: string[], svc: IRService, ir: IR): void {
   const serviceName = tagToServiceName(svc.tag);
   const stubName = serviceToStubName(serviceName);
@@ -727,8 +756,21 @@ function emitServiceContract(lines: string[], svc: IRService, ir: IR): void {
       if (op.queryParams.length > 0) pageArgs.push(`params *${upperFirst(op.methodName)}Params`);
       lines.push(`\t${goMethodName(op)}All(${pageArgs.join(', ')}) ([]${itemType}, error)`);
     }
+    if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+      lines.push('\tPollWebhookEvents(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookEvent) error) error');
+      lines.push('\tPollWebhookPayloads(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookPayloadUnion) error) error');
+    }
   }
   lines.push('}');
+  if (hasWebhookPolling(svc)) {
+    lines.push('');
+    lines.push('type PollWebhookEventsOptions struct {');
+    lines.push('\tLimit              *int32');
+    lines.push('\tInterval           time.Duration');
+    lines.push('\tCreatedAfter       *time.Time');
+    lines.push('\tMaxSeenDeliveryIDs int');
+    lines.push('}');
+  }
   lines.push('');
   lines.push(`type ${stubName} struct{}`);
   lines.push('');
@@ -737,6 +779,10 @@ function emitServiceContract(lines: string[], svc: IRService, ir: IR): void {
     lines.push('');
     if (op.isPaginated && op.successResponse.dataRef) {
       emitStubPaginationMethod(lines, op);
+      lines.push('');
+    }
+    if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+      emitStubWebhookPollingMethods(lines, svc);
       lines.push('');
     }
   }
@@ -777,6 +823,110 @@ function emitStubPaginationMethod(lines: string[], op: IROperation): void {
   lines.push('}');
 }
 
+function emitStubWebhookPollingMethods(lines: string[], svc: IRService): void {
+  const stubName = serviceToStubName(tagToServiceName(svc.tag));
+  lines.push(`func (s *${stubName}) PollWebhookEvents(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookEvent) error) error {`);
+  lines.push(`\treturn NotImplementedError{Method: ${JSON.stringify(`${svc.tag}.pollWebhookEvents`)}}`);
+  lines.push('}');
+  lines.push('');
+  lines.push(`func (s *${stubName}) PollWebhookPayloads(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookPayloadUnion) error) error {`);
+  lines.push(`\treturn NotImplementedError{Method: ${JSON.stringify(`${svc.tag}.pollWebhookPayloads`)}}`);
+  lines.push('}');
+}
+
+function emitWebhookPollingMethods(lines: string[], implName: string): void {
+  lines.push(`func (s *${implName}) PollWebhookEvents(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookEvent) error) error {`);
+  lines.push('\tif handler == nil {');
+  lines.push('\t\treturn errors.New("handler must not be nil")');
+  lines.push('\t}');
+  lines.push('\tif options == nil {');
+  lines.push('\t\toptions = &PollWebhookEventsOptions{}');
+  lines.push('\t}');
+  lines.push('\tinterval := options.Interval');
+  lines.push('\tif interval == 0 {');
+  lines.push('\t\tinterval = 5 * time.Second');
+  lines.push('\t}');
+  lines.push('\tcreatedAfter := options.CreatedAfter');
+  lines.push('\tif createdAfter == nil {');
+  lines.push('\t\tnow := time.Now()');
+  lines.push('\t\tcreatedAfter = &now');
+  lines.push('\t}');
+  lines.push('\tmaxSeenDeliveryIDs := options.MaxSeenDeliveryIDs');
+  lines.push('\tif maxSeenDeliveryIDs == 0 {');
+  lines.push('\t\tmaxSeenDeliveryIDs = 5000');
+  lines.push('\t}');
+  lines.push('\tif maxSeenDeliveryIDs < 0 {');
+  lines.push('\t\treturn errors.New("MaxSeenDeliveryIDs must be greater than 0")');
+  lines.push('\t}');
+  lines.push('');
+  lines.push('\tseenIDOrder := make([]string, 0, maxSeenDeliveryIDs)');
+  lines.push('\tseenIDs := make(map[string]struct{}, maxSeenDeliveryIDs)');
+  lines.push('\tremember := func(id string) bool {');
+  lines.push('\t\tif _, ok := seenIDs[id]; ok {');
+  lines.push('\t\t\treturn false');
+  lines.push('\t\t}');
+  lines.push('\t\tseenIDs[id] = struct{}{}');
+  lines.push('\t\tseenIDOrder = append(seenIDOrder, id)');
+  lines.push('\t\tfor len(seenIDOrder) > maxSeenDeliveryIDs {');
+  lines.push('\t\t\toldest := seenIDOrder[0]');
+  lines.push('\t\t\tseenIDOrder = seenIDOrder[1:]');
+  lines.push('\t\t\tdelete(seenIDs, oldest)');
+  lines.push('\t\t}');
+  lines.push('\t\treturn true');
+  lines.push('\t}');
+  lines.push('');
+  lines.push('\tfor {');
+  lines.push('\t\tvar cursor *string');
+  lines.push('\t\thasNext := true');
+  lines.push('\t\tfor hasNext {');
+  lines.push('\t\t\tparams := &GetWebhookEventsParams{Limit: options.Limit, Cursor: cursor}');
+  lines.push('\t\t\tresponse, err := s.GetWebhookEvents(ctx, params)');
+  lines.push('\t\t\tif err != nil {');
+  lines.push('\t\t\t\treturn err');
+  lines.push('\t\t\t}');
+  lines.push('\t\t\tpageHasRecentEvents := false');
+  lines.push('\t\t\tfor i := len(response.Data) - 1; i >= 0; i-- {');
+  lines.push('\t\t\t\tevent := response.Data[i]');
+  lines.push('\t\t\t\tmatchesCreatedAfter := !event.CreatedAt.Before(*createdAfter)');
+  lines.push('\t\t\t\tif matchesCreatedAfter {');
+  lines.push('\t\t\t\t\tpageHasRecentEvents = true');
+  lines.push('\t\t\t\t}');
+  lines.push('\t\t\t\tif matchesCreatedAfter && remember(event.ID) {');
+  lines.push('\t\t\t\t\tif err := handler(event); err != nil {');
+  lines.push('\t\t\t\t\t\treturn err');
+  lines.push('\t\t\t\t\t}');
+  lines.push('\t\t\t\t}');
+  lines.push('\t\t\t}');
+  lines.push('\t\t\tnextPage := response.Meta.Paginate.NextPage');
+  lines.push('\t\t\tcursor = &nextPage');
+  lines.push('\t\t\tif response.Meta.Paginate.HasNext != nil {');
+  lines.push('\t\t\t\thasNext = *response.Meta.Paginate.HasNext');
+  lines.push('\t\t\t} else {');
+  lines.push('\t\t\t\thasNext = len(response.Data) > 0');
+  lines.push('\t\t\t}');
+  lines.push('\t\t\thasNext = hasNext && pageHasRecentEvents');
+  lines.push('\t\t}');
+  lines.push('');
+  lines.push('\t\ttimer := time.NewTimer(interval)');
+  lines.push('\t\tselect {');
+  lines.push('\t\tcase <-ctx.Done():');
+  lines.push('\t\t\ttimer.Stop()');
+  lines.push('\t\t\treturn ctx.Err()');
+  lines.push('\t\tcase <-timer.C:');
+  lines.push('\t\t}');
+  lines.push('\t}');
+  lines.push('}');
+  lines.push('');
+  lines.push(`func (s *${implName}) PollWebhookPayloads(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookPayloadUnion) error) error {`);
+  lines.push('\tif handler == nil {');
+  lines.push('\t\treturn errors.New("handler must not be nil")');
+  lines.push('\t}');
+  lines.push('\treturn s.PollWebhookEvents(ctx, options, func(event WebhookEvent) error {');
+  lines.push('\t\treturn handler(event.Payload)');
+  lines.push('\t})');
+  lines.push('}');
+}
+
 function generateClient(ir: IR): string {
   const lines: string[] = [];
   lines.push('package pachca');
@@ -789,11 +939,12 @@ function generateClient(ir: IR): string {
   const needBytes = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'json'));
   const needURL = ir.services.some((s) => s.operations.some((o) => o.queryParams.length > 0));
   const needErrors = ir.services.some((s) => s.operations.some((o) => o.successResponse.isRedirect));
+  const needPolling = ir.services.some(hasWebhookPolling);
   const needMultipart = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'multipart'));
   const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"net/http"', '"time"'];
   if (needBytes) imports.push('"bytes"');
   if (needURL) imports.push('"net/url"');
-  if (needErrors) imports.push('"errors"');
+  if (needErrors || needPolling) imports.push('"errors"');
   if (needMultipart) {
     imports.push('"io"');
     imports.push('"mime/multipart"');
@@ -830,6 +981,10 @@ function generateClient(ir: IR): string {
       lines.push('');
       if (op.isPaginated && op.successResponse.dataRef) {
         emitPaginationMethod(lines, op, ir);
+        lines.push('');
+      }
+      if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+        emitWebhookPollingMethods(lines, implName);
         lines.push('');
       }
     }
@@ -1320,6 +1475,14 @@ function generateExamples(ir: IR): string {
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
       result[op.operationId] = entry;
+      if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+        result[`${op.operationId}_pollWebhookEvents`] = {
+          usage: `err := client.${serviceField}.PollWebhookEvents(ctx, nil, func(event pachca.WebhookEvent) error {\n\t_ = event\n\treturn nil\n})`,
+        };
+        result[`${op.operationId}_pollWebhookPayloads`] = {
+          usage: `err := client.${serviceField}.PollWebhookPayloads(ctx, nil, func(payload pachca.WebhookPayloadUnion) error {\n\t_ = payload\n\treturn nil\n})`,
+        };
+      }
     }
   }
 

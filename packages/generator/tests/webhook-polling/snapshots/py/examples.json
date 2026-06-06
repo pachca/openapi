@@ -1,0 +1,21 @@
+{
+  "Client_Init": {
+    "usage": "client = PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "BotOperations_getWebhookEvents": {
+    "usage": "params = GetWebhookEventsParams(limit=123, cursor=\"example\")\nresponse = await client.bots.get_webhook_events(params=params)",
+    "output": "GetWebhookEventsResponse(data: list[WebhookEvent], meta: PaginationMeta)",
+    "imports": [
+      "GetWebhookEventsParams"
+    ]
+  },
+  "BotOperations_getWebhookEvents_pollWebhookEvents": {
+    "usage": "async for event in client.bots.poll_webhook_events(interval_seconds=5.0):\n    print(event)"
+  },
+  "BotOperations_getWebhookEvents_pollWebhookPayloads": {
+    "usage": "async for payload in client.bots.poll_webhook_payloads(interval_seconds=5.0):\n    print(payload)"
+  }
+}

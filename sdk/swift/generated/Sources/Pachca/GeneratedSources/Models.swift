@@ -2783,23 +2783,27 @@ public enum WebhookPayloadUnion: Codable {
 
     private enum CodingKeys: String, CodingKey {
         case type
+        case event
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
-        switch type {
-        case "message":
+        let event = try? container.decode(String.self, forKey: .event)
+        switch (type, event) {
+        case ("message", "link_shared"):
+            self = .linkSharedWebhookPayload(try LinkSharedWebhookPayload(from: decoder))
+        case ("message", _):
             self = .messageWebhookPayload(try MessageWebhookPayload(from: decoder))
-        case "reaction":
+        case ("reaction", _):
             self = .reactionWebhookPayload(try ReactionWebhookPayload(from: decoder))
-        case "button":
+        case ("button", _):
             self = .buttonWebhookPayload(try ButtonWebhookPayload(from: decoder))
-        case "view":
+        case ("view", _):
             self = .viewSubmitWebhookPayload(try ViewSubmitWebhookPayload(from: decoder))
-        case "chat_member":
+        case ("chat_member", _):
             self = .chatMemberWebhookPayload(try ChatMemberWebhookPayload(from: decoder))
-        case "company_member":
+        case ("company_member", _):
             self = .companyMemberWebhookPayload(try CompanyMemberWebhookPayload(from: decoder))
         default:
             throw DecodingError.dataCorrupted(

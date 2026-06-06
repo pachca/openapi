@@ -1,0 +1,21 @@
+{
+  "Client_Init": {
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "BotOperations_getWebhookEvents": {
+    "usage": "params := &GetWebhookEventsParams{\n\tLimit: Ptr(int32(123)),\n\tCursor: Ptr(\"example\"),\n}\nresponse, err := client.Bots.GetWebhookEvents(ctx, params)",
+    "output": "GetWebhookEventsResponse{Data: []WebhookEvent, Meta: PaginationMeta}",
+    "imports": [
+      "GetWebhookEventsParams"
+    ]
+  },
+  "BotOperations_getWebhookEvents_pollWebhookEvents": {
+    "usage": "err := client.Bots.PollWebhookEvents(ctx, nil, func(event pachca.WebhookEvent) error {\n\t_ = event\n\treturn nil\n})"
+  },
+  "BotOperations_getWebhookEvents_pollWebhookPayloads": {
+    "usage": "err := client.Bots.PollWebhookPayloads(ctx, nil, func(payload pachca.WebhookPayloadUnion) error {\n\t_ = payload\n\treturn nil\n})"
+  }
+}

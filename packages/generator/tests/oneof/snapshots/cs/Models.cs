@@ -20,6 +20,7 @@ public abstract class ContentBlock
 
 public class TextContent : ContentBlock
 {
+    [JsonPropertyName("kind")]
     public override string Kind => "text";
     [JsonPropertyName("text")]
     public string Text { get; set; } = default!;
@@ -27,6 +28,7 @@ public class TextContent : ContentBlock
 
 public class ImageContent : ContentBlock
 {
+    [JsonPropertyName("kind")]
     public override string Kind => "image";
     [JsonPropertyName("url")]
     public string Url { get; set; } = default!;
@@ -36,6 +38,7 @@ public class ImageContent : ContentBlock
 
 public class VideoContent : ContentBlock
 {
+    [JsonPropertyName("kind")]
     public override string Kind => "video";
     [JsonPropertyName("url")]
     public string Url { get; set; } = default!;

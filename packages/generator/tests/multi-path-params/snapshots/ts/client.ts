@@ -1,5 +1,5 @@
 import { Task, TaskUpdateRequest } from "./types.js";
-import { deserialize, serialize, fetchWithRetry } from "./utils.js";
+import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
 
 export class TasksService {
   async getTask(projectId: number, taskId: number): Promise<Task> {
@@ -30,7 +30,7 @@ export class TasksServiceImpl extends TasksService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Task;
+        return deserializeType("Task", body.data) as Task;
       default:
         throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
     }
@@ -40,12 +40,12 @@ export class TasksServiceImpl extends TasksService {
     const response = await fetchWithRetry(`${this.baseUrl}/projects/${projectId}/tasks/${taskId}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("TaskUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Task;
+        return deserializeType("Task", body.data) as Task;
       default:
         throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
     }

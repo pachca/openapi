@@ -1587,6 +1587,7 @@ public abstract class ViewBlockUnion
 
 public class ViewBlockHeader : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "header";
     [JsonPropertyName("text")]
     public string Text { get; set; } = default!;
@@ -1594,6 +1595,7 @@ public class ViewBlockHeader : ViewBlockUnion
 
 public class ViewBlockPlainText : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "plain_text";
     [JsonPropertyName("text")]
     public string Text { get; set; } = default!;
@@ -1601,6 +1603,7 @@ public class ViewBlockPlainText : ViewBlockUnion
 
 public class ViewBlockMarkdown : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "markdown";
     [JsonPropertyName("text")]
     public string Text { get; set; } = default!;
@@ -1608,11 +1611,13 @@ public class ViewBlockMarkdown : ViewBlockUnion
 
 public class ViewBlockDivider : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "divider";
 }
 
 public class ViewBlockInput : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "input";
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
@@ -1636,6 +1641,7 @@ public class ViewBlockInput : ViewBlockUnion
 
 public class ViewBlockSelect : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "select";
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
@@ -1651,6 +1657,7 @@ public class ViewBlockSelect : ViewBlockUnion
 
 public class ViewBlockRadio : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "radio";
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
@@ -1666,6 +1673,7 @@ public class ViewBlockRadio : ViewBlockUnion
 
 public class ViewBlockCheckbox : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "checkbox";
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
@@ -1681,6 +1689,7 @@ public class ViewBlockCheckbox : ViewBlockUnion
 
 public class ViewBlockDate : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "date";
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
@@ -1696,6 +1705,7 @@ public class ViewBlockDate : ViewBlockUnion
 
 public class ViewBlockTime : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "time";
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
@@ -1711,6 +1721,7 @@ public class ViewBlockTime : ViewBlockUnion
 
 public class ViewBlockFileInput : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "file_input";
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
@@ -1726,22 +1737,44 @@ public class ViewBlockFileInput : ViewBlockUnion
     public string? Hint { get; set; }
 }
 
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[JsonDerivedType(typeof(MessageWebhookPayload), "message")]
-[JsonDerivedType(typeof(ReactionWebhookPayload), "reaction")]
-[JsonDerivedType(typeof(ButtonWebhookPayload), "button")]
-[JsonDerivedType(typeof(ViewSubmitWebhookPayload), "view")]
-[JsonDerivedType(typeof(ChatMemberWebhookPayload), "chat_member")]
-[JsonDerivedType(typeof(CompanyMemberWebhookPayload), "company_member")]
-[JsonDerivedType(typeof(LinkSharedWebhookPayload), "message")]
+[JsonConverter(typeof(WebhookPayloadUnionConverter))]
 public abstract class WebhookPayloadUnion
 {
     [JsonPropertyName("type")]
     public abstract string Type { get; }
 }
 
+internal sealed class WebhookPayloadUnionConverter : JsonConverter<WebhookPayloadUnion>
+{
+    public override WebhookPayloadUnion Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var document = JsonDocument.ParseValue(ref reader);
+        var root = document.RootElement;
+        var type = root.GetProperty("type").GetString();
+        var eventValue = root.TryGetProperty("event", out var eventProperty) ? eventProperty.GetString() : null;
+        var raw = root.GetRawText();
+        return type switch
+        {
+            "message" when eventValue == "link_shared" => JsonSerializer.Deserialize<LinkSharedWebhookPayload>(raw, options)!,
+            "message" => JsonSerializer.Deserialize<MessageWebhookPayload>(raw, options)!,
+            "reaction" => JsonSerializer.Deserialize<ReactionWebhookPayload>(raw, options)!,
+            "button" => JsonSerializer.Deserialize<ButtonWebhookPayload>(raw, options)!,
+            "view" => JsonSerializer.Deserialize<ViewSubmitWebhookPayload>(raw, options)!,
+            "chat_member" => JsonSerializer.Deserialize<ChatMemberWebhookPayload>(raw, options)!,
+            "company_member" => JsonSerializer.Deserialize<CompanyMemberWebhookPayload>(raw, options)!,
+            _ => throw new JsonException($"Unknown WebhookPayloadUnion type: {type}")
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, WebhookPayloadUnion value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
+    }
+}
+
 public class MessageWebhookPayload : WebhookPayloadUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "message";
     [JsonPropertyName("id")]
     public int Id { get; set; } = default!;
@@ -1771,6 +1804,7 @@ public class MessageWebhookPayload : WebhookPayloadUnion
 
 public class ReactionWebhookPayload : WebhookPayloadUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "reaction";
     [JsonPropertyName("event")]
     public ReactionEventType @Event { get; set; } = default!;
@@ -1792,7 +1826,10 @@ public class ReactionWebhookPayload : WebhookPayloadUnion
 
 public class ButtonWebhookPayload : WebhookPayloadUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "button";
+    [JsonPropertyName("event")]
+    public string @Event => "click";
     [JsonPropertyName("message_id")]
     public int MessageId { get; set; } = default!;
     [JsonPropertyName("trigger_id")]
@@ -1809,7 +1846,10 @@ public class ButtonWebhookPayload : WebhookPayloadUnion
 
 public class ViewSubmitWebhookPayload : WebhookPayloadUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "view";
+    [JsonPropertyName("event")]
+    public string @Event => "submit";
     [JsonPropertyName("callback_id")]
     public string? CallbackId { get; set; }
     [JsonPropertyName("private_metadata")]
@@ -1826,6 +1866,7 @@ public class ViewSubmitWebhookPayload : WebhookPayloadUnion
 
 public class ChatMemberWebhookPayload : WebhookPayloadUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "chat_member";
     [JsonPropertyName("event")]
     public MemberEventType @Event { get; set; } = default!;
@@ -1843,6 +1884,7 @@ public class ChatMemberWebhookPayload : WebhookPayloadUnion
 
 public class CompanyMemberWebhookPayload : WebhookPayloadUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "company_member";
     [JsonPropertyName("event")]
     public UserEventType @Event { get; set; } = default!;
@@ -1856,7 +1898,10 @@ public class CompanyMemberWebhookPayload : WebhookPayloadUnion
 
 public class LinkSharedWebhookPayload : WebhookPayloadUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "message";
+    [JsonPropertyName("event")]
+    public string @Event => "link_shared";
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
     [JsonPropertyName("message_id")]

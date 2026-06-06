@@ -20,6 +20,12 @@
       "GetWebhookEventsParams"
     ]
   },
+  "BotOperations_getWebhookEvents_pollWebhookEvents": {
+    "usage": "err := client.Bots.PollWebhookEvents(ctx, nil, func(event pachca.WebhookEvent) error {\n\t_ = event\n\treturn nil\n})"
+  },
+  "BotOperations_getWebhookEvents_pollWebhookPayloads": {
+    "usage": "err := client.Bots.PollWebhookPayloads(ctx, nil, func(payload pachca.WebhookPayloadUnion) error {\n\t_ = payload\n\treturn nil\n})"
+  },
   "BotOperations_updateBot": {
     "usage": "request := BotUpdateRequest{\n\tBot: BotUpdateRequestBot{\n\t\tWebhook: BotUpdateRequestBotWebhook{\n\t\t\tOutgoingURL: \"https://www.website.com/tasks/new\",\n\t\t},\n\t},\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
     "output": "BotResponse{ID: int32, Webhook: BotResponseWebhook{OutgoingURL: string}}",

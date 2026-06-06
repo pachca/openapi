@@ -3036,6 +3036,7 @@ model LinkSharedWebhookPayload {
 }
 
 @doc("Объединение всех типов payload вебхуков")
+@extension("x-union-deserializer", "webhook-payload")
 union WebhookPayloadUnion {
   MessageWebhookPayload,
   ReactionWebhookPayload,

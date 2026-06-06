@@ -7,6 +7,13 @@ private func pachcaNotImplemented(_ method: String) -> Error {
     NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
 }
 
+private func pachcaParseWebhookDate(_ value: String) -> Date? {
+    let fractionalFormatter = ISO8601DateFormatter()
+    fractionalFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    if let date = fractionalFormatter.date(from: value) { return date }
+    return ISO8601DateFormatter().date(from: value)
+}
+
 open class SecurityService {
     public init() {}
 
@@ -82,6 +89,90 @@ open class BotsService {
 
     open func getWebhookEventsAll(limit: Int? = nil) async throws -> [WebhookEvent] {
         throw pachcaNotImplemented("Bots.getWebhookEventsAll")
+    }
+
+    open func pollWebhookEvents(
+        limit: Int? = 50,
+        interval: TimeInterval = 5,
+        createdAfter: Date? = nil,
+        maxSeenDeliveryIds: Int = 5_000
+    ) -> AsyncThrowingStream<WebhookEvent, Error> {
+        AsyncThrowingStream { continuation in
+            let task = _Concurrency.Task {
+                do {
+                    guard maxSeenDeliveryIds > 0 else {
+                        throw NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: "maxSeenDeliveryIds must be greater than 0"])
+                    }
+
+                    let effectiveCreatedAfter = createdAfter ?? Date()
+                    var seenIdOrder: [String] = []
+                    var seenIds = Set<String>()
+
+                    func remember(_ id: String) -> Bool {
+                        guard seenIds.insert(id).inserted else { return false }
+                        seenIdOrder.append(id)
+                        while seenIdOrder.count > maxSeenDeliveryIds {
+                            seenIds.remove(seenIdOrder.removeFirst())
+                        }
+                        return true
+                    }
+
+                    while !_Concurrency.Task.isCancelled {
+                        var cursor: String? = nil
+                        var hasNext = true
+                        while hasNext && !_Concurrency.Task.isCancelled {
+                            let response = try await getWebhookEvents(limit: limit, cursor: cursor)
+                            var pageHasRecentEvents = false
+                            for event in response.data.reversed() {
+                                let matchesCreatedAfter = pachcaParseWebhookDate(event.createdAt).map { $0 >= effectiveCreatedAfter } == true
+                                if matchesCreatedAfter {
+                                    pageHasRecentEvents = true
+                                }
+                                if matchesCreatedAfter && remember(event.id) {
+                                    continuation.yield(event)
+                                }
+                            }
+                            hasNext = (response.meta.paginate.hasNext ?? !response.data.isEmpty) && pageHasRecentEvents
+                            cursor = response.meta.paginate.nextPage
+                        }
+                        try await _Concurrency.Task.sleep(nanoseconds: UInt64(max(interval, 0) * 1_000_000_000))
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    open func pollWebhookPayloads(
+        limit: Int? = 50,
+        interval: TimeInterval = 5,
+        createdAfter: Date? = nil,
+        maxSeenDeliveryIds: Int = 5_000,
+        includePayload: @escaping (WebhookPayloadUnion) -> Bool = { _ in true }
+    ) -> AsyncThrowingStream<WebhookPayloadUnion, Error> {
+        AsyncThrowingStream { continuation in
+            let task = _Concurrency.Task {
+                do {
+                    for try await event in pollWebhookEvents(
+                        limit: limit,
+                        interval: interval,
+                        createdAfter: createdAfter,
+                        maxSeenDeliveryIds: maxSeenDeliveryIds
+                    ) {
+                        if includePayload(event.payload) {
+                            continuation.yield(event.payload)
+                        }
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
     }
 
     open func updateBot(id: Int, request body: BotUpdateRequest) async throws -> BotResponse {

@@ -16,9 +16,10 @@ type ViewBlockPlainText struct {
 }
 
 type ViewBlockImage struct {
-	Type string  `json:"type"` // always "image"
-	URL  string  `json:"url"`
-	Alt  *string `json:"alt,omitempty"`
+	Type  string  `json:"type"` // always "image"
+	Event string  `json:"event"` // always "image_shared"
+	URL   string  `json:"url"`
+	Alt   *string `json:"alt,omitempty"`
 }
 
 type ViewBlockUnion struct {

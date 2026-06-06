@@ -1,0 +1,18 @@
+{
+  "Client_Init": {
+    "usage": "let client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "BotOperations_getWebhookEvents": {
+    "usage": "let response = try await client.bots.getWebhookEvents(limit: 123, cursor: \"example\")",
+    "output": "GetWebhookEventsResponse(data: [WebhookEvent], meta: PaginationMeta)"
+  },
+  "BotOperations_getWebhookEvents_pollWebhookEvents": {
+    "usage": "for try await event in client.bots.pollWebhookEvents(interval: 5) {\n    print(event)\n}"
+  },
+  "BotOperations_getWebhookEvents_pollWebhookPayloads": {
+    "usage": "for try await payload in client.bots.pollWebhookPayloads(interval: 5) {\n    print(payload)\n}"
+  }
+}

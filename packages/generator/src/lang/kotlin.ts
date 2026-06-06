@@ -132,6 +132,7 @@ function generateModels(ir: IR): string {
   // Determine imports
   let needSerialName = false;
   let needTransient = false;
+  const needWebhookPayloadUnionSerializer = ir.unions.some((u) => u.unionDeserializer === 'webhook-payload');
 
   if (ir.enums.length > 0) needSerialName = true;
   if (ir.unions.length > 0) needSerialName = true;
@@ -158,14 +159,21 @@ function generateModels(ir: IR): string {
   const imports: string[] = [];
   if (needDateTime) imports.push('import java.time.OffsetDateTime');
   if (needDateTime) imports.push('import java.time.format.DateTimeFormatter');
-  if (needDateTime) imports.push('import kotlinx.serialization.KSerializer');
+  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.KSerializer');
   if (needSerialName) imports.push('import kotlinx.serialization.SerialName');
   imports.push('import kotlinx.serialization.Serializable');
   if (needTransient) imports.push('import kotlinx.serialization.Transient');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveKind');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor');
-  if (needDateTime) imports.push('import kotlinx.serialization.encoding.Decoder');
-  if (needDateTime) imports.push('import kotlinx.serialization.encoding.Encoder');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.descriptors.buildClassSerialDescriptor');
+  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.encoding.Decoder');
+  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.encoding.Encoder');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.JsonDecoder');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.JsonEncoder');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.contentOrNull');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.decodeFromJsonElement');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.jsonObject');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.jsonPrimitive');
   lines.push(imports.join('\n'));
 
   if (needDateTime) {
@@ -245,39 +253,99 @@ function emitUnion(
     .filter(Boolean) as IRModel[];
 
   const discriminatorField = u.discriminatorField;
+  const useWebhookPayloadDeserializer = u.unionDeserializer === 'webhook-payload';
 
-  lines.push('@Serializable');
+  if (useWebhookPayloadDeserializer) {
+    lines.push('@Serializable(with = WebhookPayloadUnionSerializer::class)');
+  } else {
+    lines.push('@Serializable');
+  }
   lines.push(`sealed interface ${u.name} {`);
   lines.push(`    val ${snakeToCamel(discriminatorField)}: String`);
   lines.push('}');
 
+  if (useWebhookPayloadDeserializer) {
+    lines.push('');
+    lines.push('object WebhookPayloadUnionSerializer : KSerializer<WebhookPayloadUnion> {');
+    lines.push('    override val descriptor = buildClassSerialDescriptor("WebhookPayloadUnion")');
+    lines.push('');
+    lines.push('    override fun serialize(encoder: Encoder, value: WebhookPayloadUnion) {');
+    lines.push('        val jsonEncoder = encoder as? JsonEncoder ?: error("WebhookPayloadUnionSerializer only supports JSON")');
+    lines.push('        when (value) {');
+    lines.push('            is MessageWebhookPayload -> jsonEncoder.encodeSerializableValue(MessageWebhookPayload.serializer(), value)');
+    lines.push('            is ReactionWebhookPayload -> jsonEncoder.encodeSerializableValue(ReactionWebhookPayload.serializer(), value)');
+    lines.push('            is ButtonWebhookPayload -> jsonEncoder.encodeSerializableValue(ButtonWebhookPayload.serializer(), value)');
+    lines.push('            is ViewSubmitWebhookPayload -> jsonEncoder.encodeSerializableValue(ViewSubmitWebhookPayload.serializer(), value)');
+    lines.push('            is ChatMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(ChatMemberWebhookPayload.serializer(), value)');
+    lines.push('            is CompanyMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(CompanyMemberWebhookPayload.serializer(), value)');
+    lines.push('            is LinkSharedWebhookPayload -> jsonEncoder.encodeSerializableValue(LinkSharedWebhookPayload.serializer(), value)');
+    lines.push('        }');
+    lines.push('    }');
+    lines.push('');
+    lines.push('    override fun deserialize(decoder: Decoder): WebhookPayloadUnion {');
+    lines.push('        val jsonDecoder = decoder as? JsonDecoder ?: error("WebhookPayloadUnionSerializer only supports JSON")');
+    lines.push('        val element = jsonDecoder.decodeJsonElement()');
+    lines.push('        val type = element.jsonObject["type"]?.jsonPrimitive?.contentOrNull');
+    lines.push('        val event = element.jsonObject["event"]?.jsonPrimitive?.contentOrNull');
+    lines.push('        return when {');
+    lines.push('            type == "message" && event == "link_shared" -> jsonDecoder.json.decodeFromJsonElement(LinkSharedWebhookPayload.serializer(), element)');
+    lines.push('            type == "message" -> jsonDecoder.json.decodeFromJsonElement(MessageWebhookPayload.serializer(), element)');
+    lines.push('            type == "reaction" -> jsonDecoder.json.decodeFromJsonElement(ReactionWebhookPayload.serializer(), element)');
+    lines.push('            type == "button" -> jsonDecoder.json.decodeFromJsonElement(ButtonWebhookPayload.serializer(), element)');
+    lines.push('            type == "view" -> jsonDecoder.json.decodeFromJsonElement(ViewSubmitWebhookPayload.serializer(), element)');
+    lines.push('            type == "chat_member" -> jsonDecoder.json.decodeFromJsonElement(ChatMemberWebhookPayload.serializer(), element)');
+    lines.push('            type == "company_member" -> jsonDecoder.json.decodeFromJsonElement(CompanyMemberWebhookPayload.serializer(), element)');
+    lines.push('            else -> error("Unknown WebhookPayloadUnion type: $type")');
+    lines.push('        }');
+    lines.push('    }');
+    lines.push('}');
+  }
+
   for (const memberModel of memberModels) {
-    const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
+    const litField = memberModel.fields.find(
+      (f) => f.name === discriminatorField && f.type.kind === 'literal',
+    ) ?? memberModel.fields.find((f) => f.type.kind === 'literal');
     const litValue = litField?.type.literalValue ?? '';
-    const otherFields = memberModel.fields.filter(
-      (f) => f.type.kind !== 'literal',
-    );
 
     lines.push('');
     lines.push('@Serializable');
     lines.push(`@SerialName("${litValue}")`);
     lines.push(`data class ${memberModel.name}(`);
-    lines.push(
-      `    override val ${snakeToCamel(discriminatorField)}: String = "${litValue}",`,
-    );
-    for (const f of otherFields) {
+    if (!memberModel.fields.some((f) => f.name === discriminatorField)) {
+      lines.push(
+        `    override val ${snakeToCamel(discriminatorField)}: String = "${litValue}",`,
+      );
+    }
+    const bodyLiteralFields: IRField[] = [];
+    for (const f of memberModel.fields) {
+      if (f.name !== discriminatorField && f.type.kind === 'literal') {
+        bodyLiteralFields.push(f);
+        continue;
+      }
       const sdkName = fieldSdkName(f);
       const typeName = ktType(f.type);
       const isOpt = !f.required;
       const fullType = isOpt ? `${typeName}?` : typeName;
-      const default_ = isOpt ? ' = null' : '';
+      const literalDefault = f.type.kind === 'literal' ? ` = "${f.type.literalValue ?? ''}"` : '';
+      const default_ = isOpt ? ' = null' : literalDefault;
       const isDateTime = f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time';
       const dtAnnotation = isDateTime ? '@Serializable(with = OffsetDateTimeSerializer::class) ' : '';
       const serialName =
         needsSerialName(f) ? `${dtAnnotation}@SerialName("${f.name}") ` : dtAnnotation;
-      lines.push(`    ${serialName}val ${sdkName}: ${fullType}${default_},`);
+      const overrideModifier = f.name === discriminatorField ? 'override ' : '';
+      lines.push(`    ${serialName}${overrideModifier}val ${sdkName}: ${fullType}${default_},`);
     }
-    lines.push(`) : ${u.name}`);
+    if (bodyLiteralFields.length === 0) {
+      lines.push(`) : ${u.name}`);
+    } else {
+      lines.push(`) : ${u.name} {`);
+      for (const f of bodyLiteralFields) {
+        const sdkName = fieldSdkName(f);
+        const serialName = needsSerialName(f) ? `@SerialName("${f.name}") ` : '';
+        lines.push(`    ${serialName}val ${sdkName}: String = "${f.type.literalValue ?? ''}"`);
+      }
+      lines.push('}');
+    }
   }
 }
 
@@ -427,11 +495,24 @@ function generateClient(ir: IR): string {
   lines.push('import io.ktor.client.statement.*');
   lines.push('import io.ktor.http.*');
   lines.push('import io.ktor.serialization.kotlinx.json.*');
+  const clientNeedDateTime = ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
+  const needPolling = ir.services.some(hasWebhookPolling);
+  if (needPolling) {
+    lines.push('import kotlinx.coroutines.currentCoroutineContext');
+    lines.push('import kotlinx.coroutines.delay');
+    lines.push('import kotlinx.coroutines.flow.Flow');
+    lines.push('import kotlinx.coroutines.isActive');
+    lines.push('import kotlinx.coroutines.flow.flow');
+    lines.push('import kotlinx.coroutines.flow.mapNotNull');
+  }
   lines.push('import kotlinx.serialization.json.Json');
   lines.push('import java.io.Closeable');
-  const clientNeedDateTime = ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
   if (clientNeedDateTime) {
     lines.push('import java.time.OffsetDateTime');
+  }
+  if (needPolling) {
+    lines.push('import kotlin.time.Duration');
+    lines.push('import kotlin.time.Duration.Companion.seconds');
   }
 
   // Services
@@ -446,6 +527,10 @@ function generateClient(ir: IR): string {
 
   lines.push('');
   return lines.join('\n');
+}
+
+function hasWebhookPolling(svc: IRService): boolean {
+  return svc.operations.some((op) => op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent');
 }
 
 function emitService(
@@ -483,6 +568,63 @@ function emitService(
   }
 
   lines.push('}');
+  if (hasWebhookPolling(svc)) {
+    lines.push('');
+    emitWebhookPollingExtensions(lines);
+  }
+}
+
+function emitWebhookPollingExtensions(lines: string[]): void {
+  lines.push('fun BotsService.pollWebhookEvents(');
+  lines.push('    limit: Int? = 50,');
+  lines.push('    interval: Duration = 5.seconds,');
+  lines.push('    createdAfter: OffsetDateTime? = null,');
+  lines.push('    maxSeenDeliveryIds: Int = 5_000,');
+  lines.push('): Flow<WebhookEvent> = flow {');
+  lines.push('    require(maxSeenDeliveryIds > 0) { "maxSeenDeliveryIds must be greater than 0" }');
+  lines.push('');
+  lines.push('    val effectiveCreatedAfter = createdAfter ?: OffsetDateTime.now()');
+  lines.push('    val seenIdOrder = ArrayDeque<String>()');
+  lines.push('    val seenIds = mutableSetOf<String>()');
+  lines.push('');
+  lines.push('    fun remember(id: String): Boolean {');
+  lines.push('        if (!seenIds.add(id)) return false');
+  lines.push('        seenIdOrder.addLast(id)');
+  lines.push('        while (seenIdOrder.size > maxSeenDeliveryIds) {');
+  lines.push('            seenIds.remove(seenIdOrder.removeFirst())');
+  lines.push('        }');
+  lines.push('        return true');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    while (currentCoroutineContext().isActive) {');
+  lines.push('        var cursor: String? = null');
+  lines.push('        do {');
+  lines.push('            val response = getWebhookEvents(limit = limit, cursor = cursor)');
+  lines.push('            var pageHasRecentEvents = false');
+  lines.push('            for (event in response.data.asReversed()) {');
+  lines.push('                val matchesCreatedAfter = !event.createdAt.isBefore(effectiveCreatedAfter)');
+  lines.push('                if (matchesCreatedAfter) pageHasRecentEvents = true');
+  lines.push('                if (matchesCreatedAfter && remember(event.id)) emit(event)');
+  lines.push('            }');
+  lines.push('            val hasNext = (response.meta.paginate.hasNext ?: response.data.isNotEmpty()) && pageHasRecentEvents');
+  lines.push('            cursor = response.meta.paginate.nextPage');
+  lines.push('        } while (currentCoroutineContext().isActive && hasNext)');
+  lines.push('        delay(interval)');
+  lines.push('    }');
+  lines.push('}');
+  lines.push('');
+  lines.push('inline fun <reified T : WebhookPayloadUnion> BotsService.pollWebhookPayloads(');
+  lines.push('    limit: Int? = 50,');
+  lines.push('    interval: Duration = 5.seconds,');
+  lines.push('    createdAfter: OffsetDateTime? = null,');
+  lines.push('    maxSeenDeliveryIds: Int = 5_000,');
+  lines.push('): Flow<T> = pollWebhookEvents(');
+  lines.push('    limit = limit,');
+  lines.push('    interval = interval,');
+  lines.push('    createdAfter = createdAfter,');
+  lines.push('    maxSeenDeliveryIds = maxSeenDeliveryIds,');
+  lines.push(')');
+  lines.push('    .mapNotNull { it.payload as? T }');
 }
 
 function emitInterfaceOperation(lines: string[], op: IROperation, ir: IR): void {
@@ -998,7 +1140,10 @@ function emitPachcaClient(
   if (hasRedirect) {
     lines.push('            followRedirects = false');
   }
-  lines.push('            install(ContentNegotiation) { json(Json { explicitNulls = false }) }');
+  const jsonConfig = ir.services.some(hasWebhookPolling)
+    ? 'Json { explicitNulls = false; ignoreUnknownKeys = true }'
+    : 'Json { explicitNulls = false }';
+  lines.push(`            install(ContentNegotiation) { json(${jsonConfig}) }`);
   lines.push('            install(HttpRequestRetry) {');
   lines.push('                maxRetries = 3');
   lines.push('                retryIf { _, response ->');
@@ -1309,6 +1454,16 @@ function generateExamples(ir: IR): string {
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
       result[op.operationId] = entry;
+      if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+        result[`${op.operationId}_pollWebhookEvents`] = {
+          usage: `client.${serviceProp}.pollWebhookEvents().collect { event ->\n    println(event)\n}`,
+          imports: ['pollWebhookEvents'],
+        };
+        result[`${op.operationId}_pollWebhookPayloads`] = {
+          usage: `client.${serviceProp}.pollWebhookPayloads<WebhookPayloadUnion>().collect { payload ->\n    println(payload)\n}`,
+          imports: ['WebhookPayloadUnion', 'pollWebhookPayloads'],
+        };
+      }
     }
   }
 

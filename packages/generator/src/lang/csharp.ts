@@ -287,12 +287,19 @@ function emitUnion(
     .filter(Boolean) as IRModel[];
 
   const discriminatorField = u.discriminatorField;
+  const useWebhookPayloadDeserializer = u.unionDeserializer === 'webhook-payload';
 
-  lines.push(`[JsonPolymorphic(TypeDiscriminatorPropertyName = "${discriminatorField}")]`);
-  for (const memberModel of memberModels) {
-    const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
-    const litValue = litField?.type.literalValue ?? '';
-    lines.push(`[JsonDerivedType(typeof(${memberModel.name}), "${litValue}")]`);
+  if (useWebhookPayloadDeserializer) {
+    lines.push(`[JsonConverter(typeof(${u.name}Converter))]`);
+  } else {
+    lines.push(`[JsonPolymorphic(TypeDiscriminatorPropertyName = "${discriminatorField}")]`);
+    for (const memberModel of memberModels) {
+      const litField = memberModel.fields.find(
+        (f) => f.name === discriminatorField && f.type.kind === 'literal',
+      ) ?? memberModel.fields.find((f) => f.type.kind === 'literal');
+      const litValue = litField?.type.literalValue ?? '';
+      lines.push(`[JsonDerivedType(typeof(${memberModel.name}), "${litValue}")]`);
+    }
   }
   lines.push(`public abstract class ${u.name}`);
   lines.push('{');
@@ -300,27 +307,61 @@ function emitUnion(
   lines.push(`    public abstract string ${snakeToPascal(discriminatorField)} { get; }`);
   lines.push('}');
 
-  for (const memberModel of memberModels) {
-    const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
-    const litValue = litField?.type.literalValue ?? '';
-    const otherFields = memberModel.fields.filter(
-      (f) => f.type.kind !== 'literal',
-    );
+  if (useWebhookPayloadDeserializer) {
+    lines.push('');
+    lines.push(`internal sealed class ${u.name}Converter : JsonConverter<${u.name}>`);
+    lines.push('{');
+    lines.push(`    public override ${u.name} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)`);
+    lines.push('    {');
+    lines.push('        using var document = JsonDocument.ParseValue(ref reader);');
+    lines.push('        var root = document.RootElement;');
+    lines.push(`        var type = root.GetProperty(${JSON.stringify(discriminatorField)}).GetString();`);
+    lines.push('        var eventValue = root.TryGetProperty("event", out var eventProperty) ? eventProperty.GetString() : null;');
+    lines.push('        var raw = root.GetRawText();');
+    lines.push('        return type switch');
+    lines.push('        {');
+    lines.push('            "message" when eventValue == "link_shared" => JsonSerializer.Deserialize<LinkSharedWebhookPayload>(raw, options)!,');
+    lines.push('            "message" => JsonSerializer.Deserialize<MessageWebhookPayload>(raw, options)!,');
+    for (const memberModel of memberModels.filter((m) => m.name !== 'MessageWebhookPayload' && m.name !== 'LinkSharedWebhookPayload')) {
+      const litField = memberModel.fields.find(
+        (f) => f.name === discriminatorField && f.type.kind === 'literal',
+      ) ?? memberModel.fields.find((f) => f.type.kind === 'literal');
+      const litValue = litField?.type.literalValue ?? '';
+      lines.push(`            ${JSON.stringify(litValue)} => JsonSerializer.Deserialize<${memberModel.name}>(raw, options)!,`);
+    }
+    lines.push(`            _ => throw new JsonException($"Unknown ${u.name} ${discriminatorField}: {type}")`);
+    lines.push('        };');
+    lines.push('    }');
+    lines.push('');
+    lines.push(`    public override void Write(Utf8JsonWriter writer, ${u.name} value, JsonSerializerOptions options)`);
+    lines.push('    {');
+    lines.push('        JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);');
+    lines.push('    }');
+    lines.push('}');
+  }
 
+  for (const memberModel of memberModels) {
     lines.push('');
     lines.push(`public class ${memberModel.name} : ${u.name}`);
     lines.push('{');
-    lines.push(`    public override string ${snakeToPascal(discriminatorField)} => "${litValue}";`);
-    for (const f of otherFields) {
+    if (!memberModel.fields.some((f) => f.name === discriminatorField)) {
+      const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
+      const litValue = litField?.type.literalValue ?? '';
+      lines.push(`    public override string ${snakeToPascal(discriminatorField)} => "${litValue}";`);
+    }
+    for (const f of memberModel.fields) {
       const sdkName = fieldSdkName(f);
       const typeName = csType(f.type);
       const isOpt = !f.required || f.nullable;
       const nullSuffix = isOpt ? '?' : '';
+      const overrideModifier = f.name === discriminatorField ? 'override ' : '';
       lines.push(`    [JsonPropertyName("${f.name}")]`);
-      if (isOpt) {
-        lines.push(`    public ${typeName}${nullSuffix} ${sdkName} { get; set; }`);
+      if (f.type.kind === 'literal') {
+        lines.push(`    public ${overrideModifier}${typeName} ${sdkName} => ${JSON.stringify(f.type.literalValue ?? '')};`);
+      } else if (isOpt) {
+        lines.push(`    public ${overrideModifier}${typeName}${nullSuffix} ${sdkName} { get; set; }`);
       } else {
-        lines.push(`    public ${typeName} ${sdkName} { get; set; } = default!;`);
+        lines.push(`    public ${overrideModifier}${typeName} ${sdkName} { get; set; } = default!;`);
       }
     }
     lines.push('}');
@@ -562,6 +603,9 @@ function generateClient(ir: IR): string {
   lines.push('using System.Text;');
   lines.push('using System.Text.Json;');
   lines.push('using System.Threading;');
+  if (ir.services.some(hasWebhookPolling)) {
+    lines.push('using System.Runtime.CompilerServices;');
+  }
   // Note: System.Threading.Tasks is NOT imported to avoid conflict with Pachca.Sdk.Task model
   // Async methods use fully qualified System.Threading.Tasks.Task<T> instead
   lines.push('');
@@ -581,6 +625,10 @@ function generateClient(ir: IR): string {
   return lines.join('\n');
 }
 
+function hasWebhookPolling(svc: IRService): boolean {
+  return svc.operations.some((op) => op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent');
+}
+
 function emitService(
   lines: string[],
   svc: IRService,
@@ -598,6 +646,10 @@ function emitService(
     if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
       lines.push('');
       emitThrowingPaginationMethod(lines, svc.operations[i], ir);
+    }
+    if (svc.operations[i].methodName === 'getWebhookEvents' && svc.operations[i].successResponse.dataRef === 'WebhookEvent') {
+      lines.push('');
+      emitWebhookPollingMethods(lines, 'public virtual');
     }
   }
   lines.push('}');
@@ -623,6 +675,79 @@ function emitService(
   }
 
   lines.push('}');
+}
+
+function emitWebhookPollingMethods(lines: string[], modifier: string): void {
+  const indent = '    ';
+  lines.push(`${indent}${modifier} async IAsyncEnumerable<WebhookEvent> PollWebhookEventsAsync(`);
+  lines.push(`${indent}    int? limit = 50,`);
+  lines.push(`${indent}    TimeSpan? interval = null,`);
+  lines.push(`${indent}    DateTimeOffset? createdAfter = null,`);
+  lines.push(`${indent}    int maxSeenDeliveryIds = 5000,`);
+  lines.push(`${indent}    [EnumeratorCancellation] CancellationToken cancellationToken = default)`);
+  lines.push(`${indent}{`);
+  lines.push(`${indent}    if (maxSeenDeliveryIds <= 0)`);
+  lines.push(`${indent}        throw new ArgumentOutOfRangeException(nameof(maxSeenDeliveryIds), "maxSeenDeliveryIds must be greater than 0");`);
+  lines.push('');
+  lines.push(`${indent}    var pollInterval = interval ?? TimeSpan.FromSeconds(5);`);
+  lines.push(`${indent}    var effectiveCreatedAfter = createdAfter ?? DateTimeOffset.UtcNow;`);
+  lines.push(`${indent}    var seenIdOrder = new Queue<string>();`);
+  lines.push(`${indent}    var seenIds = new HashSet<string>();`);
+  lines.push('');
+  lines.push(`${indent}    bool Remember(string id)`);
+  lines.push(`${indent}    {`);
+  lines.push(`${indent}        if (!seenIds.Add(id)) return false;`);
+  lines.push(`${indent}        seenIdOrder.Enqueue(id);`);
+  lines.push(`${indent}        while (seenIdOrder.Count > maxSeenDeliveryIds)`);
+  lines.push(`${indent}            seenIds.Remove(seenIdOrder.Dequeue());`);
+  lines.push(`${indent}        return true;`);
+  lines.push(`${indent}    }`);
+  lines.push('');
+  lines.push(`${indent}    while (!cancellationToken.IsCancellationRequested)`);
+  lines.push(`${indent}    {`);
+  lines.push(`${indent}        string? cursor = null;`);
+  lines.push(`${indent}        var hasNext = true;`);
+  lines.push(`${indent}        while (hasNext && !cancellationToken.IsCancellationRequested)`);
+  lines.push(`${indent}        {`);
+  lines.push(`${indent}            var response = await GetWebhookEventsAsync(limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);`);
+  lines.push(`${indent}            var pageHasRecentEvents = false;`);
+  lines.push(`${indent}            for (var i = response.Data.Count - 1; i >= 0; i--)`);
+  lines.push(`${indent}            {`);
+  lines.push(`${indent}                var webhookEvent = response.Data[i];`);
+  lines.push(`${indent}                var matchesCreatedAfter = webhookEvent.CreatedAt >= effectiveCreatedAfter;`);
+  lines.push(`${indent}                if (matchesCreatedAfter)`);
+  lines.push(`${indent}                    pageHasRecentEvents = true;`);
+  lines.push(`${indent}                if (matchesCreatedAfter && Remember(webhookEvent.Id))`);
+  lines.push(`${indent}                    yield return webhookEvent;`);
+  lines.push(`${indent}            }`);
+  lines.push(`${indent}            hasNext = (response.Meta.Paginate.HasNext ?? response.Data.Count > 0) && pageHasRecentEvents;`);
+  lines.push(`${indent}            cursor = response.Meta.Paginate.NextPage;`);
+  lines.push(`${indent}        }`);
+  lines.push(`${indent}        await System.Threading.Tasks.Task.Delay(pollInterval, cancellationToken).ConfigureAwait(false);`);
+  lines.push(`${indent}    }`);
+  lines.push(`${indent}}`);
+  lines.push('');
+  lines.push(`${indent}${modifier} async IAsyncEnumerable<TPayload> PollWebhookPayloadsAsync<TPayload>(`);
+  lines.push(`${indent}    int? limit = 50,`);
+  lines.push(`${indent}    TimeSpan? interval = null,`);
+  lines.push(`${indent}    DateTimeOffset? createdAfter = null,`);
+  lines.push(`${indent}    int maxSeenDeliveryIds = 5000,`);
+  lines.push(`${indent}    [EnumeratorCancellation] CancellationToken cancellationToken = default)`);
+  if (!modifier.includes('override')) {
+    lines.push(`${indent}    where TPayload : WebhookPayloadUnion`);
+  }
+  lines.push(`${indent}{`);
+  lines.push(`${indent}    await foreach (var webhookEvent in PollWebhookEventsAsync(`);
+  lines.push(`${indent}        limit: limit,`);
+  lines.push(`${indent}        interval: interval,`);
+  lines.push(`${indent}        createdAfter: createdAfter,`);
+  lines.push(`${indent}        maxSeenDeliveryIds: maxSeenDeliveryIds,`);
+  lines.push(`${indent}        cancellationToken: cancellationToken))`);
+  lines.push(`${indent}    {`);
+  lines.push(`${indent}        if (webhookEvent.Payload is TPayload payload)`);
+  lines.push(`${indent}            yield return payload;`);
+  lines.push(`${indent}    }`);
+  lines.push(`${indent}}`);
 }
 
 function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, modifier = 'public override'): void {
@@ -1413,6 +1538,15 @@ function generateExamples(ir: IR): string {
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
       result[op.operationId] = entry;
+      if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+        result[`${op.operationId}_pollWebhookEvents`] = {
+          usage: `await foreach (var webhookEvent in client.${serviceProp}.PollWebhookEventsAsync())\n{\n    _ = webhookEvent;\n}`,
+        };
+        result[`${op.operationId}_pollWebhookPayloads`] = {
+          usage: `await foreach (var payload in client.${serviceProp}.PollWebhookPayloadsAsync<WebhookPayloadUnion>())\n{\n    _ = payload;\n}`,
+          imports: ['WebhookPayloadUnion'],
+        };
+      }
     }
   }
 

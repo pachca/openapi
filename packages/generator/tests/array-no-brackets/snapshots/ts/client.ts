@@ -4,7 +4,7 @@ import {
   MessageResult,
   OAuthError,
 } from "./types.js";
-import { deserialize, fetchWithRetry } from "./utils.js";
+import { deserialize, deserializeType, fetchWithRetry } from "./utils.js";
 
 export class SearchService {
   async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {

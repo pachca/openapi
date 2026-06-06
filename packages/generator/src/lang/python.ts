@@ -382,6 +382,9 @@ function collectClientImports(ir: IR): string[] {
           add(op.successResponse.dataRef);
         }
       }
+      if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+        add('WebhookPayloadUnion');
+      }
       if (op.hasOAuthError || ir.models.some((m) => m.name === 'OAuthError')) {
         add('OAuthError');
       }
@@ -701,6 +704,10 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push('        return items');
 }
 
+function hasWebhookPolling(svc: IRService): boolean {
+  return svc.operations.some((op) => op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent');
+}
+
 function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
   const args: string[] = [];
   if (op.externalUrl) args.push(`${camelToSnake(op.externalUrl)}: str`);
@@ -754,15 +761,106 @@ function emitThrowingPaginationMethod(lines: string[], op: IROperation): void {
   lines.push(`        raise NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)})`);
 }
 
+function emitThrowingWebhookPollingMethods(lines: string[], svc: IRService): void {
+  lines.push('    async def poll_webhook_events(');
+  lines.push('        self,');
+  lines.push('        *,');
+  lines.push('        limit: int | None = 50,');
+  lines.push('        interval_seconds: float = 5.0,');
+  lines.push('        created_after: datetime | None = None,');
+  lines.push('        max_seen_delivery_ids: int = 5_000,');
+  lines.push('    ) -> AsyncIterator[WebhookEvent]:');
+  lines.push(`        raise NotImplementedError(${JSON.stringify(`${svc.tag}.pollWebhookEvents is not implemented`)})`);
+  lines.push('');
+  lines.push('    async def poll_webhook_payloads(');
+  lines.push('        self,');
+  lines.push('        *,');
+  lines.push('        limit: int | None = 50,');
+  lines.push('        interval_seconds: float = 5.0,');
+  lines.push('        created_after: datetime | None = None,');
+  lines.push('        max_seen_delivery_ids: int = 5_000,');
+  lines.push('    ) -> AsyncIterator[WebhookPayloadUnion]:');
+  lines.push(`        raise NotImplementedError(${JSON.stringify(`${svc.tag}.pollWebhookPayloads is not implemented`)})`);
+}
+
+function emitWebhookPollingMethods(lines: string[]): void {
+  lines.push('    async def poll_webhook_events(');
+  lines.push('        self,');
+  lines.push('        *,');
+  lines.push('        limit: int | None = 50,');
+  lines.push('        interval_seconds: float = 5.0,');
+  lines.push('        created_after: datetime | None = None,');
+  lines.push('        max_seen_delivery_ids: int = 5_000,');
+  lines.push('    ) -> AsyncIterator[WebhookEvent]:');
+  lines.push('        if max_seen_delivery_ids <= 0:');
+  lines.push('            raise ValueError("max_seen_delivery_ids must be greater than 0")');
+  lines.push('');
+  lines.push('        effective_created_after = created_after or datetime.now(timezone.utc)');
+  lines.push('        seen_id_order: deque[str] = deque()');
+  lines.push('        seen_ids: set[str] = set()');
+  lines.push('');
+  lines.push('        def remember(id: str) -> bool:');
+  lines.push('            if id in seen_ids:');
+  lines.push('                return False');
+  lines.push('            seen_ids.add(id)');
+  lines.push('            seen_id_order.append(id)');
+  lines.push('            while len(seen_id_order) > max_seen_delivery_ids:');
+  lines.push('                seen_ids.remove(seen_id_order.popleft())');
+  lines.push('            return True');
+  lines.push('');
+  lines.push('        while True:');
+  lines.push('            cursor: str | None = None');
+  lines.push('            has_next = True');
+  lines.push('            while has_next:');
+  lines.push('                response = await self.get_webhook_events(');
+  lines.push('                    GetWebhookEventsParams(limit=limit, cursor=cursor),');
+  lines.push('                )');
+  lines.push('                page_has_recent_events = False');
+  lines.push('                for event in reversed(response.data):');
+  lines.push('                    matches_created_after = event.created_at >= effective_created_after');
+  lines.push('                    if matches_created_after:');
+  lines.push('                        page_has_recent_events = True');
+  lines.push('                    if matches_created_after and remember(event.id):');
+  lines.push('                        yield event');
+  lines.push('                reported_has_next = getattr(response.meta.paginate, "has_next", None)');
+  lines.push('                has_next = (bool(response.data) if reported_has_next is None else reported_has_next) and page_has_recent_events');
+  lines.push('                cursor = response.meta.paginate.next_page');
+  lines.push('            await asyncio.sleep(interval_seconds)');
+  lines.push('');
+  lines.push('    async def poll_webhook_payloads(');
+  lines.push('        self,');
+  lines.push('        *,');
+  lines.push('        payload_type: type[TPayload] | tuple[type[TPayload], ...] | None = None,');
+  lines.push('        limit: int | None = 50,');
+  lines.push('        interval_seconds: float = 5.0,');
+  lines.push('        created_after: datetime | None = None,');
+  lines.push('        max_seen_delivery_ids: int = 5_000,');
+  lines.push('    ) -> AsyncIterator[WebhookPayloadUnion | TPayload]:');
+  lines.push('        async for event in self.poll_webhook_events(');
+  lines.push('            limit=limit,');
+  lines.push('            interval_seconds=interval_seconds,');
+  lines.push('            created_after=created_after,');
+  lines.push('            max_seen_delivery_ids=max_seen_delivery_ids,');
+  lines.push('        ):');
+  lines.push('            if payload_type is None or isinstance(event.payload, payload_type):');
+  lines.push('                yield event.payload');
+}
+
 function generateClient(ir: IR): { content: string; needUtils: boolean } {
   const lines: string[] = [];
   const needToDict = needsAsdict(ir);
   const imports = collectClientImports(ir);
   const needUtils = ir.services.length > 0;
+  const needPolling = ir.services.some(hasWebhookPolling);
 
   if (ir.services.length > 0) {
     lines.push('from __future__ import annotations');
     lines.push('');
+    if (needPolling) lines.push('import asyncio');
+    if (needPolling) lines.push('from collections import deque');
+    if (needPolling) lines.push('from datetime import datetime, timezone');
+    if (needPolling) lines.push('from typing import AsyncIterator, TypeVar');
+    if (needPolling) lines.push('');
     lines.push('import httpx');
     lines.push('');
   }
@@ -781,6 +879,11 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     if (needUtils) lines.push(`from .utils import ${utilImports.join(', ')}`);
   }
 
+  if (needPolling) {
+    lines.push('');
+    lines.push('TPayload = TypeVar("TPayload", bound=WebhookPayloadUnion)');
+  }
+
   if (ir.services.length === 0) {
     while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
     lines.push('');
@@ -797,6 +900,10 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
       if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
         lines.push('');
         emitThrowingPaginationMethod(lines, svc.operations[i]);
+      }
+      if (svc.operations[i].methodName === 'getWebhookEvents' && svc.operations[i].successResponse.dataRef === 'WebhookEvent') {
+        lines.push('');
+        emitWebhookPollingMethods(lines);
       }
       if (i < svc.operations.length - 1) lines.push('');
     }
@@ -881,26 +988,44 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
   return { content: lines.join('\n'), needUtils };
 }
 
-function generateUtils(): string {
-  return [
+function generateUtils(ir: IR): string {
+  const lines: string[] = [
     'from __future__ import annotations',
     '',
     'import dataclasses',
     'import keyword',
     'from dataclasses import asdict, fields',
     'from datetime import datetime',
-    'from typing import Type, TypeVar, get_args, get_origin, get_type_hints',
+    'from typing import Callable, Type, TypeVar, get_args, get_origin, get_type_hints',
     '',
     'import httpx',
+  ];
+
+  const customUnions = ir.unions.filter((u) => u.unionDeserializer === 'webhook-payload');
+  if (customUnions.length > 0) {
+    const importNames = new Set<string>();
+    for (const u of customUnions) {
+      importNames.add(u.name);
+      for (const ref of u.memberRefs) importNames.add(ref);
+    }
+    lines.push('');
+    lines.push('from .models import (');
+    for (const name of [...importNames].sort()) {
+      lines.push(`    ${name},`);
+    }
+    lines.push(')');
+  }
+
+  lines.push(
     '',
     'T = TypeVar("T")',
     '',
     '',
-    'def _is_dataclass_type(tp: type) -> bool:',
+    'def _is_dataclass_type(tp: object) -> bool:',
     '    return isinstance(tp, type) and dataclasses.is_dataclass(tp)',
     '',
     '',
-    'def _resolve_type(tp: type) -> type | None:',
+    'def _resolve_type(tp: object) -> type | None:',
     '    """Extract a concrete dataclass type from Optional[X] or X | None."""',
     '    origin = get_origin(tp)',
     '    if origin is list:',
@@ -914,7 +1039,7 @@ function generateUtils(): string {
     '    return None',
     '',
     '',
-    'def _resolve_list_item_type(tp: type) -> type | None:',
+    'def _resolve_list_item_type(tp: object) -> object | None:',
     '    """Extract the item type from list[X]."""',
     '    origin = get_origin(tp)',
     '    if origin is list:',
@@ -924,8 +1049,34 @@ function generateUtils(): string {
     '    return None',
     '',
     '',
-    'def deserialize(cls: Type[T], data: dict) -> T:',
-    '    """Create a dataclass instance from a dict, recursively deserializing nested dataclasses."""',
+    'CustomUnionDeserializer = Callable[[dict], object]',
+    '',
+    '',
+    'def _deserialize_instance(tp: object, value: object) -> object:',
+    '    custom = _CUSTOM_UNION_DESERIALIZERS.get(tp)',
+    '    if custom is not None and isinstance(value, dict):',
+    '        return custom(value)',
+    '    if isinstance(value, dict):',
+    '        nested = _resolve_type(tp)',
+    '        if nested is not None:',
+    '            return _deserialize_dataclass(nested, value)',
+    '    if isinstance(value, list):',
+    '        item_tp = _resolve_list_item_type(tp)',
+    '        if item_tp is not None:',
+    '            return [_deserialize_instance(item_tp, item) for item in value]',
+    '    if isinstance(value, str):',
+    '        raw_tp = tp',
+    '        if get_origin(tp) is not None:',
+    '            for arg in get_args(tp):',
+    '                if arg is not type(None):',
+    '                    raw_tp = arg',
+    '                    break',
+    '        if raw_tp is datetime:',
+    '            return datetime.fromisoformat(value)',
+    '    return value',
+    '',
+    '',
+    'def _deserialize_dataclass(cls: Type[T], data: dict) -> T:',
     '    field_map = {f.name: f for f in fields(cls)}',
     '    hints = get_type_hints(cls)',
     '    norm = {k.replace("-", "_").lower(): v for k, v in data.items()}',
@@ -936,79 +1087,103 @@ function generateUtils(): string {
     '            if k not in field_map:',
     '                continue',
     '        f = field_map[k]',
-    '        if isinstance(v, dict):',
-    '            nested = _resolve_type(hints[f.name])',
-    '            if nested is not None:',
-    '                v = deserialize(nested, v)',
-    '        elif isinstance(v, list) and v:',
-    '            item_tp = _resolve_list_item_type(hints[f.name])',
-    '            if item_tp is not None and _is_dataclass_type(item_tp):',
-    '                v = [deserialize(item_tp, i) if isinstance(i, dict) else i for i in v]',
-    '        elif isinstance(v, str):',
-    '            hint = hints.get(f.name)',
-    '            raw_hint = hint',
-    '            if get_origin(hint) is not None:',
-    '                for a in get_args(hint):',
-    '                    if a is not type(None):',
-    '                        raw_hint = a',
-    '                        break',
-    '            if raw_hint is datetime:',
-    '                v = datetime.fromisoformat(v)',
-    '        kwargs[k] = v',
+    '        kwargs[k] = _deserialize_instance(hints[f.name], v)',
     '    return cls(**kwargs)',
-    '',
-    '',
-    'def _strip_nones(val: object) -> object:',
-    '    if isinstance(val, dict):',
-    '        return {',
-    '            (k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): _strip_nones(v)',
-    '            for k, v in val.items() if v is not None',
-    '        }',
-    '    if isinstance(val, list):',
-    '        return [_strip_nones(v) for v in val]',
-    '    if isinstance(val, datetime):',
-    '        return val.isoformat()',
-    '    return val',
-    '',
-    '',
-    'def serialize(obj: object) -> dict:',
-    '    """Convert a dataclass to a dict, recursively omitting None values."""',
-    '    return _strip_nones(asdict(obj))',
-    '',
-    '',
-    '_MAX_RETRIES = 3',
-    '_RETRYABLE_5XX = {500, 502, 503, 504}',
-    '',
-    '',
-    'def _jitter(delay: float) -> float:',
-    '    import random',
-    '    return delay * (0.5 + random.random() * 0.5)',
-    '',
-    '',
-    'class RetryTransport(httpx.AsyncBaseTransport):',
-    '    """Wraps an httpx transport with retry on 429 Too Many Requests and 5xx errors."""',
-    '',
-    '    def __init__(self, transport: httpx.AsyncBaseTransport, max_retries: int = _MAX_RETRIES) -> None:',
-    '        self._transport = transport',
-    '        self._max_retries = max_retries',
-    '',
-    '    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:',
-    '        import asyncio',
-    '        for attempt in range(self._max_retries + 1):',
-    '            response = await self._transport.handle_async_request(request)',
-    '            if response.status_code == 429 and attempt < self._max_retries:',
-    '                retry_after = response.headers.get("retry-after")',
-    '                delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt',
-    '                await asyncio.sleep(_add_jitter(delay))',
-    '                continue',
-    '            if response.status_code in _RETRYABLE_5XX and attempt < self._max_retries:',
-    '                delay = attempt + 1',
-    '                await asyncio.sleep(_add_jitter(delay))',
-    '                continue',
-    '            return response',
-    '        return response  # unreachable',
-    '',
-  ].join('\n');
+    ''
+  );
+
+  if (customUnions.length > 0) {
+    for (const u of customUnions) {
+      const fnName = `_${camelToSnake(u.name)}_deserialize`;
+      if (u.unionDeserializer === 'webhook-payload') {
+        lines.push(`def ${fnName}(data: dict) -> ${u.name}:`);
+        lines.push('    match (data.get("type"), data.get("event")):');
+        lines.push('        case ("message", "link_shared"):');
+        lines.push('            return _deserialize_instance(LinkSharedWebhookPayload, data)');
+        lines.push('        case ("message", _):');
+        lines.push('            return _deserialize_instance(MessageWebhookPayload, data)');
+        for (const ref of u.memberRefs.filter((ref) => ref !== 'MessageWebhookPayload' && ref !== 'LinkSharedWebhookPayload')) {
+          const model = ir.models.find((m) => m.name === ref);
+          const typeField = model?.fields.find(
+            (f) => f.name === u.discriminatorField && f.type.kind === 'literal',
+          ) ?? model?.fields.find((f) => f.type.kind === 'literal');
+          const disc = typeField?.type.literalValue;
+          if (disc) {
+            lines.push(`        case (${JSON.stringify(disc)}, _):`);
+            lines.push(`            return _deserialize_instance(${ref}, data)`);
+          }
+        }
+        lines.push('        case _:');
+        lines.push(`            raise ValueError(f"Unknown ${u.name} discriminator: {data.get('type')}")`);
+        lines.push('');
+      }
+    }
+  }
+
+  lines.push('_CUSTOM_UNION_DESERIALIZERS: dict[object, CustomUnionDeserializer] = {');
+  for (const u of customUnions) {
+    lines.push(`    ${u.name}: _${camelToSnake(u.name)}_deserialize,`);
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push('');
+  lines.push('def deserialize(cls: Type[T], data: dict) -> T:');
+  lines.push('    """Create a typed instance from a dict, recursively deserializing nested values."""');
+  lines.push('    return _deserialize_instance(cls, data)');
+  lines.push('');
+  lines.push('');
+  lines.push('def _strip_nones(val: object) -> object:');
+  lines.push('    if isinstance(val, dict):');
+  lines.push('        return {');
+  lines.push('            (k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): _strip_nones(v)');
+  lines.push('            for k, v in val.items() if v is not None');
+  lines.push('        }');
+  lines.push('    if isinstance(val, list):');
+  lines.push('        return [_strip_nones(v) for v in val]');
+  lines.push('    if isinstance(val, datetime):');
+  lines.push('        return val.isoformat()');
+  lines.push('    return val');
+  lines.push('');
+  lines.push('');
+  lines.push('def serialize(obj: object) -> dict:');
+  lines.push('    """Convert a dataclass to a dict, recursively omitting None values."""');
+  lines.push('    return _strip_nones(asdict(obj))');
+  lines.push('');
+  lines.push('');
+  lines.push('_MAX_RETRIES = 3');
+  lines.push('_RETRYABLE_5XX = {500, 502, 503, 504}');
+  lines.push('');
+  lines.push('');
+  lines.push('def _jitter(delay: float) -> float:');
+  lines.push('    import random');
+  lines.push('    return delay * (0.5 + random.random() * 0.5)');
+  lines.push('');
+  lines.push('');
+  lines.push('class RetryTransport(httpx.AsyncBaseTransport):');
+  lines.push('    """Wraps an httpx transport with retry on 429 Too Many Requests and 5xx errors."""');
+  lines.push('');
+  lines.push('    def __init__(self, transport: httpx.AsyncBaseTransport, max_retries: int = _MAX_RETRIES) -> None:');
+  lines.push('        self._transport = transport');
+  lines.push('        self._max_retries = max_retries');
+  lines.push('');
+  lines.push('    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:');
+  lines.push('        import asyncio');
+  lines.push('        for attempt in range(self._max_retries + 1):');
+  lines.push('            response = await self._transport.handle_async_request(request)');
+  lines.push('            if response.status_code == 429 and attempt < self._max_retries:');
+  lines.push('                retry_after = response.headers.get("retry-after")');
+  lines.push('                delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt');
+  lines.push('                await asyncio.sleep(_add_jitter(delay))');
+  lines.push('                continue');
+  lines.push('            if response.status_code in _RETRYABLE_5XX and attempt < self._max_retries:');
+  lines.push('                delay = attempt + 1');
+  lines.push('                await asyncio.sleep(_add_jitter(delay))');
+  lines.push('                continue');
+  lines.push('            return response');
+  lines.push('        return response  # unreachable');
+  lines.push('');
+
+  return lines.join('\n');
 }
 
 // ── Examples ──────────────────────────────────────────────────────────
@@ -1288,6 +1463,14 @@ function generateExamples(ir: IR): string {
       if (ex.output) entry.output = ex.output;
       if (ex.imports.length > 0) entry.imports = ex.imports;
       result[op.operationId] = entry;
+      if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+        result[`${op.operationId}_pollWebhookEvents`] = {
+          usage: `async for event in client.${serviceProp}.poll_webhook_events(interval_seconds=5.0):\n    print(event)`,
+        };
+        result[`${op.operationId}_pollWebhookPayloads`] = {
+          usage: `async for payload in client.${serviceProp}.poll_webhook_payloads(interval_seconds=5.0):\n    print(payload)`,
+        };
+      }
     }
   }
 
@@ -1306,7 +1489,7 @@ export class PythonGenerator implements LanguageGenerator {
     const client = generateClient(ir);
     files.push({ path: 'client.py', content: client.content });
     if (client.needUtils) {
-      files.push({ path: 'utils.py', content: generateUtils() });
+      files.push({ path: 'utils.py', content: generateUtils(ir) });
     }
     if (options?.examples) {
       files.push({ path: 'examples.json', content: generateExamples(ir) });

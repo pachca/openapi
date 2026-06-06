@@ -5,7 +5,7 @@ import {
   ExportRequest,
   Export,
 } from "./types.js";
-import { deserialize, serialize, fetchWithRetry } from "./utils.js";
+import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
 
 export class ExportService {
   async listEvents(params: ListEventsParams): Promise<ListEventsResponse> {
@@ -47,12 +47,12 @@ export class ExportServiceImpl extends ExportService {
     const response = await fetchWithRetry(`${this.baseUrl}/exports`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("ExportRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as Export;
+        return deserializeType("Export", body.data) as Export;
       case 401:
         throw new OAuthError(body.error);
       default:

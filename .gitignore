@@ -69,6 +69,7 @@ evals/results/
 .cursor/
 .mcp.json
 .playwright-mcp/
+.pi/tmp/
 
 # C# / .NET
 bin/

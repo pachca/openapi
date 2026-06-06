@@ -559,7 +559,10 @@ export async function expandMdxComponents(content: string): Promise<string> {
     const apiCodeRegex = /<ApiCodeExample\s+([\s\S]*?)\/>/g;
     const apiCodeMatches = [...result.matchAll(apiCodeRegex)];
 
-    const SDK_LANGS = ['typescript', 'python', 'go', 'kotlin', 'swift', 'csharp'];
+    const SDK_LANGS = ['typescript', 'python', 'go', 'kotlin', 'swift', 'csharp'] as const;
+    type SdkLang = (typeof SDK_LANGS)[number];
+    const isSdkLang = (value: string): value is SdkLang =>
+      (SDK_LANGS as readonly string[]).includes(value);
 
     for (const match of apiCodeMatches) {
       const [fullMatch, attrs] = match;
@@ -567,17 +570,24 @@ export async function expandMdxComponents(content: string): Promise<string> {
       const operationId = attrs.match(/operationId="([^"]+)"/)?.[1];
       const title = attrs.match(/title="([^"]+)"/)?.[1];
       const paramsMatch = attrs.match(/params=\{\{([^}]*)\}\}/);
+      const langsMatch = attrs.match(/langs=\{\s*\[([\s\S]*?)\]\s*\}/);
+      const requestedSdkLangs = langsMatch
+        ? [...langsMatch[1].matchAll(/["']([^"']+)["']/g)]
+            .map((langMatch) => langMatch[1])
+            .filter(isSdkLang)
+        : [];
+      const sdkLangsForBlock = requestedSdkLangs.length > 0 ? requestedSdkLangs : SDK_LANGS;
+
+      const ops: Array<{ id: string; comment?: string }> = [];
+      const opRegex = /id:\s*"([^"]+)"(?:,\s*comment:\s*"([^"]*)")?/g;
+      let opMatch;
+      while ((opMatch = opRegex.exec(attrs)) !== null) {
+        ops.push({ id: opMatch[1], comment: opMatch[2] });
+      }
+      if (operationId) ops.push({ id: operationId });
 
       // SDK language mode: generate from examples.json
-      if (lang && SDK_LANGS.includes(lang)) {
-        const ops: Array<{ id: string; comment?: string }> = [];
-        const opRegex = /id:\s*"([^"]+)"(?:,\s*comment:\s*"([^"]*)")?/g;
-        let opMatch;
-        while ((opMatch = opRegex.exec(attrs)) !== null) {
-          ops.push({ id: opMatch[1], comment: opMatch[2] });
-        }
-        if (operationId) ops.push({ id: operationId });
-
+      if (lang && isSdkLang(lang)) {
         const showInit = !attrs.includes('showInit={false}');
         const code = getSdkExampleForLang(lang, ops, showInit);
 
@@ -589,6 +599,20 @@ export async function expandMdxComponents(content: string): Promise<string> {
         } else {
           result = result.replace(fullMatch, '');
         }
+        continue;
+      }
+
+      // Multi-language SDK-only mode: render all SDK examples in markdown output.
+      if (!lang && !operationId && ops.length > 0) {
+        const showInit = !attrs.includes('showInit={false}');
+        let md = '';
+        if (title) md += `**${title}**\n\n`;
+        for (const sdkLang of sdkLangsForBlock) {
+          const code = getSdkExampleForLang(sdkLang, ops, showInit);
+          if (!code) continue;
+          md += `### ${sdkLang}\n\n\`\`\`${sdkLang}\n${code}\n\`\`\`\n\n`;
+        }
+        result = result.replace(fullMatch, md);
         continue;
       }
 

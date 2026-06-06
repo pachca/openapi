@@ -36,5 +36,19 @@ let package = Package(
             ],
             path: "Sources/HttpClient"
         ),
+        .executableTarget(
+            name: "WebhookHistory",
+            dependencies: [
+                .product(name: "PachcaSDK", package: "swift"),
+            ],
+            path: "Sources/WebhookHistory"
+        ),
+        .executableTarget(
+            name: "Polling",
+            dependencies: [
+                .product(name: "PachcaSDK", package: "swift"),
+            ],
+            path: "Sources/Polling"
+        ),
     ]
 )

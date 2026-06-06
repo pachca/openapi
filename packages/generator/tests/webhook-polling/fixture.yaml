@@ -1,0 +1,94 @@
+openapi: 3.0.0
+info:
+  title: Test API — Webhook Polling
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+paths:
+  /webhooks/events:
+    get:
+      operationId: BotOperations_getWebhookEvents
+      tags: [Bots]
+      x-paginated: true
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookEvent'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+components:
+  schemas:
+    WebhookEvent:
+      type: object
+      required: [id, event_type, payload, created_at]
+      properties:
+        id:
+          type: string
+        event_type:
+          type: string
+        payload:
+          $ref: '#/components/schemas/WebhookPayloadUnion'
+        created_at:
+          type: string
+          format: date-time
+
+    MessageWebhookPayload:
+      type: object
+      required: [type, message_id]
+      properties:
+        type:
+          type: string
+          enum: [message_new]
+        message_id:
+          type: integer
+          format: int32
+
+    ReactionWebhookPayload:
+      type: object
+      required: [type, reaction]
+      properties:
+        type:
+          type: string
+          enum: [reaction_added]
+        reaction:
+          type: string
+
+    WebhookPayloadUnion:
+      anyOf:
+        - $ref: '#/components/schemas/MessageWebhookPayload'
+        - $ref: '#/components/schemas/ReactionWebhookPayload'
+
+    PaginationMeta:
+      type: object
+      required: [paginate]
+      properties:
+        paginate:
+          type: object
+          required: [next_page]
+          properties:
+            next_page:
+              type: string
+            has_next:
+              type: boolean

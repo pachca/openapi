@@ -48,6 +48,7 @@ components:
       type: object
       required:
         - type
+        - event
         - url
       properties:
         type:
@@ -57,6 +58,11 @@ components:
           description: Тип блока
           x-enum-descriptions:
             image: Для изображений всегда image
+        event:
+          type: string
+          enum:
+            - image_shared
+          description: Вторичный литеральный признак события
         url:
           type: string
           description: URL изображения

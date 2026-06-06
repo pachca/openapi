@@ -137,8 +137,17 @@ func (s *SecurityServiceImpl) GetAuditEventsAll(ctx context.Context, params *Get
 type BotsService interface {
 	GetWebhookEvents(ctx context.Context, params *GetWebhookEventsParams) (*GetWebhookEventsResponse, error)
 	GetWebhookEventsAll(ctx context.Context, params *GetWebhookEventsParams) ([]WebhookEvent, error)
+	PollWebhookEvents(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookEvent) error) error
+	PollWebhookPayloads(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookPayloadUnion) error) error
 	UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error)
 	DeleteWebhookEvent(ctx context.Context, id string) error
+}
+
+type PollWebhookEventsOptions struct {
+	Limit              *int32
+	Interval           time.Duration
+	CreatedAfter       *time.Time
+	MaxSeenDeliveryIDs int
 }
 
 type BotsServiceStub struct{}
@@ -149,6 +158,14 @@ func (s *BotsServiceStub) GetWebhookEvents(ctx context.Context, params *GetWebho
 
 func (s *BotsServiceStub) GetWebhookEventsAll(ctx context.Context, params *GetWebhookEventsParams) ([]WebhookEvent, error) {
 	return nil, NotImplementedError{Method: "Bots.getWebhookEventsAll"}
+}
+
+func (s *BotsServiceStub) PollWebhookEvents(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookEvent) error) error {
+	return NotImplementedError{Method: "Bots.pollWebhookEvents"}
+}
+
+func (s *BotsServiceStub) PollWebhookPayloads(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookPayloadUnion) error) error {
+	return NotImplementedError{Method: "Bots.pollWebhookPayloads"}
 }
 
 func (s *BotsServiceStub) UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error) {
@@ -232,6 +249,97 @@ func (s *BotsServiceImpl) GetWebhookEventsAll(ctx context.Context, params *GetWe
 		}
 	}
 	return items, nil
+}
+
+func (s *BotsServiceImpl) PollWebhookEvents(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookEvent) error) error {
+	if handler == nil {
+		return errors.New("handler must not be nil")
+	}
+	if options == nil {
+		options = &PollWebhookEventsOptions{}
+	}
+	interval := options.Interval
+	if interval == 0 {
+		interval = 5 * time.Second
+	}
+	createdAfter := options.CreatedAfter
+	if createdAfter == nil {
+		now := time.Now()
+		createdAfter = &now
+	}
+	maxSeenDeliveryIDs := options.MaxSeenDeliveryIDs
+	if maxSeenDeliveryIDs == 0 {
+		maxSeenDeliveryIDs = 5000
+	}
+	if maxSeenDeliveryIDs < 0 {
+		return errors.New("MaxSeenDeliveryIDs must be greater than 0")
+	}
+
+	seenIDOrder := make([]string, 0, maxSeenDeliveryIDs)
+	seenIDs := make(map[string]struct{}, maxSeenDeliveryIDs)
+	remember := func(id string) bool {
+		if _, ok := seenIDs[id]; ok {
+			return false
+		}
+		seenIDs[id] = struct{}{}
+		seenIDOrder = append(seenIDOrder, id)
+		for len(seenIDOrder) > maxSeenDeliveryIDs {
+			oldest := seenIDOrder[0]
+			seenIDOrder = seenIDOrder[1:]
+			delete(seenIDs, oldest)
+		}
+		return true
+	}
+
+	for {
+		var cursor *string
+		hasNext := true
+		for hasNext {
+			params := &GetWebhookEventsParams{Limit: options.Limit, Cursor: cursor}
+			response, err := s.GetWebhookEvents(ctx, params)
+			if err != nil {
+				return err
+			}
+			pageHasRecentEvents := false
+			for i := len(response.Data) - 1; i >= 0; i-- {
+				event := response.Data[i]
+				matchesCreatedAfter := !event.CreatedAt.Before(*createdAfter)
+				if matchesCreatedAfter {
+					pageHasRecentEvents = true
+				}
+				if matchesCreatedAfter && remember(event.ID) {
+					if err := handler(event); err != nil {
+						return err
+					}
+				}
+			}
+			nextPage := response.Meta.Paginate.NextPage
+			cursor = &nextPage
+			if response.Meta.Paginate.HasNext != nil {
+				hasNext = *response.Meta.Paginate.HasNext
+			} else {
+				hasNext = len(response.Data) > 0
+			}
+			hasNext = hasNext && pageHasRecentEvents
+		}
+
+		timer := time.NewTimer(interval)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return ctx.Err()
+		case <-timer.C:
+		}
+	}
+}
+
+func (s *BotsServiceImpl) PollWebhookPayloads(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookPayloadUnion) error) error {
+	if handler == nil {
+		return errors.New("handler must not be nil")
+	}
+	return s.PollWebhookEvents(ctx, options, func(event WebhookEvent) error {
+		return handler(event.Payload)
+	})
 }
 
 func (s *BotsServiceImpl) UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error) {

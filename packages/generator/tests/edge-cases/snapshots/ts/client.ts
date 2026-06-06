@@ -5,7 +5,7 @@ import {
   Event,
   UploadRequest,
 } from "./types.js";
-import { deserialize, fetchWithRetry } from "./utils.js";
+import { deserialize, deserializeType, fetchWithRetry } from "./utils.js";
 
 export class EventsService {
   async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
@@ -54,7 +54,7 @@ export class EventsServiceImpl extends EventsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Event;
+        return deserializeType("Event", body.data) as Event;
       default:
         throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
     }

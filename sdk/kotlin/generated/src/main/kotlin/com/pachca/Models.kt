@@ -8,8 +8,15 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor = PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)
@@ -741,9 +748,43 @@ data class ViewBlockFileInput(
     val hint: String? = null,
 ) : ViewBlockUnion
 
-@Serializable
+@Serializable(with = WebhookPayloadUnionSerializer::class)
 sealed interface WebhookPayloadUnion {
     val type: String
+}
+
+object WebhookPayloadUnionSerializer : KSerializer<WebhookPayloadUnion> {
+    override val descriptor = buildClassSerialDescriptor("WebhookPayloadUnion")
+
+    override fun serialize(encoder: Encoder, value: WebhookPayloadUnion) {
+        val jsonEncoder = encoder as? JsonEncoder ?: error("WebhookPayloadUnionSerializer only supports JSON")
+        when (value) {
+            is MessageWebhookPayload -> jsonEncoder.encodeSerializableValue(MessageWebhookPayload.serializer(), value)
+            is ReactionWebhookPayload -> jsonEncoder.encodeSerializableValue(ReactionWebhookPayload.serializer(), value)
+            is ButtonWebhookPayload -> jsonEncoder.encodeSerializableValue(ButtonWebhookPayload.serializer(), value)
+            is ViewSubmitWebhookPayload -> jsonEncoder.encodeSerializableValue(ViewSubmitWebhookPayload.serializer(), value)
+            is ChatMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(ChatMemberWebhookPayload.serializer(), value)
+            is CompanyMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(CompanyMemberWebhookPayload.serializer(), value)
+            is LinkSharedWebhookPayload -> jsonEncoder.encodeSerializableValue(LinkSharedWebhookPayload.serializer(), value)
+        }
+    }
+
+    override fun deserialize(decoder: Decoder): WebhookPayloadUnion {
+        val jsonDecoder = decoder as? JsonDecoder ?: error("WebhookPayloadUnionSerializer only supports JSON")
+        val element = jsonDecoder.decodeJsonElement()
+        val type = element.jsonObject["type"]?.jsonPrimitive?.contentOrNull
+        val event = element.jsonObject["event"]?.jsonPrimitive?.contentOrNull
+        return when {
+            type == "message" && event == "link_shared" -> jsonDecoder.json.decodeFromJsonElement(LinkSharedWebhookPayload.serializer(), element)
+            type == "message" -> jsonDecoder.json.decodeFromJsonElement(MessageWebhookPayload.serializer(), element)
+            type == "reaction" -> jsonDecoder.json.decodeFromJsonElement(ReactionWebhookPayload.serializer(), element)
+            type == "button" -> jsonDecoder.json.decodeFromJsonElement(ButtonWebhookPayload.serializer(), element)
+            type == "view" -> jsonDecoder.json.decodeFromJsonElement(ViewSubmitWebhookPayload.serializer(), element)
+            type == "chat_member" -> jsonDecoder.json.decodeFromJsonElement(ChatMemberWebhookPayload.serializer(), element)
+            type == "company_member" -> jsonDecoder.json.decodeFromJsonElement(CompanyMemberWebhookPayload.serializer(), element)
+            else -> error("Unknown WebhookPayloadUnion type: $type")
+        }
+    }
 }
 
 @Serializable
@@ -788,7 +829,9 @@ data class ButtonWebhookPayload(
     @SerialName("user_id") val userId: Int,
     @SerialName("chat_id") val chatId: Int,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
-) : WebhookPayloadUnion
+) : WebhookPayloadUnion {
+    val event: String = "click"
+}
 
 @Serializable
 @SerialName("view")
@@ -800,7 +843,9 @@ data class ViewSubmitWebhookPayload(
     @SerialName("user_id") val userId: Int,
     val data: Map<String, String>,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
-) : WebhookPayloadUnion
+) : WebhookPayloadUnion {
+    val event: String = "submit"
+}
 
 @Serializable
 @SerialName("chat_member")
@@ -834,7 +879,9 @@ data class LinkSharedWebhookPayload(
     @SerialName("user_id") val userId: Int,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
-) : WebhookPayloadUnion
+) : WebhookPayloadUnion {
+    val event: String = "link_shared"
+}
 
 @Serializable
 data class AccessTokenInfo(

@@ -20,6 +20,18 @@
       "GetWebhookEventsParams"
     ]
   },
+  "BotOperations_getWebhookEvents_poll_webhook_events": {
+    "usage": "async for event in client.bots.poll_webhook_events(interval_seconds=5.0):\n    print(event)",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "BotOperations_getWebhookEvents_poll_webhook_payloads": {
+    "usage": "async for payload in client.bots.poll_webhook_payloads(interval_seconds=5.0):\n    print(payload)",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
   "BotOperations_updateBot": {
     "usage": "request = BotUpdateRequest(bot=BotUpdateRequestBot(webhook=BotUpdateRequestBotWebhook(outgoing_url=\"https://www.website.com/tasks/new\")))\nresponse = await client.bots.update_bot(id=1738816, request=request)",
     "output": "BotResponse(id: int, webhook: BotResponseWebhook(outgoing_url: str))",

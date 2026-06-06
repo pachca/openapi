@@ -11,5 +11,17 @@
     "imports": [
       "GetWebhookEventsParams"
     ]
+  },
+  "BotOperations_getWebhookEvents_poll_webhook_events": {
+    "usage": "async for event in client.bots.poll_webhook_events(interval_seconds=5.0):\n    print(event)",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "BotOperations_getWebhookEvents_poll_webhook_payloads": {
+    "usage": "async for payload in client.bots.poll_webhook_payloads(interval_seconds=5.0):\n    print(payload)",
+    "imports": [
+      "PachcaClient"
+    ]
   }
 }

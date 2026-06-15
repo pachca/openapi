@@ -213,10 +213,14 @@
   - `key: string` (required) — Путь к файлу. Пример: `"attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png"`
   - `name: string` (required) — Название файла с расширением. Пример: `"congrat.png"`
   - `file_type: string` (required) — Тип файла
-    Значения: `file` — Обычный файл, `image` — Изображение
+    Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение
   - `url: string` (required) — Прямая ссылка на скачивание файла. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
   - `width: integer, int32` — Ширина изображения в пикселях. Пример: `1920`
   - `height: integer, int32` — Высота изображения в пикселях. Пример: `1080`
+- `voice_content: object` (required) — Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.
+  - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
+  - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
+  - `transcript: string` (required) — Расшифровка голосового сообщения в текст. `null`, пока расшифровка не готова или недоступна.. Пример: `"Привет, посмотри пожалуйста последний отчёт"`
 - `buttons: array of array` (required) — Массив строк, каждая из которых представлена массивом кнопок
 - `thread: object` (required) — Тред сообщения
   - `id: integer, int64` (required) — Идентификатор треда. Пример: `265142`
@@ -294,7 +298,7 @@
 - `callback_id: string` (max length: 255) — Необязательный идентификатор для распознавания этого представления, который будет отправлен в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для понимания, какую форму должен был заполнить пользователь.. Пример: `"timeoff_reguest_form"`
 - `view: object` (required) — Собранный объект представления
   - `title: string` (required, max length: 24) — Заголовок представления. Пример: `"Уведомление об отпуске"`
-  - `close_text: string` (default: Отменить, max length: 24) — Текст кнопки закрытия представления. Пример: `"Закрыть"`
+  - `close_text: string` (default: Отменить, max length: 24) — Текст кнопки закрытия представления. Отображается только в десктоп-вебе. В мобильных приложениях (iOS/Android) кнопка закрытия — это крестик в шапке, и заданный текст там не показывается.. Пример: `"Закрыть"`
   - `submit_text: string` (default: Отправить, max length: 24) — Текст кнопки отправки формы. Пример: `"Отправить заявку"`
   - `blocks: array (union)` (required, max items: 100) — Массив блоков представления
     **Возможные типы элементов:**
@@ -334,7 +338,6 @@
       - `options: array of object` (max items: 100) — Массив доступных пунктов в выпадающем списке
         - `text: string` (required, max length: 75) — Отображаемый текст
         - `value: string` (required, max length: 150) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
-        - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
         - `selected: boolean` — Изначально выбранный пункт. Только один пункт может быть выбран.
       - `required: boolean` — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под выпадающим списком серым цветом
@@ -391,13 +394,21 @@
 
 ## Параметры бота
 
+- [Создание бота](POST /bots)
+- [Получение бота](GET /bots/{id})
 - [Редактирование бота](PUT /bots/{id})
 
 Параметры бота
 
-- `id: integer, int32` (required) — Идентификатор бота. Пример: `1738816`
+- `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
 - `webhook: object` (required) — Объект параметров вебхука
+  - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
+  - `nickname: string` (required) — Никнейм бота. Пример: `"tasks_bot"`
   - `outgoing_url: string` (required) — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
+  - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
+  - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
+    Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
+  - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
 
 
 ## Событие исходящего вебхука
@@ -441,7 +452,7 @@
     - `code: string` (required) — Emoji символ реакции. Пример: `"👍"`
     - `name: string` (required) — Название реакции. Пример: `"thumbsup"`
     - `user_id: integer, int32` (required) — Идентификатор пользователя, который добавил или удалил реакцию. Пример: `2345`
-    - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+    - `created_at: date-time` (required) — Дата и время добавления реакции (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Поле присутствует и для события удаления реакции.. Пример: `"2025-05-15T14:30:00.000Z"`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
   - **ButtonWebhookPayload**: Структура исходящего вебхука о нажатии кнопки
     - `type: string` (required) — Тип объекта. Пример: `"button"`
@@ -461,9 +472,9 @@
       Значения: `submit` — Отправка формы
     - `callback_id: string` (required) — Идентификатор обратного вызова, указанный при открытии представления. Пример: `"timeoff_request_form"`
     - `private_metadata: string` (required) — Приватные метаданные, указанные при открытии представления. Пример: `"{'timeoff_id':4378}"`
-    - `chat_id: integer, int32` (required) — Идентификатор чата, в котором было нажатие кнопки, открывшей форму. Значение фиксируется в момент **открытия** формы, а не отправки — если форма провисела открытой длительное время, `chat_id` всё равно ссылается на чат с кнопкой. Поле всегда присутствует в payload. Для форм, открытых до выкатки этого изменения, `chat_id` придёт как `null` — такие формы постепенно вымоются по TTL сохранённого представления (30 дней).. Пример: `9012`
+    - `chat_id: integer, int32` (required) — Идентификатор чата, в котором была нажата кнопка, открывшая форму. Поле может быть `null` для форм, открытых до выкатки этого поля.. Пример: `9012`
     - `user_id: integer, int32` (required) — Идентификатор пользователя, который отправил форму. Пример: `1235523`
-    - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `action_id` поля, значение — введённые данные
+    - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные
       **Структура значений Record:**
       - Тип значения: `any`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1755075544`
@@ -554,7 +565,7 @@
     - `message_id: integer, int32` (required) — Идентификатор сообщения
     - `chat_id: integer, int32` (required) — Идентификатор чата
     - `user_id: integer, int32` (required) — Идентификатор пользователя
-    - `action_message: string` (required) — Описание действия
+    - `action_message: string` (required) — Описание действия. `null`, если у действия правила текст не задан.
     - `conditions_matched: boolean` (required) — Результат проверки условий правила (true — условия сработали)
   - **AuditDetailsSearch**: При: search_users_api, search_chats_api, search_messages_api
     - `search_type: string` (required) — Тип поиска

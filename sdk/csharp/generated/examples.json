@@ -12,6 +12,10 @@
       "AuditEventKey"
     ]
   },
+  "BotOperations_getBot": {
+    "usage": "var response = await client.Bots.GetBotAsync(1738816);",
+    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>))"
+  },
   "BotOperations_getWebhookEvents": {
     "usage": "var response = await client.Bots.GetWebhookEventsAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
     "output": "GetWebhookEventsResponse(Data: List<WebhookEvent>, Meta: PaginationMeta)"
@@ -25,10 +29,23 @@
       "WebhookPayloadUnion"
     ]
   },
-  "BotOperations_updateBot": {
-    "usage": "var request = new BotUpdateRequest { Bot = new BotUpdateRequestBot { Webhook = new BotUpdateRequestBotWebhook { OutgoingUrl = \"https://www.website.com/tasks/new\" } } };\nvar response = await client.Bots.UpdateBotAsync(1738816, request);",
-    "output": "BotResponse(Id: int, Webhook: BotResponseWebhook(OutgoingUrl: string))",
+  "BotOperations_createBot": {
+    "usage": "var request = new BotCreateRequest\n{\n    Bot = new BotCreateRequestBot\n    {\n        Webhook = new BotCreateRequestBotWebhook\n        {\n            Name = \"Бот задач\",\n            Nickname = \"tasks_bot\",\n            OutgoingUrl = \"https://www.website.com/tasks/new\",\n            Events = new List<BotEventName> { BotEventName.MessageNew },\n            TriggerOn = BotTriggerOn.Commands,\n            Commands = new List<string> { \"example\" }\n        }\n    }\n};\nvar response = await client.Bots.CreateBotAsync(request);",
+    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>), AccessToken: string)",
     "imports": [
+      "BotCreateRequest",
+      "BotCreateRequestBot",
+      "BotCreateRequestBotWebhook",
+      "BotEventName",
+      "BotTriggerOn"
+    ]
+  },
+  "BotOperations_updateBot": {
+    "usage": "var request = new BotUpdateRequest\n{\n    Bot = new BotUpdateRequestBot\n    {\n        Webhook = new BotUpdateRequestBotWebhook\n        {\n            Name = \"Бот задач\",\n            Nickname = \"tasks_bot\",\n            OutgoingUrl = \"https://www.website.com/tasks/new\",\n            Events = new List<BotEventName> { BotEventName.MessageNew },\n            TriggerOn = BotTriggerOn.Commands,\n            Commands = new List<string> { \"example\" }\n        }\n    }\n};\nvar response = await client.Bots.UpdateBotAsync(1738816, request);",
+    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>))",
+    "imports": [
+      "BotEventName",
+      "BotTriggerOn",
       "BotUpdateRequest",
       "BotUpdateRequestBot",
       "BotUpdateRequestBotWebhook"
@@ -171,11 +188,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "var response = await client.Messages.GetMessageAsync(194275);",
-    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)"
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)"
   },
   "MessageOperations_createMessage": {
-    "usage": "var request = new MessageCreateRequest\n{\n    Message = new MessageCreateRequestMessage\n    {\n        EntityType = MessageEntityType.Discussion,\n        EntityId = 334,\n        Content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        Files = new List<MessageCreateRequestFile> { new MessageCreateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345,\n            Width = 800,\n            Height = 600\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        ParentMessageId = 194270,\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\",\n        SkipInviteMentions = false\n    },\n    LinkPreview = false\n};\nvar response = await client.Messages.CreateMessageAsync(request);",
-    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
+    "usage": "var request = new MessageCreateRequest\n{\n    Message = new MessageCreateRequestMessage\n    {\n        EntityType = MessageEntityType.Discussion,\n        EntityId = 334,\n        Content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        Files = new List<MessageCreateRequestFile> { new MessageCreateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345,\n            Width = 800,\n            Height = 600,\n            DurationMs = 5400,\n            Waveform = \"4,8,12,20,16,10,6,3\"\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        ParentMessageId = 194270,\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\",\n        SkipInviteMentions = false\n    },\n    LinkPreview = false\n};\nvar response = await client.Messages.CreateMessageAsync(request);",
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
     "imports": [
       "Button",
       "FileType",
@@ -189,10 +206,11 @@
     "usage": "await client.Messages.PinMessageAsync(194275);"
   },
   "MessageOperations_updateMessage": {
-    "usage": "var request = new MessageUpdateRequest\n{\n    Message = new MessageUpdateRequestMessage\n    {\n        Content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        Files = new List<MessageUpdateRequestFile> { new MessageUpdateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = \"image\",\n            Size = 12345,\n            Width = 800,\n            Height = 600\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\"\n    }\n};\nvar response = await client.Messages.UpdateMessageAsync(194275, request);",
-    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
+    "usage": "var request = new MessageUpdateRequest\n{\n    Message = new MessageUpdateRequestMessage\n    {\n        Content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        Files = new List<MessageUpdateRequestFile> { new MessageUpdateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345,\n            Width = 800,\n            Height = 600,\n            DurationMs = 5400,\n            Waveform = \"4,8,12,20,16,10,6,3\"\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\"\n    }\n};\nvar response = await client.Messages.UpdateMessageAsync(194275, request);",
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
     "imports": [
       "Button",
+      "FileType",
       "MessageUpdateRequest",
       "MessageUpdateRequestFile",
       "MessageUpdateRequestMessage"

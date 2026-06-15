@@ -1,5 +1,61 @@
 [
   {
+    "product": "cli",
+    "version": "2026.6.0",
+    "date": "2026-06-15",
+    "changes": [
+      {
+        "type": "+",
+        "command": "bots create",
+        "description": "Новая команда — создание бота и получение его access_token"
+      },
+      {
+        "type": "+",
+        "command": "bots get",
+        "description": "Новая команда — получение параметров бота"
+      },
+      {
+        "type": "~",
+        "command": "bots update",
+        "description": "Расширены поля редактирования бота: name, nickname, events, trigger_on, commands"
+      },
+      {
+        "type": "+",
+        "description": "В сообщениях появилось поле voice_content и параметры файлов duration_ms / waveform для голосовых сообщений"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.0.10",
+    "date": "2026-06-15",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Создание и получение ботов через API (POST /bots, GET /bots/{id})"
+      },
+      {
+        "type": "+",
+        "description": "Поддержка голосовых сообщений: поле voice_content и параметры duration_ms / waveform"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.0.22",
+    "date": "2026-06-15",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Методы создания и получения ботов: POST /bots, GET /bots/{id}"
+      },
+      {
+        "type": "+",
+        "description": "Поле voice_content в сообщении и параметры файлов duration_ms / waveform для голосовых сообщений"
+      }
+    ]
+  },
+  {
     "product": "sdk",
     "version": "1.0.21",
     "date": "2026-06-05",

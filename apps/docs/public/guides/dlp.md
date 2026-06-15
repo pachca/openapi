@@ -193,7 +193,7 @@
 - `message_id: integer, int32` (required) — Идентификатор сообщения
 - `chat_id: integer, int32` (required) — Идентификатор чата
 - `user_id: integer, int32` (required) — Идентификатор пользователя
-- `action_message: string` (required) — Описание действия
+- `action_message: string` (required) — Описание действия. `null`, если у действия правила текст не задан.
 - `conditions_matched: boolean` (required) — Результат проверки условий правила (true — условия сработали)
 
 

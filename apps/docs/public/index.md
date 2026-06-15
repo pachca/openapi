@@ -22,7 +22,6 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
   -H "Content-Type: application/json" \
   -d '{
   "message": {
-    "entity_type": "discussion",
     "entity_id": 334,
     "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
     "files": [
@@ -32,7 +31,9 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
         "file_type": "image",
         "size": 12345,
         "width": 800,
-        "height": 600
+        "height": 600,
+        "duration_ms": 5400,
+        "waveform": "4,8,12,20,16,10,6,3"
       }
     ],
     "buttons": [
@@ -49,10 +50,8 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
     ],
     "parent_message_id": 194270,
     "display_avatar_url": "https://example.com/avatar.png",
-    "display_name": "Бот Поддержки",
-    "skip_invite_mentions": false
-  },
-  "link_preview": false
+    "display_name": "Бот Поддержки"
+  }
 }'
 ```
 

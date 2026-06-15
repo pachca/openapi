@@ -182,6 +182,10 @@ const CYRILLIC_RE = /[а-яА-ЯёЁ]/;
 
 /** Translation dictionary for inline strings not reachable via JSONPath overlay targets */
 const RU_TO_EN: Record<string, string> = {
+	// Example values used in bot/voice examples
+	'Бот задач': 'Tasks bot',
+	'Привет, посмотри пожалуйста последний отчёт': 'Hi, please take a look at the latest report',
+
 	// Response wrapper descriptions (inline schemas in response bodies)
 	'Обертка ответа с данными и пагинацией': 'Response wrapper with data and pagination',
 	'Обертка ответа с данными': 'Response wrapper with data',

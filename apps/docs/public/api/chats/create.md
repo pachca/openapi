@@ -45,8 +45,7 @@
       86,
       18
     ],
-    "channel": true,
-    "public": false
+    "channel": true
   }
 }
 ```
@@ -68,8 +67,7 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
       86,
       18
     ],
-    "channel": true,
-    "public": false
+    "channel": true
   }
 }'
 ```

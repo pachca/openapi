@@ -45,6 +45,35 @@ class AuditEventKey(StrEnum):
     SEARCH_MESSAGES_API = "search_messages_api"  # Поиск сообщений через API
 
 
+class BotEventName(StrEnum):
+    """Событие исходящего вебхука бота"""
+
+    MESSAGE_NEW = "message_new"  # Новое сообщение
+    MESSAGE_UPDATE = "message_update"  # Сообщение отредактировано
+    MESSAGE_DELETE = "message_delete"  # Сообщение удалено
+    REACTION_NEW = "reaction_new"  # Добавлена реакция
+    REACTION_DELETE = "reaction_delete"  # Реакция удалена
+    BUTTON_CLICK = "button_click"  # Нажата кнопка
+    MESSAGE_LINK_SHARED = "message_link_shared"  # В сообщении отправлена ссылка (для unfurl)
+    CHAT_MEMBER_ADD = "chat_member_add"  # Участник добавлен в чат
+    CHAT_MEMBER_REMOVE = "chat_member_remove"  # Участник удалён из чата
+    COMPANY_MEMBER_INVITE = "company_member_invite"  # Сотрудник приглашён в компанию
+    COMPANY_MEMBER_CONFIRM = "company_member_confirm"  # Сотрудник подтвердил приглашение
+    COMPANY_MEMBER_SUSPEND = "company_member_suspend"  # Сотрудник деактивирован
+    COMPANY_MEMBER_ACTIVATE = "company_member_activate"  # Сотрудник активирован
+    COMPANY_MEMBER_DELETE = "company_member_delete"  # Сотрудник удалён из компании
+    COMPANY_MEMBER_UPDATE = "company_member_update"  # Данные сотрудника изменены
+    BILL_CREATED = "bill_created"  # Создан счёт
+
+
+class BotTriggerOn(StrEnum):
+    """Условие срабатывания исходящего вебхука бота"""
+
+    COMMANDS = "commands"  # Только на команды (триггер-слова) из commands
+    ALL_MESSAGES = "all_messages"  # На все сообщения в чатах, где есть бот
+    UNFURL = "unfurl"  # На развёртывание ссылок (link previews)
+
+
 class ChatAvailability(StrEnum):
     """Доступность чатов для пользователя"""
 
@@ -98,6 +127,8 @@ class FileType(StrEnum):
 
     FILE = "file"  # Обычный файл
     IMAGE = "image"  # Изображение
+    AUDIO = "audio"  # Аудиофайл
+    VOICE = "voice"  # Голосовое сообщение
 
 
 class InviteStatus(StrEnum):
@@ -380,8 +411,8 @@ class AuditDetailsDlp:
     message_id: int
     chat_id: int
     user_id: int
-    action_message: str
     conditions_matched: bool
+    action_message: str | None = None
 
 
 @dataclass
@@ -463,19 +494,46 @@ class AvatarData:
 
 
 @dataclass
-class BotResponseWebhook:
-    outgoing_url: str
+class BotCreateRequestBotWebhook:
+    name: str
+    nickname: str | None = None
+    outgoing_url: str | None = None
+    events: list[BotEventName] | None = None
+    trigger_on: BotTriggerOn | None = None
+    commands: list[str] | None = None
+
+
+@dataclass
+class BotCreateRequestBot:
+    webhook: BotCreateRequestBotWebhook
+
+
+@dataclass
+class BotCreateRequest:
+    bot: BotCreateRequestBot
+
+
+@dataclass
+class BotCreateResponse:
+    id: int
+    webhook: BotWebhook
+    access_token: str
 
 
 @dataclass
 class BotResponse:
     id: int
-    webhook: BotResponseWebhook
+    webhook: BotWebhook
 
 
 @dataclass
 class BotUpdateRequestBotWebhook:
-    outgoing_url: str
+    name: str | None = None
+    nickname: str | None = None
+    outgoing_url: str | None = None
+    events: list[BotEventName] | None = None
+    trigger_on: BotTriggerOn | None = None
+    commands: list[str] | None = None
 
 
 @dataclass
@@ -486,6 +544,16 @@ class BotUpdateRequestBot:
 @dataclass
 class BotUpdateRequest:
     bot: BotUpdateRequestBot
+
+
+@dataclass
+class BotWebhook:
+    name: str
+    nickname: str
+    events: list[BotEventName]
+    trigger_on: BotTriggerOn
+    commands: list[str]
+    outgoing_url: str | None = None
 
 
 @dataclass
@@ -693,6 +761,7 @@ class Message:
     created_at: datetime
     url: str
     files: list[File]
+    voice_content: VoiceContent | None = None
     buttons: list[list[Button]] | None = None
     thread: MessageThread | None = None
     forwarding: Forwarding | None = None
@@ -711,6 +780,8 @@ class MessageCreateRequestFile:
     size: int
     width: int | None = None
     height: int | None = None
+    duration_ms: int | None = None
+    waveform: str | None = None
 
 
 @dataclass
@@ -736,10 +807,12 @@ class MessageCreateRequest:
 class MessageUpdateRequestFile:
     key: str
     name: str
-    file_type: str | None = None
+    file_type: FileType | None = None
     size: int | None = None
     width: int | None = None
     height: int | None = None
+    duration_ms: int | None = None
+    waveform: str | None = None
 
 
 @dataclass
@@ -1147,9 +1220,16 @@ class ViewBlockSelect:
     type: str  # literal "select"
     name: str
     label: str
-    options: list[ViewBlockSelectableOption] | None = None
+    options: list[ViewBlockSelectOption] | None = None
     required: bool | None = None
     hint: str | None = None
+
+
+@dataclass
+class ViewBlockSelectOption:
+    text: str
+    value: str
+    selected: bool | None = None
 
 
 @dataclass
@@ -1180,6 +1260,13 @@ class ViewSubmitWebhookPayload:
     callback_id: str | None = None
     private_metadata: str | None = None
     chat_id: int | None = None
+
+
+@dataclass
+class VoiceContent:
+    duration_ms: int
+    waveform: str
+    transcript: str | None = None
 
 
 @dataclass

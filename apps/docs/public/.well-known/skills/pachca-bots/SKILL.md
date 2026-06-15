@@ -47,15 +47,32 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 ## Workflows
 
+### Создать бота через API и получить токен
+
+1. Создай бота. Только пользовательским токеном (не токеном бота); `nickname` обязан заканчиваться на `_bot`. Параметры вебхука (Webhook URL, события, команды) можно задать сразу или позже:
+   ```bash
+   pachca bots create --bot='{"webhook":{"name":"Бот задач","nickname":"tasks_bot"}}'
+   ```
+
+2. Сохрани `access_token` из ответа — он возвращается единственный раз. Повторно получить токен можно только через интерфейс (вкладка «API» настроек бота)
+
+3. В ответе также придёт `id` бота (его `user_id`) — он нужен для дальнейших вызовов, например чтобы добавить бота в чат
+
+> Создавать ботов можно только пользовательским токеном — токеном бота нельзя. `access_token` отдаётся один раз при создании, дальше его можно посмотреть и скопировать в интерфейсе.
+
+
 ### Настроить бота с исходящим вебхуком
 
-1. Создай бота в интерфейсе Пачки: Автоматизации → Интеграции → Webhook
+1. Создай бота, сразу указав Webhook URL и события в одном вызове (детали создания и работы с токеном — в сценарии «Создать бота через API и получить токен»):
+   ```bash
+   pachca bots create --bot='{"webhook":{"name":"Бот задач","nickname":"tasks_bot","outgoing_url":"https://example.com/webhook","events":["message_new"],"trigger_on":"commands","commands":["/task"]}}'
+   ```
 
-2. Получи `access_token` бота во вкладке «API» настроек бота
+2. Сохрани `access_token` из ответа (возвращается единственный раз)
 
-3. Укажи Webhook URL для получения событий
+3. Используй сохранённый `access_token` для отправки сообщений от имени бота
 
-> Бот создаётся через UI, не через API. Единственный эндпоинт для ботов — PUT /bots/{id} (обновление webhook URL). API используется для отправки сообщений от имени бота.
+> Альтернатива — создать и настроить бота в интерфейсе. Webhook URL и события можно задать и позже методом PUT /bots/{id}.
 
 
 ### Обновить Webhook URL бота
@@ -86,6 +103,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 ## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
+- `bot.webhook.trigger_on`: allowed values — `commands` (Только на команды (триггер-слова) из commands), `all_messages` (На все сообщения в чатах, где есть бот), `unfurl` (На развёртывание ссылок (link previews))
 - `limit`: max 50
 - Pagination: cursor-based (limit + cursor)
 
@@ -93,6 +111,8 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 | Method | Path | Description |
 |--------|------|-------------|
+| POST | /bots | Создание бота |
+| GET | /bots/{id} | Получение бота |
 | PUT | /bots/{id} | Редактирование бота |
 | POST | /messages/{id}/link_previews | Unfurl (разворачивание ссылок) |
 | GET | /webhooks/events | История событий |

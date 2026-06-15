@@ -107,6 +107,8 @@
 - [Открытие представления](https://dev.pachca.com/api/views/open.md): POST /views/open
 
 ## Bots
+- [Создание бота](https://dev.pachca.com/api/bots/create.md): POST /bots
+- [Получение бота](https://dev.pachca.com/api/bots/get.md): GET /bots/{id}
 - [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
 - [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
 - [Удаление события](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}

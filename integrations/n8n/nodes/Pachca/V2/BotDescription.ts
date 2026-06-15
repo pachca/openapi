@@ -9,6 +9,16 @@ export const botOperations: INodeProperties[] = [
 		displayOptions: { show: { resource: ['bot'] } },
 		options: [
 			{
+				name: 'Create',
+				value: 'create',
+				action: 'Create a bot',
+			},
+			{
+				name: 'Get',
+				value: 'get',
+				action: 'Get a bot',
+			},
+			{
 				name: 'Get Many Events',
 				value: 'getAllEvents',
 				action: 'Get many bot events',
@@ -24,11 +34,37 @@ export const botOperations: INodeProperties[] = [
 				action: 'Update a bot',
 			},
 		],
-		default: 'update',
+		default: 'create',
 	},
 ];
 
 export const botFields: INodeProperties[] = [
+	{
+		displayName: 'Webhook',
+		name: 'webhook',
+		type: 'json',
+		required: true,
+		default: "{}",
+		description: 'Bot webhook parameters object',
+		displayOptions: { show: { resource: ['bot'], operation: ['create'] } },
+	},
+	{
+		displayName: 'ID',
+		name: 'id',
+		type: 'number',
+		required: true,
+		default: 0,
+		displayOptions: { show: { resource: ['bot'], operation: ['get'] } },
+		description: 'Bot ID',
+	},
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: true,
+		description: 'Whether to return a simplified version of the response instead of all fields',
+		displayOptions: { show: { resource: ['bot'], operation: ['get'] } },
+	},
 	{
 		displayName: 'ID',
 		name: 'botId',

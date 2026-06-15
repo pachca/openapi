@@ -1,5 +1,34 @@
 [
   {
+    "version": "2026.6.0",
+    "date": "15 июня 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "bots create",
+        "description": "Новая команда — создание бота и получение его `access_token`"
+      },
+      {
+        "type": "+",
+        "command": "bots get",
+        "description": "Новая команда — получение параметров бота"
+      },
+      {
+        "type": "~",
+        "command": "bots update",
+        "description": "Расширены поля редактирования бота: `name`, `nickname`, `events`, `trigger_on`, `commands`"
+      },
+      {
+        "type": "+",
+        "description": "В сообщениях появилось поле `voice_content` и параметры файлов `duration_ms` / `waveform` для голосовых сообщений"
+      },
+      {
+        "type": "~",
+        "description": "Чище примеры: убраны опциональные флаги и поля, чьё значение равно дефолту схемы (`--no-skip-invite-mentions`, `--no-link-preview` и т.п.); кавычки в примерах ставятся только при наличии shell-метасимволов"
+      }
+    ]
+  },
+  {
     "version": "2026.5.6",
     "date": "21 мая 2026",
     "changes": [

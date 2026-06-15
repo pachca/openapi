@@ -23,7 +23,7 @@ hideTableOfContents: true
   <Card title="Реакция на сообщение" href="#reaktsiya-na-soobschenie" methods="GET POST DELETE" />
   <Card title="Напоминание" href="#napominanie" methods="GET POST PUT DELETE" />
   <Card title="Представление" href="#predstavlenie" methods="POST" />
-  <Card title="Параметры бота" href="#parametry-bota" methods="PUT" />
+  <Card title="Параметры бота" href="#parametry-bota" methods="POST, GET, PUT" />
   <Card title="Событие исходящего вебхука" href="#sobytie-ishodyaschego-vebhuka" methods="GET DELETE" />
   <Card title="Событие аудита" href="#sobytie-audita" methods="GET" />
 </CardGroup>
@@ -153,6 +153,8 @@ hideTableOfContents: true
 
 ## Параметры бота
 
+- [Создание бота](POST /bots)
+- [Получение бота](GET /bots/{id})
 - [Редактирование бота](PUT /bots/{id})
 
 <ModelSchema name="BotResponse" />

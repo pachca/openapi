@@ -76,6 +76,50 @@ public enum AuditEventKey: String, Codable, CaseIterable {
     case searchMessagesApi = "search_messages_api"
 }
 
+public enum BotEventName: String, Codable, CaseIterable {
+    /// Новое сообщение
+    case messageNew = "message_new"
+    /// Сообщение отредактировано
+    case messageUpdate = "message_update"
+    /// Сообщение удалено
+    case messageDelete = "message_delete"
+    /// Добавлена реакция
+    case reactionNew = "reaction_new"
+    /// Реакция удалена
+    case reactionDelete = "reaction_delete"
+    /// Нажата кнопка
+    case buttonClick = "button_click"
+    /// В сообщении отправлена ссылка (для unfurl)
+    case messageLinkShared = "message_link_shared"
+    /// Участник добавлен в чат
+    case chatMemberAdd = "chat_member_add"
+    /// Участник удалён из чата
+    case chatMemberRemove = "chat_member_remove"
+    /// Сотрудник приглашён в компанию
+    case companyMemberInvite = "company_member_invite"
+    /// Сотрудник подтвердил приглашение
+    case companyMemberConfirm = "company_member_confirm"
+    /// Сотрудник деактивирован
+    case companyMemberSuspend = "company_member_suspend"
+    /// Сотрудник активирован
+    case companyMemberActivate = "company_member_activate"
+    /// Сотрудник удалён из компании
+    case companyMemberDelete = "company_member_delete"
+    /// Данные сотрудника изменены
+    case companyMemberUpdate = "company_member_update"
+    /// Создан счёт
+    case billCreated = "bill_created"
+}
+
+public enum BotTriggerOn: String, Codable, CaseIterable {
+    /// Только на команды (триггер-слова) из commands
+    case commands
+    /// На все сообщения в чатах, где есть бот
+    case allMessages = "all_messages"
+    /// На развёртывание ссылок (link previews)
+    case unfurl
+}
+
 public enum ChatAvailability: String, Codable, CaseIterable {
     /// Чаты, где пользователь является участником
     case isMember = "is_member"
@@ -135,6 +179,10 @@ public enum FileType: String, Codable, CaseIterable {
     case file
     /// Изображение
     case image
+    /// Аудиофайл
+    case audio
+    /// Голосовое сообщение
+    case voice
 }
 
 public enum InviteStatus: String, Codable, CaseIterable {
@@ -584,10 +632,10 @@ public struct AuditDetailsDlp: Codable {
     public let messageId: Int
     public let chatId: Int
     public let userId: Int
-    public let actionMessage: String
+    public let actionMessage: String?
     public let conditionsMatched: Bool
 
-    public init(dlpRuleId: Int, dlpRuleName: String, messageId: Int, chatId: Int, userId: Int, actionMessage: String, conditionsMatched: Bool) {
+    public init(dlpRuleId: Int, dlpRuleName: String, messageId: Int, chatId: Int, userId: Int, actionMessage: String? = nil, conditionsMatched: Bool) {
         self.dlpRuleId = dlpRuleId
         self.dlpRuleName = dlpRuleName
         self.messageId = messageId
@@ -789,37 +837,101 @@ public struct AvatarData: Codable {
     }
 }
 
-public struct BotResponseWebhook: Codable {
-    public let outgoingUrl: String
+public struct BotCreateRequestBotWebhook: Codable {
+    public let name: String
+    public let nickname: String?
+    public let outgoingUrl: String?
+    public let events: [BotEventName]?
+    public let triggerOn: BotTriggerOn?
+    public let commands: [String]?
 
-    public init(outgoingUrl: String) {
+    public init(name: String, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil) {
+        self.name = name
+        self.nickname = nickname
         self.outgoingUrl = outgoingUrl
+        self.events = events
+        self.triggerOn = triggerOn
+        self.commands = commands
     }
 
     enum CodingKeys: String, CodingKey {
+        case name
+        case nickname
         case outgoingUrl = "outgoing_url"
+        case events
+        case triggerOn = "trigger_on"
+        case commands
+    }
+}
+
+public struct BotCreateRequestBot: Codable {
+    public let webhook: BotCreateRequestBotWebhook
+
+    public init(webhook: BotCreateRequestBotWebhook) {
+        self.webhook = webhook
+    }
+}
+
+public struct BotCreateRequest: Codable {
+    public let bot: BotCreateRequestBot
+
+    public init(bot: BotCreateRequestBot) {
+        self.bot = bot
+    }
+}
+
+public struct BotCreateResponse: Codable {
+    public let id: Int
+    public let webhook: BotWebhook
+    public let accessToken: String
+
+    public init(id: Int, webhook: BotWebhook, accessToken: String) {
+        self.id = id
+        self.webhook = webhook
+        self.accessToken = accessToken
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case webhook
+        case accessToken = "access_token"
     }
 }
 
 public struct BotResponse: Codable {
     public let id: Int
-    public let webhook: BotResponseWebhook
+    public let webhook: BotWebhook
 
-    public init(id: Int, webhook: BotResponseWebhook) {
+    public init(id: Int, webhook: BotWebhook) {
         self.id = id
         self.webhook = webhook
     }
 }
 
 public struct BotUpdateRequestBotWebhook: Codable {
-    public let outgoingUrl: String
+    public let name: String?
+    public let nickname: String?
+    public let outgoingUrl: String?
+    public let events: [BotEventName]?
+    public let triggerOn: BotTriggerOn?
+    public let commands: [String]?
 
-    public init(outgoingUrl: String) {
+    public init(name: String? = nil, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil) {
+        self.name = name
+        self.nickname = nickname
         self.outgoingUrl = outgoingUrl
+        self.events = events
+        self.triggerOn = triggerOn
+        self.commands = commands
     }
 
     enum CodingKeys: String, CodingKey {
+        case name
+        case nickname
         case outgoingUrl = "outgoing_url"
+        case events
+        case triggerOn = "trigger_on"
+        case commands
     }
 }
 
@@ -836,6 +948,33 @@ public struct BotUpdateRequest: Codable {
 
     public init(bot: BotUpdateRequestBot) {
         self.bot = bot
+    }
+}
+
+public struct BotWebhook: Codable {
+    public let name: String
+    public let nickname: String
+    public let outgoingUrl: String?
+    public let events: [BotEventName]
+    public let triggerOn: BotTriggerOn
+    public let commands: [String]
+
+    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String]) {
+        self.name = name
+        self.nickname = nickname
+        self.outgoingUrl = outgoingUrl
+        self.events = events
+        self.triggerOn = triggerOn
+        self.commands = commands
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case nickname
+        case outgoingUrl = "outgoing_url"
+        case events
+        case triggerOn = "trigger_on"
+        case commands
     }
 }
 
@@ -1336,6 +1475,7 @@ public struct Message: Codable {
     public let createdAt: String
     public let url: String
     public let files: [File]
+    public let voiceContent: VoiceContent?
     public let buttons: [[Button]]?
     public let thread: MessageThread?
     public let forwarding: Forwarding?
@@ -1345,7 +1485,7 @@ public struct Message: Codable {
     public let changedAt: String?
     public let deletedAt: String?
 
-    public init(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File], buttons: [[Button]]? = nil, thread: MessageThread? = nil, forwarding: Forwarding? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, changedAt: String? = nil, deletedAt: String? = nil) {
+    public init(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File], voiceContent: VoiceContent? = nil, buttons: [[Button]]? = nil, thread: MessageThread? = nil, forwarding: Forwarding? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, changedAt: String? = nil, deletedAt: String? = nil) {
         self.id = id
         self.entityType = entityType
         self.entityId = entityId
@@ -1356,6 +1496,7 @@ public struct Message: Codable {
         self.createdAt = createdAt
         self.url = url
         self.files = files
+        self.voiceContent = voiceContent
         self.buttons = buttons
         self.thread = thread
         self.forwarding = forwarding
@@ -1377,6 +1518,7 @@ public struct Message: Codable {
         case createdAt = "created_at"
         case url
         case files
+        case voiceContent = "voice_content"
         case buttons
         case thread
         case forwarding
@@ -1395,14 +1537,18 @@ public struct MessageCreateRequestFile: Codable {
     public let size: Int
     public let width: Int?
     public let height: Int?
+    public let durationMs: Int?
+    public let waveform: String?
 
-    public init(key: String, name: String, fileType: FileType, size: Int, width: Int? = nil, height: Int? = nil) {
+    public init(key: String, name: String, fileType: FileType, size: Int, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
         self.key = key
         self.name = name
         self.fileType = fileType
         self.size = size
         self.width = width
         self.height = height
+        self.durationMs = durationMs
+        self.waveform = waveform
     }
 
     enum CodingKeys: String, CodingKey {
@@ -1412,6 +1558,8 @@ public struct MessageCreateRequestFile: Codable {
         case size
         case width
         case height
+        case durationMs = "duration_ms"
+        case waveform
     }
 }
 
@@ -1469,18 +1617,22 @@ public struct MessageCreateRequest: Codable {
 public struct MessageUpdateRequestFile: Codable {
     public let key: String
     public let name: String
-    public let fileType: String?
+    public let fileType: FileType?
     public let size: Int?
     public let width: Int?
     public let height: Int?
+    public let durationMs: Int?
+    public let waveform: String?
 
-    public init(key: String, name: String, fileType: String? = nil, size: Int? = nil, width: Int? = nil, height: Int? = nil) {
+    public init(key: String, name: String, fileType: FileType? = nil, size: Int? = nil, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
         self.key = key
         self.name = name
         self.fileType = fileType
         self.size = size
         self.width = width
         self.height = height
+        self.durationMs = durationMs
+        self.waveform = waveform
     }
 
     enum CodingKeys: String, CodingKey {
@@ -1490,6 +1642,8 @@ public struct MessageUpdateRequestFile: Codable {
         case size
         case width
         case height
+        case durationMs = "duration_ms"
+        case waveform
     }
 }
 
@@ -2449,17 +2603,29 @@ public struct ViewBlockSelect: Codable {
     public let type: String
     public let name: String
     public let label: String
-    public let options: [ViewBlockSelectableOption]?
+    public let options: [ViewBlockSelectOption]?
     public let required: Bool?
     public let hint: String?
 
-    public init(type: String, name: String, label: String, options: [ViewBlockSelectableOption]? = nil, required: Bool? = nil, hint: String? = nil) {
+    public init(type: String, name: String, label: String, options: [ViewBlockSelectOption]? = nil, required: Bool? = nil, hint: String? = nil) {
         self.type = type
         self.name = name
         self.label = label
         self.options = options
         self.required = required
         self.hint = hint
+    }
+}
+
+public struct ViewBlockSelectOption: Codable {
+    public let text: String
+    public let value: String
+    public let selected: Bool?
+
+    public init(text: String, value: String, selected: Bool? = nil) {
+        self.text = text
+        self.value = value
+        self.selected = selected
     }
 }
 
@@ -2534,6 +2700,24 @@ public struct ViewSubmitWebhookPayload: Codable {
         case userId = "user_id"
         case data
         case webhookTimestamp = "webhook_timestamp"
+    }
+}
+
+public struct VoiceContent: Codable {
+    public let durationMs: Int
+    public let waveform: String
+    public let transcript: String?
+
+    public init(durationMs: Int, waveform: String, transcript: String? = nil) {
+        self.durationMs = durationMs
+        self.waveform = waveform
+        self.transcript = transcript
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case durationMs = "duration_ms"
+        case waveform
+        case transcript
     }
 }
 
@@ -2908,6 +3092,10 @@ public struct GetWebhookEventsResponse: Codable {
 
 struct BotResponseDataWrapper: Codable {
     let data: BotResponse
+}
+
+struct BotCreateResponseDataWrapper: Codable {
+    let data: BotCreateResponse
 }
 
 struct ChatDataWrapper: Codable {

@@ -72,6 +72,52 @@ export enum AuditEventKey {
   SearchMessagesApi = "search_messages_api",
 }
 
+/** Событие исходящего вебхука бота */
+export enum BotEventName {
+  /** Новое сообщение */
+  MessageNew = "message_new",
+  /** Сообщение отредактировано */
+  MessageUpdate = "message_update",
+  /** Сообщение удалено */
+  MessageDelete = "message_delete",
+  /** Добавлена реакция */
+  ReactionNew = "reaction_new",
+  /** Реакция удалена */
+  ReactionDelete = "reaction_delete",
+  /** Нажата кнопка */
+  ButtonClick = "button_click",
+  /** В сообщении отправлена ссылка (для unfurl) */
+  MessageLinkShared = "message_link_shared",
+  /** Участник добавлен в чат */
+  ChatMemberAdd = "chat_member_add",
+  /** Участник удалён из чата */
+  ChatMemberRemove = "chat_member_remove",
+  /** Сотрудник приглашён в компанию */
+  CompanyMemberInvite = "company_member_invite",
+  /** Сотрудник подтвердил приглашение */
+  CompanyMemberConfirm = "company_member_confirm",
+  /** Сотрудник деактивирован */
+  CompanyMemberSuspend = "company_member_suspend",
+  /** Сотрудник активирован */
+  CompanyMemberActivate = "company_member_activate",
+  /** Сотрудник удалён из компании */
+  CompanyMemberDelete = "company_member_delete",
+  /** Данные сотрудника изменены */
+  CompanyMemberUpdate = "company_member_update",
+  /** Создан счёт */
+  BillCreated = "bill_created",
+}
+
+/** Условие срабатывания исходящего вебхука бота */
+export enum BotTriggerOn {
+  /** Только на команды (триггер-слова) из commands */
+  Commands = "commands",
+  /** На все сообщения в чатах, где есть бот */
+  AllMessages = "all_messages",
+  /** На развёртывание ссылок (link previews) */
+  Unfurl = "unfurl",
+}
+
 /** Доступность чатов для пользователя */
 export enum ChatAvailability {
   /** Чаты, где пользователь является участником */
@@ -138,6 +184,10 @@ export enum FileType {
   File = "file",
   /** Изображение */
   Image = "image",
+  /** Аудиофайл */
+  Audio = "audio",
+  /** Голосовое сообщение */
+  Voice = "voice",
 }
 
 /** Статус приглашения пользователя */
@@ -521,7 +571,7 @@ export interface AuditDetailsDlp {
   messageId: number;
   chatId: number;
   userId: number;
-  actionMessage: string;
+  actionMessage: string | null;
   conditionsMatched: boolean;
 }
 
@@ -590,21 +640,54 @@ export interface AvatarData {
   imageUrl: string;
 }
 
-export interface BotResponse {
-  id: number;
-  webhook: {
-    outgoingUrl: string;
+export interface BotCreateRequestBotWebhook {
+  name: string;
+  nickname?: string;
+  outgoingUrl?: string;
+  events?: BotEventName[];
+  triggerOn?: BotTriggerOn;
+  commands?: string[];
+}
+
+export interface BotCreateRequest {
+  bot: {
+    webhook: BotCreateRequestBotWebhook;
   };
 }
 
+export interface BotCreateResponse {
+  id: number;
+  webhook: BotWebhook;
+  accessToken: string;
+}
+
+export interface BotResponse {
+  id: number;
+  webhook: BotWebhook;
+}
+
 export interface BotUpdateRequestBotWebhook {
-  outgoingUrl: string;
+  name?: string;
+  nickname?: string;
+  outgoingUrl?: string;
+  events?: BotEventName[];
+  triggerOn?: BotTriggerOn;
+  commands?: string[];
 }
 
 export interface BotUpdateRequest {
   bot: {
     webhook: BotUpdateRequestBotWebhook;
   };
+}
+
+export interface BotWebhook {
+  name: string;
+  nickname: string;
+  outgoingUrl: string | null;
+  events: BotEventName[];
+  triggerOn: BotTriggerOn;
+  commands: string[];
 }
 
 export interface Button {
@@ -777,6 +860,7 @@ export interface Message {
   createdAt: string;
   url: string;
   files: File[];
+  voiceContent: VoiceContent | null;
   buttons: Button[][] | null;
   thread: {
     id: number;
@@ -797,6 +881,8 @@ export interface MessageCreateRequestFile {
   size: number;
   width?: number;
   height?: number;
+  durationMs?: number;
+  waveform?: string;
 }
 
 export interface MessageCreateRequest {
@@ -820,10 +906,12 @@ export interface MessageCreateRequest {
 export interface MessageUpdateRequestFile {
   key: string;
   name: string;
-  fileType?: string;
+  fileType?: FileType;
   size?: number;
   width?: number;
   height?: number;
+  durationMs?: number;
+  waveform?: string;
 }
 
 export interface MessageUpdateRequest {
@@ -1169,9 +1257,15 @@ export interface ViewBlockSelect {
   type: "select";
   name: string;
   label: string;
-  options?: ViewBlockSelectableOption[];
+  options?: ViewBlockSelectOption[];
   required?: boolean;
   hint?: string;
+}
+
+export interface ViewBlockSelectOption {
+  text: string;
+  value: string;
+  selected?: boolean;
 }
 
 export interface ViewBlockSelectableOption {
@@ -1199,6 +1293,12 @@ export interface ViewSubmitWebhookPayload {
   userId: number;
   data: Record<string, string>;
   webhookTimestamp: number;
+}
+
+export interface VoiceContent {
+  durationMs: number;
+  waveform: string;
+  transcript: string | null;
 }
 
 export interface WebhookEvent {

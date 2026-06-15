@@ -135,6 +135,8 @@ await client.close()
 | `client.tasks.update_task()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.delete_task()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.open_view()` | [Открытие представления](/api/views/open) |
+| `client.bots.create_bot()` | [Создание бота](/api/bots/create) |
+| `client.bots.get_bot()` | [Получение бота](/api/bots/get) |
 | `client.bots.get_webhook_events()` | [История событий](/api/bots/list-events) |
 | `client.bots.update_bot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.delete_webhook_event()` | [Удаление события](/api/bots/remove-event) |
@@ -353,7 +355,9 @@ request = MessageCreateRequest(
             file_type=FileType.IMAGE,
             size=12345,
             width=800,
-            height=600
+            height=600,
+            duration_ms=5400,
+            waveform="4,8,12,20,16,10,6,3"
         )],
         buttons=[[Button(
             text="Подробнее",
@@ -368,7 +372,7 @@ request = MessageCreateRequest(
     link_preview=False
 )
 response = await client.messages.create_message(request=request)
-# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)
+# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)
 
 # Список сотрудников
 params = ListUsersParams(

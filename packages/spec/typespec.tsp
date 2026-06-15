@@ -54,13 +54,21 @@ enum CustomPropertyDataType {
 @extension("x-enum-descriptions", #{
   file: "Обычный файл",
   image: "Изображение",
+  audio: "Аудиофайл",
+  voice: "Голосовое сообщение",
 })
 enum FileType {
   @doc("Обычный файл")
   file: "file",
-  
+
   @doc("Изображение")
   image: "image",
+
+  @doc("Аудиофайл")
+  audio: "audio",
+
+  @doc("Голосовое сообщение")
+  voice: "voice",
 }
 
 @doc("Роль пользователя в системе")
@@ -987,6 +995,21 @@ model Chat {
   meet_room_url: string;
 }
 
+@doc("Данные голосового сообщения")
+model VoiceContent {
+  @doc("Длительность голосового сообщения в миллисекундах")
+  @example(5400)
+  duration_ms: int32;
+
+  @doc("Форма волны (амплитуды) для визуализации голосового сообщения")
+  @example("4,8,12,20,16,10,6,3")
+  waveform: string;
+
+  @doc("Расшифровка голосового сообщения в текст. `null`, пока расшифровка не готова или недоступна.")
+  @example("Привет, посмотри пожалуйста последний отчёт")
+  transcript: string | null;
+}
+
 @doc("Сообщение")
 model Message {
   @doc("Идентификатор сообщения")
@@ -1027,7 +1050,10 @@ model Message {
   
   @doc("Прикрепленные файлы")
   files: File[];
-  
+
+  @doc("Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.")
+  voice_content: VoiceContent | null;
+
   @doc("Массив строк, каждая из которых представлена массивом кнопок")
   buttons: Button[][] | null;
   
@@ -1868,8 +1894,18 @@ model MessageCreateRequest {
       @doc("Высота изображения в px (используется в случае, если file_type указан как image)")
       @example(600)
       height?: int32;
+
+      @doc("Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.")
+      @example(5400)
+      @minValue(1)
+      duration_ms?: int32;
+
+      @doc("Форма волны для визуализации голосового сообщения. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.")
+      @example("4,8,12,20,16,10,6,3")
+      @maxLength(256)
+      waveform?: string;
     }[];
-    
+
     @doc("Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.")
     @example(#[#[#{ text: "Подробнее", url: "https://example.com/details" }, #{ text: "Отлично!", data: "awesome" }]])
     buttons?: Button[][];
@@ -1916,21 +1952,31 @@ model MessageUpdateRequest {
       @example("logo.png")
       name: string;
       
-      @doc("Тип файла: файл (file), изображение (image)")
-      @example("image")
-      file_type?: string;
-      
+      @doc("Тип файла")
+      @example(FileType.image)
+      file_type?: FileType;
+
       @doc("Размер файла в байтах, отображаемый пользователю")
       @example(12345)
       size?: int32;
-      
+
       @doc("Ширина изображения в px (используется в случае, если file_type указан как image)")
       @example(800)
       width?: int32;
-      
+
       @doc("Высота изображения в px (используется в случае, если file_type указан как image)")
       @example(600)
       height?: int32;
+
+      @doc("Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.")
+      @example(5400)
+      @minValue(1)
+      duration_ms?: int32;
+
+      @doc("Форма волны для визуализации голосового сообщения. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.")
+      @example("4,8,12,20,16,10,6,3")
+      @maxLength(256)
+      waveform?: string;
     }[];
     
     @doc("Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.")
@@ -2111,6 +2157,23 @@ model ViewBlockSelectableOption {
   selected?: boolean;
 }
 
+@doc("Пункт выпадающего списка (select). В отличие от radio/checkbox, у пункта select нет подзаголовка `description` — веб его не отображает.")
+model ViewBlockSelectOption {
+  @doc("Отображаемый текст")
+  @example("Ничего")
+  @maxLength(75)
+  text: string;
+
+  @doc("Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта")
+  @example("nothing")
+  @maxLength(150)
+  value: string;
+
+  @doc("Изначально выбранный пункт. Только один пункт может быть выбран.")
+  @example(true)
+  selected?: boolean;
+}
+
 model ViewBlockCheckboxOption {
   @doc("Отображаемый текст")
   @example("Ничего")
@@ -2263,7 +2326,7 @@ model ViewBlockSelect {
   
   @doc("Массив доступных пунктов в выпадающем списке")
   @maxItems(100)
-  options?: ViewBlockSelectableOption[];
+  options?: ViewBlockSelectOption[];
 
   @doc("Обязательность")
   @example(false)
@@ -2509,7 +2572,7 @@ model OpenViewRequest {
     @example("Уведомление об отпуске")
     title: string;
 
-    @doc("Текст кнопки закрытия представления")
+    @doc("Текст кнопки закрытия представления. Отображается только в десктоп-вебе. В мобильных приложениях (iOS/Android) кнопка закрытия — это крестик в шапке, и заданный текст там не показывается.")
     @maxLength(24)
     @example("Закрыть")
     close_text?: string = "Отменить";
@@ -2525,31 +2588,166 @@ model OpenViewRequest {
   };
 }
 
+@doc("Условие срабатывания исходящего вебхука бота")
+@extension("x-enum-descriptions", #{
+  commands: "Только на команды (триггер-слова) из commands",
+  all_messages: "На все сообщения в чатах, где есть бот",
+  unfurl: "На развёртывание ссылок (link previews)",
+})
+enum BotTriggerOn {
+  commands: "commands",
+  all_messages: "all_messages",
+  unfurl: "unfurl",
+}
+
+@doc("Событие исходящего вебхука бота")
+@extension("x-enum-descriptions", #{
+  message_new: "Новое сообщение",
+  message_update: "Сообщение отредактировано",
+  message_delete: "Сообщение удалено",
+  reaction_new: "Добавлена реакция",
+  reaction_delete: "Реакция удалена",
+  button_click: "Нажата кнопка",
+  message_link_shared: "В сообщении отправлена ссылка (для unfurl)",
+  chat_member_add: "Участник добавлен в чат",
+  chat_member_remove: "Участник удалён из чата",
+  company_member_invite: "Сотрудник приглашён в компанию",
+  company_member_confirm: "Сотрудник подтвердил приглашение",
+  company_member_suspend: "Сотрудник деактивирован",
+  company_member_activate: "Сотрудник активирован",
+  company_member_delete: "Сотрудник удалён из компании",
+  company_member_update: "Данные сотрудника изменены",
+  bill_created: "Создан счёт",
+})
+enum BotEventName {
+  message_new: "message_new",
+  message_update: "message_update",
+  message_delete: "message_delete",
+  reaction_new: "reaction_new",
+  reaction_delete: "reaction_delete",
+  button_click: "button_click",
+  message_link_shared: "message_link_shared",
+  chat_member_add: "chat_member_add",
+  chat_member_remove: "chat_member_remove",
+  company_member_invite: "company_member_invite",
+  company_member_confirm: "company_member_confirm",
+  company_member_suspend: "company_member_suspend",
+  company_member_activate: "company_member_activate",
+  company_member_delete: "company_member_delete",
+  company_member_update: "company_member_update",
+  bill_created: "bill_created",
+}
+
+@doc("Запрос на создание бота")
+model BotCreateRequest {
+  @doc("Собранный объект параметров создаваемого бота")
+  bot: {
+    @doc("Объект параметров вебхука бота")
+    webhook: {
+      @doc("Имя бота")
+      @example("Бот задач")
+      name: string;
+
+      @doc("Никнейм бота. Должен заканчиваться на `_bot`.")
+      @example("tasks_bot")
+      nickname?: string;
+
+      @doc("URL исходящего вебхука")
+      @example("https://www.website.com/tasks/new")
+      outgoing_url?: string;
+
+      @doc("События, на которые подписан бот")
+      @example(#[BotEventName.message_new])
+      events?: BotEventName[];
+
+      @doc("Условие срабатывания исходящего вебхука")
+      @example(BotTriggerOn.commands)
+      trigger_on?: BotTriggerOn;
+
+      @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands")
+      @example(#["/task", "/help"])
+      commands?: string[];
+    };
+  };
+}
+
 @doc("Запрос на обновление бота")
 model BotUpdateRequest {
   @doc("Собранный объект параметров редактируемого бота")
   bot: {
     @doc("Объект параметров вебхука")
     webhook: {
+      @doc("Имя бота")
+      @example("Бот задач")
+      name?: string;
+
+      @doc("Никнейм бота. Должен заканчиваться на `_bot`.")
+      @example("tasks_bot")
+      nickname?: string;
+
       @doc("URL исходящего вебхука")
       @example("https://www.website.com/tasks/new")
-      outgoing_url: string;
+      outgoing_url?: string;
+
+      @doc("События, на которые подписан бот")
+      @example(#[BotEventName.message_new])
+      events?: BotEventName[];
+
+      @doc("Условие срабатывания исходящего вебхука")
+      @example(BotTriggerOn.commands)
+      trigger_on?: BotTriggerOn;
+
+      @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands")
+      @example(#["/task", "/help"])
+      commands?: string[];
     };
   };
 }
 
+@doc("Параметры вебхука бота")
+model BotWebhook {
+  @doc("Имя бота")
+  @example("Бот задач")
+  name: string;
+
+  @doc("Никнейм бота")
+  @example("tasks_bot")
+  nickname: string;
+
+  @doc("URL исходящего вебхука")
+  @example("https://www.website.com/tasks/new")
+  outgoing_url: string | null;
+
+  @doc("События, на которые подписан бот")
+  @example(#[BotEventName.message_new])
+  events: BotEventName[];
+
+  @doc("Условие срабатывания исходящего вебхука")
+  @example(BotTriggerOn.commands)
+  trigger_on: BotTriggerOn;
+
+  @doc("Команды бота (триггер-слова)")
+  @example(#["/task"])
+  commands: string[];
+}
+
 @doc("Параметры бота")
 model BotResponse {
-  @doc("Идентификатор бота")
+  @doc("Идентификатор бота (совпадает с `user_id` бота)")
   @example(1738816)
   id: int32;
-  
+
   @doc("Объект параметров вебхука")
-  webhook: {
-    @doc("URL исходящего вебхука")
-    @example("https://www.website.com/tasks/new")
-    outgoing_url: string;
-  };
+  webhook: BotWebhook;
+}
+
+@doc("Параметры созданного бота")
+model BotCreateResponse {
+  ...BotResponse;
+
+  @doc("Токен доступа бота. Выдаётся только при создании. Повторно получить токен можно только через интерфейс (вкладка «API» настроек бота).")
+  @example("bm90X2FfcmVhbF90b2tlbg")
+  access_token: string;
 }
 
 @doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed")
@@ -2645,8 +2843,8 @@ model AuditDetailsDlp {
   chat_id: int32;
   @doc("Идентификатор пользователя")
   user_id: int32;
-  @doc("Описание действия")
-  action_message: string;
+  @doc("Описание действия. `null`, если у действия правила текст не задан.")
+  action_message: string | null;
   @doc("Результат проверки условий правила (true — условия сработали)")
   conditions_matched: boolean;
 }
@@ -2830,10 +3028,10 @@ model ReactionWebhookPayload {
   @example(2345)
   user_id: int32;
   
-  @doc("Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @doc("Дата и время добавления реакции (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Поле присутствует и для события удаления реакции.")
   @example(utcDateTime.fromISO("2025-05-15T14:30:00.000Z"))
   created_at: utcDateTime;
-  
+
   @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
   @example(1747574400)
   webhook_timestamp: int32;
@@ -2904,7 +3102,7 @@ model ViewSubmitWebhookPayload {
   @example("{'timeoff_id':4378}")
   private_metadata: string | null;
 
-  @doc("Идентификатор чата, в котором было нажатие кнопки, открывшей форму. Значение фиксируется в момент **открытия** формы, а не отправки — если форма провисела открытой длительное время, `chat_id` всё равно ссылается на чат с кнопкой. Поле всегда присутствует в payload. Для форм, открытых до выкатки этого изменения, `chat_id` придёт как `null` — такие формы постепенно вымоются по TTL сохранённого представления (30 дней).")
+  @doc("Идентификатор чата, в котором была нажата кнопка, открывшая форму. Поле может быть `null` для форм, открытых до выкатки этого поля.")
   @example(9012)
   chat_id: int32 | null;
 
@@ -2912,7 +3110,7 @@ model ViewSubmitWebhookPayload {
   @example(1235523)
   user_id: int32;
 
-  @doc("Данные заполненных полей представления. Ключ — `action_id` поля, значение — введённые данные")
+  @doc("Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные")
   data: Record<unknown>;
 
   @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
@@ -5592,11 +5790,125 @@ interface BotOperations {
     scope: "bots:write",
   })
   @doc("""
+Создание бота
+
+Метод для создания бота и получения его `access_token`.
+
+При создании вы получите `access_token` бота — сразу сохраните его. Повторно получить токен вы сможете только через интерфейс (вкладка «API» настроек бота).
+""")
+  @route("/bots")
+  @post
+  @opExample(#{
+    parameters: #{
+      request: #{
+        bot: #{
+          webhook: #{
+            name: "Бот задач",
+            nickname: "tasks_bot",
+            outgoing_url: "https://www.website.com/tasks/new",
+            events: #[BotEventName.message_new],
+            trigger_on: BotTriggerOn.commands,
+            commands: #["/task"],
+          },
+        },
+      },
+    },
+    returnType: #{
+      _: 201,
+      body: #{
+        data: #{
+          id: 1738816,
+          webhook: #{
+            name: "Бот задач",
+            nickname: "tasks_bot",
+            outgoing_url: "https://www.website.com/tasks/new",
+            events: #[BotEventName.message_new],
+            trigger_on: BotTriggerOn.commands,
+            commands: #["/task"],
+          },
+          access_token: "bm90X2FfcmVhbF90b2tlbg",
+        },
+      },
+    },
+  })
+  createBot(@body request: BotCreateRequest): {
+    @statusCode _: 201;
+    @body body: DataResponse<BotCreateResponse>;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:read",
+  })
+  @doc("""
+Получение бота
+
+Метод для получения параметров бота по его `user_id`.
+""")
+  @route("/bots/{id}")
+  @get
+  @opExample(#{
+    parameters: #{
+      id: 1738816,
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          id: 1738816,
+          webhook: #{
+            name: "Бот задач",
+            nickname: "tasks_bot",
+            outgoing_url: "https://www.website.com/tasks/new",
+            events: #[BotEventName.message_new],
+            trigger_on: BotTriggerOn.commands,
+            commands: #["/task"],
+          },
+        },
+      },
+    },
+  })
+  getBot(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<BotResponse>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:write",
+  })
+  @doc("""
 Редактирование бота
 
 Метод для редактирования бота.
 
-Для редактирования бота вам необходимо знать его `user_id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса. Узнать `user_id` бота можно в настройках бота во вкладке «API».
+Для редактирования бота вам необходимо знать его `user_id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса.
 
 Вы не можете редактировать бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).
 """)

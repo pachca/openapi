@@ -132,6 +132,11 @@ public sealed class SecurityServiceImpl : SecurityService
 public class BotsService
 {
 
+    public virtual async System.Threading.Tasks.Task<BotResponse> GetBotAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.getBot is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<GetWebhookEventsResponse> GetWebhookEventsAsync(
         int? limit = null,
         string? cursor = null,
@@ -215,6 +220,11 @@ public class BotsService
         }
     }
 
+    public virtual async System.Threading.Tasks.Task<BotCreateResponse> CreateBotAsync(BotCreateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.createBot is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<BotResponse> UpdateBotAsync(
         int id,
         BotUpdateRequest request,
@@ -238,6 +248,23 @@ public sealed class BotsServiceImpl : BotsService
     {
         _baseUrl = baseUrl;
         _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task<BotResponse> GetBotAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/bots/{id}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<BotResponseDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
     }
 
     public override async System.Threading.Tasks.Task<GetWebhookEventsResponse> GetWebhookEventsAsync(
@@ -281,6 +308,24 @@ public sealed class BotsServiceImpl : BotsService
             hasNext = response.Meta.Paginate.HasNext ?? true;
         }
         return items;
+    }
+
+    public override async System.Threading.Tasks.Task<BotCreateResponse> CreateBotAsync(BotCreateRequest request, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/bots";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 201:
+                return PachcaUtils.Deserialize<BotCreateResponseDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
     }
 
     public override async System.Threading.Tasks.Task<BotResponse> UpdateBotAsync(

@@ -12,6 +12,10 @@
       "AuditEventKey"
     ]
   },
+  "BotOperations_getBot": {
+    "usage": "val response = client.bots.getBot(id = 1738816)",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>))"
+  },
   "BotOperations_getWebhookEvents": {
     "usage": "val response = client.bots.getWebhookEvents(limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "GetWebhookEventsResponse(data: List<WebhookEvent>, meta: PaginationMeta)"
@@ -29,10 +33,23 @@
       "pollWebhookPayloads"
     ]
   },
-  "BotOperations_updateBot": {
-    "usage": "val request = BotUpdateRequest(bot = BotUpdateRequestBot(webhook = BotUpdateRequestBotWebhook(outgoingUrl = \"https://www.website.com/tasks/new\")))\nval response = client.bots.updateBot(id = 1738816, request = request)",
-    "output": "BotResponse(id: Int, webhook: BotResponseWebhook(outgoingUrl: String))",
+  "BotOperations_createBot": {
+    "usage": "val request = BotCreateRequest(\n    bot = BotCreateRequestBot(\n        webhook = BotCreateRequestBotWebhook(\n            name = \"Бот задач\",\n            nickname = \"tasks_bot\",\n            outgoingUrl = \"https://www.website.com/tasks/new\",\n            events = listOf(BotEventName.MESSAGE_NEW),\n            triggerOn = BotTriggerOn.COMMANDS,\n            commands = listOf(\"example\")\n        )\n    )\n)\nval response = client.bots.createBot(request = request)",
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>), accessToken: String)",
     "imports": [
+      "BotCreateRequest",
+      "BotCreateRequestBot",
+      "BotCreateRequestBotWebhook",
+      "BotEventName",
+      "BotTriggerOn"
+    ]
+  },
+  "BotOperations_updateBot": {
+    "usage": "val request = BotUpdateRequest(\n    bot = BotUpdateRequestBot(\n        webhook = BotUpdateRequestBotWebhook(\n            name = \"Бот задач\",\n            nickname = \"tasks_bot\",\n            outgoingUrl = \"https://www.website.com/tasks/new\",\n            events = listOf(BotEventName.MESSAGE_NEW),\n            triggerOn = BotTriggerOn.COMMANDS,\n            commands = listOf(\"example\")\n        )\n    )\n)\nval response = client.bots.updateBot(id = 1738816, request = request)",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>))",
+    "imports": [
+      "BotEventName",
+      "BotTriggerOn",
       "BotUpdateRequest",
       "BotUpdateRequestBot",
       "BotUpdateRequestBotWebhook"
@@ -175,11 +192,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "val response = client.messages.getMessage(id = 194275)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)"
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)"
   },
   "MessageOperations_createMessage": {
-    "usage": "val request = MessageCreateRequest(\n    message = MessageCreateRequestMessage(\n        entityType = MessageEntityType.DISCUSSION,\n        entityId = 334,\n        content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files = listOf(MessageCreateRequestFile(\n            key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name = \"logo.png\",\n            fileType = FileType.IMAGE,\n            size = 12345,\n            width = 800,\n            height = 600\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"Подробнее\",\n            url = \"https://example.com/details\",\n            data = \"awesome\"\n        ))),\n        parentMessageId = 194270,\n        displayAvatarUrl = \"https://example.com/avatar.png\",\n        displayName = \"Бот Поддержки\",\n        skipInviteMentions = false\n    ),\n    linkPreview = false\n)\nval response = client.messages.createMessage(request = request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)",
+    "usage": "val request = MessageCreateRequest(\n    message = MessageCreateRequestMessage(\n        entityType = MessageEntityType.DISCUSSION,\n        entityId = 334,\n        content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files = listOf(MessageCreateRequestFile(\n            key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name = \"logo.png\",\n            fileType = FileType.IMAGE,\n            size = 12345,\n            width = 800,\n            height = 600,\n            durationMs = 5400,\n            waveform = \"4,8,12,20,16,10,6,3\"\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"Подробнее\",\n            url = \"https://example.com/details\",\n            data = \"awesome\"\n        ))),\n        parentMessageId = 194270,\n        displayAvatarUrl = \"https://example.com/avatar.png\",\n        displayName = \"Бот Поддержки\",\n        skipInviteMentions = false\n    ),\n    linkPreview = false\n)\nval response = client.messages.createMessage(request = request)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)",
     "imports": [
       "Button",
       "FileType",
@@ -193,10 +210,11 @@
     "usage": "client.messages.pinMessage(id = 194275)"
   },
   "MessageOperations_updateMessage": {
-    "usage": "val request = MessageUpdateRequest(\n    message = MessageUpdateRequestMessage(\n        content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files = listOf(MessageUpdateRequestFile(\n            key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name = \"logo.png\",\n            fileType = \"image\",\n            size = 12345,\n            width = 800,\n            height = 600\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"Подробнее\",\n            url = \"https://example.com/details\",\n            data = \"awesome\"\n        ))),\n        displayAvatarUrl = \"https://example.com/avatar.png\",\n        displayName = \"Бот Поддержки\"\n    )\n)\nval response = client.messages.updateMessage(id = 194275, request = request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)",
+    "usage": "val request = MessageUpdateRequest(\n    message = MessageUpdateRequestMessage(\n        content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files = listOf(MessageUpdateRequestFile(\n            key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name = \"logo.png\",\n            fileType = FileType.IMAGE,\n            size = 12345,\n            width = 800,\n            height = 600,\n            durationMs = 5400,\n            waveform = \"4,8,12,20,16,10,6,3\"\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"Подробнее\",\n            url = \"https://example.com/details\",\n            data = \"awesome\"\n        ))),\n        displayAvatarUrl = \"https://example.com/avatar.png\",\n        displayName = \"Бот Поддержки\"\n    )\n)\nval response = client.messages.updateMessage(id = 194275, request = request)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)",
     "imports": [
       "Button",
+      "FileType",
       "MessageUpdateRequest",
       "MessageUpdateRequestFile",
       "MessageUpdateRequestMessage"

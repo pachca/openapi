@@ -14,12 +14,14 @@ from .models import (
     OAuthError,
     ApiError,
     AuditEventKey,
+    BotResponse,
     GetWebhookEventsParams,
     GetWebhookEventsResponse,
     WebhookEvent,
     WebhookPayloadUnion,
+    BotCreateRequest,
+    BotCreateResponse,
     BotUpdateRequest,
-    BotResponse,
     ListChatsParams,
     ListChatsResponse,
     Chat,
@@ -165,6 +167,12 @@ class SecurityServiceImpl(SecurityService):
 
 
 class BotsService:
+    async def get_bot(
+        self,
+        id: int,
+    ) -> BotResponse:
+        raise NotImplementedError("Bots.getBot is not implemented")
+
     async def get_webhook_events(
         self,
         params: GetWebhookEventsParams | None = None,
@@ -238,6 +246,12 @@ class BotsService:
             if payload_type is None or isinstance(event.payload, payload_type):
                 yield event.payload
 
+    async def create_bot(
+        self,
+        request: BotCreateRequest,
+    ) -> BotCreateResponse:
+        raise NotImplementedError("Bots.createBot is not implemented")
+
     async def update_bot(
         self,
         id: int,
@@ -255,6 +269,22 @@ class BotsService:
 class BotsServiceImpl(BotsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
+
+    async def get_bot(
+        self,
+        id: int,
+    ) -> BotResponse:
+        response = await self._client.get(
+            f"/bots/{id}",
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(BotResponse, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
 
     async def get_webhook_events(
         self,
@@ -297,6 +327,23 @@ class BotsServiceImpl(BotsService):
             reported_has_next = getattr(response.meta.paginate, "has_next", None)
             has_next = True if reported_has_next is None else reported_has_next
         return items
+
+    async def create_bot(
+        self,
+        request: BotCreateRequest,
+    ) -> BotCreateResponse:
+        response = await self._client.post(
+            "/bots",
+            json=serialize(request),
+        )
+        body = response.json()
+        match response.status_code:
+            case 201:
+                return deserialize(BotCreateResponse, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
 
     async def update_bot(
         self,

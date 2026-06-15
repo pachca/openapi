@@ -168,7 +168,157 @@ paths:
       x-requirements:
         scope: audit_events:read
         plan: corporation
+  /bots:
+    post:
+      operationId: BotOperations_createBot
+      description: |-
+        Создание бота
+
+        Метод для создания бота и получения его `access_token`.
+
+        При создании вы получите `access_token` бота — сразу сохраните его. Повторно получить токен вы сможете только через интерфейс (вкладка «API» настроек бота).
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotCreateResponse'
+                description: Обертка ответа с данными
+              example:
+                data:
+                  id: 1738816
+                  webhook:
+                    name: Бот задач
+                    nickname: tasks_bot
+                    outgoing_url: https://www.website.com/tasks/new
+                    events:
+                      - message_new
+                    trigger_on: commands
+                    commands:
+                      - /task
+                  access_token: bm90X2FfcmVhbF90b2tlbg
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Bots
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotCreateRequest'
+            example:
+              bot:
+                webhook:
+                  name: Бот задач
+                  nickname: tasks_bot
+                  outgoing_url: https://www.website.com/tasks/new
+                  events:
+                    - message_new
+                  trigger_on: commands
+                  commands:
+                    - /task
+      x-requirements:
+        scope: bots:write
   /bots/{id}:
+    get:
+      operationId: BotOperations_getBot
+      description: |-
+        Получение бота
+
+        Метод для получения параметров бота по его `user_id`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор бота
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotResponse'
+                description: Обертка ответа с данными
+              example:
+                data:
+                  id: 1738816
+                  webhook:
+                    name: Бот задач
+                    nickname: tasks_bot
+                    outgoing_url: https://www.website.com/tasks/new
+                    events:
+                      - message_new
+                    trigger_on: commands
+                    commands:
+                      - /task
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bots:read
     put:
       operationId: BotOperations_updateBot
       description: |-
@@ -176,7 +326,7 @@ paths:
 
         Метод для редактирования бота.
 
-        Для редактирования бота вам необходимо знать его `user_id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса. Узнать `user_id` бота можно в настройках бота во вкладке «API».
+        Для редактирования бота вам необходимо знать его `user_id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса.
 
         Вы не можете редактировать бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).
       parameters:
@@ -4990,7 +5140,8 @@ components:
           description: Идентификатор пользователя
         action_message:
           type: string
-          description: Описание действия
+          nullable: true
+          description: Описание действия. `null`, если у действия правила текст не задан.
         conditions_matched:
           type: boolean
           description: Результат проверки условий правила (true — условия сработали)
@@ -5286,6 +5437,114 @@ components:
           description: URL аватара
           example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
       description: Данные аватара
+    BotCreateRequest:
+      type: object
+      required:
+        - bot
+      properties:
+        bot:
+          type: object
+          properties:
+            webhook:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Имя бота
+                  example: Бот задач
+                nickname:
+                  type: string
+                  description: Никнейм бота. Должен заканчиваться на `_bot`.
+                  example: tasks_bot
+                outgoing_url:
+                  type: string
+                  description: URL исходящего вебхука
+                  example: https://www.website.com/tasks/new
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/BotEventName'
+                  description: События, на которые подписан бот
+                  example:
+                    - message_new
+                trigger_on:
+                  allOf:
+                    - $ref: '#/components/schemas/BotTriggerOn'
+                  description: Условие срабатывания исходящего вебхука
+                  example: commands
+                commands:
+                  type: array
+                  items:
+                    type: string
+                  description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands
+                  example:
+                    - /task
+                    - /help
+              required:
+                - name
+              description: Объект параметров вебхука бота
+          required:
+            - webhook
+          description: Собранный объект параметров создаваемого бота
+      description: Запрос на создание бота
+    BotCreateResponse:
+      type: object
+      required:
+        - id
+        - webhook
+        - access_token
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор бота (совпадает с `user_id` бота)
+          example: 1738816
+        webhook:
+          allOf:
+            - $ref: '#/components/schemas/BotWebhook'
+          description: Объект параметров вебхука
+        access_token:
+          type: string
+          description: Токен доступа бота. Выдаётся только при создании. Повторно получить токен можно только через интерфейс (вкладка «API» настроек бота).
+          example: bm90X2FfcmVhbF90b2tlbg
+      description: Параметры созданного бота
+    BotEventName:
+      type: string
+      enum:
+        - message_new
+        - message_update
+        - message_delete
+        - reaction_new
+        - reaction_delete
+        - button_click
+        - message_link_shared
+        - chat_member_add
+        - chat_member_remove
+        - company_member_invite
+        - company_member_confirm
+        - company_member_suspend
+        - company_member_activate
+        - company_member_delete
+        - company_member_update
+        - bill_created
+      description: Событие исходящего вебхука бота
+      x-enum-descriptions:
+        message_new: Новое сообщение
+        message_update: Сообщение отредактировано
+        message_delete: Сообщение удалено
+        reaction_new: Добавлена реакция
+        reaction_delete: Реакция удалена
+        button_click: Нажата кнопка
+        message_link_shared: В сообщении отправлена ссылка (для unfurl)
+        chat_member_add: Участник добавлен в чат
+        chat_member_remove: Участник удалён из чата
+        company_member_invite: Сотрудник приглашён в компанию
+        company_member_confirm: Сотрудник подтвердил приглашение
+        company_member_suspend: Сотрудник деактивирован
+        company_member_activate: Сотрудник активирован
+        company_member_delete: Сотрудник удалён из компании
+        company_member_update: Данные сотрудника изменены
+        bill_created: Создан счёт
     BotResponse:
       type: object
       required:
@@ -5295,19 +5554,24 @@ components:
         id:
           type: integer
           format: int32
-          description: Идентификатор бота
+          description: Идентификатор бота (совпадает с `user_id` бота)
           example: 1738816
         webhook:
-          type: object
-          properties:
-            outgoing_url:
-              type: string
-              description: URL исходящего вебхука
-              example: https://www.website.com/tasks/new
-          required:
-            - outgoing_url
+          allOf:
+            - $ref: '#/components/schemas/BotWebhook'
           description: Объект параметров вебхука
       description: Параметры бота
+    BotTriggerOn:
+      type: string
+      enum:
+        - commands
+        - all_messages
+        - unfurl
+      description: Условие срабатывания исходящего вебхука бота
+      x-enum-descriptions:
+        commands: Только на команды (триггер-слова) из commands
+        all_messages: На все сообщения в чатах, где есть бот
+        unfurl: На развёртывание ссылок (link previews)
     BotUpdateRequest:
       type: object
       required:
@@ -5319,17 +5583,86 @@ components:
             webhook:
               type: object
               properties:
+                name:
+                  type: string
+                  description: Имя бота
+                  example: Бот задач
+                nickname:
+                  type: string
+                  description: Никнейм бота. Должен заканчиваться на `_bot`.
+                  example: tasks_bot
                 outgoing_url:
                   type: string
                   description: URL исходящего вебхука
                   example: https://www.website.com/tasks/new
-              required:
-                - outgoing_url
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/BotEventName'
+                  description: События, на которые подписан бот
+                  example:
+                    - message_new
+                trigger_on:
+                  allOf:
+                    - $ref: '#/components/schemas/BotTriggerOn'
+                  description: Условие срабатывания исходящего вебхука
+                  example: commands
+                commands:
+                  type: array
+                  items:
+                    type: string
+                  description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands
+                  example:
+                    - /task
+                    - /help
               description: Объект параметров вебхука
           required:
             - webhook
           description: Собранный объект параметров редактируемого бота
       description: Запрос на обновление бота
+    BotWebhook:
+      type: object
+      required:
+        - name
+        - nickname
+        - outgoing_url
+        - events
+        - trigger_on
+        - commands
+      properties:
+        name:
+          type: string
+          description: Имя бота
+          example: Бот задач
+        nickname:
+          type: string
+          description: Никнейм бота
+          example: tasks_bot
+        outgoing_url:
+          type: string
+          nullable: true
+          description: URL исходящего вебхука
+          example: https://www.website.com/tasks/new
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotEventName'
+          description: События, на которые подписан бот
+          example:
+            - message_new
+        trigger_on:
+          allOf:
+            - $ref: '#/components/schemas/BotTriggerOn'
+          description: Условие срабатывания исходящего вебхука
+          example: commands
+        commands:
+          type: array
+          items:
+            type: string
+          description: Команды бота (триггер-слова)
+          example:
+            - /task
+      description: Параметры вебхука бота
     Button:
       type: object
       required:
@@ -5837,10 +6170,14 @@ components:
       enum:
         - file
         - image
+        - audio
+        - voice
       description: Тип файла
       x-enum-descriptions:
         file: Обычный файл
         image: Изображение
+        audio: Аудиофайл
+        voice: Голосовое сообщение
     FileUploadRequest:
       type: object
       properties:
@@ -6110,6 +6447,7 @@ components:
         - created_at
         - url
         - files
+        - voice_content
         - buttons
         - thread
         - forwarding
@@ -6167,6 +6505,12 @@ components:
           items:
             $ref: '#/components/schemas/File'
           description: Прикрепленные файлы
+        voice_content:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/VoiceContent'
+          nullable: true
+          description: Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.
         buttons:
           type: array
           items:
@@ -6284,6 +6628,17 @@ components:
                     format: int32
                     description: Высота изображения в px (используется в случае, если file_type указан как image)
                     example: 600
+                  duration_ms:
+                    type: integer
+                    format: int32
+                    minimum: 1
+                    description: Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.
+                    example: 5400
+                  waveform:
+                    type: string
+                    maxLength: 256
+                    description: Форма волны для визуализации голосового сообщения. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.
+                    example: 4,8,12,20,16,10,6,3
                 required:
                   - key
                   - name
@@ -6376,8 +6731,9 @@ components:
                     description: Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением)
                     example: logo.png
                   file_type:
-                    type: string
-                    description: 'Тип файла: файл (file), изображение (image)'
+                    allOf:
+                      - $ref: '#/components/schemas/FileType'
+                    description: Тип файла
                     example: image
                   size:
                     type: integer
@@ -6394,6 +6750,17 @@ components:
                     format: int32
                     description: Высота изображения в px (используется в случае, если file_type указан как image)
                     example: 600
+                  duration_ms:
+                    type: integer
+                    format: int32
+                    minimum: 1
+                    description: Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.
+                    example: 5400
+                  waveform:
+                    type: string
+                    maxLength: 256
+                    description: Форма волны для визуализации голосового сообщения. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.
+                    example: 4,8,12,20,16,10,6,3
                 required:
                   - key
                   - name
@@ -6889,7 +7256,7 @@ components:
             close_text:
               type: string
               maxLength: 24
-              description: Текст кнопки закрытия представления
+              description: Текст кнопки закрытия представления. Отображается только в десктоп-вебе. В мобильных приложениях (iOS/Android) кнопка закрытия — это крестик в шапке, и заданный текст там не показывается.
               example: Закрыть
               default: Отменить
             submit_text:
@@ -7041,7 +7408,7 @@ components:
         created_at:
           type: string
           format: date-time
-          description: Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+          description: Дата и время добавления реакции (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Поле присутствует и для события удаления реакции.
           example: '2025-05-15T14:30:00.000Z'
         webhook_timestamp:
           type: integer
@@ -8323,7 +8690,7 @@ components:
         options:
           type: array
           items:
-            $ref: '#/components/schemas/ViewBlockSelectableOption'
+            $ref: '#/components/schemas/ViewBlockSelectOption'
           maxItems: 100
           description: Массив доступных пунктов в выпадающем списке
         required:
@@ -8336,6 +8703,27 @@ components:
           description: Подсказка, которая отображается под выпадающим списком серым цветом
           example: Выберите одну из команд
       description: Блок select — выпадающий список
+    ViewBlockSelectOption:
+      type: object
+      required:
+        - text
+        - value
+      properties:
+        text:
+          type: string
+          maxLength: 75
+          description: Отображаемый текст
+          example: Ничего
+        value:
+          type: string
+          maxLength: 150
+          description: Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+          example: nothing
+        selected:
+          type: boolean
+          description: Изначально выбранный пункт. Только один пункт может быть выбран.
+          example: true
+      description: Пункт выпадающего списка (select). В отличие от radio/checkbox, у пункта select нет подзаголовка `description` — веб его не отображает.
     ViewBlockSelectableOption:
       type: object
       required:
@@ -8458,7 +8846,7 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: Идентификатор чата, в котором было нажатие кнопки, открывшей форму. Значение фиксируется в момент **открытия** формы, а не отправки — если форма провисела открытой длительное время, `chat_id` всё равно ссылается на чат с кнопкой. Поле всегда присутствует в payload. Для форм, открытых до выкатки этого изменения, `chat_id` придёт как `null` — такие формы постепенно вымоются по TTL сохранённого представления (30 дней).
+          description: Идентификатор чата, в котором была нажата кнопка, открывшая форму. Поле может быть `null` для форм, открытых до выкатки этого поля.
           example: 9012
         user_id:
           type: integer
@@ -8468,13 +8856,35 @@ components:
         data:
           type: object
           additionalProperties: {}
-          description: Данные заполненных полей представления. Ключ — `action_id` поля, значение — введённые данные
+          description: Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные
         webhook_timestamp:
           type: integer
           format: int32
           description: Дата и время отправки вебхука (UTC+0) в формате UNIX
           example: 1755075544
       description: Структура исходящего вебхука о заполнении формы
+    VoiceContent:
+      type: object
+      required:
+        - duration_ms
+        - waveform
+        - transcript
+      properties:
+        duration_ms:
+          type: integer
+          format: int32
+          description: Длительность голосового сообщения в миллисекундах
+          example: 5400
+        waveform:
+          type: string
+          description: Форма волны (амплитуды) для визуализации голосового сообщения
+          example: 4,8,12,20,16,10,6,3
+        transcript:
+          type: string
+          nullable: true
+          description: Расшифровка голосового сообщения в текст. `null`, пока расшифровка не готова или недоступна.
+          example: Привет, посмотри пожалуйста последний отчёт
+      description: Данные голосового сообщения
     WebhookEvent:
       type: object
       required:

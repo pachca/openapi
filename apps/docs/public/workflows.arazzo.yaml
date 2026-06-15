@@ -315,6 +315,33 @@ workflows:
       - stepId: find-and-archive-inactive-chats-2
         description: 'For each chat: archive (Check `"channel": false` — archiving channels may be undesirable)'
         operationId: ChatOperations_archiveChat
+  - workflowId: create-a-bot-via-api-and-get-its-token
+    summary: Create a bot via API and get its token
+    description: >-
+      Bots can only be created with a user token, not a bot token. The `access_token` is returned
+      once at creation; afterwards it can be viewed and copied in the interface. Manual
+      prerequisites: Save `access_token` from the response — it is returned only once. You can
+      obtain the token again only through the interface (the "API" tab of the bot settings); The
+      response also includes the bot `id` (its `user_id`) — needed for further calls, e.g. adding
+      the bot to a chat.
+    steps:
+      - stepId: create-a-bot-via-api-and-get-its-token-1
+        description: >-
+          Create the bot. User token only (not a bot token); `nickname` must end with `_bot`.
+          Webhook params (Webhook URL, events, commands) can be set now or later
+        operationId: BotOperations_createBot
+  - workflowId: set-up-bot-with-outgoing-webhook
+    summary: Set up bot with outgoing webhook
+    description: >-
+      Alternatively, create and configure the bot in the UI. Webhook URL and events can also be set
+      later via PUT /bots/{id}. Manual prerequisites: Save `access_token` from the response
+      (returned only once); Use the saved `access_token` to send messages on behalf of the bot.
+    steps:
+      - stepId: set-up-bot-with-outgoing-webhook-1
+        description: >-
+          Create the bot, setting its Webhook URL and events in one call (creation and token details
+          — see the "Create a bot via API and get its token" scenario)
+        operationId: BotOperations_createBot
   - workflowId: update-bot-webhook-url
     summary: Update bot webhook URL
     description: Only users with bot edit permissions can update settings.

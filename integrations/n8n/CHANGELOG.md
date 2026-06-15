@@ -1,6 +1,13 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## 2.0.10 (2026-06-15)
+
+### Improvements
+
+- Bot: create and get bots via API (`POST /bots`, `GET /bots/{id}`)
+- Message: voice message support — `voice_content` field and `duration_ms` / `waveform` file parameters
+
 ## 2.0.9 (2026-05-20)
 
 ### Improvements

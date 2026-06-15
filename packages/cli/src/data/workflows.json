@@ -376,6 +376,26 @@
     ]
   },
   {
+    "title": "Создать бота через API и получить токен",
+    "skill": "pachca-bots",
+    "steps": [
+      {
+        "description": "Создай бота. Только пользовательским токеном (не токеном бота); `nickname` обязан заканчиваться на `_bot`. Параметры вебхука (Webhook URL, события, команды) можно задать сразу или позже",
+        "command": "pachca bots create --bot='{\"webhook\":{\"name\":\"Бот задач\",\"nickname\":\"tasks_bot\"}}'"
+      }
+    ]
+  },
+  {
+    "title": "Настроить бота с исходящим вебхуком",
+    "skill": "pachca-bots",
+    "steps": [
+      {
+        "description": "Создай бота, сразу указав Webhook URL и события в одном вызове (детали создания и работы с токеном — в сценарии «Создать бота через API и получить токен»)",
+        "command": "pachca bots create --bot='{\"webhook\":{\"name\":\"Бот задач\",\"nickname\":\"tasks_bot\",\"outgoing_url\":\"https://example.com/webhook\",\"events\":[\"message_new\"],\"trigger_on\":\"commands\",\"commands\":[\"/task\"]}}'"
+      }
+    ]
+  },
+  {
     "title": "Обновить Webhook URL бота",
     "skill": "pachca-bots",
     "steps": [

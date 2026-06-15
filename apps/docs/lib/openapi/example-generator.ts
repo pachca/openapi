@@ -82,8 +82,21 @@ export function generateExample(
           }
 
           const propExample = generateExample(ps, depth + 1, options);
+          const isRequired = requiredFields.includes(propName);
+
+          // Шум: опциональное поле, у которого сгенерированный пример равен дефолту,
+          // — это эквивалент «не передавать поле». Не засоряем им примеры.
+          if (
+            !isRequired &&
+            ps.default !== undefined &&
+            propExample !== undefined &&
+            propExample === ps.default
+          ) {
+            continue;
+          }
+
           // Включаем свойство если оно обязательное или имеет пример
-          if (propExample !== undefined || requiredFields.includes(propName)) {
+          if (propExample !== undefined || isRequired) {
             example[propName] = propExample !== undefined ? propExample : null;
           }
         }

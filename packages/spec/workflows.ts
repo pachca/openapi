@@ -772,36 +772,78 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
   ],
   'pachca-bots': [
     {
+      title: 'Создать бота через API и получить токен',
+      titleEn: 'Create a bot via API and get its token',
+      related: ['Настроить бота с исходящим вебхуком', 'Обновить Webhook URL бота'],
+      relatedEn: ['Set up bot with outgoing webhook', 'Update bot webhook URL'],
+      steps: [
+        {
+          description:
+            'Создай бота. Только пользовательским токеном (не токеном бота); `nickname` обязан заканчиваться на `_bot`. Параметры вебхука (Webhook URL, события, команды) можно задать сразу или позже',
+          descriptionEn:
+            'Create the bot. User token only (not a bot token); `nickname` must end with `_bot`. Webhook params (Webhook URL, events, commands) can be set now or later',
+          command:
+            'pachca bots create --bot=\'{"webhook":{"name":"Бот задач","nickname":"tasks_bot"}}\'',
+          apiMethod: 'POST',
+          apiPath: '/bots',
+        },
+        {
+          description:
+            'Сохрани `access_token` из ответа — он возвращается единственный раз. Повторно получить токен можно только через интерфейс (вкладка «API» настроек бота)',
+          descriptionEn:
+            'Save `access_token` from the response — it is returned only once. You can obtain the token again only through the interface (the "API" tab of the bot settings)',
+        },
+        {
+          description:
+            'В ответе также придёт `id` бота (его `user_id`) — он нужен для дальнейших вызовов, например чтобы добавить бота в чат',
+          descriptionEn:
+            'The response also includes the bot `id` (its `user_id`) — needed for further calls, e.g. adding the bot to a chat',
+        },
+      ],
+      notes:
+        'Создавать ботов можно только пользовательским токеном — токеном бота нельзя. `access_token` отдаётся один раз при создании, дальше его можно посмотреть и скопировать в интерфейсе.',
+      notesEn:
+        'Bots can only be created with a user token, not a bot token. The `access_token` is returned once at creation; afterwards it can be viewed and copied in the interface.',
+    },
+    {
       title: 'Настроить бота с исходящим вебхуком',
       titleEn: 'Set up bot with outgoing webhook',
       related: [
+        'Создать бота через API и получить токен',
         'Обработать входящий вебхук-событие',
         'Обновить Webhook URL бота',
         'Ответить пользователю, который написал боту',
       ],
       relatedEn: [
+        'Create a bot via API and get its token',
         'Handle incoming webhook event',
         'Update bot webhook URL',
         'Reply to user who messaged the bot',
       ],
       steps: [
         {
-          description: 'Создай бота в интерфейсе Пачки: Автоматизации → Интеграции → Webhook',
-          descriptionEn: 'Create bot in Pachca UI: Automations → Integrations → Webhook',
+          description:
+            'Создай бота, сразу указав Webhook URL и события в одном вызове (детали создания и работы с токеном — в сценарии «Создать бота через API и получить токен»)',
+          descriptionEn:
+            'Create the bot, setting its Webhook URL and events in one call (creation and token details — see the "Create a bot via API and get its token" scenario)',
+          command:
+            'pachca bots create --bot=\'{"webhook":{"name":"Бот задач","nickname":"tasks_bot","outgoing_url":"https://example.com/webhook","events":["message_new"],"trigger_on":"commands","commands":["/task"]}}\'',
+          apiMethod: 'POST',
+          apiPath: '/bots',
         },
         {
-          description: 'Получи `access_token` бота во вкладке «API» настроек бота',
-          descriptionEn: 'Get bot `access_token` from "API" tab in bot settings',
+          description: 'Сохрани `access_token` из ответа (возвращается единственный раз)',
+          descriptionEn: 'Save `access_token` from the response (returned only once)',
         },
         {
-          description: 'Укажи Webhook URL для получения событий',
-          descriptionEn: 'Set Webhook URL for receiving events',
+          description: 'Используй сохранённый `access_token` для отправки сообщений от имени бота',
+          descriptionEn: 'Use the saved `access_token` to send messages on behalf of the bot',
         },
       ],
       notes:
-        'Бот создаётся через UI, не через API. Единственный эндпоинт для ботов — PUT /bots/{id} (обновление webhook URL). API используется для отправки сообщений от имени бота.',
+        'Альтернатива — создать и настроить бота в интерфейсе. Webhook URL и события можно задать и позже методом PUT /bots/{id}.',
       notesEn:
-        'Bot is created via UI, not API. The only bot endpoint is PUT /bots/{id} (update webhook URL). API is used to send messages on behalf of bot.',
+        'Alternatively, create and configure the bot in the UI. Webhook URL and events can also be set later via PUT /bots/{id}.',
     },
     {
       title: 'Обновить Webhook URL бота',

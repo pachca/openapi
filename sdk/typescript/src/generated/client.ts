@@ -4,12 +4,14 @@ import {
   AuditEvent,
   OAuthError,
   ApiError,
+  BotResponse,
   GetWebhookEventsParams,
   GetWebhookEventsResponse,
   WebhookEvent,
   WebhookPayloadUnion,
+  BotCreateRequest,
+  BotCreateResponse,
   BotUpdateRequest,
-  BotResponse,
   ListChatsParams,
   ListChatsResponse,
   Chat,
@@ -147,6 +149,10 @@ export class SecurityServiceImpl extends SecurityService {
 }
 
 export class BotsService {
+  async getBot(id: number): Promise<BotResponse> {
+    throw new Error("Bots.getBot is not implemented");
+  }
+
   async getWebhookEvents(params?: GetWebhookEventsParams): Promise<GetWebhookEventsResponse> {
     throw new Error("Bots.getWebhookEvents is not implemented");
   }
@@ -202,6 +208,10 @@ export class BotsService {
     }
   }
 
+  async createBot(request: BotCreateRequest): Promise<BotCreateResponse> {
+    throw new Error("Bots.createBot is not implemented");
+  }
+
   async updateBot(id: number, request: BotUpdateRequest): Promise<BotResponse> {
     throw new Error("Bots.updateBot is not implemented");
   }
@@ -217,6 +227,21 @@ export class BotsServiceImpl extends BotsService {
     private headers: Record<string, string>,
   ) {
     super();
+  }
+
+  async getBot(id: number): Promise<BotResponse> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}`, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("BotResponse", body.data) as BotResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
   }
 
   async getWebhookEvents(params?: GetWebhookEventsParams): Promise<GetWebhookEventsResponse> {
@@ -250,6 +275,23 @@ export class BotsServiceImpl extends BotsService {
       hasNext = response.meta.paginate.hasNext ?? true;
     }
     return items;
+  }
+
+  async createBot(request: BotCreateRequest): Promise<BotCreateResponse> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("BotCreateRequest", request)),
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 201:
+        return deserializeType("BotCreateResponse", body.data) as BotCreateResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
   }
 
   async updateBot(id: number, request: BotUpdateRequest): Promise<BotResponse> {

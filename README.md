@@ -414,16 +414,18 @@ description: Краткое описание для SEO
 
 ### Обновление API (changelog)
 
-В `content/updates.mdx`:
+Создайте файл `content/updates/<ГГГГ-ММ-ДД>.md` (один файл на дату) с frontmatter и markdown-телом:
 
 ```md
-<!-- update:2025-12-01 -->
-## Название обновления
+---
+date: "2025-12-01"
+title: "Название обновления"
+---
 
 - [Новый метод](POST /messages)
 ```
 
-Badge «Новое» показывается < 7 дней. Попадает в RSS feed.
+Badge «Новое» показывается < 7 дней. Попадает в RSS feed. Полные правила — [docs/updates-format.md](docs/updates-format.md).
 
 ### Кастомная схема для гайда
 

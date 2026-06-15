@@ -3,39 +3,37 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
-export default class BotsUpdate extends BaseCommand {
-  static override description = "Редактирование бота";
+export default class BotsCreate extends BaseCommand {
+  static override description = "Создание бота";
 
   static override examples = [
-      "Обновить Webhook URL бота:\n  $ pachca bots update"
+      "Создать бота через API и получить токен:\n  $ pachca bots create",
+      "Настроить бота с исходящим вебхуком:\n  $ pachca bots create"
   ];
 
   static scope = "bots:write";
-  static apiMethod = "PUT";
-  static apiPath = "/bots/{id}";
-  static defaultColumns = ["id","webhook"];
+  static apiMethod = "POST";
+  static apiPath = "/bots";
+  static defaultColumns = ["id","webhook","access_token"];
   static requiredFlags = ["webhook"];
 
   static override args = {
-    id: Args.integer({
-      description: "Идентификатор бота (pachca bots list)",
-      required: true,
-    }),
+
   };
 
   static override flags = {
     ...BaseCommand.baseFlags,
     'webhook': Flags.string({
-      description: "Объект параметров вебхука",
+      description: "Объект параметров вебхука бота",
     }),
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(BotsUpdate);
+    const { args, flags } = await this.parse(BotsCreate);
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'webhook', label: "Объект параметров вебхука", type: 'string' },
+      { flag: 'webhook', label: "Объект параметров вебхука бота", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {
@@ -50,7 +48,7 @@ export default class BotsUpdate extends BaseCommand {
       } else {
         this.validationError(
           missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
-          { hint: "Обязательные: --webhook <string>. pachca introspect bots update" },
+          { hint: "Обязательные: --webhook <string>. pachca introspect bots create" },
         );
       }
     }
@@ -62,16 +60,9 @@ export default class BotsUpdate extends BaseCommand {
     const inner = body['bot'] as Record<string, unknown>;
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
 
-    if (Object.keys(inner).length === 0) {
-      this.validationError(
-        [{ message: 'Не указаны поля для обновления' }],
-        { type: 'PACHCA_USAGE_ERROR' },
-      );
-    }
-
     const { data } = await this.apiRequest({
-      method: 'PUT',
-      path: `/bots/${args.id}`,
+      method: 'POST',
+      path: '/bots',
       body,
     });
 

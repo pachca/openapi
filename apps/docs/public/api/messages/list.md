@@ -55,10 +55,14 @@ curl "https://api.pachca.com/api/shared/v1/messages?chat_id=198&sort=id&order=de
     - `key: string` (required) — Путь к файлу. Пример: `"attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png"`
     - `name: string` (required) — Название файла с расширением. Пример: `"congrat.png"`
     - `file_type: string` (required) — Тип файла
-      Значения: `file` — Обычный файл, `image` — Изображение
+      Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение
     - `url: string` (required) — Прямая ссылка на скачивание файла. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
     - `width: integer, int32` — Ширина изображения в пикселях. Пример: `1920`
     - `height: integer, int32` — Высота изображения в пикселях. Пример: `1080`
+  - `voice_content: object` (required) — Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.
+    - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
+    - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
+    - `transcript: string` (required) — Расшифровка голосового сообщения в текст. `null`, пока расшифровка не готова или недоступна.. Пример: `"Привет, посмотри пожалуйста последний отчёт"`
   - `buttons: array of array` (required) — Массив строк, каждая из которых представлена массивом кнопок
   - `thread: object` (required) — Тред сообщения
     - `id: integer, int64` (required) — Идентификатор треда. Пример: `265142`
@@ -109,6 +113,11 @@ curl "https://api.pachca.com/api/shared/v1/messages?chat_id=198&sort=id&order=de
           "height": 1080
         }
       ],
+      "voice_content": {
+        "duration_ms": 5400,
+        "waveform": "4,8,12,20,16,10,6,3",
+        "transcript": "Привет, посмотри пожалуйста последний отчёт"
+      },
       "buttons": [
         [
           {

@@ -127,11 +127,20 @@ export const messageFields: INodeProperties[] = [
 					displayName: 'File',
 					values: [
 						{
+							displayName: 'Duration Ms',
+							name: 'duration_ms',
+							type: 'number',
+							default: 0,
+							description: 'Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types.',
+						},
+						{
 							displayName: 'File Type',
 							name: 'file_type',
 							type: 'options',
-							options: [{ name: 'File', value: 'file', description: 'Regular file' },
-{ name: 'Image', value: 'image' }],
+							options: [{ name: 'Audio', value: 'audio', description: 'Audio file' },
+{ name: 'File', value: 'file', description: 'Regular file' },
+{ name: 'Image', value: 'image' },
+{ name: 'Voice', value: 'voice', description: 'Voice message' }],
 							default: "",
 						},
 						{
@@ -161,6 +170,13 @@ export const messageFields: INodeProperties[] = [
 							type: 'number',
 							default: 0,
 							description: 'File size in bytes, displayed to the user',
+						},
+						{
+							displayName: 'Waveform',
+							name: 'waveform',
+							type: 'string',
+							default: "",
+							description: 'Waveform for visualizing the voice message. Required for voice messages (`file_type` is `voice`), not used for other types.',
 						},
 						{
 							displayName: 'Width',
@@ -418,9 +434,20 @@ export const messageFields: INodeProperties[] = [
 					displayName: 'File',
 					values: [
 						{
+							displayName: 'Duration Ms',
+							name: 'duration_ms',
+							type: 'number',
+							default: 0,
+							description: 'Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types.',
+						},
+						{
 							displayName: 'File Type',
 							name: 'file_type',
-							type: 'string',
+							type: 'options',
+							options: [{ name: 'Audio', value: 'audio', description: 'Audio file' },
+{ name: 'File', value: 'file', description: 'Regular file' },
+{ name: 'Image', value: 'image' },
+{ name: 'Voice', value: 'voice', description: 'Voice message' }],
 							default: "",
 							description: 'File type: file (file), image (image)',
 						},
@@ -451,6 +478,13 @@ export const messageFields: INodeProperties[] = [
 							type: 'number',
 							default: 0,
 							description: 'File size in bytes, displayed to the user',
+						},
+						{
+							displayName: 'Waveform',
+							name: 'waveform',
+							type: 'string',
+							default: "",
+							description: 'Waveform for visualizing the voice message. Required for voice messages (`file_type` is `voice`), not used for other types.',
 						},
 						{
 							displayName: 'Width',

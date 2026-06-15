@@ -103,6 +103,16 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 		},
 	},
 	bot: {
+		create: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/bots',
+			wrapperKey: 'bot',
+		},
+		get: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/bots/{id}',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+		},
 		update: {
 			method: 'PUT' as IHttpRequestMethods,
 			path: '/bots/{id}',

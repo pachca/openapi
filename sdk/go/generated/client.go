@@ -135,10 +135,12 @@ func (s *SecurityServiceImpl) GetAuditEventsAll(ctx context.Context, params *Get
 }
 
 type BotsService interface {
+	GetBot(ctx context.Context, id int32) (*BotResponse, error)
 	GetWebhookEvents(ctx context.Context, params *GetWebhookEventsParams) (*GetWebhookEventsResponse, error)
 	GetWebhookEventsAll(ctx context.Context, params *GetWebhookEventsParams) ([]WebhookEvent, error)
 	PollWebhookEvents(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookEvent) error) error
 	PollWebhookPayloads(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookPayloadUnion) error) error
+	CreateBot(ctx context.Context, request BotCreateRequest) (*BotCreateResponse, error)
 	UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error)
 	DeleteWebhookEvent(ctx context.Context, id string) error
 }
@@ -151,6 +153,10 @@ type PollWebhookEventsOptions struct {
 }
 
 type BotsServiceStub struct{}
+
+func (s *BotsServiceStub) GetBot(ctx context.Context, id int32) (*BotResponse, error) {
+	return nil, NotImplementedError{Method: "Bots.getBot"}
+}
 
 func (s *BotsServiceStub) GetWebhookEvents(ctx context.Context, params *GetWebhookEventsParams) (*GetWebhookEventsResponse, error) {
 	return nil, NotImplementedError{Method: "Bots.getWebhookEvents"}
@@ -168,6 +174,10 @@ func (s *BotsServiceStub) PollWebhookPayloads(ctx context.Context, options *Poll
 	return NotImplementedError{Method: "Bots.pollWebhookPayloads"}
 }
 
+func (s *BotsServiceStub) CreateBot(ctx context.Context, request BotCreateRequest) (*BotCreateResponse, error) {
+	return nil, NotImplementedError{Method: "Bots.createBot"}
+}
+
 func (s *BotsServiceStub) UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error) {
 	return nil, NotImplementedError{Method: "Bots.updateBot"}
 }
@@ -179,6 +189,40 @@ func (s *BotsServiceStub) DeleteWebhookEvent(ctx context.Context, id string) err
 type BotsServiceImpl struct {
 	baseURL string
 	client  *http.Client
+}
+
+func (s *BotsServiceImpl) GetBot(ctx context.Context, id int32) (*BotResponse, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/bots/%v", s.baseURL, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data BotResponse `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
 }
 
 func (s *BotsServiceImpl) GetWebhookEvents(ctx context.Context, params *GetWebhookEventsParams) (*GetWebhookEventsResponse, error) {
@@ -340,6 +384,45 @@ func (s *BotsServiceImpl) PollWebhookPayloads(ctx context.Context, options *Poll
 	return s.PollWebhookEvents(ctx, options, func(event WebhookEvent) error {
 		return handler(event.Payload)
 	})
+}
+
+func (s *BotsServiceImpl) CreateBot(ctx context.Context, request BotCreateRequest) (*BotCreateResponse, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/bots", s.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusCreated:
+		var result struct {
+			Data BotCreateResponse `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
 }
 
 func (s *BotsServiceImpl) UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error) {

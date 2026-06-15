@@ -46,7 +46,7 @@ actions:
 
 
         To edit a bot you need to know its `user_id` and specify it in the request `URL`. All editable bot parameters
-        are specified in the request body. You can find the bot's `user_id` in the bot settings under the "API" tab.
+        are specified in the request body.
 
 
         You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located
@@ -1114,7 +1114,7 @@ actions:
       description: User ID
   - target: $.components.schemas.AuditDetailsDlp.properties.action_message
     update:
-      description: Action description
+      description: Action description. `null` if the rule action has no text set.
   - target: $.components.schemas.AuditDetailsDlp.properties.conditions_matched
     update:
       description: Rule conditions check result (true — conditions matched)
@@ -1316,6 +1316,215 @@ actions:
   - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.outgoing_url
     update:
       description: Outgoing webhook URL
+  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.name
+    update:
+      description: Bot name
+  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.nickname
+    update:
+      description: Bot nickname. Must end with `_bot`.
+  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.events
+    update:
+      description: Events the bot is subscribed to
+  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.trigger_on
+    update:
+      description: Outgoing webhook trigger condition
+  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.commands
+    update:
+      description: Bot commands (trigger words) it reacts to when trigger_on = commands
+  - target: $.paths['/bots'].post
+    update:
+      description: >-
+        Create bot
+
+
+        Creates a bot and returns its `access_token`.
+
+
+        When the bot is created, you receive its `access_token` — save it right away. You can obtain the token again
+        only through the interface (the "API" tab of the bot settings).
+  - target: $.paths['/bots/{id}'].get
+    update:
+      description: >-
+        Get bot
+
+
+        Retrieves bot parameters by its `user_id`.
+  - target: $.paths['/bots/{id}'].get.parameters[?(@.name=='id')]
+    update:
+      description: Bot ID
+  - target: $.components.schemas.BotTriggerOn
+    update:
+      description: Outgoing webhook trigger condition
+      x-enum-descriptions:
+        commands: Only on commands (trigger words) from commands
+        all_messages: On all messages in chats where the bot is present
+        unfurl: On link unfurling (link previews)
+  - target: $.components.schemas.BotEventName
+    update:
+      description: Bot outgoing webhook event
+      x-enum-descriptions:
+        message_new: New message
+        message_update: Message edited
+        message_delete: Message deleted
+        reaction_new: Reaction added
+        reaction_delete: Reaction removed
+        button_click: Button clicked
+        message_link_shared: A link was shared in a message (for unfurl)
+        chat_member_add: Member added to chat
+        chat_member_remove: Member removed from chat
+        company_member_invite: Employee invited to the company
+        company_member_confirm: Employee confirmed the invitation
+        company_member_suspend: Employee suspended
+        company_member_activate: Employee activated
+        company_member_delete: Employee removed from the company
+        company_member_update: Employee data changed
+        bill_created: Bill created
+  - target: $.components.schemas.BotCreateRequest
+    update:
+      description: Bot creation request
+  - target: $.components.schemas.BotCreateRequest.properties.bot
+    update:
+      description: Parameters object of the bot to create
+  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook
+    update:
+      description: Bot webhook parameters object
+  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.name
+    update:
+      description: Bot name
+  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.nickname
+    update:
+      description: Bot nickname. Must end with `_bot`.
+  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.outgoing_url
+    update:
+      description: Outgoing webhook URL
+  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.events
+    update:
+      description: Events the bot is subscribed to
+  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.trigger_on
+    update:
+      description: Outgoing webhook trigger condition
+  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.commands
+    update:
+      description: Bot commands (trigger words) it reacts to when trigger_on = commands
+  - target: $.components.schemas.BotWebhook
+    update:
+      description: Bot webhook parameters
+  - target: $.components.schemas.BotWebhook.properties.name
+    update:
+      description: Bot name
+  - target: $.components.schemas.BotWebhook.properties.nickname
+    update:
+      description: Bot nickname
+  - target: $.components.schemas.BotWebhook.properties.outgoing_url
+    update:
+      description: Outgoing webhook URL
+  - target: $.components.schemas.BotWebhook.properties.events
+    update:
+      description: Events the bot is subscribed to
+  - target: $.components.schemas.BotWebhook.properties.trigger_on
+    update:
+      description: Outgoing webhook trigger condition
+  - target: $.components.schemas.BotWebhook.properties.commands
+    update:
+      description: Bot commands (trigger words)
+  - target: $.components.schemas.BotCreateResponse
+    update:
+      description: Created bot parameters
+  - target: $.components.schemas.BotCreateResponse.properties.id
+    update:
+      description: Bot ID (same as the bot's `user_id`)
+  - target: $.components.schemas.BotCreateResponse.properties.webhook
+    update:
+      description: Webhook parameters object
+  - target: $.components.schemas.BotCreateResponse.properties.access_token
+    update:
+      description: >-
+        Bot access token. Issued only at creation. You can obtain the token again only through the interface (the
+        "API" tab of the bot settings).
+  - target: $.components.schemas.Message.properties.voice_content
+    update:
+      description: Voice message data. Filled only for voice messages (file `file_type` is `voice`), otherwise `null`.
+  - target: $.components.schemas.VoiceContent
+    update:
+      description: Voice message data
+  - target: $.components.schemas.VoiceContent.properties.duration_ms
+    update:
+      description: Voice message duration in milliseconds
+  - target: $.components.schemas.VoiceContent.properties.waveform
+    update:
+      description: Waveform (amplitudes) for visualizing the voice message
+  - target: $.components.schemas.VoiceContent.properties.transcript
+    update:
+      description: Voice message transcription to text. `null` while the transcription is not ready or unavailable.
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.duration_ms
+    update:
+      description: Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types.
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.waveform
+    update:
+      description: Waveform for visualizing the voice message. Required for voice messages (`file_type` is `voice`), not used for other types.
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.duration_ms
+    update:
+      description: Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types.
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.waveform
+    update:
+      description: Waveform for visualizing the voice message. Required for voice messages (`file_type` is `voice`), not used for other types.
+  - target: $.components.schemas.ViewBlockSelectOption
+    update:
+      description: Dropdown (select) option. Unlike radio/checkbox, a select option has no `description` subtitle — the web app does not render it.
+  - target: $.components.schemas.ViewBlockSelectOption.properties.text
+    update:
+      description: Displayed text
+  - target: $.components.schemas.ViewBlockSelectOption.properties.value
+    update:
+      description: Unique string value passed to your app when this option is selected
+  - target: $.components.schemas.ViewBlockSelectOption.properties.selected
+    update:
+      description: Initially selected option. Only one option can be selected.
+  - target: $.components.schemas.Message.properties.voice_content.properties.duration_ms
+    update:
+      description: Voice message duration in milliseconds
+  - target: $.components.schemas.Message.properties.voice_content.properties.waveform
+    update:
+      description: Waveform (amplitudes) for visualizing the voice message
+  - target: $.components.schemas.Message.properties.voice_content.properties.transcript
+    update:
+      description: Voice message transcription to text. `null` while the transcription is not ready or unavailable.
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.name
+    update:
+      description: Bot name
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.nickname
+    update:
+      description: Bot nickname
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.outgoing_url
+    update:
+      description: Outgoing webhook URL
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.events
+    update:
+      description: Events the bot is subscribed to
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.trigger_on
+    update:
+      description: Outgoing webhook trigger condition
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.commands
+    update:
+      description: Bot commands (trigger words)
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.name
+    update:
+      description: Bot name
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.nickname
+    update:
+      description: Bot nickname
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.outgoing_url
+    update:
+      description: Outgoing webhook URL
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.events
+    update:
+      description: Events the bot is subscribed to
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.trigger_on
+    update:
+      description: Outgoing webhook trigger condition
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.commands
+    update:
+      description: Bot commands (trigger words)
   - target: $.components.schemas.Button
     update:
       description: Button
@@ -1613,6 +1822,8 @@ actions:
       x-enum-descriptions:
         file: Regular file
         image: Image
+        audio: Audio file
+        voice: Voice message
   - target: $.components.schemas.FileUploadRequest.properties.Content-Disposition
     update:
       description: >-
@@ -2163,7 +2374,7 @@ actions:
       description: ID of the user who added or removed the reaction
   - target: $.components.schemas.ReactionWebhookPayload.properties.created_at
     update:
-      description: Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+      description: Reaction creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. The field is also present for the reaction-removed event.
   - target: $.components.schemas.ReactionWebhookPayload.properties.webhook_timestamp
     update:
       description: Webhook send date and time (UTC+0) in UNIX format
@@ -3236,9 +3447,6 @@ actions:
   - target: $.components.schemas.ViewBlockSelect.properties.options.items.properties.value
     update:
       description: Select option value
-  - target: $.components.schemas.ViewBlockSelect.properties.options.items.properties.description
-    update:
-      description: Select option description
   - target: $.components.schemas.ViewBlockSelect.properties.options.items.properties.selected
     update:
       description: Whether this select option is selected by default

@@ -99,6 +99,54 @@ enum class AuditEventKey(val value: String) {
     @SerialName("search_messages_api") SEARCH_MESSAGES_API("search_messages_api"),
 }
 
+/** Событие исходящего вебхука бота */
+@Serializable
+enum class BotEventName(val value: String) {
+    /** Новое сообщение */
+    @SerialName("message_new") MESSAGE_NEW("message_new"),
+    /** Сообщение отредактировано */
+    @SerialName("message_update") MESSAGE_UPDATE("message_update"),
+    /** Сообщение удалено */
+    @SerialName("message_delete") MESSAGE_DELETE("message_delete"),
+    /** Добавлена реакция */
+    @SerialName("reaction_new") REACTION_NEW("reaction_new"),
+    /** Реакция удалена */
+    @SerialName("reaction_delete") REACTION_DELETE("reaction_delete"),
+    /** Нажата кнопка */
+    @SerialName("button_click") BUTTON_CLICK("button_click"),
+    /** В сообщении отправлена ссылка (для unfurl) */
+    @SerialName("message_link_shared") MESSAGE_LINK_SHARED("message_link_shared"),
+    /** Участник добавлен в чат */
+    @SerialName("chat_member_add") CHAT_MEMBER_ADD("chat_member_add"),
+    /** Участник удалён из чата */
+    @SerialName("chat_member_remove") CHAT_MEMBER_REMOVE("chat_member_remove"),
+    /** Сотрудник приглашён в компанию */
+    @SerialName("company_member_invite") COMPANY_MEMBER_INVITE("company_member_invite"),
+    /** Сотрудник подтвердил приглашение */
+    @SerialName("company_member_confirm") COMPANY_MEMBER_CONFIRM("company_member_confirm"),
+    /** Сотрудник деактивирован */
+    @SerialName("company_member_suspend") COMPANY_MEMBER_SUSPEND("company_member_suspend"),
+    /** Сотрудник активирован */
+    @SerialName("company_member_activate") COMPANY_MEMBER_ACTIVATE("company_member_activate"),
+    /** Сотрудник удалён из компании */
+    @SerialName("company_member_delete") COMPANY_MEMBER_DELETE("company_member_delete"),
+    /** Данные сотрудника изменены */
+    @SerialName("company_member_update") COMPANY_MEMBER_UPDATE("company_member_update"),
+    /** Создан счёт */
+    @SerialName("bill_created") BILL_CREATED("bill_created"),
+}
+
+/** Условие срабатывания исходящего вебхука бота */
+@Serializable
+enum class BotTriggerOn(val value: String) {
+    /** Только на команды (триггер-слова) из commands */
+    @SerialName("commands") COMMANDS("commands"),
+    /** На все сообщения в чатах, где есть бот */
+    @SerialName("all_messages") ALL_MESSAGES("all_messages"),
+    /** На развёртывание ссылок (link previews) */
+    @SerialName("unfurl") UNFURL("unfurl"),
+}
+
 /** Доступность чатов для пользователя */
 @Serializable
 enum class ChatAvailability(val value: String) {
@@ -172,6 +220,10 @@ enum class FileType(val value: String) {
     @SerialName("file") FILE("file"),
     /** Изображение */
     @SerialName("image") IMAGE("image"),
+    /** Аудиофайл */
+    @SerialName("audio") AUDIO("audio"),
+    /** Голосовое сообщение */
+    @SerialName("voice") VOICE("voice"),
 }
 
 /** Статус приглашения пользователя */
@@ -687,7 +739,7 @@ data class ViewBlockSelect(
     override val type: String = "select",
     val name: String,
     val label: String,
-    val options: List<ViewBlockSelectableOption>? = null,
+    val options: List<ViewBlockSelectOption>? = null,
     val required: Boolean? = null,
     val hint: String? = null,
 ) : ViewBlockUnion
@@ -949,19 +1001,46 @@ data class AvatarData(
 )
 
 @Serializable
-data class BotResponseWebhook(
-    @SerialName("outgoing_url") val outgoingUrl: String,
+data class BotCreateRequestBotWebhook(
+    val name: String,
+    val nickname: String? = null,
+    @SerialName("outgoing_url") val outgoingUrl: String? = null,
+    val events: List<BotEventName>? = null,
+    @SerialName("trigger_on") val triggerOn: BotTriggerOn? = null,
+    val commands: List<String>? = null,
+)
+
+@Serializable
+data class BotCreateRequestBot(
+    val webhook: BotCreateRequestBotWebhook,
+)
+
+@Serializable
+data class BotCreateRequest(
+    val bot: BotCreateRequestBot,
+)
+
+@Serializable
+data class BotCreateResponse(
+    val id: Int,
+    val webhook: BotWebhook,
+    @SerialName("access_token") val accessToken: String,
 )
 
 @Serializable
 data class BotResponse(
     val id: Int,
-    val webhook: BotResponseWebhook,
+    val webhook: BotWebhook,
 )
 
 @Serializable
 data class BotUpdateRequestBotWebhook(
-    @SerialName("outgoing_url") val outgoingUrl: String,
+    val name: String? = null,
+    val nickname: String? = null,
+    @SerialName("outgoing_url") val outgoingUrl: String? = null,
+    val events: List<BotEventName>? = null,
+    @SerialName("trigger_on") val triggerOn: BotTriggerOn? = null,
+    val commands: List<String>? = null,
 )
 
 @Serializable
@@ -972,6 +1051,16 @@ data class BotUpdateRequestBot(
 @Serializable
 data class BotUpdateRequest(
     val bot: BotUpdateRequestBot,
+)
+
+@Serializable
+data class BotWebhook(
+    val name: String,
+    val nickname: String,
+    @SerialName("outgoing_url") val outgoingUrl: String? = null,
+    val events: List<BotEventName>,
+    @SerialName("trigger_on") val triggerOn: BotTriggerOn,
+    val commands: List<String>,
 )
 
 @Serializable
@@ -1135,6 +1224,7 @@ data class Message(
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     val url: String,
     val files: List<File>,
+    @SerialName("voice_content") val voiceContent: VoiceContent? = null,
     val buttons: List<List<Button>>? = null,
     val thread: MessageThread? = null,
     val forwarding: Forwarding? = null,
@@ -1153,6 +1243,8 @@ data class MessageCreateRequestFile(
     val size: Int,
     val width: Int? = null,
     val height: Int? = null,
+    @SerialName("duration_ms") val durationMs: Int? = null,
+    val waveform: String? = null,
 )
 
 @Serializable
@@ -1178,10 +1270,12 @@ data class MessageCreateRequest(
 data class MessageUpdateRequestFile(
     val key: String,
     val name: String,
-    @SerialName("file_type") val fileType: String? = null,
+    @SerialName("file_type") val fileType: FileType? = null,
     val size: Int? = null,
     val width: Int? = null,
     val height: Int? = null,
+    @SerialName("duration_ms") val durationMs: Int? = null,
+    val waveform: String? = null,
 )
 
 @Serializable
@@ -1477,11 +1571,25 @@ data class ViewBlockCheckboxOption(
 )
 
 @Serializable
+data class ViewBlockSelectOption(
+    val text: String,
+    val value: String,
+    val selected: Boolean? = null,
+)
+
+@Serializable
 data class ViewBlockSelectableOption(
     val text: String,
     val value: String,
     val description: String? = null,
     val selected: Boolean? = null,
+)
+
+@Serializable
+data class VoiceContent(
+    @SerialName("duration_ms") val durationMs: Int,
+    val waveform: String,
+    val transcript: String? = null,
 )
 
 @Serializable
@@ -1606,6 +1714,9 @@ data class GetWebhookEventsResponse(
 
 @Serializable
 data class BotResponseDataWrapper(val data: BotResponse)
+
+@Serializable
+data class BotCreateResponseDataWrapper(val data: BotCreateResponse)
 
 @Serializable
 data class ChatDataWrapper(val data: Chat)

@@ -33,10 +33,12 @@
     - `key: string` (required) — Путь к файлу, полученный в результате [загрузки файла](POST /direct_url). Пример: `"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"`
     - `name: string` (required) — Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением). Пример: `"logo.png"`
     - `file_type: string` (required) — Тип файла
-      Значения: `file` — Обычный файл, `image` — Изображение
+      Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение
     - `size: integer, int32` (required) — Размер файла в байтах, отображаемый пользователю. Пример: `12345`
     - `width: integer, int32` — Ширина изображения в px (используется в случае, если file_type указан как image). Пример: `800`
     - `height: integer, int32` — Высота изображения в px (используется в случае, если file_type указан как image). Пример: `600`
+    - `duration_ms: integer, int32` (min: 1) — Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.. Пример: `5400`
+    - `waveform: string` (max length: 256) — Форма волны для визуализации голосового сообщения. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.. Пример: `"4,8,12,20,16,10,6,3"`
   - `buttons: array of array` — Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.. Пример: `[[{"text":"Подробнее","url":"https://example.com/details"},{"text":"Отлично!","data":"awesome"}]]`
   - `parent_message_id: integer, int32` — Идентификатор сообщения. Указывается в случае, если вы отправляете ответ на другое сообщение.. Пример: `194270`
   - `display_avatar_url: string` (max length: 255) — Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.. Пример: `"https://example.com/avatar.png"`
@@ -49,7 +51,6 @@
 ```json
 {
   "message": {
-    "entity_type": "discussion",
     "entity_id": 334,
     "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
     "files": [
@@ -59,7 +60,9 @@
         "file_type": "image",
         "size": 12345,
         "width": 800,
-        "height": 600
+        "height": 600,
+        "duration_ms": 5400,
+        "waveform": "4,8,12,20,16,10,6,3"
       }
     ],
     "buttons": [
@@ -76,10 +79,8 @@
     ],
     "parent_message_id": 194270,
     "display_avatar_url": "https://example.com/avatar.png",
-    "display_name": "Бот Поддержки",
-    "skip_invite_mentions": false
-  },
-  "link_preview": false
+    "display_name": "Бот Поддержки"
+  }
 }
 ```
 
@@ -91,7 +92,6 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
   -H "Content-Type: application/json" \
   -d '{
   "message": {
-    "entity_type": "discussion",
     "entity_id": 334,
     "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
     "files": [
@@ -101,7 +101,9 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
         "file_type": "image",
         "size": 12345,
         "width": 800,
-        "height": 600
+        "height": 600,
+        "duration_ms": 5400,
+        "waveform": "4,8,12,20,16,10,6,3"
       }
     ],
     "buttons": [
@@ -118,10 +120,8 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
     ],
     "parent_message_id": 194270,
     "display_avatar_url": "https://example.com/avatar.png",
-    "display_name": "Бот Поддержки",
-    "skip_invite_mentions": false
-  },
-  "link_preview": false
+    "display_name": "Бот Поддержки"
+  }
 }'
 ```
 
@@ -147,10 +147,14 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
     - `key: string` (required) — Путь к файлу. Пример: `"attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png"`
     - `name: string` (required) — Название файла с расширением. Пример: `"congrat.png"`
     - `file_type: string` (required) — Тип файла
-      Значения: `file` — Обычный файл, `image` — Изображение
+      Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение
     - `url: string` (required) — Прямая ссылка на скачивание файла. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
     - `width: integer, int32` — Ширина изображения в пикселях. Пример: `1920`
     - `height: integer, int32` — Высота изображения в пикселях. Пример: `1080`
+  - `voice_content: object` (required) — Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.
+    - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
+    - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
+    - `transcript: string` (required) — Расшифровка голосового сообщения в текст. `null`, пока расшифровка не готова или недоступна.. Пример: `"Привет, посмотри пожалуйста последний отчёт"`
   - `buttons: array of array` (required) — Массив строк, каждая из которых представлена массивом кнопок
   - `thread: object` (required) — Тред сообщения
     - `id: integer, int64` (required) — Идентификатор треда. Пример: `265142`
@@ -194,6 +198,11 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
         "height": 1080
       }
     ],
+    "voice_content": {
+      "duration_ms": 5400,
+      "waveform": "4,8,12,20,16,10,6,3",
+      "transcript": "Привет, посмотри пожалуйста последний отчёт"
+    },
     "buttons": [
       [
         {

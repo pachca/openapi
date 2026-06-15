@@ -13,6 +13,10 @@
       "GetAuditEventsParams"
     ]
   },
+  "BotOperations_getBot": {
+    "usage": "response, err := client.Bots.GetBot(ctx, int32(1738816))",
+    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string}}"
+  },
   "BotOperations_getWebhookEvents": {
     "usage": "params := &GetWebhookEventsParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Bots.GetWebhookEvents(ctx, params)",
     "output": "GetWebhookEventsResponse{Data: []WebhookEvent, Meta: PaginationMeta}",
@@ -26,10 +30,23 @@
   "BotOperations_getWebhookEvents_pollWebhookPayloads": {
     "usage": "err := client.Bots.PollWebhookPayloads(ctx, nil, func(payload pachca.WebhookPayloadUnion) error {\n\t_ = payload\n\treturn nil\n})"
   },
-  "BotOperations_updateBot": {
-    "usage": "request := BotUpdateRequest{\n\tBot: BotUpdateRequestBot{\n\t\tWebhook: BotUpdateRequestBotWebhook{\n\t\t\tOutgoingURL: \"https://www.website.com/tasks/new\",\n\t\t},\n\t},\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
-    "output": "BotResponse{ID: int32, Webhook: BotResponseWebhook{OutgoingURL: string}}",
+  "BotOperations_createBot": {
+    "usage": "request := BotCreateRequest{\n\tBot: BotCreateRequestBot{\n\t\tWebhook: BotCreateRequestBotWebhook{\n\t\t\tName: \"Бот задач\",\n\t\t\tNickname: Ptr(\"tasks_bot\"),\n\t\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\t\tCommands: []string{\"example\"},\n\t\t},\n\t},\n}\nresponse, err := client.Bots.CreateBot(ctx, request)",
+    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string}, AccessToken: string}",
     "imports": [
+      "BotCreateRequest",
+      "BotCreateRequestBot",
+      "BotCreateRequestBotWebhook",
+      "BotEventName",
+      "BotTriggerOn"
+    ]
+  },
+  "BotOperations_updateBot": {
+    "usage": "request := BotUpdateRequest{\n\tBot: BotUpdateRequestBot{\n\t\tWebhook: BotUpdateRequestBotWebhook{\n\t\t\tName: Ptr(\"Бот задач\"),\n\t\t\tNickname: Ptr(\"tasks_bot\"),\n\t\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\t\tCommands: []string{\"example\"},\n\t\t},\n\t},\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
+    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string}}",
+    "imports": [
+      "BotEventName",
+      "BotTriggerOn",
       "BotUpdateRequest",
       "BotUpdateRequestBot",
       "BotUpdateRequestBotWebhook"
@@ -182,11 +199,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "response, err := client.Messages.GetMessage(ctx, int32(194275))",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}"
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}"
   },
   "MessageOperations_createMessage": {
-    "usage": "request := MessageCreateRequest{\n\tMessage: MessageCreateRequestMessage{\n\t\tEntityType: Ptr(MessageEntityTypeDiscussion),\n\t\tEntityID: int32(334),\n\t\tContent: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n\t\tFiles: []MessageCreateRequestFile{MessageCreateRequestFile{\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: FileTypeImage,\n\t\t\tSize: int32(12345),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t}},\n\t\tButtons: [][]Button{[]Button{Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: Ptr(\"https://example.com/details\"),\n\t\t\tData: Ptr(\"awesome\"),\n\t\t}}},\n\t\tParentMessageID: Ptr(int32(194270)),\n\t\tDisplayAvatarURL: Ptr(\"https://example.com/avatar.png\"),\n\t\tDisplayName: Ptr(\"Бот Поддержки\"),\n\t\tSkipInviteMentions: Ptr(false),\n\t},\n\tLinkPreview: Ptr(false),\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}",
+    "usage": "request := MessageCreateRequest{\n\tMessage: MessageCreateRequestMessage{\n\t\tEntityType: Ptr(MessageEntityTypeDiscussion),\n\t\tEntityID: int32(334),\n\t\tContent: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n\t\tFiles: []MessageCreateRequestFile{MessageCreateRequestFile{\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: FileTypeImage,\n\t\t\tSize: int32(12345),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tButtons: [][]Button{[]Button{Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: Ptr(\"https://example.com/details\"),\n\t\t\tData: Ptr(\"awesome\"),\n\t\t}}},\n\t\tParentMessageID: Ptr(int32(194270)),\n\t\tDisplayAvatarURL: Ptr(\"https://example.com/avatar.png\"),\n\t\tDisplayName: Ptr(\"Бот Поддержки\"),\n\t\tSkipInviteMentions: Ptr(false),\n\t},\n\tLinkPreview: Ptr(false),\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}",
     "imports": [
       "Button",
       "FileType",
@@ -200,10 +217,11 @@
     "usage": "client.Messages.PinMessage(ctx, int32(194275))"
   },
   "MessageOperations_updateMessage": {
-    "usage": "request := MessageUpdateRequest{\n\tMessage: MessageUpdateRequestMessage{\n\t\tContent: Ptr(\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\"),\n\t\tFiles: []MessageUpdateRequestFile{MessageUpdateRequestFile{\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: Ptr(\"image\"),\n\t\t\tSize: Ptr(int32(12345)),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t}},\n\t\tButtons: [][]Button{[]Button{Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: Ptr(\"https://example.com/details\"),\n\t\t\tData: Ptr(\"awesome\"),\n\t\t}}},\n\t\tDisplayAvatarURL: Ptr(\"https://example.com/avatar.png\"),\n\t\tDisplayName: Ptr(\"Бот Поддержки\"),\n\t},\n}\nresponse, err := client.Messages.UpdateMessage(ctx, int32(194275), request)",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}",
+    "usage": "request := MessageUpdateRequest{\n\tMessage: MessageUpdateRequestMessage{\n\t\tContent: Ptr(\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\"),\n\t\tFiles: []MessageUpdateRequestFile{MessageUpdateRequestFile{\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: Ptr(FileTypeImage),\n\t\t\tSize: Ptr(int32(12345)),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tButtons: [][]Button{[]Button{Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: Ptr(\"https://example.com/details\"),\n\t\t\tData: Ptr(\"awesome\"),\n\t\t}}},\n\t\tDisplayAvatarURL: Ptr(\"https://example.com/avatar.png\"),\n\t\tDisplayName: Ptr(\"Бот Поддержки\"),\n\t},\n}\nresponse, err := client.Messages.UpdateMessage(ctx, int32(194275), request)",
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}",
     "imports": [
       "Button",
+      "FileType",
       "MessageUpdateRequest",
       "MessageUpdateRequestFile",
       "MessageUpdateRequestMessage"

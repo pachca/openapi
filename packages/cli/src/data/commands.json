@@ -124,6 +124,38 @@
     "section": "bots",
     "commands": [
       {
+        "command": "pachca bots create",
+        "summary": "Создание бота",
+        "method": "POST",
+        "path": "/bots",
+        "scope": "bots:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "webhook",
+            "type": "option",
+            "required": true,
+            "description": "Объект параметров вебхука бота"
+          }
+        ]
+      },
+      {
+        "command": "pachca bots get",
+        "summary": "Получение бота",
+        "method": "GET",
+        "path": "/bots/{id}",
+        "scope": "bots:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          }
+        ],
+        "flags": []
+      },
+      {
         "command": "pachca bots list-events",
         "summary": "История событий",
         "method": "GET",
@@ -2692,7 +2724,7 @@
             "name": "close-text",
             "type": "option",
             "required": false,
-            "description": "Текст кнопки закрытия представления (макс. 24 символов)"
+            "description": "Текст кнопки закрытия представления. Отображается только в десктоп-вебе. В мобильных приложениях (iOS/Android) кнопка закрытия — это крестик в шапке, и заданный текст там не показывается. (макс. 24 символов)"
           },
           {
             "name": "submit-text",

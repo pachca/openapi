@@ -130,6 +130,8 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Tasks.UpdateTaskAsync()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.Tasks.DeleteTaskAsync()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.Views.OpenViewAsync()` | [Открытие представления](/api/views/open) |
+| `client.Bots.CreateBotAsync()` | [Создание бота](/api/bots/create) |
+| `client.Bots.GetBotAsync()` | [Получение бота](/api/bots/get) |
 | `client.Bots.GetWebhookEventsAsync()` | [История событий](/api/bots/list-events) |
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |
 | `client.Bots.DeleteWebhookEventAsync()` | [Удаление события](/api/bots/remove-event) |
@@ -402,7 +404,9 @@ var request = new MessageCreateRequest
             FileType = FileType.Image,
             Size = 12345,
             Width = 800,
-            Height = 600
+            Height = 600,
+            DurationMs = 5400,
+            Waveform = "4,8,12,20,16,10,6,3"
         } },
         Buttons = new List<List<Button>> { new List<Button> { new Button
         {
@@ -418,7 +422,7 @@ var request = new MessageCreateRequest
     LinkPreview = false
 };
 var response = await client.Messages.CreateMessageAsync(request);
-// → Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)
+// → Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)
 
 // Список сотрудников
 var response = await client.Users.ListUsersAsync("Олег", 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");

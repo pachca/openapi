@@ -145,6 +145,8 @@ client.close()
 | `client.tasks.updateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.deleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.openView()` | [Открытие представления](/api/views/open) |
+| `client.bots.createBot()` | [Создание бота](/api/bots/create) |
+| `client.bots.getBot()` | [Получение бота](/api/bots/get) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
@@ -375,7 +377,9 @@ val request = MessageCreateRequest(
             fileType = FileType.IMAGE,
             size = 12345,
             width = 800,
-            height = 600
+            height = 600,
+            durationMs = 5400,
+            waveform = "4,8,12,20,16,10,6,3"
         )),
         buttons = listOf(listOf(Button(
             text = "Подробнее",
@@ -390,7 +394,7 @@ val request = MessageCreateRequest(
     linkPreview = false
 )
 val response = client.messages.createMessage(request = request)
-// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)
+// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)
 
 // Список сотрудников
 val response = client.users.listUsers(query = "Олег", limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")

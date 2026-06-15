@@ -78,6 +78,8 @@ pachca guide            # список всех сценариев
 
 | Команда | Описание |
 |---------|---------|
+| `pachca bots create` | Создание бота |
+| `pachca bots get` | Получение бота |
 | `pachca bots update` | Редактирование бота |
 | `pachca bots list-events` | История событий |
 | `pachca bots remove-event` | Удаление события |

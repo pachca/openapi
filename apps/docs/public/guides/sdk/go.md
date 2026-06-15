@@ -137,6 +137,8 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Tasks.UpdateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.Tasks.DeleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.Views.OpenView()` | [Открытие представления](/api/views/open) |
+| `client.Bots.CreateBot()` | [Создание бота](/api/bots/create) |
+| `client.Bots.GetBot()` | [Получение бота](/api/bots/get) |
 | `client.Bots.GetWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.Bots.UpdateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.Bots.DeleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
@@ -376,6 +378,8 @@ request := MessageCreateRequest{
 			Size: int32(12345),
 			Width: Ptr(int32(800)),
 			Height: Ptr(int32(600)),
+			DurationMs: Ptr(int32(5400)),
+			Waveform: Ptr("4,8,12,20,16,10,6,3"),
 		}},
 		Buttons: [][]Button{[]Button{Button{
 			Text: "Подробнее",
@@ -390,7 +394,7 @@ request := MessageCreateRequest{
 	LinkPreview: Ptr(false),
 }
 response, err := client.Messages.CreateMessage(ctx, request)
-// → Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}
+// → Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}
 
 // Список сотрудников
 params := &ListUsersParams{

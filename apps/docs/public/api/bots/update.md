@@ -12,7 +12,7 @@
 
 Метод для редактирования бота.
 
-Для редактирования бота вам необходимо знать его `user_id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса. Узнать `user_id` бота можно в настройках бота во вкладке «API».
+Для редактирования бота вам необходимо знать его `user_id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса.
 
 Вы не можете редактировать бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).
 
@@ -33,7 +33,13 @@
 
 - `bot: object` (required) — Собранный объект параметров редактируемого бота
   - `webhook: object` (required) — Объект параметров вебхука
-    - `outgoing_url: string` (required) — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
+    - `name: string` — Имя бота. Пример: `"Бот задач"`
+    - `nickname: string` — Никнейм бота. Должен заканчиваться на `_bot`.. Пример: `"tasks_bot"`
+    - `outgoing_url: string` — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
+    - `events: array of string` — События, на которые подписан бот. Пример: `["message_new"]`
+    - `trigger_on: string` — Условие срабатывания исходящего вебхука
+      Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
+    - `commands: array of string` — Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Пример: `["/task","/help"]`
 
 ### Пример
 
@@ -41,7 +47,17 @@
 {
   "bot": {
     "webhook": {
-      "outgoing_url": "https://www.website.com/tasks/new"
+      "name": "Бот задач",
+      "nickname": "tasks_bot",
+      "outgoing_url": "https://www.website.com/tasks/new",
+      "events": [
+        "message_new"
+      ],
+      "trigger_on": "commands",
+      "commands": [
+        "/task",
+        "/help"
+      ]
     }
   }
 }
@@ -56,7 +72,17 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
   -d '{
   "bot": {
     "webhook": {
-      "outgoing_url": "https://www.website.com/tasks/new"
+      "name": "Бот задач",
+      "nickname": "tasks_bot",
+      "outgoing_url": "https://www.website.com/tasks/new",
+      "events": [
+        "message_new"
+      ],
+      "trigger_on": "commands",
+      "commands": [
+        "/task",
+        "/help"
+      ]
     }
   }
 }'
@@ -69,9 +95,15 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
 **Схема ответа:**
 
 - `data: object` (required) — Параметры бота
-  - `id: integer, int32` (required) — Идентификатор бота. Пример: `1738816`
+  - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
   - `webhook: object` (required) — Объект параметров вебхука
+    - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
+    - `nickname: string` (required) — Никнейм бота. Пример: `"tasks_bot"`
     - `outgoing_url: string` (required) — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
+    - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
+    - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
+      Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
+    - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
 
 **Пример ответа:**
 
@@ -80,7 +112,16 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
   "data": {
     "id": 1738816,
     "webhook": {
-      "outgoing_url": "https://www.website.com/tasks/new"
+      "name": "Бот задач",
+      "nickname": "tasks_bot",
+      "outgoing_url": "https://www.website.com/tasks/new",
+      "events": [
+        "message_new"
+      ],
+      "trigger_on": "commands",
+      "commands": [
+        "/task"
+      ]
     }
   }
 }

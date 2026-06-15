@@ -1097,8 +1097,16 @@ Body: { type*, trigger_id*, private_metadata, callback_id, view* }
 
 ## Bots
 
+### POST /api/shared/v1/bots
+Creates a bot and returns its `access_token`. When the bot is created, you receive its `access_token` — save it right away. You can obtain the token again only through the interface (the "API" tab of the bot settings).
+Body: { bot: { webhook* } }
+
+### GET /api/shared/v1/bots/{id}
+Retrieves bot parameters by its `user_id`.
+Parameters: id
+
 ### PUT /api/shared/v1/bots/{id}
-Edit a bot's settings. To edit a bot you need to know its `user_id` and specify it in the request `URL`. All editable bot parameters are specified in the request body. You can find the bot's `user_id` in the bot settings under the "API" tab. You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on the "General" tab in the bot settings).
+Edit a bot's settings. To edit a bot you need to know its `user_id` and specify it in the request `URL`. All editable bot parameters are specified in the request body. You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on the "General" tab in the bot settings).
 Parameters: id
 Body: { bot: { webhook* } }
 

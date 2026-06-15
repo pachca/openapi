@@ -168,7 +168,160 @@ paths:
       x-requirements:
         scope: audit_events:read
         plan: corporation
+  /bots:
+    post:
+      operationId: BotOperations_createBot
+      description: >-
+        Create bot
+
+
+        Creates a bot and returns its `access_token`.
+
+
+        When the bot is created, you receive its `access_token` — save it right away. You can obtain the token again
+        only through the interface (the "API" tab of the bot settings).
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotCreateResponse'
+                description: Response wrapper with data
+              example:
+                data:
+                  id: 1738816
+                  webhook:
+                    name: Tasks bot
+                    nickname: tasks_bot
+                    outgoing_url: https://www.website.com/tasks/new
+                    events:
+                      - message_new
+                    trigger_on: commands
+                    commands:
+                      - /task
+                  access_token: bm90X2FfcmVhbF90b2tlbg
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Bots
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotCreateRequest'
+            example:
+              bot:
+                webhook:
+                  name: Tasks bot
+                  nickname: tasks_bot
+                  outgoing_url: https://www.website.com/tasks/new
+                  events:
+                    - message_new
+                  trigger_on: commands
+                  commands:
+                    - /task
+      x-requirements:
+        scope: bots:write
   /bots/{id}:
+    get:
+      operationId: BotOperations_getBot
+      description: |-
+        Get bot
+
+        Retrieves bot parameters by its `user_id`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Bot ID
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotResponse'
+                description: Response wrapper with data
+              example:
+                data:
+                  id: 1738816
+                  webhook:
+                    name: Tasks bot
+                    nickname: tasks_bot
+                    outgoing_url: https://www.website.com/tasks/new
+                    events:
+                      - message_new
+                    trigger_on: commands
+                    commands:
+                      - /task
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bots:read
     put:
       operationId: BotOperations_updateBot
       description: >-
@@ -179,7 +332,7 @@ paths:
 
 
         To edit a bot you need to know its `user_id` and specify it in the request `URL`. All editable bot parameters
-        are specified in the request body. You can find the bot's `user_id` in the bot settings under the "API" tab.
+        are specified in the request body.
 
 
         You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located
@@ -5106,7 +5259,8 @@ components:
           description: User ID
         action_message:
           type: string
-          description: Action description
+          nullable: true
+          description: Action description. `null` if the rule action has no text set.
         conditions_matched:
           type: boolean
           description: Rule conditions check result (true — conditions matched)
@@ -5409,6 +5563,116 @@ components:
           description: Avatar URL
           example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
       description: Avatar data
+    BotCreateRequest:
+      type: object
+      required:
+        - bot
+      properties:
+        bot:
+          type: object
+          properties:
+            webhook:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Bot name
+                  example: Tasks bot
+                nickname:
+                  type: string
+                  description: Bot nickname. Must end with `_bot`.
+                  example: tasks_bot
+                outgoing_url:
+                  type: string
+                  description: Outgoing webhook URL
+                  example: https://www.website.com/tasks/new
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/BotEventName'
+                  description: Events the bot is subscribed to
+                  example:
+                    - message_new
+                trigger_on:
+                  allOf:
+                    - $ref: '#/components/schemas/BotTriggerOn'
+                  description: Outgoing webhook trigger condition
+                  example: commands
+                commands:
+                  type: array
+                  items:
+                    type: string
+                  description: Bot commands (trigger words) it reacts to when trigger_on = commands
+                  example:
+                    - /task
+                    - /help
+              required:
+                - name
+              description: Bot webhook parameters object
+          required:
+            - webhook
+          description: Parameters object of the bot to create
+      description: Bot creation request
+    BotCreateResponse:
+      type: object
+      required:
+        - id
+        - webhook
+        - access_token
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Bot ID (same as the bot's `user_id`)
+          example: 1738816
+        webhook:
+          allOf:
+            - $ref: '#/components/schemas/BotWebhook'
+          description: Webhook parameters object
+        access_token:
+          type: string
+          description: >-
+            Bot access token. Issued only at creation. You can obtain the token again only through the interface (the
+            "API" tab of the bot settings).
+          example: bm90X2FfcmVhbF90b2tlbg
+      description: Created bot parameters
+    BotEventName:
+      type: string
+      enum:
+        - message_new
+        - message_update
+        - message_delete
+        - reaction_new
+        - reaction_delete
+        - button_click
+        - message_link_shared
+        - chat_member_add
+        - chat_member_remove
+        - company_member_invite
+        - company_member_confirm
+        - company_member_suspend
+        - company_member_activate
+        - company_member_delete
+        - company_member_update
+        - bill_created
+      description: Bot outgoing webhook event
+      x-enum-descriptions:
+        message_new: New message
+        message_update: Message edited
+        message_delete: Message deleted
+        reaction_new: Reaction added
+        reaction_delete: Reaction removed
+        button_click: Button clicked
+        message_link_shared: A link was shared in a message (for unfurl)
+        chat_member_add: Member added to chat
+        chat_member_remove: Member removed from chat
+        company_member_invite: Employee invited to the company
+        company_member_confirm: Employee confirmed the invitation
+        company_member_suspend: Employee suspended
+        company_member_activate: Employee activated
+        company_member_delete: Employee removed from the company
+        company_member_update: Employee data changed
+        bill_created: Bill created
     BotResponse:
       type: object
       required:
@@ -5421,16 +5685,21 @@ components:
           description: Bot ID
           example: 1738816
         webhook:
-          type: object
-          properties:
-            outgoing_url:
-              type: string
-              description: Outgoing webhook URL
-              example: https://www.website.com/tasks/new
-          required:
-            - outgoing_url
+          allOf:
+            - $ref: '#/components/schemas/BotWebhook'
           description: Webhook parameters object
       description: Bot parameters
+    BotTriggerOn:
+      type: string
+      enum:
+        - commands
+        - all_messages
+        - unfurl
+      description: Outgoing webhook trigger condition
+      x-enum-descriptions:
+        commands: Only on commands (trigger words) from commands
+        all_messages: On all messages in chats where the bot is present
+        unfurl: On link unfurling (link previews)
     BotUpdateRequest:
       type: object
       required:
@@ -5442,17 +5711,86 @@ components:
             webhook:
               type: object
               properties:
+                name:
+                  type: string
+                  description: Bot name
+                  example: Tasks bot
+                nickname:
+                  type: string
+                  description: Bot nickname. Must end with `_bot`.
+                  example: tasks_bot
                 outgoing_url:
                   type: string
                   description: Outgoing webhook URL
                   example: https://www.website.com/tasks/new
-              required:
-                - outgoing_url
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/BotEventName'
+                  description: Events the bot is subscribed to
+                  example:
+                    - message_new
+                trigger_on:
+                  allOf:
+                    - $ref: '#/components/schemas/BotTriggerOn'
+                  description: Outgoing webhook trigger condition
+                  example: commands
+                commands:
+                  type: array
+                  items:
+                    type: string
+                  description: Bot commands (trigger words) it reacts to when trigger_on = commands
+                  example:
+                    - /task
+                    - /help
               description: Webhook parameters object
           required:
             - webhook
           description: Bot parameters object to update
       description: Bot update request
+    BotWebhook:
+      type: object
+      required:
+        - name
+        - nickname
+        - outgoing_url
+        - events
+        - trigger_on
+        - commands
+      properties:
+        name:
+          type: string
+          description: Bot name
+          example: Tasks bot
+        nickname:
+          type: string
+          description: Bot nickname
+          example: tasks_bot
+        outgoing_url:
+          type: string
+          nullable: true
+          description: Outgoing webhook URL
+          example: https://www.website.com/tasks/new
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotEventName'
+          description: Events the bot is subscribed to
+          example:
+            - message_new
+        trigger_on:
+          allOf:
+            - $ref: '#/components/schemas/BotTriggerOn'
+          description: Outgoing webhook trigger condition
+          example: commands
+        commands:
+          type: array
+          items:
+            type: string
+          description: Bot commands (trigger words)
+          example:
+            - /task
+      description: Bot webhook parameters
     Button:
       type: object
       required:
@@ -5961,10 +6299,14 @@ components:
       enum:
         - file
         - image
+        - audio
+        - voice
       description: File type
       x-enum-descriptions:
         file: Regular file
         image: Image
+        audio: Audio file
+        voice: Voice message
     FileUploadRequest:
       type: object
       properties:
@@ -6242,6 +6584,7 @@ components:
         - created_at
         - url
         - files
+        - voice_content
         - buttons
         - thread
         - forwarding
@@ -6301,6 +6644,12 @@ components:
           items:
             $ref: '#/components/schemas/File'
           description: Attached files
+        voice_content:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/VoiceContent'
+          nullable: true
+          description: Voice message data. Filled only for voice messages (file `file_type` is `voice`), otherwise `null`.
         buttons:
           type: array
           items:
@@ -6418,6 +6767,21 @@ components:
                     format: int32
                     description: Image height in px (used when file_type is set to image)
                     example: 600
+                  duration_ms:
+                    type: integer
+                    format: int32
+                    minimum: 1
+                    description: >-
+                      Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other
+                      types.
+                    example: 5400
+                  waveform:
+                    type: string
+                    maxLength: 256
+                    description: >-
+                      Waveform for visualizing the voice message. Required for voice messages (`file_type` is `voice`),
+                      not used for other types.
+                    example: 4,8,12,20,16,10,6,3
                 required:
                   - key
                   - name
@@ -6514,7 +6878,8 @@ components:
                     description: File name to display to the user (recommended to include the file extension)
                     example: logo.png
                   file_type:
-                    type: string
+                    allOf:
+                      - $ref: '#/components/schemas/FileType'
                     description: 'File type: file (file), image (image)'
                     example: image
                   size:
@@ -6532,6 +6897,21 @@ components:
                     format: int32
                     description: Image height in px (used when file_type is set to image)
                     example: 600
+                  duration_ms:
+                    type: integer
+                    format: int32
+                    minimum: 1
+                    description: >-
+                      Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other
+                      types.
+                    example: 5400
+                  waveform:
+                    type: string
+                    maxLength: 256
+                    description: >-
+                      Waveform for visualizing the voice message. Required for voice messages (`file_type` is `voice`),
+                      not used for other types.
+                    example: 4,8,12,20,16,10,6,3
                 required:
                   - key
                   - name
@@ -7187,7 +7567,9 @@ components:
         created_at:
           type: string
           format: date-time
-          description: Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          description: >-
+            Reaction creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. The field is also
+            present for the reaction-removed event.
           example: '2025-05-15T14:30:00.000Z'
         webhook_timestamp:
           type: integer
@@ -8496,7 +8878,7 @@ components:
         options:
           type: array
           items:
-            $ref: '#/components/schemas/ViewBlockSelectableOption'
+            $ref: '#/components/schemas/ViewBlockSelectOption'
           maxItems: 100
           description: Array of available items in the dropdown
         required:
@@ -8509,7 +8891,7 @@ components:
           description: Hint displayed below the dropdown in gray
           example: Select one of the teams
       description: Select block — dropdown
-    ViewBlockSelectableOption:
+    ViewBlockSelectOption:
       type: object
       required:
         - text
@@ -8525,14 +8907,37 @@ components:
           maxLength: 150
           description: Select option value
           example: nothing
-        description:
-          type: string
-          maxLength: 75
-          description: Select option description
-          example: Every day the bot will send a list of new tasks in your team
         selected:
           type: boolean
           description: Whether this select option is selected by default
+          example: true
+      description: >-
+        Dropdown (select) option. Unlike radio/checkbox, a select option has no `description` subtitle — the web app
+        does not render it.
+    ViewBlockSelectableOption:
+      type: object
+      required:
+        - text
+        - value
+      properties:
+        text:
+          type: string
+          maxLength: 75
+          description: Radio option label text
+          example: None
+        value:
+          type: string
+          maxLength: 150
+          description: Radio option value
+          example: nothing
+        description:
+          type: string
+          maxLength: 75
+          description: Radio option description
+          example: Every day the bot will send a list of new tasks in your team
+        selected:
+          type: boolean
+          description: Whether this radio option is selected by default
           example: true
       description: Option for select, radio, and checkbox blocks
     ViewBlockTime:
@@ -8653,6 +9058,28 @@ components:
           description: Webhook send date and time (UTC+0) in UNIX format
           example: 1755075544
       description: Outgoing webhook payload for form submission
+    VoiceContent:
+      type: object
+      required:
+        - duration_ms
+        - waveform
+        - transcript
+      properties:
+        duration_ms:
+          type: integer
+          format: int32
+          description: Voice message duration in milliseconds
+          example: 5400
+        waveform:
+          type: string
+          description: Waveform (amplitudes) for visualizing the voice message
+          example: 4,8,12,20,16,10,6,3
+        transcript:
+          type: string
+          nullable: true
+          description: Voice message transcription to text. `null` while the transcription is not ready or unavailable.
+          example: Hi, please take a look at the latest report
+      description: Voice message data
     WebhookEvent:
       type: object
       required:

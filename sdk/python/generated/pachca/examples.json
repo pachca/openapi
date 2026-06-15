@@ -13,6 +13,10 @@
       "GetAuditEventsParams"
     ]
   },
+  "BotOperations_getBot": {
+    "usage": "response = await client.bots.get_bot(id=1738816)",
+    "output": "BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str]))"
+  },
   "BotOperations_getWebhookEvents": {
     "usage": "params = GetWebhookEventsParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.bots.get_webhook_events(params=params)",
     "output": "GetWebhookEventsResponse(data: list[WebhookEvent], meta: PaginationMeta)",
@@ -26,10 +30,23 @@
   "BotOperations_getWebhookEvents_pollWebhookPayloads": {
     "usage": "async for payload in client.bots.poll_webhook_payloads(interval_seconds=5.0):\n    print(payload)"
   },
-  "BotOperations_updateBot": {
-    "usage": "request = BotUpdateRequest(bot=BotUpdateRequestBot(webhook=BotUpdateRequestBotWebhook(outgoing_url=\"https://www.website.com/tasks/new\")))\nresponse = await client.bots.update_bot(id=1738816, request=request)",
-    "output": "BotResponse(id: int, webhook: BotResponseWebhook(outgoing_url: str))",
+  "BotOperations_createBot": {
+    "usage": "request = BotCreateRequest(\n    bot=BotCreateRequestBot(\n        webhook=BotCreateRequestBotWebhook(\n            name=\"Бот задач\",\n            nickname=\"tasks_bot\",\n            outgoing_url=\"https://www.website.com/tasks/new\",\n            events=[BotEventName.MESSAGE_NEW],\n            trigger_on=BotTriggerOn.COMMANDS,\n            commands=[\"example\"]\n        )\n    )\n)\nresponse = await client.bots.create_bot(request=request)",
+    "output": "BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str]), access_token: str)",
     "imports": [
+      "BotCreateRequest",
+      "BotCreateRequestBot",
+      "BotCreateRequestBotWebhook",
+      "BotEventName",
+      "BotTriggerOn"
+    ]
+  },
+  "BotOperations_updateBot": {
+    "usage": "request = BotUpdateRequest(\n    bot=BotUpdateRequestBot(\n        webhook=BotUpdateRequestBotWebhook(\n            name=\"Бот задач\",\n            nickname=\"tasks_bot\",\n            outgoing_url=\"https://www.website.com/tasks/new\",\n            events=[BotEventName.MESSAGE_NEW],\n            trigger_on=BotTriggerOn.COMMANDS,\n            commands=[\"example\"]\n        )\n    )\n)\nresponse = await client.bots.update_bot(id=1738816, request=request)",
+    "output": "BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str]))",
+    "imports": [
+      "BotEventName",
+      "BotTriggerOn",
       "BotUpdateRequest",
       "BotUpdateRequestBot",
       "BotUpdateRequestBotWebhook"
@@ -182,11 +199,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "response = await client.messages.get_message(id=194275)",
-    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)"
+    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)"
   },
   "MessageOperations_createMessage": {
-    "usage": "request = MessageCreateRequest(\n    message=MessageCreateRequestMessage(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=334,\n        content=\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files=[MessageCreateRequestFile(\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600\n        )],\n        buttons=[[Button(\n            text=\"Подробнее\",\n            url=\"https://example.com/details\",\n            data=\"awesome\"\n        )]],\n        parent_message_id=194270,\n        display_avatar_url=\"https://example.com/avatar.png\",\n        display_name=\"Бот Поддержки\",\n        skip_invite_mentions=False\n    ),\n    link_preview=False\n)\nresponse = await client.messages.create_message(request=request)",
-    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)",
+    "usage": "request = MessageCreateRequest(\n    message=MessageCreateRequestMessage(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=334,\n        content=\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files=[MessageCreateRequestFile(\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        buttons=[[Button(\n            text=\"Подробнее\",\n            url=\"https://example.com/details\",\n            data=\"awesome\"\n        )]],\n        parent_message_id=194270,\n        display_avatar_url=\"https://example.com/avatar.png\",\n        display_name=\"Бот Поддержки\",\n        skip_invite_mentions=False\n    ),\n    link_preview=False\n)\nresponse = await client.messages.create_message(request=request)",
+    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)",
     "imports": [
       "Button",
       "FileType",
@@ -200,10 +217,11 @@
     "usage": "await client.messages.pin_message(id=194275)"
   },
   "MessageOperations_updateMessage": {
-    "usage": "request = MessageUpdateRequest(\n    message=MessageUpdateRequestMessage(\n        content=\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files=[MessageUpdateRequestFile(\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=\"image\",\n            size=12345,\n            width=800,\n            height=600\n        )],\n        buttons=[[Button(\n            text=\"Подробнее\",\n            url=\"https://example.com/details\",\n            data=\"awesome\"\n        )]],\n        display_avatar_url=\"https://example.com/avatar.png\",\n        display_name=\"Бот Поддержки\"\n    )\n)\nresponse = await client.messages.update_message(id=194275, request=request)",
-    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)",
+    "usage": "request = MessageUpdateRequest(\n    message=MessageUpdateRequestMessage(\n        content=\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files=[MessageUpdateRequestFile(\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        buttons=[[Button(\n            text=\"Подробнее\",\n            url=\"https://example.com/details\",\n            data=\"awesome\"\n        )]],\n        display_avatar_url=\"https://example.com/avatar.png\",\n        display_name=\"Бот Поддержки\"\n    )\n)\nresponse = await client.messages.update_message(id=194275, request=request)",
+    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)",
     "imports": [
       "Button",
+      "FileType",
       "MessageUpdateRequest",
       "MessageUpdateRequestFile",
       "MessageUpdateRequestMessage"

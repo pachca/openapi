@@ -762,7 +762,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"chat\": {\n    \"name\": \"🤿 aqua\",\n    \"member_ids\": [\n      186,\n      187\n    ],\n    \"group_tag_ids\": [\n      86,\n      18\n    ],\n    \"channel\": true,\n    \"public\": false\n  }\n}",
+              "raw": "{\n  \"chat\": {\n    \"name\": \"🤿 aqua\",\n    \"member_ids\": [\n      186,\n      187\n    ],\n    \"group_tag_ids\": [\n      86,\n      18\n    ],\n    \"channel\": true\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1219,7 +1219,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": {\n    \"entity_type\": \"discussion\",\n    \"entity_id\": 334,\n    \"content\": \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    \"files\": [\n      {\n        \"key\": \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n        \"name\": \"logo.png\",\n        \"file_type\": \"image\",\n        \"size\": 12345,\n        \"width\": 800,\n        \"height\": 600\n      }\n    ],\n    \"buttons\": [\n      [\n        {\n          \"text\": \"Подробнее\",\n          \"url\": \"https://example.com/details\"\n        },\n        {\n          \"text\": \"Отлично!\",\n          \"data\": \"awesome\"\n        }\n      ]\n    ],\n    \"parent_message_id\": 194270,\n    \"display_avatar_url\": \"https://example.com/avatar.png\",\n    \"display_name\": \"Бот Поддержки\",\n    \"skip_invite_mentions\": false\n  },\n  \"link_preview\": false\n}",
+              "raw": "{\n  \"message\": {\n    \"entity_id\": 334,\n    \"content\": \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    \"files\": [\n      {\n        \"key\": \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n        \"name\": \"logo.png\",\n        \"file_type\": \"image\",\n        \"size\": 12345,\n        \"width\": 800,\n        \"height\": 600,\n        \"duration_ms\": 5400,\n        \"waveform\": \"4,8,12,20,16,10,6,3\"\n      }\n    ],\n    \"buttons\": [\n      [\n        {\n          \"text\": \"Подробнее\",\n          \"url\": \"https://example.com/details\"\n        },\n        {\n          \"text\": \"Отлично!\",\n          \"data\": \"awesome\"\n        }\n      ]\n    ],\n    \"parent_message_id\": 194270,\n    \"display_avatar_url\": \"https://example.com/avatar.png\",\n    \"display_name\": \"Бот Поддержки\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1295,7 +1295,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": {\n    \"content\": \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n    \"files\": [\n      {\n        \"key\": \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n        \"name\": \"logo.png\",\n        \"file_type\": \"image\",\n        \"size\": 12345,\n        \"width\": 800,\n        \"height\": 600\n      }\n    ],\n    \"buttons\": [\n      [\n        {\n          \"text\": \"Подробнее\",\n          \"url\": \"https://example.com/details\"\n        }\n      ]\n    ],\n    \"display_avatar_url\": \"https://example.com/avatar.png\",\n    \"display_name\": \"Бот Поддержки\"\n  }\n}",
+              "raw": "{\n  \"message\": {\n    \"content\": \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n    \"files\": [\n      {\n        \"key\": \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n        \"name\": \"logo.png\",\n        \"file_type\": \"image\",\n        \"size\": 12345,\n        \"width\": 800,\n        \"height\": 600,\n        \"duration_ms\": 5400,\n        \"waveform\": \"4,8,12,20,16,10,6,3\"\n      }\n    ],\n    \"buttons\": [\n      [\n        {\n          \"text\": \"Подробнее\",\n          \"url\": \"https://example.com/details\"\n        }\n      ]\n    ],\n    \"display_avatar_url\": \"https://example.com/avatar.png\",\n    \"display_name\": \"Бот Поддержки\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1755,7 +1755,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"modal\",\n  \"trigger_id\": \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  \"private_metadata\": \"{\\\"timeoff_id\\\":4378}\",\n  \"callback_id\": \"timeoff_reguest_form\",\n  \"view\": {\n    \"title\": \"Уведомление об отпуске\",\n    \"close_text\": \"Закрыть\",\n    \"submit_text\": \"Отправить заявку\",\n    \"blocks\": [\n      {\n        \"type\": \"header\",\n        \"text\": \"Основная информация\"\n      },\n      {\n        \"type\": \"plain_text\",\n        \"text\": \"Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе.\"\n      },\n      {\n        \"type\": \"markdown\",\n        \"text\": \"Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)\"\n      },\n      {\n        \"type\": \"divider\"\n      },\n      {\n        \"type\": \"input\",\n        \"name\": \"info\",\n        \"label\": \"Описание отпуска\",\n        \"placeholder\": \"Куда собираетесь и что будете делать\",\n        \"multiline\": true,\n        \"initial_value\": \"Начальный текст\",\n        \"min_length\": 10,\n        \"max_length\": 500,\n        \"required\": true,\n        \"hint\": \"Возможно вам подскаджут, какие места лучше посетить\"\n      },\n      {\n        \"type\": \"select\",\n        \"name\": \"team\",\n        \"label\": \"Выберите команду\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"selected\": true\n          }\n        ],\n        \"required\": false,\n        \"hint\": \"Выберите одну из команд\"\n      },\n      {\n        \"type\": \"radio\",\n        \"name\": \"accessibility\",\n        \"label\": \"Доступность\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"selected\": true\n          }\n        ],\n        \"required\": true,\n        \"hint\": \"Если вы не планируете выходить на связь, то выберите вариант Ничего\"\n      },\n      {\n        \"type\": \"checkbox\",\n        \"name\": \"newsletters\",\n        \"label\": \"Рассылки\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"checked\": true\n          }\n        ],\n        \"required\": false,\n        \"hint\": \"Выберите интересующие вас рассылки\"\n      },\n      {\n        \"type\": \"date\",\n        \"name\": \"date_start\",\n        \"label\": \"Дата начала отпуска\",\n        \"initial_date\": \"2025-07-01\",\n        \"required\": true,\n        \"hint\": \"Укажите дату начала отпуска\"\n      },\n      {\n        \"type\": \"time\",\n        \"name\": \"newsletter_time\",\n        \"label\": \"Время рассылки\",\n        \"initial_time\": \"11:00\",\n        \"required\": false,\n        \"hint\": \"Укажите, в какое время присылать выбранные рассылки\"\n      },\n      {\n        \"type\": \"file_input\",\n        \"name\": \"request_doc\",\n        \"label\": \"Заявление\",\n        \"filetypes\": [\n          \"pdf\",\n          \"jpg\",\n          \"png\"\n        ],\n        \"max_files\": 1,\n        \"required\": true,\n        \"hint\": \"Загрузите заполненное заявление с электронной подписью (в формате pdf, jpg или png)\"\n      }\n    ]\n  }\n}",
+              "raw": "{\n  \"type\": \"modal\",\n  \"trigger_id\": \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  \"private_metadata\": \"{\\\"timeoff_id\\\":4378}\",\n  \"callback_id\": \"timeoff_reguest_form\",\n  \"view\": {\n    \"title\": \"Уведомление об отпуске\",\n    \"close_text\": \"Закрыть\",\n    \"submit_text\": \"Отправить заявку\",\n    \"blocks\": [\n      {\n        \"type\": \"header\",\n        \"text\": \"Основная информация\"\n      },\n      {\n        \"type\": \"plain_text\",\n        \"text\": \"Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе.\"\n      },\n      {\n        \"type\": \"markdown\",\n        \"text\": \"Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)\"\n      },\n      {\n        \"type\": \"divider\"\n      },\n      {\n        \"type\": \"input\",\n        \"name\": \"info\",\n        \"label\": \"Описание отпуска\",\n        \"placeholder\": \"Куда собираетесь и что будете делать\",\n        \"multiline\": true,\n        \"initial_value\": \"Начальный текст\",\n        \"min_length\": 10,\n        \"max_length\": 500,\n        \"required\": true,\n        \"hint\": \"Возможно вам подскаджут, какие места лучше посетить\"\n      },\n      {\n        \"type\": \"select\",\n        \"name\": \"team\",\n        \"label\": \"Выберите команду\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"selected\": true\n          }\n        ],\n        \"required\": false,\n        \"hint\": \"Выберите одну из команд\"\n      },\n      {\n        \"type\": \"radio\",\n        \"name\": \"accessibility\",\n        \"label\": \"Доступность\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"selected\": true\n          }\n        ],\n        \"required\": true,\n        \"hint\": \"Если вы не планируете выходить на связь, то выберите вариант Ничего\"\n      },\n      {\n        \"type\": \"checkbox\",\n        \"name\": \"newsletters\",\n        \"label\": \"Рассылки\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"checked\": true\n          }\n        ],\n        \"required\": false,\n        \"hint\": \"Выберите интересующие вас рассылки\"\n      },\n      {\n        \"type\": \"date\",\n        \"name\": \"date_start\",\n        \"label\": \"Дата начала отпуска\",\n        \"initial_date\": \"2025-07-01\",\n        \"required\": true,\n        \"hint\": \"Укажите дату начала отпуска\"\n      },\n      {\n        \"type\": \"time\",\n        \"name\": \"newsletter_time\",\n        \"label\": \"Время рассылки\",\n        \"initial_time\": \"11:00\",\n        \"required\": false,\n        \"hint\": \"Укажите, в какое время присылать выбранные рассылки\"\n      },\n      {\n        \"type\": \"file_input\",\n        \"name\": \"request_doc\",\n        \"label\": \"Заявление\",\n        \"filetypes\": [\n          \"pdf\",\n          \"jpg\",\n          \"png\"\n        ],\n        \"max_files\": 1,\n        \"required\": true,\n        \"hint\": \"Загрузите заполненное заявление с электронной подписью (в формате pdf, jpg или png)\"\n      }\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1769,6 +1769,59 @@
     {
       "name": "Bots",
       "item": [
+        {
+          "name": "Создание бота",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bots"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bot\": {\n    \"webhook\": {\n      \"name\": \"Бот задач\",\n      \"nickname\": \"tasks_bot\",\n      \"outgoing_url\": \"https://www.website.com/tasks/new\",\n      \"events\": [\n        \"message_new\"\n      ],\n      \"trigger_on\": \"commands\",\n      \"commands\": [\n        \"/task\",\n        \"/help\"\n      ]\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Получение бота",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bots/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bots",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
         {
           "name": "Редактирование бота",
           "request": {
@@ -1797,7 +1850,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"bot\": {\n    \"webhook\": {\n      \"outgoing_url\": \"https://www.website.com/tasks/new\"\n    }\n  }\n}",
+              "raw": "{\n  \"bot\": {\n    \"webhook\": {\n      \"name\": \"Бот задач\",\n      \"nickname\": \"tasks_bot\",\n      \"outgoing_url\": \"https://www.website.com/tasks/new\",\n      \"events\": [\n        \"message_new\"\n      ],\n      \"trigger_on\": \"commands\",\n      \"commands\": [\n        \"/task\",\n        \"/help\"\n      ]\n    }\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"

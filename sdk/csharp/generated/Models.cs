@@ -175,6 +175,136 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
     }
 }
 
+/// <summary>Событие исходящего вебхука бота</summary>
+[JsonConverter(typeof(BotEventNameConverter))]
+public enum BotEventName
+{
+    /// <summary>Новое сообщение</summary>
+    MessageNew,
+    /// <summary>Сообщение отредактировано</summary>
+    MessageUpdate,
+    /// <summary>Сообщение удалено</summary>
+    MessageDelete,
+    /// <summary>Добавлена реакция</summary>
+    ReactionNew,
+    /// <summary>Реакция удалена</summary>
+    ReactionDelete,
+    /// <summary>Нажата кнопка</summary>
+    ButtonClick,
+    /// <summary>В сообщении отправлена ссылка (для unfurl)</summary>
+    MessageLinkShared,
+    /// <summary>Участник добавлен в чат</summary>
+    ChatMemberAdd,
+    /// <summary>Участник удалён из чата</summary>
+    ChatMemberRemove,
+    /// <summary>Сотрудник приглашён в компанию</summary>
+    CompanyMemberInvite,
+    /// <summary>Сотрудник подтвердил приглашение</summary>
+    CompanyMemberConfirm,
+    /// <summary>Сотрудник деактивирован</summary>
+    CompanyMemberSuspend,
+    /// <summary>Сотрудник активирован</summary>
+    CompanyMemberActivate,
+    /// <summary>Сотрудник удалён из компании</summary>
+    CompanyMemberDelete,
+    /// <summary>Данные сотрудника изменены</summary>
+    CompanyMemberUpdate,
+    /// <summary>Создан счёт</summary>
+    BillCreated,
+}
+
+internal class BotEventNameConverter : JsonConverter<BotEventName>
+{
+    public override BotEventName Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "message_new" => BotEventName.MessageNew,
+            "message_update" => BotEventName.MessageUpdate,
+            "message_delete" => BotEventName.MessageDelete,
+            "reaction_new" => BotEventName.ReactionNew,
+            "reaction_delete" => BotEventName.ReactionDelete,
+            "button_click" => BotEventName.ButtonClick,
+            "message_link_shared" => BotEventName.MessageLinkShared,
+            "chat_member_add" => BotEventName.ChatMemberAdd,
+            "chat_member_remove" => BotEventName.ChatMemberRemove,
+            "company_member_invite" => BotEventName.CompanyMemberInvite,
+            "company_member_confirm" => BotEventName.CompanyMemberConfirm,
+            "company_member_suspend" => BotEventName.CompanyMemberSuspend,
+            "company_member_activate" => BotEventName.CompanyMemberActivate,
+            "company_member_delete" => BotEventName.CompanyMemberDelete,
+            "company_member_update" => BotEventName.CompanyMemberUpdate,
+            "bill_created" => BotEventName.BillCreated,
+            _ => throw new JsonException($"Unknown BotEventName value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, BotEventName value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            BotEventName.MessageNew => "message_new",
+            BotEventName.MessageUpdate => "message_update",
+            BotEventName.MessageDelete => "message_delete",
+            BotEventName.ReactionNew => "reaction_new",
+            BotEventName.ReactionDelete => "reaction_delete",
+            BotEventName.ButtonClick => "button_click",
+            BotEventName.MessageLinkShared => "message_link_shared",
+            BotEventName.ChatMemberAdd => "chat_member_add",
+            BotEventName.ChatMemberRemove => "chat_member_remove",
+            BotEventName.CompanyMemberInvite => "company_member_invite",
+            BotEventName.CompanyMemberConfirm => "company_member_confirm",
+            BotEventName.CompanyMemberSuspend => "company_member_suspend",
+            BotEventName.CompanyMemberActivate => "company_member_activate",
+            BotEventName.CompanyMemberDelete => "company_member_delete",
+            BotEventName.CompanyMemberUpdate => "company_member_update",
+            BotEventName.BillCreated => "bill_created",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
+/// <summary>Условие срабатывания исходящего вебхука бота</summary>
+[JsonConverter(typeof(BotTriggerOnConverter))]
+public enum BotTriggerOn
+{
+    /// <summary>Только на команды (триггер-слова) из commands</summary>
+    Commands,
+    /// <summary>На все сообщения в чатах, где есть бот</summary>
+    AllMessages,
+    /// <summary>На развёртывание ссылок (link previews)</summary>
+    Unfurl,
+}
+
+internal class BotTriggerOnConverter : JsonConverter<BotTriggerOn>
+{
+    public override BotTriggerOn Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "commands" => BotTriggerOn.Commands,
+            "all_messages" => BotTriggerOn.AllMessages,
+            "unfurl" => BotTriggerOn.Unfurl,
+            _ => throw new JsonException($"Unknown BotTriggerOn value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, BotTriggerOn value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            BotTriggerOn.Commands => "commands",
+            BotTriggerOn.AllMessages => "all_messages",
+            BotTriggerOn.Unfurl => "unfurl",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Доступность чатов для пользователя</summary>
 [JsonConverter(typeof(ChatAvailabilityConverter))]
 public enum ChatAvailability
@@ -417,6 +547,10 @@ public enum FileType
     File,
     /// <summary>Изображение</summary>
     Image,
+    /// <summary>Аудиофайл</summary>
+    Audio,
+    /// <summary>Голосовое сообщение</summary>
+    Voice,
 }
 
 internal class FileTypeConverter : JsonConverter<FileType>
@@ -428,6 +562,8 @@ internal class FileTypeConverter : JsonConverter<FileType>
         {
             "file" => FileType.File,
             "image" => FileType.Image,
+            "audio" => FileType.Audio,
+            "voice" => FileType.Voice,
             _ => throw new JsonException($"Unknown FileType value: {value}"),
         };
     }
@@ -438,6 +574,8 @@ internal class FileTypeConverter : JsonConverter<FileType>
         {
             FileType.File => "file",
             FileType.Image => "image",
+            FileType.Audio => "audio",
+            FileType.Voice => "voice",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -1547,7 +1685,7 @@ public class AuditDetailsDlp : AuditEventDetailsUnion
     [JsonPropertyName("user_id")]
     public int UserId { get; set; } = default!;
     [JsonPropertyName("action_message")]
-    public string ActionMessage { get; set; } = default!;
+    public string? ActionMessage { get; set; }
     [JsonPropertyName("conditions_matched")]
     public bool ConditionsMatched { get; set; } = default!;
 }
@@ -1648,7 +1786,7 @@ public class ViewBlockSelect : ViewBlockUnion
     [JsonPropertyName("label")]
     public string Label { get; set; } = default!;
     [JsonPropertyName("options")]
-    public List<ViewBlockSelectableOption>? Options { get; set; }
+    public List<ViewBlockSelectOption>? Options { get; set; }
     [JsonPropertyName("required")]
     public bool? Required { get; set; }
     [JsonPropertyName("hint")]
@@ -2007,10 +2145,42 @@ public class AvatarData
     public string ImageUrl { get; set; } = default!;
 }
 
-public class BotResponseWebhook
+public class BotCreateRequestBotWebhook
 {
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("nickname")]
+    public string? Nickname { get; set; }
     [JsonPropertyName("outgoing_url")]
-    public string OutgoingUrl { get; set; } = default!;
+    public string? OutgoingUrl { get; set; }
+    [JsonPropertyName("events")]
+    public List<BotEventName>? Events { get; set; }
+    [JsonPropertyName("trigger_on")]
+    public BotTriggerOn? TriggerOn { get; set; }
+    [JsonPropertyName("commands")]
+    public List<string>? Commands { get; set; }
+}
+
+public class BotCreateRequestBot
+{
+    [JsonPropertyName("webhook")]
+    public BotCreateRequestBotWebhook Webhook { get; set; } = default!;
+}
+
+public class BotCreateRequest
+{
+    [JsonPropertyName("bot")]
+    public BotCreateRequestBot Bot { get; set; } = default!;
+}
+
+public class BotCreateResponse
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
+    [JsonPropertyName("webhook")]
+    public BotWebhook Webhook { get; set; } = default!;
+    [JsonPropertyName("access_token")]
+    public string AccessToken { get; set; } = default!;
 }
 
 public class BotResponse
@@ -2018,13 +2188,23 @@ public class BotResponse
     [JsonPropertyName("id")]
     public int Id { get; set; } = default!;
     [JsonPropertyName("webhook")]
-    public BotResponseWebhook Webhook { get; set; } = default!;
+    public BotWebhook Webhook { get; set; } = default!;
 }
 
 public class BotUpdateRequestBotWebhook
 {
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+    [JsonPropertyName("nickname")]
+    public string? Nickname { get; set; }
     [JsonPropertyName("outgoing_url")]
-    public string OutgoingUrl { get; set; } = default!;
+    public string? OutgoingUrl { get; set; }
+    [JsonPropertyName("events")]
+    public List<BotEventName>? Events { get; set; }
+    [JsonPropertyName("trigger_on")]
+    public BotTriggerOn? TriggerOn { get; set; }
+    [JsonPropertyName("commands")]
+    public List<string>? Commands { get; set; }
 }
 
 public class BotUpdateRequestBot
@@ -2037,6 +2217,22 @@ public class BotUpdateRequest
 {
     [JsonPropertyName("bot")]
     public BotUpdateRequestBot Bot { get; set; } = default!;
+}
+
+public class BotWebhook
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("nickname")]
+    public string Nickname { get; set; } = default!;
+    [JsonPropertyName("outgoing_url")]
+    public string? OutgoingUrl { get; set; }
+    [JsonPropertyName("events")]
+    public List<BotEventName> Events { get; set; } = default!;
+    [JsonPropertyName("trigger_on")]
+    public BotTriggerOn TriggerOn { get; set; } = default!;
+    [JsonPropertyName("commands")]
+    public List<string> Commands { get; set; } = default!;
 }
 
 public class Button
@@ -2283,6 +2479,8 @@ public class Message
     public string Url { get; set; } = default!;
     [JsonPropertyName("files")]
     public List<File> Files { get; set; } = default!;
+    [JsonPropertyName("voice_content")]
+    public VoiceContent? VoiceContent { get; set; }
     [JsonPropertyName("buttons")]
     public List<List<Button>>? Buttons { get; set; }
     [JsonPropertyName("thread")]
@@ -2315,6 +2513,10 @@ public class MessageCreateRequestFile
     public int? Width { get; set; }
     [JsonPropertyName("height")]
     public int? Height { get; set; }
+    [JsonPropertyName("duration_ms")]
+    public int? DurationMs { get; set; }
+    [JsonPropertyName("waveform")]
+    public string? Waveform { get; set; }
 }
 
 public class MessageCreateRequestMessage
@@ -2354,13 +2556,17 @@ public class MessageUpdateRequestFile
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
     [JsonPropertyName("file_type")]
-    public string? FileType { get; set; }
+    public FileType? FileType { get; set; }
     [JsonPropertyName("size")]
     public int? Size { get; set; }
     [JsonPropertyName("width")]
     public int? Width { get; set; }
     [JsonPropertyName("height")]
     public int? Height { get; set; }
+    [JsonPropertyName("duration_ms")]
+    public int? DurationMs { get; set; }
+    [JsonPropertyName("waveform")]
+    public string? Waveform { get; set; }
 }
 
 public class MessageUpdateRequestMessage
@@ -2807,6 +3013,16 @@ public class ViewBlockCheckboxOption
     public bool? @Checked { get; set; }
 }
 
+public class ViewBlockSelectOption
+{
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = default!;
+    [JsonPropertyName("value")]
+    public string Value { get; set; } = default!;
+    [JsonPropertyName("selected")]
+    public bool? Selected { get; set; }
+}
+
 public class ViewBlockSelectableOption
 {
     [JsonPropertyName("text")]
@@ -2817,6 +3033,16 @@ public class ViewBlockSelectableOption
     public string? Description { get; set; }
     [JsonPropertyName("selected")]
     public bool? Selected { get; set; }
+}
+
+public class VoiceContent
+{
+    [JsonPropertyName("duration_ms")]
+    public int DurationMs { get; set; } = default!;
+    [JsonPropertyName("waveform")]
+    public string Waveform { get; set; } = default!;
+    [JsonPropertyName("transcript")]
+    public string? Transcript { get; set; }
 }
 
 public class WebhookEvent
@@ -2983,6 +3209,12 @@ public class BotResponseDataWrapper
 {
     [JsonPropertyName("data")]
     public BotResponse Data { get; set; } = default!;
+}
+
+public class BotCreateResponseDataWrapper
+{
+    [JsonPropertyName("data")]
+    public BotCreateResponse Data { get; set; } = default!;
 }
 
 public class ChatDataWrapper

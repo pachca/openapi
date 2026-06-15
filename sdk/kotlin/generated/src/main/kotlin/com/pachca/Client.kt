@@ -120,12 +120,20 @@ class SecurityServiceImpl internal constructor(
 }
 
 interface BotsService {
+    suspend fun getBot(id: Int): BotResponse {
+        throw NotImplementedError("Bots.getBot is not implemented")
+    }
+
     suspend fun getWebhookEvents(limit: Int? = null, cursor: String? = null): GetWebhookEventsResponse {
         throw NotImplementedError("Bots.getWebhookEvents is not implemented")
     }
 
     suspend fun getWebhookEventsAll(limit: Int? = null): List<WebhookEvent> {
         throw NotImplementedError("Bots.getWebhookEventsAll is not implemented")
+    }
+
+    suspend fun createBot(request: BotCreateRequest): BotCreateResponse {
+        throw NotImplementedError("Bots.createBot is not implemented")
     }
 
     suspend fun updateBot(id: Int, request: BotUpdateRequest): BotResponse {
@@ -141,6 +149,15 @@ class BotsServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) : BotsService {
+    override suspend fun getBot(id: Int): BotResponse {
+        val response = client.get("$baseUrl/bots/$id")
+        return when (response.status.value) {
+            200 -> response.body<BotResponseDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     override suspend fun getWebhookEvents(limit: Int?, cursor: String?): GetWebhookEventsResponse {
         val response = client.get("$baseUrl/webhooks/events") {
             limit?.let { parameter("limit", it) }
@@ -165,6 +182,18 @@ class BotsServiceImpl internal constructor(
             hasNext = response.meta.paginate.hasNext ?: true
         }
         return items
+    }
+
+    override suspend fun createBot(request: BotCreateRequest): BotCreateResponse {
+        val response = client.post("$baseUrl/bots") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            201 -> response.body<BotCreateResponseDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
     }
 
     override suspend fun updateBot(id: Int, request: BotUpdateRequest): BotResponse {

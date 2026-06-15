@@ -48,6 +48,35 @@ const (
 	AuditEventKeySearchMessagesApi     AuditEventKey = "search_messages_api" // Поиск сообщений через API
 )
 
+type BotEventName string
+
+const (
+	BotEventNameMessageNew            BotEventName = "message_new" // Новое сообщение
+	BotEventNameMessageUpdate         BotEventName = "message_update" // Сообщение отредактировано
+	BotEventNameMessageDelete         BotEventName = "message_delete" // Сообщение удалено
+	BotEventNameReactionNew           BotEventName = "reaction_new" // Добавлена реакция
+	BotEventNameReactionDelete        BotEventName = "reaction_delete" // Реакция удалена
+	BotEventNameButtonClick           BotEventName = "button_click" // Нажата кнопка
+	BotEventNameMessageLinkShared     BotEventName = "message_link_shared" // В сообщении отправлена ссылка (для unfurl)
+	BotEventNameChatMemberAdd         BotEventName = "chat_member_add" // Участник добавлен в чат
+	BotEventNameChatMemberRemove      BotEventName = "chat_member_remove" // Участник удалён из чата
+	BotEventNameCompanyMemberInvite   BotEventName = "company_member_invite" // Сотрудник приглашён в компанию
+	BotEventNameCompanyMemberConfirm  BotEventName = "company_member_confirm" // Сотрудник подтвердил приглашение
+	BotEventNameCompanyMemberSuspend  BotEventName = "company_member_suspend" // Сотрудник деактивирован
+	BotEventNameCompanyMemberActivate BotEventName = "company_member_activate" // Сотрудник активирован
+	BotEventNameCompanyMemberDelete   BotEventName = "company_member_delete" // Сотрудник удалён из компании
+	BotEventNameCompanyMemberUpdate   BotEventName = "company_member_update" // Данные сотрудника изменены
+	BotEventNameBillCreated           BotEventName = "bill_created" // Создан счёт
+)
+
+type BotTriggerOn string
+
+const (
+	BotTriggerOnCommands    BotTriggerOn = "commands" // Только на команды (триггер-слова) из commands
+	BotTriggerOnAllMessages BotTriggerOn = "all_messages" // На все сообщения в чатах, где есть бот
+	BotTriggerOnUnfurl      BotTriggerOn = "unfurl" // На развёртывание ссылок (link previews)
+)
+
 type ChatAvailability string
 
 const (
@@ -101,6 +130,8 @@ type FileType string
 const (
 	FileTypeFile  FileType = "file" // Обычный файл
 	FileTypeImage FileType = "image" // Изображение
+	FileTypeAudio FileType = "audio" // Аудиофайл
+	FileTypeVoice FileType = "voice" // Голосовое сообщение
 )
 
 type InviteStatus string
@@ -378,13 +409,13 @@ type AuditDetailsChatRenamed struct {
 }
 
 type AuditDetailsDlp struct {
-	DlpRuleID         int32  `json:"dlp_rule_id"`
-	DlpRuleName       string `json:"dlp_rule_name"`
-	MessageID         int32  `json:"message_id"`
-	ChatID            int32  `json:"chat_id"`
-	UserID            int32  `json:"user_id"`
-	ActionMessage     string `json:"action_message"`
-	ConditionsMatched bool   `json:"conditions_matched"`
+	DlpRuleID         int32   `json:"dlp_rule_id"`
+	DlpRuleName       string  `json:"dlp_rule_name"`
+	MessageID         int32   `json:"message_id"`
+	ChatID            int32   `json:"chat_id"`
+	UserID            int32   `json:"user_id"`
+	ConditionsMatched bool    `json:"conditions_matched"`
+	ActionMessage     *string `json:"action_message"`
 }
 
 type AuditDetailsEmpty struct {
@@ -452,17 +483,79 @@ type AvatarData struct {
 	ImageURL string `json:"image_url"`
 }
 
-type BotResponseWebhook struct {
-	OutgoingURL string `json:"outgoing_url"`
+type BotCreateRequestBotWebhook struct {
+	Name        string         `json:"name"`
+	Nickname    *string        `json:"nickname,omitempty"`
+	OutgoingURL *string        `json:"outgoing_url,omitempty"`
+	Events      []BotEventName `json:"events,omitempty"`
+	TriggerOn   *BotTriggerOn  `json:"trigger_on,omitempty"`
+	Commands    []string       `json:"commands,omitempty"`
+}
+
+func (m BotCreateRequestBotWebhook) MarshalJSON() ([]byte, error) {
+	type Alias BotCreateRequestBotWebhook
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Events != nil {
+		raw["events"] = m.Events
+	}
+	if m.Commands != nil {
+		raw["commands"] = m.Commands
+	}
+	return json.Marshal(raw)
+}
+
+type BotCreateRequestBot struct {
+	Webhook BotCreateRequestBotWebhook `json:"webhook"`
+}
+
+type BotCreateRequest struct {
+	Bot BotCreateRequestBot `json:"bot"`
+}
+
+type BotCreateResponse struct {
+	ID          int32      `json:"id"`
+	Webhook     BotWebhook `json:"webhook"`
+	AccessToken string     `json:"access_token"`
 }
 
 type BotResponse struct {
-	ID      int32              `json:"id"`
-	Webhook BotResponseWebhook `json:"webhook"`
+	ID      int32      `json:"id"`
+	Webhook BotWebhook `json:"webhook"`
 }
 
 type BotUpdateRequestBotWebhook struct {
-	OutgoingURL string `json:"outgoing_url"`
+	Name        *string        `json:"name,omitempty"`
+	Nickname    *string        `json:"nickname,omitempty"`
+	OutgoingURL *string        `json:"outgoing_url,omitempty"`
+	Events      []BotEventName `json:"events,omitempty"`
+	TriggerOn   *BotTriggerOn  `json:"trigger_on,omitempty"`
+	Commands    []string       `json:"commands,omitempty"`
+}
+
+func (m BotUpdateRequestBotWebhook) MarshalJSON() ([]byte, error) {
+	type Alias BotUpdateRequestBotWebhook
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Events != nil {
+		raw["events"] = m.Events
+	}
+	if m.Commands != nil {
+		raw["commands"] = m.Commands
+	}
+	return json.Marshal(raw)
 }
 
 type BotUpdateRequestBot struct {
@@ -471,6 +564,15 @@ type BotUpdateRequestBot struct {
 
 type BotUpdateRequest struct {
 	Bot BotUpdateRequestBot `json:"bot"`
+}
+
+type BotWebhook struct {
+	Name        string         `json:"name"`
+	Nickname    string         `json:"nickname"`
+	Events      []BotEventName `json:"events"`
+	TriggerOn   BotTriggerOn   `json:"trigger_on"`
+	Commands    []string       `json:"commands"`
+	OutgoingURL *string        `json:"outgoing_url"`
 }
 
 type Button struct {
@@ -689,6 +791,7 @@ type Message struct {
 	CreatedAt        time.Time         `json:"created_at"`
 	URL              string            `json:"url"`
 	Files            []File            `json:"files"`
+	VoiceContent     *VoiceContent     `json:"voice_content"`
 	Buttons          [][]Button        `json:"buttons"`
 	Thread           *MessageThread    `json:"thread"`
 	Forwarding       *Forwarding       `json:"forwarding"`
@@ -700,12 +803,14 @@ type Message struct {
 }
 
 type MessageCreateRequestFile struct {
-	Key      string   `json:"key"`
-	Name     string   `json:"name"`
-	FileType FileType `json:"file_type"`
-	Size     int32    `json:"size"`
-	Width    *int32   `json:"width,omitempty"`
-	Height   *int32   `json:"height,omitempty"`
+	Key        string   `json:"key"`
+	Name       string   `json:"name"`
+	FileType   FileType `json:"file_type"`
+	Size       int32    `json:"size"`
+	Width      *int32   `json:"width,omitempty"`
+	Height     *int32   `json:"height,omitempty"`
+	DurationMs *int32   `json:"duration_ms,omitempty"`
+	Waveform   *string  `json:"waveform,omitempty"`
 }
 
 type MessageCreateRequestMessage struct {
@@ -745,12 +850,14 @@ type MessageCreateRequest struct {
 }
 
 type MessageUpdateRequestFile struct {
-	Key      string  `json:"key"`
-	Name     string  `json:"name"`
-	FileType *string `json:"file_type,omitempty"`
-	Size     *int32  `json:"size,omitempty"`
-	Width    *int32  `json:"width,omitempty"`
-	Height   *int32  `json:"height,omitempty"`
+	Key        string    `json:"key"`
+	Name       string    `json:"name"`
+	FileType   *FileType `json:"file_type,omitempty"`
+	Size       *int32    `json:"size,omitempty"`
+	Width      *int32    `json:"width,omitempty"`
+	Height     *int32    `json:"height,omitempty"`
+	DurationMs *int32    `json:"duration_ms,omitempty"`
+	Waveform   *string   `json:"waveform,omitempty"`
 }
 
 type MessageUpdateRequestMessage struct {
@@ -1259,12 +1366,12 @@ func (m ViewBlockRadio) MarshalJSON() ([]byte, error) {
 }
 
 type ViewBlockSelect struct {
-	Type     string                      `json:"type"` // always "select"
-	Name     string                      `json:"name"`
-	Label    string                      `json:"label"`
-	Options  []ViewBlockSelectableOption `json:"options,omitempty"`
-	Required *bool                       `json:"required,omitempty"`
-	Hint     *string                     `json:"hint,omitempty"`
+	Type     string                  `json:"type"` // always "select"
+	Name     string                  `json:"name"`
+	Label    string                  `json:"label"`
+	Options  []ViewBlockSelectOption `json:"options,omitempty"`
+	Required *bool                   `json:"required,omitempty"`
+	Hint     *string                 `json:"hint,omitempty"`
 }
 
 func (m ViewBlockSelect) MarshalJSON() ([]byte, error) {
@@ -1281,6 +1388,12 @@ func (m ViewBlockSelect) MarshalJSON() ([]byte, error) {
 		raw["options"] = m.Options
 	}
 	return json.Marshal(raw)
+}
+
+type ViewBlockSelectOption struct {
+	Text     string `json:"text"`
+	Value    string `json:"value"`
+	Selected *bool  `json:"selected,omitempty"`
 }
 
 type ViewBlockSelectableOption struct {
@@ -1308,6 +1421,12 @@ type ViewSubmitWebhookPayload struct {
 	CallbackID       *string           `json:"callback_id"`
 	PrivateMetadata  *string           `json:"private_metadata"`
 	ChatID           *int32            `json:"chat_id"`
+}
+
+type VoiceContent struct {
+	DurationMs int32   `json:"duration_ms"`
+	Waveform   string  `json:"waveform"`
+	Transcript *string `json:"transcript"`
 }
 
 type WebhookEvent struct {

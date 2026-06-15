@@ -136,6 +136,8 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.tasks.updateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.deleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.openView()` | [Открытие представления](/api/views/open) |
+| `client.bots.createBot()` | [Создание бота](/api/bots/create) |
+| `client.bots.getBot()` | [Получение бота](/api/bots/get) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
@@ -344,7 +346,9 @@ let body = MessageCreateRequest(
             fileType: .image,
             size: 12345,
             width: 800,
-            height: 600
+            height: 600,
+            durationMs: 5400,
+            waveform: "4,8,12,20,16,10,6,3"
         )],
         buttons: [[Button(
             text: "Подробнее",
@@ -359,7 +363,7 @@ let body = MessageCreateRequest(
     linkPreview: false
 )
 let response = try await client.messages.createMessage(body: body)
-// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)
+// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)
 
 // Список сотрудников
 let response = try await client.users.listUsers(query: "Олег", limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")

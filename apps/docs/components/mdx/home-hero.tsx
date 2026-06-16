@@ -12,10 +12,21 @@ interface HomeHeroContentProps {
   subtitle?: string;
   title: string;
   description: string;
+  /** Page URL for the "Copy for LLM" / "View as Markdown" actions */
+  pageUrl?: string;
+  /** Extra paragraphs rendered below the description, above the cards */
+  lead?: React.ReactNode;
   children?: React.ReactNode;
 }
 
-export function HomeHeroContent({ subtitle, title, description, children }: HomeHeroContentProps) {
+export function HomeHeroContent({
+  subtitle,
+  title,
+  description,
+  pageUrl = '/',
+  lead,
+  children,
+}: HomeHeroContentProps) {
   return (
     <div className="flex flex-col">
       {subtitle && (
@@ -25,9 +36,14 @@ export function HomeHeroContent({ subtitle, title, description, children }: Home
       )}
       <h1 className="text-4xl font-extrabold text-text-primary mb-2! tracking-tight">{title}</h1>
       <div className="mb-8">
-        <MarkdownActions pageUrl="/" pageTitle={title} />
+        <MarkdownActions pageUrl={pageUrl} pageTitle={title} />
       </div>
       <p className="text-[16px] text-text-secondary leading-relaxed">{description}</p>
+      {lead && (
+        <div className="flex flex-col gap-2 text-[16px] text-text-secondary leading-relaxed">
+          {lead}
+        </div>
+      )}
       {children && <div className="flex flex-wrap gap-2.5 mt-6">{children}</div>}
     </div>
   );

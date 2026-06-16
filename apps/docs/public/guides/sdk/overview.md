@@ -19,7 +19,7 @@
 
 ## Генератор
 
-[@pachca/generator](https://www.npmjs.com/package/@pachca/generator) npm
+- [@pachca/generator](https://www.npmjs.com/package/@pachca/generator) npm
 
 
 Генерирует типы и клиент из OpenAPI-спецификации прямо в вашем проекте. Сгенерированный код можно закоммитить в репозиторий и добавить генерацию в CI как проверку совместимости с актуальным API. [Исходный код на GitHub](https://github.com/pachca/openapi/tree/main/packages/generator).

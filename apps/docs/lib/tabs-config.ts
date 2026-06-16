@@ -46,7 +46,7 @@ export const TABS: TabConfig[] = [
     title: 'Документация API',
     shortTitle: 'API',
     prefix: '/api',
-    defaultHref: '/api/authorization',
+    defaultHref: '/api/overview',
     hasSidebar: true,
   },
   {
@@ -238,6 +238,7 @@ export const N8N_SECTIONS: SidebarSection[] = [
  * The "Справочник методов" section is generated dynamically from OpenAPI.
  */
 export const API_GUIDE_PAGES: SidebarPageItem[] = [
+  { title: 'Обзор', path: '/api/overview' },
   { title: 'Авторизация', path: '/api/authorization' },
   { title: 'Запросы и ответы', path: '/api/requests-responses' },
   { title: 'Пагинация', path: '/api/pagination' },

@@ -20,6 +20,9 @@ import {
   ClipboardList,
   MessageSquare,
   MessagesSquare,
+  Hash,
+  Smile,
+  Plus,
   Users,
   Tag,
   UserPlus,
@@ -73,6 +76,9 @@ const iconMap: Record<string, LucideIcon> = {
   ClipboardList,
   MessageSquare,
   MessagesSquare,
+  Hash,
+  Smile,
+  Plus,
   Users,
   Tag,
   UserPlus,
@@ -256,9 +262,16 @@ function CardWrapper({
   );
 }
 
+/** Display order for HTTP method badges — POST first, then GET, PUT, PATCH, DELETE */
+const METHOD_ORDER: HttpMethod[] = ['POST', 'GET', 'PUT', 'PATCH', 'DELETE'];
+
 export function Card({ title, icon, href, download, compact, methods, children }: CardProps) {
   const Icon = icon ? iconMap[icon] : null;
-  const methodList = methods ? (methods.split(/[\s,]+/).filter(Boolean) as HttpMethod[]) : null;
+  const methodList = methods
+    ? (methods.split(/[\s,]+/).filter(Boolean) as HttpMethod[]).sort(
+        (a, b) => METHOD_ORDER.indexOf(a) - METHOD_ORDER.indexOf(b)
+      )
+    : null;
 
   if (compact) {
     return (
@@ -276,7 +289,11 @@ export function Card({ title, icon, href, download, compact, methods, children }
             {children}
           </span>
         )}
-        <ArrowUpRight className="ml-auto shrink-0 w-3.5 h-3.5 text-text-tertiary transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        {download ? (
+          <ArrowDownToLine className="ml-auto shrink-0 w-3.5 h-3.5 text-text-tertiary transition-transform duration-200 group-hover:translate-y-0.5" />
+        ) : (
+          <ArrowUpRight className="ml-auto shrink-0 w-3.5 h-3.5 text-text-tertiary transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        )}
       </CardWrapper>
     );
   }
@@ -319,7 +336,7 @@ export function Card({ title, icon, href, download, compact, methods, children }
 }
 
 export function CardRow({ children }: { children: React.ReactNode }) {
-  return <div className="not-prose my-4">{children}</div>;
+  return <div className="not-prose my-4 flex flex-wrap gap-2.5">{children}</div>;
 }
 
 export { GUIDE_ICONS, API_SECTION_META };

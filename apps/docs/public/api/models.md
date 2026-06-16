@@ -72,13 +72,13 @@
 
 ## Сотрудник
 
+- [Создать сотрудника](POST /users)
 - [Информация о профиле](GET /profile)
 - [Информация о сотруднике](GET /users/{id})
 - [Список сотрудников](GET /users)
 - [Список сотрудников тега](GET /group_tags/{id}/users)
 - [Список участников чата](GET /chats/{id}/members)
 - [Поиск сотрудников](GET /search/users)
-- [Создать сотрудника](POST /users)
 - [Редактирование сотрудника](PUT /users/{id})
 - [Удаление сотрудника](DELETE /users/{id})
 
@@ -122,10 +122,10 @@
 
 ## Тег
 
-- [Информация о теге](GET /group_tags/{id})
-- [Список тегов сотрудников](GET /group_tags)
 - [Новый тег](POST /group_tags)
 - [Добавление тегов](POST /chats/{id}/group_tags)
+- [Информация о теге](GET /group_tags/{id})
+- [Список тегов сотрудников](GET /group_tags)
 - [Редактирование тега](PUT /group_tags/{id})
 - [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id})
 - [Удаление тега](DELETE /group_tags/{id})
@@ -139,13 +139,13 @@
 
 ## Чат
 
+- [Новый чат](POST /chats)
+- [Добавление пользователей](POST /chats/{id}/members)
+- [Экспорт сообщений](POST /chats/exports)
 - [Информация о чате](GET /chats/{id})
 - [Список чатов](GET /chats)
 - [Поиск чатов](GET /search/chats)
 - [Скачать архив экспорта](GET /chats/exports/{id})
-- [Новый чат](POST /chats)
-- [Добавление пользователей](POST /chats/{id}/members)
-- [Экспорт сообщений](POST /chats/exports)
 - [Обновление чата](PUT /chats/{id})
 - [Архивация чата](PUT /chats/{id}/archive)
 - [Разархивация чата](PUT /chats/{id}/unarchive)
@@ -170,9 +170,9 @@
 
 ## Тред
 
+- [Новый тред](POST /messages/{id}/thread)
 - [Информация о треде](GET /threads/{id})
 - [Список тредов](GET /threads)
-- [Новый тред](POST /messages/{id}/thread)
 
 Тред
 
@@ -185,13 +185,13 @@
 
 ## Сообщение
 
+- [Новое сообщение](POST /messages)
+- [Закрепление сообщения](POST /messages/{id}/pin)
+- [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews)
 - [Информация о сообщении](GET /messages/{id})
 - [Список сообщений чата](GET /messages)
 - [Поиск сообщений](GET /search/messages)
 - [Список прочитавших сообщение](GET /messages/{id}/read_member_ids)
-- [Новое сообщение](POST /messages)
-- [Закрепление сообщения](POST /messages/{id}/pin)
-- [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews)
 - [Редактирование сообщения](PUT /messages/{id})
 - [Открепление сообщения](DELETE /messages/{id}/pin)
 - [Удаление сообщения](DELETE /messages/{id})
@@ -242,8 +242,8 @@
 
 ## Реакция на сообщение
 
-- [Список реакций](GET /messages/{id}/reactions)
 - [Добавление реакции](POST /messages/{id}/reactions)
+- [Список реакций](GET /messages/{id}/reactions)
 - [Удаление реакции](DELETE /messages/{id}/reactions)
 
 Реакция на сообщение
@@ -256,9 +256,9 @@
 
 ## Напоминание
 
+- [Новое напоминание](POST /tasks)
 - [Информация о напоминании](GET /tasks/{id})
 - [Список напоминаний](GET /tasks)
-- [Новое напоминание](POST /tasks)
 - [Редактирование напоминания](PUT /tasks/{id})
 - [Удаление напоминания](DELETE /tasks/{id})
 

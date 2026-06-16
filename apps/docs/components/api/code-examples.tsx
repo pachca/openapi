@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useMemo } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ChevronDown } from 'lucide-react';
 import type { Endpoint } from '@/lib/openapi/types';
 import { generateCurl } from '@/lib/code-generators/curl';
 import { generateCLI } from '@/lib/code-generators/cli';
 import { generateResponseExample, type ExampleOptions } from '@/lib/openapi/example-generator';
+import { useCodeLang } from '@/lib/use-code-lang';
 import { CopyButton } from './copy-button';
 import { CodeBlock } from './code-block';
 import { BoxedPanel } from './boxed-panel';
+import { LangTabs } from './lang-tabs';
 
 interface CodeExamplesProps {
   endpoint: Endpoint;
@@ -20,12 +22,12 @@ interface CodeExamplesProps {
   sdkExamples?: Record<string, string>;
   langs?: Language[];
   defaultLang?: Language;
+  /** Language switcher style in the request header: dropdown (default) or inline tabs. */
+  variant?: 'dropdown' | 'tabs';
   className?: string;
 }
 
 type Language = 'curl' | 'cli' | 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'csharp';
-
-const STORAGE_KEY = 'pachca-docs-code-lang';
 
 const languageLabels: Record<Language, string> = {
   cli: 'Pachca CLI',
@@ -47,26 +49,20 @@ export function CodeExamples({
   sdkExamples,
   langs,
   defaultLang: defaultLangProp,
+  variant = 'dropdown',
   className,
 }: CodeExamplesProps) {
   const allLangs = Object.keys(languageLabels) as Language[];
   const visibleLangs = langs ?? allLangs;
   const fallbackLang = visibleLangs[0];
 
-  const [activeTab, setActiveTab] = useState<Language>(defaultLangProp ?? fallbackLang);
+  const [storedLang, setStoredLang] = useCodeLang(fallbackLang, defaultLangProp);
+  // The shared value may be a language this instance doesn't show — fall back then.
+  const activeTab: Language = visibleLangs.includes(storedLang as Language)
+    ? (storedLang as Language)
+    : fallbackLang;
 
-  useEffect(() => {
-    if (defaultLangProp) return;
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved && saved in languageLabels && visibleLangs.includes(saved as Language)) {
-      setActiveTab(saved as Language); // eslint-disable-line react-hooks/set-state-in-effect
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleTabChange = (lang: Language) => {
-    setActiveTab(lang);
-    localStorage.setItem(STORAGE_KEY, lang);
-  };
+  const handleTabChange = (lang: Language) => setStoredLang(lang);
 
   const code = useMemo(() => {
     if (activeTab === 'curl') return generateCurl(endpoint, baseUrl);
@@ -124,49 +120,63 @@ export function CodeExamples({
       id="request-examples"
       className={showResponse ? 'mt-0 mb-6' : (className ?? 'my-0')}
       header={
-        <>
-          <span className="text-[13px] font-medium text-text-primary truncate mr-4">
-            {title || endpoint.title || endpoint.summary || endpoint.path}
-          </span>
-
-          <div className="flex items-center gap-0 shrink-0">
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger asChild>
-                <button className="flex items-center gap-1 px-2 h-7 rounded-md text-[13px] font-medium text-text-secondary hover:text-text-primary transition-all outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 select-none cursor-pointer group">
-                  {languages[activeTab]}
-                  <ChevronDown
-                    className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-colors"
-                    strokeWidth={2.5}
-                  />
-                </button>
-              </DropdownMenu.Trigger>
-
-              <DropdownMenu.Portal>
-                <DropdownMenu.Content
-                  className="z-50 min-w-[140px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
-                  align="end"
-                  collisionPadding={16}
-                >
-                  {(Object.keys(languages) as Language[]).map((lang) => (
-                    <DropdownMenu.Item
-                      key={lang}
-                      onClick={() => handleTabChange(lang)}
-                      className={`flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
-                        activeTab === lang
-                          ? 'bg-primary/15 text-primary'
-                          : 'text-text-primary hover:bg-glass-hover'
-                      }`}
-                    >
-                      {languages[lang]}
-                    </DropdownMenu.Item>
-                  ))}
-                </DropdownMenu.Content>
-              </DropdownMenu.Portal>
-            </DropdownMenu.Root>
-
+        variant === 'tabs' ? (
+          <>
+            <LangTabs
+              items={(Object.keys(languages) as Language[]).map((l) => ({
+                id: l,
+                label: languages[l],
+              }))}
+              activeId={activeTab}
+              onSelect={(id) => handleTabChange(id as Language)}
+            />
             <CopyButton text={code} />
-          </div>
-        </>
+          </>
+        ) : (
+          <>
+            <span className="text-[13px] font-medium text-text-primary truncate mr-4">
+              {title || endpoint.title || endpoint.summary || endpoint.path}
+            </span>
+
+            <div className="flex items-center gap-0 shrink-0">
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <button className="flex items-center gap-1 px-2 h-7 rounded-md text-[13px] font-medium text-text-secondary hover:text-text-primary transition-all outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 select-none cursor-pointer group">
+                    {languages[activeTab]}
+                    <ChevronDown
+                      className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-colors"
+                      strokeWidth={2.5}
+                    />
+                  </button>
+                </DropdownMenu.Trigger>
+
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content
+                    className="z-50 min-w-[140px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
+                    align="end"
+                    collisionPadding={16}
+                  >
+                    {(Object.keys(languages) as Language[]).map((lang) => (
+                      <DropdownMenu.Item
+                        key={lang}
+                        onClick={() => handleTabChange(lang)}
+                        className={`flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
+                          activeTab === lang
+                            ? 'bg-primary/15 text-primary'
+                            : 'text-text-primary hover:bg-glass-hover'
+                        }`}
+                      >
+                        {languages[lang]}
+                      </DropdownMenu.Item>
+                    ))}
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
+
+              <CopyButton text={code} />
+            </div>
+          </>
+        )
       }
       contentClassName="px-6 py-2 pl-0 overflow-x-auto custom-scrollbar"
     >

@@ -5,7 +5,7 @@
 
 # C#
 
-[Pachca.Sdk](https://www.nuget.org/packages/Pachca.Sdk) NuGet
+- [Pachca.Sdk](https://www.nuget.org/packages/Pachca.Sdk) NuGet
 
 
 Типизированный клиент для Pachca API. Работает в .NET 8+ с поддержкой `async/await` и `CancellationToken`.

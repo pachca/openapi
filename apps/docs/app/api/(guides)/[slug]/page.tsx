@@ -117,11 +117,13 @@ export default async function ApiGuidePage({ params }: { params: Promise<{ slug:
           __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
         }}
       />
-      <StaticPageHeader
-        title={data.frontmatter.title}
-        pageUrl={pageUrl}
-        sectionTitle={getSectionTitle(pageUrl) || undefined}
-      />
+      {!data.frontmatter.hideHeader && (
+        <StaticPageHeader
+          title={data.frontmatter.title}
+          pageUrl={pageUrl}
+          sectionTitle={getSectionTitle(pageUrl) || undefined}
+        />
+      )}
       <MarkdownContent content={data.content} />
     </StaticPageWrapper>
   );

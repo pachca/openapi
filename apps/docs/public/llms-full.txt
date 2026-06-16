@@ -14,84 +14,85 @@
 
 | Раздел | Строки |
 |--------|--------|
-| LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 96–198 |
-| How-to Guides — рецепты задач с кодом TS/Python | 199–882 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 883–11334 |
-| · Обзор | 888–990 |
-| · Быстрый старт | 991–1080 |
-| · AI агенты | 1081–1216 |
-| · Взаимодействие с агентом | 1217–1285 |
-| · Markdown и документы | 1286–1342 |
-| · Треды | 1343–1470 |
-| · Боты | 1471–1533 |
-| · Создание и настройка | 1534–1660 |
-| · Доступы к чатам и сообщениям | 1661–1733 |
-| · Готовые примеры реализации | 1734–1768 |
-| · Входящие вебхуки | 1769–1909 |
-| · Исходящие вебхуки | 1910–1954 |
-| · Настройка и типы событий | 1955–2129 |
-| · Безопасность и обработчик | 2130–2320 |
-| · Поллинг | 2321–2504 |
-| · Кнопки в сообщениях | 2505–2660 |
-| · Формы | 2661–2730 |
-| · Блоки представления | 2731–2944 |
-| · Обработка форм | 2945–3084 |
-| · Разворачивание ссылок | 3085–3197 |
-| · Экспорт сообщений | 3198–3339 |
-| · DLP-система | 3340–3547 |
-| · Пачка Audit Events API | 3548–3622 |
-| · Форматирование текста | 3623–3703 |
-| · Сценарии | 3704–4200 |
-| · CLI | 4201–4294 |
-| · Установка | 4295–4387 |
-| · Авторизация | 4388–4461 |
-| · Вывод | 4462–4565 |
-| · Флаги и скрипты | 4566–4792 |
-| · Сценарии | 4793–4840 |
-| · Файлы | 4841–4875 |
-| · Прямые запросы | 4876–4986 |
-| · Команды | 4987–5123 |
-| · SDK и генератор | 5124–5209 |
-| · TypeScript | 5210–5626 |
-| · Python | 5627–6037 |
-| · Go | 6038–6473 |
-| · Kotlin | 6474–6901 |
-| · Swift | 6902–7298 |
-| · C# | 7299–7756 |
-| · n8n | 7757–7832 |
-| · Начало работы | 7833–8060 |
-| · Ресурсы и операции | 8061–8435 |
-| · Триггер | 8436–8685 |
-| · Тестирование | 8686–8959 |
-| · Примеры workflow | 8960–9175 |
-| · Продвинутые функции | 9176–9412 |
-| · Устранение ошибок | 9413–9605 |
-| · Миграция с v1 | 9606–9727 |
-| · Последние обновления | 9728–9737 |
-| · Авторизация | 9738–9916 |
-| · Запросы и ответы | 9917–10109 |
-| · Пагинация | 10110–10346 |
-| · Загрузка файлов | 10347–10564 |
-| · Ошибки | 10565–10638 |
-| · Лимиты | 10639–10756 |
-| · Модели | 10757–11334 |
-| API-методы — все эндпоинты со схемами и примерами | 11335–27312 |
-| · Common | 11337–12131 |
-| · Profile | 12132–13133 |
-| · Users | 13134–15519 |
-| · Group tags | 15520–16867 |
-| · Chats | 16868–18133 |
-| · Members | 18134–19478 |
-| · Threads | 19479–20036 |
-| · Messages | 20037–21917 |
-| · Read members | 21918–22164 |
-| · Reactions | 22165–22811 |
-| · Link Previews | 22812–23067 |
-| · Search | 23068–23877 |
-| · Tasks | 23878–25169 |
-| · Views | 25170–25738 |
-| · Bots | 25739–27000 |
-| · Security | 27001–27312 |
+| LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 97–199 |
+| How-to Guides — рецепты задач с кодом TS/Python | 200–883 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 884–11435 |
+| · Обзор | 889–991 |
+| · Быстрый старт | 992–1081 |
+| · AI агенты | 1082–1217 |
+| · Взаимодействие с агентом | 1218–1286 |
+| · Markdown и документы | 1287–1343 |
+| · Треды | 1344–1471 |
+| · Боты | 1472–1534 |
+| · Создание и настройка | 1535–1661 |
+| · Доступы к чатам и сообщениям | 1662–1734 |
+| · Готовые примеры реализации | 1735–1769 |
+| · Входящие вебхуки | 1770–1910 |
+| · Исходящие вебхуки | 1911–1955 |
+| · Настройка и типы событий | 1956–2130 |
+| · Безопасность и обработчик | 2131–2321 |
+| · Поллинг | 2322–2505 |
+| · Кнопки в сообщениях | 2506–2661 |
+| · Формы | 2662–2731 |
+| · Блоки представления | 2732–2945 |
+| · Обработка форм | 2946–3085 |
+| · Разворачивание ссылок | 3086–3198 |
+| · Экспорт сообщений | 3199–3340 |
+| · DLP-система | 3341–3548 |
+| · Пачка Audit Events API | 3549–3623 |
+| · Форматирование текста | 3624–3704 |
+| · Сценарии | 3705–4201 |
+| · CLI | 4202–4295 |
+| · Установка | 4296–4388 |
+| · Авторизация | 4389–4462 |
+| · Вывод | 4463–4566 |
+| · Флаги и скрипты | 4567–4793 |
+| · Сценарии | 4794–4841 |
+| · Файлы | 4842–4876 |
+| · Прямые запросы | 4877–4987 |
+| · Команды | 4988–5124 |
+| · SDK и генератор | 5125–5210 |
+| · TypeScript | 5211–5627 |
+| · Python | 5628–6038 |
+| · Go | 6039–6474 |
+| · Kotlin | 6475–6902 |
+| · Swift | 6903–7299 |
+| · C# | 7300–7757 |
+| · n8n | 7758–7833 |
+| · Начало работы | 7834–8061 |
+| · Ресурсы и операции | 8062–8436 |
+| · Триггер | 8437–8686 |
+| · Тестирование | 8687–8960 |
+| · Примеры workflow | 8961–9176 |
+| · Продвинутые функции | 9177–9413 |
+| · Устранение ошибок | 9414–9606 |
+| · Миграция с v1 | 9607–9728 |
+| · Последние обновления | 9729–9738 |
+| · Обзор | 9739–9838 |
+| · Авторизация | 9839–10017 |
+| · Запросы и ответы | 10018–10210 |
+| · Пагинация | 10211–10447 |
+| · Загрузка файлов | 10448–10665 |
+| · Ошибки | 10666–10739 |
+| · Лимиты | 10740–10857 |
+| · Модели | 10858–11435 |
+| API-методы — все эндпоинты со схемами и примерами | 11436–27413 |
+| · Common | 11438–12232 |
+| · Profile | 12233–13234 |
+| · Users | 13235–15620 |
+| · Group tags | 15621–16968 |
+| · Chats | 16969–18234 |
+| · Members | 18235–19579 |
+| · Threads | 19580–20137 |
+| · Messages | 20138–22018 |
+| · Read members | 22019–22265 |
+| · Reactions | 22266–22912 |
+| · Link Previews | 22913–23168 |
+| · Search | 23169–23978 |
+| · Tasks | 23979–25270 |
+| · Views | 25271–25839 |
+| · Bots | 25840–27101 |
+| · Security | 27102–27413 |
 
 # LIBRARY RULES
 
@@ -887,7 +888,7 @@ setInterval(() => reconcileUsers(externalDb), 15 * 60 * 1000) // Every 15 minute
 
 # Обзор
 
-REST API Пачки позволяет автоматизировать работу в мессенджере: отправлять сообщения, управлять чатами и сотрудниками, создавать ботов и реагировать на события через вебхуки.
+Автоматизируйте рабочие процессы и стройте интеграции с Пачкой: уведомления из мониторинга и CRM, боты и AI-агенты, реакция на события в реальном времени. Работайте через REST API, CLI, типизированные SDK, n8n или Agent Skills.
 
 - [Быстрый старт](/guides/quickstart)
 - [Авторизация](/api/authorization)
@@ -4200,7 +4201,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 
 # CLI
 
-[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) npm
+- [@pachca/cli](https://www.npmjs.com/package/@pachca/cli) npm
 
 
 Официальный CLI для Pachca API: авторизация, сообщения, управление пространством — всё из терминала. Каждый метод API доступен как команда с типизированными флагами, валидацией и подсказками. Нужен Node.js 20+.
@@ -5137,7 +5138,7 @@ pachca commands --available
 
 ## Генератор
 
-[@pachca/generator](https://www.npmjs.com/package/@pachca/generator) npm
+- [@pachca/generator](https://www.npmjs.com/package/@pachca/generator) npm
 
 
 Генерирует типы и клиент из OpenAPI-спецификации прямо в вашем проекте. Сгенерированный код можно закоммитить в репозиторий и добавить генерацию в CI как проверку совместимости с актуальным API. [Исходный код на GitHub](https://github.com/pachca/openapi/tree/main/packages/generator).
@@ -5209,7 +5210,7 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 
 # TypeScript
 
-[@pachca/sdk](https://www.npmjs.com/package/@pachca/sdk) npm
+- [@pachca/sdk](https://www.npmjs.com/package/@pachca/sdk) npm
 
 
 Типизированный клиент для Pachca API. Работает в Node.js 18+ и в любом окружении с поддержкой `fetch`. ES Module с TypeScript-декларациями.
@@ -5626,7 +5627,7 @@ const response = client.tasks.createTask(request)
 
 # Python
 
-[pachca-sdk](https://pypi.org/project/pachca-sdk/) PyPI
+- [pachca-sdk](https://pypi.org/project/pachca-sdk/) PyPI
 
 
 Асинхронный типизированный клиент для Pachca API. Построен на httpx с поддержкой type hints и dataclass-моделей. Требуется Python 3.10+.
@@ -6037,7 +6038,7 @@ response = await client.tasks.create_task(request=request)
 
 # Go
 
-[github.com/pachca/openapi/sdk/go](https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated) pkg.go.dev
+- [github.com/pachca/openapi/sdk/go](https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated) pkg.go.dev
 
 
 Типизированный клиент для Pachca API на Go. Синхронный, с контекстами (`context.Context`), автопагинацией и обработкой retry. Требуется Go 1.24+.
@@ -6473,7 +6474,7 @@ response, err := client.Tasks.CreateTask(ctx, request)
 
 # Kotlin
 
-[com.pachca:pachca-sdk](https://github.com/pachca/openapi/tree/main/sdk/kotlin) JitPack
+- [com.pachca:pachca-sdk](https://github.com/pachca/openapi/tree/main/sdk/kotlin) JitPack
 
 
 Типизированный клиент для Pachca API на Kotlin. Построен на Ktor с корутинами (`suspend`), kotlinx.serialization и встроенным retry. Требуется Kotlin 2.2+ и Java 11+.
@@ -6901,7 +6902,7 @@ val response = client.tasks.createTask(request = request)
 
 # Swift
 
-[PachcaSDK](https://github.com/pachca/openapi/tree/main/sdk/swift) Swift Package
+- [PachcaSDK](https://github.com/pachca/openapi/tree/main/sdk/swift) Swift Package
 
 
 Типизированный клиент для Pachca API на Swift. Построен на URLSession с `async throws`, Codable-моделями и встроенным retry. Требуется Swift 5.9+, macOS 13+ или iOS 16+.
@@ -7298,7 +7299,7 @@ let response = try await client.tasks.createTask(body: body)
 
 # C#
 
-[Pachca.Sdk](https://www.nuget.org/packages/Pachca.Sdk) NuGet
+- [Pachca.Sdk](https://www.nuget.org/packages/Pachca.Sdk) NuGet
 
 
 Типизированный клиент для Pachca API. Работает в .NET 8+ с поддержкой `async/await` и `CancellationToken`.
@@ -9732,6 +9733,106 @@ AI Agent самостоятельно выбирает подходящий ин
 
 ---
 
+--- [Document source](https://dev.pachca.com/api/overview.md) ---
+
+
+# Обзор
+
+REST API Пачки позволяет автоматизировать работу в мессенджере: отправлять сообщения, управлять чатами и сотрудниками, создавать ботов и реагировать на события через вебхуки.
+
+Базовый URL: `https://api.pachca.com/api/shared/v1`
+
+Клиенты и SDK:
+
+**CLI** — [документация](/guides/cli/overview)
+
+```bash
+npm install -g @pachca/cli
+```
+
+**TypeScript** — [документация](/guides/sdk/typescript)
+
+```bash
+npm install @pachca/sdk
+```
+
+**Python** — [документация](/guides/sdk/python)
+
+```bash
+pip install pachca-sdk
+```
+
+**Go** — [документация](/guides/sdk/go)
+
+```bash
+go get github.com/pachca/openapi/sdk/go/generated
+```
+
+**Kotlin** — [документация](/guides/sdk/kotlin)
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("com.pachca:pachca-sdk:latest.release")
+}
+```
+
+**Swift** — [документация](/guides/sdk/swift)
+
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
+]
+```
+
+**C#** — [документация](/guides/sdk/csharp)
+
+```bash
+dotnet add package Pachca.Sdk
+```
+
+Ресурсы:
+
+- [OpenAPI](/openapi.yaml)
+- [Postman](/pachca.postman_collection.json)
+
+
+## Популярные методы
+
+Частые операции для быстрого старта. Все модели API и доступные для них методы можно посмотреть на странице [Модели](/api/models).
+
+- [Новое сообщение](/api/messages/create)
+
+- [Список сообщений чата](/api/messages/list)
+
+- [Поиск сообщений](/api/search/list-messages)
+
+- [Создать чат](/api/chats/create)
+
+- [Создать сотрудника](/api/users/create)
+
+- [Новый статус](/api/profile/update-status)
+
+- [Новое напоминание](/api/tasks/create)
+
+- [Создание бота](/api/bots/create)
+
+
+## Основы API
+
+Базовые концепции для работы с API: авторизация, формат запросов и ответов, обработка ошибок, лимиты, пагинация и загрузка файлов.
+
+- [Авторизация](/api/authorization) — Bearer-токен и доступ к API
+- [Запросы и ответы](/api/requests-responses) — Базовый URL, заголовки, формат данных
+- [Пагинация](/api/pagination) — Обход больших списков по курсору
+- [Загрузка файлов](/api/file-uploads) — Прямая загрузка в S3 одной командой
+- [Ошибки](/api/errors) — HTTP-коды и структуры ответов
+- [Лимиты](/api/limits) — Rate limits и повторные запросы
+
+
+---
+
 --- [Document source](https://dev.pachca.com/api/authorization.md) ---
 
 
@@ -10823,13 +10924,13 @@ users = await with_retry(lambda: client.users.list_users())
 
 ## Сотрудник
 
+- [Создать сотрудника](POST /users)
 - [Информация о профиле](GET /profile)
 - [Информация о сотруднике](GET /users/{id})
 - [Список сотрудников](GET /users)
 - [Список сотрудников тега](GET /group_tags/{id}/users)
 - [Список участников чата](GET /chats/{id}/members)
 - [Поиск сотрудников](GET /search/users)
-- [Создать сотрудника](POST /users)
 - [Редактирование сотрудника](PUT /users/{id})
 - [Удаление сотрудника](DELETE /users/{id})
 
@@ -10873,10 +10974,10 @@ users = await with_retry(lambda: client.users.list_users())
 
 ## Тег
 
-- [Информация о теге](GET /group_tags/{id})
-- [Список тегов сотрудников](GET /group_tags)
 - [Новый тег](POST /group_tags)
 - [Добавление тегов](POST /chats/{id}/group_tags)
+- [Информация о теге](GET /group_tags/{id})
+- [Список тегов сотрудников](GET /group_tags)
 - [Редактирование тега](PUT /group_tags/{id})
 - [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id})
 - [Удаление тега](DELETE /group_tags/{id})
@@ -10890,13 +10991,13 @@ users = await with_retry(lambda: client.users.list_users())
 
 ## Чат
 
+- [Новый чат](POST /chats)
+- [Добавление пользователей](POST /chats/{id}/members)
+- [Экспорт сообщений](POST /chats/exports)
 - [Информация о чате](GET /chats/{id})
 - [Список чатов](GET /chats)
 - [Поиск чатов](GET /search/chats)
 - [Скачать архив экспорта](GET /chats/exports/{id})
-- [Новый чат](POST /chats)
-- [Добавление пользователей](POST /chats/{id}/members)
-- [Экспорт сообщений](POST /chats/exports)
 - [Обновление чата](PUT /chats/{id})
 - [Архивация чата](PUT /chats/{id}/archive)
 - [Разархивация чата](PUT /chats/{id}/unarchive)
@@ -10921,9 +11022,9 @@ users = await with_retry(lambda: client.users.list_users())
 
 ## Тред
 
+- [Новый тред](POST /messages/{id}/thread)
 - [Информация о треде](GET /threads/{id})
 - [Список тредов](GET /threads)
-- [Новый тред](POST /messages/{id}/thread)
 
 Тред
 
@@ -10936,13 +11037,13 @@ users = await with_retry(lambda: client.users.list_users())
 
 ## Сообщение
 
+- [Новое сообщение](POST /messages)
+- [Закрепление сообщения](POST /messages/{id}/pin)
+- [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews)
 - [Информация о сообщении](GET /messages/{id})
 - [Список сообщений чата](GET /messages)
 - [Поиск сообщений](GET /search/messages)
 - [Список прочитавших сообщение](GET /messages/{id}/read_member_ids)
-- [Новое сообщение](POST /messages)
-- [Закрепление сообщения](POST /messages/{id}/pin)
-- [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews)
 - [Редактирование сообщения](PUT /messages/{id})
 - [Открепление сообщения](DELETE /messages/{id}/pin)
 - [Удаление сообщения](DELETE /messages/{id})
@@ -10993,8 +11094,8 @@ users = await with_retry(lambda: client.users.list_users())
 
 ## Реакция на сообщение
 
-- [Список реакций](GET /messages/{id}/reactions)
 - [Добавление реакции](POST /messages/{id}/reactions)
+- [Список реакций](GET /messages/{id}/reactions)
 - [Удаление реакции](DELETE /messages/{id}/reactions)
 
 Реакция на сообщение
@@ -11007,9 +11108,9 @@ users = await with_retry(lambda: client.users.list_users())
 
 ## Напоминание
 
+- [Новое напоминание](POST /tasks)
 - [Информация о напоминании](GET /tasks/{id})
 - [Список напоминаний](GET /tasks)
-- [Новое напоминание](POST /tasks)
 - [Редактирование напоминания](PUT /tasks/{id})
 - [Удаление напоминания](DELETE /tasks/{id})
 

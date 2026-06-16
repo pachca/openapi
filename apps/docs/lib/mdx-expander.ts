@@ -13,6 +13,7 @@ import { generateCurl } from './code-generators/curl';
 import { groupEndpointsByTag, generateUrlFromOperation, generateTitle } from './openapi/mapper';
 import { schemaToMarkdown } from './markdown-generator';
 import { getSdkExampleForLang } from './sdk-examples';
+import { API_CLIENTS } from './api-clients';
 import type { Schema } from './openapi/types';
 import { HTTP_CODES } from './schemas/guide-schemas';
 import { getOrderedPages } from './ordered-pages';
@@ -336,15 +337,16 @@ export async function expandMdxComponents(content: string): Promise<string> {
   // <ParamsTable>...</ParamsTable> -> unwrap (markdown table inside)
   result = result.replace(/<ParamsTable>([\s\S]*?)<\/ParamsTable>/g, (_, inner) => inner.trim());
 
-  // Standalone <Card compact ... >children</Card> -> markdown link
+  // Standalone <Card compact ...>children</Card> or self-closing <Card compact ... /> -> markdown list item
+  // Leading horizontal whitespace is consumed so unwrapped CardRow pills form a flat list.
   result = result.replace(
-    /<Card\s+compact\s+([\s\S]*?)>([\s\S]*?)<\/Card>/g,
+    /[ \t]*<Card\s+compact\s+([\s\S]*?)(?:>([\s\S]*?)<\/Card>|\/>)/g,
     (_, attrs, children) => {
       const title = attrs.match(/title="([^"]+)"/)?.[1] ?? '';
       const href = attrs.match(/href="([^"]+)"/)?.[1];
-      const text = children.trim();
+      const text = (children ?? '').trim();
       const titlePart = href ? `[${title}](${href})` : `**${title}**`;
-      return text ? `${titlePart} ${text}\n` : `${titlePart}\n`;
+      return text ? `- ${titlePart} ${text}\n` : `- ${titlePart}\n`;
     }
   );
 
@@ -480,6 +482,18 @@ export async function expandMdxComponents(content: string): Promise<string> {
   if (result.includes('<ApiCards')) {
     const apiCardsMarkdown = await apiCardsToMarkdown();
     result = result.replace(/<ApiCards\s*\/>/g, apiCardsMarkdown);
+  }
+
+  // <ApiClientPanel /> -> getting-started pointers + base URL + client libraries list
+  if (result.includes('<ApiClientPanel')) {
+    const baseUrl = await getBaseUrl();
+    const libs = API_CLIENTS.map(
+      (c) => `**${c.label}** — [документация](${c.href})\n\n\`\`\`${c.lang}\n${c.install}\n\`\`\``
+    ).join('\n\n');
+    const resources =
+      '- [OpenAPI](/openapi.yaml)\n' + '- [Postman](/pachca.postman_collection.json)';
+    const md = `Базовый URL: \`${baseUrl}\`\n\nКлиенты и SDK:\n\n${libs}\n\nРесурсы:\n\n${resources}\n`;
+    result = result.replace(/<ApiClientPanel\s*\/>/g, md);
   }
 
   // <SdkCommands lang="python" /> -> markdown table of SDK methods

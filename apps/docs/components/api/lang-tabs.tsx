@@ -38,7 +38,7 @@ export function LangTabs({
             }`}
           >
             {it.label}
-            {isActive && <span className="absolute left-0 right-0 bottom-0 h-px bg-primary" />}
+            {isActive && <span className="absolute left-0 right-0 -bottom-px h-px bg-primary" />}
           </button>
         );
       })}

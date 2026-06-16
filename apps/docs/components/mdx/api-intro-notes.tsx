@@ -12,11 +12,12 @@ export function ApiIntroNotes() {
       <Link href="/" className="text-primary hover:underline">
         руководства
       </Link>{' '}
-      с пошаговыми примерами. Чтобы автоматизировать Пачку без кода, используйте{' '}
+      с пошаговыми примерами. Можно обойтись и без написания кода: соберите интеграции из визуальных
+      блоков в no-code инструменте{' '}
       <Link href="/guides/n8n/overview" className="text-primary hover:underline">
         n8n
-      </Link>{' '}
-      и визуальные сценарии.
+      </Link>
+      .
     </p>
   );
 }

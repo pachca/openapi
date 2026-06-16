@@ -28,13 +28,15 @@ export function ApiClientPanelClient({
       <div className="flex flex-col gap-2">
         <div className="rounded-xl border border-glass-border bg-glass overflow-hidden">
           {/* Tab bar: scrolls on narrow; copy button pinned right (blur like a code block) */}
-          <div className="relative border-b border-glass-border">
-            <div className="overflow-x-auto overflow-y-hidden custom-scrollbar">
+          {/* border-b lives on the tab row (content), so the active underline and the divider
+              stay flush even if a horizontal scrollbar reserves space below them */}
+          <div className="relative">
+            <div className="overflow-x-auto no-scrollbar">
               <LangTabs
                 items={clients.map((c) => ({ id: c.id, label: c.short ?? c.label }))}
                 activeId={active?.id}
                 onSelect={setLang}
-                className="w-max pl-4 pr-12"
+                className="w-max min-w-full pl-4 pr-12 border-b border-glass-border"
               />
             </div>
             {active && (
@@ -43,8 +45,8 @@ export function ApiClientPanelClient({
               </div>
             )}
           </div>
-          {/* Active install command */}
-          <div className="px-4 py-2.5 overflow-x-auto custom-scrollbar">
+          {/* Active install command (pl-0: .line already has 1rem left padding, aligns with tabs) */}
+          <div className="py-2.5 pl-0 pr-4 overflow-x-auto custom-scrollbar">
             {active && <CodeBlock code={active.install} language={active.lang} />}
           </div>
         </div>

@@ -168,11 +168,92 @@ paths:
       x-requirements:
         scope: audit_events:read
         plan: corporation
+  /bot/webhook:
+    put:
+      operationId: BotOperations_selfUpdateBotWebhook
+      description: >-
+        Bot webhook self-registration
+
+
+        Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without
+        knowing its own `user_id`. The webhook of the bot that owns the token is changed. To disable the webhook, send
+        an empty string in `outgoing_url`.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotResponse'
+                description: Response wrapper with data
+              example:
+                data:
+                  id: 1738816
+                  webhook:
+                    name: Tasks bot
+                    nickname: tasks_bot
+                    outgoing_url: https://www.website.com/tasks/new
+                    events:
+                      - message_new
+                    trigger_on: commands
+                    commands:
+                      - /task
+                    scopes:
+                      - messages:create
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotWebhookSelfUpdateRequest'
+            example:
+              webhook:
+                outgoing_url: https://www.website.com/tasks/new
+      x-requirements:
+        scope: bot_self:webhook:write
   /bots:
     post:
       operationId: BotOperations_createBot
       description: >-
-        Create bot
+        New bot
 
 
         Creates a bot and returns its `access_token`.
@@ -206,6 +287,8 @@ paths:
                     trigger_on: commands
                     commands:
                       - /task
+                    scopes:
+                      - messages:create
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '400':
           description: The server could not understand the request due to invalid syntax.
@@ -240,23 +323,24 @@ paths:
             schema:
               $ref: '#/components/schemas/BotCreateRequest'
             example:
-              bot:
-                webhook:
-                  name: Tasks bot
-                  nickname: tasks_bot
-                  outgoing_url: https://www.website.com/tasks/new
-                  events:
-                    - message_new
-                  trigger_on: commands
-                  commands:
-                    - /task
+              webhook:
+                name: Tasks bot
+                nickname: tasks_bot
+                outgoing_url: https://www.website.com/tasks/new
+                events:
+                  - message_new
+                trigger_on: commands
+                commands:
+                  - /task
+                scopes:
+                  - messages:create
       x-requirements:
         scope: bots:write
   /bots/{id}:
     get:
       operationId: BotOperations_getBot
       description: |-
-        Get bot
+        Bot info
 
         Retrieves bot parameters by its `user_id`.
       parameters:
@@ -294,6 +378,8 @@ paths:
                     trigger_on: commands
                     commands:
                       - /task
+                    scopes:
+                      - messages:create
         '401':
           description: Access is unauthorized.
           content:
@@ -788,7 +874,7 @@ paths:
     put:
       operationId: ChatOperations_updateChat
       description: >-
-        Update chat
+        Edit chat
 
 
         Update chat parameters.
@@ -2946,7 +3032,7 @@ paths:
     get:
       operationId: ProfileOperations_getProfile
       description: |-
-        Profile info
+        Own profile
 
         Retrieve information about your own profile.
       parameters: []
@@ -2983,7 +3069,7 @@ paths:
     put:
       operationId: ProfileAvatarOperations_updateProfileAvatar
       description: |-
-        Upload avatar
+        Upload own avatar
 
         Upload or update your profile avatar. The file is sent in `multipart/form-data` format.
       parameters: []
@@ -3046,7 +3132,7 @@ paths:
     delete:
       operationId: ProfileAvatarOperations_deleteProfileAvatar
       description: |-
-        Delete avatar
+        Delete own avatar
 
         Delete your profile avatar.
       parameters: []
@@ -3081,7 +3167,7 @@ paths:
     get:
       operationId: ProfileOperations_getStatus
       description: |-
-        Current status
+        Own status
 
         Retrieve information about your current status.
       parameters: []
@@ -3120,7 +3206,7 @@ paths:
     put:
       operationId: ProfileOperations_updateStatus
       description: |-
-        New status
+        New own status
 
         Set a new status for yourself.
       parameters: []
@@ -3174,7 +3260,7 @@ paths:
     delete:
       operationId: ProfileOperations_deleteStatus
       description: |-
-        Delete status
+        Delete own status
 
         Delete your current status.
       parameters: []
@@ -4198,7 +4284,7 @@ paths:
     post:
       operationId: UserOperations_createUser
       description: >-
-        Create employee
+        New employee
 
 
         Create a new employee in your workspace.
@@ -5566,52 +5652,54 @@ components:
     BotCreateRequest:
       type: object
       required:
-        - bot
+        - webhook
       properties:
-        bot:
+        webhook:
           type: object
           properties:
-            webhook:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: Bot name
-                  example: Tasks bot
-                nickname:
-                  type: string
-                  description: Bot nickname. Must end with `_bot`.
-                  example: tasks_bot
-                outgoing_url:
-                  type: string
-                  description: Outgoing webhook URL
-                  example: https://www.website.com/tasks/new
-                events:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/BotEventName'
-                  description: Events the bot is subscribed to
-                  example:
-                    - message_new
-                trigger_on:
-                  allOf:
-                    - $ref: '#/components/schemas/BotTriggerOn'
-                  description: Outgoing webhook trigger condition
-                  example: commands
-                commands:
-                  type: array
-                  items:
-                    type: string
-                  description: Bot commands (trigger words) it reacts to when trigger_on = commands
-                  example:
-                    - /task
-                    - /help
-              required:
-                - name
-              description: Bot webhook parameters object
+            name:
+              type: string
+              description: Bot name
+              example: Tasks bot
+            nickname:
+              type: string
+              description: Bot nickname. Must end with `_bot`.
+              example: tasks_bot
+            outgoing_url:
+              type: string
+              description: Outgoing webhook URL
+              example: https://www.website.com/tasks/new
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/BotEventName'
+              description: Events the bot is subscribed to
+              example:
+                - message_new
+            trigger_on:
+              allOf:
+                - $ref: '#/components/schemas/BotTriggerOn'
+              description: Outgoing webhook trigger condition
+              example: commands
+              default: commands
+            commands:
+              type: array
+              items:
+                type: string
+              description: Bot commands (trigger words) it reacts to when trigger_on = commands
+              example:
+                - /task
+                - /help
+            scopes:
+              type: array
+              items:
+                type: string
+              description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+              example:
+                - messages:create
           required:
-            - webhook
-          description: Parameters object of the bot to create
+            - name
+          description: Webhook parameters object of the bot to create
       description: Bot creation request
     BotCreateResponse:
       type: object
@@ -5703,50 +5791,52 @@ components:
     BotUpdateRequest:
       type: object
       required:
-        - bot
+        - webhook
       properties:
-        bot:
+        webhook:
           type: object
           properties:
-            webhook:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: Bot name
-                  example: Tasks bot
-                nickname:
-                  type: string
-                  description: Bot nickname. Must end with `_bot`.
-                  example: tasks_bot
-                outgoing_url:
-                  type: string
-                  description: Outgoing webhook URL
-                  example: https://www.website.com/tasks/new
-                events:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/BotEventName'
-                  description: Events the bot is subscribed to
-                  example:
-                    - message_new
-                trigger_on:
-                  allOf:
-                    - $ref: '#/components/schemas/BotTriggerOn'
-                  description: Outgoing webhook trigger condition
-                  example: commands
-                commands:
-                  type: array
-                  items:
-                    type: string
-                  description: Bot commands (trigger words) it reacts to when trigger_on = commands
-                  example:
-                    - /task
-                    - /help
-              description: Webhook parameters object
-          required:
-            - webhook
-          description: Bot parameters object to update
+            name:
+              type: string
+              description: Bot name
+              example: Tasks bot
+            nickname:
+              type: string
+              description: Bot nickname. Must end with `_bot`.
+              example: tasks_bot
+            outgoing_url:
+              type: string
+              description: Outgoing webhook URL
+              example: https://www.website.com/tasks/new
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/BotEventName'
+              description: Events the bot is subscribed to
+              example:
+                - message_new
+            trigger_on:
+              allOf:
+                - $ref: '#/components/schemas/BotTriggerOn'
+              description: Outgoing webhook trigger condition
+              example: commands
+              default: commands
+            commands:
+              type: array
+              items:
+                type: string
+              description: Bot commands (trigger words) it reacts to when trigger_on = commands
+              example:
+                - /task
+                - /help
+            scopes:
+              type: array
+              items:
+                type: string
+              description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+              example:
+                - messages:create
+          description: Webhook parameters object of the bot to update
       description: Bot update request
     BotWebhook:
       type: object
@@ -5757,6 +5847,7 @@ components:
         - events
         - trigger_on
         - commands
+        - scopes
       properties:
         name:
           type: string
@@ -5790,7 +5881,30 @@ components:
           description: Bot commands (trigger words)
           example:
             - /task
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Bot token scopes (permissions)
+          example:
+            - messages:create
       description: Bot webhook parameters
+    BotWebhookSelfUpdateRequest:
+      type: object
+      required:
+        - webhook
+      properties:
+        webhook:
+          type: object
+          properties:
+            outgoing_url:
+              type: string
+              description: Outgoing webhook URL. An empty string disables the webhook.
+              example: https://www.website.com/tasks/new
+          required:
+            - outgoing_url
+          description: Webhook parameters object
+      description: Bot webhook self-registration request
     Button:
       type: object
       required:
@@ -6248,6 +6362,7 @@ components:
           type: boolean
           description: Skip generating the chat list file (chats.json)
           example: false
+          default: false
       description: Message export request
     File:
       type: object
@@ -6882,6 +6997,7 @@ components:
                       - $ref: '#/components/schemas/FileType'
                     description: 'File type: file (file), image (image)'
                     example: image
+                    default: file
                   size:
                     type: integer
                     format: int32
@@ -7066,7 +7182,10 @@ components:
         - users:delete
         - group_tags:read
         - group_tags:write
+        - bots:read
         - bots:write
+        - bot_self:webhook:write
+        - bot_self:write
         - profile:read
         - profile_status:read
         - profile_status:write
@@ -7207,10 +7326,17 @@ components:
         group_tags_write:
           - owner
           - admin
+        bots_read:
+          - owner
+          - admin
+          - user
         bots_write:
           - owner
           - admin
           - user
+        bot_self_webhook_write:
+          - bot
+        bot_self_write:
           - bot
         profile_read:
           - owner
@@ -7345,7 +7471,10 @@ components:
         users_delete: Delete employees
         group_tags_read: View tags
         group_tags_write: Create, edit, and delete tags
-        bots_write: Update bot settings
+        bots_read: View bots
+        bots_write: Manage bots
+        bot_self_webhook_write: Self-manage own webhook URL
+        bot_self_write: Self-manage own settings
         profile_read: View own profile information
         profile_status_read: View profile status
         profile_status_write: Update and delete profile status
@@ -7855,6 +7984,7 @@ components:
                 - $ref: '#/components/schemas/TaskKind'
               description: Kind
               example: reminder
+              default: reminder
             content:
               type: string
               description: Description
@@ -8195,6 +8325,7 @@ components:
               type: boolean
               description: Whether the user is deactivated
               example: false
+              default: false
             list_tags:
               type: array
               items:
@@ -8238,7 +8369,8 @@ components:
           description: >-
             Skip sending an invitation to the employee. The employee will not receive an email invitation to create an
             account. Useful when pre-creating accounts before SSO login.
-          example: true
+          example: false
+          default: false
       description: Employee creation request
     UserCreateRole:
       type: string
@@ -8384,6 +8516,7 @@ components:
               type: boolean
               description: Whether the user is deactivated
               example: false
+              default: false
             list_tags:
               type: array
               items:
@@ -8545,6 +8678,7 @@ components:
           type: boolean
           description: Required
           example: false
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8610,6 +8744,7 @@ components:
           type: boolean
           description: Required
           example: true
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8678,6 +8813,7 @@ components:
           type: boolean
           description: Required
           example: true
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8738,6 +8874,7 @@ components:
           type: boolean
           description: Multiline field
           example: true
+          default: false
         initial_value:
           type: string
           maxLength: 3000
@@ -8761,6 +8898,7 @@ components:
           type: boolean
           description: Required
           example: true
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8844,6 +8982,7 @@ components:
           type: boolean
           description: Required
           example: true
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8885,6 +9024,7 @@ components:
           type: boolean
           description: Required
           example: false
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8974,6 +9114,7 @@ components:
           type: boolean
           description: Required
           example: false
+          default: false
         hint:
           type: string
           maxLength: 2000

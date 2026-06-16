@@ -273,8 +273,14 @@ export enum OAuthScope {
   GroupTagsRead = "group_tags:read",
   /** Создание, редактирование и удаление тегов */
   GroupTagsWrite = "group_tags:write",
-  /** Изменение настроек бота */
+  /** Просмотр ботов */
+  BotsRead = "bots:read",
+  /** Управление ботами */
   BotsWrite = "bots:write",
+  /** Самостоятельное управление адресом вебхука бота */
+  BotSelfWebhookWrite = "bot_self:webhook:write",
+  /** Самостоятельное управление настройками бота */
+  BotSelfWrite = "bot_self:write",
   /** Просмотр информации о своем профиле */
   ProfileRead = "profile:read",
   /** Просмотр статуса профиля */
@@ -640,18 +646,16 @@ export interface AvatarData {
   imageUrl: string;
 }
 
-export interface BotCreateRequestBotWebhook {
-  name: string;
-  nickname?: string;
-  outgoingUrl?: string;
-  events?: BotEventName[];
-  triggerOn?: BotTriggerOn;
-  commands?: string[];
-}
-
 export interface BotCreateRequest {
-  bot: {
-    webhook: BotCreateRequestBotWebhook;
+  webhook: {
+    name: string;
+    nickname?: string;
+    outgoingUrl?: string;
+    events?: BotEventName[];
+    /** @default commands */
+    triggerOn?: BotTriggerOn;
+    commands?: string[];
+    scopes?: string[];
   };
 }
 
@@ -666,18 +670,16 @@ export interface BotResponse {
   webhook: BotWebhook;
 }
 
-export interface BotUpdateRequestBotWebhook {
-  name?: string;
-  nickname?: string;
-  outgoingUrl?: string;
-  events?: BotEventName[];
-  triggerOn?: BotTriggerOn;
-  commands?: string[];
-}
-
 export interface BotUpdateRequest {
-  bot: {
-    webhook: BotUpdateRequestBotWebhook;
+  webhook: {
+    name?: string;
+    nickname?: string;
+    outgoingUrl?: string;
+    events?: BotEventName[];
+    /** @default commands */
+    triggerOn?: BotTriggerOn;
+    commands?: string[];
+    scopes?: string[];
   };
 }
 
@@ -688,6 +690,13 @@ export interface BotWebhook {
   events: BotEventName[];
   triggerOn: BotTriggerOn;
   commands: string[];
+  scopes: string[];
+}
+
+export interface BotWebhookSelfUpdateRequest {
+  webhook: {
+    outgoingUrl: string;
+  };
 }
 
 export interface Button {
@@ -776,6 +785,7 @@ export interface ExportRequest {
   endAt: string;
   webhookUrl: string;
   chatIds?: number[];
+  /** @default false */
   skipChatsFile?: boolean;
 }
 
@@ -906,6 +916,7 @@ export interface MessageCreateRequest {
 export interface MessageUpdateRequestFile {
   key: string;
   name: string;
+  /** @default file */
   fileType?: FileType;
   size?: number;
   width?: number;
@@ -1054,6 +1065,7 @@ export interface TaskUpdateRequestCustomProperty {
 
 export interface TaskUpdateRequest {
   task: {
+    /** @default reminder */
     kind?: TaskKind;
     content?: string;
     dueAt?: string;
@@ -1129,11 +1141,13 @@ export interface UserCreateRequest {
     department?: string;
     title?: string;
     role?: UserCreateRole;
+    /** @default false */
     suspended?: boolean;
     listTags?: string[];
     chatIds?: number[];
     customProperties?: UserCreateRequestCustomProperty[];
   };
+  /** @default false */
   skipEmailNotify?: boolean;
 }
 
@@ -1162,6 +1176,7 @@ export interface UserUpdateRequest {
     department?: string;
     title?: string;
     role?: UserRoleInput;
+    /** @default false */
     suspended?: boolean;
     listTags?: string[];
     customProperties?: UserUpdateRequestCustomProperty[];
@@ -1181,6 +1196,7 @@ export interface ViewBlockCheckbox {
   name: string;
   label: string;
   options?: ViewBlockCheckboxOption[];
+  /** @default false */
   required?: boolean;
   hint?: string;
 }
@@ -1197,6 +1213,7 @@ export interface ViewBlockDate {
   name: string;
   label: string;
   initialDate?: string;
+  /** @default false */
   required?: boolean;
   hint?: string;
 }
@@ -1212,6 +1229,7 @@ export interface ViewBlockFileInput {
   filetypes?: string[];
   /** @default 10 */
   maxFiles?: number;
+  /** @default false */
   required?: boolean;
   hint?: string;
 }
@@ -1226,10 +1244,12 @@ export interface ViewBlockInput {
   name: string;
   label: string;
   placeholder?: string;
+  /** @default false */
   multiline?: boolean;
   initialValue?: string;
   minLength?: number;
   maxLength?: number;
+  /** @default false */
   required?: boolean;
   hint?: string;
 }
@@ -1249,6 +1269,7 @@ export interface ViewBlockRadio {
   name: string;
   label: string;
   options?: ViewBlockSelectableOption[];
+  /** @default false */
   required?: boolean;
   hint?: string;
 }
@@ -1258,6 +1279,7 @@ export interface ViewBlockSelect {
   name: string;
   label: string;
   options?: ViewBlockSelectOption[];
+  /** @default false */
   required?: boolean;
   hint?: string;
 }
@@ -1280,6 +1302,7 @@ export interface ViewBlockTime {
   name: string;
   label: string;
   initialTime?: string;
+  /** @default false */
   required?: boolean;
   hint?: string;
 }

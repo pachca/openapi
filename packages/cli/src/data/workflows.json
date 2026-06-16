@@ -380,8 +380,8 @@
     "skill": "pachca-bots",
     "steps": [
       {
-        "description": "Создай бота. Только пользовательским токеном (не токеном бота); `nickname` обязан заканчиваться на `_bot`. Параметры вебхука (Webhook URL, события, команды) можно задать сразу или позже",
-        "command": "pachca bots create --bot='{\"webhook\":{\"name\":\"Бот задач\",\"nickname\":\"tasks_bot\"}}'"
+        "description": "Создай бота. Только пользовательским токеном (не токеном бота); `nickname` обязан заканчиваться на `_bot`. Параметры вебхука (Webhook URL, события, команды) можно задать сразу или позже. Скоупы токена бота можно ограничить флагом `--scopes` (если не указать — бот получит набор по умолчанию)",
+        "command": "pachca bots create --name=\"Бот задач\" --nickname=\"tasks_bot\" --scopes='[\"messages:create\"]'"
       }
     ]
   },
@@ -391,7 +391,7 @@
     "steps": [
       {
         "description": "Создай бота, сразу указав Webhook URL и события в одном вызове (детали создания и работы с токеном — в сценарии «Создать бота через API и получить токен»)",
-        "command": "pachca bots create --bot='{\"webhook\":{\"name\":\"Бот задач\",\"nickname\":\"tasks_bot\",\"outgoing_url\":\"https://example.com/webhook\",\"events\":[\"message_new\"],\"trigger_on\":\"commands\",\"commands\":[\"/task\"]}}'"
+        "command": "pachca bots create --name=\"Бот задач\" --nickname=\"tasks_bot\" --outgoing-url=\"https://example.com/webhook\" --events='[\"message_new\"]' --trigger-on=commands --commands='[\"/task\"]'"
       }
     ]
   },
@@ -400,9 +400,13 @@
     "skill": "pachca-bots",
     "steps": [
       {
-        "description": "Обнови webhook URL бота",
-        "command": "pachca bots update <bot_id> --webhook='{\"outgoing_url\":\"https://example.com/webhook\"}'",
+        "description": "Пользовательским токеном (с правом редактировать бота) — обнови URL по `id` бота. Пустая строка отключает вебхук",
+        "command": "pachca bots update <bot_id> --outgoing-url=\"https://example.com/webhook\"",
         "notes": "`id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота"
+      },
+      {
+        "description": "Или: бот сам обновляет свой webhook своим же токеном — без `id` и без участия администратора (нужен скоуп `bot_self:webhook:write`)",
+        "command": "pachca bots update-webhook --outgoing-url=\"https://example.com/webhook\""
       }
     ]
   },

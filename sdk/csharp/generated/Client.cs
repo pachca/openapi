@@ -225,6 +225,11 @@ public class BotsService
         throw new NotImplementedException("Bots.createBot is not implemented");
     }
 
+    public virtual async System.Threading.Tasks.Task<BotResponse> SelfUpdateBotWebhookAsync(BotWebhookSelfUpdateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.selfUpdateBotWebhook is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<BotResponse> UpdateBotAsync(
         int id,
         BotUpdateRequest request,
@@ -321,6 +326,24 @@ public sealed class BotsServiceImpl : BotsService
         {
             case 201:
                 return PachcaUtils.Deserialize<BotCreateResponseDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<BotResponse> SelfUpdateBotWebhookAsync(BotWebhookSelfUpdateRequest request, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/bot/webhook";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<BotResponseDataWrapper>(json).Data;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:

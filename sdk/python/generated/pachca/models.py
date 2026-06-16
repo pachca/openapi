@@ -185,7 +185,10 @@ class OAuthScope(StrEnum):
     USERS_DELETE = "users:delete"  # Удаление сотрудников
     GROUP_TAGS_READ = "group_tags:read"  # Просмотр тегов
     GROUP_TAGS_WRITE = "group_tags:write"  # Создание, редактирование и удаление тегов
-    BOTS_WRITE = "bots:write"  # Изменение настроек бота
+    BOTS_READ = "bots:read"  # Просмотр ботов
+    BOTS_WRITE = "bots:write"  # Управление ботами
+    BOT_SELF_WEBHOOK_WRITE = "bot_self:webhook:write"  # Самостоятельное управление адресом вебхука бота
+    BOT_SELF_WRITE = "bot_self:write"  # Самостоятельное управление настройками бота
     PROFILE_READ = "profile:read"  # Просмотр информации о своем профиле
     PROFILE_STATUS_READ = "profile_status:read"  # Просмотр статуса профиля
     PROFILE_STATUS_WRITE = "profile_status:write"  # Изменение и удаление статуса профиля
@@ -494,23 +497,19 @@ class AvatarData:
 
 
 @dataclass
-class BotCreateRequestBotWebhook:
+class BotCreateRequestWebhook:
     name: str
     nickname: str | None = None
     outgoing_url: str | None = None
     events: list[BotEventName] | None = None
-    trigger_on: BotTriggerOn | None = None
+    trigger_on: BotTriggerOn | None = BotTriggerOn.COMMANDS
     commands: list[str] | None = None
-
-
-@dataclass
-class BotCreateRequestBot:
-    webhook: BotCreateRequestBotWebhook
+    scopes: list[str] | None = None
 
 
 @dataclass
 class BotCreateRequest:
-    bot: BotCreateRequestBot
+    webhook: BotCreateRequestWebhook
 
 
 @dataclass
@@ -527,23 +526,19 @@ class BotResponse:
 
 
 @dataclass
-class BotUpdateRequestBotWebhook:
+class BotUpdateRequestWebhook:
     name: str | None = None
     nickname: str | None = None
     outgoing_url: str | None = None
     events: list[BotEventName] | None = None
-    trigger_on: BotTriggerOn | None = None
+    trigger_on: BotTriggerOn | None = BotTriggerOn.COMMANDS
     commands: list[str] | None = None
-
-
-@dataclass
-class BotUpdateRequestBot:
-    webhook: BotUpdateRequestBotWebhook
+    scopes: list[str] | None = None
 
 
 @dataclass
 class BotUpdateRequest:
-    bot: BotUpdateRequestBot
+    webhook: BotUpdateRequestWebhook
 
 
 @dataclass
@@ -553,7 +548,18 @@ class BotWebhook:
     events: list[BotEventName]
     trigger_on: BotTriggerOn
     commands: list[str]
+    scopes: list[str]
     outgoing_url: str | None = None
+
+
+@dataclass
+class BotWebhookSelfUpdateRequestWebhook:
+    outgoing_url: str
+
+
+@dataclass
+class BotWebhookSelfUpdateRequest:
+    webhook: BotWebhookSelfUpdateRequestWebhook
 
 
 @dataclass
@@ -656,7 +662,7 @@ class ExportRequest:
     end_at: str
     webhook_url: str
     chat_ids: list[int] | None = None
-    skip_chats_file: bool | None = None
+    skip_chats_file: bool | None = False
 
 
 @dataclass
@@ -807,7 +813,7 @@ class MessageCreateRequest:
 class MessageUpdateRequestFile:
     key: str
     name: str
-    file_type: FileType | None = None
+    file_type: FileType | None = FileType.FILE
     size: int | None = None
     width: int | None = None
     height: int | None = None
@@ -984,7 +990,7 @@ class TaskUpdateRequestCustomProperty:
 
 @dataclass
 class TaskUpdateRequestTask:
-    kind: TaskKind | None = None
+    kind: TaskKind | None = TaskKind.REMINDER
     content: str | None = None
     due_at: datetime | None = None
     priority: int | None = None
@@ -1068,7 +1074,7 @@ class UserCreateRequestUser:
     department: str | None = None
     title: str | None = None
     role: UserCreateRole | None = None
-    suspended: bool | None = None
+    suspended: bool | None = False
     list_tags: list[str] | None = None
     chat_ids: list[int] | None = None
     custom_properties: list[UserCreateRequestCustomProperty] | None = None
@@ -1077,7 +1083,7 @@ class UserCreateRequestUser:
 @dataclass
 class UserCreateRequest:
     user: UserCreateRequestUser
-    skip_email_notify: bool | None = None
+    skip_email_notify: bool | None = False
 
 
 @dataclass
@@ -1110,7 +1116,7 @@ class UserUpdateRequestUser:
     department: str | None = None
     title: str | None = None
     role: UserRoleInput | None = None
-    suspended: bool | None = None
+    suspended: bool | None = False
     list_tags: list[str] | None = None
     custom_properties: list[UserUpdateRequestCustomProperty] | None = None
 
@@ -1135,7 +1141,7 @@ class ViewBlockCheckbox:
     name: str
     label: str
     options: list[ViewBlockCheckboxOption] | None = None
-    required: bool | None = None
+    required: bool | None = False
     hint: str | None = None
 
 
@@ -1153,7 +1159,7 @@ class ViewBlockDate:
     name: str
     label: str
     initial_date: str | None = None
-    required: bool | None = None
+    required: bool | None = False
     hint: str | None = None
 
 
@@ -1169,7 +1175,7 @@ class ViewBlockFileInput:
     label: str
     filetypes: list[str] | None = None
     max_files: int | None = 10
-    required: bool | None = None
+    required: bool | None = False
     hint: str | None = None
 
 
@@ -1185,11 +1191,11 @@ class ViewBlockInput:
     name: str
     label: str
     placeholder: str | None = None
-    multiline: bool | None = None
+    multiline: bool | None = False
     initial_value: str | None = None
     min_length: int | None = None
     max_length: int | None = None
-    required: bool | None = None
+    required: bool | None = False
     hint: str | None = None
 
 
@@ -1211,7 +1217,7 @@ class ViewBlockRadio:
     name: str
     label: str
     options: list[ViewBlockSelectableOption] | None = None
-    required: bool | None = None
+    required: bool | None = False
     hint: str | None = None
 
 
@@ -1221,7 +1227,7 @@ class ViewBlockSelect:
     name: str
     label: str
     options: list[ViewBlockSelectOption] | None = None
-    required: bool | None = None
+    required: bool | None = False
     hint: str | None = None
 
 
@@ -1246,7 +1252,7 @@ class ViewBlockTime:
     name: str
     label: str
     initial_time: str | None = None
-    required: bool | None = None
+    required: bool | None = False
     hint: str | None = None
 
 

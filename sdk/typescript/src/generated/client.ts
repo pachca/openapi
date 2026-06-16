@@ -11,6 +11,7 @@ import {
   WebhookPayloadUnion,
   BotCreateRequest,
   BotCreateResponse,
+  BotWebhookSelfUpdateRequest,
   BotUpdateRequest,
   ListChatsParams,
   ListChatsResponse,
@@ -212,6 +213,10 @@ export class BotsService {
     throw new Error("Bots.createBot is not implemented");
   }
 
+  async selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): Promise<BotResponse> {
+    throw new Error("Bots.selfUpdateBotWebhook is not implemented");
+  }
+
   async updateBot(id: number, request: BotUpdateRequest): Promise<BotResponse> {
     throw new Error("Bots.updateBot is not implemented");
   }
@@ -287,6 +292,23 @@ export class BotsServiceImpl extends BotsService {
     switch (response.status) {
       case 201:
         return deserializeType("BotCreateResponse", body.data) as BotCreateResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): Promise<BotResponse> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bot/webhook`, {
+      method: "PUT",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("BotWebhookSelfUpdateRequest", request)),
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("BotResponse", body.data) as BotResponse;
       case 401:
         throw new OAuthError(body.error);
       default:

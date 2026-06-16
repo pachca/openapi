@@ -14,7 +14,7 @@
   },
   "BotOperations_getBot": {
     "usage": "let response = try await client.bots.getBot(id: 1738816)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String]))"
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String]))"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "let response = try await client.bots.getWebhookEvents(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -27,25 +27,31 @@
     "usage": "for try await payload in client.bots.pollWebhookPayloads(interval: 5) {\n    print(payload)\n}"
   },
   "BotOperations_createBot": {
-    "usage": "let body = BotCreateRequest(\n    bot: BotCreateRequestBot(\n        webhook: BotCreateRequestBotWebhook(\n            name: \"Бот задач\",\n            nickname: \"tasks_bot\",\n            outgoingUrl: \"https://www.website.com/tasks/new\",\n            events: [.messageNew],\n            triggerOn: .commands,\n            commands: [\"example\"]\n        )\n    )\n)\nlet response = try await client.bots.createBot(body: body)",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String]), accessToken: String)",
+    "usage": "let body = BotCreateRequest(\n    webhook: BotCreateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"]\n    )\n)\nlet response = try await client.bots.createBot(body: body)",
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String]), accessToken: String)",
     "imports": [
       "BotCreateRequest",
-      "BotCreateRequestBot",
-      "BotCreateRequestBotWebhook",
+      "BotCreateRequestWebhook",
       "BotEventName",
       "BotTriggerOn"
     ]
   },
+  "BotOperations_selfUpdateBotWebhook": {
+    "usage": "let body = BotWebhookSelfUpdateRequest(webhook: BotWebhookSelfUpdateRequestWebhook(outgoingUrl: \"https://www.website.com/tasks/new\"))\nlet response = try await client.bots.selfUpdateBotWebhook(body: body)",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String]))",
+    "imports": [
+      "BotWebhookSelfUpdateRequest",
+      "BotWebhookSelfUpdateRequestWebhook"
+    ]
+  },
   "BotOperations_updateBot": {
-    "usage": "let body = BotUpdateRequest(\n    bot: BotUpdateRequestBot(\n        webhook: BotUpdateRequestBotWebhook(\n            name: \"Бот задач\",\n            nickname: \"tasks_bot\",\n            outgoingUrl: \"https://www.website.com/tasks/new\",\n            events: [.messageNew],\n            triggerOn: .commands,\n            commands: [\"example\"]\n        )\n    )\n)\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String]))",
+    "usage": "let body = BotUpdateRequest(\n    webhook: BotUpdateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"]\n    )\n)\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String]))",
     "imports": [
       "BotEventName",
       "BotTriggerOn",
       "BotUpdateRequest",
-      "BotUpdateRequestBot",
-      "BotUpdateRequestBotWebhook"
+      "BotUpdateRequestWebhook"
     ]
   },
   "BotOperations_deleteWebhookEvent": {
@@ -356,7 +362,7 @@
     "output": "String"
   },
   "UserOperations_createUser": {
-    "usage": "let body = UserCreateRequest(\n    user: UserCreateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegp@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Продукт\",\n        title: \"CIO\",\n        role: .user,\n        suspended: false,\n        listTags: [\"example\"],\n        chatIds: [123],\n        customProperties: [UserCreateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    ),\n    skipEmailNotify: true\n)\nlet response = try await client.users.createUser(body: body)",
+    "usage": "let body = UserCreateRequest(\n    user: UserCreateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegp@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Продукт\",\n        title: \"CIO\",\n        role: .user,\n        suspended: false,\n        listTags: [\"example\"],\n        chatIds: [123],\n        customProperties: [UserCreateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    ),\n    skipEmailNotify: false\n)\nlet response = try await client.users.createUser(body: body)",
     "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)",
     "imports": [
       "UserCreateRequest",

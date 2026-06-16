@@ -6,7 +6,7 @@
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~358K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~363K токенов — обычно не помещается в контекст целиком).
 
 > English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~12K токенов).
 
@@ -52,9 +52,9 @@
 | SDK | Типизированные клиенты для 6 языков | 78–104 |
 | Agent Skills | Скиллы для AI-агентов и установка | 105–127 |
 | Руководства | Страницы-руководства (Markdown по `.md`) | 128–188 |
-| API-методы | Все эндпоинты, сгруппированы по разделам | 189–291 |
-| Обновления | Журнал обновлений по датам | 292–342 |
-| Дополнительно | Прочие ссылки и контакты | 343–351 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 189–292 |
+| Обновления | Журнал обновлений по датам | 293–344 |
+| Дополнительно | Прочие ссылки и контакты | 345–353 |
 
 ## CLI Quick Start
 
@@ -195,15 +195,15 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 
 ## Profile
 - [Информация о токене](https://dev.pachca.com/api/profile/get-info.md): GET /oauth/token/info
-- [Информация о профиле](https://dev.pachca.com/api/profile/get.md): GET /profile
-- [Загрузка аватара](https://dev.pachca.com/api/profile/update-avatar.md): PUT /profile/avatar
-- [Удаление аватара](https://dev.pachca.com/api/profile/delete-avatar.md): DELETE /profile/avatar
-- [Текущий статус](https://dev.pachca.com/api/profile/get-status.md): GET /profile/status
-- [Новый статус](https://dev.pachca.com/api/profile/update-status.md): PUT /profile/status
-- [Удаление статуса](https://dev.pachca.com/api/profile/delete-status.md): DELETE /profile/status
+- [Свой профиль](https://dev.pachca.com/api/profile/get.md): GET /profile
+- [Загрузка своего аватара](https://dev.pachca.com/api/profile/update-avatar.md): PUT /profile/avatar
+- [Удаление своего аватара](https://dev.pachca.com/api/profile/delete-avatar.md): DELETE /profile/avatar
+- [Свой статус](https://dev.pachca.com/api/profile/get-status.md): GET /profile/status
+- [Новый свой статус](https://dev.pachca.com/api/profile/update-status.md): PUT /profile/status
+- [Удаление своего статуса](https://dev.pachca.com/api/profile/delete-status.md): DELETE /profile/status
 
 ## Users
-- [Создать сотрудника](https://dev.pachca.com/api/users/create.md): POST /users
+- [Новый сотрудник](https://dev.pachca.com/api/users/create.md): POST /users
 - [Список сотрудников](https://dev.pachca.com/api/users/list.md): GET /users
 - [Информация о сотруднике](https://dev.pachca.com/api/users/get.md): GET /users/{id}
 - [Редактирование сотрудника](https://dev.pachca.com/api/users/update.md): PUT /users/{id}
@@ -226,7 +226,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Новый чат](https://dev.pachca.com/api/chats/create.md): POST /chats
 - [Список чатов](https://dev.pachca.com/api/chats/list.md): GET /chats
 - [Информация о чате](https://dev.pachca.com/api/chats/get.md): GET /chats/{id}
-- [Обновление чата](https://dev.pachca.com/api/chats/update.md): PUT /chats/{id}
+- [Редактирование чата](https://dev.pachca.com/api/chats/update.md): PUT /chats/{id}
 - [Архивация чата](https://dev.pachca.com/api/chats/archive.md): PUT /chats/{id}/archive
 - [Разархивация чата](https://dev.pachca.com/api/chats/unarchive.md): PUT /chats/{id}/unarchive
 
@@ -280,8 +280,9 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Открытие представления](https://dev.pachca.com/api/views/open.md): POST /views/open
 
 ## Bots
-- [Создание бота](https://dev.pachca.com/api/bots/create.md): POST /bots
-- [Получение бота](https://dev.pachca.com/api/bots/get.md): GET /bots/{id}
+- [Саморегистрация вебхука бота](https://dev.pachca.com/api/bots/update-webhook.md): PUT /bot/webhook
+- [Новый бот](https://dev.pachca.com/api/bots/create.md): POST /bots
+- [Информация о боте](https://dev.pachca.com/api/bots/get.md): GET /bots/{id}
 - [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
 - [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
 - [Удаление события](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}
@@ -290,6 +291,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
 
 ## Обновления
+- [16 июня 2026 — Настраиваемые скоупы ботов и саморегистрация вебхука](https://dev.pachca.com/updates/2026-06-16.md)
 - [15 июня 2026 — Создание ботов через API, голосовые сообщения](https://dev.pachca.com/updates/2026-06-15.md)
 - [05 июня 2026 — Webhook-модели и polling в SDK](https://dev.pachca.com/updates/2026-06-05.md)
 - [20 мая 2026 — Список тредов](https://dev.pachca.com/updates/2026-05-20.md)

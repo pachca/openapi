@@ -148,6 +148,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `POST /views/open` — Open view
 
 ### Bots
+- `PUT /bot/webhook` — Self update bot webhook
 - `POST /bots` — Create bot
 - `GET /bots/{id}` — Get bot
 - `PUT /bots/{id}` — Update bot

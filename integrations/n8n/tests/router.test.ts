@@ -487,7 +487,7 @@ describe('Special: botWebhook', () => {
 		});
 		await runRouter(ctx);
 		const body = ctx._calls[0].body as any;
-		expect(body.bot.webhook).toEqual({ outgoing_url: 'https://example.com/webhook' });
+		expect(body.webhook).toEqual({ outgoing_url: 'https://example.com/webhook' });
 	});
 });
 

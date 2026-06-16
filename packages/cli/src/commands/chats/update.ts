@@ -3,7 +3,7 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsUpdate extends BaseCommand {
-  static override description = "Обновление чата";
+  static override description = "Редактирование чата";
 
   static override examples = [
       "Переименовать или обновить чат:\n  $ pachca chats update"

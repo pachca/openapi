@@ -779,11 +779,11 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       steps: [
         {
           description:
-            'Создай бота. Только пользовательским токеном (не токеном бота); `nickname` обязан заканчиваться на `_bot`. Параметры вебхука (Webhook URL, события, команды) можно задать сразу или позже',
+            'Создай бота. Только пользовательским токеном (не токеном бота); `nickname` обязан заканчиваться на `_bot`. Параметры вебхука (Webhook URL, события, команды) можно задать сразу или позже. Скоупы токена бота можно ограничить флагом `--scopes` (если не указать — бот получит набор по умолчанию)',
           descriptionEn:
-            'Create the bot. User token only (not a bot token); `nickname` must end with `_bot`. Webhook params (Webhook URL, events, commands) can be set now or later',
+            'Create the bot. User token only (not a bot token); `nickname` must end with `_bot`. Webhook params (Webhook URL, events, commands) can be set now or later. Restrict the bot token scopes with `--scopes` (omit for the default set)',
           command:
-            'pachca bots create --bot=\'{"webhook":{"name":"Бот задач","nickname":"tasks_bot"}}\'',
+            'pachca bots create --name="Бот задач" --nickname="tasks_bot" --scopes=\'["messages:create"]\'',
           apiMethod: 'POST',
           apiPath: '/bots',
         },
@@ -827,7 +827,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           descriptionEn:
             'Create the bot, setting its Webhook URL and events in one call (creation and token details — see the "Create a bot via API and get its token" scenario)',
           command:
-            'pachca bots create --bot=\'{"webhook":{"name":"Бот задач","nickname":"tasks_bot","outgoing_url":"https://example.com/webhook","events":["message_new"],"trigger_on":"commands","commands":["/task"]}}\'',
+            'pachca bots create --name="Бот задач" --nickname="tasks_bot" --outgoing-url="https://example.com/webhook" --events=\'["message_new"]\' --trigger-on=commands --commands=\'["/task"]\'',
           apiMethod: 'POST',
           apiPath: '/bots',
         },
@@ -850,18 +850,30 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       titleEn: 'Update bot webhook URL',
       steps: [
         {
-          description: 'Обнови webhook URL бота',
-          descriptionEn: 'Update bot webhook URL',
-          command:
-            'pachca bots update <bot_id> --webhook=\'{"outgoing_url":"https://example.com/webhook"}\'',
+          description:
+            'Пользовательским токеном (с правом редактировать бота) — обнови URL по `id` бота. Пустая строка отключает вебхук',
+          descriptionEn:
+            'With a user token (that can edit the bot) — update the URL by bot `id`. An empty string disables the webhook',
+          command: 'pachca bots update <bot_id> --outgoing-url="https://example.com/webhook"',
           apiMethod: 'PUT',
           apiPath: '/bots/{id}',
           notes: '`id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота',
           notesEn: 'Bot `id` (its `user_id`) can be found in "API" tab of bot settings',
         },
+        {
+          description:
+            'Или: бот сам обновляет свой webhook своим же токеном — без `id` и без участия администратора (нужен скоуп `bot_self:webhook:write`)',
+          descriptionEn:
+            'Or: the bot updates its own webhook with its own token — no `id` and no admin (requires the `bot_self:webhook:write` scope)',
+          command: 'pachca bots update-webhook --outgoing-url="https://example.com/webhook"',
+          apiMethod: 'PUT',
+          apiPath: '/bot/webhook',
+        },
       ],
-      notes: 'Обновлять настройки может только тот, кому разрешено редактирование бота.',
-      notesEn: 'Only users with bot edit permissions can update settings.',
+      notes:
+        'Два пути: по `id` пользовательским токеном (право редактировать бота) или самим ботом своим токеном (`PUT /bot/webhook`). Пустой `outgoing_url` отключает вебхук.',
+      notesEn:
+        'Two paths: by `id` with a user token (bot edit rights), or by the bot itself with its own token (`PUT /bot/webhook`). An empty `outgoing_url` disables the webhook.',
     },
     {
       title: 'Обработать входящий вебхук-событие',

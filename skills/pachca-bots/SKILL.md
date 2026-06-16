@@ -49,9 +49,9 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 ### Создать бота через API и получить токен
 
-1. Создай бота. Только пользовательским токеном (не токеном бота); `nickname` обязан заканчиваться на `_bot`. Параметры вебхука (Webhook URL, события, команды) можно задать сразу или позже:
+1. Создай бота. Только пользовательским токеном (не токеном бота); `nickname` обязан заканчиваться на `_bot`. Параметры вебхука (Webhook URL, события, команды) можно задать сразу или позже. Скоупы токена бота можно ограничить флагом `--scopes` (если не указать — бот получит набор по умолчанию):
    ```bash
-   pachca bots create --bot='{"webhook":{"name":"Бот задач","nickname":"tasks_bot"}}'
+   pachca bots create --name="Бот задач" --nickname="tasks_bot" --scopes='["messages:create"]'
    ```
 
 2. Сохрани `access_token` из ответа — он возвращается единственный раз. Повторно получить токен можно только через интерфейс (вкладка «API» настроек бота)
@@ -65,7 +65,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 1. Создай бота, сразу указав Webhook URL и события в одном вызове (детали создания и работы с токеном — в сценарии «Создать бота через API и получить токен»):
    ```bash
-   pachca bots create --bot='{"webhook":{"name":"Бот задач","nickname":"tasks_bot","outgoing_url":"https://example.com/webhook","events":["message_new"],"trigger_on":"commands","commands":["/task"]}}'
+   pachca bots create --name="Бот задач" --nickname="tasks_bot" --outgoing-url="https://example.com/webhook" --events='["message_new"]' --trigger-on=commands --commands='["/task"]'
    ```
 
 2. Сохрани `access_token` из ответа (возвращается единственный раз)
@@ -77,13 +77,18 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 ### Обновить Webhook URL бота
 
-1. Обнови webhook URL бота:
+1. Пользовательским токеном (с правом редактировать бота) — обнови URL по `id` бота. Пустая строка отключает вебхук:
    ```bash
-   pachca bots update <bot_id> --webhook='{"outgoing_url":"https://example.com/webhook"}'
+   pachca bots update <bot_id> --outgoing-url="https://example.com/webhook"
    ```
    > `id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота
 
-> Обновлять настройки может только тот, кому разрешено редактирование бота.
+2. Или: бот сам обновляет свой webhook своим же токеном — без `id` и без участия администратора (нужен скоуп `bot_self:webhook:write`):
+   ```bash
+   pachca bots update-webhook --outgoing-url="https://example.com/webhook"
+   ```
+
+> Два пути: по `id` пользовательским токеном (право редактировать бота) или самим ботом своим токеном (`PUT /bot/webhook`). Пустой `outgoing_url` отключает вебхук.
 
 
 ### Периодический дайджест/отчёт
@@ -103,7 +108,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 ## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
-- `bot.webhook.trigger_on`: allowed values — `commands` (Только на команды (триггер-слова) из commands), `all_messages` (На все сообщения в чатах, где есть бот), `unfurl` (На развёртывание ссылок (link previews))
+- `webhook.trigger_on`: allowed values — `commands` (Только на команды (триггер-слова) из commands), `all_messages` (На все сообщения в чатах, где есть бот), `unfurl` (На развёртывание ссылок (link previews))
 - `limit`: max 50
 - Pagination: cursor-based (limit + cursor)
 
@@ -111,8 +116,9 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | /bots | Создание бота |
-| GET | /bots/{id} | Получение бота |
+| PUT | /bot/webhook | Саморегистрация вебхука бота |
+| POST | /bots | Новый бот |
+| GET | /bots/{id} | Информация о боте |
 | PUT | /bots/{id} | Редактирование бота |
 | POST | /messages/{id}/link_previews | Unfurl (разворачивание ссылок) |
 | GET | /webhooks/events | История событий |

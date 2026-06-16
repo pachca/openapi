@@ -219,6 +219,23 @@ git tag --list 'n8n-v*' --sort=-v:refname | head -1
 | SDK       | semver (общий для всех языков) | `1.0.14`   |
 | Generator | semver                         | `1.1.3`    |
 
+#### Стиль текста записей changelog (по продуктам)
+
+Запись описывает изменение **на языке поверхности своего продукта**, а не сырыми
+путями API. Не писать `(POST /bots)`, `(PUT /bot/webhook)` и т.п. в тексте записи —
+у каждого пакета своя система имён:
+
+| Продукт | Где | Как писать | Пример |
+| ------- | --- | ---------- | ------ |
+| **CLI** | `releases.json` | `` `pachca <команда>` — суть `` + флаги `--flag` | `` `pachca bots create` — создание бота и получение его `access_token` `` |
+| **CLI** | `packages/cli/src/data/changelog.json` | поле `command` = команда; в `description` суть (без пути), для новой команды — «Новая команда — …» | `command: "bots create"`, `description: "Новая команда — создание бота…"` |
+| **SDK** | `releases.json` | `` Метод `Русское-название` (`METHOD /path`) `` либо «поле `field`» | `` Метод `Саморегистрация вебхука бота` (`PUT /bot/webhook`) `` |
+| **n8n** | `releases.json` + `integrations/n8n/CHANGELOG.md` | `` `Resource`: операция `Create`/`Get Many`/`Update Webhook` `` + параметры в коде; **без** сырых API-путей | `` Bot: новая операция `Update Webhook` — саморегистрация вебхука бота `` |
+
+Сырой `METHOD /path` уместен только у SDK в скобках после названия метода (SDK
+оперирует методами API напрямую). У CLI поверхность — команды и флаги, у n8n —
+ресурсы и операции; пути в их записи — стилевая ошибка.
+
 ### 5. Проверка типов аудит-событий
 
 Сверить список `event_key` в бэкенде с документацией в `apps/docs/content/guides/audit-events.mdx`:
@@ -628,8 +645,6 @@ interface EntityOperations {
 Заголовок
 
 Описание метода. Поддерживается markdown.
-
-#admin_access_token_required
 """)
   @get
   @route("/{id}")
@@ -755,16 +770,6 @@ title: "Заголовок обновления"
 - Обновления с датой < 7 дней назад получают badge «Новое» на сайте (порог — `isNewUpdate()` в `apps/docs/lib/updates-parser.ts`)
 - Допустимые HTTP-методы в ссылках: `GET`, `POST`, `PUT`, `DELETE`
 - Полные правила — [updates-format](./updates-format.md)
-
-### Спец-теги для описаний
-
-В `@doc()` можно использовать хештеги, которые превращаются в callout-блоки:
-
-- `#admin_access_token_required` — нужен токен администратора
-- `#owner_access_token_required` — нужен токен владельца
-- `#bot_access_token_required` — нужен токен бота
-- `#corporation_price_only` — только для корпоративного тарифа
-- `#access_token_not_required` — токен не требуется
 
 ### Компиляция и проверка
 

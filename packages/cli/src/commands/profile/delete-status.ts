@@ -4,7 +4,7 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ProfileDeleteStatus extends BaseCommand {
-  static override description = "Удаление статуса";
+  static override description = "Удаление своего статуса";
 
   static override examples = [
       "Установить статус:\n  $ pachca profile update-status",

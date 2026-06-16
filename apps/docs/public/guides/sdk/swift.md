@@ -77,13 +77,13 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.common.downloadExport()` | [Скачать архив экспорта](/api/common/get-exports) |
 | `client.common.listProperties()` | [Список дополнительных полей](/api/common/custom-properties) |
 | `client.profile.getTokenInfo()` | [Информация о токене](/api/profile/get-info) |
-| `client.profile.getProfile()` | [Информация о профиле](/api/profile/get) |
-| `client.profile.getStatus()` | [Текущий статус](/api/profile/get-status) |
-| `client.profile.updateProfileAvatar()` | [Загрузка аватара](/api/profile/update-avatar) |
-| `client.profile.updateStatus()` | [Новый статус](/api/profile/update-status) |
-| `client.profile.deleteProfileAvatar()` | [Удаление аватара](/api/profile/delete-avatar) |
-| `client.profile.deleteStatus()` | [Удаление статуса](/api/profile/delete-status) |
-| `client.users.createUser()` | [Создать сотрудника](/api/users/create) |
+| `client.profile.getProfile()` | [Свой профиль](/api/profile/get) |
+| `client.profile.getStatus()` | [Свой статус](/api/profile/get-status) |
+| `client.profile.updateProfileAvatar()` | [Загрузка своего аватара](/api/profile/update-avatar) |
+| `client.profile.updateStatus()` | [Новый свой статус](/api/profile/update-status) |
+| `client.profile.deleteProfileAvatar()` | [Удаление своего аватара](/api/profile/delete-avatar) |
+| `client.profile.deleteStatus()` | [Удаление своего статуса](/api/profile/delete-status) |
+| `client.users.createUser()` | [Новый сотрудник](/api/users/create) |
 | `client.users.listUsers()` | [Список сотрудников](/api/users/list) |
 | `client.users.getUser()` | [Информация о сотруднике](/api/users/get) |
 | `client.users.getUserStatus()` | [Статус сотрудника](/api/users/get-status) |
@@ -102,7 +102,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.chats.createChat()` | [Новый чат](/api/chats/create) |
 | `client.chats.listChats()` | [Список чатов](/api/chats/list) |
 | `client.chats.getChat()` | [Информация о чате](/api/chats/get) |
-| `client.chats.updateChat()` | [Обновление чата](/api/chats/update) |
+| `client.chats.updateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archiveChat()` | [Архивация чата](/api/chats/archive) |
 | `client.chats.unarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.members.addTags()` | [Добавление тегов](/api/members/add-group-tags) |
@@ -136,9 +136,10 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.tasks.updateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.deleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.openView()` | [Открытие представления](/api/views/open) |
-| `client.bots.createBot()` | [Создание бота](/api/bots/create) |
-| `client.bots.getBot()` | [Получение бота](/api/bots/get) |
+| `client.bots.createBot()` | [Новый бот](/api/bots/create) |
+| `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
+| `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |

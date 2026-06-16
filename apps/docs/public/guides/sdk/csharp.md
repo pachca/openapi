@@ -71,13 +71,13 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Common.DownloadExportAsync()` | [Скачать архив экспорта](/api/common/get-exports) |
 | `client.Common.ListPropertiesAsync()` | [Список дополнительных полей](/api/common/custom-properties) |
 | `client.Profile.GetTokenInfoAsync()` | [Информация о токене](/api/profile/get-info) |
-| `client.Profile.GetProfileAsync()` | [Информация о профиле](/api/profile/get) |
-| `client.Profile.GetStatusAsync()` | [Текущий статус](/api/profile/get-status) |
-| `client.Profile.UpdateProfileAvatarAsync()` | [Загрузка аватара](/api/profile/update-avatar) |
-| `client.Profile.UpdateStatusAsync()` | [Новый статус](/api/profile/update-status) |
-| `client.Profile.DeleteProfileAvatarAsync()` | [Удаление аватара](/api/profile/delete-avatar) |
-| `client.Profile.DeleteStatusAsync()` | [Удаление статуса](/api/profile/delete-status) |
-| `client.Users.CreateUserAsync()` | [Создать сотрудника](/api/users/create) |
+| `client.Profile.GetProfileAsync()` | [Свой профиль](/api/profile/get) |
+| `client.Profile.GetStatusAsync()` | [Свой статус](/api/profile/get-status) |
+| `client.Profile.UpdateProfileAvatarAsync()` | [Загрузка своего аватара](/api/profile/update-avatar) |
+| `client.Profile.UpdateStatusAsync()` | [Новый свой статус](/api/profile/update-status) |
+| `client.Profile.DeleteProfileAvatarAsync()` | [Удаление своего аватара](/api/profile/delete-avatar) |
+| `client.Profile.DeleteStatusAsync()` | [Удаление своего статуса](/api/profile/delete-status) |
+| `client.Users.CreateUserAsync()` | [Новый сотрудник](/api/users/create) |
 | `client.Users.ListUsersAsync()` | [Список сотрудников](/api/users/list) |
 | `client.Users.GetUserAsync()` | [Информация о сотруднике](/api/users/get) |
 | `client.Users.GetUserStatusAsync()` | [Статус сотрудника](/api/users/get-status) |
@@ -96,7 +96,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Chats.CreateChatAsync()` | [Новый чат](/api/chats/create) |
 | `client.Chats.ListChatsAsync()` | [Список чатов](/api/chats/list) |
 | `client.Chats.GetChatAsync()` | [Информация о чате](/api/chats/get) |
-| `client.Chats.UpdateChatAsync()` | [Обновление чата](/api/chats/update) |
+| `client.Chats.UpdateChatAsync()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChatAsync()` | [Архивация чата](/api/chats/archive) |
 | `client.Chats.UnarchiveChatAsync()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.Members.AddTagsAsync()` | [Добавление тегов](/api/members/add-group-tags) |
@@ -130,9 +130,10 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Tasks.UpdateTaskAsync()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.Tasks.DeleteTaskAsync()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.Views.OpenViewAsync()` | [Открытие представления](/api/views/open) |
-| `client.Bots.CreateBotAsync()` | [Создание бота](/api/bots/create) |
-| `client.Bots.GetBotAsync()` | [Получение бота](/api/bots/get) |
+| `client.Bots.CreateBotAsync()` | [Новый бот](/api/bots/create) |
+| `client.Bots.GetBotAsync()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.GetWebhookEventsAsync()` | [История событий](/api/bots/list-events) |
+| `client.Bots.SelfUpdateBotWebhookAsync()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |
 | `client.Bots.DeleteWebhookEventAsync()` | [Удаление события](/api/bots/remove-event) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |

@@ -168,11 +168,89 @@ paths:
       x-requirements:
         scope: audit_events:read
         plan: corporation
+  /bot/webhook:
+    put:
+      operationId: BotOperations_selfUpdateBotWebhook
+      description: |-
+        Саморегистрация вебхука бота
+
+        Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `user_id`. Меняется вебхук того бота, которому принадлежит токен. Чтобы отключить вебхук, передайте пустую строку в `outgoing_url`.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotResponse'
+                description: Обертка ответа с данными
+              example:
+                data:
+                  id: 1738816
+                  webhook:
+                    name: Бот задач
+                    nickname: tasks_bot
+                    outgoing_url: https://www.website.com/tasks/new
+                    events:
+                      - message_new
+                    trigger_on: commands
+                    commands:
+                      - /task
+                    scopes:
+                      - messages:create
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotWebhookSelfUpdateRequest'
+            example:
+              webhook:
+                outgoing_url: https://www.website.com/tasks/new
+      x-requirements:
+        scope: bot_self:webhook:write
   /bots:
     post:
       operationId: BotOperations_createBot
       description: |-
-        Создание бота
+        Новый бот
 
         Метод для создания бота и получения его `access_token`.
 
@@ -203,6 +281,8 @@ paths:
                     trigger_on: commands
                     commands:
                       - /task
+                    scopes:
+                      - messages:create
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '400':
           description: The server could not understand the request due to invalid syntax.
@@ -237,23 +317,24 @@ paths:
             schema:
               $ref: '#/components/schemas/BotCreateRequest'
             example:
-              bot:
-                webhook:
-                  name: Бот задач
-                  nickname: tasks_bot
-                  outgoing_url: https://www.website.com/tasks/new
-                  events:
-                    - message_new
-                  trigger_on: commands
-                  commands:
-                    - /task
+              webhook:
+                name: Бот задач
+                nickname: tasks_bot
+                outgoing_url: https://www.website.com/tasks/new
+                events:
+                  - message_new
+                trigger_on: commands
+                commands:
+                  - /task
+                scopes:
+                  - messages:create
       x-requirements:
         scope: bots:write
   /bots/{id}:
     get:
       operationId: BotOperations_getBot
       description: |-
-        Получение бота
+        Информация о боте
 
         Метод для получения параметров бота по его `user_id`.
       parameters:
@@ -291,6 +372,8 @@ paths:
                     trigger_on: commands
                     commands:
                       - /task
+                    scopes:
+                      - messages:create
         '401':
           description: Access is unauthorized.
           content:
@@ -772,7 +855,7 @@ paths:
     put:
       operationId: ChatOperations_updateChat
       description: |-
-        Обновление чата
+        Редактирование чата
 
         Метод для обновления параметров чата.
 
@@ -2868,7 +2951,7 @@ paths:
     get:
       operationId: ProfileOperations_getProfile
       description: |-
-        Информация о профиле
+        Свой профиль
 
         Метод для получения информации о своем профиле.
       parameters: []
@@ -2905,7 +2988,7 @@ paths:
     put:
       operationId: ProfileAvatarOperations_updateProfileAvatar
       description: |-
-        Загрузка аватара
+        Загрузка своего аватара
 
         Метод для загрузки или обновления аватара своего профиля. Файл передается в формате `multipart/form-data`.
       parameters: []
@@ -2968,7 +3051,7 @@ paths:
     delete:
       operationId: ProfileAvatarOperations_deleteProfileAvatar
       description: |-
-        Удаление аватара
+        Удаление своего аватара
 
         Метод для удаления аватара своего профиля.
       parameters: []
@@ -3003,7 +3086,7 @@ paths:
     get:
       operationId: ProfileOperations_getStatus
       description: |-
-        Текущий статус
+        Свой статус
 
         Метод для получения информации о своем статусе.
       parameters: []
@@ -3042,7 +3125,7 @@ paths:
     put:
       operationId: ProfileOperations_updateStatus
       description: |-
-        Новый статус
+        Новый свой статус
 
         Метод для установки себе нового статуса.
       parameters: []
@@ -3096,7 +3179,7 @@ paths:
     delete:
       operationId: ProfileOperations_deleteStatus
       description: |-
-        Удаление статуса
+        Удаление своего статуса
 
         Метод для удаления своего статуса.
       parameters: []
@@ -4100,7 +4183,7 @@ paths:
     post:
       operationId: UserOperations_createUser
       description: |-
-        Создать сотрудника
+        Новый сотрудник
 
         Метод для создания нового сотрудника в вашей компании.
 
@@ -5440,52 +5523,54 @@ components:
     BotCreateRequest:
       type: object
       required:
-        - bot
+        - webhook
       properties:
-        bot:
+        webhook:
           type: object
           properties:
-            webhook:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: Имя бота
-                  example: Бот задач
-                nickname:
-                  type: string
-                  description: Никнейм бота. Должен заканчиваться на `_bot`.
-                  example: tasks_bot
-                outgoing_url:
-                  type: string
-                  description: URL исходящего вебхука
-                  example: https://www.website.com/tasks/new
-                events:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/BotEventName'
-                  description: События, на которые подписан бот
-                  example:
-                    - message_new
-                trigger_on:
-                  allOf:
-                    - $ref: '#/components/schemas/BotTriggerOn'
-                  description: Условие срабатывания исходящего вебхука
-                  example: commands
-                commands:
-                  type: array
-                  items:
-                    type: string
-                  description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands
-                  example:
-                    - /task
-                    - /help
-              required:
-                - name
-              description: Объект параметров вебхука бота
+            name:
+              type: string
+              description: Имя бота
+              example: Бот задач
+            nickname:
+              type: string
+              description: Никнейм бота. Должен заканчиваться на `_bot`.
+              example: tasks_bot
+            outgoing_url:
+              type: string
+              description: URL исходящего вебхука
+              example: https://www.website.com/tasks/new
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/BotEventName'
+              description: События, на которые подписан бот
+              example:
+                - message_new
+            trigger_on:
+              allOf:
+                - $ref: '#/components/schemas/BotTriggerOn'
+              description: Условие срабатывания исходящего вебхука
+              example: commands
+              default: commands
+            commands:
+              type: array
+              items:
+                type: string
+              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands
+              example:
+                - /task
+                - /help
+            scopes:
+              type: array
+              items:
+                type: string
+              description: Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.
+              example:
+                - messages:create
           required:
-            - webhook
-          description: Собранный объект параметров создаваемого бота
+            - name
+          description: Объект параметров вебхука создаваемого бота
       description: Запрос на создание бота
     BotCreateResponse:
       type: object
@@ -5575,50 +5660,52 @@ components:
     BotUpdateRequest:
       type: object
       required:
-        - bot
+        - webhook
       properties:
-        bot:
+        webhook:
           type: object
           properties:
-            webhook:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: Имя бота
-                  example: Бот задач
-                nickname:
-                  type: string
-                  description: Никнейм бота. Должен заканчиваться на `_bot`.
-                  example: tasks_bot
-                outgoing_url:
-                  type: string
-                  description: URL исходящего вебхука
-                  example: https://www.website.com/tasks/new
-                events:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/BotEventName'
-                  description: События, на которые подписан бот
-                  example:
-                    - message_new
-                trigger_on:
-                  allOf:
-                    - $ref: '#/components/schemas/BotTriggerOn'
-                  description: Условие срабатывания исходящего вебхука
-                  example: commands
-                commands:
-                  type: array
-                  items:
-                    type: string
-                  description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands
-                  example:
-                    - /task
-                    - /help
-              description: Объект параметров вебхука
-          required:
-            - webhook
-          description: Собранный объект параметров редактируемого бота
+            name:
+              type: string
+              description: Имя бота
+              example: Бот задач
+            nickname:
+              type: string
+              description: Никнейм бота. Должен заканчиваться на `_bot`.
+              example: tasks_bot
+            outgoing_url:
+              type: string
+              description: URL исходящего вебхука
+              example: https://www.website.com/tasks/new
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/BotEventName'
+              description: События, на которые подписан бот
+              example:
+                - message_new
+            trigger_on:
+              allOf:
+                - $ref: '#/components/schemas/BotTriggerOn'
+              description: Условие срабатывания исходящего вебхука
+              example: commands
+              default: commands
+            commands:
+              type: array
+              items:
+                type: string
+              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands
+              example:
+                - /task
+                - /help
+            scopes:
+              type: array
+              items:
+                type: string
+              description: Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.
+              example:
+                - messages:create
+          description: Объект параметров вебхука редактируемого бота
       description: Запрос на обновление бота
     BotWebhook:
       type: object
@@ -5629,6 +5716,7 @@ components:
         - events
         - trigger_on
         - commands
+        - scopes
       properties:
         name:
           type: string
@@ -5662,7 +5750,30 @@ components:
           description: Команды бота (триггер-слова)
           example:
             - /task
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Скоупы (права доступа) токена бота
+          example:
+            - messages:create
       description: Параметры вебхука бота
+    BotWebhookSelfUpdateRequest:
+      type: object
+      required:
+        - webhook
+      properties:
+        webhook:
+          type: object
+          properties:
+            outgoing_url:
+              type: string
+              description: URL исходящего вебхука. Пустая строка отключает вебхук.
+              example: https://www.website.com/tasks/new
+          required:
+            - outgoing_url
+          description: Объект параметров вебхука
+      description: Запрос на саморегистрацию вебхука бота
     Button:
       type: object
       required:
@@ -6120,6 +6231,7 @@ components:
           type: boolean
           description: Пропуск формирования файла со списком чатов (chats.json)
           example: false
+          default: false
       description: Запрос на экспорт сообщений
     File:
       type: object
@@ -6735,6 +6847,7 @@ components:
                       - $ref: '#/components/schemas/FileType'
                     description: Тип файла
                     example: image
+                    default: file
                   size:
                     type: integer
                     format: int32
@@ -6913,7 +7026,10 @@ components:
         - users:delete
         - group_tags:read
         - group_tags:write
+        - bots:read
         - bots:write
+        - bot_self:webhook:write
+        - bot_self:write
         - profile:read
         - profile_status:read
         - profile_status:write
@@ -7054,10 +7170,17 @@ components:
         group_tags_write:
           - owner
           - admin
+        bots_read:
+          - owner
+          - admin
+          - user
         bots_write:
           - owner
           - admin
           - user
+        bot_self_webhook_write:
+          - bot
+        bot_self_write:
           - bot
         profile_read:
           - owner
@@ -7192,7 +7315,10 @@ components:
         users_delete: Удаление сотрудников
         group_tags_read: Просмотр тегов
         group_tags_write: Создание, редактирование и удаление тегов
-        bots_write: Изменение настроек бота
+        bots_read: Просмотр ботов
+        bots_write: Управление ботами
+        bot_self_webhook_write: Самостоятельное управление адресом вебхука бота
+        bot_self_write: Самостоятельное управление настройками бота
         profile_read: Просмотр информации о своем профиле
         profile_status_read: Просмотр статуса профиля
         profile_status_write: Изменение и удаление статуса профиля
@@ -7692,6 +7818,7 @@ components:
                 - $ref: '#/components/schemas/TaskKind'
               description: Тип
               example: reminder
+              default: reminder
             content:
               type: string
               description: Описание
@@ -8021,6 +8148,7 @@ components:
               type: boolean
               description: Деактивация пользователя
               example: false
+              default: false
             list_tags:
               type: array
               items:
@@ -8060,7 +8188,8 @@ components:
         skip_email_notify:
           type: boolean
           description: Пропуск этапа отправки приглашения сотруднику. Сотруднику не будет отправлено письмо на электронную почту с приглашением создать аккаунт. Полезно при предварительном создании аккаунтов перед входом через SSO.
-          example: true
+          example: false
+          default: false
       description: Запрос на создание сотрудника
     UserCreateRole:
       type: string
@@ -8200,6 +8329,7 @@ components:
               type: boolean
               description: Деактивация пользователя
               example: false
+              default: false
             list_tags:
               type: array
               items:
@@ -8361,6 +8491,7 @@ components:
           type: boolean
           description: Обязательность
           example: false
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8426,6 +8557,7 @@ components:
           type: boolean
           description: Обязательность
           example: true
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8492,6 +8624,7 @@ components:
           type: boolean
           description: Обязательность
           example: true
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8552,6 +8685,7 @@ components:
           type: boolean
           description: Многострочное поле
           example: true
+          default: false
         initial_value:
           type: string
           maxLength: 3000
@@ -8575,6 +8709,7 @@ components:
           type: boolean
           description: Обязательность
           example: true
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8656,6 +8791,7 @@ components:
           type: boolean
           description: Обязательность
           example: true
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8697,6 +8833,7 @@ components:
           type: boolean
           description: Обязательность
           example: false
+          default: false
         hint:
           type: string
           maxLength: 2000
@@ -8784,6 +8921,7 @@ components:
           type: boolean
           description: Обязательность
           example: false
+          default: false
         hint:
           type: string
           maxLength: 2000

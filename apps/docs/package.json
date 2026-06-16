@@ -13,7 +13,8 @@
     "format:check": "prettier --check .",
     "generate-llms": "bun scripts/generate-llms.ts",
     "check-urls": "node scripts/check-url-conflicts.mjs",
-    "check-models": "node scripts/check-models-coverage.mjs"
+    "check-models": "node scripts/check-models-coverage.mjs",
+    "check-n8n-resources": "node scripts/check-n8n-resources.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.2",

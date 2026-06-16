@@ -775,8 +775,14 @@ public enum OAuthScope
     GroupTagsRead,
     /// <summary>Создание, редактирование и удаление тегов</summary>
     GroupTagsWrite,
-    /// <summary>Изменение настроек бота</summary>
+    /// <summary>Просмотр ботов</summary>
+    BotsRead,
+    /// <summary>Управление ботами</summary>
     BotsWrite,
+    /// <summary>Самостоятельное управление адресом вебхука бота</summary>
+    BotSelfWebhookWrite,
+    /// <summary>Самостоятельное управление настройками бота</summary>
+    BotSelfWrite,
     /// <summary>Просмотр информации о своем профиле</summary>
     ProfileRead,
     /// <summary>Просмотр статуса профиля</summary>
@@ -859,7 +865,10 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             "users:delete" => OAuthScope.UsersDelete,
             "group_tags:read" => OAuthScope.GroupTagsRead,
             "group_tags:write" => OAuthScope.GroupTagsWrite,
+            "bots:read" => OAuthScope.BotsRead,
             "bots:write" => OAuthScope.BotsWrite,
+            "bot_self:webhook:write" => OAuthScope.BotSelfWebhookWrite,
+            "bot_self:write" => OAuthScope.BotSelfWrite,
             "profile:read" => OAuthScope.ProfileRead,
             "profile_status:read" => OAuthScope.ProfileStatusRead,
             "profile_status:write" => OAuthScope.ProfileStatusWrite,
@@ -917,7 +926,10 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             OAuthScope.UsersDelete => "users:delete",
             OAuthScope.GroupTagsRead => "group_tags:read",
             OAuthScope.GroupTagsWrite => "group_tags:write",
+            OAuthScope.BotsRead => "bots:read",
             OAuthScope.BotsWrite => "bots:write",
+            OAuthScope.BotSelfWebhookWrite => "bot_self:webhook:write",
+            OAuthScope.BotSelfWrite => "bot_self:write",
             OAuthScope.ProfileRead => "profile:read",
             OAuthScope.ProfileStatusRead => "profile_status:read",
             OAuthScope.ProfileStatusWrite => "profile_status:write",
@@ -2145,7 +2157,7 @@ public class AvatarData
     public string ImageUrl { get; set; } = default!;
 }
 
-public class BotCreateRequestBotWebhook
+public class BotCreateRequestWebhook
 {
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
@@ -2159,18 +2171,14 @@ public class BotCreateRequestBotWebhook
     public BotTriggerOn? TriggerOn { get; set; }
     [JsonPropertyName("commands")]
     public List<string>? Commands { get; set; }
-}
-
-public class BotCreateRequestBot
-{
-    [JsonPropertyName("webhook")]
-    public BotCreateRequestBotWebhook Webhook { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string>? Scopes { get; set; }
 }
 
 public class BotCreateRequest
 {
-    [JsonPropertyName("bot")]
-    public BotCreateRequestBot Bot { get; set; } = default!;
+    [JsonPropertyName("webhook")]
+    public BotCreateRequestWebhook Webhook { get; set; } = default!;
 }
 
 public class BotCreateResponse
@@ -2191,7 +2199,7 @@ public class BotResponse
     public BotWebhook Webhook { get; set; } = default!;
 }
 
-public class BotUpdateRequestBotWebhook
+public class BotUpdateRequestWebhook
 {
     [JsonPropertyName("name")]
     public string? Name { get; set; }
@@ -2205,18 +2213,14 @@ public class BotUpdateRequestBotWebhook
     public BotTriggerOn? TriggerOn { get; set; }
     [JsonPropertyName("commands")]
     public List<string>? Commands { get; set; }
-}
-
-public class BotUpdateRequestBot
-{
-    [JsonPropertyName("webhook")]
-    public BotUpdateRequestBotWebhook Webhook { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string>? Scopes { get; set; }
 }
 
 public class BotUpdateRequest
 {
-    [JsonPropertyName("bot")]
-    public BotUpdateRequestBot Bot { get; set; } = default!;
+    [JsonPropertyName("webhook")]
+    public BotUpdateRequestWebhook Webhook { get; set; } = default!;
 }
 
 public class BotWebhook
@@ -2233,6 +2237,20 @@ public class BotWebhook
     public BotTriggerOn TriggerOn { get; set; } = default!;
     [JsonPropertyName("commands")]
     public List<string> Commands { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string> Scopes { get; set; } = default!;
+}
+
+public class BotWebhookSelfUpdateRequestWebhook
+{
+    [JsonPropertyName("outgoing_url")]
+    public string OutgoingUrl { get; set; } = default!;
+}
+
+public class BotWebhookSelfUpdateRequest
+{
+    [JsonPropertyName("webhook")]
+    public BotWebhookSelfUpdateRequestWebhook Webhook { get; set; } = default!;
 }
 
 public class Button

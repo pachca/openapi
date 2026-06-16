@@ -314,8 +314,14 @@ enum class OAuthScope(val value: String) {
     @SerialName("group_tags:read") GROUP_TAGS_READ("group_tags:read"),
     /** Создание, редактирование и удаление тегов */
     @SerialName("group_tags:write") GROUP_TAGS_WRITE("group_tags:write"),
-    /** Изменение настроек бота */
+    /** Просмотр ботов */
+    @SerialName("bots:read") BOTS_READ("bots:read"),
+    /** Управление ботами */
     @SerialName("bots:write") BOTS_WRITE("bots:write"),
+    /** Самостоятельное управление адресом вебхука бота */
+    @SerialName("bot_self:webhook:write") BOT_SELF_WEBHOOK_WRITE("bot_self:webhook:write"),
+    /** Самостоятельное управление настройками бота */
+    @SerialName("bot_self:write") BOT_SELF_WRITE("bot_self:write"),
     /** Просмотр информации о своем профиле */
     @SerialName("profile:read") PROFILE_READ("profile:read"),
     /** Просмотр статуса профиля */
@@ -1001,23 +1007,19 @@ data class AvatarData(
 )
 
 @Serializable
-data class BotCreateRequestBotWebhook(
+data class BotCreateRequestWebhook(
     val name: String,
     val nickname: String? = null,
     @SerialName("outgoing_url") val outgoingUrl: String? = null,
     val events: List<BotEventName>? = null,
-    @SerialName("trigger_on") val triggerOn: BotTriggerOn? = null,
+    @SerialName("trigger_on") val triggerOn: BotTriggerOn? = BotTriggerOn.COMMANDS,
     val commands: List<String>? = null,
-)
-
-@Serializable
-data class BotCreateRequestBot(
-    val webhook: BotCreateRequestBotWebhook,
+    val scopes: List<String>? = null,
 )
 
 @Serializable
 data class BotCreateRequest(
-    val bot: BotCreateRequestBot,
+    val webhook: BotCreateRequestWebhook,
 )
 
 @Serializable
@@ -1034,23 +1036,19 @@ data class BotResponse(
 )
 
 @Serializable
-data class BotUpdateRequestBotWebhook(
+data class BotUpdateRequestWebhook(
     val name: String? = null,
     val nickname: String? = null,
     @SerialName("outgoing_url") val outgoingUrl: String? = null,
     val events: List<BotEventName>? = null,
-    @SerialName("trigger_on") val triggerOn: BotTriggerOn? = null,
+    @SerialName("trigger_on") val triggerOn: BotTriggerOn? = BotTriggerOn.COMMANDS,
     val commands: List<String>? = null,
-)
-
-@Serializable
-data class BotUpdateRequestBot(
-    val webhook: BotUpdateRequestBotWebhook,
+    val scopes: List<String>? = null,
 )
 
 @Serializable
 data class BotUpdateRequest(
-    val bot: BotUpdateRequestBot,
+    val webhook: BotUpdateRequestWebhook,
 )
 
 @Serializable
@@ -1061,6 +1059,17 @@ data class BotWebhook(
     val events: List<BotEventName>,
     @SerialName("trigger_on") val triggerOn: BotTriggerOn,
     val commands: List<String>,
+    val scopes: List<String>,
+)
+
+@Serializable
+data class BotWebhookSelfUpdateRequestWebhook(
+    @SerialName("outgoing_url") val outgoingUrl: String,
+)
+
+@Serializable
+data class BotWebhookSelfUpdateRequest(
+    val webhook: BotWebhookSelfUpdateRequestWebhook,
 )
 
 @Serializable
@@ -1131,7 +1140,7 @@ data class ExportRequest(
     @SerialName("end_at") val endAt: String,
     @SerialName("webhook_url") val webhookUrl: String,
     @SerialName("chat_ids") val chatIds: List<Int>? = null,
-    @SerialName("skip_chats_file") val skipChatsFile: Boolean? = null,
+    @SerialName("skip_chats_file") val skipChatsFile: Boolean? = false,
 )
 
 @Serializable
@@ -1270,7 +1279,7 @@ data class MessageCreateRequest(
 data class MessageUpdateRequestFile(
     val key: String,
     val name: String,
-    @SerialName("file_type") val fileType: FileType? = null,
+    @SerialName("file_type") val fileType: FileType? = FileType.FILE,
     val size: Int? = null,
     val width: Int? = null,
     val height: Int? = null,
@@ -1417,7 +1426,7 @@ data class TaskUpdateRequestCustomProperty(
 
 @Serializable
 data class TaskUpdateRequestTask(
-    val kind: TaskKind? = null,
+    val kind: TaskKind? = TaskKind.REMINDER,
     val content: String? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("due_at") val dueAt: OffsetDateTime? = null,
     val priority: Int? = null,
@@ -1501,7 +1510,7 @@ data class UserCreateRequestUser(
     val department: String? = null,
     val title: String? = null,
     val role: UserCreateRole? = null,
-    val suspended: Boolean? = null,
+    val suspended: Boolean? = false,
     @SerialName("list_tags") val listTags: List<String>? = null,
     @SerialName("chat_ids") val chatIds: List<Int>? = null,
     @SerialName("custom_properties") val customProperties: List<UserCreateRequestCustomProperty>? = null,
@@ -1510,7 +1519,7 @@ data class UserCreateRequestUser(
 @Serializable
 data class UserCreateRequest(
     val user: UserCreateRequestUser,
-    @SerialName("skip_email_notify") val skipEmailNotify: Boolean? = null,
+    @SerialName("skip_email_notify") val skipEmailNotify: Boolean? = false,
 )
 
 @Serializable
@@ -1543,7 +1552,7 @@ data class UserUpdateRequestUser(
     val department: String? = null,
     val title: String? = null,
     val role: UserRoleInput? = null,
-    val suspended: Boolean? = null,
+    val suspended: Boolean? = false,
     @SerialName("list_tags") val listTags: List<String>? = null,
     @SerialName("custom_properties") val customProperties: List<UserUpdateRequestCustomProperty>? = null,
 )

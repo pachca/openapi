@@ -119,7 +119,7 @@
 
 Когда вы нажимаете **Listen for Test Event** на узле **Pachca Trigger** в автоматическом режиме:
 
-1. n8n вызывает [Обновление бота](PUT /bots/{id}) с `webhook_url = Test URL`
+1. n8n вызывает [Редактирование бота](PUT /bots/{id}) с `webhook_url = Test URL`
 2. Пачка записывает Test URL в настройки бота (в слот `outgoing_url`)
 3. В течение 120 секунд бот отправляет события не на Production URL, а на Test URL
 4. n8n перехватывает событие и показывает его в редакторе
@@ -150,7 +150,7 @@
 
   ### Шаг 2. Временная деактивация продакшен-workflow
 
-Если второго бота нет, деактивируйте продакшн-workflow перед тестом: нажмите **Active** в правом верхнем углу (переключатель станет серым). Узел **Pachca Trigger** вызовет [Обновление бота](PUT /bots/{id}) с пустым `webhook_url` и освободит слот.
+Если второго бота нет, деактивируйте продакшн-workflow перед тестом: нажмите **Active** в правом верхнем углу (переключатель станет серым). Узел **Pachca Trigger** вызовет [Редактирование бота](PUT /bots/{id}) с пустым `webhook_url` и освободит слот.
 
 После этого запустите **Listen for Test Event**, проведите тест, снова активируйте workflow. На время теста продакшен будет выключен — учитывайте это, если на workflow приходит критичный трафик.
 
@@ -177,7 +177,7 @@ sequenceDiagram
         n8n->>n8n: checkExists блокирует<br/>(нельзя перезаписать Production URL)
         n8n-->>User: Ошибка: сначала деактивируйте workflow
     else Workflow деактивирован
-        n8n->>Pachca: PUT /bots/{id}<br/>webhook_url=Test URL
+        n8n->>Pachca: Регистрирует Test URL<br/>(/bot/webhook или /bots/{id})
         Pachca->>Bot: Webhook = Test URL
         Bot->>Pachca: Событие в чате
         Pachca->>n8n: POST Test URL
@@ -185,7 +185,7 @@ sequenceDiagram
 
         Note over User,Bot: После теста — активация
         User->>n8n: Activate workflow
-        n8n->>Pachca: PUT /bots/{id}<br/>webhook_url=Production URL
+        n8n->>Pachca: Регистрирует Production URL
         Pachca->>Bot: Webhook = Production URL
     end
 ```
@@ -259,7 +259,7 @@ sequenceDiagram
 ## Если что-то пошло не так
 
 - **Вебхук не приходит** — проверьте, что бот в чате и workflow активен. Симптомы и решения: [Вебхук не приходит](/guides/n8n/troubleshooting#vebkhuk-ne-prikhodit)
-- **403 при активации Pachca Trigger** — токену не хватает `bots:write`. Решение: [403 Forbidden при активации Pachca Trigger](/guides/n8n/troubleshooting#403-forbidden-pri-aktivatsii-pachca-trigger)
+- **403 при активации Pachca Trigger** — токену не хватает прав: для токена бота `bot_self:webhook:write`, для персонального `bots:write` плюс доступ редактора к боту. Решение: [403 Forbidden при активации Pachca Trigger](/guides/n8n/troubleshooting#403-forbidden-pri-aktivatsii-pachca-trigger)
 - **Signature Mismatch** — Signing Secret в Credentials не совпадает с секретом бота. Решение: [Ошибка подписи](/guides/n8n/troubleshooting#oshibka-podpisi-signature-mismatch)
 - **401 Unauthorized** — неверный или просроченный токен. Решение: [401 Unauthorized](/guides/n8n/troubleshooting#nevernyi-token-401-unauthorized)
 

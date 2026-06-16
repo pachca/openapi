@@ -2,7 +2,7 @@
 > Краткое содержание: Метод для получения параметров бота по его userid.
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
-# Получение бота
+# Информация о боте
 
 **Метод**: `GET`
 
@@ -42,6 +42,7 @@ curl "https://api.pachca.com/api/shared/v1/bots/1738816" \
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
     - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
+    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
 
 **Пример ответа:**
 
@@ -59,6 +60,9 @@ curl "https://api.pachca.com/api/shared/v1/bots/1738816" \
       "trigger_on": "commands",
       "commands": [
         "/task"
+      ],
+      "scopes": [
+        "messages:create"
       ]
     }
   }

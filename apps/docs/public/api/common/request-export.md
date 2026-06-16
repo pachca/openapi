@@ -26,7 +26,7 @@
 - `end_at: date` (required) — Дата окончания для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD. Пример: `"2025-03-20"`
 - `webhook_url: string` (required) — Адрес, на который будет отправлен вебхук по завершению экспорта. Пример: `"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2"`
 - `chat_ids: array of integer` — Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов.. Пример: `[1381521]`
-- `skip_chats_file: boolean` — Пропуск формирования файла со списком чатов (chats.json). Пример: `false`
+- `skip_chats_file: boolean` (default: false) — Пропуск формирования файла со списком чатов (chats.json). Пример: `false`
 
 ### Пример
 
@@ -37,8 +37,7 @@
   "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
   "chat_ids": [
     1381521
-  ],
-  "skip_chats_file": false
+  ]
 }
 ```
 
@@ -54,8 +53,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports" \
   "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
   "chat_ids": [
     1381521
-  ],
-  "skip_chats_file": false
+  ]
 }'
 ```
 

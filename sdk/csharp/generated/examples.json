@@ -14,7 +14,7 @@
   },
   "BotOperations_getBot": {
     "usage": "var response = await client.Bots.GetBotAsync(1738816);",
-    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>))"
+    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>))"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "var response = await client.Bots.GetWebhookEventsAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
@@ -30,25 +30,31 @@
     ]
   },
   "BotOperations_createBot": {
-    "usage": "var request = new BotCreateRequest\n{\n    Bot = new BotCreateRequestBot\n    {\n        Webhook = new BotCreateRequestBotWebhook\n        {\n            Name = \"Бот задач\",\n            Nickname = \"tasks_bot\",\n            OutgoingUrl = \"https://www.website.com/tasks/new\",\n            Events = new List<BotEventName> { BotEventName.MessageNew },\n            TriggerOn = BotTriggerOn.Commands,\n            Commands = new List<string> { \"example\" }\n        }\n    }\n};\nvar response = await client.Bots.CreateBotAsync(request);",
-    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>), AccessToken: string)",
+    "usage": "var request = new BotCreateRequest\n{\n    Webhook = new BotCreateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://www.website.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" }\n    }\n};\nvar response = await client.Bots.CreateBotAsync(request);",
+    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>), AccessToken: string)",
     "imports": [
       "BotCreateRequest",
-      "BotCreateRequestBot",
-      "BotCreateRequestBotWebhook",
+      "BotCreateRequestWebhook",
       "BotEventName",
       "BotTriggerOn"
     ]
   },
+  "BotOperations_selfUpdateBotWebhook": {
+    "usage": "var request = new BotWebhookSelfUpdateRequest { Webhook = new BotWebhookSelfUpdateRequestWebhook { OutgoingUrl = \"https://www.website.com/tasks/new\" } };\nvar response = await client.Bots.SelfUpdateBotWebhookAsync(request);",
+    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>))",
+    "imports": [
+      "BotWebhookSelfUpdateRequest",
+      "BotWebhookSelfUpdateRequestWebhook"
+    ]
+  },
   "BotOperations_updateBot": {
-    "usage": "var request = new BotUpdateRequest\n{\n    Bot = new BotUpdateRequestBot\n    {\n        Webhook = new BotUpdateRequestBotWebhook\n        {\n            Name = \"Бот задач\",\n            Nickname = \"tasks_bot\",\n            OutgoingUrl = \"https://www.website.com/tasks/new\",\n            Events = new List<BotEventName> { BotEventName.MessageNew },\n            TriggerOn = BotTriggerOn.Commands,\n            Commands = new List<string> { \"example\" }\n        }\n    }\n};\nvar response = await client.Bots.UpdateBotAsync(1738816, request);",
-    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>))",
+    "usage": "var request = new BotUpdateRequest\n{\n    Webhook = new BotUpdateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://www.website.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" }\n    }\n};\nvar response = await client.Bots.UpdateBotAsync(1738816, request);",
+    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>))",
     "imports": [
       "BotEventName",
       "BotTriggerOn",
       "BotUpdateRequest",
-      "BotUpdateRequestBot",
-      "BotUpdateRequestBotWebhook"
+      "BotUpdateRequestWebhook"
     ]
   },
   "BotOperations_deleteWebhookEvent": {
@@ -359,7 +365,7 @@
     "output": "object"
   },
   "UserOperations_createUser": {
-    "usage": "var request = new UserCreateRequest\n{\n    User = new UserCreateRequestUser\n    {\n        FirstName = \"Олег\",\n        LastName = \"Петров\",\n        Email = \"olegp@example.com\",\n        PhoneNumber = \"+79001234567\",\n        Nickname = \"olegpetrov\",\n        Department = \"Продукт\",\n        Title = \"CIO\",\n        Role = UserCreateRole.User,\n        Suspended = false,\n        ListTags = new List<string> { \"example\" },\n        ChatIds = new List<int> { 123 },\n        CustomProperties = new List<UserCreateRequestCustomProperty> { new UserCreateRequestCustomProperty { Id = 1678, Value = \"Санкт-Петербург\" } }\n    },\n    SkipEmailNotify = true\n};\nvar response = await client.Users.CreateUserAsync(request);",
+    "usage": "var request = new UserCreateRequest\n{\n    User = new UserCreateRequestUser\n    {\n        FirstName = \"Олег\",\n        LastName = \"Петров\",\n        Email = \"olegp@example.com\",\n        PhoneNumber = \"+79001234567\",\n        Nickname = \"olegpetrov\",\n        Department = \"Продукт\",\n        Title = \"CIO\",\n        Role = UserCreateRole.User,\n        Suspended = false,\n        ListTags = new List<string> { \"example\" },\n        ChatIds = new List<int> { 123 },\n        CustomProperties = new List<UserCreateRequestCustomProperty> { new UserCreateRequestCustomProperty { Id = 1678, Value = \"Санкт-Петербург\" } }\n    },\n    SkipEmailNotify = false\n};\nvar response = await client.Users.CreateUserAsync(request);",
     "output": "User(Id: int, FirstName: string, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)",
     "imports": [
       "UserCreateRequest",

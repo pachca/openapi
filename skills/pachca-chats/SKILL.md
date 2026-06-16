@@ -128,7 +128,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | POST | /chats/exports | Экспорт сообщений |
 | GET | /chats/exports/{id} | Скачать архив экспорта |
 | GET | /chats/{id} | Информация о чате |
-| PUT | /chats/{id} | Обновление чата |
+| PUT | /chats/{id} | Редактирование чата |
 | PUT | /chats/{id}/archive | Архивация чата |
 | POST | /chats/{id}/group_tags | Добавление тегов |
 | DELETE | /chats/{id}/group_tags/{tag_id} | Исключение тега |

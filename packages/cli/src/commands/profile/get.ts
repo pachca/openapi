@@ -3,7 +3,7 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ProfileGet extends BaseCommand {
-  static override description = "Информация о профиле";
+  static override description = "Свой профиль";
 
   static override examples = [
       "Получить свой профиль:\n  $ pachca profile get",

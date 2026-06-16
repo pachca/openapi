@@ -78,13 +78,13 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Common.DownloadExport()` | [Скачать архив экспорта](/api/common/get-exports) |
 | `client.Common.ListProperties()` | [Список дополнительных полей](/api/common/custom-properties) |
 | `client.Profile.GetTokenInfo()` | [Информация о токене](/api/profile/get-info) |
-| `client.Profile.GetProfile()` | [Информация о профиле](/api/profile/get) |
-| `client.Profile.GetStatus()` | [Текущий статус](/api/profile/get-status) |
-| `client.Profile.UpdateProfileAvatar()` | [Загрузка аватара](/api/profile/update-avatar) |
-| `client.Profile.UpdateStatus()` | [Новый статус](/api/profile/update-status) |
-| `client.Profile.DeleteProfileAvatar()` | [Удаление аватара](/api/profile/delete-avatar) |
-| `client.Profile.DeleteStatus()` | [Удаление статуса](/api/profile/delete-status) |
-| `client.Users.CreateUser()` | [Создать сотрудника](/api/users/create) |
+| `client.Profile.GetProfile()` | [Свой профиль](/api/profile/get) |
+| `client.Profile.GetStatus()` | [Свой статус](/api/profile/get-status) |
+| `client.Profile.UpdateProfileAvatar()` | [Загрузка своего аватара](/api/profile/update-avatar) |
+| `client.Profile.UpdateStatus()` | [Новый свой статус](/api/profile/update-status) |
+| `client.Profile.DeleteProfileAvatar()` | [Удаление своего аватара](/api/profile/delete-avatar) |
+| `client.Profile.DeleteStatus()` | [Удаление своего статуса](/api/profile/delete-status) |
+| `client.Users.CreateUser()` | [Новый сотрудник](/api/users/create) |
 | `client.Users.ListUsers()` | [Список сотрудников](/api/users/list) |
 | `client.Users.GetUser()` | [Информация о сотруднике](/api/users/get) |
 | `client.Users.GetUserStatus()` | [Статус сотрудника](/api/users/get-status) |
@@ -103,7 +103,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Chats.CreateChat()` | [Новый чат](/api/chats/create) |
 | `client.Chats.ListChats()` | [Список чатов](/api/chats/list) |
 | `client.Chats.GetChat()` | [Информация о чате](/api/chats/get) |
-| `client.Chats.UpdateChat()` | [Обновление чата](/api/chats/update) |
+| `client.Chats.UpdateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChat()` | [Архивация чата](/api/chats/archive) |
 | `client.Chats.UnarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.Members.AddTags()` | [Добавление тегов](/api/members/add-group-tags) |
@@ -137,9 +137,10 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Tasks.UpdateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.Tasks.DeleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.Views.OpenView()` | [Открытие представления](/api/views/open) |
-| `client.Bots.CreateBot()` | [Создание бота](/api/bots/create) |
-| `client.Bots.GetBot()` | [Получение бота](/api/bots/get) |
+| `client.Bots.CreateBot()` | [Новый бот](/api/bots/create) |
+| `client.Bots.GetBot()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.GetWebhookEvents()` | [История событий](/api/bots/list-events) |
+| `client.Bots.SelfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.Bots.DeleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.Security.GetAuditEvents()` | [Журнал аудита событий](/api/security/list) |

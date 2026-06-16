@@ -211,7 +211,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | PUT | /group_tags/{id} | Редактирование тега |
 | DELETE | /group_tags/{id} | Удаление тега |
 | GET | /group_tags/{id}/users | Список сотрудников тега |
-| POST | /users | Создать сотрудника |
+| POST | /users | Новый сотрудник |
 | GET | /users | Список сотрудников |
 | GET | /users/{id} | Информация о сотруднике |
 | PUT | /users/{id} | Редактирование сотрудника |

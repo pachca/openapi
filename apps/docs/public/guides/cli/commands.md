@@ -29,18 +29,19 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca auth logout` | Удаление сохранённого профиля |
 | `pachca auth status` | Статус текущего профиля |
 | `pachca auth switch` | Переключение активного профиля |
-| `pachca bots create` | `POST` Создание бота |
-| `pachca bots get` | `GET` Получение бота |
+| `pachca bots create` | `POST` Новый бот |
+| `pachca bots get` | `GET` Информация о боте |
 | `pachca bots list-events` | `GET` История событий |
 | `pachca bots remove-event` | `DELETE` Удаление события |
 | `pachca bots update` | `PUT` Редактирование бота |
+| `pachca bots update-webhook` | `PUT` Саморегистрация вебхука бота |
 | `pachca changelog` | История изменений CLI |
 | `pachca chats archive` | `PUT` Архивация чата |
 | `pachca chats create` | `POST` Новый чат |
 | `pachca chats get` | `GET` Информация о чате |
 | `pachca chats list` | `GET` Список чатов |
 | `pachca chats unarchive` | `PUT` Разархивация чата |
-| `pachca chats update` | `PUT` Обновление чата |
+| `pachca chats update` | `PUT` Редактирование чата |
 | `pachca commands` | Список всех команд |
 | `pachca common custom-properties` | `GET` Список дополнительных полей |
 | `pachca common direct-url` | `POST` Загрузка файла |
@@ -74,13 +75,13 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca messages pin` | `POST` Закрепление сообщения |
 | `pachca messages unpin` | `DELETE` Открепление сообщения |
 | `pachca messages update` | `PUT` Редактирование сообщения |
-| `pachca profile delete-avatar` | `DELETE` Удаление аватара |
-| `pachca profile delete-status` | `DELETE` Удаление статуса |
-| `pachca profile get` | `GET` Информация о профиле |
+| `pachca profile delete-avatar` | `DELETE` Удаление своего аватара |
+| `pachca profile delete-status` | `DELETE` Удаление своего статуса |
+| `pachca profile get` | `GET` Свой профиль |
 | `pachca profile get-info` | `GET` Информация о токене |
-| `pachca profile get-status` | `GET` Текущий статус |
-| `pachca profile update-avatar` | `PUT` Загрузка аватара |
-| `pachca profile update-status` | `PUT` Новый статус |
+| `pachca profile get-status` | `GET` Свой статус |
+| `pachca profile update-avatar` | `PUT` Загрузка своего аватара |
+| `pachca profile update-status` | `PUT` Новый свой статус |
 | `pachca reactions add` | `POST` Добавление реакции |
 | `pachca reactions list` | `GET` Список реакций |
 | `pachca reactions remove` | `DELETE` Удаление реакции |
@@ -99,7 +100,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca threads list` | `GET` Список тредов |
 | `pachca upgrade` | Обновить CLI до последней версии |
 | `pachca upload` | Загрузить файл (получает подпись и загружает автоматически) |
-| `pachca users create` | `POST` Создать сотрудника |
+| `pachca users create` | `POST` Новый сотрудник |
 | `pachca users delete` | `DELETE` Удаление сотрудника |
 | `pachca users get` | `GET` Информация о сотруднике |
 | `pachca users get-status` | `GET` Статус сотрудника |

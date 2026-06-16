@@ -1,25 +1,16 @@
-> Расположение: Методы API → Чаты
-> Краткое содержание: Метод для обновления параметров чата.
+> Расположение: Методы API → Боты и Webhook
+> Краткое содержание: Метод позволяет боту самостоятельно изменить URL своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного userid
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
-# Редактирование чата
+# Саморегистрация вебхука бота
 
 **Метод**: `PUT`
 
-**Путь**: `/chats/{id}`
+**Путь**: `/bot/webhook`
 
-> **Скоуп:** `chats:update`
+> **Скоуп:** `bot_self:webhook:write`
 
-Метод для обновления параметров чата.
-
-Для обновления нужно знать `id` чата и указать его в `URL`. Все обновляемые поля передаются в теле запроса.
-
-## Параметры
-
-### Path параметры
-
-- `id: integer, int32` (required) — Идентификатор чата
-
+Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `user_id`. Меняется вебхук того бота, которому принадлежит токен. Чтобы отключить вебхук, передайте пустую строку в `outgoing_url`.
 
 ## Тело запроса
 
@@ -29,17 +20,15 @@
 
 ### Схема
 
-- `chat: object` (required) — Собранный объект параметров обновляемого чата
-  - `name: string` — Название. Пример: `"Бассейн"`
-  - `public: boolean` — Открытый доступ. Пример: `true`
+- `webhook: object` (required) — Объект параметров вебхука
+  - `outgoing_url: string` (required) — URL исходящего вебхука. Пустая строка отключает вебхук.. Пример: `"https://www.website.com/tasks/new"`
 
 ### Пример
 
 ```json
 {
-  "chat": {
-    "name": "Бассейн",
-    "public": true
+  "webhook": {
+    "outgoing_url": "https://www.website.com/tasks/new"
   }
 }
 ```
@@ -47,13 +36,12 @@
 ## Пример запроса
 
 ```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334" \
+curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-  "chat": {
-    "name": "Бассейн",
-    "public": true
+  "webhook": {
+    "outgoing_url": "https://www.website.com/tasks/new"
   }
 }'
 ```
@@ -64,41 +52,39 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334" \
 
 **Схема ответа:**
 
-- `data: object` (required) — Чат
-  - `id: integer, int32` (required) — Идентификатор созданного чата. Пример: `334`
-  - `name: string` (required) — Название. Пример: `"🤿 aqua"`
-  - `created_at: date-time` (required) — Дата и время создания чата (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
-  - `owner_id: integer, int32` (required) — Идентификатор пользователя, создавшего чат. Пример: `185`
-  - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
-  - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
-  - `channel: boolean` (required) — Является каналом. Пример: `true`
-  - `personal: boolean` (required) — Является личным чатом. Пример: `false`
-  - `public: boolean` (required) — Открытый доступ. Пример: `false`
-  - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
-  - `meet_room_url: string` (required) — Ссылка на Видеочат. Пример: `"https://meet.pachca.com/aqua-94bb21b5"`
+- `data: object` (required) — Параметры бота
+  - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
+  - `webhook: object` (required) — Объект параметров вебхука
+    - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
+    - `nickname: string` (required) — Никнейм бота. Пример: `"tasks_bot"`
+    - `outgoing_url: string` (required) — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
+    - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
+    - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
+      Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
+    - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
+    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
 
 **Пример ответа:**
 
 ```json
 {
   "data": {
-    "id": 334,
-    "name": "🤿 aqua",
-    "created_at": "2021-08-28T15:56:53.000Z",
-    "owner_id": 185,
-    "member_ids": [
-      185,
-      186,
-      187
-    ],
-    "group_tag_ids": [
-      9111
-    ],
-    "channel": true,
-    "personal": false,
-    "public": false,
-    "last_message_at": "2021-08-28T15:56:53.000Z",
-    "meet_room_url": "https://meet.pachca.com/aqua-94bb21b5"
+    "id": 1738816,
+    "webhook": {
+      "name": "Бот задач",
+      "nickname": "tasks_bot",
+      "outgoing_url": "https://www.website.com/tasks/new",
+      "events": [
+        "message_new"
+      ],
+      "trigger_on": "commands",
+      "commands": [
+        "/task"
+      ],
+      "scopes": [
+        "messages:create"
+      ]
+    }
   }
 }
 ```
@@ -192,36 +178,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334" \
 {
   "error": "invalid_token",
   "error_description": "Access token is missing"
-}
-```
-
-### 404: The server cannot find the requested resource.
-
-**Схема ответа при ошибке:**
-
-- `errors: array of object` (required) — Массив ошибок
-  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
-  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
-  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
-  - `code: string` (required) — Код ошибки
-    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all)
-  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
-    **Структура значений Record:**
-    - Тип значения: `any`
-
-**Пример ответа:**
-
-```json
-{
-  "errors": [
-    {
-      "key": "field.name",
-      "value": "invalid_value",
-      "message": "Поле не может быть пустым",
-      "code": "blank",
-      "payload": null
-    }
-  ]
 }
 ```
 

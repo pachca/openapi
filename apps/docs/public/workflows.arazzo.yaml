@@ -328,7 +328,8 @@ workflows:
       - stepId: create-a-bot-via-api-and-get-its-token-1
         description: >-
           Create the bot. User token only (not a bot token); `nickname` must end with `_bot`.
-          Webhook params (Webhook URL, events, commands) can be set now or later
+          Webhook params (Webhook URL, events, commands) can be set now or later. Restrict the bot
+          token scopes with `--scopes` (omit for the default set)
         operationId: BotOperations_createBot
   - workflowId: set-up-bot-with-outgoing-webhook
     summary: Set up bot with outgoing webhook
@@ -344,13 +345,20 @@ workflows:
         operationId: BotOperations_createBot
   - workflowId: update-bot-webhook-url
     summary: Update bot webhook URL
-    description: Only users with bot edit permissions can update settings.
+    description: >-
+      Two paths: by `id` with a user token (bot edit rights), or by the bot itself with its own
+      token (`PUT /bot/webhook`). An empty `outgoing_url` disables the webhook.
     steps:
       - stepId: update-bot-webhook-url-1
         description: >-
-          Update bot webhook URL (Bot `id` (its `user_id`) can be found in "API" tab of bot
-          settings)
+          With a user token (that can edit the bot) — update the URL by bot `id`. An empty string
+          disables the webhook (Bot `id` (its `user_id`) can be found in "API" tab of bot settings)
         operationId: BotOperations_updateBot
+      - stepId: update-bot-webhook-url-2
+        description: >-
+          Or: the bot updates its own webhook with its own token — no `id` and no admin (requires
+          the `bot_self:webhook:write` scope)
+        operationId: BotOperations_selfUpdateBotWebhook
   - workflowId: handle-incoming-webhook-event
     summary: Handle incoming webhook event
     description: >-

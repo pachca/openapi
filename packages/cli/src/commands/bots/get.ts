@@ -3,7 +3,7 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class BotsGet extends BaseCommand {
-  static override description = "Получение бота";
+  static override description = "Информация о боте";
 
   static override examples = [
       "Обновить Webhook URL бота:\n  $ pachca bots update"

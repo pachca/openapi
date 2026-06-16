@@ -55,11 +55,11 @@
       - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
       - `label: string` (required, max length: 150) — Подпись к полю
       - `placeholder: string` (max length: 150) — Подсказка внутри поля ввода, пока оно пустое
-      - `multiline: boolean` — Многострочное поле
+      - `multiline: boolean` (default: false) — Многострочное поле
       - `initial_value: string` (max length: 3000) — Начальное значение в поле
       - `min_length: integer, int32` (min: 0, max: 3000) — Минимальная длина текста, который должен написать пользователь. Если пользователь напишет меньше, он получит ошибку.
       - `max_length: integer, int32` (min: 1, max: 3000) — Максимальная длина текста, который должен написать пользователь. Если пользователь напишет больше, он получит ошибку.
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
     - **ViewBlockSelect**: Блок select — выпадающий список
       - `type: string` (required) — Тип блока
@@ -70,7 +70,7 @@
         - `text: string` (required, max length: 75) — Отображаемый текст
         - `value: string` (required, max length: 150) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
         - `selected: boolean` — Изначально выбранный пункт. Только один пункт может быть выбран.
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под выпадающим списком серым цветом
     - **ViewBlockRadio**: Блок radio — радиокнопки
       - `type: string` (required) — Тип блока
@@ -82,7 +82,7 @@
         - `value: string` (required, max length: 150) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
         - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
         - `selected: boolean` — Изначально выбранный пункт. Только один пункт может быть выбран.
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под группой радиокнопок серым цветом
     - **ViewBlockCheckbox**: Блок checkbox — чекбоксы
       - `type: string` (required) — Тип блока
@@ -94,7 +94,7 @@
         - `value: string` (required, max length: 150) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
         - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
         - `checked: boolean` — Изначально выбранный пункт
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под группой чекбоксов серым цветом
     - **ViewBlockDate**: Блок date — выбор даты
       - `type: string` (required) — Тип блока
@@ -102,7 +102,7 @@
       - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
       - `label: string` (required, max length: 150) — Подпись к полю
       - `initial_date: date` — Начальное значение в поле в формате YYYY-MM-DD
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
     - **ViewBlockTime**: Блок time — выбор времени
       - `type: string` (required) — Тип блока
@@ -110,7 +110,7 @@
       - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
       - `label: string` (required, max length: 150) — Подпись к полю
       - `initial_time: string, time` — Начальное значение в поле в формате HH:mm
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
     - **ViewBlockFileInput**: Блок file_input — загрузка файлов
       - `type: string` (required) — Тип блока
@@ -119,7 +119,7 @@
       - `label: string` (required, max length: 150) — Подпись к полю
       - `filetypes: array of string` — Массив допустимых расширений файлов, указанные в виде строк (например, ["png","jpg","gif"]). Если это поле не указано, все расширения файлов будут приняты.
       - `max_files: integer, int32` (default: 10, min: 1, max: 10) — Максимальное количество файлов, которое может загрузить пользователь в это поле.
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
 
 ### Пример
@@ -173,7 +173,6 @@
             "selected": true
           }
         ],
-        "required": false,
         "hint": "Выберите одну из команд"
       },
       {
@@ -203,7 +202,6 @@
             "checked": true
           }
         ],
-        "required": false,
         "hint": "Выберите интересующие вас рассылки"
       },
       {
@@ -219,7 +217,6 @@
         "name": "newsletter_time",
         "label": "Время рассылки",
         "initial_time": "11:00",
-        "required": false,
         "hint": "Укажите, в какое время присылать выбранные рассылки"
       },
       {
@@ -294,7 +291,6 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
             "selected": true
           }
         ],
-        "required": false,
         "hint": "Выберите одну из команд"
       },
       {
@@ -324,7 +320,6 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
             "checked": true
           }
         ],
-        "required": false,
         "hint": "Выберите интересующие вас рассылки"
       },
       {
@@ -340,7 +335,6 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
         "name": "newsletter_time",
         "label": "Время рассылки",
         "initial_time": "11:00",
-        "required": false,
         "hint": "Укажите, в какое время присылать выбранные рассылки"
       },
       {

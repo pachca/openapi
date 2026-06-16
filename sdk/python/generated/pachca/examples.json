@@ -15,7 +15,7 @@
   },
   "BotOperations_getBot": {
     "usage": "response = await client.bots.get_bot(id=1738816)",
-    "output": "BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str]))"
+    "output": "BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str]))"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "params = GetWebhookEventsParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.bots.get_webhook_events(params=params)",
@@ -31,25 +31,31 @@
     "usage": "async for payload in client.bots.poll_webhook_payloads(interval_seconds=5.0):\n    print(payload)"
   },
   "BotOperations_createBot": {
-    "usage": "request = BotCreateRequest(\n    bot=BotCreateRequestBot(\n        webhook=BotCreateRequestBotWebhook(\n            name=\"Бот задач\",\n            nickname=\"tasks_bot\",\n            outgoing_url=\"https://www.website.com/tasks/new\",\n            events=[BotEventName.MESSAGE_NEW],\n            trigger_on=BotTriggerOn.COMMANDS,\n            commands=[\"example\"]\n        )\n    )\n)\nresponse = await client.bots.create_bot(request=request)",
-    "output": "BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str]), access_token: str)",
+    "usage": "request = BotCreateRequest(\n    webhook=BotCreateRequestWebhook(\n        name=\"Бот задач\",\n        nickname=\"tasks_bot\",\n        outgoing_url=\"https://www.website.com/tasks/new\",\n        events=[BotEventName.MESSAGE_NEW],\n        trigger_on=BotTriggerOn.COMMANDS,\n        commands=[\"example\"],\n        scopes=[\"example\"]\n    )\n)\nresponse = await client.bots.create_bot(request=request)",
+    "output": "BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str]), access_token: str)",
     "imports": [
       "BotCreateRequest",
-      "BotCreateRequestBot",
-      "BotCreateRequestBotWebhook",
+      "BotCreateRequestWebhook",
       "BotEventName",
       "BotTriggerOn"
     ]
   },
+  "BotOperations_selfUpdateBotWebhook": {
+    "usage": "request = BotWebhookSelfUpdateRequest(webhook=BotWebhookSelfUpdateRequestWebhook(outgoing_url=\"https://www.website.com/tasks/new\"))\nresponse = await client.bots.self_update_bot_webhook(request=request)",
+    "output": "BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str]))",
+    "imports": [
+      "BotWebhookSelfUpdateRequest",
+      "BotWebhookSelfUpdateRequestWebhook"
+    ]
+  },
   "BotOperations_updateBot": {
-    "usage": "request = BotUpdateRequest(\n    bot=BotUpdateRequestBot(\n        webhook=BotUpdateRequestBotWebhook(\n            name=\"Бот задач\",\n            nickname=\"tasks_bot\",\n            outgoing_url=\"https://www.website.com/tasks/new\",\n            events=[BotEventName.MESSAGE_NEW],\n            trigger_on=BotTriggerOn.COMMANDS,\n            commands=[\"example\"]\n        )\n    )\n)\nresponse = await client.bots.update_bot(id=1738816, request=request)",
-    "output": "BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str]))",
+    "usage": "request = BotUpdateRequest(\n    webhook=BotUpdateRequestWebhook(\n        name=\"Бот задач\",\n        nickname=\"tasks_bot\",\n        outgoing_url=\"https://www.website.com/tasks/new\",\n        events=[BotEventName.MESSAGE_NEW],\n        trigger_on=BotTriggerOn.COMMANDS,\n        commands=[\"example\"],\n        scopes=[\"example\"]\n    )\n)\nresponse = await client.bots.update_bot(id=1738816, request=request)",
+    "output": "BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str]))",
     "imports": [
       "BotEventName",
       "BotTriggerOn",
       "BotUpdateRequest",
-      "BotUpdateRequestBot",
-      "BotUpdateRequestBotWebhook"
+      "BotUpdateRequestWebhook"
     ]
   },
   "BotOperations_deleteWebhookEvent": {
@@ -391,7 +397,7 @@
     "output": "object"
   },
   "UserOperations_createUser": {
-    "usage": "request = UserCreateRequest(\n    user=UserCreateRequestUser(\n        first_name=\"Олег\",\n        last_name=\"Петров\",\n        email=\"olegp@example.com\",\n        phone_number=\"+79001234567\",\n        nickname=\"olegpetrov\",\n        department=\"Продукт\",\n        title=\"CIO\",\n        role=UserCreateRole.USER,\n        suspended=False,\n        list_tags=[\"example\"],\n        chat_ids=[123],\n        custom_properties=[UserCreateRequestCustomProperty(id=1678, value=\"Санкт-Петербург\")]\n    ),\n    skip_email_notify=True\n)\nresponse = await client.users.create_user(request=request)",
+    "usage": "request = UserCreateRequest(\n    user=UserCreateRequestUser(\n        first_name=\"Олег\",\n        last_name=\"Петров\",\n        email=\"olegp@example.com\",\n        phone_number=\"+79001234567\",\n        nickname=\"olegpetrov\",\n        department=\"Продукт\",\n        title=\"CIO\",\n        role=UserCreateRole.USER,\n        suspended=False,\n        list_tags=[\"example\"],\n        chat_ids=[123],\n        custom_properties=[UserCreateRequestCustomProperty(id=1678, value=\"Санкт-Петербург\")]\n    ),\n    skip_email_notify=False\n)\nresponse = await client.users.create_user(request=request)",
     "output": "User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)",
     "imports": [
       "UserCreateRequest",

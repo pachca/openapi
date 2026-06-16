@@ -103,10 +103,29 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 		},
 	},
 	bot: {
+		updateWebhook: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/bot/webhook',
+			wrapperKey: 'webhook',
+			bodyMap: [
+				{ api: 'outgoing_url', n8n: 'outgoingUrl' },
+			],
+		},
 		create: {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/bots',
-			wrapperKey: 'bot',
+			wrapperKey: 'webhook',
+			bodyMap: [
+				{ api: 'name', n8n: 'name' },
+			],
+			optionalBodyMap: [
+				{ api: 'nickname', n8n: 'nickname' },
+				{ api: 'outgoing_url', n8n: 'outgoingUrl' },
+				{ api: 'events', n8n: 'events', isArray: true, arrayType: 'string' },
+				{ api: 'trigger_on', n8n: 'triggerOn' },
+				{ api: 'commands', n8n: 'commands', isArray: true, arrayType: 'string' },
+				{ api: 'scopes', n8n: 'scopes', isArray: true, arrayType: 'string' },
+			],
 		},
 		get: {
 			method: 'GET' as IHttpRequestMethods,
@@ -117,8 +136,17 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'PUT' as IHttpRequestMethods,
 			path: '/bots/{id}',
 			pathParams: [{ api: 'id', n8n: 'botId' }],
-			wrapperKey: 'bot',
+			wrapperKey: 'webhook',
 			special: 'botWebhook',
+			optionalBodyMap: [
+				{ api: 'name', n8n: 'name' },
+				{ api: 'nickname', n8n: 'nickname' },
+				{ api: 'outgoing_url', n8n: 'webhookUrl' },
+				{ api: 'events', n8n: 'events', isArray: true, arrayType: 'string' },
+				{ api: 'trigger_on', n8n: 'triggerOn' },
+				{ api: 'commands', n8n: 'commands', isArray: true, arrayType: 'string' },
+				{ api: 'scopes', n8n: 'scopes', isArray: true, arrayType: 'string' },
+			],
 		},
 		getAllEvents: {
 			method: 'GET' as IHttpRequestMethods,
@@ -974,7 +1002,7 @@ async function executeRoute(
 		let webhookUrl: string | undefined;
 		try { webhookUrl = this.getNodeParameter('webhookUrl', i, '') as string; } catch { /* */ }
 		if (webhookUrl) {
-			body.webhook = { outgoing_url: webhookUrl };
+			body.outgoing_url = webhookUrl;
 		}
 	}
 

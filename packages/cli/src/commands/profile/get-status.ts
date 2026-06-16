@@ -3,7 +3,7 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class ProfileGetStatus extends BaseCommand {
-  static override description = "Текущий статус";
+  static override description = "Свой статус";
 
   static override examples = [
       "Установить статус:\n  $ pachca profile update-status",

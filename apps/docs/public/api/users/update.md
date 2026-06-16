@@ -39,7 +39,7 @@
   - `title: string` — Должность. Пример: `"Старший разработчик"`
   - `role: string` — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость
-  - `suspended: boolean` — Деактивация пользователя. Пример: `false`
+  - `suspended: boolean` (default: false) — Деактивация пользователя. Пример: `false`
   - `list_tags: array of string` — Массив тегов, привязываемых к сотруднику. Пример: `["Product"]`
   - `custom_properties: array of object` — Задаваемые дополнительные поля
     - `id: integer, int32` (required) — Идентификатор поля. Пример: `1678`
@@ -58,7 +58,6 @@
     "department": "Отдел разработки",
     "title": "Старший разработчик",
     "role": "user",
-    "suspended": false,
     "list_tags": [
       "Product"
     ],
@@ -88,7 +87,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/12" \
     "department": "Отдел разработки",
     "title": "Старший разработчик",
     "role": "user",
-    "suspended": false,
     "list_tags": [
       "Product"
     ],

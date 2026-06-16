@@ -107,12 +107,15 @@
       "cache": true
     },
     "check": {
-      "dependsOn": ["lint", "typecheck", "knip", "format:check", "test", "@pachca/spec#overlay:validate", "check-models"],
+      "dependsOn": ["lint", "typecheck", "knip", "format:check", "test", "@pachca/spec#overlay:validate", "check-models", "check-n8n-resources"],
       "cache": false
     },
     "check-urls": {
       "dependsOn": ["@pachca/spec#generate"],
       "cache": true
+    },
+    "check-n8n-resources": {
+      "cache": false
     },
     "check-models": {
       "dependsOn": ["@pachca/spec#generate"],

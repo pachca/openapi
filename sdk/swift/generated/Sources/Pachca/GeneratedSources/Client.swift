@@ -183,6 +183,10 @@ open class BotsService {
         throw pachcaNotImplemented("Bots.createBot")
     }
 
+    open func selfUpdateBotWebhook(request body: BotWebhookSelfUpdateRequest) async throws -> BotResponse {
+        throw pachcaNotImplemented("Bots.selfUpdateBotWebhook")
+    }
+
     open func updateBot(id: Int, request body: BotUpdateRequest) async throws -> BotResponse {
         throw pachcaNotImplemented("Bots.updateBot")
     }
@@ -264,6 +268,24 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 201:
             return try deserialize(BotCreateResponseDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func selfUpdateBotWebhook(request body: BotWebhookSelfUpdateRequest) async throws -> BotResponse {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bot/webhook")!)
+        request.httpMethod = "PUT"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(BotResponseDataWrapper.self, from: data).data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:

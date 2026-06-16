@@ -14,7 +14,7 @@
   },
   "BotOperations_getBot": {
     "usage": "const response = client.bots.getBot(1738816)",
-    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[] }) })"
+    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[] }) })"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "const response = client.bots.getWebhookEvents({ limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
@@ -27,25 +27,31 @@
     "usage": "for await (const payload of client.bots.pollWebhookPayloads({ intervalMs: 5_000 })) {\n  console.log(payload)\n}"
   },
   "BotOperations_createBot": {
-    "usage": "const request: BotCreateRequest = {\n  bot: {\n    webhook: {\n      name: \"Бот задач\",\n      nickname: \"tasks_bot\",\n      outgoingUrl: \"https://www.website.com/tasks/new\",\n      events: [BotEventName.MessageNew],\n      triggerOn: BotTriggerOn.Commands,\n      commands: [\"example\"]\n    }\n  }\n}\nconst response = client.bots.createBot(request)",
-    "output": "BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[] }), accessToken: string })",
+    "usage": "const request: BotCreateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"]\n  }\n}\nconst response = client.bots.createBot(request)",
+    "output": "BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[] }), accessToken: string })",
     "imports": [
       "BotCreateRequest",
-      "BotCreateRequestBot",
-      "BotCreateRequestBotWebhook",
+      "BotCreateRequestWebhook",
       "BotEventName",
       "BotTriggerOn"
     ]
   },
+  "BotOperations_selfUpdateBotWebhook": {
+    "usage": "const request: BotWebhookSelfUpdateRequest = { webhook: { outgoingUrl: \"https://www.website.com/tasks/new\" } }\nconst response = client.bots.selfUpdateBotWebhook(request)",
+    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[] }) })",
+    "imports": [
+      "BotWebhookSelfUpdateRequest",
+      "BotWebhookSelfUpdateRequestWebhook"
+    ]
+  },
   "BotOperations_updateBot": {
-    "usage": "const request: BotUpdateRequest = {\n  bot: {\n    webhook: {\n      name: \"Бот задач\",\n      nickname: \"tasks_bot\",\n      outgoingUrl: \"https://www.website.com/tasks/new\",\n      events: [BotEventName.MessageNew],\n      triggerOn: BotTriggerOn.Commands,\n      commands: [\"example\"]\n    }\n  }\n}\nconst response = client.bots.updateBot(1738816, request)",
-    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[] }) })",
+    "usage": "const request: BotUpdateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"]\n  }\n}\nconst response = client.bots.updateBot(1738816, request)",
+    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[] }) })",
     "imports": [
       "BotEventName",
       "BotTriggerOn",
       "BotUpdateRequest",
-      "BotUpdateRequestBot",
-      "BotUpdateRequestBotWebhook"
+      "BotUpdateRequestWebhook"
     ]
   },
   "BotOperations_deleteWebhookEvent": {
@@ -356,7 +362,7 @@
     "output": "unknown"
   },
   "UserOperations_createUser": {
-    "usage": "const request: UserCreateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegp@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Продукт\",\n    title: \"CIO\",\n    role: UserCreateRole.User,\n    suspended: false,\n    listTags: [\"example\"],\n    chatIds: [123],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  },\n  skipEmailNotify: true\n}\nconst response = client.users.createUser(request)",
+    "usage": "const request: UserCreateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegp@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Продукт\",\n    title: \"CIO\",\n    role: UserCreateRole.User,\n    suspended: false,\n    listTags: [\"example\"],\n    chatIds: [123],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  },\n  skipEmailNotify: false\n}\nconst response = client.users.createUser(request)",
     "output": "User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })",
     "imports": [
       "UserCreateRequest",

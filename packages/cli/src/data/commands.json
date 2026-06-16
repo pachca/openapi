@@ -125,23 +125,59 @@
     "commands": [
       {
         "command": "pachca bots create",
-        "summary": "Создание бота",
+        "summary": "Новый бот",
         "method": "POST",
         "path": "/bots",
         "scope": "bots:write",
         "plan": null,
         "flags": [
           {
-            "name": "webhook",
+            "name": "name",
             "type": "option",
             "required": true,
-            "description": "Объект параметров вебхука бота"
+            "description": "Имя бота"
+          },
+          {
+            "name": "nickname",
+            "type": "option",
+            "required": false,
+            "description": "Никнейм бота. Должен заканчиваться на `_bot`."
+          },
+          {
+            "name": "outgoing-url",
+            "type": "option",
+            "required": false,
+            "description": "URL исходящего вебхука"
+          },
+          {
+            "name": "events",
+            "type": "option",
+            "required": false,
+            "description": "События, на которые подписан бот"
+          },
+          {
+            "name": "trigger-on",
+            "type": "option",
+            "required": false,
+            "description": "Условие срабатывания исходящего вебхука"
+          },
+          {
+            "name": "commands",
+            "type": "option",
+            "required": false,
+            "description": "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands"
+          },
+          {
+            "name": "scopes",
+            "type": "option",
+            "required": false,
+            "description": "Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию."
           }
         ]
       },
       {
         "command": "pachca bots get",
-        "summary": "Получение бота",
+        "summary": "Информация о боте",
         "method": "GET",
         "path": "/bots/{id}",
         "scope": "bots:read",
@@ -222,10 +258,62 @@
         ],
         "flags": [
           {
-            "name": "webhook",
+            "name": "name",
+            "type": "option",
+            "required": false,
+            "description": "Имя бота"
+          },
+          {
+            "name": "nickname",
+            "type": "option",
+            "required": false,
+            "description": "Никнейм бота. Должен заканчиваться на `_bot`."
+          },
+          {
+            "name": "outgoing-url",
+            "type": "option",
+            "required": false,
+            "description": "URL исходящего вебхука"
+          },
+          {
+            "name": "events",
+            "type": "option",
+            "required": false,
+            "description": "События, на которые подписан бот"
+          },
+          {
+            "name": "trigger-on",
+            "type": "option",
+            "required": false,
+            "description": "Условие срабатывания исходящего вебхука"
+          },
+          {
+            "name": "commands",
+            "type": "option",
+            "required": false,
+            "description": "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands"
+          },
+          {
+            "name": "scopes",
+            "type": "option",
+            "required": false,
+            "description": "Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию."
+          }
+        ]
+      },
+      {
+        "command": "pachca bots update-webhook",
+        "summary": "Саморегистрация вебхука бота",
+        "method": "PUT",
+        "path": "/bot/webhook",
+        "scope": "bot_self:webhook:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "outgoing-url",
             "type": "option",
             "required": true,
-            "description": "Объект параметров вебхука"
+            "description": "URL исходящего вебхука. Пустая строка отключает вебхук."
           }
         ]
       }
@@ -414,7 +502,7 @@
       },
       {
         "command": "pachca chats update",
-        "summary": "Обновление чата",
+        "summary": "Редактирование чата",
         "method": "PUT",
         "path": "/chats/{id}",
         "scope": "chats:update",
@@ -1395,7 +1483,7 @@
     "commands": [
       {
         "command": "pachca profile delete-avatar",
-        "summary": "Удаление аватара",
+        "summary": "Удаление своего аватара",
         "method": "DELETE",
         "path": "/profile/avatar",
         "scope": "profile_avatar:write",
@@ -1411,7 +1499,7 @@
       },
       {
         "command": "pachca profile delete-status",
-        "summary": "Удаление статуса",
+        "summary": "Удаление своего статуса",
         "method": "DELETE",
         "path": "/profile/status",
         "scope": "profile_status:write",
@@ -1427,7 +1515,7 @@
       },
       {
         "command": "pachca profile get",
-        "summary": "Информация о профиле",
+        "summary": "Свой профиль",
         "method": "GET",
         "path": "/profile",
         "scope": "profile:read",
@@ -1445,7 +1533,7 @@
       },
       {
         "command": "pachca profile get-status",
-        "summary": "Текущий статус",
+        "summary": "Свой статус",
         "method": "GET",
         "path": "/profile/status",
         "scope": "profile_status:read",
@@ -1454,7 +1542,7 @@
       },
       {
         "command": "pachca profile update-avatar",
-        "summary": "Загрузка аватара",
+        "summary": "Загрузка своего аватара",
         "method": "PUT",
         "path": "/profile/avatar",
         "scope": "profile_avatar:write",
@@ -1470,7 +1558,7 @@
       },
       {
         "command": "pachca profile update-status",
-        "summary": "Новый статус",
+        "summary": "Новый свой статус",
         "method": "PUT",
         "path": "/profile/status",
         "scope": "profile_status:write",
@@ -2313,7 +2401,7 @@
     "commands": [
       {
         "command": "pachca users create",
-        "summary": "Создать сотрудника",
+        "summary": "Новый сотрудник",
         "method": "POST",
         "path": "/users",
         "scope": "users:create",

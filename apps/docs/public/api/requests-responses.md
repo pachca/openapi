@@ -56,7 +56,6 @@ curl "https://api.pachca.com/api/shared/v1/users" \
     "department": "Продукт",
     "title": "CIO",
     "role": "user",
-    "suspended": false,
     "list_tags": [
       "Product",
       "Design"
@@ -70,8 +69,7 @@ curl "https://api.pachca.com/api/shared/v1/users" \
         "value": "Санкт-Петербург"
       }
     ]
-  },
-  "skip_email_notify": true
+  }
 }'
 ```
 

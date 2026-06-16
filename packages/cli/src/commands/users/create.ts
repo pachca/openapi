@@ -4,7 +4,7 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class UsersCreate extends BaseCommand {
-  static override description = "Создать сотрудника";
+  static override description = "Новый сотрудник";
 
   static override examples = [
       "Проверить, кто прочитал сообщение:\n  $ pachca users list",

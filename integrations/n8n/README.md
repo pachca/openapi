@@ -24,7 +24,7 @@ Or install from archive (Docker, custom n8n images):
 # Download from GitHub Releases
 # Find the latest n8n-nodes-pachca.tgz at:
 # https://github.com/pachca/openapi/releases?q=n8n
-wget https://github.com/pachca/openapi/releases/download/n8n-v2.0.10/n8n-nodes-pachca.tgz
+wget https://github.com/pachca/openapi/releases/download/n8n-v2.0.11/n8n-nodes-pachca.tgz
 
 # Via npm (recommended)
 cd ~/.n8n/nodes && npm install ./n8n-nodes-pachca.tgz
@@ -75,7 +75,7 @@ Webhook-based trigger that listens for 16 Pachca event types:
 | Users | invited, confirmed, activated, suspended, updated, deleted |
 | Wildcard | all events |
 
-Automatically registers webhooks via the Bot API when workflow is activated. Deactivation removes the webhook.
+Automatic mode registers the webhook URL when the workflow is activated and clears it on deactivation. A bot token self-registers via `PUT /bot/webhook` (no Bot ID needed); a personal token uses `PUT /bots/:id` and needs the `bots:write` scope, editor access to the bot, and the Bot ID.
 
 ## Credentials
 
@@ -85,7 +85,7 @@ Create a **Pachca API** credential with:
 |-------|----------|-------------|
 | **Base URL** | no | Default: `https://api.pachca.com/api/shared/v1`. Change only for on-premise. |
 | **Access Token** | yes | Bot or personal API token |
-| **Bot ID** | no | For automatic webhook registration in Trigger. Auto-detected from bot tokens. Set explicitly for admin tokens. |
+| **Bot ID** | no | For automatic webhook registration in Trigger with a **personal token**. Not needed for bot tokens — they self-register. |
 | **Signing Secret** | no | For HMAC-SHA256 verification of incoming webhooks (`pachca-signature` header) |
 | **Webhook Allowed IPs** | no | Comma-separated IPs allowed to send webhooks. Pachca sends from `37.200.70.177`. Empty = allow all. |
 

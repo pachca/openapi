@@ -4,7 +4,7 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ProfileUpdateStatus extends BaseCommand {
-  static override description = "Новый статус";
+  static override description = "Новый свой статус";
 
   static override examples = [
       "Установить статус:\n  $ pachca profile update-status",

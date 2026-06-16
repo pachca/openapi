@@ -75,15 +75,15 @@ dotnet add package Pachca.Sdk
 
 - [Поиск сообщений](/api/search/list-messages)
 
-- [Создать чат](/api/chats/create)
+- [Новый чат](/api/chats/create)
 
-- [Создать сотрудника](/api/users/create)
+- [Новый сотрудник](/api/users/create)
 
-- [Новый статус](/api/profile/update-status)
+- [Новый свой статус](/api/profile/update-status)
 
 - [Новое напоминание](/api/tasks/create)
 
-- [Создание бота](/api/bots/create)
+- [Новый бот](/api/bots/create)
 
 
 ## Основы API

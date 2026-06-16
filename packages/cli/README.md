@@ -78,8 +78,9 @@ pachca guide            # список всех сценариев
 
 | Команда | Описание |
 |---------|---------|
-| `pachca bots create` | Создание бота |
-| `pachca bots get` | Получение бота |
+| `pachca bots update-webhook` | Саморегистрация вебхука бота |
+| `pachca bots create` | Новый бот |
+| `pachca bots get` | Информация о боте |
 | `pachca bots update` | Редактирование бота |
 | `pachca bots list-events` | История событий |
 | `pachca bots remove-event` | Удаление события |
@@ -91,7 +92,7 @@ pachca guide            # список всех сценариев
 | `pachca chats create` | Новый чат |
 | `pachca chats list` | Список чатов |
 | `pachca chats get` | Информация о чате |
-| `pachca chats update` | Обновление чата |
+| `pachca chats update` | Редактирование чата |
 | `pachca chats archive` | Архивация чата |
 | `pachca chats unarchive` | Разархивация чата |
 
@@ -173,12 +174,12 @@ pachca guide            # список всех сценариев
 | Команда | Описание |
 |---------|---------|
 | `pachca profile get-info` | Информация о токене |
-| `pachca profile get` | Информация о профиле |
-| `pachca profile update-avatar` | Загрузка аватара |
-| `pachca profile delete-avatar` | Удаление аватара |
-| `pachca profile get-status` | Текущий статус |
-| `pachca profile update-status` | Новый статус |
-| `pachca profile delete-status` | Удаление статуса |
+| `pachca profile get` | Свой профиль |
+| `pachca profile update-avatar` | Загрузка своего аватара |
+| `pachca profile delete-avatar` | Удаление своего аватара |
+| `pachca profile get-status` | Свой статус |
+| `pachca profile update-status` | Новый свой статус |
+| `pachca profile delete-status` | Удаление своего статуса |
 
 ### search
 
@@ -202,7 +203,7 @@ pachca guide            # список всех сценариев
 
 | Команда | Описание |
 |---------|---------|
-| `pachca users create` | Создать сотрудника |
+| `pachca users create` | Новый сотрудник |
 | `pachca users list` | Список сотрудников |
 | `pachca users get` | Информация о сотруднике |
 | `pachca users update` | Редактирование сотрудника |

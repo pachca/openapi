@@ -1097,9 +1097,13 @@ Body: { type*, trigger_id*, private_metadata, callback_id, view* }
 
 ## Bots
 
+### PUT /api/shared/v1/bot/webhook
+Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without knowing its own `user_id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an empty string in `outgoing_url`.
+Body: { webhook: { outgoing_url* } }
+
 ### POST /api/shared/v1/bots
 Creates a bot and returns its `access_token`. When the bot is created, you receive its `access_token` — save it right away. You can obtain the token again only through the interface (the "API" tab of the bot settings).
-Body: { bot: { webhook* } }
+Body: { webhook: { name*, nickname, outgoing_url, events, trigger_on, commands, scopes } }
 
 ### GET /api/shared/v1/bots/{id}
 Retrieves bot parameters by its `user_id`.
@@ -1108,7 +1112,7 @@ Parameters: id
 ### PUT /api/shared/v1/bots/{id}
 Edit a bot's settings. To edit a bot you need to know its `user_id` and specify it in the request `URL`. All editable bot parameters are specified in the request body. You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on the "General" tab in the bot settings).
 Parameters: id
-Body: { bot: { webhook* } }
+Body: { webhook: { name, nickname, outgoing_url, events, trigger_on, commands, scopes } }
 
 ### GET /api/shared/v1/webhooks/events
 Retrieve the history of a bot's recent events. This method is useful if you cannot receive events in real time at your `URL`, but need to process all events you have subscribed to. Event history is only saved when the "Save event history" option is enabled in the "Outgoing webhook" tab of the bot settings. Specifying a "Webhook `URL`" is not required. To retrieve the event history of a specific bot, you need to know its `access_token` and use it in the request. Each event is a webhook `JSON` object.

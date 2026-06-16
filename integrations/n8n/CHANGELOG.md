@@ -1,11 +1,19 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## 2.0.11 (2026-06-16)
+
+### Improvements
+
+- Bot: configurable token scopes — `Scopes` parameter on Create/Update and `scopes` field in the response
+- Bot: new `Update Webhook` operation — the bot self-registers its outgoing webhook URL with its own token
+- Trigger: Automatic webhook setup now works with bot tokens — the node self-registers and clears the webhook (no Bot ID needed); personal tokens still need a Bot ID
+
 ## 2.0.10 (2026-06-15)
 
 ### Improvements
 
-- Bot: create and get bots via API (`POST /bots`, `GET /bots/{id}`)
+- Bot: new `Create` and `Get` operations
 - Message: voice message support — `voice_content` field and `duration_ms` / `waveform` file parameters
 
 ## 2.0.9 (2026-05-20)

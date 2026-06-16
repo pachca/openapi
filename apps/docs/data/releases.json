@@ -1,27 +1,83 @@
 [
   {
     "product": "cli",
+    "version": "2026.6.1",
+    "date": "2026-06-16",
+    "changes": [
+      {
+        "type": "~",
+        "command": "bots create",
+        "description": "`pachca bots create` — параметр `--scopes` (выбор скоупов токена бота)"
+      },
+      {
+        "type": "~",
+        "command": "bots update",
+        "description": "`pachca bots update` — параметр `--scopes` (изменение скоупов токена бота)"
+      },
+      {
+        "type": "+",
+        "command": "bots update-webhook",
+        "description": "`pachca bots update-webhook` — саморегистрация исходящего вебхука бота его собственным токеном"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.0.11",
+    "date": "2026-06-16",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Bot: параметр `Scopes` (выбор скоупов токена) и поле `scopes` в ответе"
+      },
+      {
+        "type": "+",
+        "description": "Bot: новая операция `Update Webhook` — саморегистрация исходящего вебхука бота его токеном"
+      },
+      {
+        "type": "+",
+        "description": "Pachca Trigger: автоматический режим теперь работает и с токеном бота — узел сам регистрирует и очищает вебхук, без Bot ID (персональному токену по-прежнему нужен Bot ID)"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.0.23",
+    "date": "2026-06-16",
+    "changes": [
+      {
+        "type": "~",
+        "description": "У бота параметр `scopes` (выбор скоупов токена) и поле `scopes` в ответе"
+      },
+      {
+        "type": "+",
+        "description": "Метод `Саморегистрация вебхука бота` (`PUT /bot/webhook`)"
+      }
+    ]
+  },
+  {
+    "product": "cli",
     "version": "2026.6.0",
     "date": "2026-06-15",
     "changes": [
       {
         "type": "+",
         "command": "bots create",
-        "description": "Новая команда — создание бота и получение его access_token"
+        "description": "`pachca bots create` — создание бота и получение его `access_token`"
       },
       {
         "type": "+",
         "command": "bots get",
-        "description": "Новая команда — получение параметров бота"
+        "description": "`pachca bots get` — получение параметров бота"
       },
       {
         "type": "~",
         "command": "bots update",
-        "description": "Расширены поля редактирования бота: name, nickname, events, trigger_on, commands"
+        "description": "`pachca bots update` — новые поля `--name`, `--nickname`, `--events`, `--trigger-on`, `--commands`"
       },
       {
         "type": "+",
-        "description": "В сообщениях появилось поле voice_content и параметры файлов duration_ms / waveform для голосовых сообщений"
+        "description": "В выводе сообщений — поле `voice_content` и параметры файлов `--duration-ms` / `--waveform` для голосовых"
       }
     ]
   },
@@ -32,11 +88,11 @@
     "changes": [
       {
         "type": "+",
-        "description": "Создание и получение ботов через API (POST /bots, GET /bots/{id})"
+        "description": "Bot: новые операции `Create` и `Get`"
       },
       {
         "type": "+",
-        "description": "Поддержка голосовых сообщений: поле voice_content и параметры duration_ms / waveform"
+        "description": "Message: голосовые сообщения — поле `voice_content` и параметры файла `duration_ms` / `waveform`"
       }
     ]
   },
@@ -47,11 +103,11 @@
     "changes": [
       {
         "type": "+",
-        "description": "Методы создания и получения ботов: POST /bots, GET /bots/{id}"
+        "description": "Методы `Новый бот` (`POST /bots`) и `Информация о боте` (`GET /bots/{id}`)"
       },
       {
         "type": "+",
-        "description": "Поле voice_content в сообщении и параметры файлов duration_ms / waveform для голосовых сообщений"
+        "description": "Поле `voice_content` в модели сообщения и параметры файлов `duration_ms` / `waveform` для голосовых"
       }
     ]
   },

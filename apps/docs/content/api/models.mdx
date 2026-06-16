@@ -43,18 +43,18 @@ hideTableOfContents: true
 ## Статус пользователя
 
 - [Статус сотрудника](GET /users/{user_id}/status)
-- [Текущий статус](GET /profile/status)
-- [Новый статус](PUT /profile/status)
+- [Свой статус](GET /profile/status)
+- [Новый свой статус](PUT /profile/status)
 - [Новый статус сотрудника](PUT /users/{user_id}/status)
-- [Удаление статуса](DELETE /profile/status)
+- [Удаление своего статуса](DELETE /profile/status)
 - [Удаление статуса сотрудника](DELETE /users/{user_id}/status)
 
 <ModelSchema name="UserStatus" />
 
 ## Аватар
 
-- [Загрузка аватара](PUT /profile/avatar)
-- [Удаление аватара](DELETE /profile/avatar)
+- [Загрузка своего аватара](PUT /profile/avatar)
+- [Удаление своего аватара](DELETE /profile/avatar)
 - [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar)
 - [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar)
 
@@ -62,8 +62,8 @@ hideTableOfContents: true
 
 ## Сотрудник
 
-- [Создать сотрудника](POST /users)
-- [Информация о профиле](GET /profile)
+- [Новый сотрудник](POST /users)
+- [Свой профиль](GET /profile)
 - [Информация о сотруднике](GET /users/{id})
 - [Список сотрудников](GET /users)
 - [Список сотрудников тега](GET /group_tags/{id}/users)
@@ -95,7 +95,7 @@ hideTableOfContents: true
 - [Список чатов](GET /chats)
 - [Поиск чатов](GET /search/chats)
 - [Скачать архив экспорта](GET /chats/exports/{id})
-- [Обновление чата](PUT /chats/{id})
+- [Редактирование чата](PUT /chats/{id})
 - [Архивация чата](PUT /chats/{id}/archive)
 - [Разархивация чата](PUT /chats/{id}/unarchive)
 - [Редактирование роли](PUT /chats/{id}/members/{user_id})
@@ -153,9 +153,10 @@ hideTableOfContents: true
 
 ## Параметры бота
 
-- [Создание бота](POST /bots)
-- [Получение бота](GET /bots/{id})
+- [Новый бот](POST /bots)
+- [Информация о боте](GET /bots/{id})
 - [Редактирование бота](PUT /bots/{id})
+- [Саморегистрация вебхука бота](PUT /bot/webhook)
 
 <ModelSchema name="BotResponse" />
 

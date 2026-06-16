@@ -131,11 +131,11 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 |--------|------|-------------|
 | GET | /custom_properties | Список дополнительных полей |
 | GET | /oauth/token/info | Информация о токене |
-| GET | /profile | Информация о профиле |
-| PUT | /profile/avatar | Загрузка аватара |
-| DELETE | /profile/avatar | Удаление аватара |
-| GET | /profile/status | Текущий статус |
-| PUT | /profile/status | Новый статус |
-| DELETE | /profile/status | Удаление статуса |
+| GET | /profile | Свой профиль |
+| PUT | /profile/avatar | Загрузка своего аватара |
+| DELETE | /profile/avatar | Удаление своего аватара |
+| GET | /profile/status | Свой статус |
+| PUT | /profile/status | Новый свой статус |
+| DELETE | /profile/status | Удаление своего статуса |
 
 > If unsure how to complete a task, read the corresponding file from references/.

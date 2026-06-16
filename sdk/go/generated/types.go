@@ -190,7 +190,10 @@ const (
 	OAuthScopeUsersDelete          OAuthScope = "users:delete" // Удаление сотрудников
 	OAuthScopeGroupTagsRead        OAuthScope = "group_tags:read" // Просмотр тегов
 	OAuthScopeGroupTagsWrite       OAuthScope = "group_tags:write" // Создание, редактирование и удаление тегов
-	OAuthScopeBotsWrite            OAuthScope = "bots:write" // Изменение настроек бота
+	OAuthScopeBotsRead             OAuthScope = "bots:read" // Просмотр ботов
+	OAuthScopeBotsWrite            OAuthScope = "bots:write" // Управление ботами
+	OAuthScopeBotSelfWebhookWrite  OAuthScope = "bot_self:webhook:write" // Самостоятельное управление адресом вебхука бота
+	OAuthScopeBotSelfWrite         OAuthScope = "bot_self:write" // Самостоятельное управление настройками бота
 	OAuthScopeProfileRead          OAuthScope = "profile:read" // Просмотр информации о своем профиле
 	OAuthScopeProfileStatusRead    OAuthScope = "profile_status:read" // Просмотр статуса профиля
 	OAuthScopeProfileStatusWrite   OAuthScope = "profile_status:write" // Изменение и удаление статуса профиля
@@ -483,17 +486,18 @@ type AvatarData struct {
 	ImageURL string `json:"image_url"`
 }
 
-type BotCreateRequestBotWebhook struct {
+type BotCreateRequestWebhook struct {
 	Name        string         `json:"name"`
 	Nickname    *string        `json:"nickname,omitempty"`
 	OutgoingURL *string        `json:"outgoing_url,omitempty"`
 	Events      []BotEventName `json:"events,omitempty"`
 	TriggerOn   *BotTriggerOn  `json:"trigger_on,omitempty"`
 	Commands    []string       `json:"commands,omitempty"`
+	Scopes      []string       `json:"scopes,omitempty"`
 }
 
-func (m BotCreateRequestBotWebhook) MarshalJSON() ([]byte, error) {
-	type Alias BotCreateRequestBotWebhook
+func (m BotCreateRequestWebhook) MarshalJSON() ([]byte, error) {
+	type Alias BotCreateRequestWebhook
 	data, err := json.Marshal(Alias(m))
 	if err != nil {
 		return nil, err
@@ -508,15 +512,14 @@ func (m BotCreateRequestBotWebhook) MarshalJSON() ([]byte, error) {
 	if m.Commands != nil {
 		raw["commands"] = m.Commands
 	}
+	if m.Scopes != nil {
+		raw["scopes"] = m.Scopes
+	}
 	return json.Marshal(raw)
 }
 
-type BotCreateRequestBot struct {
-	Webhook BotCreateRequestBotWebhook `json:"webhook"`
-}
-
 type BotCreateRequest struct {
-	Bot BotCreateRequestBot `json:"bot"`
+	Webhook BotCreateRequestWebhook `json:"webhook"`
 }
 
 type BotCreateResponse struct {
@@ -530,17 +533,18 @@ type BotResponse struct {
 	Webhook BotWebhook `json:"webhook"`
 }
 
-type BotUpdateRequestBotWebhook struct {
+type BotUpdateRequestWebhook struct {
 	Name        *string        `json:"name,omitempty"`
 	Nickname    *string        `json:"nickname,omitempty"`
 	OutgoingURL *string        `json:"outgoing_url,omitempty"`
 	Events      []BotEventName `json:"events,omitempty"`
 	TriggerOn   *BotTriggerOn  `json:"trigger_on,omitempty"`
 	Commands    []string       `json:"commands,omitempty"`
+	Scopes      []string       `json:"scopes,omitempty"`
 }
 
-func (m BotUpdateRequestBotWebhook) MarshalJSON() ([]byte, error) {
-	type Alias BotUpdateRequestBotWebhook
+func (m BotUpdateRequestWebhook) MarshalJSON() ([]byte, error) {
+	type Alias BotUpdateRequestWebhook
 	data, err := json.Marshal(Alias(m))
 	if err != nil {
 		return nil, err
@@ -555,15 +559,14 @@ func (m BotUpdateRequestBotWebhook) MarshalJSON() ([]byte, error) {
 	if m.Commands != nil {
 		raw["commands"] = m.Commands
 	}
+	if m.Scopes != nil {
+		raw["scopes"] = m.Scopes
+	}
 	return json.Marshal(raw)
 }
 
-type BotUpdateRequestBot struct {
-	Webhook BotUpdateRequestBotWebhook `json:"webhook"`
-}
-
 type BotUpdateRequest struct {
-	Bot BotUpdateRequestBot `json:"bot"`
+	Webhook BotUpdateRequestWebhook `json:"webhook"`
 }
 
 type BotWebhook struct {
@@ -572,7 +575,16 @@ type BotWebhook struct {
 	Events      []BotEventName `json:"events"`
 	TriggerOn   BotTriggerOn   `json:"trigger_on"`
 	Commands    []string       `json:"commands"`
+	Scopes      []string       `json:"scopes"`
 	OutgoingURL *string        `json:"outgoing_url"`
+}
+
+type BotWebhookSelfUpdateRequestWebhook struct {
+	OutgoingURL string `json:"outgoing_url"`
+}
+
+type BotWebhookSelfUpdateRequest struct {
+	Webhook BotWebhookSelfUpdateRequestWebhook `json:"webhook"`
 }
 
 type Button struct {

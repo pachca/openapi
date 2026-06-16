@@ -4,7 +4,7 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class ProfileDeleteAvatar extends BaseCommand {
-  static override description = "Удаление аватара";
+  static override description = "Удаление своего аватара";
 
   static override examples = [
       "Загрузить аватар профиля:\n  $ pachca profile update-avatar",

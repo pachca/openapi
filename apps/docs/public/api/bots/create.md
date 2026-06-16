@@ -2,7 +2,7 @@
 > Краткое содержание: Метод для создания бота и получения его accesstoken.
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
-# Создание бота
+# Новый бот
 
 **Метод**: `POST`
 
@@ -22,34 +22,34 @@
 
 ### Схема
 
-- `bot: object` (required) — Собранный объект параметров создаваемого бота
-  - `webhook: object` (required) — Объект параметров вебхука бота
-    - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
-    - `nickname: string` — Никнейм бота. Должен заканчиваться на `_bot`.. Пример: `"tasks_bot"`
-    - `outgoing_url: string` — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
-    - `events: array of string` — События, на которые подписан бот. Пример: `["message_new"]`
-    - `trigger_on: string` — Условие срабатывания исходящего вебхука
-      Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
-    - `commands: array of string` — Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Пример: `["/task","/help"]`
+- `webhook: object` (required) — Объект параметров вебхука создаваемого бота
+  - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
+  - `nickname: string` — Никнейм бота. Должен заканчиваться на `_bot`.. Пример: `"tasks_bot"`
+  - `outgoing_url: string` — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
+  - `events: array of string` — События, на которые подписан бот. Пример: `["message_new"]`
+  - `trigger_on: string` — Условие срабатывания исходящего вебхука
+    Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
+  - `commands: array of string` — Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Пример: `["/task","/help"]`
+  - `scopes: array of string` — Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.. Пример: `["messages:create"]`
 
 ### Пример
 
 ```json
 {
-  "bot": {
-    "webhook": {
-      "name": "Бот задач",
-      "nickname": "tasks_bot",
-      "outgoing_url": "https://www.website.com/tasks/new",
-      "events": [
-        "message_new"
-      ],
-      "trigger_on": "commands",
-      "commands": [
-        "/task",
-        "/help"
-      ]
-    }
+  "webhook": {
+    "name": "Бот задач",
+    "nickname": "tasks_bot",
+    "outgoing_url": "https://www.website.com/tasks/new",
+    "events": [
+      "message_new"
+    ],
+    "commands": [
+      "/task",
+      "/help"
+    ],
+    "scopes": [
+      "messages:create"
+    ]
   }
 }
 ```
@@ -61,20 +61,20 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-  "bot": {
-    "webhook": {
-      "name": "Бот задач",
-      "nickname": "tasks_bot",
-      "outgoing_url": "https://www.website.com/tasks/new",
-      "events": [
-        "message_new"
-      ],
-      "trigger_on": "commands",
-      "commands": [
-        "/task",
-        "/help"
-      ]
-    }
+  "webhook": {
+    "name": "Бот задач",
+    "nickname": "tasks_bot",
+    "outgoing_url": "https://www.website.com/tasks/new",
+    "events": [
+      "message_new"
+    ],
+    "commands": [
+      "/task",
+      "/help"
+    ],
+    "scopes": [
+      "messages:create"
+    ]
   }
 }'
 ```
@@ -95,6 +95,7 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
     - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
+    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
   - `access_token: string` (required) — Токен доступа бота. Выдаётся только при создании. Повторно получить токен можно только через интерфейс (вкладка «API» настроек бота).. Пример: `"bm90X2FfcmVhbF90b2tlbg"`
 
 **Пример ответа:**
@@ -113,6 +114,9 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
       "trigger_on": "commands",
       "commands": [
         "/task"
+      ],
+      "scopes": [
+        "messages:create"
       ]
     },
     "access_token": "bm90X2FfcmVhbF90b2tlbg"

@@ -21,6 +21,7 @@ from .models import (
     WebhookPayloadUnion,
     BotCreateRequest,
     BotCreateResponse,
+    BotWebhookSelfUpdateRequest,
     BotUpdateRequest,
     ListChatsParams,
     ListChatsResponse,
@@ -252,6 +253,12 @@ class BotsService:
     ) -> BotCreateResponse:
         raise NotImplementedError("Bots.createBot is not implemented")
 
+    async def self_update_bot_webhook(
+        self,
+        request: BotWebhookSelfUpdateRequest,
+    ) -> BotResponse:
+        raise NotImplementedError("Bots.selfUpdateBotWebhook is not implemented")
+
     async def update_bot(
         self,
         id: int,
@@ -340,6 +347,23 @@ class BotsServiceImpl(BotsService):
         match response.status_code:
             case 201:
                 return deserialize(BotCreateResponse, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def self_update_bot_webhook(
+        self,
+        request: BotWebhookSelfUpdateRequest,
+    ) -> BotResponse:
+        response = await self._client.put(
+            "/bot/webhook",
+            json=serialize(request),
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(BotResponse, body["data"])
             case 401:
                 raise deserialize(OAuthError, body)
             case _:

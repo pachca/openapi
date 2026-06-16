@@ -135,7 +135,7 @@ actions:
   - target: $.paths['/chats/{id}'].put
     update:
       description: >-
-        Update chat
+        Edit chat
 
 
         Update chat parameters.
@@ -593,31 +593,31 @@ actions:
   - target: $.paths['/profile'].get
     update:
       description: |-
-        Profile info
+        Own profile
 
         Retrieve information about your own profile.
   - target: $.paths['/profile/status'].get
     update:
       description: |-
-        Current status
+        Own status
 
         Retrieve information about your current status.
   - target: $.paths['/profile/status'].put
     update:
       description: |-
-        New status
+        New own status
 
         Set a new status for yourself.
   - target: $.paths['/profile/status'].delete
     update:
       description: |-
-        Delete status
+        Delete own status
 
         Delete your current status.
   - target: $.paths['/profile/avatar'].put
     update:
       description: |-
-        Upload avatar
+        Upload own avatar
 
         Upload or update your profile avatar. The file is sent in `multipart/form-data` format.
   - target: $.paths['/profile/avatar'].put.requestBody.properties.image
@@ -626,7 +626,7 @@ actions:
   - target: $.paths['/profile/avatar'].delete
     update:
       description: |-
-        Delete avatar
+        Delete own avatar
 
         Delete your profile avatar.
   - target: $.paths['/search/chats'].get
@@ -843,7 +843,7 @@ actions:
   - target: $.paths['/users'].post
     update:
       description: >-
-        Create employee
+        New employee
 
 
         Create a new employee in your workspace.
@@ -1304,37 +1304,43 @@ actions:
   - target: $.components.schemas.BotResponse.properties.webhook.properties.outgoing_url
     update:
       description: Outgoing webhook URL
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.scopes
+    update:
+      description: Bot token scopes (permissions)
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.scopes
+    update:
+      description: Bot token scopes (permissions)
   - target: $.components.schemas.BotUpdateRequest
     update:
       description: Bot update request
-  - target: $.components.schemas.BotUpdateRequest.properties.bot
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook
     update:
-      description: Bot parameters object to update
-  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook
-    update:
-      description: Webhook parameters object
-  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.outgoing_url
+      description: Webhook parameters object of the bot to update
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.outgoing_url
     update:
       description: Outgoing webhook URL
-  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.name
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.name
     update:
       description: Bot name
-  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.nickname
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.nickname
     update:
       description: Bot nickname. Must end with `_bot`.
-  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.events
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.events
     update:
       description: Events the bot is subscribed to
-  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.trigger_on
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.trigger_on
     update:
       description: Outgoing webhook trigger condition
-  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.commands
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.commands
     update:
       description: Bot commands (trigger words) it reacts to when trigger_on = commands
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.scopes
+    update:
+      description: Bot token scopes (permissions). If omitted, the bot receives the default set.
   - target: $.paths['/bots'].post
     update:
       description: >-
-        Create bot
+        New bot
 
 
         Creates a bot and returns its `access_token`.
@@ -1345,7 +1351,7 @@ actions:
   - target: $.paths['/bots/{id}'].get
     update:
       description: >-
-        Get bot
+        Bot info
 
 
         Retrieves bot parameters by its `user_id`.
@@ -1382,30 +1388,30 @@ actions:
   - target: $.components.schemas.BotCreateRequest
     update:
       description: Bot creation request
-  - target: $.components.schemas.BotCreateRequest.properties.bot
+  - target: $.components.schemas.BotCreateRequest.properties.webhook
     update:
-      description: Parameters object of the bot to create
-  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook
-    update:
-      description: Bot webhook parameters object
-  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.name
+      description: Webhook parameters object of the bot to create
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.name
     update:
       description: Bot name
-  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.nickname
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.nickname
     update:
       description: Bot nickname. Must end with `_bot`.
-  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.outgoing_url
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.outgoing_url
     update:
       description: Outgoing webhook URL
-  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.events
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.events
     update:
       description: Events the bot is subscribed to
-  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.trigger_on
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.trigger_on
     update:
       description: Outgoing webhook trigger condition
-  - target: $.components.schemas.BotCreateRequest.properties.bot.properties.webhook.properties.commands
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.commands
     update:
       description: Bot commands (trigger words) it reacts to when trigger_on = commands
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.scopes
+    update:
+      description: Bot token scopes (permissions). If omitted, the bot receives the default set.
   - target: $.components.schemas.BotWebhook
     update:
       description: Bot webhook parameters
@@ -1427,6 +1433,27 @@ actions:
   - target: $.components.schemas.BotWebhook.properties.commands
     update:
       description: Bot commands (trigger words)
+  - target: $.components.schemas.BotWebhook.properties.scopes
+    update:
+      description: Bot token scopes (permissions)
+  - target: $.components.schemas.BotWebhookSelfUpdateRequest
+    update:
+      description: Bot webhook self-registration request
+  - target: $.components.schemas.BotWebhookSelfUpdateRequest.properties.webhook
+    update:
+      description: Webhook parameters object
+  - target: $.components.schemas.BotWebhookSelfUpdateRequest.properties.webhook.properties.outgoing_url
+    update:
+      description: Outgoing webhook URL. An empty string disables the webhook.
+  - target: $.paths['/bot/webhook'].put
+    update:
+      description: >-
+        Bot webhook self-registration
+
+
+        Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without
+        knowing its own `user_id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an empty string in `outgoing_url`.
+
   - target: $.components.schemas.BotCreateResponse
     update:
       description: Created bot parameters
@@ -2234,7 +2261,10 @@ actions:
         users_delete: Delete employees
         group_tags_read: View tags
         group_tags_write: Create, edit, and delete tags
-        bots_write: Update bot settings
+        bots_read: View bots
+        bots_write: Manage bots
+        bot_self_webhook_write: Self-manage own webhook URL
+        bot_self_write: Self-manage own settings
         profile_read: View own profile information
         profile_status_read: View profile status
         profile_status_write: Update and delete profile status

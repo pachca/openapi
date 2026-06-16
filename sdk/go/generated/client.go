@@ -141,6 +141,7 @@ type BotsService interface {
 	PollWebhookEvents(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookEvent) error) error
 	PollWebhookPayloads(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookPayloadUnion) error) error
 	CreateBot(ctx context.Context, request BotCreateRequest) (*BotCreateResponse, error)
+	SelfUpdateBotWebhook(ctx context.Context, request BotWebhookSelfUpdateRequest) (*BotResponse, error)
 	UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error)
 	DeleteWebhookEvent(ctx context.Context, id string) error
 }
@@ -176,6 +177,10 @@ func (s *BotsServiceStub) PollWebhookPayloads(ctx context.Context, options *Poll
 
 func (s *BotsServiceStub) CreateBot(ctx context.Context, request BotCreateRequest) (*BotCreateResponse, error) {
 	return nil, NotImplementedError{Method: "Bots.createBot"}
+}
+
+func (s *BotsServiceStub) SelfUpdateBotWebhook(ctx context.Context, request BotWebhookSelfUpdateRequest) (*BotResponse, error) {
+	return nil, NotImplementedError{Method: "Bots.selfUpdateBotWebhook"}
 }
 
 func (s *BotsServiceStub) UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error) {
@@ -405,6 +410,45 @@ func (s *BotsServiceImpl) CreateBot(ctx context.Context, request BotCreateReques
 	case http.StatusCreated:
 		var result struct {
 			Data BotCreateResponse `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *BotsServiceImpl) SelfUpdateBotWebhook(ctx context.Context, request BotWebhookSelfUpdateRequest) (*BotResponse, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/bot/webhook", s.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data BotResponse `json:"data"`
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err

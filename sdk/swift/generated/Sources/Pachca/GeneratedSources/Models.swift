@@ -264,8 +264,14 @@ public enum OAuthScope: String, Codable, CaseIterable {
     case groupTagsRead = "group_tags:read"
     /// Создание, редактирование и удаление тегов
     case groupTagsWrite = "group_tags:write"
-    /// Изменение настроек бота
+    /// Просмотр ботов
+    case botsRead = "bots:read"
+    /// Управление ботами
     case botsWrite = "bots:write"
+    /// Самостоятельное управление адресом вебхука бота
+    case botSelfWebhookWrite = "bot_self:webhook:write"
+    /// Самостоятельное управление настройками бота
+    case botSelfWrite = "bot_self:write"
     /// Просмотр информации о своем профиле
     case profileRead = "profile:read"
     /// Просмотр статуса профиля
@@ -837,21 +843,23 @@ public struct AvatarData: Codable {
     }
 }
 
-public struct BotCreateRequestBotWebhook: Codable {
+public struct BotCreateRequestWebhook: Codable {
     public let name: String
     public let nickname: String?
     public let outgoingUrl: String?
     public let events: [BotEventName]?
     public let triggerOn: BotTriggerOn?
     public let commands: [String]?
+    public let scopes: [String]?
 
-    public init(name: String, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil) {
+    public init(name: String, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
         self.events = events
         self.triggerOn = triggerOn
         self.commands = commands
+        self.scopes = scopes
     }
 
     enum CodingKeys: String, CodingKey {
@@ -861,22 +869,15 @@ public struct BotCreateRequestBotWebhook: Codable {
         case events
         case triggerOn = "trigger_on"
         case commands
-    }
-}
-
-public struct BotCreateRequestBot: Codable {
-    public let webhook: BotCreateRequestBotWebhook
-
-    public init(webhook: BotCreateRequestBotWebhook) {
-        self.webhook = webhook
+        case scopes
     }
 }
 
 public struct BotCreateRequest: Codable {
-    public let bot: BotCreateRequestBot
+    public let webhook: BotCreateRequestWebhook
 
-    public init(bot: BotCreateRequestBot) {
-        self.bot = bot
+    public init(webhook: BotCreateRequestWebhook) {
+        self.webhook = webhook
     }
 }
 
@@ -908,21 +909,23 @@ public struct BotResponse: Codable {
     }
 }
 
-public struct BotUpdateRequestBotWebhook: Codable {
+public struct BotUpdateRequestWebhook: Codable {
     public let name: String?
     public let nickname: String?
     public let outgoingUrl: String?
     public let events: [BotEventName]?
     public let triggerOn: BotTriggerOn?
     public let commands: [String]?
+    public let scopes: [String]?
 
-    public init(name: String? = nil, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil) {
+    public init(name: String? = nil, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
         self.events = events
         self.triggerOn = triggerOn
         self.commands = commands
+        self.scopes = scopes
     }
 
     enum CodingKeys: String, CodingKey {
@@ -932,22 +935,15 @@ public struct BotUpdateRequestBotWebhook: Codable {
         case events
         case triggerOn = "trigger_on"
         case commands
-    }
-}
-
-public struct BotUpdateRequestBot: Codable {
-    public let webhook: BotUpdateRequestBotWebhook
-
-    public init(webhook: BotUpdateRequestBotWebhook) {
-        self.webhook = webhook
+        case scopes
     }
 }
 
 public struct BotUpdateRequest: Codable {
-    public let bot: BotUpdateRequestBot
+    public let webhook: BotUpdateRequestWebhook
 
-    public init(bot: BotUpdateRequestBot) {
-        self.bot = bot
+    public init(webhook: BotUpdateRequestWebhook) {
+        self.webhook = webhook
     }
 }
 
@@ -958,14 +954,16 @@ public struct BotWebhook: Codable {
     public let events: [BotEventName]
     public let triggerOn: BotTriggerOn
     public let commands: [String]
+    public let scopes: [String]
 
-    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String]) {
+    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String]) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
         self.events = events
         self.triggerOn = triggerOn
         self.commands = commands
+        self.scopes = scopes
     }
 
     enum CodingKeys: String, CodingKey {
@@ -975,6 +973,27 @@ public struct BotWebhook: Codable {
         case events
         case triggerOn = "trigger_on"
         case commands
+        case scopes
+    }
+}
+
+public struct BotWebhookSelfUpdateRequestWebhook: Codable {
+    public let outgoingUrl: String
+
+    public init(outgoingUrl: String) {
+        self.outgoingUrl = outgoingUrl
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case outgoingUrl = "outgoing_url"
+    }
+}
+
+public struct BotWebhookSelfUpdateRequest: Codable {
+    public let webhook: BotWebhookSelfUpdateRequestWebhook
+
+    public init(webhook: BotWebhookSelfUpdateRequestWebhook) {
+        self.webhook = webhook
     }
 }
 

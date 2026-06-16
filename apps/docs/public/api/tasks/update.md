@@ -49,7 +49,6 @@
 ```json
 {
   "task": {
-    "kind": "reminder",
     "content": "Забрать со склада 21 заказ",
     "due_at": "2020-06-05T12:00:00.000+03:00",
     "priority": 2,
@@ -77,7 +76,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/22283" \
   -H "Content-Type: application/json" \
   -d '{
   "task": {
-    "kind": "reminder",
     "content": "Забрать со склада 21 заказ",
     "due_at": "2020-06-05T12:00:00.000+03:00",
     "priority": 2,

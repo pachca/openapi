@@ -5,7 +5,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 export default class ProfileUpdateAvatar extends BaseCommand {
-  static override description = "Загрузка аватара";
+  static override description = "Загрузка своего аватара";
 
   static override examples = [
       "Загрузить аватар профиля:\n  $ pachca profile update-avatar",

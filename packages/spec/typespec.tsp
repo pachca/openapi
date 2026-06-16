@@ -1273,7 +1273,10 @@ model AvatarData {
   users_delete: "Удаление сотрудников",
   group_tags_read: "Просмотр тегов",
   group_tags_write: "Создание, редактирование и удаление тегов",
-  bots_write: "Изменение настроек бота",
+  bots_read: "Просмотр ботов",
+  bots_write: "Управление ботами",
+  bot_self_webhook_write: "Самостоятельное управление адресом вебхука бота",
+  bot_self_write: "Самостоятельное управление настройками бота",
   profile_read: "Просмотр информации о своем профиле",
   profile_status_read: "Просмотр статуса профиля",
   profile_status_write: "Изменение и удаление статуса профиля",
@@ -1325,7 +1328,10 @@ model AvatarData {
   users_delete: #["owner", "admin"],
   group_tags_read: #["owner", "admin"],
   group_tags_write: #["owner", "admin"],
-  bots_write: #["owner", "admin", "user", "bot"],
+  bots_read: #["owner", "admin", "user"],
+  bots_write: #["owner", "admin", "user"],
+  bot_self_webhook_write: #["bot"],
+  bot_self_write: #["bot"],
   profile_read: #["owner", "admin", "user", "bot"],
   profile_status_read: #["owner", "admin", "user", "bot"],
   profile_status_write: #["owner", "admin", "user", "bot"],
@@ -1426,8 +1432,17 @@ enum OAuthScope {
   @doc("Создание, редактирование и удаление тегов")
   group_tags_write: "group_tags:write",
 
-  @doc("Изменение настроек бота")
+  @doc("Просмотр ботов")
+  bots_read: "bots:read",
+
+  @doc("Управление ботами")
   bots_write: "bots:write",
+
+  @doc("Самостоятельное управление адресом вебхука бота")
+  bot_self_webhook_write: "bot_self:webhook:write",
+
+  @doc("Самостоятельное управление настройками бота")
+  bot_self_write: "bot_self:write",
 
   @doc("Просмотр информации о своем профиле")
   profile_read: "profile:read",
@@ -1669,7 +1684,7 @@ model UserCreateRequest {
 
     @doc("Деактивация пользователя")
     @example(false)
-    suspended?: boolean;
+    suspended?: boolean = false;
 
     @doc("Массив тегов, привязываемых к сотруднику")
     @example(#["Product", "Design"])
@@ -1692,8 +1707,8 @@ model UserCreateRequest {
   };
 
   @doc("Пропуск этапа отправки приглашения сотруднику. Сотруднику не будет отправлено письмо на электронную почту с приглашением создать аккаунт. Полезно при предварительном создании аккаунтов перед входом через SSO.")
-  @example(true)
-  skip_email_notify?: boolean;
+  @example(false)
+  skip_email_notify?: boolean = false;
 }
 
 @doc("Запрос на редактирование сотрудника")
@@ -1734,7 +1749,7 @@ model UserUpdateRequest {
 
     @doc("Деактивация пользователя")
     @example(false)
-    suspended?: boolean;
+    suspended?: boolean = false;
 
     @doc("Массив тегов, привязываемых к сотруднику")
     @example(#["Product"])
@@ -1954,7 +1969,7 @@ model MessageUpdateRequest {
       
       @doc("Тип файла")
       @example(FileType.image)
-      file_type?: FileType;
+      file_type?: FileType = FileType.file;
 
       @doc("Размер файла в байтах, отображаемый пользователю")
       @example(12345)
@@ -2092,7 +2107,7 @@ model TaskUpdateRequest {
   task: {
     @doc("Тип")
     @example(TaskKind.reminder)
-    kind?: TaskKind;
+    kind?: TaskKind = TaskKind.reminder;
 
     @doc("Описание")
     @example("Забрать со склада 21 заказ")
@@ -2276,7 +2291,7 @@ model ViewBlockInput {
   
   @doc("Многострочное поле")
   @example(true)
-  multiline?: boolean;
+  multiline?: boolean = false;
   
   @doc("Начальное значение в поле")
   @example("Начальный текст")
@@ -2297,7 +2312,7 @@ model ViewBlockInput {
   
   @doc("Обязательность")
   @example(true)
-  required?: boolean;
+  required?: boolean = false;
   
   @doc("Подсказка, которая отображается под полем серым цветом")
   @example("Возможно вам подскаджут, какие места лучше посетить")
@@ -2330,7 +2345,7 @@ model ViewBlockSelect {
 
   @doc("Обязательность")
   @example(false)
-  required?: boolean;
+  required?: boolean = false;
 
   @doc("Подсказка, которая отображается под выпадающим списком серым цветом")
   @example("Выберите одну из команд")
@@ -2363,7 +2378,7 @@ model ViewBlockRadio {
   
   @doc("Обязательность")
   @example(true)
-  required?: boolean;
+  required?: boolean = false;
   
   @doc("Подсказка, которая отображается под группой радиокнопок серым цветом")
   @example("Если вы не планируете выходить на связь, то выберите вариант Ничего")
@@ -2396,7 +2411,7 @@ model ViewBlockCheckbox {
 
   @doc("Обязательность")
   @example(false)
-  required?: boolean;
+  required?: boolean = false;
 
   @doc("Подсказка, которая отображается под группой чекбоксов серым цветом")
   @example("Выберите интересующие вас рассылки")
@@ -2429,7 +2444,7 @@ model ViewBlockDate {
   
   @doc("Обязательность")
   @example(true)
-  required?: boolean;
+  required?: boolean = false;
 
   @doc("Подсказка, которая отображается под полем серым цветом")
   @example("Укажите дату начала отпуска")
@@ -2462,7 +2477,7 @@ model ViewBlockTime {
 
   @doc("Обязательность")
   @example(false)
-  required?: boolean;
+  required?: boolean = false;
   
   @doc("Подсказка, которая отображается под полем серым цветом")
   @example("Укажите, в какое время присылать выбранные рассылки")
@@ -2501,7 +2516,7 @@ model ViewBlockFileInput {
   
   @doc("Обязательность")
   @example(true)
-  required?: boolean;
+  required?: boolean = false;
   
   @doc("Подсказка, которая отображается под полем серым цветом")
   @example("Загрузите заполненное заявление с электронной подписью (в формате pdf, jpg или png)")
@@ -2640,67 +2655,69 @@ enum BotEventName {
 
 @doc("Запрос на создание бота")
 model BotCreateRequest {
-  @doc("Собранный объект параметров создаваемого бота")
-  bot: {
-    @doc("Объект параметров вебхука бота")
-    webhook: {
-      @doc("Имя бота")
-      @example("Бот задач")
-      name: string;
+  @doc("Объект параметров вебхука создаваемого бота")
+  webhook: {
+    @doc("Имя бота")
+    @example("Бот задач")
+    name: string;
 
-      @doc("Никнейм бота. Должен заканчиваться на `_bot`.")
-      @example("tasks_bot")
-      nickname?: string;
+    @doc("Никнейм бота. Должен заканчиваться на `_bot`.")
+    @example("tasks_bot")
+    nickname?: string;
 
-      @doc("URL исходящего вебхука")
-      @example("https://www.website.com/tasks/new")
-      outgoing_url?: string;
+    @doc("URL исходящего вебхука")
+    @example("https://www.website.com/tasks/new")
+    outgoing_url?: string;
 
-      @doc("События, на которые подписан бот")
-      @example(#[BotEventName.message_new])
-      events?: BotEventName[];
+    @doc("События, на которые подписан бот")
+    @example(#[BotEventName.message_new])
+    events?: BotEventName[];
 
-      @doc("Условие срабатывания исходящего вебхука")
-      @example(BotTriggerOn.commands)
-      trigger_on?: BotTriggerOn;
+    @doc("Условие срабатывания исходящего вебхука")
+    @example(BotTriggerOn.commands)
+    trigger_on?: BotTriggerOn = BotTriggerOn.commands;
 
-      @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands")
-      @example(#["/task", "/help"])
-      commands?: string[];
-    };
+    @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands")
+    @example(#["/task", "/help"])
+    commands?: string[];
+
+    @doc("Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.")
+    @example(#["messages:create"])
+    scopes?: string[];
   };
 }
 
 @doc("Запрос на обновление бота")
 model BotUpdateRequest {
-  @doc("Собранный объект параметров редактируемого бота")
-  bot: {
-    @doc("Объект параметров вебхука")
-    webhook: {
-      @doc("Имя бота")
-      @example("Бот задач")
-      name?: string;
+  @doc("Объект параметров вебхука редактируемого бота")
+  webhook: {
+    @doc("Имя бота")
+    @example("Бот задач")
+    name?: string;
 
-      @doc("Никнейм бота. Должен заканчиваться на `_bot`.")
-      @example("tasks_bot")
-      nickname?: string;
+    @doc("Никнейм бота. Должен заканчиваться на `_bot`.")
+    @example("tasks_bot")
+    nickname?: string;
 
-      @doc("URL исходящего вебхука")
-      @example("https://www.website.com/tasks/new")
-      outgoing_url?: string;
+    @doc("URL исходящего вебхука")
+    @example("https://www.website.com/tasks/new")
+    outgoing_url?: string;
 
-      @doc("События, на которые подписан бот")
-      @example(#[BotEventName.message_new])
-      events?: BotEventName[];
+    @doc("События, на которые подписан бот")
+    @example(#[BotEventName.message_new])
+    events?: BotEventName[];
 
-      @doc("Условие срабатывания исходящего вебхука")
-      @example(BotTriggerOn.commands)
-      trigger_on?: BotTriggerOn;
+    @doc("Условие срабатывания исходящего вебхука")
+    @example(BotTriggerOn.commands)
+    trigger_on?: BotTriggerOn = BotTriggerOn.commands;
 
-      @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands")
-      @example(#["/task", "/help"])
-      commands?: string[];
-    };
+    @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands")
+    @example(#["/task", "/help"])
+    commands?: string[];
+
+    @doc("Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.")
+    @example(#["messages:create"])
+    scopes?: string[];
   };
 }
 
@@ -2729,6 +2746,20 @@ model BotWebhook {
   @doc("Команды бота (триггер-слова)")
   @example(#["/task"])
   commands: string[];
+
+  @doc("Скоупы (права доступа) токена бота")
+  @example(#["messages:create"])
+  scopes: string[];
+}
+
+@doc("Запрос на саморегистрацию вебхука бота")
+model BotWebhookSelfUpdateRequest {
+  @doc("Объект параметров вебхука")
+  webhook: {
+    @doc("URL исходящего вебхука. Пустая строка отключает вебхук.")
+    @example("https://www.website.com/tasks/new")
+    outgoing_url: string;
+  };
 }
 
 @doc("Параметры бота")
@@ -3283,7 +3314,7 @@ model ExportRequest {
   
   @doc("Пропуск формирования файла со списком чатов (chats.json)")
   @example(false)
-  skip_chats_file?: boolean;
+  skip_chats_file?: boolean = false;
 }
 
 // ============================================================================
@@ -3488,7 +3519,7 @@ interface ProfileOperations {
     scope: "profile:read",
   })
   @doc("""
-Информация о профиле
+Свой профиль
 
 Метод для получения информации о своем профиле.
 """)
@@ -3508,7 +3539,7 @@ interface ProfileOperations {
     scope: "profile_status:read",
   })
   @doc("""
-Текущий статус
+Свой статус
 
 Метод для получения информации о своем статусе.
 """)
@@ -3529,7 +3560,7 @@ interface ProfileOperations {
     scope: "profile_status:write",
   })
   @doc("""
-Новый статус
+Новый свой статус
 
 Метод для установки себе нового статуса.
 """)
@@ -3556,7 +3587,7 @@ interface ProfileOperations {
     scope: "profile_status:write",
   })
   @doc("""
-Удаление статуса
+Удаление своего статуса
 
 Метод для удаления своего статуса.
 """)
@@ -3586,7 +3617,7 @@ interface ProfileAvatarOperations {
     scope: "profile_avatar:write",
   })
   @doc("""
-Загрузка аватара
+Загрузка своего аватара
 
 Метод для загрузки или обновления аватара своего профиля. Файл передается в формате `multipart/form-data`.
 """)
@@ -3618,7 +3649,7 @@ interface ProfileAvatarOperations {
     scope: "profile_avatar:write",
   })
   @doc("""
-Удаление аватара
+Удаление своего аватара
 
 Метод для удаления аватара своего профиля.
 """)
@@ -3649,7 +3680,7 @@ interface UserOperations {
     scope: "users:create",
   })
   @doc("""
-Создать сотрудника
+Новый сотрудник
 
 Метод для создания нового сотрудника в вашей компании.
 
@@ -4371,7 +4402,7 @@ interface ChatOperations {
     scope: "chats:update",
   })
   @doc("""
-Обновление чата
+Редактирование чата
 
 Метод для обновления параметров чата.
 
@@ -5790,7 +5821,7 @@ interface BotOperations {
     scope: "bots:write",
   })
   @doc("""
-Создание бота
+Новый бот
 
 Метод для создания бота и получения его `access_token`.
 
@@ -5801,15 +5832,14 @@ interface BotOperations {
   @opExample(#{
     parameters: #{
       request: #{
-        bot: #{
-          webhook: #{
-            name: "Бот задач",
-            nickname: "tasks_bot",
-            outgoing_url: "https://www.website.com/tasks/new",
-            events: #[BotEventName.message_new],
-            trigger_on: BotTriggerOn.commands,
-            commands: #["/task"],
-          },
+        webhook: #{
+          name: "Бот задач",
+          nickname: "tasks_bot",
+          outgoing_url: "https://www.website.com/tasks/new",
+          events: #[BotEventName.message_new],
+          trigger_on: BotTriggerOn.commands,
+          commands: #["/task"],
+          scopes: #["messages:create"],
         },
       },
     },
@@ -5825,6 +5855,7 @@ interface BotOperations {
             events: #[BotEventName.message_new],
             trigger_on: BotTriggerOn.commands,
             commands: #["/task"],
+            scopes: #["messages:create"],
           },
           access_token: "bm90X2FfcmVhbF90b2tlbg",
         },
@@ -5852,7 +5883,7 @@ interface BotOperations {
     scope: "bots:read",
   })
   @doc("""
-Получение бота
+Информация о боте
 
 Метод для получения параметров бота по его `user_id`.
 """)
@@ -5874,6 +5905,7 @@ interface BotOperations {
             events: #[BotEventName.message_new],
             trigger_on: BotTriggerOn.commands,
             commands: #["/task"],
+            scopes: #["messages:create"],
           },
         },
       },
@@ -5934,6 +5966,62 @@ interface BotOperations {
   } | {
     @statusCode _: 400;
     @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bot_self:webhook:write",
+  })
+  @doc("""
+Саморегистрация вебхука бота
+
+Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `user_id`. Меняется вебхук того бота, которому принадлежит токен. Чтобы отключить вебхук, передайте пустую строку в `outgoing_url`.
+""")
+  @route("/bot/webhook")
+  @put
+  @opExample(#{
+    parameters: #{
+      request: #{
+        webhook: #{
+          outgoing_url: "https://www.website.com/tasks/new",
+        },
+      },
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          id: 1738816,
+          webhook: #{
+            name: "Бот задач",
+            nickname: "tasks_bot",
+            outgoing_url: "https://www.website.com/tasks/new",
+            events: #[BotEventName.message_new],
+            trigger_on: BotTriggerOn.commands,
+            commands: #["/task"],
+            scopes: #["messages:create"],
+          },
+        },
+      },
+    },
+  })
+  selfUpdateBotWebhook(@body request: BotWebhookSelfUpdateRequest): {
+    @statusCode _: 200;
+    @body body: DataResponse<BotResponse>;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
   } | {
     @statusCode _: 422;
     @body body: ApiError;

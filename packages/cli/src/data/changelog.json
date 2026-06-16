@@ -1,5 +1,26 @@
 [
   {
+    "version": "2026.6.1",
+    "date": "16 июня 2026",
+    "changes": [
+      {
+        "type": "~",
+        "command": "bots create",
+        "description": "Добавлен параметр `scopes` — выбор скоупов токена бота"
+      },
+      {
+        "type": "~",
+        "command": "bots update",
+        "description": "Добавлен параметр `scopes` — изменение скоупов токена бота"
+      },
+      {
+        "type": "+",
+        "command": "bots update-webhook",
+        "description": "Новая команда — саморегистрация исходящего вебхука бота его собственным токеном"
+      }
+    ]
+  },
+  {
     "version": "2026.6.0",
     "date": "15 июня 2026",
     "changes": [

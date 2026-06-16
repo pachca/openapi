@@ -136,6 +136,10 @@ interface BotsService {
         throw NotImplementedError("Bots.createBot is not implemented")
     }
 
+    suspend fun selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): BotResponse {
+        throw NotImplementedError("Bots.selfUpdateBotWebhook is not implemented")
+    }
+
     suspend fun updateBot(id: Int, request: BotUpdateRequest): BotResponse {
         throw NotImplementedError("Bots.updateBot is not implemented")
     }
@@ -191,6 +195,18 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body<BotCreateResponseDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): BotResponse {
+        val response = client.put("$baseUrl/bot/webhook") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            200 -> response.body<BotResponseDataWrapper>().data
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }

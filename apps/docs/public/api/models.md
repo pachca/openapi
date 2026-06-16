@@ -42,10 +42,10 @@
 ## Статус пользователя
 
 - [Статус сотрудника](GET /users/{user_id}/status)
-- [Текущий статус](GET /profile/status)
-- [Новый статус](PUT /profile/status)
+- [Свой статус](GET /profile/status)
+- [Новый свой статус](PUT /profile/status)
 - [Новый статус сотрудника](PUT /users/{user_id}/status)
-- [Удаление статуса](DELETE /profile/status)
+- [Удаление своего статуса](DELETE /profile/status)
 - [Удаление статуса сотрудника](DELETE /users/{user_id}/status)
 
 Статус пользователя
@@ -60,8 +60,8 @@
 
 ## Аватар
 
-- [Загрузка аватара](PUT /profile/avatar)
-- [Удаление аватара](DELETE /profile/avatar)
+- [Загрузка своего аватара](PUT /profile/avatar)
+- [Удаление своего аватара](DELETE /profile/avatar)
 - [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar)
 - [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar)
 
@@ -72,8 +72,8 @@
 
 ## Сотрудник
 
-- [Создать сотрудника](POST /users)
-- [Информация о профиле](GET /profile)
+- [Новый сотрудник](POST /users)
+- [Свой профиль](GET /profile)
 - [Информация о сотруднике](GET /users/{id})
 - [Список сотрудников](GET /users)
 - [Список сотрудников тега](GET /group_tags/{id}/users)
@@ -146,7 +146,7 @@
 - [Список чатов](GET /chats)
 - [Поиск чатов](GET /search/chats)
 - [Скачать архив экспорта](GET /chats/exports/{id})
-- [Обновление чата](PUT /chats/{id})
+- [Редактирование чата](PUT /chats/{id})
 - [Архивация чата](PUT /chats/{id}/archive)
 - [Разархивация чата](PUT /chats/{id}/unarchive)
 - [Редактирование роли](PUT /chats/{id}/members/{user_id})
@@ -324,11 +324,11 @@
       - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
       - `label: string` (required, max length: 150) — Подпись к полю
       - `placeholder: string` (max length: 150) — Подсказка внутри поля ввода, пока оно пустое
-      - `multiline: boolean` — Многострочное поле
+      - `multiline: boolean` (default: false) — Многострочное поле
       - `initial_value: string` (max length: 3000) — Начальное значение в поле
       - `min_length: integer, int32` (min: 0, max: 3000) — Минимальная длина текста, который должен написать пользователь. Если пользователь напишет меньше, он получит ошибку.
       - `max_length: integer, int32` (min: 1, max: 3000) — Максимальная длина текста, который должен написать пользователь. Если пользователь напишет больше, он получит ошибку.
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
     - **ViewBlockSelect**: Блок select — выпадающий список
       - `type: string` (required) — Тип блока
@@ -339,7 +339,7 @@
         - `text: string` (required, max length: 75) — Отображаемый текст
         - `value: string` (required, max length: 150) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
         - `selected: boolean` — Изначально выбранный пункт. Только один пункт может быть выбран.
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под выпадающим списком серым цветом
     - **ViewBlockRadio**: Блок radio — радиокнопки
       - `type: string` (required) — Тип блока
@@ -351,7 +351,7 @@
         - `value: string` (required, max length: 150) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
         - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
         - `selected: boolean` — Изначально выбранный пункт. Только один пункт может быть выбран.
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под группой радиокнопок серым цветом
     - **ViewBlockCheckbox**: Блок checkbox — чекбоксы
       - `type: string` (required) — Тип блока
@@ -363,7 +363,7 @@
         - `value: string` (required, max length: 150) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
         - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
         - `checked: boolean` — Изначально выбранный пункт
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под группой чекбоксов серым цветом
     - **ViewBlockDate**: Блок date — выбор даты
       - `type: string` (required) — Тип блока
@@ -371,7 +371,7 @@
       - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
       - `label: string` (required, max length: 150) — Подпись к полю
       - `initial_date: date` — Начальное значение в поле в формате YYYY-MM-DD
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
     - **ViewBlockTime**: Блок time — выбор времени
       - `type: string` (required) — Тип блока
@@ -379,7 +379,7 @@
       - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
       - `label: string` (required, max length: 150) — Подпись к полю
       - `initial_time: string, time` — Начальное значение в поле в формате HH:mm
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
     - **ViewBlockFileInput**: Блок file_input — загрузка файлов
       - `type: string` (required) — Тип блока
@@ -388,15 +388,16 @@
       - `label: string` (required, max length: 150) — Подпись к полю
       - `filetypes: array of string` — Массив допустимых расширений файлов, указанные в виде строк (например, ["png","jpg","gif"]). Если это поле не указано, все расширения файлов будут приняты.
       - `max_files: integer, int32` (default: 10, min: 1, max: 10) — Максимальное количество файлов, которое может загрузить пользователь в это поле.
-      - `required: boolean` — Обязательность
+      - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
 
 
 ## Параметры бота
 
-- [Создание бота](POST /bots)
-- [Получение бота](GET /bots/{id})
+- [Новый бот](POST /bots)
+- [Информация о боте](GET /bots/{id})
 - [Редактирование бота](PUT /bots/{id})
+- [Саморегистрация вебхука бота](PUT /bot/webhook)
 
 Параметры бота
 
@@ -409,6 +410,7 @@
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
   - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
+  - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
 
 
 ## Событие исходящего вебхука

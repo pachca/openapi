@@ -2324,7 +2324,7 @@ ${optionEntries}
 \t\t\t\t\t{
 \t\t\t\t\t\tname: 'Automatic',
 \t\t\t\t\t\tvalue: 'automatic',
-\t\t\t\t\t\tdescription: 'The node registers and clears the webhook URL in bot settings via PUT /bots/:botId. Requires a personal token with the bots:write scope and editor access to the target bot. Not yet supported for bot tokens (backend limitation).',
+\t\t\t\t\t\tdescription: 'The node registers and clears this webhook URL in Pachca automatically. A bot token self-registers via PUT /bot/webhook (no Bot ID needed). A personal token uses PUT /bots/:botId and needs the bots:write scope, editor access to the bot, and the Bot ID below.',
 \t\t\t\t\t},
 \t\t\t\t\t{
 \t\t\t\t\t\tname: 'Manual',
@@ -2340,7 +2340,7 @@ ${optionEntries}
 \t\t\t\tname: 'botId',
 \t\t\t\ttype: 'number',
 \t\t\t\tdefault: 0,
-\t\t\t\tdescription: 'ID of the bot whose webhook URL should be registered. Required in Automatic mode — n8n cannot infer this from a personal token. Find it in Pachca bot settings.',
+\t\t\t\tdescription: 'ID of the bot whose webhook URL should be registered. Required only with a personal token — a bot token self-registers and ignores this field. Find it in Pachca bot settings.',
 \t\t\t\tdisplayOptions: {
 \t\t\t\t\tshow: {
 \t\t\t\t\t\twebhookSetup: ['automatic'],
@@ -2349,7 +2349,7 @@ ${optionEntries}
 \t\t\t},
 \t\t\t{
 \t\t\t\tdisplayName:
-\t\t\t\t\t'Automatic mode is currently supported only for <b>personal tokens</b> with the <code>bots:write</code> scope and editor access to the target bot. Bot tokens cannot yet update their own webhook URL — this is in active development on the Pachca backend side. Use Manual mode or the <b>Pachca → Bot → Update</b> node as a workaround for bot tokens.',
+\t\t\t\t\t'Automatic mode registers and clears this node\\'s webhook URL in Pachca on activate/deactivate. With a <b>bot token</b> it self-registers — no Bot ID needed. With a <b>personal token</b> it needs the <code>bots:write</code> scope, editor access to the target bot, and the <b>Bot ID</b> below.',
 \t\t\t\tname: 'automaticSetupNotice',
 \t\t\t\ttype: 'notice',
 \t\t\t\tdefault: '',
@@ -2425,13 +2425,15 @@ ${optionEntries}
 \t\t\t\t}
 
 \t\t\t\tconst credentials = await this.getCredentials('pachcaApi');
+\t\t\t\tconst base = sanitizeBaseUrl(credentials.baseUrl as string);
+\t\t\t\tconst webhookUrl = this.getNodeWebhookUrl('default');
+\t\t\t\tconst webhookData = this.getWorkflowStaticData('node');
 
-\t\t\t\t// Best-effort token type detection via GET /profile. Bot tokens currently
-\t\t\t\t// cannot update their own webhook URL (backend limitation, in development),
-\t\t\t\t// so we surface a clear error early when we can prove it is a bot token.
-\t\t\t\t// If /profile is unavailable (missing scope, network, 5xx), we fall back
-\t\t\t\t// to the personal-token path — PUT /bots/{id} will still reject bot tokens
-\t\t\t\t// with 403 and the caller gets a helpful error from the block below.
+\t\t\t\t// Detect token type via GET /profile. A bot token self-registers its own
+\t\t\t\t// webhook (PUT /bot/webhook, no Bot ID); a personal token registers a chosen
+\t\t\t\t// bot by id (PUT /bots/:id). Bot tokens always carry profile:read, so a failed
+\t\t\t\t// detection most likely means a personal token missing the scope — we fall back
+\t\t\t\t// to the personal-token path, which requires the Bot ID below.
 \t\t\t\tlet isBotToken = false;
 \t\t\t\ttry {
 \t\t\t\t\tconst profile = await getTokenProfile(this, credentials);
@@ -2439,18 +2441,35 @@ ${optionEntries}
 \t\t\t\t} catch (error) {
 \t\t\t\t\tconst message = error instanceof Error ? error.message : String(error);
 \t\t\t\t\tthis.logger.warn(
-\t\t\t\t\t\t\`Pachca Trigger: could not determine token type via GET /profile (\${message}). Proceeding as personal token — PUT /bots/{id} will return 403 if this is actually a bot token.\`,
+\t\t\t\t\t\t\`Pachca Trigger: could not determine token type via GET /profile (\${message}). Proceeding as personal token — set Bot ID, or retry if this is a bot token.\`,
 \t\t\t\t\t);
 \t\t\t\t}
+
 \t\t\t\tif (isBotToken) {
-\t\t\t\t\tthrow new NodeOperationError(
-\t\t\t\t\t\tthis.getNode(),
-\t\t\t\t\t\t'Automatic webhook registration is not yet supported for bot tokens. Pachca API currently does not allow a bot to update its own webhook URL — this is in active development on the backend side.',
-\t\t\t\t\t\t{
-\t\t\t\t\t\t\tdescription:
-\t\t\t\t\t\t\t\t'Workaround: switch Webhook Setup to Manual and paste the Production URL into Pachca bot settings (Outgoing Webhook tab → Webhook URL). Alternatively, use a personal token (with the bots:write scope and editor access to the target bot).',
-\t\t\t\t\t\t},
-\t\t\t\t\t);
+\t\t\t\t\t// Bot token self-registers its own webhook — no Bot ID required.
+\t\t\t\t\ttry {
+\t\t\t\t\t\tawait this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
+\t\t\t\t\t\t\tmethod: 'PUT',
+\t\t\t\t\t\t\turl: \`\${base}/bot/webhook\`,
+\t\t\t\t\t\t\tbody: { webhook: { outgoing_url: webhookUrl } },
+\t\t\t\t\t\t});
+\t\t\t\t\t} catch (error) {
+\t\t\t\t\t\tconst err = error as { httpCode?: number | string; statusCode?: number | string };
+\t\t\t\t\t\tif (Number(err.httpCode ?? err.statusCode) === 403) {
+\t\t\t\t\t\t\tthrow new NodeOperationError(
+\t\t\t\t\t\t\t\tthis.getNode(),
+\t\t\t\t\t\t\t\t'Pachca rejected bot webhook self-registration (403 Forbidden).',
+\t\t\t\t\t\t\t\t{
+\t\t\t\t\t\t\t\t\tdescription:
+\t\t\t\t\t\t\t\t\t\t'The bot token needs the bot_self:webhook:write scope. Enable it for the bot in Pachca (bot settings → API tab), or switch to Manual mode.',
+\t\t\t\t\t\t\t\t},
+\t\t\t\t\t\t\t);
+\t\t\t\t\t\t}
+\t\t\t\t\t\tthrow error;
+\t\t\t\t\t}
+\t\t\t\t\twebhookData.webhookUrl = webhookUrl;
+\t\t\t\t\twebhookData.mode = 'bot';
+\t\t\t\t\treturn true;
 \t\t\t\t}
 
 \t\t\t\t// Personal token path — user must specify Bot ID explicitly; n8n cannot
@@ -2462,22 +2481,20 @@ ${optionEntries}
 \t\t\t\t\t\t'Bot ID is required for automatic webhook registration with a personal token.',
 \t\t\t\t\t\t{
 \t\t\t\t\t\t\tdescription:
-\t\t\t\t\t\t\t\t'Enter the Bot ID of the bot whose webhook URL should be registered. The personal token must have the bots:write scope and editor access to this bot in Pachca settings.',
+\t\t\t\t\t\t\t\t'Enter the Bot ID of the bot whose webhook URL should be registered. The personal token must have the bots:write scope and editor access to this bot. A bot token self-registers without a Bot ID — if you are using one, check that the token is valid.',
 \t\t\t\t\t\t},
 \t\t\t\t\t);
 \t\t\t\t}
 
-\t\t\t\tconst webhookUrl = this.getNodeWebhookUrl('default');
 \t\t\t\ttry {
 \t\t\t\t\tawait this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
 \t\t\t\t\t\tmethod: 'PUT',
-\t\t\t\t\t\turl: \`\${sanitizeBaseUrl(credentials.baseUrl as string)}/bots/\${botId}\`,
-\t\t\t\t\t\tbody: { bot: { webhook: { outgoing_url: webhookUrl } } },
+\t\t\t\t\t\turl: \`\${base}/bots/\${botId}\`,
+\t\t\t\t\t\tbody: { webhook: { outgoing_url: webhookUrl } },
 \t\t\t\t\t});
 \t\t\t\t} catch (error) {
 \t\t\t\t\tconst err = error as { httpCode?: number | string; statusCode?: number | string };
-\t\t\t\t\tconst status = Number(err.httpCode ?? err.statusCode);
-\t\t\t\t\tif (status === 403) {
+\t\t\t\t\tif (Number(err.httpCode ?? err.statusCode) === 403) {
 \t\t\t\t\t\tthrow new NodeOperationError(
 \t\t\t\t\t\t\tthis.getNode(),
 \t\t\t\t\t\t\t'Pachca rejected automatic webhook registration (403 Forbidden).',
@@ -2489,31 +2506,46 @@ ${optionEntries}
 \t\t\t\t\t}
 \t\t\t\t\tthrow error;
 \t\t\t\t}
-\t\t\t\tconst webhookData = this.getWorkflowStaticData('node');
 \t\t\t\twebhookData.webhookUrl = webhookUrl;
 \t\t\t\twebhookData.botId = botId;
+\t\t\t\twebhookData.mode = 'personal';
 \t\t\t\treturn true;
 \t\t\t},
 
 \t\t\tasync delete(this: IHookFunctions): Promise<boolean> {
 \t\t\t\tconst webhookData = this.getWorkflowStaticData('node');
-\t\t\t\tconst registeredBotId = webhookData.botId as number | undefined;
-\t\t\t\tif (!registeredBotId) {
+\t\t\t\t// Back-compat: registrations made before the \`mode\` field stored only botId (personal path).
+\t\t\t\tconst mode = (webhookData.mode as string | undefined) ?? (webhookData.botId ? 'personal' : undefined);
+\t\t\t\tif (!mode) {
 \t\t\t\t\t// Nothing was registered by us (manual mode or never activated) — no cleanup
 \t\t\t\t\treturn true;
 \t\t\t\t}
 \t\t\t\tconst credentials = await this.getCredentials('pachcaApi');
+\t\t\t\tconst base = sanitizeBaseUrl(credentials.baseUrl as string);
 \t\t\t\ttry {
-\t\t\t\t\tawait this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
-\t\t\t\t\t\tmethod: 'PUT',
-\t\t\t\t\t\turl: \`\${sanitizeBaseUrl(credentials.baseUrl as string)}/bots/\${registeredBotId}\`,
-\t\t\t\t\t\tbody: { bot: { webhook: { outgoing_url: '' } } },
-\t\t\t\t\t});
+\t\t\t\t\tif (mode === 'bot') {
+\t\t\t\t\t\t// Bot token clears its own webhook — empty outgoing_url disables it.
+\t\t\t\t\t\tawait this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
+\t\t\t\t\t\t\tmethod: 'PUT',
+\t\t\t\t\t\t\turl: \`\${base}/bot/webhook\`,
+\t\t\t\t\t\t\tbody: { webhook: { outgoing_url: '' } },
+\t\t\t\t\t\t});
+\t\t\t\t\t} else {
+\t\t\t\t\t\tconst registeredBotId = webhookData.botId as number | undefined;
+\t\t\t\t\t\tif (registeredBotId) {
+\t\t\t\t\t\t\tawait this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
+\t\t\t\t\t\t\t\tmethod: 'PUT',
+\t\t\t\t\t\t\t\turl: \`\${base}/bots/\${registeredBotId}\`,
+\t\t\t\t\t\t\t\tbody: { webhook: { outgoing_url: '' } },
+\t\t\t\t\t\t\t});
+\t\t\t\t\t\t}
+\t\t\t\t\t}
 \t\t\t\t} catch {
 \t\t\t\t\t// Ignore cleanup errors — webhook may already be gone, or scope revoked.
 \t\t\t\t}
 \t\t\t\tdelete webhookData.webhookUrl;
 \t\t\t\tdelete webhookData.botId;
+\t\t\t\tdelete webhookData.mode;
 \t\t\t\treturn true;
 \t\t\t},
 \t\t},
@@ -3213,7 +3245,7 @@ async function executeRoute(
 \t\tlet webhookUrl: string | undefined;
 \t\ttry { webhookUrl = this.getNodeParameter('webhookUrl', i, '') as string; } catch { /* */ }
 \t\tif (webhookUrl) {
-\t\t\tbody.webhook = { outgoing_url: webhookUrl };
+\t\t\tbody.outgoing_url = webhookUrl;
 \t\t}
 \t}
 

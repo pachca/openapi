@@ -175,31 +175,56 @@ describe('PachcaTrigger.webhookMethods.create', () => {
 		expect(httpMock.mock.calls[1][1]).toMatchObject({
 			method: 'PUT',
 			url: `${BASE_URL}/bots/42`,
-			body: { bot: { webhook: { outgoing_url: PROD_WEBHOOK_URL } } },
+			body: { webhook: { outgoing_url: PROD_WEBHOOK_URL } },
 		});
 		expect(staticData.webhookUrl).toBe(PROD_WEBHOOK_URL);
 		expect(staticData.botId).toBe(42);
+		expect(staticData.mode).toBe('personal');
 	});
 
-	it('should throw NodeOperationError when token is a bot token (not yet supported)', async () => {
+	it('should self-register via PUT /bot/webhook for a bot token (no Bot ID needed)', async () => {
 		const staticData: IDataObject = {};
 		const ctx = createHookCtx({
-			nodeBotId: 42,
+			webhookUrl: PROD_WEBHOOK_URL,
 			staticData,
 			httpResponses: [
 				{ data: { id: 55, bot: true } }, // GET /profile → bot token
+				{ data: {} }, // PUT /bot/webhook → self-register
+			],
+		});
+
+		const result = await trigger.webhookMethods.default.create.call(ctx);
+		expect(result).toBe(true);
+
+		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
+		// Second call: PUT /bot/webhook (self), no Bot ID in the URL
+		expect(httpMock.mock.calls[1][1]).toMatchObject({
+			method: 'PUT',
+			url: `${BASE_URL}/bot/webhook`,
+			body: { webhook: { outgoing_url: PROD_WEBHOOK_URL } },
+		});
+		expect(staticData.webhookUrl).toBe(PROD_WEBHOOK_URL);
+		expect(staticData.mode).toBe('bot');
+		// bot self-registration does not use Bot ID
+		expect(staticData.botId).toBeUndefined();
+	});
+
+	it('should throw a scope hint when bot self-registration returns 403', async () => {
+		const staticData: IDataObject = {};
+		const error = Object.assign(new Error('Forbidden'), { httpCode: 403 });
+		const ctx = createHookCtx({
+			staticData,
+			httpResponses: [
+				{ data: { id: 55, bot: true } }, // GET /profile → bot token
+				error, // PUT /bot/webhook → 403 (missing bot_self:webhook:write)
 			],
 		});
 
 		await expect(trigger.webhookMethods.default.create.call(ctx)).rejects.toThrow(
-			NodeOperationError,
+			/403|bot_self:webhook:write/i,
 		);
-		await expect(trigger.webhookMethods.default.create.call(ctx)).rejects.toThrow(
-			/not yet supported for bot tokens/i,
-		);
-		// No PUT call should have been made
 		expect(staticData.webhookUrl).toBeUndefined();
-		expect(staticData.botId).toBeUndefined();
+		expect(staticData.mode).toBeUndefined();
 	});
 
 	it('should throw NodeOperationError when personal token is used without Bot ID', async () => {
@@ -275,7 +300,7 @@ describe('PachcaTrigger.webhookMethods.create', () => {
 		expect(httpMock.mock.calls[1][1]).toMatchObject({
 			method: 'PUT',
 			url: `${BASE_URL}/bots/42`,
-			body: { bot: { webhook: { outgoing_url: PROD_WEBHOOK_URL } } },
+			body: { webhook: { outgoing_url: PROD_WEBHOOK_URL } },
 		});
 		// warning was logged so the user can diagnose the missing scope
 		expect(
@@ -283,6 +308,7 @@ describe('PachcaTrigger.webhookMethods.create', () => {
 		).toHaveBeenCalledWith(expect.stringContaining('GET /profile'));
 		expect(staticData.webhookUrl).toBe(PROD_WEBHOOK_URL);
 		expect(staticData.botId).toBe(42);
+		expect(staticData.mode).toBe('personal');
 	});
 
 	it('should fall back to personal-token path when GET /profile fails, then surface 403 from PUT /bots/{id} if it is actually a bot token', async () => {
@@ -354,8 +380,8 @@ describe('PachcaTrigger.webhookMethods.create', () => {
 describe('PachcaTrigger.webhookMethods.delete', () => {
 	const trigger = new PachcaTrigger();
 
-	it('should clear webhook via PUT /bots/:id with empty URL and clear staticData', async () => {
-		const staticData: IDataObject = { webhookUrl: PROD_WEBHOOK_URL, botId: 42 };
+	it('should clear webhook via PUT /bots/:id (personal mode) and clear staticData', async () => {
+		const staticData: IDataObject = { webhookUrl: PROD_WEBHOOK_URL, botId: 42, mode: 'personal' };
 		const ctx = createHookCtx({
 			staticData,
 			httpResponses: [{ data: {} }],
@@ -370,10 +396,52 @@ describe('PachcaTrigger.webhookMethods.delete', () => {
 			expect.objectContaining({
 				method: 'PUT',
 				url: `${BASE_URL}/bots/42`,
-				body: { bot: { webhook: { outgoing_url: '' } } },
+				body: { webhook: { outgoing_url: '' } },
 			}),
 		);
 		expect(staticData.webhookUrl).toBeUndefined();
+		expect(staticData.botId).toBeUndefined();
+		expect(staticData.mode).toBeUndefined();
+	});
+
+	it('should clear webhook via PUT /bot/webhook (bot mode) with empty URL', async () => {
+		const staticData: IDataObject = { webhookUrl: PROD_WEBHOOK_URL, mode: 'bot' };
+		const ctx = createHookCtx({
+			staticData,
+			httpResponses: [{ data: {} }],
+		});
+
+		const result = await trigger.webhookMethods.default.delete.call(ctx);
+		expect(result).toBe(true);
+
+		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
+		expect(httpMock).toHaveBeenCalledWith(
+			'pachcaApi',
+			expect.objectContaining({
+				method: 'PUT',
+				url: `${BASE_URL}/bot/webhook`,
+				body: { webhook: { outgoing_url: '' } },
+			}),
+		);
+		expect(staticData.webhookUrl).toBeUndefined();
+		expect(staticData.mode).toBeUndefined();
+	});
+
+	it('should clean up legacy registrations (botId without mode) via personal path', async () => {
+		const staticData: IDataObject = { webhookUrl: PROD_WEBHOOK_URL, botId: 7 };
+		const ctx = createHookCtx({
+			staticData,
+			httpResponses: [{ data: {} }],
+		});
+
+		const result = await trigger.webhookMethods.default.delete.call(ctx);
+		expect(result).toBe(true);
+
+		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
+		expect(httpMock).toHaveBeenCalledWith(
+			'pachcaApi',
+			expect.objectContaining({ method: 'PUT', url: `${BASE_URL}/bots/7` }),
+		);
 		expect(staticData.botId).toBeUndefined();
 	});
 

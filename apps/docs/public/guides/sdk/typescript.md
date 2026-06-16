@@ -5,7 +5,7 @@
 
 # TypeScript
 
-[@pachca/sdk](https://www.npmjs.com/package/@pachca/sdk) npm
+- [@pachca/sdk](https://www.npmjs.com/package/@pachca/sdk) npm
 
 
 Типизированный клиент для Pachca API. Работает в Node.js 18+ и в любом окружении с поддержкой `fetch`. ES Module с TypeScript-декларациями.

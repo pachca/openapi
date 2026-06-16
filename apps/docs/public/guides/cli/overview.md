@@ -5,7 +5,7 @@
 
 # CLI
 
-[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) npm
+- [@pachca/cli](https://www.npmjs.com/package/@pachca/cli) npm
 
 
 Официальный CLI для Pachca API: авторизация, сообщения, управление пространством — всё из терминала. Каждый метод API доступен как команда с типизированными флагами, валидацией и подсказками. Нужен Node.js 20+.

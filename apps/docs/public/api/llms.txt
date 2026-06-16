@@ -5,6 +5,7 @@
 [Родительский индекс](https://dev.pachca.com/llms.txt)
 
 ## Основы API
+- [Обзор](https://dev.pachca.com/api/overview.md): Обзор REST API Пачки: базовый URL, авторизация по Bearer-токену, формат запросов и ответов, клиенты и SDK для CLI, TypeScript, Python, Go, Kotlin, Swift и C#
 - [Авторизация](https://dev.pachca.com/api/authorization.md): Авторизация в API Пачки: персональный токен и токен бота, скоупы методов, настройка доступа для администраторов и сотрудников, смена владельца пространства
 - [Запросы и ответы](https://dev.pachca.com/api/requests-responses.md): Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
 - [Пагинация](https://dev.pachca.com/api/pagination.md): Пагинация в API Пачки по курсору: две группы методов (списочные и поиск) с разной структурой meta, поля next_page, prev_page, has_next, has_prev, обход всех записей и polling новых данных через prev_page

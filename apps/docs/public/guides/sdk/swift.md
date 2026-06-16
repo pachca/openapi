@@ -5,7 +5,7 @@
 
 # Swift
 
-[PachcaSDK](https://github.com/pachca/openapi/tree/main/sdk/swift) Swift Package
+- [PachcaSDK](https://github.com/pachca/openapi/tree/main/sdk/swift) Swift Package
 
 
 Типизированный клиент для Pachca API на Swift. Построен на URLSession с `async throws`, Codable-моделями и встроенным retry. Требуется Swift 5.9+, macOS 13+ или iOS 16+.

@@ -27,6 +27,8 @@ import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
 import { PackageBadge } from '@/components/mdx/package-badge';
 import { HomeHero, HomeHeroContent, HomeHeroCode } from '@/components/mdx/home-hero';
+import { ApiClientPanel } from '@/components/mdx/api-client-panel';
+import { ApiIntroNotes } from '@/components/mdx/api-intro-notes';
 import { Tabs, Tab } from '@/components/mdx/tabs';
 import { WebhookPlayground } from '@/components/mdx/webhook-playground';
 import { MessagePlayground } from '@/components/mdx/message-playground';
@@ -579,5 +581,7 @@ export const customMdxComponents = {
   HomeHero,
   HomeHeroContent,
   HomeHeroCode,
+  ApiClientPanel,
+  ApiIntroNotes,
   ProductUpdatesLink,
 };

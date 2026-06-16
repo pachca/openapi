@@ -21,6 +21,8 @@ export interface GuideFrontmatter {
   title: string;
   description?: string;
   hideTableOfContents?: boolean;
+  /** Skip the auto page header (title + markdown actions) — for pages with their own hero. */
+  hideHeader?: boolean;
   useUpdatesComponent?: boolean;
   /** Curated "Связанные разделы" links shown above the prev/next pager. */
   related?: RelatedLink[];
@@ -82,6 +84,7 @@ export function getGuideData(guidePath: string): GuideData | null {
             title: data.title || path.basename(fileName),
             description: data.description,
             hideTableOfContents: data.hideTableOfContents,
+            hideHeader: data.hideHeader,
             useUpdatesComponent: data.useUpdatesComponent,
             related: data.related,
           },

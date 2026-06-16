@@ -1,0 +1,59 @@
+---
+title: Обзор
+description: "Обзор REST API Пачки: базовый URL, авторизация по Bearer-токену, формат запросов и ответов, клиенты и SDK для CLI, TypeScript, Python, Go, Kotlin, Swift и C#"
+hideTableOfContents: true
+hideHeader: true
+---
+
+<HomeHero>
+  <HomeHeroContent
+    subtitle="Обзор"
+    title="Документация API"
+    description="REST API Пачки позволяет автоматизировать работу в мессенджере: отправлять сообщения, управлять чатами и сотрудниками, создавать ботов и реагировать на события через вебхуки."
+    pageUrl="/api/overview"
+    lead={<ApiIntroNotes />}
+  ></HomeHeroContent>
+  <HomeHeroCode>
+    <ApiClientPanel />
+  </HomeHeroCode>
+</HomeHero>
+
+## Популярные методы
+
+Частые операции для быстрого старта. Все модели API и доступные для них методы можно посмотреть на странице [Модели](/api/models).
+
+<CardRow>
+  <Card compact title="Новое сообщение" icon="MessageSquare" href="/api/messages/create" />
+  <Card compact title="Список сообщений чата" icon="MessagesSquare" href="/api/messages/list" />
+  <Card compact title="Поиск сообщений" icon="Search" href="/api/search/list-messages" />
+  <Card compact title="Создать чат" icon="Plus" href="/api/chats/create" />
+  <Card compact title="Создать сотрудника" icon="UserPlus" href="/api/users/create" />
+  <Card compact title="Новый статус" icon="Smile" href="/api/profile/update-status" />
+  <Card compact title="Новое напоминание" icon="Bell" href="/api/tasks/create" />
+  <Card compact title="Создание бота" icon="Bot" href="/api/bots/create" />
+</CardRow>
+
+## Основы API
+
+Базовые концепции для работы с API: авторизация, формат запросов и ответов, обработка ошибок, лимиты, пагинация и загрузка файлов.
+
+<CardGroup>
+  <Card title="Авторизация" icon="KeyRound" href="/api/authorization">
+    Bearer-токен и доступ к API
+  </Card>
+  <Card title="Запросы и ответы" icon="ArrowLeftRight" href="/api/requests-responses">
+    Базовый URL, заголовки, формат данных
+  </Card>
+  <Card title="Пагинация" icon="ListOrdered" href="/api/pagination">
+    Обход больших списков по курсору
+  </Card>
+  <Card title="Загрузка файлов" icon="Upload" href="/api/file-uploads">
+    Прямая загрузка в S3 одной командой
+  </Card>
+  <Card title="Ошибки" icon="AlertTriangle" href="/api/errors">
+    HTTP-коды и структуры ответов
+  </Card>
+  <Card title="Лимиты" icon="Gauge" href="/api/limits">
+    Rate limits и повторные запросы
+  </Card>
+</CardGroup>

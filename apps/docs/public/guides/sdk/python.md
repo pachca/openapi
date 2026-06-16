@@ -5,7 +5,7 @@
 
 # Python
 
-[pachca-sdk](https://pypi.org/project/pachca-sdk/) PyPI
+- [pachca-sdk](https://pypi.org/project/pachca-sdk/) PyPI
 
 
 Асинхронный типизированный клиент для Pachca API. Построен на httpx с поддержкой type hints и dataclass-моделей. Требуется Python 3.10+.

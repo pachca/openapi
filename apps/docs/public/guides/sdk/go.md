@@ -5,7 +5,7 @@
 
 # Go
 
-[github.com/pachca/openapi/sdk/go](https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated) pkg.go.dev
+- [github.com/pachca/openapi/sdk/go](https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated) pkg.go.dev
 
 
 Типизированный клиент для Pachca API на Go. Синхронный, с контекстами (`context.Context`), автопагинацией и обработкой retry. Требуется Go 1.24+.

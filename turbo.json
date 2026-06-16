@@ -107,11 +107,16 @@
       "cache": true
     },
     "check": {
-      "dependsOn": ["lint", "typecheck", "knip", "format:check", "test", "@pachca/spec#overlay:validate"],
+      "dependsOn": ["lint", "typecheck", "knip", "format:check", "test", "@pachca/spec#overlay:validate", "check-models"],
       "cache": false
     },
     "check-urls": {
       "dependsOn": ["@pachca/spec#generate"],
+      "cache": true
+    },
+    "check-models": {
+      "dependsOn": ["@pachca/spec#generate"],
+      "inputs": ["scripts/check-models-coverage.mjs", "content/api/models.mdx"],
       "cache": true
     },
     "update-snapshots": {

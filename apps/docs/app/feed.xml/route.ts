@@ -2,6 +2,13 @@ import { loadUpdates, loadReleases, type ParsedRelease } from '@/lib/updates-par
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { resolveEndpointLinks } from '@/lib/openapi/resolve-links';
 import { toSlug } from '@/lib/utils/transliterate';
+import {
+  PRODUCT_TITLES,
+  extractSummary,
+  markdownToHtml,
+  releaseChangesHtml,
+  releaseSummary,
+} from '@/lib/feed-content';
 
 const BASE_URL = 'https://dev.pachca.com';
 const MAX_ITEMS = 20;
@@ -15,154 +22,13 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&apos;');
 }
 
-/**
- * Convert inline markdown (bold, code, links) to HTML.
- * Relative URLs are made absolute.
- */
-function inlineMarkdownToHtml(text: string): string {
-  return text
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/\[(.+?)\]\((.+?)\)/g, (_match, linkText: string, url: string) => {
-      // Resolved API links from resolveEndpointLinks: "GET:/api/profile/get" → absolute URL
-      const methodPrefixMatch = url.match(/^(?:GET|POST|PUT|PATCH|DELETE):(.+)/);
-      if (methodPrefixMatch) {
-        return `<a href="${BASE_URL}${methodPrefixMatch[1]}">${linkText}</a>`;
-      }
-      // Relative URLs → absolute
-      const absoluteUrl = url.startsWith('/') ? `${BASE_URL}${url}` : url;
-      return `<a href="${absoluteUrl}">${linkText}</a>`;
-    });
-}
-
-/**
- * Strip all markdown formatting from text, returning plain text.
- * Used for <description> summary.
- */
-function stripMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/`(.+?)`/g, '$1')
-    .replace(/\[(.+?)\]\(.+?\)/g, '$1');
-}
-
-/**
- * Extract first paragraph from markdown as plain text summary for <description>.
- */
-function extractSummary(markdown: string): string {
-  const lines = markdown.split('\n');
-  const paragraphLines: string[] = [];
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    // Stop at first empty line after collecting text, or at list/heading
-    if (trimmed === '' && paragraphLines.length > 0) break;
-    if (trimmed.startsWith('-') || trimmed.startsWith('#')) break;
-    if (trimmed === '') continue;
-    paragraphLines.push(trimmed);
-  }
-
-  if (paragraphLines.length === 0) {
-    // Fallback: take first non-empty line
-    const firstLine = lines.find((l) => l.trim() !== '');
-    return firstLine ? stripMarkdown(firstLine.trim()) : '';
-  }
-
-  return stripMarkdown(paragraphLines.join(' '));
-}
-
-/**
- * Convert markdown content to HTML for RSS <content:encoded>.
- * Handles paragraphs, bullet lists (with nesting), bold, code, links.
- */
-function markdownToHtml(markdown: string): string {
-  const lines = markdown.split('\n');
-  const html: string[] = [];
-  let inList = false;
-  let inSubList = false;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-
-    // Nested list item (2+ spaces indent)
-    const subListMatch = line.match(/^(\s{2,})-\s+(.+)/);
-    if (subListMatch) {
-      if (!inSubList) {
-        inSubList = true;
-        html.push('<ul>');
-      }
-      html.push(`<li>${inlineMarkdownToHtml(subListMatch[2])}</li>`);
-      continue;
-    }
-
-    // Close sub-list if we're no longer in one
-    if (inSubList) {
-      inSubList = false;
-      html.push('</ul>');
-    }
-
-    // Top-level list item
-    const listMatch = line.match(/^-\s+(.+)/);
-    if (listMatch) {
-      if (!inList) {
-        inList = true;
-        html.push('<ul>');
-      }
-      html.push(`<li>${inlineMarkdownToHtml(listMatch[1])}</li>`);
-      continue;
-    }
-
-    // Close list if we're no longer in one
-    if (inList) {
-      inList = false;
-      html.push('</ul>');
-    }
-
-    // Empty line — skip (paragraph separator)
-    if (line.trim() === '') {
-      continue;
-    }
-
-    // Regular text → paragraph
-    html.push(`<p>${inlineMarkdownToHtml(line)}</p>`);
-  }
-
-  // Close any open lists
-  if (inSubList) html.push('</ul>');
-  if (inList) html.push('</ul>');
-
-  return html.join('\n');
-}
-
-const PRODUCT_TITLES: Record<ParsedRelease['product'], string> = {
-  cli: 'CLI',
-  sdk: 'SDK',
-  generator: 'Generator',
-  n8n: 'n8n Node',
-};
-
-const CHANGE_TYPE_PREFIX: Record<string, string> = {
-  '+': 'Добавлено: ',
-  '~': 'Изменено: ',
-  '-': 'Исправлено: ',
-};
-
 function releaseToRssItem(release: ParsedRelease, baseUrl: string): string {
   const title = `${PRODUCT_TITLES[release.product]} v${release.version}`;
   const link = `${baseUrl}/updates/${release.date}#releases-${release.date}`;
   const guid = `${baseUrl}/releases/${release.product}/${release.version}`;
 
-  const summary = release.changes
-    .slice(0, 2)
-    .map((c) => stripMarkdown(c.description))
-    .join('; ');
-
-  const listHtml = release.changes
-    .map(
-      (c) => `<li>${CHANGE_TYPE_PREFIX[c.type] || ''}${inlineMarkdownToHtml(c.description)}</li>`
-    )
-    .join('\n');
-  const contentHtml = `<ul>\n${listHtml}\n</ul>`;
+  const summary = releaseSummary(release);
+  const contentHtml = releaseChangesHtml(release, baseUrl);
 
   return `    <item>
       <title>${escapeXml(title)}</title>
@@ -189,7 +55,7 @@ export async function GET(): Promise<Response> {
 
     const resolvedContent = resolveEndpointLinks(update.content, api.endpoints);
     const summary = extractSummary(resolvedContent);
-    const contentHtml = markdownToHtml(resolvedContent);
+    const contentHtml = markdownToHtml(resolvedContent, baseUrl);
 
     return {
       date: update.date,

@@ -27,6 +27,11 @@ export default class SearchListMessages extends BaseCommand {
       description: "Направление сортировки",
       options: ["asc","desc"],
     }),
+    'sort': Flags.string({
+      description: "Сортировка результатов",
+      options: ["created_at","relevance"],
+      default: "created_at",
+    }),
     'created-from': Flags.string({
       description: "Фильтр по дате создания (от)",
     }),
@@ -70,6 +75,7 @@ export default class SearchListMessages extends BaseCommand {
         const query: Record<string, string | number | boolean | string[] | undefined> = {
         query: flags['query'],
         order: flags['order'],
+        sort: flags['sort'],
         'created_from': flags['created-from'],
         'created_to': flags['created-to'],
         'chat_ids': flags['chat-ids']?.split(','),
@@ -122,6 +128,7 @@ export default class SearchListMessages extends BaseCommand {
       query: {
       query: flags['query'],
       order: flags['order'],
+      sort: flags['sort'],
       'created_from': flags['created-from'],
       'created_to': flags['created-to'],
       'chat_ids': flags['chat-ids']?.split(','),

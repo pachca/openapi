@@ -1665,11 +1665,11 @@ open class SearchService {
         throw pachcaNotImplemented("Search.searchChatsAll")
     }
 
-    open func searchMessages(query: String? = nil, limit: Int? = nil, cursor: String? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> SearchMessagesResponse {
+    open func searchMessages(query: String? = nil, limit: Int? = nil, cursor: String? = nil, order: SortOrder? = nil, sort: MessageSearchSort? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> SearchMessagesResponse {
         throw pachcaNotImplemented("Search.searchMessages")
     }
 
-    open func searchMessagesAll(query: String? = nil, limit: Int? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> [Message] {
+    open func searchMessagesAll(query: String? = nil, limit: Int? = nil, order: SortOrder? = nil, sort: MessageSearchSort? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> [Message] {
         throw pachcaNotImplemented("Search.searchMessagesAll")
     }
 
@@ -1733,13 +1733,14 @@ public final class SearchServiceImpl: SearchService {
         return items
     }
 
-    public override func searchMessages(query: String? = nil, limit: Int? = nil, cursor: String? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> SearchMessagesResponse {
+    public override func searchMessages(query: String? = nil, limit: Int? = nil, cursor: String? = nil, order: SortOrder? = nil, sort: MessageSearchSort? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> SearchMessagesResponse {
         var components = URLComponents(string: "\(baseURL)/search/messages")!
         var queryItems: [URLQueryItem] = []
         if let query { queryItems.append(URLQueryItem(name: "query", value: String(query))) }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
         if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
+        if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
         if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: String(createdFrom))) }
         if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: String(createdTo))) }
         if let chatIds { chatIds.forEach { queryItems.append(URLQueryItem(name: "chat_ids[]", value: String($0))) } }
@@ -1760,11 +1761,11 @@ public final class SearchServiceImpl: SearchService {
         }
     }
 
-    public override func searchMessagesAll(query: String? = nil, limit: Int? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> [Message] {
+    public override func searchMessagesAll(query: String? = nil, limit: Int? = nil, order: SortOrder? = nil, sort: MessageSearchSort? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> [Message] {
         var items: [Message] = []
         var cursor: String? = nil
         repeat {
-            let response = try await searchMessages(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, chatIds: chatIds, userIds: userIds, active: active)
+            let response = try await searchMessages(query: query, limit: limit, cursor: cursor, order: order, sort: sort, createdFrom: createdFrom, createdTo: createdTo, chatIds: chatIds, userIds: userIds, active: active)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage

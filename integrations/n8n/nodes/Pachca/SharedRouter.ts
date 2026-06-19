@@ -125,6 +125,10 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'trigger_on', n8n: 'triggerOn' },
 				{ api: 'commands', n8n: 'commands', isArray: true, arrayType: 'string' },
 				{ api: 'scopes', n8n: 'scopes', isArray: true, arrayType: 'string' },
+				{ api: 'template', n8n: 'template' },
+				{ api: 'template_engine', n8n: 'templateEngine' },
+				{ api: 'challenge_key', n8n: 'challengeKey' },
+				{ api: 'link_preview_enabled', n8n: 'linkPreviewEnabled' },
 			],
 		},
 		get: {
@@ -146,6 +150,10 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'trigger_on', n8n: 'triggerOn' },
 				{ api: 'commands', n8n: 'commands', isArray: true, arrayType: 'string' },
 				{ api: 'scopes', n8n: 'scopes', isArray: true, arrayType: 'string' },
+				{ api: 'template', n8n: 'template' },
+				{ api: 'template_engine', n8n: 'templateEngine' },
+				{ api: 'challenge_key', n8n: 'challengeKey' },
+				{ api: 'link_preview_enabled', n8n: 'linkPreviewEnabled' },
 			],
 		},
 		getAllEvents: {
@@ -534,7 +542,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/search/messages',
 			paginated: true,
 			queryMap: [{ api: 'query', n8n: 'query' }],
-			optionalQueryMap: [{ api: 'order', n8n: 'order' }, { api: 'created_from', n8n: 'createdFrom' }, { api: 'created_to', n8n: 'createdTo' }, { api: 'chat_ids', n8n: 'chatIds', isArray: true, arrayType: 'int' }, { api: 'user_ids', n8n: 'userIds', isArray: true, arrayType: 'int' }, { api: 'active', n8n: 'active' }],
+			optionalQueryMap: [{ api: 'order', n8n: 'order' }, { api: 'sort', n8n: 'sort' }, { api: 'created_from', n8n: 'createdFrom' }, { api: 'created_to', n8n: 'createdTo' }, { api: 'chat_ids', n8n: 'chatIds', isArray: true, arrayType: 'int' }, { api: 'user_ids', n8n: 'userIds', isArray: true, arrayType: 'int' }, { api: 'active', n8n: 'active' }],
 		},
 		getAllUsers: {
 			method: 'GET' as IHttpRequestMethods,

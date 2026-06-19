@@ -321,6 +321,7 @@ interface NodeFieldBlock {
 	optionValues: string[];
 	isCollection: boolean;
 	innerFieldNames: string[];
+	text: string;
 }
 
 /** Parse all top-level field blocks from the fields section of a Description file */
@@ -368,6 +369,7 @@ function parseFieldBlocks(content: string, resource: string): NodeFieldBlock[] {
 				optionValues,
 				isCollection,
 				innerFieldNames,
+				text: chunk,
 			});
 		}
 	}
@@ -675,11 +677,13 @@ describe('Enum values match', () => {
 				const allBlocks = [...matching];
 				for (const b of blocks) {
 					if (b.isCollection && b.operations.some(op => opValues.includes(op)) && b.innerFieldNames.includes(paramName)) {
-						// For collection inner fields, use regex on the content (collections have nested blocks)
+						// For collection inner fields, scope the regex to this block's own text —
+						// matching against the whole file would grab a same-named field from
+						// another operation's collection (e.g. messages vs users `sort`).
 						const fieldPattern = new RegExp(
 							`name: '${paramName}'[\\s\\S]*?options: \\[([^\\]]+)\\]`,
 						);
-						const fieldMatch = content.match(fieldPattern);
+						const fieldMatch = b.text.match(fieldPattern);
 						if (fieldMatch) {
 							const nodeValues = [...fieldMatch[1].matchAll(/value: '([^']+)'/g)].map(m => m[1]).sort();
 							if (JSON.stringify(nodeValues) !== JSON.stringify(specValues)) {

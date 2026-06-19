@@ -184,6 +184,7 @@ const CYRILLIC_RE = /[а-яА-ЯёЁ]/;
 const RU_TO_EN: Record<string, string> = {
 	// Example values used in bot/voice examples
 	'Бот задач': 'Tasks bot',
+	'Заказ от {{ client }} на сумму {{ amount }} ₽': 'Order from {{ client }} for {{ amount }} ₽',
 	'Привет, посмотри пожалуйста последний отчёт': 'Hi, please take a look at the latest report',
 
 	// Response wrapper descriptions (inline schemas in response bodies)

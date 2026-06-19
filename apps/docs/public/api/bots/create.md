@@ -31,6 +31,11 @@
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
   - `commands: array of string` — Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Пример: `["/task","/help"]`
   - `scopes: array of string` — Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.. Пример: `["messages:create"]`
+  - `template: string` — Шаблон форматирования входящего вебхука. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
+  - `template_engine: string` — Шаблонизатор для обработки шаблона входящего вебхука
+    Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
+  - `challenge_key: string` — Название поля проверки для верификации входящего вебхука. Пример: `"challenge"`
+  - `link_preview_enabled: boolean` (default: true) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
 
 ### Пример
 
@@ -49,7 +54,9 @@
     ],
     "scopes": [
       "messages:create"
-    ]
+    ],
+    "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
+    "challenge_key": "challenge"
   }
 }
 ```
@@ -74,7 +81,9 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
     ],
     "scopes": [
       "messages:create"
-    ]
+    ],
+    "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
+    "challenge_key": "challenge"
   }
 }'
 ```
@@ -96,6 +105,11 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
     - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
     - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+    - `template: string` (required) — Шаблон форматирования входящего вебхука. `null`, если не задан.. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
+    - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
+      Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
+    - `challenge_key: string` (required) — Название поля проверки для верификации входящего вебхука. `null`, если не задано.. Пример: `"challenge"`
+    - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
   - `access_token: string` (required) — Токен доступа бота. Выдаётся только при создании. Повторно получить токен можно только через интерфейс (вкладка «API» настроек бота).. Пример: `"bm90X2FfcmVhbF90b2tlbg"`
 
 **Пример ответа:**
@@ -117,7 +131,11 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
       ],
       "scopes": [
         "messages:create"
-      ]
+      ],
+      "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
+      "template_engine": "liquid",
+      "challenge_key": "challenge",
+      "link_preview_enabled": true
     },
     "access_token": "bm90X2FfcmVhbF90b2tlbg"
   }

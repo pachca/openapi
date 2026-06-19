@@ -2908,6 +2908,9 @@ func (s *SearchServiceImpl) SearchMessages(ctx context.Context, params *SearchMe
 	if params != nil && params.Order != nil {
 		q.Set("order", string(*params.Order))
 	}
+	if params != nil && params.Sort != nil {
+		q.Set("sort", string(*params.Sort))
+	}
 	if params != nil && params.CreatedFrom != nil {
 		q.Set("created_from", params.CreatedFrom.Format(time.RFC3339))
 	}

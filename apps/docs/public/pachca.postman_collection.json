@@ -1821,7 +1821,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://www.website.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"commands\": [\n      \"/task\",\n      \"/help\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ]\n  }\n}",
+              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://www.website.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"commands\": [\n      \"/task\",\n      \"/help\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ],\n    \"template\": \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    \"challenge_key\": \"challenge\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1881,7 +1881,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://www.website.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"commands\": [\n      \"/task\",\n      \"/help\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ]\n  }\n}",
+              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://www.website.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"commands\": [\n      \"/task\",\n      \"/help\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ],\n    \"template\": \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    \"challenge_key\": \"challenge\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"

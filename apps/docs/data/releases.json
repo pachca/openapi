@@ -1,5 +1,72 @@
 [
   {
+    "product": "sdk",
+    "version": "1.0.24",
+    "date": "2026-06-19",
+    "changes": [
+      {
+        "type": "+",
+        "description": "У бота поля настроек входящего вебхука: `template`, `template_engine`, `challenge_key`, `link_preview_enabled`"
+      },
+      {
+        "type": "+",
+        "description": "Параметр `sort` в поиске сообщений (`GET /search/messages`): `created_at` или `relevance`"
+      },
+      {
+        "type": "-",
+        "description": "Python SDK: исправлен `NameError` в авто-ретрае при ответах `429` и `5xx`"
+      }
+    ]
+  },
+  {
+    "product": "generator",
+    "version": "1.1.7",
+    "date": "2026-06-19",
+    "changes": [
+      {
+        "type": "-",
+        "description": "Python: согласованы имя объявления и вызова jitter-функции в ретрае (раньше ретрай падал `NameError` на `429`/`5xx`)"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.6.2",
+    "date": "2026-06-19",
+    "changes": [
+      {
+        "type": "+",
+        "command": "bots create",
+        "description": "`pachca bots create` — настройки входящего вебхука: `--template`, `--template-engine`, `--challenge-key`, `--link-preview-enabled`"
+      },
+      {
+        "type": "+",
+        "command": "bots update",
+        "description": "`pachca bots update` — настройки входящего вебхука: `--template`, `--template-engine`, `--challenge-key`, `--link-preview-enabled`"
+      },
+      {
+        "type": "+",
+        "command": "search list-messages",
+        "description": "`pachca search list-messages` — параметр `--sort` (сортировка: `created_at` или `relevance`)"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.0.12",
+    "date": "2026-06-19",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Bot: настройки входящего вебхука в операциях `Create`/`Update` и в ответе — `Template`, `Template Engine`, `Challenge Key`, `Link Preview Enabled`"
+      },
+      {
+        "type": "+",
+        "description": "Search: операция поиска сообщений — поле `Sort` (сортировка `Created At` или `Relevance`)"
+      }
+    ]
+  },
+  {
     "product": "cli",
     "version": "2026.6.1",
     "date": "2026-06-16",

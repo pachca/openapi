@@ -136,6 +136,15 @@ enum class BotEventName(val value: String) {
     @SerialName("bill_created") BILL_CREATED("bill_created"),
 }
 
+/** Шаблонизатор для форматирования входящих вебхуков */
+@Serializable
+enum class BotTemplateEngine(val value: String) {
+    /** Liquid — условия, циклы и фильтры */
+    @SerialName("liquid") LIQUID("liquid"),
+    /** Mustache — простая подстановка без логики */
+    @SerialName("mustache") MUSTACHE("mustache"),
+}
+
 /** Условие срабатывания исходящего вебхука бота */
 @Serializable
 enum class BotTriggerOn(val value: String) {
@@ -253,6 +262,15 @@ enum class MessageEntityType(val value: String) {
     @SerialName("thread") THREAD("thread"),
     /** Пользователь */
     @SerialName("user") USER("user"),
+}
+
+/** Сортировка результатов поиска сообщений */
+@Serializable
+enum class MessageSearchSort(val value: String) {
+    /** По дате создания (хронология) */
+    @SerialName("created_at") CREATED_AT("created_at"),
+    /** По релевантности */
+    @SerialName("relevance") RELEVANCE("relevance"),
 }
 
 @Serializable
@@ -1015,6 +1033,10 @@ data class BotCreateRequestWebhook(
     @SerialName("trigger_on") val triggerOn: BotTriggerOn? = BotTriggerOn.COMMANDS,
     val commands: List<String>? = null,
     val scopes: List<String>? = null,
+    val template: String? = null,
+    @SerialName("template_engine") val templateEngine: BotTemplateEngine? = BotTemplateEngine.LIQUID,
+    @SerialName("challenge_key") val challengeKey: String? = null,
+    @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = true,
 )
 
 @Serializable
@@ -1044,6 +1066,10 @@ data class BotUpdateRequestWebhook(
     @SerialName("trigger_on") val triggerOn: BotTriggerOn? = BotTriggerOn.COMMANDS,
     val commands: List<String>? = null,
     val scopes: List<String>? = null,
+    val template: String? = null,
+    @SerialName("template_engine") val templateEngine: BotTemplateEngine? = BotTemplateEngine.LIQUID,
+    @SerialName("challenge_key") val challengeKey: String? = null,
+    @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = true,
 )
 
 @Serializable
@@ -1060,6 +1086,10 @@ data class BotWebhook(
     @SerialName("trigger_on") val triggerOn: BotTriggerOn,
     val commands: List<String>,
     val scopes: List<String>,
+    val template: String? = null,
+    @SerialName("template_engine") val templateEngine: BotTemplateEngine,
+    @SerialName("challenge_key") val challengeKey: String? = null,
+    @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean,
 )
 
 @Serializable

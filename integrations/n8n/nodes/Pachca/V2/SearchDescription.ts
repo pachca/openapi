@@ -204,6 +204,15 @@ export const searchFields: INodeProperties[] = [
 				description: 'Sort direction',
 			},
 			{
+				displayName: 'Sort',
+				name: 'sort',
+				type: 'options',
+				options: [{ name: 'Created At', value: 'created_at', description: 'By creation date (chronological)' },
+{ name: 'Relevance', value: 'relevance', description: 'By relevance' }],
+				default: "created_at",
+				description: 'Sort results by',
+			},
+			{
 				displayName: 'User IDs',
 				name: 'userIds',
 				type: 'string',

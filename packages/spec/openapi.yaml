@@ -203,6 +203,10 @@ paths:
                       - /task
                     scopes:
                       - messages:create
+                    template: Заказ от {{ client }} на сумму {{ amount }} ₽
+                    template_engine: liquid
+                    challenge_key: challenge
+                    link_preview_enabled: true
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -283,6 +287,10 @@ paths:
                       - /task
                     scopes:
                       - messages:create
+                    template: Заказ от {{ client }} на сумму {{ amount }} ₽
+                    template_engine: liquid
+                    challenge_key: challenge
+                    link_preview_enabled: true
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '400':
           description: The server could not understand the request due to invalid syntax.
@@ -374,6 +382,10 @@ paths:
                       - /task
                     scopes:
                       - messages:create
+                    template: Заказ от {{ client }} на сумму {{ amount }} ₽
+                    template_engine: liquid
+                    challenge_key: challenge
+                    link_preview_enabled: true
         '401':
           description: Access is unauthorized.
           content:
@@ -3390,6 +3402,16 @@ paths:
             example: desc
           example: desc
           explode: false
+        - name: sort
+          in: query
+          required: false
+          description: Сортировка результатов
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/MessageSearchSort'
+            default: created_at
+          example: created_at
+          explode: false
         - name: created_from
           in: query
           required: false
@@ -5568,6 +5590,25 @@ components:
               description: Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.
               example:
                 - messages:create
+            template:
+              type: string
+              description: Шаблон форматирования входящего вебхука
+              example: Заказ от {{ client }} на сумму {{ amount }} ₽
+            template_engine:
+              allOf:
+                - $ref: '#/components/schemas/BotTemplateEngine'
+              description: Шаблонизатор для обработки шаблона входящего вебхука
+              example: liquid
+              default: liquid
+            challenge_key:
+              type: string
+              description: Название поля проверки для верификации входящего вебхука
+              example: challenge
+            link_preview_enabled:
+              type: boolean
+              description: Показывать превью ссылок в сообщениях входящего вебхука
+              example: true
+              default: true
           required:
             - name
           description: Объект параметров вебхука создаваемого бота
@@ -5646,6 +5687,15 @@ components:
             - $ref: '#/components/schemas/BotWebhook'
           description: Объект параметров вебхука
       description: Параметры бота
+    BotTemplateEngine:
+      type: string
+      enum:
+        - liquid
+        - mustache
+      description: Шаблонизатор для форматирования входящих вебхуков
+      x-enum-descriptions:
+        liquid: Liquid — условия, циклы и фильтры
+        mustache: Mustache — простая подстановка без логики
     BotTriggerOn:
       type: string
       enum:
@@ -5705,6 +5755,25 @@ components:
               description: Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.
               example:
                 - messages:create
+            template:
+              type: string
+              description: Шаблон форматирования входящего вебхука
+              example: Заказ от {{ client }} на сумму {{ amount }} ₽
+            template_engine:
+              allOf:
+                - $ref: '#/components/schemas/BotTemplateEngine'
+              description: Шаблонизатор для обработки шаблона входящего вебхука
+              example: liquid
+              default: liquid
+            challenge_key:
+              type: string
+              description: Название поля проверки для верификации входящего вебхука
+              example: challenge
+            link_preview_enabled:
+              type: boolean
+              description: Показывать превью ссылок в сообщениях входящего вебхука
+              example: true
+              default: true
           description: Объект параметров вебхука редактируемого бота
       description: Запрос на обновление бота
     BotWebhook:
@@ -5717,6 +5786,10 @@ components:
         - trigger_on
         - commands
         - scopes
+        - template
+        - template_engine
+        - challenge_key
+        - link_preview_enabled
       properties:
         name:
           type: string
@@ -5757,6 +5830,25 @@ components:
           description: Скоупы (права доступа) токена бота
           example:
             - messages:create
+        template:
+          type: string
+          nullable: true
+          description: Шаблон форматирования входящего вебхука. `null`, если не задан.
+          example: Заказ от {{ client }} на сумму {{ amount }} ₽
+        template_engine:
+          allOf:
+            - $ref: '#/components/schemas/BotTemplateEngine'
+          description: Шаблонизатор для обработки шаблона входящего вебхука
+          example: liquid
+        challenge_key:
+          type: string
+          nullable: true
+          description: Название поля проверки для верификации входящего вебхука. `null`, если не задано.
+          example: challenge
+        link_preview_enabled:
+          type: boolean
+          description: Показывать превью ссылок в сообщениях входящего вебхука
+          example: true
       description: Параметры вебхука бота
     BotWebhookSelfUpdateRequest:
       type: object
@@ -6810,6 +6902,15 @@ components:
         discussion: Беседа или канал
         thread: Тред
         user: Пользователь
+    MessageSearchSort:
+      type: string
+      enum:
+        - created_at
+        - relevance
+      description: Сортировка результатов поиска сообщений
+      x-enum-descriptions:
+        created_at: По дате создания (хронология)
+        relevance: По релевантности
     MessageSortField:
       type: string
       enum:

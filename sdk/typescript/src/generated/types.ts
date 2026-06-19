@@ -108,6 +108,14 @@ export enum BotEventName {
   BillCreated = "bill_created",
 }
 
+/** Шаблонизатор для форматирования входящих вебхуков */
+export enum BotTemplateEngine {
+  /** Liquid — условия, циклы и фильтры */
+  Liquid = "liquid",
+  /** Mustache — простая подстановка без логики */
+  Mustache = "mustache",
+}
+
 /** Условие срабатывания исходящего вебхука бота */
 export enum BotTriggerOn {
   /** Только на команды (триггер-слова) из commands */
@@ -214,6 +222,14 @@ export enum MessageEntityType {
   Thread = "thread",
   /** Пользователь */
   User = "user",
+}
+
+/** Сортировка результатов поиска сообщений */
+export enum MessageSearchSort {
+  /** По дате создания (хронология) */
+  CreatedAt = "created_at",
+  /** По релевантности */
+  Relevance = "relevance",
 }
 
 export enum MessageSortField {
@@ -656,6 +672,12 @@ export interface BotCreateRequest {
     triggerOn?: BotTriggerOn;
     commands?: string[];
     scopes?: string[];
+    template?: string;
+    /** @default liquid */
+    templateEngine?: BotTemplateEngine;
+    challengeKey?: string;
+    /** @default true */
+    linkPreviewEnabled?: boolean;
   };
 }
 
@@ -680,6 +702,12 @@ export interface BotUpdateRequest {
     triggerOn?: BotTriggerOn;
     commands?: string[];
     scopes?: string[];
+    template?: string;
+    /** @default liquid */
+    templateEngine?: BotTemplateEngine;
+    challengeKey?: string;
+    /** @default true */
+    linkPreviewEnabled?: boolean;
   };
 }
 
@@ -691,6 +719,10 @@ export interface BotWebhook {
   triggerOn: BotTriggerOn;
   commands: string[];
   scopes: string[];
+  template: string | null;
+  templateEngine: BotTemplateEngine;
+  challengeKey: string | null;
+  linkPreviewEnabled: boolean;
 }
 
 export interface BotWebhookSelfUpdateRequest {
@@ -1440,6 +1472,7 @@ export interface SearchMessagesParams {
   limit?: number;
   cursor?: string;
   order?: SortOrder;
+  sort?: MessageSearchSort;
   createdFrom?: string;
   createdTo?: string;
   chatIds?: number[];

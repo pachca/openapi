@@ -111,6 +111,13 @@ public enum BotEventName: String, Codable, CaseIterable {
     case billCreated = "bill_created"
 }
 
+public enum BotTemplateEngine: String, Codable, CaseIterable {
+    /// Liquid — условия, циклы и фильтры
+    case liquid
+    /// Mustache — простая подстановка без логики
+    case mustache
+}
+
 public enum BotTriggerOn: String, Codable, CaseIterable {
     /// Только на команды (триггер-слова) из commands
     case commands
@@ -206,6 +213,13 @@ public enum MessageEntityType: String, Codable, CaseIterable {
     case thread
     /// Пользователь
     case user
+}
+
+public enum MessageSearchSort: String, Codable, CaseIterable {
+    /// По дате создания (хронология)
+    case createdAt = "created_at"
+    /// По релевантности
+    case relevance
 }
 
 public enum MessageSortField: String, Codable, CaseIterable {
@@ -851,8 +865,12 @@ public struct BotCreateRequestWebhook: Codable {
     public let triggerOn: BotTriggerOn?
     public let commands: [String]?
     public let scopes: [String]?
+    public let template: String?
+    public let templateEngine: BotTemplateEngine?
+    public let challengeKey: String?
+    public let linkPreviewEnabled: Bool?
 
-    public init(name: String, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil) {
+    public init(name: String, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
@@ -860,6 +878,10 @@ public struct BotCreateRequestWebhook: Codable {
         self.triggerOn = triggerOn
         self.commands = commands
         self.scopes = scopes
+        self.template = template
+        self.templateEngine = templateEngine
+        self.challengeKey = challengeKey
+        self.linkPreviewEnabled = linkPreviewEnabled
     }
 
     enum CodingKeys: String, CodingKey {
@@ -870,6 +892,10 @@ public struct BotCreateRequestWebhook: Codable {
         case triggerOn = "trigger_on"
         case commands
         case scopes
+        case template
+        case templateEngine = "template_engine"
+        case challengeKey = "challenge_key"
+        case linkPreviewEnabled = "link_preview_enabled"
     }
 }
 
@@ -917,8 +943,12 @@ public struct BotUpdateRequestWebhook: Codable {
     public let triggerOn: BotTriggerOn?
     public let commands: [String]?
     public let scopes: [String]?
+    public let template: String?
+    public let templateEngine: BotTemplateEngine?
+    public let challengeKey: String?
+    public let linkPreviewEnabled: Bool?
 
-    public init(name: String? = nil, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil) {
+    public init(name: String? = nil, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
@@ -926,6 +956,10 @@ public struct BotUpdateRequestWebhook: Codable {
         self.triggerOn = triggerOn
         self.commands = commands
         self.scopes = scopes
+        self.template = template
+        self.templateEngine = templateEngine
+        self.challengeKey = challengeKey
+        self.linkPreviewEnabled = linkPreviewEnabled
     }
 
     enum CodingKeys: String, CodingKey {
@@ -936,6 +970,10 @@ public struct BotUpdateRequestWebhook: Codable {
         case triggerOn = "trigger_on"
         case commands
         case scopes
+        case template
+        case templateEngine = "template_engine"
+        case challengeKey = "challenge_key"
+        case linkPreviewEnabled = "link_preview_enabled"
     }
 }
 
@@ -955,8 +993,12 @@ public struct BotWebhook: Codable {
     public let triggerOn: BotTriggerOn
     public let commands: [String]
     public let scopes: [String]
+    public let template: String?
+    public let templateEngine: BotTemplateEngine
+    public let challengeKey: String?
+    public let linkPreviewEnabled: Bool
 
-    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String]) {
+    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String? = nil, templateEngine: BotTemplateEngine, challengeKey: String? = nil, linkPreviewEnabled: Bool) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
@@ -964,6 +1006,10 @@ public struct BotWebhook: Codable {
         self.triggerOn = triggerOn
         self.commands = commands
         self.scopes = scopes
+        self.template = template
+        self.templateEngine = templateEngine
+        self.challengeKey = challengeKey
+        self.linkPreviewEnabled = linkPreviewEnabled
     }
 
     enum CodingKeys: String, CodingKey {
@@ -974,6 +1020,10 @@ public struct BotWebhook: Codable {
         case triggerOn = "trigger_on"
         case commands
         case scopes
+        case template
+        case templateEngine = "template_engine"
+        case challengeKey = "challenge_key"
+        case linkPreviewEnabled = "link_preview_enabled"
     }
 }
 

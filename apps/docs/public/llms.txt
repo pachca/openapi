@@ -6,9 +6,9 @@
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~363K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~365K токенов — обычно не помещается в контекст целиком).
 
-> English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~12K токенов).
+> English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~13K токенов).
 
 > Индексы разделов (только нужный срез): [/api/llms.txt](https://dev.pachca.com/api/llms.txt) — методы и основы API, [/guides/llms.txt](https://dev.pachca.com/guides/llms.txt) — руководства.
 
@@ -53,8 +53,8 @@
 | Agent Skills | Скиллы для AI-агентов и установка | 105–127 |
 | Руководства | Страницы-руководства (Markdown по `.md`) | 128–188 |
 | API-методы | Все эндпоинты, сгруппированы по разделам | 189–292 |
-| Обновления | Журнал обновлений по датам | 293–344 |
-| Дополнительно | Прочие ссылки и контакты | 345–353 |
+| Обновления | Журнал обновлений по датам | 293–345 |
+| Дополнительно | Прочие ссылки и контакты | 346–354 |
 
 ## CLI Quick Start
 
@@ -291,6 +291,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
 
 ## Обновления
+- [19 июня 2026 — Настройки входящего вебхука бота и сортировка в поиске сообщений](https://dev.pachca.com/updates/2026-06-19.md)
 - [16 июня 2026 — Настраиваемые скоупы ботов и саморегистрация вебхука](https://dev.pachca.com/updates/2026-06-16.md)
 - [15 июня 2026 — Создание ботов через API, голосовые сообщения](https://dev.pachca.com/updates/2026-06-15.md)
 - [05 июня 2026 — Webhook-модели и polling в SDK](https://dev.pachca.com/updates/2026-06-05.md)

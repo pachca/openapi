@@ -74,6 +74,7 @@ from .models import (
     ChatSubtype,
     SearchMessagesParams,
     SearchMessagesResponse,
+    MessageSearchSort,
     SearchUsersParams,
     SearchUsersResponse,
     SearchSortOrder,
@@ -1886,6 +1887,8 @@ class SearchServiceImpl(SearchService):
             query.append(("cursor", params.cursor))
         if params is not None and params.order is not None:
             query.append(("order", params.order))
+        if params is not None and params.sort is not None:
+            query.append(("sort", params.sort))
         if params is not None and params.created_from is not None:
             query.append(("created_from", params.created_from.isoformat()))
         if params is not None and params.created_to is not None:

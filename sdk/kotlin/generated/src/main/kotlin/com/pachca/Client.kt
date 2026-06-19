@@ -1382,6 +1382,7 @@ interface SearchService {
         limit: Int? = null,
         cursor: String? = null,
         order: SortOrder? = null,
+        sort: MessageSearchSort? = null,
         createdFrom: OffsetDateTime? = null,
         createdTo: OffsetDateTime? = null,
         chatIds: List<Int>? = null,
@@ -1395,6 +1396,7 @@ interface SearchService {
         query: String? = null,
         limit: Int? = null,
         order: SortOrder? = null,
+        sort: MessageSearchSort? = null,
         createdFrom: OffsetDateTime? = null,
         createdTo: OffsetDateTime? = null,
         chatIds: List<Int>? = null,
@@ -1499,6 +1501,7 @@ class SearchServiceImpl internal constructor(
         limit: Int?,
         cursor: String?,
         order: SortOrder?,
+        sort: MessageSearchSort?,
         createdFrom: OffsetDateTime?,
         createdTo: OffsetDateTime?,
         chatIds: List<Int>?,
@@ -1510,6 +1513,7 @@ class SearchServiceImpl internal constructor(
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
             order?.let { parameter("order", it.value) }
+            sort?.let { parameter("sort", it.value) }
             createdFrom?.let { parameter("created_from", it.toString()) }
             createdTo?.let { parameter("created_to", it.toString()) }
             chatIds?.forEach { parameter("chat_ids[]", it) }
@@ -1527,6 +1531,7 @@ class SearchServiceImpl internal constructor(
         query: String?,
         limit: Int?,
         order: SortOrder?,
+        sort: MessageSearchSort?,
         createdFrom: OffsetDateTime?,
         createdTo: OffsetDateTime?,
         chatIds: List<Int>?,
@@ -1541,6 +1546,7 @@ class SearchServiceImpl internal constructor(
                 limit = limit,
                 cursor = cursor,
                 order = order,
+                sort = sort,
                 createdFrom = createdFrom,
                 createdTo = createdTo,
                 chatIds = chatIds,

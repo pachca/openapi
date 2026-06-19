@@ -253,6 +253,16 @@ enum SortOrder {
   desc: "desc",
 }
 
+@doc("Сортировка результатов поиска сообщений")
+@extension("x-enum-descriptions", #{
+  created_at: "По дате создания (хронология)",
+  relevance: "По релевантности",
+})
+enum MessageSearchSort {
+  created_at: "created_at",
+  relevance: "relevance",
+}
+
 @doc("Поле сортировки чатов")
 @extension("x-enum-descriptions", #{
   id: "По идентификатору чата",
@@ -2615,6 +2625,16 @@ enum BotTriggerOn {
   unfurl: "unfurl",
 }
 
+@doc("Шаблонизатор для форматирования входящих вебхуков")
+@extension("x-enum-descriptions", #{
+  liquid: "Liquid — условия, циклы и фильтры",
+  mustache: "Mustache — простая подстановка без логики",
+})
+enum BotTemplateEngine {
+  liquid: "liquid",
+  mustache: "mustache",
+}
+
 @doc("Событие исходящего вебхука бота")
 @extension("x-enum-descriptions", #{
   message_new: "Новое сообщение",
@@ -2684,6 +2704,22 @@ model BotCreateRequest {
     @doc("Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.")
     @example(#["messages:create"])
     scopes?: string[];
+
+    @doc("Шаблон форматирования входящего вебхука")
+    @example("Заказ от {{ client }} на сумму {{ amount }} ₽")
+    template?: string;
+
+    @doc("Шаблонизатор для обработки шаблона входящего вебхука")
+    @example(BotTemplateEngine.liquid)
+    template_engine?: BotTemplateEngine = BotTemplateEngine.liquid;
+
+    @doc("Название поля проверки для верификации входящего вебхука")
+    @example("challenge")
+    challenge_key?: string;
+
+    @doc("Показывать превью ссылок в сообщениях входящего вебхука")
+    @example(true)
+    link_preview_enabled?: boolean = true;
   };
 }
 
@@ -2718,6 +2754,22 @@ model BotUpdateRequest {
     @doc("Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.")
     @example(#["messages:create"])
     scopes?: string[];
+
+    @doc("Шаблон форматирования входящего вебхука")
+    @example("Заказ от {{ client }} на сумму {{ amount }} ₽")
+    template?: string;
+
+    @doc("Шаблонизатор для обработки шаблона входящего вебхука")
+    @example(BotTemplateEngine.liquid)
+    template_engine?: BotTemplateEngine = BotTemplateEngine.liquid;
+
+    @doc("Название поля проверки для верификации входящего вебхука")
+    @example("challenge")
+    challenge_key?: string;
+
+    @doc("Показывать превью ссылок в сообщениях входящего вебхука")
+    @example(true)
+    link_preview_enabled?: boolean = true;
   };
 }
 
@@ -2750,6 +2802,22 @@ model BotWebhook {
   @doc("Скоупы (права доступа) токена бота")
   @example(#["messages:create"])
   scopes: string[];
+
+  @doc("Шаблон форматирования входящего вебхука. `null`, если не задан.")
+  @example("Заказ от {{ client }} на сумму {{ amount }} ₽")
+  template: string | null;
+
+  @doc("Шаблонизатор для обработки шаблона входящего вебхука")
+  @example(BotTemplateEngine.liquid)
+  template_engine: BotTemplateEngine;
+
+  @doc("Название поля проверки для верификации входящего вебхука. `null`, если не задано.")
+  @example("challenge")
+  challenge_key: string | null;
+
+  @doc("Показывать превью ссылок в сообщениях входящего вебхука")
+  @example(true)
+  link_preview_enabled: boolean;
 }
 
 @doc("Запрос на саморегистрацию вебхука бота")
@@ -5545,6 +5613,9 @@ interface SearchOperations {
     @doc("Направление сортировки")
     @extension("example", "desc")
     @query order?: SortOrder,
+    @doc("Сортировка результатов")
+    @extension("example", "created_at")
+    @query sort?: MessageSearchSort = MessageSearchSort.created_at,
     @doc("Фильтр по дате создания (от)")
     @extension("example", "2025-01-01T00:00:00.000Z")
     @query created_from?: utcDateTime,
@@ -5856,6 +5927,10 @@ interface BotOperations {
             trigger_on: BotTriggerOn.commands,
             commands: #["/task"],
             scopes: #["messages:create"],
+            template: "Заказ от {{ client }} на сумму {{ amount }} ₽",
+            template_engine: BotTemplateEngine.liquid,
+            challenge_key: "challenge",
+            link_preview_enabled: true,
           },
           access_token: "bm90X2FfcmVhbF90b2tlbg",
         },
@@ -5906,6 +5981,10 @@ interface BotOperations {
             trigger_on: BotTriggerOn.commands,
             commands: #["/task"],
             scopes: #["messages:create"],
+            template: "Заказ от {{ client }} на сумму {{ amount }} ₽",
+            template_engine: BotTemplateEngine.liquid,
+            challenge_key: "challenge",
+            link_preview_enabled: true,
           },
         },
       },
@@ -6005,6 +6084,10 @@ interface BotOperations {
             trigger_on: BotTriggerOn.commands,
             commands: #["/task"],
             scopes: #["messages:create"],
+            template: "Заказ от {{ client }} на сумму {{ amount }} ₽",
+            template_engine: BotTemplateEngine.liquid,
+            challenge_key: "challenge",
+            link_preview_enabled: true,
           },
         },
       },

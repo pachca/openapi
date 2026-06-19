@@ -63,6 +63,11 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
     - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
     - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+    - `template: string` (required) — Шаблон форматирования входящего вебхука. `null`, если не задан.. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
+    - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
+      Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
+    - `challenge_key: string` (required) — Название поля проверки для верификации входящего вебхука. `null`, если не задано.. Пример: `"challenge"`
+    - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
 
 **Пример ответа:**
 
@@ -83,7 +88,11 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
       ],
       "scopes": [
         "messages:create"
-      ]
+      ],
+      "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
+      "template_engine": "liquid",
+      "challenge_key": "challenge",
+      "link_preview_enabled": true
     }
   }
 }

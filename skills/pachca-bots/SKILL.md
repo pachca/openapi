@@ -109,6 +109,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `webhook.trigger_on`: allowed values — `commands` (Только на команды (триггер-слова) из commands), `all_messages` (На все сообщения в чатах, где есть бот), `unfurl` (На развёртывание ссылок (link previews))
+- `webhook.template_engine`: allowed values — `liquid` (Liquid — условия, циклы и фильтры), `mustache` (Mustache — простая подстановка без логики)
 - `limit`: max 50
 - Pagination: cursor-based (limit + cursor)
 

@@ -142,7 +142,7 @@ _MAX_RETRIES = 3
 _RETRYABLE_5XX = {500, 502, 503, 504}
 
 
-def _jitter(delay: float) -> float:
+def _add_jitter(delay: float) -> float:
     import random
     return delay * (0.5 + random.random() * 0.5)
 

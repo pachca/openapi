@@ -14,7 +14,7 @@
   },
   "BotOperations_getBot": {
     "usage": "let response = try await client.bots.getBot(id: 1738816)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String]))"
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool))"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "let response = try await client.bots.getWebhookEvents(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -27,28 +27,30 @@
     "usage": "for try await payload in client.bots.pollWebhookPayloads(interval: 5) {\n    print(payload)\n}"
   },
   "BotOperations_createBot": {
-    "usage": "let body = BotCreateRequest(\n    webhook: BotCreateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"]\n    )\n)\nlet response = try await client.bots.createBot(body: body)",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String]), accessToken: String)",
+    "usage": "let body = BotCreateRequest(\n    webhook: BotCreateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"],\n        template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine: .liquid,\n        challengeKey: \"challenge\",\n        linkPreviewEnabled: true\n    )\n)\nlet response = try await client.bots.createBot(body: body)",
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool), accessToken: String)",
     "imports": [
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
+      "BotTemplateEngine",
       "BotTriggerOn"
     ]
   },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "let body = BotWebhookSelfUpdateRequest(webhook: BotWebhookSelfUpdateRequestWebhook(outgoingUrl: \"https://www.website.com/tasks/new\"))\nlet response = try await client.bots.selfUpdateBotWebhook(body: body)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String]))",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool))",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "let body = BotUpdateRequest(\n    webhook: BotUpdateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"]\n    )\n)\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String]))",
+    "usage": "let body = BotUpdateRequest(\n    webhook: BotUpdateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"],\n        template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine: .liquid,\n        challengeKey: \"challenge\",\n        linkPreviewEnabled: true\n    )\n)\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool))",
     "imports": [
       "BotEventName",
+      "BotTemplateEngine",
       "BotTriggerOn",
       "BotUpdateRequest",
       "BotUpdateRequestWebhook"
@@ -302,9 +304,10 @@
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "let chatIds = [123]\nlet userIds = [123]\nlet response = try await client.search.searchMessages(query: \"футболки\", limit: 10, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", order: .desc, createdFrom: \"2025-01-01T00:00:00.000Z\", createdTo: \"2025-02-01T00:00:00.000Z\", chatIds: chatIds, userIds: userIds, active: true)",
+    "usage": "let chatIds = [123]\nlet userIds = [123]\nlet response = try await client.search.searchMessages(query: \"футболки\", limit: 10, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", order: .desc, sort: .createdAt, createdFrom: \"2025-01-01T00:00:00.000Z\", createdTo: \"2025-02-01T00:00:00.000Z\", chatIds: chatIds, userIds: userIds, active: true)",
     "output": "SearchMessagesResponse(data: [Message], meta: SearchPaginationMeta)",
     "imports": [
+      "MessageSearchSort",
       "SortOrder"
     ]
   },

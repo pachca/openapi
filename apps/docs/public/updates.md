@@ -6,6 +6,41 @@
 
 ## ☀️ Лето 2026
 
+### Настройки входящего вебхука бота и сортировка в поиске сообщений
+
+_19 июня 2026_
+
+При создании и редактировании бота теперь можно настроить его входящий вебхук: шаблон форматирования `template`, шаблонизатор `template_engine` (`liquid` или `mustache`), поле верификации `challenge_key` и показ превью ссылок `link_preview_enabled`. Эти же поля возвращаются в объекте бота. Подробнее о шаблонах и верификации — в гайде [Входящие вебхуки](/guides/incoming-webhooks).
+
+- [Новый бот](POST /bots)
+- [Редактирование бота](PUT /bots/{id})
+- [Информация о боте](GET /bots/{id})
+
+В поиске сообщений появился параметр `sort` — сортировка результатов: `created_at` (по дате создания, по умолчанию) или `relevance` (по релевантности).
+
+- [Поиск сообщений](GET /search/messages)
+
+### SDK v1.0.24
+
+- У бота поля настроек входящего вебхука: `template`, `template_engine`, `challenge_key`, `link_preview_enabled`
+- Параметр `sort` в поиске сообщений (`GET /search/messages`): `created_at` или `relevance`
+- Python SDK: исправлен `NameError` в авто-ретрае при ответах `429` и `5xx`
+
+### Generator v1.1.7
+
+- Python: согласованы имя объявления и вызова jitter-функции в ретрае (раньше ретрай падал `NameError` на `429`/`5xx`)
+
+### CLI v2026.6.2
+
+- `pachca bots create` — настройки входящего вебхука: `--template`, `--template-engine`, `--challenge-key`, `--link-preview-enabled`
+- `pachca bots update` — настройки входящего вебхука: `--template`, `--template-engine`, `--challenge-key`, `--link-preview-enabled`
+- `pachca search list-messages` — параметр `--sort` (сортировка: `created_at` или `relevance`)
+
+### n8n Node v2.0.12
+
+- Bot: настройки входящего вебхука в операциях `Create`/`Update` и в ответе — `Template`, `Template Engine`, `Challenge Key`, `Link Preview Enabled`
+- Search: операция поиска сообщений — поле `Sort` (сортировка `Created At` или `Relevance`)
+
 ### Настраиваемые скоупы ботов и саморегистрация вебхука
 
 _16 июня 2026_

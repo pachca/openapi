@@ -44,6 +44,19 @@ export default class BotsCreate extends BaseCommand {
     'scopes': Flags.string({
       description: "Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.",
     }),
+    'template': Flags.string({
+      description: "Шаблон форматирования входящего вебхука",
+    }),
+    'template-engine': Flags.string({
+      description: "Шаблонизатор для обработки шаблона входящего вебхука",
+    }),
+    'challenge-key': Flags.string({
+      description: "Название поля проверки для верификации входящего вебхука",
+    }),
+    'link-preview-enabled': Flags.boolean({
+      description: "Показывать превью ссылок в сообщениях входящего вебхука",
+      allowNo: true,
+    }),
   };
 
   async run(): Promise<void> {
@@ -79,6 +92,10 @@ export default class BotsCreate extends BaseCommand {
       trigger_on: flags['trigger-on'],
       commands: flags['commands'] ? this.parseJSON(flags['commands'], 'commands') : undefined,
       scopes: flags['scopes'] ? this.parseJSON(flags['scopes'], 'scopes') : undefined,
+      template: flags['template'],
+      template_engine: flags['template-engine'],
+      challenge_key: flags['challenge-key'],
+      link_preview_enabled: flags['link-preview-enabled'],
     } };
     // Clean undefined fields
     const inner = body['webhook'] as Record<string, unknown>;

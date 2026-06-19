@@ -680,6 +680,9 @@ actions:
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='order')]
     update:
       description: Sort direction
+  - target: $.paths['/search/messages'].get.parameters[?(@.name=='sort')]
+    update:
+      description: Sort results by
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='created_from')]
     update:
       description: Filter by creation date (from)
@@ -1307,9 +1310,33 @@ actions:
   - target: $.components.schemas.BotResponse.properties.webhook.properties.scopes
     update:
       description: Bot token scopes (permissions)
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.template
+    update:
+      description: Template for formatting the incoming webhook. `null` if not set.
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.template_engine
+    update:
+      description: Template engine used to process the incoming webhook template
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.challenge_key
+    update:
+      description: Verification field name for incoming webhook verification. `null` if not set.
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.link_preview_enabled
+    update:
+      description: Show link previews in incoming webhook messages
   - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.scopes
     update:
       description: Bot token scopes (permissions)
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.template
+    update:
+      description: Template for formatting the incoming webhook. `null` if not set.
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.template_engine
+    update:
+      description: Template engine used to process the incoming webhook template
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.challenge_key
+    update:
+      description: Verification field name for incoming webhook verification. `null` if not set.
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.link_preview_enabled
+    update:
+      description: Show link previews in incoming webhook messages
   - target: $.components.schemas.BotUpdateRequest
     update:
       description: Bot update request
@@ -1337,6 +1364,18 @@ actions:
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.scopes
     update:
       description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.template
+    update:
+      description: Template for formatting the incoming webhook
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.template_engine
+    update:
+      description: Template engine used to process the incoming webhook template
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.challenge_key
+    update:
+      description: Verification field name for incoming webhook verification
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.link_preview_enabled
+    update:
+      description: Show link previews in incoming webhook messages
   - target: $.paths['/bots'].post
     update:
       description: >-
@@ -1365,6 +1404,12 @@ actions:
         commands: Only on commands (trigger words) from commands
         all_messages: On all messages in chats where the bot is present
         unfurl: On link unfurling (link previews)
+  - target: $.components.schemas.BotTemplateEngine
+    update:
+      description: Template engine for formatting incoming webhooks
+      x-enum-descriptions:
+        liquid: Liquid — conditions, loops, and filters
+        mustache: Mustache — simple substitution without logic
   - target: $.components.schemas.BotEventName
     update:
       description: Bot outgoing webhook event
@@ -1412,6 +1457,18 @@ actions:
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.scopes
     update:
       description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.template
+    update:
+      description: Template for formatting the incoming webhook
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.template_engine
+    update:
+      description: Template engine used to process the incoming webhook template
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.challenge_key
+    update:
+      description: Verification field name for incoming webhook verification
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.link_preview_enabled
+    update:
+      description: Show link previews in incoming webhook messages
   - target: $.components.schemas.BotWebhook
     update:
       description: Bot webhook parameters
@@ -1436,6 +1493,18 @@ actions:
   - target: $.components.schemas.BotWebhook.properties.scopes
     update:
       description: Bot token scopes (permissions)
+  - target: $.components.schemas.BotWebhook.properties.template
+    update:
+      description: Template for formatting the incoming webhook. `null` if not set.
+  - target: $.components.schemas.BotWebhook.properties.template_engine
+    update:
+      description: Template engine used to process the incoming webhook template
+  - target: $.components.schemas.BotWebhook.properties.challenge_key
+    update:
+      description: Verification field name for incoming webhook verification. `null` if not set.
+  - target: $.components.schemas.BotWebhook.properties.link_preview_enabled
+    update:
+      description: Show link previews in incoming webhook messages
   - target: $.components.schemas.BotWebhookSelfUpdateRequest
     update:
       description: Bot webhook self-registration request
@@ -2444,6 +2513,12 @@ actions:
       x-enum-descriptions:
         asc: Ascending
         desc: Descending
+  - target: $.components.schemas.MessageSearchSort
+    update:
+      description: Message search results sort order
+      x-enum-descriptions:
+        created_at: By creation date (chronological)
+        relevance: By relevance
   - target: $.components.schemas.StatusUpdateRequest
     update:
       description: Status update request

@@ -2065,6 +2065,7 @@ public class SearchService
         int? limit = null,
         string? cursor = null,
         SortOrder? order = null,
+        MessageSearchSort? sort = null,
         DateTimeOffset? createdFrom = null,
         DateTimeOffset? createdTo = null,
         List<int>? chatIds = null,
@@ -2079,6 +2080,7 @@ public class SearchService
         string? query = null,
         int? limit = null,
         SortOrder? order = null,
+        MessageSearchSort? sort = null,
         DateTimeOffset? createdFrom = null,
         DateTimeOffset? createdTo = null,
         List<int>? chatIds = null,
@@ -2202,6 +2204,7 @@ public sealed class SearchServiceImpl : SearchService
         int? limit = null,
         string? cursor = null,
         SortOrder? order = null,
+        MessageSearchSort? sort = null,
         DateTimeOffset? createdFrom = null,
         DateTimeOffset? createdTo = null,
         List<int>? chatIds = null,
@@ -2218,6 +2221,8 @@ public sealed class SearchServiceImpl : SearchService
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (order != null)
             queryParts.Add($"order={Uri.EscapeDataString(PachcaUtils.EnumToApiString(order.Value))}");
+        if (sort != null)
+            queryParts.Add($"sort={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sort.Value))}");
         if (createdFrom != null)
             queryParts.Add($"created_from={Uri.EscapeDataString(createdFrom.Value.ToString("o"))}");
         if (createdTo != null)
@@ -2249,6 +2254,7 @@ public sealed class SearchServiceImpl : SearchService
         string? query = null,
         int? limit = null,
         SortOrder? order = null,
+        MessageSearchSort? sort = null,
         DateTimeOffset? createdFrom = null,
         DateTimeOffset? createdTo = null,
         List<int>? chatIds = null,
@@ -2260,7 +2266,7 @@ public sealed class SearchServiceImpl : SearchService
         string? cursor = null;
         do
         {
-            var response = await SearchMessagesAsync(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, chatIds: chatIds, userIds: userIds, active: active, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await SearchMessagesAsync(query: query, limit: limit, cursor: cursor, order: order, sort: sort, createdFrom: createdFrom, createdTo: createdTo, chatIds: chatIds, userIds: userIds, active: active, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;

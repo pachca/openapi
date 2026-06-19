@@ -69,6 +69,13 @@ const (
 	BotEventNameBillCreated           BotEventName = "bill_created" // Создан счёт
 )
 
+type BotTemplateEngine string
+
+const (
+	BotTemplateEngineLiquid   BotTemplateEngine = "liquid" // Liquid — условия, циклы и фильтры
+	BotTemplateEngineMustache BotTemplateEngine = "mustache" // Mustache — простая подстановка без логики
+)
+
 type BotTriggerOn string
 
 const (
@@ -154,6 +161,13 @@ const (
 	MessageEntityTypeDiscussion MessageEntityType = "discussion" // Беседа или канал
 	MessageEntityTypeThread     MessageEntityType = "thread" // Тред
 	MessageEntityTypeUser       MessageEntityType = "user" // Пользователь
+)
+
+type MessageSearchSort string
+
+const (
+	MessageSearchSortCreatedAt MessageSearchSort = "created_at" // По дате создания (хронология)
+	MessageSearchSortRelevance MessageSearchSort = "relevance" // По релевантности
 )
 
 type MessageSortField string
@@ -487,13 +501,17 @@ type AvatarData struct {
 }
 
 type BotCreateRequestWebhook struct {
-	Name        string         `json:"name"`
-	Nickname    *string        `json:"nickname,omitempty"`
-	OutgoingURL *string        `json:"outgoing_url,omitempty"`
-	Events      []BotEventName `json:"events,omitempty"`
-	TriggerOn   *BotTriggerOn  `json:"trigger_on,omitempty"`
-	Commands    []string       `json:"commands,omitempty"`
-	Scopes      []string       `json:"scopes,omitempty"`
+	Name               string             `json:"name"`
+	Nickname           *string            `json:"nickname,omitempty"`
+	OutgoingURL        *string            `json:"outgoing_url,omitempty"`
+	Events             []BotEventName     `json:"events,omitempty"`
+	TriggerOn          *BotTriggerOn      `json:"trigger_on,omitempty"`
+	Commands           []string           `json:"commands,omitempty"`
+	Scopes             []string           `json:"scopes,omitempty"`
+	Template           *string            `json:"template,omitempty"`
+	TemplateEngine     *BotTemplateEngine `json:"template_engine,omitempty"`
+	ChallengeKey       *string            `json:"challenge_key,omitempty"`
+	LinkPreviewEnabled *bool              `json:"link_preview_enabled,omitempty"`
 }
 
 func (m BotCreateRequestWebhook) MarshalJSON() ([]byte, error) {
@@ -534,13 +552,17 @@ type BotResponse struct {
 }
 
 type BotUpdateRequestWebhook struct {
-	Name        *string        `json:"name,omitempty"`
-	Nickname    *string        `json:"nickname,omitempty"`
-	OutgoingURL *string        `json:"outgoing_url,omitempty"`
-	Events      []BotEventName `json:"events,omitempty"`
-	TriggerOn   *BotTriggerOn  `json:"trigger_on,omitempty"`
-	Commands    []string       `json:"commands,omitempty"`
-	Scopes      []string       `json:"scopes,omitempty"`
+	Name               *string            `json:"name,omitempty"`
+	Nickname           *string            `json:"nickname,omitempty"`
+	OutgoingURL        *string            `json:"outgoing_url,omitempty"`
+	Events             []BotEventName     `json:"events,omitempty"`
+	TriggerOn          *BotTriggerOn      `json:"trigger_on,omitempty"`
+	Commands           []string           `json:"commands,omitempty"`
+	Scopes             []string           `json:"scopes,omitempty"`
+	Template           *string            `json:"template,omitempty"`
+	TemplateEngine     *BotTemplateEngine `json:"template_engine,omitempty"`
+	ChallengeKey       *string            `json:"challenge_key,omitempty"`
+	LinkPreviewEnabled *bool              `json:"link_preview_enabled,omitempty"`
 }
 
 func (m BotUpdateRequestWebhook) MarshalJSON() ([]byte, error) {
@@ -570,13 +592,17 @@ type BotUpdateRequest struct {
 }
 
 type BotWebhook struct {
-	Name        string         `json:"name"`
-	Nickname    string         `json:"nickname"`
-	Events      []BotEventName `json:"events"`
-	TriggerOn   BotTriggerOn   `json:"trigger_on"`
-	Commands    []string       `json:"commands"`
-	Scopes      []string       `json:"scopes"`
-	OutgoingURL *string        `json:"outgoing_url"`
+	Name               string            `json:"name"`
+	Nickname           string            `json:"nickname"`
+	Events             []BotEventName    `json:"events"`
+	TriggerOn          BotTriggerOn      `json:"trigger_on"`
+	Commands           []string          `json:"commands"`
+	Scopes             []string          `json:"scopes"`
+	TemplateEngine     BotTemplateEngine `json:"template_engine"`
+	LinkPreviewEnabled bool              `json:"link_preview_enabled"`
+	OutgoingURL        *string           `json:"outgoing_url"`
+	Template           *string           `json:"template"`
+	ChallengeKey       *string           `json:"challenge_key"`
 }
 
 type BotWebhookSelfUpdateRequestWebhook struct {
@@ -1836,6 +1862,7 @@ type SearchMessagesParams struct {
 	Limit       *int32
 	Cursor      *string
 	Order       *SortOrder
+	Sort        *MessageSearchSort
 	CreatedFrom *time.Time
 	CreatedTo   *time.Time
 	ChatIDs     []int32

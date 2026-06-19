@@ -206,6 +206,10 @@ paths:
                       - /task
                     scopes:
                       - messages:create
+                    template: Order from {{ client }} for {{ amount }} ₽
+                    template_engine: liquid
+                    challenge_key: challenge
+                    link_preview_enabled: true
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -289,6 +293,10 @@ paths:
                       - /task
                     scopes:
                       - messages:create
+                    template: Order from {{ client }} for {{ amount }} ₽
+                    template_engine: liquid
+                    challenge_key: challenge
+                    link_preview_enabled: true
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '400':
           description: The server could not understand the request due to invalid syntax.
@@ -380,6 +388,10 @@ paths:
                       - /task
                     scopes:
                       - messages:create
+                    template: Order from {{ client }} for {{ amount }} ₽
+                    template_engine: liquid
+                    challenge_key: challenge
+                    link_preview_enabled: true
         '401':
           description: Access is unauthorized.
           content:
@@ -3471,6 +3483,16 @@ paths:
             example: desc
           example: desc
           explode: false
+        - name: sort
+          in: query
+          required: false
+          description: Sort results by
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/MessageSearchSort'
+            default: created_at
+          example: created_at
+          explode: false
         - name: created_from
           in: query
           required: false
@@ -5697,6 +5719,25 @@ components:
               description: Bot token scopes (permissions). If omitted, the bot receives the default set.
               example:
                 - messages:create
+            template:
+              type: string
+              description: Template for formatting the incoming webhook
+              example: Order from {{ client }} for {{ amount }} ₽
+            template_engine:
+              allOf:
+                - $ref: '#/components/schemas/BotTemplateEngine'
+              description: Template engine used to process the incoming webhook template
+              example: liquid
+              default: liquid
+            challenge_key:
+              type: string
+              description: Verification field name for incoming webhook verification
+              example: challenge
+            link_preview_enabled:
+              type: boolean
+              description: Show link previews in incoming webhook messages
+              example: true
+              default: true
           required:
             - name
           description: Webhook parameters object of the bot to create
@@ -5777,6 +5818,15 @@ components:
             - $ref: '#/components/schemas/BotWebhook'
           description: Webhook parameters object
       description: Bot parameters
+    BotTemplateEngine:
+      type: string
+      enum:
+        - liquid
+        - mustache
+      description: Template engine for formatting incoming webhooks
+      x-enum-descriptions:
+        liquid: Liquid — conditions, loops, and filters
+        mustache: Mustache — simple substitution without logic
     BotTriggerOn:
       type: string
       enum:
@@ -5836,6 +5886,25 @@ components:
               description: Bot token scopes (permissions). If omitted, the bot receives the default set.
               example:
                 - messages:create
+            template:
+              type: string
+              description: Template for formatting the incoming webhook
+              example: Order from {{ client }} for {{ amount }} ₽
+            template_engine:
+              allOf:
+                - $ref: '#/components/schemas/BotTemplateEngine'
+              description: Template engine used to process the incoming webhook template
+              example: liquid
+              default: liquid
+            challenge_key:
+              type: string
+              description: Verification field name for incoming webhook verification
+              example: challenge
+            link_preview_enabled:
+              type: boolean
+              description: Show link previews in incoming webhook messages
+              example: true
+              default: true
           description: Webhook parameters object of the bot to update
       description: Bot update request
     BotWebhook:
@@ -5848,6 +5917,10 @@ components:
         - trigger_on
         - commands
         - scopes
+        - template
+        - template_engine
+        - challenge_key
+        - link_preview_enabled
       properties:
         name:
           type: string
@@ -5888,6 +5961,25 @@ components:
           description: Bot token scopes (permissions)
           example:
             - messages:create
+        template:
+          type: string
+          nullable: true
+          description: Template for formatting the incoming webhook. `null` if not set.
+          example: Order from {{ client }} for {{ amount }} ₽
+        template_engine:
+          allOf:
+            - $ref: '#/components/schemas/BotTemplateEngine'
+          description: Template engine used to process the incoming webhook template
+          example: liquid
+        challenge_key:
+          type: string
+          nullable: true
+          description: Verification field name for incoming webhook verification. `null` if not set.
+          example: challenge
+        link_preview_enabled:
+          type: boolean
+          description: Show link previews in incoming webhook messages
+          example: true
       description: Bot webhook parameters
     BotWebhookSelfUpdateRequest:
       type: object
@@ -6958,6 +7050,15 @@ components:
         discussion: Conversation or channel
         thread: Thread
         user: User
+    MessageSearchSort:
+      type: string
+      enum:
+        - created_at
+        - relevance
+      description: Message search results sort order
+      x-enum-descriptions:
+        created_at: By creation date (chronological)
+        relevance: By relevance
     MessageSortField:
       type: string
       enum:

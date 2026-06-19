@@ -1628,6 +1628,7 @@ export class SearchServiceImpl extends SearchService {
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     if (params?.order !== undefined) query.set("order", params.order);
+    if (params?.sort !== undefined) query.set("sort", params.sort);
     if (params?.createdFrom !== undefined) query.set("created_from", params.createdFrom);
     if (params?.createdTo !== undefined) query.set("created_to", params.createdTo);
     if (params?.chatIds !== undefined) {

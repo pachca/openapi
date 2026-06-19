@@ -172,6 +172,30 @@
             "type": "option",
             "required": false,
             "description": "Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию."
+          },
+          {
+            "name": "template",
+            "type": "option",
+            "required": false,
+            "description": "Шаблон форматирования входящего вебхука"
+          },
+          {
+            "name": "template-engine",
+            "type": "option",
+            "required": false,
+            "description": "Шаблонизатор для обработки шаблона входящего вебхука"
+          },
+          {
+            "name": "challenge-key",
+            "type": "option",
+            "required": false,
+            "description": "Название поля проверки для верификации входящего вебхука"
+          },
+          {
+            "name": "link-preview-enabled",
+            "type": "boolean",
+            "required": false,
+            "description": "Показывать превью ссылок в сообщениях входящего вебхука"
           }
         ]
       },
@@ -298,6 +322,30 @@
             "type": "option",
             "required": false,
             "description": "Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию."
+          },
+          {
+            "name": "template",
+            "type": "option",
+            "required": false,
+            "description": "Шаблон форматирования входящего вебхука"
+          },
+          {
+            "name": "template-engine",
+            "type": "option",
+            "required": false,
+            "description": "Шаблонизатор для обработки шаблона входящего вебхука"
+          },
+          {
+            "name": "challenge-key",
+            "type": "option",
+            "required": false,
+            "description": "Название поля проверки для верификации входящего вебхука"
+          },
+          {
+            "name": "link-preview-enabled",
+            "type": "boolean",
+            "required": false,
+            "description": "Показывать превью ссылок в сообщениях входящего вебхука"
           }
         ]
       },
@@ -1845,6 +1893,16 @@
             "options": [
               "asc",
               "desc"
+            ]
+          },
+          {
+            "name": "sort",
+            "type": "option",
+            "required": false,
+            "description": "Сортировка результатов",
+            "options": [
+              "created_at",
+              "relevance"
             ]
           },
           {

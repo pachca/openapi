@@ -66,6 +66,13 @@ class BotEventName(StrEnum):
     BILL_CREATED = "bill_created"  # Создан счёт
 
 
+class BotTemplateEngine(StrEnum):
+    """Шаблонизатор для форматирования входящих вебхуков"""
+
+    LIQUID = "liquid"  # Liquid — условия, циклы и фильтры
+    MUSTACHE = "mustache"  # Mustache — простая подстановка без логики
+
+
 class BotTriggerOn(StrEnum):
     """Условие срабатывания исходящего вебхука бота"""
 
@@ -151,6 +158,13 @@ class MessageEntityType(StrEnum):
     DISCUSSION = "discussion"  # Беседа или канал
     THREAD = "thread"  # Тред
     USER = "user"  # Пользователь
+
+
+class MessageSearchSort(StrEnum):
+    """Сортировка результатов поиска сообщений"""
+
+    CREATED_AT = "created_at"  # По дате создания (хронология)
+    RELEVANCE = "relevance"  # По релевантности
 
 
 class MessageSortField(StrEnum):
@@ -505,6 +519,10 @@ class BotCreateRequestWebhook:
     trigger_on: BotTriggerOn | None = BotTriggerOn.COMMANDS
     commands: list[str] | None = None
     scopes: list[str] | None = None
+    template: str | None = None
+    template_engine: BotTemplateEngine | None = BotTemplateEngine.LIQUID
+    challenge_key: str | None = None
+    link_preview_enabled: bool | None = True
 
 
 @dataclass
@@ -534,6 +552,10 @@ class BotUpdateRequestWebhook:
     trigger_on: BotTriggerOn | None = BotTriggerOn.COMMANDS
     commands: list[str] | None = None
     scopes: list[str] | None = None
+    template: str | None = None
+    template_engine: BotTemplateEngine | None = BotTemplateEngine.LIQUID
+    challenge_key: str | None = None
+    link_preview_enabled: bool | None = True
 
 
 @dataclass
@@ -549,7 +571,11 @@ class BotWebhook:
     trigger_on: BotTriggerOn
     commands: list[str]
     scopes: list[str]
+    template_engine: BotTemplateEngine
+    link_preview_enabled: bool
     outgoing_url: str | None = None
+    template: str | None = None
+    challenge_key: str | None = None
 
 
 @dataclass
@@ -1411,6 +1437,7 @@ class SearchMessagesParams:
     limit: int | None = None
     cursor: str | None = None
     order: SortOrder | None = None
+    sort: MessageSearchSort | None = None
     created_from: datetime | None = None
     created_to: datetime | None = None
     chat_ids: list[int] | None = None

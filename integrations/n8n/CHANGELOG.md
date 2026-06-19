@@ -1,6 +1,13 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## 2.0.12 (2026-06-19)
+
+### Improvements
+
+- Bot: incoming webhook settings on `Create`/`Update` and in the response — `Template`, `Template Engine`, `Challenge Key`, `Link Preview Enabled`
+- Search: message search operation — `Sort` field (`Created At` or `Relevance`)
+
 ## 2.0.11 (2026-06-16)
 
 ### Improvements

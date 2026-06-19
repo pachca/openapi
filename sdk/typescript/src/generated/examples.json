@@ -14,7 +14,7 @@
   },
   "BotOperations_getBot": {
     "usage": "const response = client.bots.getBot(1738816)",
-    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[] }) })"
+    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean }) })"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "const response = client.bots.getWebhookEvents({ limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
@@ -27,28 +27,30 @@
     "usage": "for await (const payload of client.bots.pollWebhookPayloads({ intervalMs: 5_000 })) {\n  console.log(payload)\n}"
   },
   "BotOperations_createBot": {
-    "usage": "const request: BotCreateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"]\n  }\n}\nconst response = client.bots.createBot(request)",
-    "output": "BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[] }), accessToken: string })",
+    "usage": "const request: BotCreateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true\n  }\n}\nconst response = client.bots.createBot(request)",
+    "output": "BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean }), accessToken: string })",
     "imports": [
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
+      "BotTemplateEngine",
       "BotTriggerOn"
     ]
   },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "const request: BotWebhookSelfUpdateRequest = { webhook: { outgoingUrl: \"https://www.website.com/tasks/new\" } }\nconst response = client.bots.selfUpdateBotWebhook(request)",
-    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[] }) })",
+    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean }) })",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "const request: BotUpdateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"]\n  }\n}\nconst response = client.bots.updateBot(1738816, request)",
-    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[] }) })",
+    "usage": "const request: BotUpdateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true\n  }\n}\nconst response = client.bots.updateBot(1738816, request)",
+    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean }) })",
     "imports": [
       "BotEventName",
+      "BotTemplateEngine",
       "BotTriggerOn",
       "BotUpdateRequest",
       "BotUpdateRequestWebhook"
@@ -302,9 +304,10 @@
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "const response = client.search.searchMessages({\n  query: \"футболки\",\n  limit: 10,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n  order: SortOrder.Desc,\n  createdFrom: \"2025-01-01T00:00:00.000Z\",\n  createdTo: \"2025-02-01T00:00:00.000Z\",\n  chatIds: [123],\n  userIds: [123],\n  active: true\n})",
+    "usage": "const response = client.search.searchMessages({\n  query: \"футболки\",\n  limit: 10,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n  order: SortOrder.Desc,\n  sort: MessageSearchSort.CreatedAt,\n  createdFrom: \"2025-01-01T00:00:00.000Z\",\n  createdTo: \"2025-02-01T00:00:00.000Z\",\n  chatIds: [123],\n  userIds: [123],\n  active: true\n})",
     "output": "SearchMessagesResponse({ data: Message[], meta: SearchPaginationMeta })",
     "imports": [
+      "MessageSearchSort",
       "SortOrder"
     ]
   },

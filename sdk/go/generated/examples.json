@@ -15,7 +15,7 @@
   },
   "BotOperations_getBot": {
     "usage": "response, err := client.Bots.GetBot(ctx, int32(1738816))",
-    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string}}"
+    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool}}"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "params := &GetWebhookEventsParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Bots.GetWebhookEvents(ctx, params)",
@@ -31,28 +31,30 @@
     "usage": "err := client.Bots.PollWebhookPayloads(ctx, nil, func(payload pachca.WebhookPayloadUnion) error {\n\t_ = payload\n\treturn nil\n})"
   },
   "BotOperations_createBot": {
-    "usage": "request := BotCreateRequest{\n\tWebhook: BotCreateRequestWebhook{\n\t\tName: \"Бот задач\",\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t},\n}\nresponse, err := client.Bots.CreateBot(ctx, request)",
-    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string}, AccessToken: string}",
+    "usage": "request := BotCreateRequest{\n\tWebhook: BotCreateRequestWebhook{\n\t\tName: \"Бот задач\",\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t},\n}\nresponse, err := client.Bots.CreateBot(ctx, request)",
+    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool}, AccessToken: string}",
     "imports": [
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
+      "BotTemplateEngine",
       "BotTriggerOn"
     ]
   },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "request := BotWebhookSelfUpdateRequest{\n\tWebhook: BotWebhookSelfUpdateRequestWebhook{\n\t\tOutgoingURL: \"https://www.website.com/tasks/new\",\n\t},\n}\nresponse, err := client.Bots.SelfUpdateBotWebhook(ctx, request)",
-    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string}}",
+    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool}}",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "request := BotUpdateRequest{\n\tWebhook: BotUpdateRequestWebhook{\n\t\tName: Ptr(\"Бот задач\"),\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t},\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
-    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string}}",
+    "usage": "request := BotUpdateRequest{\n\tWebhook: BotUpdateRequestWebhook{\n\t\tName: Ptr(\"Бот задач\"),\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t},\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
+    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool}}",
     "imports": [
       "BotEventName",
+      "BotTemplateEngine",
       "BotTriggerOn",
       "BotUpdateRequest",
       "BotUpdateRequestWebhook"
@@ -329,9 +331,10 @@
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "params := &SearchMessagesParams{\n\tQuery: Ptr(\"футболки\"),\n\tLimit: Ptr(int32(10)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n\tOrder: Ptr(SortOrderDesc),\n\tCreatedFrom: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tCreatedTo: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tChatIDs: []int32{int32(123)},\n\tUserIDs: []int32{int32(123)},\n\tActive: Ptr(true),\n}\nresponse, err := client.Search.SearchMessages(ctx, params)",
+    "usage": "params := &SearchMessagesParams{\n\tQuery: Ptr(\"футболки\"),\n\tLimit: Ptr(int32(10)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n\tOrder: Ptr(SortOrderDesc),\n\tSort: Ptr(MessageSearchSortCreatedAt),\n\tCreatedFrom: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tCreatedTo: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tChatIDs: []int32{int32(123)},\n\tUserIDs: []int32{int32(123)},\n\tActive: Ptr(true),\n}\nresponse, err := client.Search.SearchMessages(ctx, params)",
     "output": "SearchMessagesResponse{Data: []Message, Meta: SearchPaginationMeta}",
     "imports": [
+      "MessageSearchSort",
       "SearchMessagesParams",
       "SortOrder"
     ]

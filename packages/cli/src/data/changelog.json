@@ -1,5 +1,26 @@
 [
   {
+    "version": "2026.6.2",
+    "date": "19 июня 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "bots create",
+        "description": "Настройки входящего вебхука — параметры `template`, `template_engine`, `challenge_key`, `link_preview_enabled`"
+      },
+      {
+        "type": "+",
+        "command": "bots update",
+        "description": "Настройки входящего вебхука — параметры `template`, `template_engine`, `challenge_key`, `link_preview_enabled`"
+      },
+      {
+        "type": "+",
+        "command": "search list-messages",
+        "description": "Добавлен параметр `sort` — сортировка (`created_at` или `relevance`)"
+      }
+    ]
+  },
+  {
     "version": "2026.6.1",
     "date": "16 июня 2026",
     "changes": [

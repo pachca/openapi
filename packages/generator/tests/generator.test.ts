@@ -48,6 +48,25 @@ describe('generator', () => {
       for (const [file, content] of expected) {
         expect(generated.get(file), `Mismatch in ${suite}/${file}`).toBe(content);
       }
+
+      // Semantic guard: generated Python must not reference an undefined private
+      // helper. Catches declaration/call name drift (e.g. `def _jitter` declared
+      // but `_add_jitter()` called) that a string-only snapshot masks once the
+      // broken output is re-recorded as the baseline. Every bare `_name(` call
+      // must have a matching `def _name(` in the same file.
+      for (const [file, content] of generated) {
+        if (!file.endsWith('.py')) continue;
+        const defined = new Set(
+          [...content.matchAll(/def (_[A-Za-z0-9_]+)\s*\(/g)].map((m) => m[1]),
+        );
+        for (const m of content.matchAll(/(?<![.\w])(_[A-Za-z0-9_]+)\(/g)) {
+          const name = m[1];
+          expect(
+            defined.has(name),
+            `${suite}/${file}: call to undefined private helper ${name}()`,
+          ).toBe(true);
+        }
+      }
     });
   }
 });

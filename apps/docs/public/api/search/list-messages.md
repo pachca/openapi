@@ -21,6 +21,7 @@
 - `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page`)
 - `order: string` — Направление сортировки
   Значения: `asc`, `desc`
+- `sort: string` (default: created_at) — Сортировка результатов
 - `created_from: date-time` — Фильтр по дате создания (от)
 - `created_to: date-time` — Фильтр по дате создания (до)
 - `chat_ids: array` — Фильтр по ID чатов
@@ -32,7 +33,7 @@
 
 ```bash
 # Для получения следующей страницы используйте cursor из meta.paginate.next_page
-curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболки&limit=10&order=desc&created_from=2025-01-01T00:00:00.000Z&created_to=2025-02-01T00:00:00.000Z&chat_ids[]=198&chat_ids[]=334&user_ids[]=12&user_ids[]=185&active=true" \
+curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболки&limit=10&order=desc&sort=created_at&created_from=2025-01-01T00:00:00.000Z&created_to=2025-02-01T00:00:00.000Z&chat_ids[]=198&chat_ids[]=334&user_ids[]=12&user_ids[]=185&active=true" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

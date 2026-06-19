@@ -266,6 +266,41 @@ internal class BotEventNameConverter : JsonConverter<BotEventName>
     }
 }
 
+/// <summary>Шаблонизатор для форматирования входящих вебхуков</summary>
+[JsonConverter(typeof(BotTemplateEngineConverter))]
+public enum BotTemplateEngine
+{
+    /// <summary>Liquid — условия, циклы и фильтры</summary>
+    Liquid,
+    /// <summary>Mustache — простая подстановка без логики</summary>
+    Mustache,
+}
+
+internal class BotTemplateEngineConverter : JsonConverter<BotTemplateEngine>
+{
+    public override BotTemplateEngine Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "liquid" => BotTemplateEngine.Liquid,
+            "mustache" => BotTemplateEngine.Mustache,
+            _ => throw new JsonException($"Unknown BotTemplateEngine value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, BotTemplateEngine value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            BotTemplateEngine.Liquid => "liquid",
+            BotTemplateEngine.Mustache => "mustache",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Условие срабатывания исходящего вебхука бота</summary>
 [JsonConverter(typeof(BotTriggerOnConverter))]
 public enum BotTriggerOn
@@ -685,6 +720,41 @@ internal class MessageEntityTypeConverter : JsonConverter<MessageEntityType>
             MessageEntityType.Discussion => "discussion",
             MessageEntityType.Thread => "thread",
             MessageEntityType.User => "user",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
+/// <summary>Сортировка результатов поиска сообщений</summary>
+[JsonConverter(typeof(MessageSearchSortConverter))]
+public enum MessageSearchSort
+{
+    /// <summary>По дате создания (хронология)</summary>
+    CreatedAt,
+    /// <summary>По релевантности</summary>
+    Relevance,
+}
+
+internal class MessageSearchSortConverter : JsonConverter<MessageSearchSort>
+{
+    public override MessageSearchSort Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "created_at" => MessageSearchSort.CreatedAt,
+            "relevance" => MessageSearchSort.Relevance,
+            _ => throw new JsonException($"Unknown MessageSearchSort value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, MessageSearchSort value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            MessageSearchSort.CreatedAt => "created_at",
+            MessageSearchSort.Relevance => "relevance",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -2173,6 +2243,14 @@ public class BotCreateRequestWebhook
     public List<string>? Commands { get; set; }
     [JsonPropertyName("scopes")]
     public List<string>? Scopes { get; set; }
+    [JsonPropertyName("template")]
+    public string? Template { get; set; }
+    [JsonPropertyName("template_engine")]
+    public BotTemplateEngine? TemplateEngine { get; set; }
+    [JsonPropertyName("challenge_key")]
+    public string? ChallengeKey { get; set; }
+    [JsonPropertyName("link_preview_enabled")]
+    public bool? LinkPreviewEnabled { get; set; }
 }
 
 public class BotCreateRequest
@@ -2215,6 +2293,14 @@ public class BotUpdateRequestWebhook
     public List<string>? Commands { get; set; }
     [JsonPropertyName("scopes")]
     public List<string>? Scopes { get; set; }
+    [JsonPropertyName("template")]
+    public string? Template { get; set; }
+    [JsonPropertyName("template_engine")]
+    public BotTemplateEngine? TemplateEngine { get; set; }
+    [JsonPropertyName("challenge_key")]
+    public string? ChallengeKey { get; set; }
+    [JsonPropertyName("link_preview_enabled")]
+    public bool? LinkPreviewEnabled { get; set; }
 }
 
 public class BotUpdateRequest
@@ -2239,6 +2325,14 @@ public class BotWebhook
     public List<string> Commands { get; set; } = default!;
     [JsonPropertyName("scopes")]
     public List<string> Scopes { get; set; } = default!;
+    [JsonPropertyName("template")]
+    public string? Template { get; set; }
+    [JsonPropertyName("template_engine")]
+    public BotTemplateEngine TemplateEngine { get; set; } = default!;
+    [JsonPropertyName("challenge_key")]
+    public string? ChallengeKey { get; set; }
+    [JsonPropertyName("link_preview_enabled")]
+    public bool LinkPreviewEnabled { get; set; } = default!;
 }
 
 public class BotWebhookSelfUpdateRequestWebhook

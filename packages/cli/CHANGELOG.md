@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.6.2  (19 июня 2026)
+
+- **Добавлено** (bots create): Настройки входящего вебхука — параметры `template`, `template_engine`, `challenge_key`, `link_preview_enabled`
+- **Добавлено** (bots update): Настройки входящего вебхука — параметры `template`, `template_engine`, `challenge_key`, `link_preview_enabled`
+- **Добавлено** (search list-messages): Добавлен параметр `sort` — сортировка (`created_at` или `relevance`)
+
 ## 2026.6.1  (16 июня 2026)
 
 - **Изменено** (bots create): Добавлен параметр `scopes` — выбор скоупов токена бота

@@ -1154,7 +1154,7 @@ function generateUtils(ir: IR): string {
   lines.push('_RETRYABLE_5XX = {500, 502, 503, 504}');
   lines.push('');
   lines.push('');
-  lines.push('def _jitter(delay: float) -> float:');
+  lines.push('def _add_jitter(delay: float) -> float:');
   lines.push('    import random');
   lines.push('    return delay * (0.5 + random.random() * 0.5)');
   lines.push('');

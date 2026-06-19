@@ -87,6 +87,14 @@ export const botFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['bot'], operation: ['create'] } },
 		options: [
 			{
+				displayName: 'Challenge Key',
+				name: 'challengeKey',
+				type: 'string',
+				default: "",
+				description: 'Verification field name for incoming webhook verification',
+				placeholder: 'challenge',
+			},
+			{
 				displayName: 'Commands',
 				name: 'commands',
 				type: 'string',
@@ -101,6 +109,13 @@ export const botFields: INodeProperties[] = [
 				default: "",
 				description: 'Events the bot is subscribed to',
 				placeholder: 'message_new',
+			},
+			{
+				displayName: 'Link Preview Enabled',
+				name: 'linkPreviewEnabled',
+				type: 'boolean',
+				default: true,
+				description: 'Whether to show link previews in incoming webhook messages',
 			},
 			{
 				displayName: 'Nickname',
@@ -125,6 +140,23 @@ export const botFields: INodeProperties[] = [
 				default: "",
 				description: 'Bot token scopes (permissions). If omitted, the bot receives the default set.',
 				placeholder: 'messages:create',
+			},
+			{
+				displayName: 'Template',
+				name: 'template',
+				type: 'string',
+				default: "",
+				description: 'Template for formatting the incoming webhook',
+				placeholder: 'Order from {{ client }} for {{ amount }} ₽',
+			},
+			{
+				displayName: 'Template Engine',
+				name: 'templateEngine',
+				type: 'options',
+				options: [{ name: 'Liquid', value: 'liquid', description: 'Liquid — conditions, loops, and filters' },
+{ name: 'Mustache', value: 'mustache', description: 'Mustache — simple substitution without logic' }],
+				default: "liquid",
+				description: 'Template engine used to process the incoming webhook template',
 			},
 			{
 				displayName: 'Trigger On',
@@ -197,6 +229,14 @@ export const botFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['bot'], operation: ['update'] } },
 		options: [
 			{
+				displayName: 'Challenge Key',
+				name: 'challengeKey',
+				type: 'string',
+				default: "",
+				description: 'Verification field name for incoming webhook verification',
+				placeholder: 'challenge',
+			},
+			{
 				displayName: 'Commands',
 				name: 'commands',
 				type: 'string',
@@ -211,6 +251,13 @@ export const botFields: INodeProperties[] = [
 				default: "",
 				description: 'Events the bot is subscribed to',
 				placeholder: 'message_new',
+			},
+			{
+				displayName: 'Link Preview Enabled',
+				name: 'linkPreviewEnabled',
+				type: 'boolean',
+				default: true,
+				description: 'Whether to show link previews in incoming webhook messages',
 			},
 			{
 				displayName: 'Name',
@@ -243,6 +290,23 @@ export const botFields: INodeProperties[] = [
 				default: "",
 				description: 'Bot token scopes (permissions). If omitted, the bot receives the default set.',
 				placeholder: 'messages:create',
+			},
+			{
+				displayName: 'Template',
+				name: 'template',
+				type: 'string',
+				default: "",
+				description: 'Template for formatting the incoming webhook',
+				placeholder: 'Order from {{ client }} for {{ amount }} ₽',
+			},
+			{
+				displayName: 'Template Engine',
+				name: 'templateEngine',
+				type: 'options',
+				options: [{ name: 'Liquid', value: 'liquid', description: 'Liquid — conditions, loops, and filters' },
+{ name: 'Mustache', value: 'mustache', description: 'Mustache — simple substitution without logic' }],
+				default: "liquid",
+				description: 'Template engine used to process the incoming webhook template',
 			},
 			{
 				displayName: 'Trigger On',

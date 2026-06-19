@@ -115,6 +115,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           title="Пачка API — Обновления"
           href="/feed.xml"
         />
+        <link
+          rel="alternate"
+          type="application/feed+json"
+          title="Пачка API — Обновления"
+          href="/feed.json"
+        />
         <link rel="llms-txt" type="text/plain" title="llms.txt" href="/llms.txt" />
         <link rel="llms-full-txt" type="text/plain" title="llms-full.txt" href="/llms-full.txt" />
         {/* Per-page <link rel="alternate" type="text/markdown"> is emitted by

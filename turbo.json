@@ -23,6 +23,7 @@
         "scripts/skills/**",
         "lib/**",
         "content/**",
+        "data/releases.json",
         "../../packages/cli/src/data/*.json",
         "../../packages/spec/workflows.ts"
       ],
@@ -36,6 +37,7 @@
         "scripts/skills/**",
         "lib/**",
         "content/**",
+        "data/releases.json",
         "../../packages/cli/src/data/*.json",
         "../../packages/spec/workflows.ts"
       ],

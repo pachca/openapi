@@ -790,7 +790,7 @@ export function transform(spec: ParsedAPI): IR {
   const commonAliasOps = [
     aliasClone('POST', '/uploads', 'Files', 'Common'),
     aliasClone('POST', '/direct_url', 'Files', 'Common'),
-    aliasClone('GET', '/custom_properties', 'CustomProperties', 'Common'),
+    aliasClone('GET', '/custom_properties', 'Custom Properties', 'Common'),
     aliasClone('POST', '/chats/exports', 'Chats', 'Common'),
     aliasClone('GET', '/chats/exports/{id}', 'Chats', 'Common'),
   ].filter((o): o is IROperation => o !== null);

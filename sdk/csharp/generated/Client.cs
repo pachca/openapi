@@ -967,7 +967,7 @@ public class CustomPropertiesService
 
     public virtual async System.Threading.Tasks.Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException("CustomProperties.listProperties is not implemented");
+        throw new NotImplementedException("Custom Properties.listProperties is not implemented");
     }
 }
 
@@ -3140,7 +3140,7 @@ public sealed class PachcaClient : IDisposable
     public BotsService Bots { get; }
     public ChatsService Chats { get; }
     public CommonService Common { get; }
-    public CustomPropertiesService Customproperties { get; }
+    public CustomPropertiesService CustomProperties { get; }
     public FilesService Files { get; }
     public GroupTagsService GroupTags { get; }
     public LinkPreviewsService LinkPreviews { get; }
@@ -3157,12 +3157,12 @@ public sealed class PachcaClient : IDisposable
     public UsersService Users { get; }
     public ViewsService Views { get; }
 
-    private PachcaClient(BotsService bots, ChatsService chats, CommonService common, CustomPropertiesService customproperties, FilesService files, GroupTagsService groupTags, LinkPreviewsService linkPreviews, MembersService members, MessagesService messages, OAuthService oauth, ProfileService profile, ReactionsService reactions, ReadMembersService readMembers, SearchService search, SecurityService security, TasksService tasks, ThreadsService threads, UsersService users, ViewsService views)
+    private PachcaClient(BotsService bots, ChatsService chats, CommonService common, CustomPropertiesService customProperties, FilesService files, GroupTagsService groupTags, LinkPreviewsService linkPreviews, MembersService members, MessagesService messages, OAuthService oauth, ProfileService profile, ReactionsService reactions, ReadMembersService readMembers, SearchService search, SecurityService security, TasksService tasks, ThreadsService threads, UsersService users, ViewsService views)
     {
         Bots = bots;
         Chats = chats;
         Common = common;
-        Customproperties = customproperties;
+        CustomProperties = customProperties;
         Files = files;
         GroupTags = groupTags;
         LinkPreviews = linkPreviews;
@@ -3180,7 +3180,7 @@ public sealed class PachcaClient : IDisposable
         Views = views;
     }
 
-    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customproperties = null, FilesService? files = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customProperties = null, FilesService? files = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
         var handler = new SocketsHttpHandler
         {
@@ -3193,7 +3193,7 @@ public sealed class PachcaClient : IDisposable
         Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
         Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
         Common = common ?? new CommonServiceImpl(baseUrl, _client);
-        Customproperties = customproperties ?? new CustomPropertiesServiceImpl(baseUrl, _client);
+        CustomProperties = customProperties ?? new CustomPropertiesServiceImpl(baseUrl, _client);
         Files = files ?? new FilesServiceImpl(baseUrl, _client);
         GroupTags = groupTags ?? new GroupTagsServiceImpl(baseUrl, _client);
         LinkPreviews = linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
@@ -3211,14 +3211,14 @@ public sealed class PachcaClient : IDisposable
         Views = views ?? new ViewsServiceImpl(baseUrl, _client);
     }
 
-    public PachcaClient(string baseUrl, HttpClient client, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customproperties = null, FilesService? files = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public PachcaClient(string baseUrl, HttpClient client, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customProperties = null, FilesService? files = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
         _client = client;
 
         Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
         Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
         Common = common ?? new CommonServiceImpl(baseUrl, _client);
-        Customproperties = customproperties ?? new CustomPropertiesServiceImpl(baseUrl, _client);
+        CustomProperties = customProperties ?? new CustomPropertiesServiceImpl(baseUrl, _client);
         Files = files ?? new FilesServiceImpl(baseUrl, _client);
         GroupTags = groupTags ?? new GroupTagsServiceImpl(baseUrl, _client);
         LinkPreviews = linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
@@ -3236,9 +3236,9 @@ public sealed class PachcaClient : IDisposable
         Views = views ?? new ViewsServiceImpl(baseUrl, _client);
     }
 
-    public static PachcaClient Stub(BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customproperties = null, FilesService? files = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public static PachcaClient Stub(BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customProperties = null, FilesService? files = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
-        return new PachcaClient(bots ?? new BotsService(), chats ?? new ChatsService(), common ?? new CommonService(), customproperties ?? new CustomPropertiesService(), files ?? new FilesService(), groupTags ?? new GroupTagsService(), linkPreviews ?? new LinkPreviewsService(), members ?? new MembersService(), messages ?? new MessagesService(), oauth ?? new OAuthService(), profile ?? new ProfileService(), reactions ?? new ReactionsService(), readMembers ?? new ReadMembersService(), search ?? new SearchService(), security ?? new SecurityService(), tasks ?? new TasksService(), threads ?? new ThreadsService(), users ?? new UsersService(), views ?? new ViewsService());
+        return new PachcaClient(bots ?? new BotsService(), chats ?? new ChatsService(), common ?? new CommonService(), customProperties ?? new CustomPropertiesService(), files ?? new FilesService(), groupTags ?? new GroupTagsService(), linkPreviews ?? new LinkPreviewsService(), members ?? new MembersService(), messages ?? new MessagesService(), oauth ?? new OAuthService(), profile ?? new ProfileService(), reactions ?? new ReactionsService(), readMembers ?? new ReadMembersService(), search ?? new SearchService(), security ?? new SecurityService(), tasks ?? new TasksService(), threads ?? new ThreadsService(), users ?? new UsersService(), views ?? new ViewsService());
     }
 
     public void Dispose()

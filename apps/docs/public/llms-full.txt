@@ -92,7 +92,7 @@
 | · Views | 24870–25432 |
 | · Bots | 25433–27444 |
 | · Security | 27445–27763 |
-| · CustomProperties | 27764–27973 |
+| · Custom Properties | 27764–27973 |
 | · Files | 27974–28216 |
 
 # LIBRARY RULES
@@ -5362,7 +5362,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
-| `client.customproperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 
@@ -5789,7 +5789,7 @@ await client.close()
 | `client.bots.update_bot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.delete_webhook_event()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |
-| `client.customproperties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.custom_properties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.upload_file()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.get_upload_params()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 
@@ -6205,7 +6205,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Bots.UpdateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.Bots.DeleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.Security.GetAuditEvents()` | [Журнал аудита событий](/api/security/list) |
-| `client.Customproperties.ListProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.CustomProperties.ListProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.Files.GetUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 
@@ -6652,7 +6652,7 @@ client.close()
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
-| `client.customproperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 
@@ -7074,7 +7074,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
-| `client.customproperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 
@@ -7468,7 +7468,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |
 | `client.Bots.DeleteWebhookEventAsync()` | [Удаление события](/api/bots/remove-event) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |
-| `client.Customproperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.CustomProperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFileAsync()` | [Загрузка файла](/api/files/direct-url) |
 | `client.Files.GetUploadParamsAsync()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 
@@ -27761,7 +27761,7 @@ response = await client.security.get_audit_events(params=params)
 
 ---
 
-## API: CustomProperties
+## API: Custom Properties
 
 --- [Document source](https://dev.pachca.com/api/custom-properties/list.md) ---
 
@@ -27952,7 +27952,7 @@ import { PachcaClient, SearchEntityType } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
-const response = client.customproperties.listProperties({ entityType: SearchEntityType.User })
+const response = client.customProperties.listProperties({ entityType: SearchEntityType.User })
 // → ListPropertiesResponse({ data: CustomPropertyDefinition[] })
 ```
 
@@ -27965,7 +27965,7 @@ from pachca.models import ListPropertiesParams, SearchEntityType
 client = PachcaClient("YOUR_TOKEN")
 
 params = ListPropertiesParams(entity_type=SearchEntityType.USER)
-response = await client.customproperties.list_properties(params=params)
+response = await client.custom_properties.list_properties(params=params)
 # → ListPropertiesResponse(data: list[CustomPropertyDefinition])
 ```
 

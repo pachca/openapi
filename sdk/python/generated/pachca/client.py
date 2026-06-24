@@ -891,7 +891,7 @@ class CustomPropertiesService:
         self,
         params: ListPropertiesParams,
     ) -> ListPropertiesResponse:
-        raise NotImplementedError("CustomProperties.listProperties is not implemented")
+        raise NotImplementedError("Custom Properties.listProperties is not implemented")
 
 
 class CustomPropertiesServiceImpl(CustomPropertiesService):
@@ -2669,7 +2669,7 @@ PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, customproperties: CustomPropertiesService | None = None, files: FilesService | None = None, group_tags: GroupTagsService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, oauth: OAuthService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, custom_properties: CustomPropertiesService | None = None, files: FilesService | None = None, group_tags: GroupTagsService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, oauth: OAuthService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
@@ -2678,7 +2678,7 @@ class PachcaClient:
         self.bots: BotsService = bots or BotsServiceImpl(self._client)
         self.chats: ChatsService = chats or ChatsServiceImpl(self._client)
         self.common: CommonService = common or CommonServiceImpl(self._client)
-        self.customproperties: CustomPropertiesService = customproperties or CustomPropertiesServiceImpl(self._client)
+        self.custom_properties: CustomPropertiesService = custom_properties or CustomPropertiesServiceImpl(self._client)
         self.files: FilesService = files or FilesServiceImpl(self._client)
         self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(self._client)
         self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(self._client)
@@ -2705,7 +2705,7 @@ class PachcaClient:
         bots: BotsService | None = None,
         chats: ChatsService | None = None,
         common: CommonService | None = None,
-        customproperties: CustomPropertiesService | None = None,
+        custom_properties: CustomPropertiesService | None = None,
         files: FilesService | None = None,
         group_tags: GroupTagsService | None = None,
         link_previews: LinkPreviewsService | None = None,
@@ -2727,7 +2727,7 @@ class PachcaClient:
         self.bots: BotsService = bots or BotsServiceImpl(client)
         self.chats: ChatsService = chats or ChatsServiceImpl(client)
         self.common: CommonService = common or CommonServiceImpl(client)
-        self.customproperties: CustomPropertiesService = customproperties or CustomPropertiesServiceImpl(client)
+        self.custom_properties: CustomPropertiesService = custom_properties or CustomPropertiesServiceImpl(client)
         self.files: FilesService = files or FilesServiceImpl(client)
         self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(client)
         self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(client)
@@ -2751,7 +2751,7 @@ class PachcaClient:
         bots: BotsService | None = None,
         chats: ChatsService | None = None,
         common: CommonService | None = None,
-        customproperties: CustomPropertiesService | None = None,
+        custom_properties: CustomPropertiesService | None = None,
         files: FilesService | None = None,
         group_tags: GroupTagsService | None = None,
         link_previews: LinkPreviewsService | None = None,
@@ -2773,7 +2773,7 @@ class PachcaClient:
         self.bots = bots or BotsService()
         self.chats = chats or ChatsService()
         self.common = common or CommonService()
-        self.customproperties = customproperties or CustomPropertiesService()
+        self.custom_properties = custom_properties or CustomPropertiesService()
         self.files = files or FilesService()
         self.group_tags = group_tags or GroupTagsService()
         self.link_previews = link_previews or LinkPreviewsService()

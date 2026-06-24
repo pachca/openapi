@@ -155,7 +155,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 ### Security
 - `GET /audit_events` — Get audit events
 
-### CustomProperties
+### Custom Properties
 - `GET /custom_properties` — List properties
 
 ### Files

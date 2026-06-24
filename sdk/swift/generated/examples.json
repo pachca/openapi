@@ -144,7 +144,7 @@
     "usage": "try await client.members.removeMember(id: 334, userId: 186)"
   },
   "CommonOperations_listProperties": {
-    "usage": "let response = try await client.customproperties.listProperties(entityType: .User)",
+    "usage": "let response = try await client.customProperties.listProperties(entityType: .User)",
     "output": "ListPropertiesResponse(data: [CustomPropertyDefinition])",
     "imports": [
       "SearchEntityType"

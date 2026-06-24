@@ -150,7 +150,7 @@
     "usage": "client.Members.RemoveMember(ctx, int32(334), int32(186))"
   },
   "CommonOperations_listProperties": {
-    "usage": "params := ListPropertiesParams{\n\tEntityType: SearchEntityTypeUser,\n}\nresponse, err := client.Customproperties.ListProperties(ctx, params)",
+    "usage": "params := ListPropertiesParams{\n\tEntityType: SearchEntityTypeUser,\n}\nresponse, err := client.CustomProperties.ListProperties(ctx, params)",
     "output": "ListPropertiesResponse{Data: []CustomPropertyDefinition}",
     "imports": [
       "ListPropertiesParams",

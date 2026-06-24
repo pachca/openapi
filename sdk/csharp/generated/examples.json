@@ -147,7 +147,7 @@
     "usage": "await client.Members.RemoveMemberAsync(334, 186);"
   },
   "CommonOperations_listProperties": {
-    "usage": "var response = await client.Customproperties.ListPropertiesAsync(SearchEntityType.User);",
+    "usage": "var response = await client.CustomProperties.ListPropertiesAsync(SearchEntityType.User);",
     "output": "ListPropertiesResponse(Data: List<CustomPropertyDefinition>)",
     "imports": [
       "SearchEntityType"

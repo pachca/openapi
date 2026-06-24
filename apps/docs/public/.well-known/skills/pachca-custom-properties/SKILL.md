@@ -1,12 +1,12 @@
 ---
-name: pachca-customproperties
+name: pachca-custom-properties
 description: >
-  Auto-discovered skill: pachca-customproperties. Use when: GET
+  Auto-discovered skill: pachca-custom-properties. Use when: GET
   /custom_properties.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
-# pachca-customproperties
+# pachca-custom-properties
 
 ## Quick start
 

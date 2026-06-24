@@ -18,7 +18,7 @@ tags:
   - name: Views
   - name: Bots
   - name: Security
-  - name: CustomProperties
+  - name: Custom Properties
   - name: Files
 paths:
   /audit_events:
@@ -1762,7 +1762,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - CustomProperties
+        - Custom Properties
       x-requirements:
         scope: custom_properties:read
   /direct_url:

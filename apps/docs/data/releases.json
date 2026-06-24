@@ -56,7 +56,7 @@
       },
       {
         "type": "~",
-        "description": "Сервисы реорганизованы: загрузка файлов — `client.files`, дополнительные поля — `client.customproperties`, информация о токене — `client.oauth`, unfurl — `client.messages.unfurl()` (бывш. `createLinkPreviews`). Старые имена (`client.common`, `client.linkPreviews.createLinkPreviews()`, `client.profile.getTokenInfo()`) продолжают работать как deprecated-алиасы — существующий код не ломается"
+        "description": "Сервисы реорганизованы: загрузка файлов — `client.files`, дополнительные поля — `client.customProperties`, информация о токене — `client.oauth`, unfurl — `client.messages.unfurl()` (бывш. `createLinkPreviews`). Старые имена (`client.common`, `client.linkPreviews.createLinkPreviews()`, `client.profile.getTokenInfo()`) продолжают работать как deprecated-алиасы — существующий код не ломается"
       }
     ]
   },

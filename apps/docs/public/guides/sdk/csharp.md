@@ -136,7 +136,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |
 | `client.Bots.DeleteWebhookEventAsync()` | [Удаление события](/api/bots/remove-event) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |
-| `client.Customproperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.CustomProperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFileAsync()` | [Загрузка файла](/api/files/direct-url) |
 | `client.Files.GetUploadParamsAsync()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 

@@ -6366,7 +6366,7 @@ interface SecurityOperations {
 // ============================================================================
 
 @route("/custom_properties")
-@tag("CustomProperties")
+@tag("Custom Properties")
 interface CommonOperations {
   @extension("x-requirements", #{
     scope: "custom_properties:read",

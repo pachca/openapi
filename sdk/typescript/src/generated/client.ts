@@ -762,7 +762,7 @@ export class MembersServiceImpl extends MembersService {
 
 export class CustomPropertiesService {
   async listProperties(params: ListPropertiesParams): Promise<ListPropertiesResponse> {
-    throw new Error("CustomProperties.listProperties is not implemented");
+    throw new Error("Custom Properties.listProperties is not implemented");
   }
 }
 
@@ -2333,7 +2333,7 @@ export class PachcaClient {
   readonly chats: ChatsService;
   /** @deprecated Renamed for clarity — use the new service(s). Kept working for backward compatibility. */
   readonly common: CommonService;
-  readonly customproperties: CustomPropertiesService;
+  readonly customProperties: CustomPropertiesService;
   readonly files: FilesService;
   readonly groupTags: GroupTagsService;
   /** @deprecated Renamed for clarity — use the new service(s). Kept working for backward compatibility. */
@@ -2352,8 +2352,8 @@ export class PachcaClient {
   readonly views: ViewsService;
 
   constructor(token: string, baseUrl?: string);
-  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customproperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
-  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customproperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
     let resolvedHeaders: Record<string, string>;
     let resolvedBaseUrl: string;
     if (typeof tokenOrConfig === 'string') {
@@ -2362,7 +2362,7 @@ export class PachcaClient {
       this.bots = new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.chats = new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.common = new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
-      this.customproperties = new CustomPropertiesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.customProperties = new CustomPropertiesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.files = new FilesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.groupTags = new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.linkPreviews = new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -2384,7 +2384,7 @@ export class PachcaClient {
       this.bots = tokenOrConfig.bots ?? new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.chats = tokenOrConfig.chats ?? new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.common = tokenOrConfig.common ?? new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
-      this.customproperties = tokenOrConfig.customproperties ?? new CustomPropertiesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.customProperties = tokenOrConfig.customProperties ?? new CustomPropertiesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.files = tokenOrConfig.files ?? new FilesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.groupTags = tokenOrConfig.groupTags ?? new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.linkPreviews = tokenOrConfig.linkPreviews ?? new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -2403,12 +2403,12 @@ export class PachcaClient {
     }
   }
 
-  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; customproperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
+  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
     client.bots = overrides.bots ?? new BotsService();
     client.chats = overrides.chats ?? new ChatsService();
     client.common = overrides.common ?? new CommonService();
-    client.customproperties = overrides.customproperties ?? new CustomPropertiesService();
+    client.customProperties = overrides.customProperties ?? new CustomPropertiesService();
     client.files = overrides.files ?? new FilesService();
     client.groupTags = overrides.groupTags ?? new GroupTagsService();
     client.linkPreviews = overrides.linkPreviews ?? new LinkPreviewsService();

@@ -143,7 +143,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Bots.UpdateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.Bots.DeleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.Security.GetAuditEvents()` | [Журнал аудита событий](/api/security/list) |
-| `client.Customproperties.ListProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.CustomProperties.ListProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.Files.GetUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 

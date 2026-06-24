@@ -1122,7 +1122,7 @@ Parameters: id
 Retrieve event logs based on the specified filters.
 Parameters: start_time?, end_time?, event_key?, actor_id?, actor_type?, entity_id?, entity_type?, limit?, cursor?
 
-## CustomProperties
+## Custom Properties
 
 ### GET /api/shared/v1/custom_properties
 Working with "File" type custom properties is currently unavailable. Retrieve the current list of custom properties for employees and tasks in your workspace. By default, all entities in your workspace only have basic fields. However, your workspace administrator can add, edit, and delete custom properties. If you use custom properties that are no longer current (deleted or non-existent) when creating employees (or tasks), you will receive an error.

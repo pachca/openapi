@@ -1303,7 +1303,7 @@ type CustomPropertiesService interface {
 type CustomPropertiesServiceStub struct{}
 
 func (s *CustomPropertiesServiceStub) ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error) {
-	return nil, NotImplementedError{Method: "CustomProperties.listProperties"}
+	return nil, NotImplementedError{Method: "Custom Properties.listProperties"}
 }
 
 type CustomPropertiesServiceImpl struct {
@@ -4219,7 +4219,7 @@ type PachcaClient struct {
 	Bots             BotsService
 	Chats            ChatsService
 	Common           CommonService
-	Customproperties CustomPropertiesService
+	CustomProperties CustomPropertiesService
 	Files            FilesService
 	GroupTags        GroupTagsService
 	LinkPreviews     LinkPreviewsService
@@ -4242,7 +4242,7 @@ type clientConfig struct {
 	bots BotsService
 	chats ChatsService
 	common CommonService
-	customproperties CustomPropertiesService
+	customProperties CustomPropertiesService
 	files FilesService
 	groupTags GroupTagsService
 	linkPreviews LinkPreviewsService
@@ -4266,7 +4266,7 @@ type stubClientConfig struct {
 	bots BotsService
 	chats ChatsService
 	common CommonService
-	customproperties CustomPropertiesService
+	customProperties CustomPropertiesService
 	files FilesService
 	groupTags GroupTagsService
 	linkPreviews LinkPreviewsService
@@ -4304,8 +4304,8 @@ func WithCommon(service CommonService) ClientOption {
 	return func(cfg *clientConfig) { cfg.common = service }
 }
 
-func WithCustomproperties(service CustomPropertiesService) ClientOption {
-	return func(cfg *clientConfig) { cfg.customproperties = service }
+func WithCustomProperties(service CustomPropertiesService) ClientOption {
+	return func(cfg *clientConfig) { cfg.customProperties = service }
 }
 
 func WithFiles(service FilesService) ClientOption {
@@ -4380,8 +4380,8 @@ func WithStubCommon(service CommonService) StubClientOption {
 	return func(cfg *stubClientConfig) { cfg.common = service }
 }
 
-func WithStubCustomproperties(service CustomPropertiesService) StubClientOption {
-	return func(cfg *stubClientConfig) { cfg.customproperties = service }
+func WithStubCustomProperties(service CustomPropertiesService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.customProperties = service }
 }
 
 func WithStubFiles(service FilesService) StubClientOption {
@@ -4467,9 +4467,9 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	if cfg.common != nil {
 		common = cfg.common
 	}
-	var customproperties CustomPropertiesService = &CustomPropertiesServiceImpl{baseURL: cfg.baseURL, client: client}
-	if cfg.customproperties != nil {
-		customproperties = cfg.customproperties
+	var customProperties CustomPropertiesService = &CustomPropertiesServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.customProperties != nil {
+		customProperties = cfg.customProperties
 	}
 	var files FilesService = &FilesServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.files != nil {
@@ -4535,7 +4535,7 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 		Bots            : bots,
 		Chats           : chats,
 		Common          : common,
-		Customproperties: customproperties,
+		CustomProperties: customProperties,
 		Files           : files,
 		GroupTags       : groupTags,
 		LinkPreviews    : linkPreviews,
@@ -4571,9 +4571,9 @@ func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...Client
 	if cfg.common != nil {
 		common = cfg.common
 	}
-	var customproperties CustomPropertiesService = &CustomPropertiesServiceImpl{baseURL: cfg.baseURL, client: client}
-	if cfg.customproperties != nil {
-		customproperties = cfg.customproperties
+	var customProperties CustomPropertiesService = &CustomPropertiesServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.customProperties != nil {
+		customProperties = cfg.customProperties
 	}
 	var files FilesService = &FilesServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.files != nil {
@@ -4639,7 +4639,7 @@ func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...Client
 		Bots            : bots,
 		Chats           : chats,
 		Common          : common,
-		Customproperties: customproperties,
+		CustomProperties: customProperties,
 		Files           : files,
 		GroupTags       : groupTags,
 		LinkPreviews    : linkPreviews,
@@ -4675,9 +4675,9 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	if cfg.common != nil {
 		common = cfg.common
 	}
-	var customproperties CustomPropertiesService = &CustomPropertiesServiceStub{}
-	if cfg.customproperties != nil {
-		customproperties = cfg.customproperties
+	var customProperties CustomPropertiesService = &CustomPropertiesServiceStub{}
+	if cfg.customProperties != nil {
+		customProperties = cfg.customProperties
 	}
 	var files FilesService = &FilesServiceStub{}
 	if cfg.files != nil {
@@ -4743,7 +4743,7 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 		Bots            : bots,
 		Chats           : chats,
 		Common          : common,
-		Customproperties: customproperties,
+		CustomProperties: customProperties,
 		Files           : files,
 		GroupTags       : groupTags,
 		LinkPreviews    : linkPreviews,

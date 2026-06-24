@@ -19,5 +19,5 @@ export const TAG_TRANSLATIONS: Record<string, string> = {
   Security: 'Безопасность',
   Search: 'Поиск',
   Files: 'Файлы',
-  CustomProperties: 'Дополнительные поля',
+  'Custom Properties': 'Дополнительные поля',
 };

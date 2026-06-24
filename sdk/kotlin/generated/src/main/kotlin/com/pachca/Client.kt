@@ -665,7 +665,7 @@ class MembersServiceImpl internal constructor(
 
 interface CustomPropertiesService {
     suspend fun listProperties(entityType: SearchEntityType): ListPropertiesResponse {
-        throw NotImplementedError("CustomProperties.listProperties is not implemented")
+        throw NotImplementedError("Custom Properties.listProperties is not implemented")
     }
 }
 
@@ -2095,7 +2095,7 @@ class PachcaClient private constructor(
     val bots: BotsService,
     val chats: ChatsService,
     val common: CommonService,
-    val customproperties: CustomPropertiesService,
+    val customProperties: CustomPropertiesService,
     val files: FilesService,
     val groupTags: GroupTagsService,
     val linkPreviews: LinkPreviewsService,
@@ -2120,7 +2120,7 @@ class PachcaClient private constructor(
             bots: BotsService? = null,
             chats: ChatsService? = null,
             common: CommonService? = null,
-            customproperties: CustomPropertiesService? = null,
+            customProperties: CustomPropertiesService? = null,
             files: FilesService? = null,
             groupTags: GroupTagsService? = null,
             linkPreviews: LinkPreviewsService? = null,
@@ -2143,7 +2143,7 @@ class PachcaClient private constructor(
                 bots = bots ?: BotsServiceImpl(baseUrl, client),
                 chats = chats ?: ChatsServiceImpl(baseUrl, client),
                 common = common ?: CommonServiceImpl(baseUrl, client),
-                customproperties = customproperties ?: CustomPropertiesServiceImpl(baseUrl, client),
+                customProperties = customProperties ?: CustomPropertiesServiceImpl(baseUrl, client),
                 files = files ?: FilesServiceImpl(baseUrl, client),
                 groupTags = groupTags ?: GroupTagsServiceImpl(baseUrl, client),
                 linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client),
@@ -2166,7 +2166,7 @@ class PachcaClient private constructor(
             bots: BotsService = object : BotsService {},
             chats: ChatsService = object : ChatsService {},
             common: CommonService = object : CommonService {},
-            customproperties: CustomPropertiesService = object : CustomPropertiesService {},
+            customProperties: CustomPropertiesService = object : CustomPropertiesService {},
             files: FilesService = object : FilesService {},
             groupTags: GroupTagsService = object : GroupTagsService {},
             linkPreviews: LinkPreviewsService = object : LinkPreviewsService {},
@@ -2187,7 +2187,7 @@ class PachcaClient private constructor(
             bots = bots,
             chats = chats,
             common = common,
-            customproperties = customproperties,
+            customProperties = customProperties,
             files = files,
             groupTags = groupTags,
             linkPreviews = linkPreviews,
@@ -2235,7 +2235,7 @@ class PachcaClient private constructor(
         bots: BotsService? = null,
         chats: ChatsService? = null,
         common: CommonService? = null,
-        customproperties: CustomPropertiesService? = null,
+        customProperties: CustomPropertiesService? = null,
         files: FilesService? = null,
         groupTags: GroupTagsService? = null,
         linkPreviews: LinkPreviewsService? = null,
@@ -2256,7 +2256,7 @@ class PachcaClient private constructor(
         bots = bots ?: BotsServiceImpl(baseUrl, client),
         chats = chats ?: ChatsServiceImpl(baseUrl, client),
         common = common ?: CommonServiceImpl(baseUrl, client),
-        customproperties = customproperties ?: CustomPropertiesServiceImpl(baseUrl, client),
+        customProperties = customProperties ?: CustomPropertiesServiceImpl(baseUrl, client),
         files = files ?: FilesServiceImpl(baseUrl, client),
         groupTags = groupTags ?: GroupTagsServiceImpl(baseUrl, client),
         linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client),

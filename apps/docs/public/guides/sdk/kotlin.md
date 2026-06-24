@@ -151,7 +151,7 @@ client.close()
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
-| `client.customproperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 

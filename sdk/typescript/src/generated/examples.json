@@ -144,7 +144,7 @@
     "usage": "client.members.removeMember(334, 186)"
   },
   "CommonOperations_listProperties": {
-    "usage": "const response = client.customproperties.listProperties({ entityType: SearchEntityType.User })",
+    "usage": "const response = client.customProperties.listProperties({ entityType: SearchEntityType.User })",
     "output": "ListPropertiesResponse({ data: CustomPropertyDefinition[] })",
     "imports": [
       "SearchEntityType"

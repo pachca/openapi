@@ -288,7 +288,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 ## Security
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
 
-## CustomProperties
+## Custom Properties
 - [Список дополнительных полей](https://dev.pachca.com/api/custom-properties/list.md): GET /custom_properties
 
 ## Files

@@ -771,7 +771,7 @@ open class CustomPropertiesService {
     public init() {}
 
     open func listProperties(entityType: SearchEntityType) async throws -> ListPropertiesResponse {
-        throw pachcaNotImplemented("CustomProperties.listProperties")
+        throw pachcaNotImplemented("Custom Properties.listProperties")
     }
 }
 
@@ -2530,7 +2530,7 @@ public struct PachcaClient {
     public let bots: BotsService
     public let chats: ChatsService
     public let common: CommonService
-    public let customproperties: CustomPropertiesService
+    public let customProperties: CustomPropertiesService
     public let files: FilesService
     public let groupTags: GroupTagsService
     public let linkPreviews: LinkPreviewsService
@@ -2547,11 +2547,11 @@ public struct PachcaClient {
     public let users: UsersService
     public let views: ViewsService
 
-    private init(bots: BotsService, chats: ChatsService, common: CommonService, customproperties: CustomPropertiesService, files: FilesService, groupTags: GroupTagsService, linkPreviews: LinkPreviewsService, members: MembersService, messages: MessagesService, oauth: OAuthService, profile: ProfileService, reactions: ReactionsService, readMembers: ReadMembersService, search: SearchService, security: SecurityService, tasks: TasksService, threads: ThreadsService, users: UsersService, views: ViewsService) {
+    private init(bots: BotsService, chats: ChatsService, common: CommonService, customProperties: CustomPropertiesService, files: FilesService, groupTags: GroupTagsService, linkPreviews: LinkPreviewsService, members: MembersService, messages: MessagesService, oauth: OAuthService, profile: ProfileService, reactions: ReactionsService, readMembers: ReadMembersService, search: SearchService, security: SecurityService, tasks: TasksService, threads: ThreadsService, users: UsersService, views: ViewsService) {
         self.bots = bots
         self.chats = chats
         self.common = common
-        self.customproperties = customproperties
+        self.customProperties = customProperties
         self.files = files
         self.groupTags = groupTags
         self.linkPreviews = linkPreviews
@@ -2569,13 +2569,13 @@ public struct PachcaClient {
         self.views = views
     }
 
-    public init(token: String, baseURL: String = pachcaAPIURL, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customproperties: CustomPropertiesService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             bots: bots ?? BotsServiceImpl(baseURL: baseURL, headers: headers),
             chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers),
             common: common ?? CommonServiceImpl(baseURL: baseURL, headers: headers),
-            customproperties: customproperties ?? CustomPropertiesServiceImpl(baseURL: baseURL, headers: headers),
+            customProperties: customProperties ?? CustomPropertiesServiceImpl(baseURL: baseURL, headers: headers),
             files: files ?? FilesServiceImpl(baseURL: baseURL, headers: headers),
             groupTags: groupTags ?? GroupTagsServiceImpl(baseURL: baseURL, headers: headers),
             linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers),
@@ -2594,12 +2594,12 @@ public struct PachcaClient {
         )
     }
 
-    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customproperties: CustomPropertiesService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
         self.init(
             bots: bots ?? BotsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             common: common ?? CommonServiceImpl(baseURL: baseURL, headers: headers, session: session),
-            customproperties: customproperties ?? CustomPropertiesServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            customProperties: customProperties ?? CustomPropertiesServiceImpl(baseURL: baseURL, headers: headers, session: session),
             files: files ?? FilesServiceImpl(baseURL: baseURL, headers: headers, session: session),
             groupTags: groupTags ?? GroupTagsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers, session: session),
@@ -2618,12 +2618,12 @@ public struct PachcaClient {
         )
     }
 
-    public static func stub(bots: BotsService = BotsService(), chats: ChatsService = ChatsService(), common: CommonService = CommonService(), customproperties: CustomPropertiesService = CustomPropertiesService(), files: FilesService = FilesService(), groupTags: GroupTagsService = GroupTagsService(), linkPreviews: LinkPreviewsService = LinkPreviewsService(), members: MembersService = MembersService(), messages: MessagesService = MessagesService(), oauth: OAuthService = OAuthService(), profile: ProfileService = ProfileService(), reactions: ReactionsService = ReactionsService(), readMembers: ReadMembersService = ReadMembersService(), search: SearchService = SearchService(), security: SecurityService = SecurityService(), tasks: TasksService = TasksService(), threads: ThreadsService = ThreadsService(), users: UsersService = UsersService(), views: ViewsService = ViewsService()) -> PachcaClient {
+    public static func stub(bots: BotsService = BotsService(), chats: ChatsService = ChatsService(), common: CommonService = CommonService(), customProperties: CustomPropertiesService = CustomPropertiesService(), files: FilesService = FilesService(), groupTags: GroupTagsService = GroupTagsService(), linkPreviews: LinkPreviewsService = LinkPreviewsService(), members: MembersService = MembersService(), messages: MessagesService = MessagesService(), oauth: OAuthService = OAuthService(), profile: ProfileService = ProfileService(), reactions: ReactionsService = ReactionsService(), readMembers: ReadMembersService = ReadMembersService(), search: SearchService = SearchService(), security: SecurityService = SecurityService(), tasks: TasksService = TasksService(), threads: ThreadsService = ThreadsService(), users: UsersService = UsersService(), views: ViewsService = ViewsService()) -> PachcaClient {
         PachcaClient(
             bots: bots,
             chats: chats,
             common: common,
-            customproperties: customproperties,
+            customProperties: customProperties,
             files: files,
             groupTags: groupTags,
             linkPreviews: linkPreviews,

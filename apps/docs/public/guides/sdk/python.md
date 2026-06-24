@@ -141,7 +141,7 @@ await client.close()
 | `client.bots.update_bot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.delete_webhook_event()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |
-| `client.customproperties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.custom_properties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.upload_file()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.get_upload_params()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 

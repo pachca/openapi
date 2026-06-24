@@ -150,7 +150,7 @@
     "usage": "await client.members.remove_member(id=334, user_id=186)"
   },
   "CommonOperations_listProperties": {
-    "usage": "params = ListPropertiesParams(entity_type=SearchEntityType.USER)\nresponse = await client.customproperties.list_properties(params=params)",
+    "usage": "params = ListPropertiesParams(entity_type=SearchEntityType.USER)\nresponse = await client.custom_properties.list_properties(params=params)",
     "output": "ListPropertiesResponse(data: list[CustomPropertyDefinition])",
     "imports": [
       "ListPropertiesParams",

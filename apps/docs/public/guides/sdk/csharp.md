@@ -318,11 +318,11 @@ var users = await client.Users.ListUsersAsync(cancellationToken: cts.Token);
 
 ```csharp
 // 1. Получить параметры загрузки
-var uploadParams = await client.Common.GetUploadParamsAsync();
+var uploadParams = await client.Files.GetUploadParamsAsync();
 
 // 2. Загрузить файл на S3
 using var fileStream = File.OpenRead("photo.png");
-await client.Common.UploadFileAsync(uploadParams, fileStream, "photo.png");
+await client.Files.UploadFileAsync(uploadParams, fileStream, "photo.png");
 
 // 3. Прикрепить к сообщению (используя key из uploadParams)
 await client.Messages.CreateMessageAsync(new MessageCreateRequest

@@ -69,8 +69,8 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Chats.CreateChatAsync()` | [Новый чат](/api/chats/create) |
 | `client.Chats.RequestExportAsync()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.Chats.ListChatsAsync()` | [Список чатов](/api/chats/list) |
-| `client.Chats.DownloadExportAsync()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.Chats.GetChatAsync()` | [Информация о чате](/api/chats/get) |
+| `client.Chats.DownloadExportAsync()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.Chats.UpdateChatAsync()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChatAsync()` | [Архивация чата](/api/chats/archive) |
 | `client.Chats.UnarchiveChatAsync()` | [Разархивация чата](/api/chats/unarchive) |
@@ -100,8 +100,8 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Members.AddMembersAsync()` | [Добавление пользователей](/api/members/add) |
 | `client.Members.ListMembersAsync()` | [Список участников чата](/api/members/list) |
 | `client.Members.UpdateMemberRoleAsync()` | [Редактирование роли](/api/members/update) |
-| `client.Members.RemoveTagAsync()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.LeaveChatAsync()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.Members.RemoveTagAsync()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.RemoveMemberAsync()` | [Исключение пользователя](/api/members/remove) |
 | `client.Threads.CreateThreadAsync()` | [Новый тред](/api/threads/add) |
 | `client.Threads.ListThreadsAsync()` | [Список тредов](/api/threads/list) |
@@ -127,8 +127,8 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Tasks.UpdateTaskAsync()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.Tasks.DeleteTaskAsync()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.Views.OpenViewAsync()` | [Открытие представления](/api/views/open) |
-| `client.Bots.SelfRecreateBotTokenAsync()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.CreateBotAsync()` | [Новый бот](/api/bots/create) |
+| `client.Bots.SelfRecreateBotTokenAsync()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.RecreateBotTokenAsync()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.Bots.GetBotAsync()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.GetWebhookEventsAsync()` | [История событий](/api/bots/list-events) |

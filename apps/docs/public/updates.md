@@ -42,7 +42,7 @@ _24 июня 2026_
 - Метод `Ротация собственного токена бота` (`POST /bot/recreate_token`)
 - У бота поля настроек вебхука: `ignore_self_messages`, `events_history_enabled`
 - Журнал аудита: новые типы событий `bot_token_recreated`, `bot_scopes_updated`, `bot_webhook_settings_updated`
-- Сервисы реорганизованы: загрузка файлов — `client.files`, дополнительные поля — `client.customproperties`, информация о токене — `client.oauth`, unfurl — `client.messages`. Старые имена (`client.common`, `client.linkPreviews`, `client.profile.getTokenInfo`) продолжают работать как deprecated-алиасы — существующий код не ломается
+- Сервисы реорганизованы: загрузка файлов — `client.files`, дополнительные поля — `client.customproperties`, информация о токене — `client.oauth`, unfurl — `client.messages.unfurl()` (бывш. `createLinkPreviews`). Старые имена (`client.common`, `client.linkPreviews.createLinkPreviews()`, `client.profile.getTokenInfo()`) продолжают работать как deprecated-алиасы — существующий код не ломается
 
 ### n8n Node v2.0.13
 

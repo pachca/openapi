@@ -5295,8 +5295,8 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.chats.createChat()` | [Новый чат](/api/chats/create) |
 | `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.chats.listChats()` | [Список чатов](/api/chats/list) |
-| `client.chats.downloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.getChat()` | [Информация о чате](/api/chats/get) |
+| `client.chats.downloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.updateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archiveChat()` | [Архивация чата](/api/chats/archive) |
 | `client.chats.unarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
@@ -5326,8 +5326,8 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.members.addMembers()` | [Добавление пользователей](/api/members/add) |
 | `client.members.listMembers()` | [Список участников чата](/api/members/list) |
 | `client.members.updateMemberRole()` | [Редактирование роли](/api/members/update) |
-| `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.leaveChat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.createThread()` | [Новый тред](/api/threads/add) |
 | `client.threads.listThreads()` | [Список тредов](/api/threads/list) |
@@ -5353,8 +5353,8 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.tasks.updateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.deleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.openView()` | [Открытие представления](/api/views/open) |
-| `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
+| `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
@@ -5722,8 +5722,8 @@ await client.close()
 | `client.chats.create_chat()` | [Новый чат](/api/chats/create) |
 | `client.chats.request_export()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.chats.list_chats()` | [Список чатов](/api/chats/list) |
-| `client.chats.download_export()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.get_chat()` | [Информация о чате](/api/chats/get) |
+| `client.chats.download_export()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.update_chat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archive_chat()` | [Архивация чата](/api/chats/archive) |
 | `client.chats.unarchive_chat()` | [Разархивация чата](/api/chats/unarchive) |
@@ -5753,8 +5753,8 @@ await client.close()
 | `client.members.add_members()` | [Добавление пользователей](/api/members/add) |
 | `client.members.list_members()` | [Список участников чата](/api/members/list) |
 | `client.members.update_member_role()` | [Редактирование роли](/api/members/update) |
-| `client.members.remove_tag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.leave_chat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.members.remove_tag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.remove_member()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.create_thread()` | [Новый тред](/api/threads/add) |
 | `client.threads.list_threads()` | [Список тредов](/api/threads/list) |
@@ -5780,8 +5780,8 @@ await client.close()
 | `client.tasks.update_task()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.delete_task()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.open_view()` | [Открытие представления](/api/views/open) |
-| `client.bots.self_recreate_bot_token()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.create_bot()` | [Новый бот](/api/bots/create) |
+| `client.bots.self_recreate_bot_token()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreate_bot_token()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.bots.get_bot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.get_webhook_events()` | [История событий](/api/bots/list-events) |
@@ -6138,8 +6138,8 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Chats.CreateChat()` | [Новый чат](/api/chats/create) |
 | `client.Chats.RequestExport()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.Chats.ListChats()` | [Список чатов](/api/chats/list) |
-| `client.Chats.DownloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.Chats.GetChat()` | [Информация о чате](/api/chats/get) |
+| `client.Chats.DownloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.Chats.UpdateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChat()` | [Архивация чата](/api/chats/archive) |
 | `client.Chats.UnarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
@@ -6169,8 +6169,8 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Members.AddMembers()` | [Добавление пользователей](/api/members/add) |
 | `client.Members.ListMembers()` | [Список участников чата](/api/members/list) |
 | `client.Members.UpdateMemberRole()` | [Редактирование роли](/api/members/update) |
-| `client.Members.RemoveTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.LeaveChat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.Members.RemoveTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.RemoveMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.Threads.CreateThread()` | [Новый тред](/api/threads/add) |
 | `client.Threads.ListThreads()` | [Список тредов](/api/threads/list) |
@@ -6196,8 +6196,8 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Tasks.UpdateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.Tasks.DeleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.Views.OpenView()` | [Открытие представления](/api/views/open) |
-| `client.Bots.SelfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.CreateBot()` | [Новый бот](/api/bots/create) |
+| `client.Bots.SelfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.RecreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.Bots.GetBot()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.GetWebhookEvents()` | [История событий](/api/bots/list-events) |
@@ -6585,8 +6585,8 @@ client.close()
 | `client.chats.createChat()` | [Новый чат](/api/chats/create) |
 | `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.chats.listChats()` | [Список чатов](/api/chats/list) |
-| `client.chats.downloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.getChat()` | [Информация о чате](/api/chats/get) |
+| `client.chats.downloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.updateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archiveChat()` | [Архивация чата](/api/chats/archive) |
 | `client.chats.unarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
@@ -6616,8 +6616,8 @@ client.close()
 | `client.members.addMembers()` | [Добавление пользователей](/api/members/add) |
 | `client.members.listMembers()` | [Список участников чата](/api/members/list) |
 | `client.members.updateMemberRole()` | [Редактирование роли](/api/members/update) |
-| `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.leaveChat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.createThread()` | [Новый тред](/api/threads/add) |
 | `client.threads.listThreads()` | [Список тредов](/api/threads/list) |
@@ -6643,8 +6643,8 @@ client.close()
 | `client.tasks.updateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.deleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.openView()` | [Открытие представления](/api/views/open) |
-| `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
+| `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
@@ -7007,8 +7007,8 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.chats.createChat()` | [Новый чат](/api/chats/create) |
 | `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.chats.listChats()` | [Список чатов](/api/chats/list) |
-| `client.chats.downloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.getChat()` | [Информация о чате](/api/chats/get) |
+| `client.chats.downloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.updateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archiveChat()` | [Архивация чата](/api/chats/archive) |
 | `client.chats.unarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
@@ -7038,8 +7038,8 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.members.addMembers()` | [Добавление пользователей](/api/members/add) |
 | `client.members.listMembers()` | [Список участников чата](/api/members/list) |
 | `client.members.updateMemberRole()` | [Редактирование роли](/api/members/update) |
-| `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.leaveChat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.createThread()` | [Новый тред](/api/threads/add) |
 | `client.threads.listThreads()` | [Список тредов](/api/threads/list) |
@@ -7065,8 +7065,8 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.tasks.updateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.deleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.openView()` | [Открытие представления](/api/views/open) |
-| `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
+| `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
@@ -7401,8 +7401,8 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Chats.CreateChatAsync()` | [Новый чат](/api/chats/create) |
 | `client.Chats.RequestExportAsync()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.Chats.ListChatsAsync()` | [Список чатов](/api/chats/list) |
-| `client.Chats.DownloadExportAsync()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.Chats.GetChatAsync()` | [Информация о чате](/api/chats/get) |
+| `client.Chats.DownloadExportAsync()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.Chats.UpdateChatAsync()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChatAsync()` | [Архивация чата](/api/chats/archive) |
 | `client.Chats.UnarchiveChatAsync()` | [Разархивация чата](/api/chats/unarchive) |
@@ -7432,8 +7432,8 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Members.AddMembersAsync()` | [Добавление пользователей](/api/members/add) |
 | `client.Members.ListMembersAsync()` | [Список участников чата](/api/members/list) |
 | `client.Members.UpdateMemberRoleAsync()` | [Редактирование роли](/api/members/update) |
-| `client.Members.RemoveTagAsync()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.LeaveChatAsync()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.Members.RemoveTagAsync()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.RemoveMemberAsync()` | [Исключение пользователя](/api/members/remove) |
 | `client.Threads.CreateThreadAsync()` | [Новый тред](/api/threads/add) |
 | `client.Threads.ListThreadsAsync()` | [Список тредов](/api/threads/list) |
@@ -7459,8 +7459,8 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Tasks.UpdateTaskAsync()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.Tasks.DeleteTaskAsync()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.Views.OpenViewAsync()` | [Открытие представления](/api/views/open) |
-| `client.Bots.SelfRecreateBotTokenAsync()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.CreateBotAsync()` | [Новый бот](/api/bots/create) |
+| `client.Bots.SelfRecreateBotTokenAsync()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.RecreateBotTokenAsync()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.Bots.GetBotAsync()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.GetWebhookEventsAsync()` | [История событий](/api/bots/list-events) |

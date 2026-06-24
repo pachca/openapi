@@ -74,8 +74,8 @@ await client.close()
 | `client.chats.create_chat()` | [Новый чат](/api/chats/create) |
 | `client.chats.request_export()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.chats.list_chats()` | [Список чатов](/api/chats/list) |
-| `client.chats.download_export()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.get_chat()` | [Информация о чате](/api/chats/get) |
+| `client.chats.download_export()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.update_chat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archive_chat()` | [Архивация чата](/api/chats/archive) |
 | `client.chats.unarchive_chat()` | [Разархивация чата](/api/chats/unarchive) |
@@ -105,8 +105,8 @@ await client.close()
 | `client.members.add_members()` | [Добавление пользователей](/api/members/add) |
 | `client.members.list_members()` | [Список участников чата](/api/members/list) |
 | `client.members.update_member_role()` | [Редактирование роли](/api/members/update) |
-| `client.members.remove_tag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.leave_chat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.members.remove_tag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.remove_member()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.create_thread()` | [Новый тред](/api/threads/add) |
 | `client.threads.list_threads()` | [Список тредов](/api/threads/list) |
@@ -132,8 +132,8 @@ await client.close()
 | `client.tasks.update_task()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.delete_task()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.open_view()` | [Открытие представления](/api/views/open) |
-| `client.bots.self_recreate_bot_token()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.create_bot()` | [Новый бот](/api/bots/create) |
+| `client.bots.self_recreate_bot_token()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreate_bot_token()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.bots.get_bot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.get_webhook_events()` | [История событий](/api/bots/list-events) |

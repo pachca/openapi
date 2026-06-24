@@ -76,8 +76,8 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Chats.CreateChat()` | [Новый чат](/api/chats/create) |
 | `client.Chats.RequestExport()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.Chats.ListChats()` | [Список чатов](/api/chats/list) |
-| `client.Chats.DownloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.Chats.GetChat()` | [Информация о чате](/api/chats/get) |
+| `client.Chats.DownloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.Chats.UpdateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChat()` | [Архивация чата](/api/chats/archive) |
 | `client.Chats.UnarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
@@ -107,8 +107,8 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Members.AddMembers()` | [Добавление пользователей](/api/members/add) |
 | `client.Members.ListMembers()` | [Список участников чата](/api/members/list) |
 | `client.Members.UpdateMemberRole()` | [Редактирование роли](/api/members/update) |
-| `client.Members.RemoveTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.LeaveChat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.Members.RemoveTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.RemoveMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.Threads.CreateThread()` | [Новый тред](/api/threads/add) |
 | `client.Threads.ListThreads()` | [Список тредов](/api/threads/list) |
@@ -134,8 +134,8 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Tasks.UpdateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.Tasks.DeleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.Views.OpenView()` | [Открытие представления](/api/views/open) |
-| `client.Bots.SelfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.CreateBot()` | [Новый бот](/api/bots/create) |
+| `client.Bots.SelfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.RecreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.Bots.GetBot()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.GetWebhookEvents()` | [История событий](/api/bots/list-events) |

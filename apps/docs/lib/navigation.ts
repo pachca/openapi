@@ -24,6 +24,25 @@ export { TAG_TRANSLATIONS };
 const METHOD_ORDER: Record<string, number> = { POST: 0, GET: 1, PUT: 2, PATCH: 3, DELETE: 4 };
 
 /**
+ * Order endpoints within a tag group: first by HTTP method (POST→GET→PUT…), then by
+ * path depth so a collection-root operation (the "create", e.g. POST /bots) leads the
+ * group ahead of nested or self paths (POST /bot/recreate_token, POST /bots/{id}/…).
+ * Without the depth tie-break, alphabetical path order put "/bot/…" before "/bots",
+ * pushing "Новый…" below the self-token endpoint. Stable sort keeps spec order within
+ * the same (method, depth). Shared by the sidebar, group redirects and generated .md
+ * so all three list endpoints identically.
+ */
+export function compareEndpointsForNav(
+  a: { method: string; path: string },
+  b: { method: string; path: string }
+): number {
+  const byMethod = (METHOD_ORDER[a.method] ?? 99) - (METHOD_ORDER[b.method] ?? 99);
+  if (byMethod !== 0) return byMethod;
+  const depth = (p: string) => p.split('/').filter(Boolean).length;
+  return depth(a.path) - depth(b.path);
+}
+
+/**
  * Generate navigation for a specific tab.
  */
 export async function generateNavigation(tab?: TabId): Promise<NavigationSection[]> {
@@ -173,7 +192,7 @@ async function generateApiNavigation(): Promise<NavigationSection[]> {
 
   for (const tag of sortedTags) {
     const endpoints = grouped.get(tag)!;
-    endpoints.sort((a, b) => (METHOD_ORDER[a.method] ?? 99) - (METHOD_ORDER[b.method] ?? 99));
+    endpoints.sort(compareEndpointsForNav);
     const translation = TAG_TRANSLATIONS[tag];
     const title = translation || tag;
 
@@ -255,9 +274,7 @@ export async function getApiGroupFirstHref(segment: string): Promise<string | nu
     .map((endpoint) => ({ endpoint, href: generateUrlFromOperation(endpoint) }))
     .filter((item) => item.href.startsWith(prefix));
   if (matches.length === 0) return null;
-  matches.sort(
-    (a, b) => (METHOD_ORDER[a.endpoint.method] ?? 99) - (METHOD_ORDER[b.endpoint.method] ?? 99)
-  );
+  matches.sort((a, b) => compareEndpointsForNav(a.endpoint, b.endpoint));
   return matches[0].href;
 }
 

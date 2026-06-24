@@ -28,7 +28,7 @@ print("  Size: \(fileSize) bytes")
 // ── Step 2: Get upload params ───────────────────────────────────
 
 print("Step 2: Getting upload params...")
-let params = try await client.common.getUploadParams()
+let params = try await client.files.getUploadParams()
 let key = params.key.replacingOccurrences(of: "${filename}", with: filename)
 print("  Got direct_url: \(params.directUrl)")
 
@@ -46,7 +46,7 @@ var uploadRequest = FileUploadRequest(
     key: key,
     file: fileData
 )
-try await client.common.uploadFile(directUrl: params.directUrl, request: uploadRequest)
+try await client.files.uploadFile(directUrl: params.directUrl, request: uploadRequest)
 print("  Uploaded, key: \(key)")
 
 // ── Step 4: Send message with the file attached ─────────────────

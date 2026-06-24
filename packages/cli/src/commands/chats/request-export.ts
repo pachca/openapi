@@ -3,13 +3,14 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
-export default class CommonRequestExport extends BaseCommand {
+export default class ChatsRequestExport extends BaseCommand {
   static override description = "Экспорт сообщений";
 
   static override examples = [
-      "Экспорт истории чата:\n  $ pachca common request-export"
+      "Экспорт истории чата:\n  $ pachca chats request-export"
   ];
 
+  static override hiddenAliases = ["common:request-export"];
   static scope = "chat_exports:write";
   static plan = "corporation";
   static apiMethod = "POST";
@@ -41,7 +42,7 @@ export default class CommonRequestExport extends BaseCommand {
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(CommonRequestExport);
+    const { args, flags } = await this.parse(ChatsRequestExport);
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
@@ -62,7 +63,7 @@ export default class CommonRequestExport extends BaseCommand {
       } else {
         this.validationError(
           missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
-          { hint: "Обязательные: --start-at <string>, --end-at <string>, --webhook-url <string>. pachca introspect common request-export" },
+          { hint: "Обязательные: --start-at <string>, --end-at <string>, --webhook-url <string>. pachca introspect chats request-export" },
         );
       }
     }

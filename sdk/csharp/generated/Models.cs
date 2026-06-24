@@ -82,6 +82,12 @@ public enum AuditEventKey
     SearchChatsApi,
     /// <summary>Поиск сообщений через API</summary>
     SearchMessagesApi,
+    /// <summary>Изменены скоупы токена бота</summary>
+    BotScopesUpdated,
+    /// <summary>Изменены настройки исходящего вебхука бота</summary>
+    BotWebhookSettingsUpdated,
+    /// <summary>Токен бота перевыпущен (ротация)</summary>
+    BotTokenRecreated,
 }
 
 internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
@@ -126,6 +132,9 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             "search_users_api" => AuditEventKey.SearchUsersApi,
             "search_chats_api" => AuditEventKey.SearchChatsApi,
             "search_messages_api" => AuditEventKey.SearchMessagesApi,
+            "bot_scopes_updated" => AuditEventKey.BotScopesUpdated,
+            "bot_webhook_settings_updated" => AuditEventKey.BotWebhookSettingsUpdated,
+            "bot_token_recreated" => AuditEventKey.BotTokenRecreated,
             _ => throw new JsonException($"Unknown AuditEventKey value: {value}"),
         };
     }
@@ -169,6 +178,9 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             AuditEventKey.SearchUsersApi => "search_users_api",
             AuditEventKey.SearchChatsApi => "search_chats_api",
             AuditEventKey.SearchMessagesApi => "search_messages_api",
+            AuditEventKey.BotScopesUpdated => "bot_scopes_updated",
+            AuditEventKey.BotWebhookSettingsUpdated => "bot_webhook_settings_updated",
+            AuditEventKey.BotTokenRecreated => "bot_token_recreated",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -1504,6 +1516,16 @@ public enum ValidationErrorCode
     MaxLength,
     /// <summary>Использовано зарезервированное системное слово (here, all)</summary>
     UseOfSystemWords,
+    /// <summary>Файл экспорта не найден или ещё не готов</summary>
+    ExportFileNotFound,
+    /// <summary>Нельзя исключить владельца чата</summary>
+    CannotKickOwner,
+    /// <summary>Не удалось закрепить сообщение</summary>
+    PinFailed,
+    /// <summary>Сообщение удалено</summary>
+    MessageDeleted,
+    /// <summary>Нельзя создать тред для сообщения, которое уже находится в треде</summary>
+    ThreadMessage,
 }
 
 internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
@@ -1549,6 +1571,11 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             "min_length" => ValidationErrorCode.MinLength,
             "max_length" => ValidationErrorCode.MaxLength,
             "use_of_system_words" => ValidationErrorCode.UseOfSystemWords,
+            "export_file_not_found" => ValidationErrorCode.ExportFileNotFound,
+            "cannot_kick_owner" => ValidationErrorCode.CannotKickOwner,
+            "pin_failed" => ValidationErrorCode.PinFailed,
+            "message_deleted" => ValidationErrorCode.MessageDeleted,
+            "thread_message" => ValidationErrorCode.ThreadMessage,
             _ => throw new JsonException($"Unknown ValidationErrorCode value: {value}"),
         };
     }
@@ -1593,6 +1620,11 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             ValidationErrorCode.MinLength => "min_length",
             ValidationErrorCode.MaxLength => "max_length",
             ValidationErrorCode.UseOfSystemWords => "use_of_system_words",
+            ValidationErrorCode.ExportFileNotFound => "export_file_not_found",
+            ValidationErrorCode.CannotKickOwner => "cannot_kick_owner",
+            ValidationErrorCode.PinFailed => "pin_failed",
+            ValidationErrorCode.MessageDeleted => "message_deleted",
+            ValidationErrorCode.ThreadMessage => "thread_message",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -1653,6 +1685,8 @@ internal class WebhookEventTypeConverter : JsonConverter<WebhookEventType>
 [JsonDerivedType(typeof(AuditDetailsKms), "")]
 [JsonDerivedType(typeof(AuditDetailsDlp), "")]
 [JsonDerivedType(typeof(AuditDetailsSearch), "")]
+[JsonDerivedType(typeof(AuditDetailsBotScopes), "")]
+[JsonDerivedType(typeof(AuditDetailsBotWebhookSettings), "")]
 public abstract class AuditEventDetailsUnion
 {
     [JsonPropertyName("type")]
@@ -1785,6 +1819,22 @@ public class AuditDetailsSearch : AuditEventDetailsUnion
     public int Limit { get; set; } = default!;
     [JsonPropertyName("filters")]
     public Dictionary<string, string> Filters { get; set; } = default!;
+}
+
+public class AuditDetailsBotScopes : AuditEventDetailsUnion
+{
+    public override string Type => "";
+    [JsonPropertyName("added_scopes")]
+    public List<string> AddedScopes { get; set; } = default!;
+    [JsonPropertyName("removed_scopes")]
+    public List<string> RemovedScopes { get; set; } = default!;
+}
+
+public class AuditDetailsBotWebhookSettings : AuditEventDetailsUnion
+{
+    public override string Type => "";
+    [JsonPropertyName("changes")]
+    public Dictionary<string, string> Changes { get; set; } = default!;
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
@@ -2251,6 +2301,10 @@ public class BotCreateRequestWebhook
     public string? ChallengeKey { get; set; }
     [JsonPropertyName("link_preview_enabled")]
     public bool? LinkPreviewEnabled { get; set; }
+    [JsonPropertyName("ignore_self_messages")]
+    public bool? IgnoreSelfMessages { get; set; }
+    [JsonPropertyName("events_history_enabled")]
+    public bool? EventsHistoryEnabled { get; set; }
 }
 
 public class BotCreateRequest
@@ -2301,6 +2355,10 @@ public class BotUpdateRequestWebhook
     public string? ChallengeKey { get; set; }
     [JsonPropertyName("link_preview_enabled")]
     public bool? LinkPreviewEnabled { get; set; }
+    [JsonPropertyName("ignore_self_messages")]
+    public bool? IgnoreSelfMessages { get; set; }
+    [JsonPropertyName("events_history_enabled")]
+    public bool? EventsHistoryEnabled { get; set; }
 }
 
 public class BotUpdateRequest
@@ -2333,6 +2391,10 @@ public class BotWebhook
     public string? ChallengeKey { get; set; }
     [JsonPropertyName("link_preview_enabled")]
     public bool LinkPreviewEnabled { get; set; } = default!;
+    [JsonPropertyName("ignore_self_messages")]
+    public bool IgnoreSelfMessages { get; set; } = default!;
+    [JsonPropertyName("events_history_enabled")]
+    public bool EventsHistoryEnabled { get; set; } = default!;
 }
 
 public class BotWebhookSelfUpdateRequestWebhook

@@ -1180,8 +1180,10 @@ function swiftGenerateExamples(ir: IR): string {
   };
 
   for (const svc of ir.services) {
+    if (svc.deprecated) continue; // backward-compat alias service — document new names only
     const serviceProp = tagToProperty(svc.tag);
     for (const op of svc.operations) {
+      if (op.isAlias) continue; // alias op — documented under its new service
       const ex = swiftBuildOperationExample(op, ir, models, serviceProp);
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;

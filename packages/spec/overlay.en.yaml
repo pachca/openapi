@@ -45,7 +45,7 @@ actions:
         Edit a bot's settings.
 
 
-        To edit a bot you need to know its `user_id` and specify it in the request `URL`. All editable bot parameters
+        To edit a bot you need to know its `id` and specify it in the request `URL`. All editable bot parameters
         are specified in the request body.
 
 
@@ -1183,6 +1183,23 @@ actions:
       description: >-
         Applied filters. Possible keys depend on the search type: order, sort, created_from, created_to, company_roles
         (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)
+  - target: $.components.schemas.AuditDetailsBotScopes
+    update:
+      description: 'For: bot_scopes_updated'
+  - target: $.components.schemas.AuditDetailsBotScopes.properties.added_scopes
+    update:
+      description: Scopes added to the bot token
+  - target: $.components.schemas.AuditDetailsBotScopes.properties.removed_scopes
+    update:
+      description: Scopes revoked from the bot token
+  - target: $.components.schemas.AuditDetailsBotWebhookSettings
+    update:
+      description: 'For: bot_webhook_settings_updated'
+  - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.changes
+    update:
+      description: >-
+        Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages,
+        events_history_enabled), the value is an object with previous and new fields
   - target: $.components.schemas.AuditDetailsTagChat
     update:
       description: 'For: tag_added_to_chat'
@@ -1289,6 +1306,9 @@ actions:
         search_users_api: Employee search via API
         search_chats_api: Chat search via API
         search_messages_api: Message search via API
+        bot_scopes_updated: Bot token scopes changed
+        bot_webhook_settings_updated: Bot outgoing webhook settings changed
+        bot_token_recreated: Bot token recreated (rotation)
   - target: $.components.schemas.AvatarData
     update:
       description: Avatar data
@@ -1322,6 +1342,12 @@ actions:
   - target: $.components.schemas.BotResponse.properties.webhook.properties.link_preview_enabled
     update:
       description: Show link previews in incoming webhook messages
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.ignore_self_messages
+    update:
+      description: Ignore incoming messages sent by the bot itself
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.events_history_enabled
+    update:
+      description: Save the bot's event history for later retrieval via the event history method
   - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.scopes
     update:
       description: Bot token scopes (permissions)
@@ -1337,6 +1363,12 @@ actions:
   - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.link_preview_enabled
     update:
       description: Show link previews in incoming webhook messages
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.ignore_self_messages
+    update:
+      description: Ignore incoming messages sent by the bot itself
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.events_history_enabled
+    update:
+      description: Save the bot's event history for later retrieval via the event history method
   - target: $.components.schemas.BotUpdateRequest
     update:
       description: Bot update request
@@ -1376,6 +1408,12 @@ actions:
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.link_preview_enabled
     update:
       description: Show link previews in incoming webhook messages
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.ignore_self_messages
+    update:
+      description: Ignore incoming messages sent by the bot itself
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.events_history_enabled
+    update:
+      description: Save the bot's event history for later retrieval via the event history method
   - target: $.paths['/bots'].post
     update:
       description: >-
@@ -1393,7 +1431,7 @@ actions:
         Bot info
 
 
-        Retrieves bot parameters by its `user_id`.
+        Retrieves bot parameters by its `id`.
   - target: $.paths['/bots/{id}'].get.parameters[?(@.name=='id')]
     update:
       description: Bot ID
@@ -1469,6 +1507,12 @@ actions:
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.link_preview_enabled
     update:
       description: Show link previews in incoming webhook messages
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.ignore_self_messages
+    update:
+      description: Ignore incoming messages sent by the bot itself
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.events_history_enabled
+    update:
+      description: Save the bot's event history for later retrieval via the event history method
   - target: $.components.schemas.BotWebhook
     update:
       description: Bot webhook parameters
@@ -1505,6 +1549,12 @@ actions:
   - target: $.components.schemas.BotWebhook.properties.link_preview_enabled
     update:
       description: Show link previews in incoming webhook messages
+  - target: $.components.schemas.BotWebhook.properties.ignore_self_messages
+    update:
+      description: Ignore incoming messages sent by the bot itself
+  - target: $.components.schemas.BotWebhook.properties.events_history_enabled
+    update:
+      description: Save the bot's event history for later retrieval via the event history method
   - target: $.components.schemas.BotWebhookSelfUpdateRequest
     update:
       description: Bot webhook self-registration request
@@ -1521,8 +1571,35 @@ actions:
 
 
         Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without
-        knowing its own `user_id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an empty string in `outgoing_url`.
+        knowing its own `id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an empty string in `outgoing_url`.
 
+  - target: $.paths['/bots/{id}/recreate_token'].post
+    update:
+      description: >-
+        Bot token rotation
+
+
+        Generates a new `access_token` for the bot and immediately invalidates the previous one. Use it when a token is
+        compromised or for scheduled secret rotation in `CI`.
+
+
+        Available to a company administrator, the company owner, or the bot creator. Specify the bot's `id` in the
+        request `URL`. The new token is returned in the response only once — save it right away.
+  - target: $.paths['/bots/{id}/recreate_token'].post.parameters[?(@.name=='id')]
+    update:
+      description: Bot ID
+  - target: $.paths['/bot/recreate_token'].post
+    update:
+      description: >-
+        Bot self token rotation
+
+
+        Allows a bot to generate a new `access_token` for itself using its own token — without an administrator and
+        without knowing its own `id`. The token of the bot that owns the request token is rotated.
+
+
+        The token used for the request is invalidated immediately. The new token is returned in the response once — be
+        sure to save it, otherwise the bot loses access to the API.
   - target: $.components.schemas.BotCreateResponse
     update:
       description: Created bot parameters
@@ -1535,8 +1612,8 @@ actions:
   - target: $.components.schemas.BotCreateResponse.properties.access_token
     update:
       description: >-
-        Bot access token. Issued only at creation. You can obtain the token again only through the interface (the
-        "API" tab of the bot settings).
+        Bot access token. Returned when the bot is created and when the token is rotated. The current token can also be
+        viewed and copied in the interface — the "API" tab of the bot settings.
   - target: $.components.schemas.Message.properties.voice_content
     update:
       description: Voice message data. Filled only for voice messages (file `file_type` is `voice`), otherwise `null`.
@@ -3006,6 +3083,11 @@ actions:
         min_length: Value is too short (details provided in the message field)
         max_length: Value is too long (details provided in the message field)
         use_of_system_words: Reserved system word used (here, all)
+        export_file_not_found: Export file not found or not ready yet
+        cannot_kick_owner: Cannot remove the chat owner
+        pin_failed: Failed to pin the message
+        message_deleted: Message has been deleted
+        thread_message: Cannot create a thread for a message that is already in a thread
   - target: $.components.schemas.ViewBlock
     update:
       description: View block for forms (base model, use specific block types)

@@ -14,7 +14,7 @@
   },
   "BotOperations_getBot": {
     "usage": "val response = client.bots.getBot(id = 1738816)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean))"
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean))"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "val response = client.bots.getWebhookEvents(limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -33,9 +33,13 @@
       "pollWebhookPayloads"
     ]
   },
+  "BotOperations_selfRecreateBotToken": {
+    "usage": "val response = client.bots.selfRecreateBotToken()",
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean), accessToken: String)"
+  },
   "BotOperations_createBot": {
-    "usage": "val request = BotCreateRequest(\n    webhook = BotCreateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true\n    )\n)\nval response = client.bots.createBot(request = request)",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean), accessToken: String)",
+    "usage": "val request = BotCreateRequest(\n    webhook = BotCreateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true,\n        ignoreSelfMessages = false,\n        eventsHistoryEnabled = false\n    )\n)\nval response = client.bots.createBot(request = request)",
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean), accessToken: String)",
     "imports": [
       "BotCreateRequest",
       "BotCreateRequestWebhook",
@@ -44,17 +48,21 @@
       "BotTriggerOn"
     ]
   },
+  "BotOperations_recreateBotToken": {
+    "usage": "val response = client.bots.recreateBotToken(id = 1738816)",
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean), accessToken: String)"
+  },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "val request = BotWebhookSelfUpdateRequest(webhook = BotWebhookSelfUpdateRequestWebhook(outgoingUrl = \"https://www.website.com/tasks/new\"))\nval response = client.bots.selfUpdateBotWebhook(request = request)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean))",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean))",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "val request = BotUpdateRequest(\n    webhook = BotUpdateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true\n    )\n)\nval response = client.bots.updateBot(id = 1738816, request = request)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean))",
+    "usage": "val request = BotUpdateRequest(\n    webhook = BotUpdateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true,\n        ignoreSelfMessages = false,\n        eventsHistoryEnabled = false\n    )\n)\nval response = client.bots.updateBot(id = 1738816, request = request)",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean))",
     "imports": [
       "BotEventName",
       "BotTemplateEngine",
@@ -79,12 +87,22 @@
     "usage": "val response = client.chats.getChat(id = 334)",
     "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)"
   },
+  "ExportOperations_downloadExport": {
+    "usage": "val response = client.chats.downloadExport(id = 22322)",
+    "output": "String"
+  },
   "ChatOperations_createChat": {
     "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"🤿 aqua\",\n        memberIds = listOf(123),\n        groupTagIds = listOf(123),\n        channel = true,\n        public = false\n    )\n)\nval response = client.chats.createChat(request = request)",
     "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
+    ]
+  },
+  "ExportOperations_requestExport": {
+    "usage": "val request = ExportRequest(\n    startAt = \"2025-03-20\",\n    endAt = \"2025-03-20\",\n    webhookUrl = \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    chatIds = listOf(123),\n    skipChatsFile = false\n)\nclient.chats.requestExport(request = request)",
+    "imports": [
+      "ExportRequest"
     ]
   },
   "ChatOperations_updateChat": {
@@ -100,33 +118,6 @@
   },
   "ChatOperations_unarchiveChat": {
     "usage": "client.chats.unarchiveChat(id = 334)"
-  },
-  "ExportOperations_downloadExport": {
-    "usage": "val response = client.common.downloadExport(id = 22322)",
-    "output": "String"
-  },
-  "CommonOperations_listProperties": {
-    "usage": "val response = client.common.listProperties(entityType = SearchEntityType.USER)",
-    "output": "ListPropertiesResponse(data: List<CustomPropertyDefinition>)",
-    "imports": [
-      "SearchEntityType"
-    ]
-  },
-  "ExportOperations_requestExport": {
-    "usage": "val request = ExportRequest(\n    startAt = \"2025-03-20\",\n    endAt = \"2025-03-20\",\n    webhookUrl = \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    chatIds = listOf(123),\n    skipChatsFile = false\n)\nclient.common.requestExport(request = request)",
-    "imports": [
-      "ExportRequest"
-    ]
-  },
-  "DirectUploadOperations_uploadFile": {
-    "usage": "val request = FileUploadRequest(\n    contentDisposition = \"example\",\n    acl = \"example\",\n    policy = \"example\",\n    xAmzCredential = \"example\",\n    xAmzAlgorithm = \"example\",\n    xAmzDate = \"example\",\n    xAmzSignature = \"example\",\n    key = \"example\",\n    file = ByteArray(0)\n)\nclient.common.uploadFile(directUrl = \"https://example.com\", request = request)",
-    "imports": [
-      "FileUploadRequest"
-    ]
-  },
-  "UploadOperations_getUploadParams": {
-    "usage": "val response = client.common.getUploadParams()",
-    "output": "UploadParams(contentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
   },
   "ChatMemberOperations_listMembers": {
     "usage": "val response = client.members.listMembers(id = 334, role = ChatMemberRoleFilter.ALL, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -158,6 +149,23 @@
   },
   "ChatMemberOperations_removeMember": {
     "usage": "client.members.removeMember(id = 334, userId = 186)"
+  },
+  "CommonOperations_listProperties": {
+    "usage": "val response = client.customProperties.listProperties(entityType = SearchEntityType.USER)",
+    "output": "ListPropertiesResponse(data: List<CustomPropertyDefinition>)",
+    "imports": [
+      "SearchEntityType"
+    ]
+  },
+  "DirectUploadOperations_uploadFile": {
+    "usage": "val request = FileUploadRequest(\n    contentDisposition = \"example\",\n    acl = \"example\",\n    policy = \"example\",\n    xAmzCredential = \"example\",\n    xAmzAlgorithm = \"example\",\n    xAmzDate = \"example\",\n    xAmzSignature = \"example\",\n    key = \"example\",\n    file = ByteArray(0)\n)\nclient.files.uploadFile(directUrl = \"https://example.com\", request = request)",
+    "imports": [
+      "FileUploadRequest"
+    ]
+  },
+  "UploadOperations_getUploadParams": {
+    "usage": "val response = client.files.getUploadParams()",
+    "output": "UploadParams(contentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
   },
   "GroupTagOperations_listTags": {
     "usage": "val names = listOf(\"example\")\nval response = client.groupTags.listTags(names = names, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -214,6 +222,14 @@
       "MessageEntityType"
     ]
   },
+  "LinkPreviewOperations_unfurl": {
+    "usage": "val request = LinkPreviewsRequest(\n    linkPreviews = mapOf(\"key\" to LinkPreview(\n        title = \"Статья: Отправка файлов\",\n        description = \"Пример отправки файлов на удаленный сервер\",\n        imageUrl = \"https://website.com/img/landing.png\",\n        image = LinkPreviewImage(\n            key = \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name = \"files-to-server.jpg\",\n            size = 695604\n        )\n    ))\n)\nclient.messages.unfurl(id = 194275, request = request)",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
+  },
   "MessageOperations_pinMessage": {
     "usage": "client.messages.pinMessage(id = 194275)"
   },
@@ -233,14 +249,6 @@
   },
   "MessageOperations_unpinMessage": {
     "usage": "client.messages.unpinMessage(id = 194275)"
-  },
-  "LinkPreviewOperations_createLinkPreviews": {
-    "usage": "val request = LinkPreviewsRequest(\n    linkPreviews = mapOf(\"key\" to LinkPreview(\n        title = \"Статья: Отправка файлов\",\n        description = \"Пример отправки файлов на удаленный сервер\",\n        imageUrl = \"https://website.com/img/landing.png\",\n        image = LinkPreviewImage(\n            key = \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name = \"files-to-server.jpg\",\n            size = 695604\n        )\n    ))\n)\nclient.linkPreviews.createLinkPreviews(id = 194275, request = request)",
-    "imports": [
-      "LinkPreview",
-      "LinkPreviewImage",
-      "LinkPreviewsRequest"
-    ]
   },
   "ReactionOperations_listReactions": {
     "usage": "val response = client.reactions.listReactions(id = 194275, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -273,7 +281,7 @@
     "output": "Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: OffsetDateTime)"
   },
   "OAuthOperations_getTokenInfo": {
-    "usage": "val response = client.profile.getTokenInfo()",
+    "usage": "val response = client.oauth.getTokenInfo()",
     "output": "AccessTokenInfo(id: Long, token: String, name: String?, userId: Long, scopes: List<OAuthScope>, createdAt: OffsetDateTime, revokedAt: OffsetDateTime?, expiresIn: Int?, lastUsedAt: OffsetDateTime?)"
   },
   "ProfileOperations_getProfile": {

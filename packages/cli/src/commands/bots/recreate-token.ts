@@ -2,20 +2,23 @@
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
-export default class CommonUploads extends BaseCommand {
-  static override description = "Получение подписи, ключа и других параметров";
+export default class BotsRecreateToken extends BaseCommand {
+  static override description = "Ротация токена бота";
 
   static override examples = [
-      "Изменить вложения сообщения:\n  $ pachca common uploads"
+      "Ротация токена бота:\n  $ pachca bots recreate-token"
   ];
 
-  static scope = "uploads:write";
+  static scope = "bots:write";
   static apiMethod = "POST";
-  static apiPath = "/uploads";
-  static defaultColumns = ["Content-Disposition","acl","policy","x-amz-credential","x-amz-algorithm"];
+  static apiPath = "/bots/{id}/recreate_token";
+  static defaultColumns = ["id","webhook","access_token"];
 
   static override args = {
-
+    id: Args.integer({
+      description: "Идентификатор бота (pachca bots list)",
+      required: true,
+    }),
   };
 
   static override flags = {
@@ -24,12 +27,12 @@ export default class CommonUploads extends BaseCommand {
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(CommonUploads);
+    const { args, flags } = await this.parse(BotsRecreateToken);
     this.parsedFlags = flags;
 
     const { data } = await this.apiRequest({
       method: 'POST',
-      path: '/uploads',
+      path: `/bots/${args.id}/recreate_token`,
     });
 
     const responseBody = data as Record<string, unknown>;

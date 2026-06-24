@@ -3,22 +3,23 @@ info:
   title: Pachca API
   version: 1.0.0
 tags:
-  - name: Common
+  - name: OAuth
+  - name: Chats
   - name: Profile
   - name: Users
   - name: Group tags
-  - name: Chats
   - name: Members
   - name: Threads
   - name: Messages
   - name: Read members
   - name: Reactions
-  - name: Link Previews
   - name: Search
   - name: Tasks
   - name: Views
   - name: Bots
   - name: Security
+  - name: Custom Properties
+  - name: Files
 paths:
   /audit_events:
     get:
@@ -168,13 +169,85 @@ paths:
       x-requirements:
         scope: audit_events:read
         plan: corporation
+  /bot/recreate_token:
+    post:
+      operationId: BotOperations_selfRecreateBotToken
+      description: |-
+        Ротация собственного токена бота
+
+        Метод позволяет боту сгенерировать себе новый `access_token` своим же токеном — без участия администратора и без знания собственного `id`. Ротируется токен того бота, которому принадлежит токен запроса.
+
+        Токен, которым выполнен запрос, инвалидируется сразу. Новый токен возвращается в ответе один раз — обязательно сохраните его, иначе бот потеряет доступ к API.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotCreateResponse'
+                description: Обертка ответа с данными
+              example:
+                data:
+                  id: 1738816
+                  webhook:
+                    name: Бот задач
+                    nickname: tasks_bot
+                    outgoing_url: https://www.website.com/tasks/new
+                    events:
+                      - message_new
+                    trigger_on: commands
+                    commands:
+                      - /task
+                    scopes:
+                      - messages:create
+                    template: Заказ от {{ client }} на сумму {{ amount }} ₽
+                    template_engine: liquid
+                    challenge_key: challenge
+                    link_preview_enabled: true
+                    ignore_self_messages: false
+                    events_history_enabled: false
+                  access_token: bm90X2FfcmVhbF90b2tlbg
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bot_self:write
   /bot/webhook:
     put:
       operationId: BotOperations_selfUpdateBotWebhook
       description: |-
         Саморегистрация вебхука бота
 
-        Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `user_id`. Меняется вебхук того бота, которому принадлежит токен. Чтобы отключить вебхук, передайте пустую строку в `outgoing_url`.
+        Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `id`. Меняется вебхук того бота, которому принадлежит токен. Чтобы отключить вебхук, передайте пустую строку в `outgoing_url`.
       parameters: []
       responses:
         '200':
@@ -207,6 +280,8 @@ paths:
                     template_engine: liquid
                     challenge_key: challenge
                     link_preview_enabled: true
+                    ignore_self_messages: false
+                    events_history_enabled: false
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -291,6 +366,8 @@ paths:
                     template_engine: liquid
                     challenge_key: challenge
                     link_preview_enabled: true
+                    ignore_self_messages: false
+                    events_history_enabled: false
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '400':
           description: The server could not understand the request due to invalid syntax.
@@ -344,7 +421,7 @@ paths:
       description: |-
         Информация о боте
 
-        Метод для получения параметров бота по его `user_id`.
+        Метод для получения параметров бота по его `id`.
       parameters:
         - name: id
           in: path
@@ -386,6 +463,8 @@ paths:
                     template_engine: liquid
                     challenge_key: challenge
                     link_preview_enabled: true
+                    ignore_self_messages: false
+                    events_history_enabled: false
         '401':
           description: Access is unauthorized.
           content:
@@ -421,7 +500,7 @@ paths:
 
         Метод для редактирования бота.
 
-        Для редактирования бота вам необходимо знать его `user_id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса.
+        Для редактирования бота вам необходимо знать его `id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса.
 
         Вы не можете редактировать бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).
       parameters:
@@ -491,6 +570,87 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/BotUpdateRequest'
+      x-requirements:
+        scope: bots:write
+  /bots/{id}/recreate_token:
+    post:
+      operationId: BotOperations_recreateBotToken
+      description: |-
+        Ротация токена бота
+
+        Метод генерирует боту новый `access_token` и сразу инвалидирует прежний. Используйте его при компрометации токена или плановой ротации секрета в `CI`.
+
+        Доступен администратору, владельцу компании или создателю бота. Укажите `id` бота в `URL` запроса. Новый токен возвращается в ответе только один раз — сохраните его сразу.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор бота
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotCreateResponse'
+                description: Обертка ответа с данными
+              example:
+                data:
+                  id: 1738816
+                  webhook:
+                    name: Бот задач
+                    nickname: tasks_bot
+                    outgoing_url: https://www.website.com/tasks/new
+                    events:
+                      - message_new
+                    trigger_on: commands
+                    commands:
+                      - /task
+                    scopes:
+                      - messages:create
+                    template: Заказ от {{ client }} на сумму {{ amount }} ₽
+                    template_engine: liquid
+                    challenge_key: challenge
+                    link_preview_enabled: true
+                    ignore_self_messages: false
+                    events_history_enabled: false
+                  access_token: bm90X2FfcmVhbF90b2tlbg
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
       x-requirements:
         scope: bots:write
   /chats:
@@ -737,7 +897,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - Common
+        - Chats
       requestBody:
         required: true
         content:
@@ -800,7 +960,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - Common
+        - Chats
       x-requirements:
         scope: chat_exports:read
         plan: corporation
@@ -1553,7 +1713,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - Common
+        - Custom Properties
       x-requirements:
         scope: custom_properties:read
   /direct_url:
@@ -1568,7 +1728,7 @@ paths:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
       tags:
-        - Common
+        - Files
       requestBody:
         required: true
         content:
@@ -2392,7 +2552,7 @@ paths:
         scope: messages:delete
   /messages/{id}/link_previews:
     post:
-      operationId: LinkPreviewOperations_createLinkPreviews
+      operationId: LinkPreviewOperations_unfurl
       description: |-
         Unfurl (разворачивание ссылок)
 
@@ -2441,7 +2601,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - Link Previews
+        - Messages
       requestBody:
         required: true
         content:
@@ -2958,7 +3118,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OAuthError'
       tags:
-        - Profile
+        - OAuth
   /profile:
     get:
       operationId: ProfileOperations_getProfile
@@ -4198,7 +4358,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OAuthError'
       tags:
-        - Common
+        - Files
       x-requirements:
         scope: uploads:write
   /users:
@@ -5181,6 +5341,33 @@ components:
           description: 'Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`'
           example: null
       description: Детальная информация об ошибке
+    AuditDetailsBotScopes:
+      type: object
+      required:
+        - added_scopes
+        - removed_scopes
+      properties:
+        added_scopes:
+          type: array
+          items:
+            type: string
+          description: Скоупы, добавленные токену бота
+        removed_scopes:
+          type: array
+          items:
+            type: string
+          description: Скоупы, отозванные у токена бота
+      description: 'При: bot_scopes_updated'
+    AuditDetailsBotWebhookSettings:
+      type: object
+      required:
+        - changes
+      properties:
+        changes:
+          type: object
+          additionalProperties: {}
+          description: Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение)
+      description: 'При: bot_webhook_settings_updated'
     AuditDetailsChatId:
       type: object
       required:
@@ -5253,7 +5440,7 @@ components:
       description: 'При: dlp_violation_detected'
     AuditDetailsEmpty:
       type: object
-      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed'
+      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated'
     AuditDetailsInitiator:
       type: object
       required:
@@ -5456,6 +5643,8 @@ components:
         - $ref: '#/components/schemas/AuditDetailsKms'
         - $ref: '#/components/schemas/AuditDetailsDlp'
         - $ref: '#/components/schemas/AuditDetailsSearch'
+        - $ref: '#/components/schemas/AuditDetailsBotScopes'
+        - $ref: '#/components/schemas/AuditDetailsBotWebhookSettings'
       description: Дополнительные детали события аудита. Структура зависит от значения event_key
     AuditEventKey:
       type: string
@@ -5495,6 +5684,9 @@ components:
         - search_users_api
         - search_chats_api
         - search_messages_api
+        - bot_scopes_updated
+        - bot_webhook_settings_updated
+        - bot_token_recreated
       description: Тип аудит-события
       x-enum-descriptions:
         user_login: Пользователь успешно вошел в систему
@@ -5532,6 +5724,9 @@ components:
         search_users_api: Поиск сотрудников через API
         search_chats_api: Поиск чатов через API
         search_messages_api: Поиск сообщений через API
+        bot_scopes_updated: Изменены скоупы токена бота
+        bot_webhook_settings_updated: Изменены настройки исходящего вебхука бота
+        bot_token_recreated: Токен бота перевыпущен (ротация)
     AvatarData:
       type: object
       required:
@@ -5609,6 +5804,16 @@ components:
               description: Показывать превью ссылок в сообщениях входящего вебхука
               example: true
               default: true
+            ignore_self_messages:
+              type: boolean
+              description: Игнорировать входящие сообщения, отправленные самим ботом
+              example: false
+              default: false
+            events_history_enabled:
+              type: boolean
+              description: Сохранять историю событий бота для последующего получения через метод истории событий
+              example: false
+              default: false
           required:
             - name
           description: Объект параметров вебхука создаваемого бота
@@ -5631,7 +5836,7 @@ components:
           description: Объект параметров вебхука
         access_token:
           type: string
-          description: Токен доступа бота. Выдаётся только при создании. Повторно получить токен можно только через интерфейс (вкладка «API» настроек бота).
+          description: Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота.
           example: bm90X2FfcmVhbF90b2tlbg
       description: Параметры созданного бота
     BotEventName:
@@ -5774,6 +5979,16 @@ components:
               description: Показывать превью ссылок в сообщениях входящего вебхука
               example: true
               default: true
+            ignore_self_messages:
+              type: boolean
+              description: Игнорировать входящие сообщения, отправленные самим ботом
+              example: false
+              default: false
+            events_history_enabled:
+              type: boolean
+              description: Сохранять историю событий бота для последующего получения через метод истории событий
+              example: false
+              default: false
           description: Объект параметров вебхука редактируемого бота
       description: Запрос на обновление бота
     BotWebhook:
@@ -5790,6 +6005,8 @@ components:
         - template_engine
         - challenge_key
         - link_preview_enabled
+        - ignore_self_messages
+        - events_history_enabled
       properties:
         name:
           type: string
@@ -5849,6 +6066,14 @@ components:
           type: boolean
           description: Показывать превью ссылок в сообщениях входящего вебхука
           example: true
+        ignore_self_messages:
+          type: boolean
+          description: Игнорировать входящие сообщения, отправленные самим ботом
+          example: false
+        events_history_enabled:
+          type: boolean
+          description: Сохранять историю событий бота для последующего получения через метод истории событий
+          example: false
       description: Параметры вебхука бота
     BotWebhookSelfUpdateRequest:
       type: object
@@ -8497,6 +8722,11 @@ components:
         - min_length
         - max_length
         - use_of_system_words
+        - export_file_not_found
+        - cannot_kick_owner
+        - pin_failed
+        - message_deleted
+        - thread_message
       description: Коды ошибок валидации
       x-enum-descriptions:
         blank: Обязательное поле (не может быть пустым)
@@ -8535,6 +8765,11 @@ components:
         min_length: Значение слишком короткое (пояснения вы получите в поле message)
         max_length: Значение слишком длинное (пояснения вы получите в поле message)
         use_of_system_words: Использовано зарезервированное системное слово (here, all)
+        export_file_not_found: Файл экспорта не найден или ещё не готов
+        cannot_kick_owner: Нельзя исключить владельца чата
+        pin_failed: Не удалось закрепить сообщение
+        message_deleted: Сообщение удалено
+        thread_message: Нельзя создать тред для сообщения, которое уже находится в треде
     ViewBlock:
       type: object
       required:

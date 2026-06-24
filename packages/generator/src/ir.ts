@@ -134,6 +134,11 @@ export interface IROperation {
   description?: string;
   /** Operation marked as deprecated in the spec */
   deprecated?: boolean;
+  /**
+   * Backward-compat alias of an operation that moved to a new service after an IA retag.
+   * Emitted (so old `client.<oldService>.<method>()` keeps working) but skipped in examples/docs.
+   */
+  isAlias?: boolean;
   pathParams: IRParam[];
   queryParams: IRParam[];
   requestBody?: IRRequestBody;
@@ -152,6 +157,12 @@ export interface IROperation {
 export interface IRService {
   tag: string;
   operations: IROperation[];
+  /**
+   * Backward-compat alias service: re-exposes operations that moved to other services
+   * after an IA retag. Emitted as a working but deprecated accessor, and excluded from
+   * generated examples/docs so only the new service names are documented.
+   */
+  deprecated?: boolean;
 }
 
 // ----- Params & Responses (generated types) -----

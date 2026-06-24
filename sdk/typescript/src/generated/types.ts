@@ -70,6 +70,12 @@ export enum AuditEventKey {
   SearchChatsApi = "search_chats_api",
   /** Поиск сообщений через API */
   SearchMessagesApi = "search_messages_api",
+  /** Изменены скоупы токена бота */
+  BotScopesUpdated = "bot_scopes_updated",
+  /** Изменены настройки исходящего вебхука бота */
+  BotWebhookSettingsUpdated = "bot_webhook_settings_updated",
+  /** Токен бота перевыпущен (ротация) */
+  BotTokenRecreated = "bot_token_recreated",
 }
 
 /** Событие исходящего вебхука бота */
@@ -525,6 +531,16 @@ export enum ValidationErrorCode {
   MaxLength = "max_length",
   /** Использовано зарезервированное системное слово (here, all) */
   UseOfSystemWords = "use_of_system_words",
+  /** Файл экспорта не найден или ещё не готов */
+  ExportFileNotFound = "export_file_not_found",
+  /** Нельзя исключить владельца чата */
+  CannotKickOwner = "cannot_kick_owner",
+  /** Не удалось закрепить сообщение */
+  PinFailed = "pin_failed",
+  /** Сообщение удалено */
+  MessageDeleted = "message_deleted",
+  /** Нельзя создать тред для сообщения, которое уже находится в треде */
+  ThreadMessage = "thread_message",
 }
 
 /** Тип события webhook */
@@ -572,6 +588,15 @@ export interface ApiErrorItem {
   message: string;
   code: ValidationErrorCode;
   payload: Record<string, string> | null;
+}
+
+export interface AuditDetailsBotScopes {
+  addedScopes: string[];
+  removedScopes: string[];
+}
+
+export interface AuditDetailsBotWebhookSettings {
+  changes: Record<string, string>;
 }
 
 export interface AuditDetailsChatId {
@@ -678,6 +703,10 @@ export interface BotCreateRequest {
     challengeKey?: string;
     /** @default true */
     linkPreviewEnabled?: boolean;
+    /** @default false */
+    ignoreSelfMessages?: boolean;
+    /** @default false */
+    eventsHistoryEnabled?: boolean;
   };
 }
 
@@ -708,6 +737,10 @@ export interface BotUpdateRequest {
     challengeKey?: string;
     /** @default true */
     linkPreviewEnabled?: boolean;
+    /** @default false */
+    ignoreSelfMessages?: boolean;
+    /** @default false */
+    eventsHistoryEnabled?: boolean;
   };
 }
 
@@ -723,6 +756,8 @@ export interface BotWebhook {
   templateEngine: BotTemplateEngine;
   challengeKey: string | null;
   linkPreviewEnabled: boolean;
+  ignoreSelfMessages: boolean;
+  eventsHistoryEnabled: boolean;
 }
 
 export interface BotWebhookSelfUpdateRequest {
@@ -1382,7 +1417,7 @@ export interface UpdateUserAvatarRequest {
   image: Blob;
 }
 
-export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch;
+export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings;
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 

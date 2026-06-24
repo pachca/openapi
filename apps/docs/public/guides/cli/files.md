@@ -23,7 +23,7 @@ KEY=$(pachca upload photo.jpg -o json | jq -r '.key')
 pachca messages create --entity-id 123 --content "Фото" --files "[{\"key\":\"$KEY\",\"name\":\"photo.jpg\"}]"
 ```
 
-> Для низкоуровневого контроля доступна команда `pachca common direct-url` — она отправляет multipart-запрос на указанный URL с параметрами подписи.
+> Для низкоуровневого контроля доступна команда `pachca files direct-url` — она отправляет multipart-запрос на указанный URL с параметрами подписи.
 
 
 

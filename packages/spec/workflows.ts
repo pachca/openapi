@@ -466,7 +466,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         {
           description: 'Если нужно добавить новый файл — загрузи его',
           descriptionEn: 'If adding new file — upload it',
-          command: 'pachca common uploads',
+          command: 'pachca files uploads',
           apiMethod: 'POST',
           apiPath: '/uploads',
         },
@@ -702,7 +702,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           description: 'Запроси экспорт',
           descriptionEn: 'Request export',
           command:
-            'pachca common request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>',
+            'pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>',
           apiMethod: 'POST',
           apiPath: '/chats/exports',
           notes: '`start_at`, `end_at` (YYYY-MM-DD), `webhook_url` обязателен — запрос асинхронный',
@@ -717,7 +717,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         {
           description: 'Скачай файл экспорта',
           descriptionEn: 'Download export file',
-          command: 'pachca common get-exports <export_id>',
+          command: 'pachca chats download-export <export_id>',
           apiMethod: 'GET',
           apiPath: '/chats/exports/{id}',
           notes: 'Сервер вернёт 302, HTTP-клиент скачает файл автоматически',
@@ -876,6 +876,42 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         'Two paths: by `id` with a user token (bot edit rights), or by the bot itself with its own token (`PUT /bot/webhook`). An empty `outgoing_url` disables the webhook.',
     },
     {
+      title: 'Ротация токена бота',
+      titleEn: 'Rotate a bot token',
+      related: ['Создать бота через API и получить токен'],
+      relatedEn: ['Create a bot via API and get its token'],
+      steps: [
+        {
+          description:
+            'Пользовательским токеном (администратор, владелец компании или создатель бота) — перевыпусти токен по `id` бота. Прежний токен инвалидируется сразу',
+          descriptionEn:
+            'With a user token (admin, company owner or bot creator) — rotate the token by bot `id`. The previous token is invalidated immediately',
+          command: 'pachca bots recreate-token <bot_id>',
+          apiMethod: 'POST',
+          apiPath: '/bots/{id}/recreate_token',
+        },
+        {
+          description:
+            'Или: бот перевыпускает собственный токен своим же токеном (скоуп `bot_self:write`). Токен, которым выполнен запрос, инвалидируется сразу — обязательно сохрани новый `access_token` из ответа, иначе бот потеряет доступ к API',
+          descriptionEn:
+            'Or: the bot rotates its own token with its own token (scope `bot_self:write`). The token used for the request is invalidated immediately — be sure to save the new `access_token` from the response, otherwise the bot loses API access',
+          command: 'pachca bots recreate-token-self',
+          apiMethod: 'POST',
+          apiPath: '/bot/recreate_token',
+        },
+        {
+          description:
+            'Сохрани новый `access_token` из ответа — он возвращается единственный раз. Обнови секрет в CI или хранилище секретов',
+          descriptionEn:
+            'Save the new `access_token` from the response — returned only once. Update the secret in CI or your secret store',
+        },
+      ],
+      notes:
+        'Новый токен возвращается один раз. Self-путь (`POST /bot/recreate_token`) инвалидирует именно тот токен, которым выполнен запрос, — захвати новый токен из ответа в той же операции.',
+      notesEn:
+        'The new token is returned once. The self path (`POST /bot/recreate_token`) invalidates the very token used for the request — capture the new token from the response in the same operation.',
+    },
+    {
       title: 'Обработать входящий вебхук-событие',
       titleEn: 'Handle incoming webhook event',
       inline: false,
@@ -942,7 +978,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         {
           description: 'Отправь превью-данные',
           descriptionEn: 'Send preview data',
-          command: `pachca link-previews add <message_id> --link-previews='{"https://example.com":{"title":"Example","description":"Description"}}'`,
+          command: `pachca messages unfurl <message_id> --link-previews='{"https://example.com":{"title":"Example","description":"Description"}}'`,
           apiMethod: 'POST',
           apiPath: '/messages/{id}/link_previews',
         },
@@ -1683,7 +1719,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         {
           description: 'Получи информацию о токене: скоупы, дату создания, срок жизни',
           descriptionEn: 'Get token info: scopes, creation date, lifetime',
-          command: 'pachca profile get-info',
+          command: 'pachca oauth token-info',
           apiMethod: 'GET',
           apiPath: '/oauth/token/info',
         },
@@ -1730,7 +1766,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         {
           description: 'Получи список дополнительных полей для сотрудников',
           descriptionEn: 'Get list of additional fields for employees',
-          command: 'pachca common custom-properties --entity-type=User',
+          command: 'pachca custom-properties list --entity-type=User',
           apiMethod: 'GET',
           apiPath: '/custom_properties',
           notes: 'Добавь `entity_type=User` для фильтрации',

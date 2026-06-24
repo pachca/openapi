@@ -97,6 +97,12 @@ enum class AuditEventKey(val value: String) {
     @SerialName("search_chats_api") SEARCH_CHATS_API("search_chats_api"),
     /** Поиск сообщений через API */
     @SerialName("search_messages_api") SEARCH_MESSAGES_API("search_messages_api"),
+    /** Изменены скоупы токена бота */
+    @SerialName("bot_scopes_updated") BOT_SCOPES_UPDATED("bot_scopes_updated"),
+    /** Изменены настройки исходящего вебхука бота */
+    @SerialName("bot_webhook_settings_updated") BOT_WEBHOOK_SETTINGS_UPDATED("bot_webhook_settings_updated"),
+    /** Токен бота перевыпущен (ротация) */
+    @SerialName("bot_token_recreated") BOT_TOKEN_RECREATED("bot_token_recreated"),
 }
 
 /** Событие исходящего вебхука бота */
@@ -579,6 +585,16 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("max_length") MAX_LENGTH("max_length"),
     /** Использовано зарезервированное системное слово (here, all) */
     @SerialName("use_of_system_words") USE_OF_SYSTEM_WORDS("use_of_system_words"),
+    /** Файл экспорта не найден или ещё не готов */
+    @SerialName("export_file_not_found") EXPORT_FILE_NOT_FOUND("export_file_not_found"),
+    /** Нельзя исключить владельца чата */
+    @SerialName("cannot_kick_owner") CANNOT_KICK_OWNER("cannot_kick_owner"),
+    /** Не удалось закрепить сообщение */
+    @SerialName("pin_failed") PIN_FAILED("pin_failed"),
+    /** Сообщение удалено */
+    @SerialName("message_deleted") MESSAGE_DELETED("message_deleted"),
+    /** Нельзя создать тред для сообщения, которое уже находится в треде */
+    @SerialName("thread_message") THREAD_MESSAGE("thread_message"),
 }
 
 /** Тип события webhook */
@@ -708,6 +724,21 @@ data class AuditDetailsSearch(
     @SerialName("cursor_present") val cursorPresent: Boolean,
     val limit: Int,
     val filters: Map<String, String>,
+) : AuditEventDetailsUnion
+
+@Serializable
+@SerialName("")
+data class AuditDetailsBotScopes(
+    override val type: String = "",
+    @SerialName("added_scopes") val addedScopes: List<String>,
+    @SerialName("removed_scopes") val removedScopes: List<String>,
+) : AuditEventDetailsUnion
+
+@Serializable
+@SerialName("")
+data class AuditDetailsBotWebhookSettings(
+    override val type: String = "",
+    val changes: Map<String, String>,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1037,6 +1068,8 @@ data class BotCreateRequestWebhook(
     @SerialName("template_engine") val templateEngine: BotTemplateEngine? = BotTemplateEngine.LIQUID,
     @SerialName("challenge_key") val challengeKey: String? = null,
     @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = true,
+    @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean? = false,
+    @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean? = false,
 )
 
 @Serializable
@@ -1070,6 +1103,8 @@ data class BotUpdateRequestWebhook(
     @SerialName("template_engine") val templateEngine: BotTemplateEngine? = BotTemplateEngine.LIQUID,
     @SerialName("challenge_key") val challengeKey: String? = null,
     @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = true,
+    @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean? = false,
+    @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean? = false,
 )
 
 @Serializable
@@ -1090,6 +1125,8 @@ data class BotWebhook(
     @SerialName("template_engine") val templateEngine: BotTemplateEngine,
     @SerialName("challenge_key") val challengeKey: String? = null,
     @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean,
+    @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean,
+    @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean,
 )
 
 @Serializable

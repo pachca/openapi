@@ -61,6 +61,11 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
 	if (lastStatic === 'unarchive') return 'unarchive';
 	if (lastStatic === 'leave') return 'leave';
 	if (ep.path === '/views/open' && method === 'POST') return 'create';
+	if (ep.path === '/bots/{id}/recreate_token' && method === 'POST') return 'recreateToken';
+	if (ep.path === '/bot/recreate_token' && method === 'POST') return 'recreateTokenSelf';
+	if (ep.path === '/chats/exports' && method === 'POST') return 'requestExport';
+	if (ep.path === '/chats/exports/{id}' && method === 'GET') return 'downloadExport';
+	if (ep.path === '/messages/{id}/link_previews' && method === 'POST') return 'unfurl';
 
 	if (staticSegments.length > 1) {
 		const resourceRoot = staticSegments[0];
@@ -212,26 +217,29 @@ function groupEndpointsByTag(endpoints: Endpoint[]): Map<string, Endpoint[]> {
 	return groups;
 }
 
+// Mirror of generate-n8n.ts resolveCommonEndpoints: n8n resources are keyed off the path
+// (not the docs tag), so the IA tag reshuffle (Files/CustomProperties/OAuth/Chats/Messages)
+// keeps the n8n surface backward-compatible.
 function resolveCommonEndpoints(byTag: Map<string, Endpoint[]>): Map<string, Endpoint[]> {
-	const common = byTag.get('Common') ?? [];
-	const result = new Map(byTag);
-	result.delete('Common');
-	for (const ep of common) {
-		if (ep.path.startsWith('/custom_properties')) {
-			const tag = 'CustomProperty';
-			if (!result.has(tag)) result.set(tag, []);
-			result.get(tag)!.push(ep);
-		} else if (ep.path.startsWith('/uploads')) {
-			const tag = 'File';
-			if (!result.has(tag)) result.set(tag, []);
-			result.get(tag)!.push(ep);
-		} else if (ep.path.startsWith('/chats/exports')) {
-			const tag = 'Export';
-			if (!result.has(tag)) result.set(tag, []);
-			result.get(tag)!.push(ep);
-		} else {
-			if (!result.has('Common')) result.set('Common', []);
-			result.get('Common')!.push(ep);
+	const PATH_TAG: { match: (p: string) => boolean; tag: string | null }[] = [
+		{ match: (p) => p.startsWith('/custom_properties'), tag: 'CustomProperty' },
+		{ match: (p) => p === '/uploads', tag: 'File' },
+		{ match: (p) => p === '/direct_url', tag: null },
+	];
+	const result = new Map<string, Endpoint[]>();
+	const push = (tag: string, ep: Endpoint) => {
+		if (!result.has(tag)) result.set(tag, []);
+		result.get(tag)!.push(ep);
+	};
+	for (const [tag, eps] of byTag) {
+		if (tag === 'Common') continue;
+		for (const ep of eps) {
+			const override = PATH_TAG.find((r) => r.match(ep.path));
+			if (override) {
+				if (override.tag !== null) push(override.tag, ep);
+			} else {
+				push(tag, ep);
+			}
 		}
 	}
 	return result;

@@ -609,6 +609,9 @@ function generateClient(ir: IR): string {
   // Note: System.Threading.Tasks is NOT imported to avoid conflict with Pachca.Sdk.Task model
   // Async methods use fully qualified System.Threading.Tasks.Task<T> instead
   lines.push('');
+  // The client internally wires up backward-compat alias services that are [Obsolete];
+  // suppress that here so the generated file is clean (external callers still get the warning).
+  if (ir.services.some((s) => s.deprecated)) lines.push('#pragma warning disable CS0618');
   lines.push('namespace Pachca.Sdk;');
 
   // Services
@@ -638,6 +641,7 @@ function emitService(
   const serviceName = tagToServiceName(svc.tag);
   const implName = serviceToImplName(serviceName);
 
+  if (svc.deprecated) lines.push(`[Obsolete("Kept for backward compatibility — use the new service(s).")]`);
   lines.push(`public class ${serviceName}`);
   lines.push('{');
   for (let i = 0; i < svc.operations.length; i++) {
@@ -1531,8 +1535,10 @@ function generateExamples(ir: IR): string {
   };
 
   for (const svc of ir.services) {
+    if (svc.deprecated) continue; // backward-compat alias service — document new names only
     const serviceProp = snakeToPascal(tagToProperty(svc.tag));
     for (const op of svc.operations) {
+      if (op.isAlias) continue; // alias op — documented under its new service
       const ex = buildOperationExample(op, ir, models, serviceProp);
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;

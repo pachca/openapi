@@ -179,8 +179,16 @@ open class BotsService {
         }
     }
 
+    open func selfRecreateBotToken() async throws -> BotCreateResponse {
+        throw pachcaNotImplemented("Bots.selfRecreateBotToken")
+    }
+
     open func createBot(request body: BotCreateRequest) async throws -> BotCreateResponse {
         throw pachcaNotImplemented("Bots.createBot")
+    }
+
+    open func recreateBotToken(id: Int) async throws -> BotCreateResponse {
+        throw pachcaNotImplemented("Bots.recreateBotToken")
     }
 
     open func selfUpdateBotWebhook(request body: BotWebhookSelfUpdateRequest) async throws -> BotResponse {
@@ -257,6 +265,22 @@ public final class BotsServiceImpl: BotsService {
         return items
     }
 
+    public override func selfRecreateBotToken() async throws -> BotCreateResponse {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bot/recreate_token")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(BotCreateResponseDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
     public override func createBot(request body: BotCreateRequest) async throws -> BotCreateResponse {
         var request = URLRequest(url: URL(string: "\(baseURL)/bots")!)
         request.httpMethod = "POST"
@@ -267,6 +291,22 @@ public final class BotsServiceImpl: BotsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
+            return try deserialize(BotCreateResponseDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func recreateBotToken(id: Int) async throws -> BotCreateResponse {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/recreate_token")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
             return try deserialize(BotCreateResponseDataWrapper.self, from: data).data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
@@ -343,8 +383,16 @@ open class ChatsService {
         throw pachcaNotImplemented("Chats.getChat")
     }
 
+    open func downloadExport(id: Int) async throws -> String {
+        throw pachcaNotImplemented("Chats.downloadExport")
+    }
+
     open func createChat(request body: ChatCreateRequest) async throws -> Chat {
         throw pachcaNotImplemented("Chats.createChat")
+    }
+
+    open func requestExport(request body: ExportRequest) async throws -> Void {
+        throw pachcaNotImplemented("Chats.requestExport")
     }
 
     open func updateChat(id: Int, request body: ChatUpdateRequest) async throws -> Chat {
@@ -427,6 +475,25 @@ public final class ChatsServiceImpl: ChatsService {
         }
     }
 
+    public override func downloadExport(id: Int) async throws -> String {
+        var request = URLRequest(url: URL(string: "\(baseURL)/chats/exports/\(id)")!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let delegate = RedirectPreventer()
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request, delegate: delegate)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 302:
+            guard let location = (urlResponse as? HTTPURLResponse)?.value(forHTTPHeaderField: "Location") else {
+                throw URLError(.badServerResponse)
+            }
+            return location
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
     public override func createChat(request body: ChatCreateRequest) async throws -> Chat {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats")!)
         request.httpMethod = "POST"
@@ -438,6 +505,24 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 201:
             return try deserialize(ChatDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func requestExport(request body: ExportRequest) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/chats/exports")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -488,151 +573,6 @@ public final class ChatsServiceImpl: ChatsService {
         switch statusCode {
         case 204:
             return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
-        default:
-            throw try deserialize(ApiError.self, from: data)
-        }
-    }
-}
-
-open class CommonService {
-    public init() {}
-
-    open func downloadExport(id: Int) async throws -> String {
-        throw pachcaNotImplemented("Common.downloadExport")
-    }
-
-    open func listProperties(entityType: SearchEntityType) async throws -> ListPropertiesResponse {
-        throw pachcaNotImplemented("Common.listProperties")
-    }
-
-    open func requestExport(request body: ExportRequest) async throws -> Void {
-        throw pachcaNotImplemented("Common.requestExport")
-    }
-
-    open func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
-        throw pachcaNotImplemented("Common.uploadFile")
-    }
-
-    open func getUploadParams() async throws -> UploadParams {
-        throw pachcaNotImplemented("Common.getUploadParams")
-    }
-}
-
-public final class CommonServiceImpl: CommonService {
-    let baseURL: String
-    let headers: [String: String]
-    let session: URLSession
-
-    init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        self.baseURL = baseURL
-        self.headers = headers
-        self.session = session
-        super.init()
-    }
-
-    public override func downloadExport(id: Int) async throws -> String {
-        var request = URLRequest(url: URL(string: "\(baseURL)/chats/exports/\(id)")!)
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let delegate = RedirectPreventer()
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request, delegate: delegate)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 302:
-            guard let location = (urlResponse as? HTTPURLResponse)?.value(forHTTPHeaderField: "Location") else {
-                throw URLError(.badServerResponse)
-            }
-            return location
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
-        default:
-            throw try deserialize(ApiError.self, from: data)
-        }
-    }
-
-    public override func listProperties(entityType: SearchEntityType) async throws -> ListPropertiesResponse {
-        var components = URLComponents(string: "\(baseURL)/custom_properties")!
-        var queryItems: [URLQueryItem] = []
-        queryItems.append(URLQueryItem(name: "entity_type", value: entityType.rawValue))
-        if !queryItems.isEmpty { components.queryItems = queryItems }
-        var request = URLRequest(url: components.url!)
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 200:
-            return try deserialize(ListPropertiesResponse.self, from: data)
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
-        default:
-            throw try deserialize(ApiError.self, from: data)
-        }
-    }
-
-    public override func requestExport(request body: ExportRequest) async throws -> Void {
-        var request = URLRequest(url: URL(string: "\(baseURL)/chats/exports")!)
-        request.httpMethod = "POST"
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try serialize(body)
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 204:
-            return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
-        default:
-            throw try deserialize(ApiError.self, from: data)
-        }
-    }
-
-    public override func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
-        var request = URLRequest(url: URL(string: "\(directUrl)")!)
-        request.httpMethod = "POST"
-        let boundary = UUID().uuidString
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        var data = Data()
-        func appendField(_ name: String, _ value: String) {
-            data.append("--\(boundary)\r\n".data(using: .utf8)!)
-            data.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
-            data.append("\(value)\r\n".data(using: .utf8)!)
-        }
-        appendField("Content-Disposition", String(describing: body.ContentDisposition))
-        appendField("acl", String(describing: body.acl))
-        appendField("policy", String(describing: body.policy))
-        appendField("x-amz-credential", String(describing: body.xAmzCredential))
-        appendField("x-amz-algorithm", String(describing: body.xAmzAlgorithm))
-        appendField("x-amz-date", String(describing: body.xAmzDate))
-        appendField("x-amz-signature", String(describing: body.xAmzSignature))
-        appendField("key", String(describing: body.key))
-        data.append("--\(boundary)\r\n".data(using: .utf8)!)
-        data.append("Content-Disposition: form-data; name=\"file\"; filename=\"upload\"\r\n".data(using: .utf8)!)
-        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
-        data.append(body.file)
-        data.append("\r\n".data(using: .utf8)!)
-        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        request.httpBody = data
-        let (responseData, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 204:
-            return
-        default:
-            throw try deserialize(ApiError.self, from: responseData)
-        }
-    }
-
-    public override func getUploadParams() async throws -> UploadParams {
-        var request = URLRequest(url: URL(string: "\(baseURL)/uploads")!)
-        request.httpMethod = "POST"
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 201:
-            return try deserialize(UploadParams.self, from: data)
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -819,6 +759,123 @@ public final class MembersServiceImpl: MembersService {
         switch statusCode {
         case 204:
             return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+}
+
+open class CustomPropertiesService {
+    public init() {}
+
+    open func listProperties(entityType: SearchEntityType) async throws -> ListPropertiesResponse {
+        throw pachcaNotImplemented("Custom Properties.listProperties")
+    }
+}
+
+public final class CustomPropertiesServiceImpl: CustomPropertiesService {
+    let baseURL: String
+    let headers: [String: String]
+    let session: URLSession
+
+    init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        self.baseURL = baseURL
+        self.headers = headers
+        self.session = session
+        super.init()
+    }
+
+    public override func listProperties(entityType: SearchEntityType) async throws -> ListPropertiesResponse {
+        var components = URLComponents(string: "\(baseURL)/custom_properties")!
+        var queryItems: [URLQueryItem] = []
+        queryItems.append(URLQueryItem(name: "entity_type", value: entityType.rawValue))
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ListPropertiesResponse.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+}
+
+open class FilesService {
+    public init() {}
+
+    open func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
+        throw pachcaNotImplemented("Files.uploadFile")
+    }
+
+    open func getUploadParams() async throws -> UploadParams {
+        throw pachcaNotImplemented("Files.getUploadParams")
+    }
+}
+
+public final class FilesServiceImpl: FilesService {
+    let baseURL: String
+    let headers: [String: String]
+    let session: URLSession
+
+    init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        self.baseURL = baseURL
+        self.headers = headers
+        self.session = session
+        super.init()
+    }
+
+    public override func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(directUrl)")!)
+        request.httpMethod = "POST"
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        var data = Data()
+        func appendField(_ name: String, _ value: String) {
+            data.append("--\(boundary)\r\n".data(using: .utf8)!)
+            data.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            data.append("\(value)\r\n".data(using: .utf8)!)
+        }
+        appendField("Content-Disposition", String(describing: body.ContentDisposition))
+        appendField("acl", String(describing: body.acl))
+        appendField("policy", String(describing: body.policy))
+        appendField("x-amz-credential", String(describing: body.xAmzCredential))
+        appendField("x-amz-algorithm", String(describing: body.xAmzAlgorithm))
+        appendField("x-amz-date", String(describing: body.xAmzDate))
+        appendField("x-amz-signature", String(describing: body.xAmzSignature))
+        appendField("key", String(describing: body.key))
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"file\"; filename=\"upload\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        data.append(body.file)
+        data.append("\r\n".data(using: .utf8)!)
+        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = data
+        let (responseData, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        default:
+            throw try deserialize(ApiError.self, from: responseData)
+        }
+    }
+
+    public override func getUploadParams() async throws -> UploadParams {
+        var request = URLRequest(url: URL(string: "\(baseURL)/uploads")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 201:
+            return try deserialize(UploadParams.self, from: data)
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -1031,6 +1088,10 @@ open class MessagesService {
         throw pachcaNotImplemented("Messages.createMessage")
     }
 
+    open func unfurl(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
+        throw pachcaNotImplemented("Messages.unfurl")
+    }
+
     open func pinMessage(id: Int) async throws -> Void {
         throw pachcaNotImplemented("Messages.pinMessage")
     }
@@ -1130,6 +1191,24 @@ public final class MessagesServiceImpl: MessagesService {
         }
     }
 
+    public override func unfurl(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/link_previews")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
     public override func pinMessage(id: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/pin")!)
         request.httpMethod = "POST"
@@ -1184,45 +1263,6 @@ public final class MessagesServiceImpl: MessagesService {
         var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/pin")!)
         request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
-        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
-        switch statusCode {
-        case 204:
-            return
-        case 401:
-            throw try deserialize(OAuthError.self, from: data)
-        default:
-            throw try deserialize(ApiError.self, from: data)
-        }
-    }
-}
-
-open class LinkPreviewsService {
-    public init() {}
-
-    open func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
-        throw pachcaNotImplemented("Link Previews.createLinkPreviews")
-    }
-}
-
-public final class LinkPreviewsServiceImpl: LinkPreviewsService {
-    let baseURL: String
-    let headers: [String: String]
-    let session: URLSession
-
-    init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        self.baseURL = baseURL
-        self.headers = headers
-        self.session = session
-        super.init()
-    }
-
-    public override func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
-        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/link_previews")!)
-        request.httpMethod = "POST"
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
@@ -1483,39 +1523,15 @@ public final class ThreadsServiceImpl: ThreadsService {
     }
 }
 
-open class ProfileService {
+open class OAuthService {
     public init() {}
 
     open func getTokenInfo() async throws -> AccessTokenInfo {
-        throw pachcaNotImplemented("Profile.getTokenInfo")
-    }
-
-    open func getProfile() async throws -> User {
-        throw pachcaNotImplemented("Profile.getProfile")
-    }
-
-    open func getStatus() async throws -> String {
-        throw pachcaNotImplemented("Profile.getStatus")
-    }
-
-    open func updateProfileAvatar(image: Data) async throws -> AvatarData {
-        throw pachcaNotImplemented("Profile.updateProfileAvatar")
-    }
-
-    open func updateStatus(request body: StatusUpdateRequest) async throws -> UserStatus {
-        throw pachcaNotImplemented("Profile.updateStatus")
-    }
-
-    open func deleteProfileAvatar() async throws -> Void {
-        throw pachcaNotImplemented("Profile.deleteProfileAvatar")
-    }
-
-    open func deleteStatus() async throws -> Void {
-        throw pachcaNotImplemented("Profile.deleteStatus")
+        throw pachcaNotImplemented("OAuth.getTokenInfo")
     }
 }
 
-public final class ProfileServiceImpl: ProfileService {
+public final class OAuthServiceImpl: OAuthService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -1540,6 +1556,51 @@ public final class ProfileServiceImpl: ProfileService {
         default:
             throw try deserialize(ApiError.self, from: data)
         }
+    }
+}
+
+open class ProfileService {
+    public init() {}
+
+    open func getProfile() async throws -> User {
+        throw pachcaNotImplemented("Profile.getProfile")
+    }
+
+    open func getStatus() async throws -> String {
+        throw pachcaNotImplemented("Profile.getStatus")
+    }
+
+    open func updateProfileAvatar(image: Data) async throws -> AvatarData {
+        throw pachcaNotImplemented("Profile.updateProfileAvatar")
+    }
+
+    open func updateStatus(request body: StatusUpdateRequest) async throws -> UserStatus {
+        throw pachcaNotImplemented("Profile.updateStatus")
+    }
+
+    open func deleteProfileAvatar() async throws -> Void {
+        throw pachcaNotImplemented("Profile.deleteProfileAvatar")
+    }
+
+    open func deleteStatus() async throws -> Void {
+        throw pachcaNotImplemented("Profile.deleteStatus")
+    }
+
+    open func getTokenInfo() async throws -> AccessTokenInfo {
+        throw pachcaNotImplemented("Profile.getTokenInfo")
+    }
+}
+
+public final class ProfileServiceImpl: ProfileService {
+    let baseURL: String
+    let headers: [String: String]
+    let session: URLSession
+
+    init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        self.baseURL = baseURL
+        self.headers = headers
+        self.session = session
+        super.init()
     }
 
     public override func getProfile() async throws -> User {
@@ -1646,6 +1707,21 @@ public final class ProfileServiceImpl: ProfileService {
         switch statusCode {
         case 204:
             return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func getTokenInfo() async throws -> AccessTokenInfo {
+        var request = URLRequest(url: URL(string: "\(baseURL)/oauth/token/info")!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(AccessTokenInfoDataWrapper.self, from: data).data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -2252,6 +2328,190 @@ public final class ViewsServiceImpl: ViewsService {
     }
 }
 
+open class CommonService {
+    public init() {}
+
+    open func getUploadParams() async throws -> UploadParams {
+        throw pachcaNotImplemented("Common.getUploadParams")
+    }
+
+    open func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
+        throw pachcaNotImplemented("Common.uploadFile")
+    }
+
+    open func listProperties(entityType: SearchEntityType) async throws -> ListPropertiesResponse {
+        throw pachcaNotImplemented("Common.listProperties")
+    }
+
+    open func requestExport(request body: ExportRequest) async throws -> Void {
+        throw pachcaNotImplemented("Common.requestExport")
+    }
+
+    open func downloadExport(id: Int) async throws -> String {
+        throw pachcaNotImplemented("Common.downloadExport")
+    }
+}
+
+public final class CommonServiceImpl: CommonService {
+    let baseURL: String
+    let headers: [String: String]
+    let session: URLSession
+
+    init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        self.baseURL = baseURL
+        self.headers = headers
+        self.session = session
+        super.init()
+    }
+
+    public override func getUploadParams() async throws -> UploadParams {
+        var request = URLRequest(url: URL(string: "\(baseURL)/uploads")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 201:
+            return try deserialize(UploadParams.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(directUrl)")!)
+        request.httpMethod = "POST"
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        var data = Data()
+        func appendField(_ name: String, _ value: String) {
+            data.append("--\(boundary)\r\n".data(using: .utf8)!)
+            data.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            data.append("\(value)\r\n".data(using: .utf8)!)
+        }
+        appendField("Content-Disposition", String(describing: body.ContentDisposition))
+        appendField("acl", String(describing: body.acl))
+        appendField("policy", String(describing: body.policy))
+        appendField("x-amz-credential", String(describing: body.xAmzCredential))
+        appendField("x-amz-algorithm", String(describing: body.xAmzAlgorithm))
+        appendField("x-amz-date", String(describing: body.xAmzDate))
+        appendField("x-amz-signature", String(describing: body.xAmzSignature))
+        appendField("key", String(describing: body.key))
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"file\"; filename=\"upload\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        data.append(body.file)
+        data.append("\r\n".data(using: .utf8)!)
+        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = data
+        let (responseData, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        default:
+            throw try deserialize(ApiError.self, from: responseData)
+        }
+    }
+
+    public override func listProperties(entityType: SearchEntityType) async throws -> ListPropertiesResponse {
+        var components = URLComponents(string: "\(baseURL)/custom_properties")!
+        var queryItems: [URLQueryItem] = []
+        queryItems.append(URLQueryItem(name: "entity_type", value: entityType.rawValue))
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ListPropertiesResponse.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func requestExport(request body: ExportRequest) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/chats/exports")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func downloadExport(id: Int) async throws -> String {
+        var request = URLRequest(url: URL(string: "\(baseURL)/chats/exports/\(id)")!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let delegate = RedirectPreventer()
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request, delegate: delegate)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 302:
+            guard let location = (urlResponse as? HTTPURLResponse)?.value(forHTTPHeaderField: "Location") else {
+                throw URLError(.badServerResponse)
+            }
+            return location
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+}
+
+open class LinkPreviewsService {
+    public init() {}
+
+    open func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
+        throw pachcaNotImplemented("Link Previews.createLinkPreviews")
+    }
+}
+
+public final class LinkPreviewsServiceImpl: LinkPreviewsService {
+    let baseURL: String
+    let headers: [String: String]
+    let session: URLSession
+
+    init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        self.baseURL = baseURL
+        self.headers = headers
+        self.session = session
+        super.init()
+    }
+
+    public override func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/link_previews")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+}
+
 private final class RedirectPreventer: NSObject, URLSessionTaskDelegate {
     func urlSession(
         _ session: URLSession,
@@ -2270,10 +2530,13 @@ public struct PachcaClient {
     public let bots: BotsService
     public let chats: ChatsService
     public let common: CommonService
+    public let customProperties: CustomPropertiesService
+    public let files: FilesService
     public let groupTags: GroupTagsService
     public let linkPreviews: LinkPreviewsService
     public let members: MembersService
     public let messages: MessagesService
+    public let oauth: OAuthService
     public let profile: ProfileService
     public let reactions: ReactionsService
     public let readMembers: ReadMembersService
@@ -2284,14 +2547,17 @@ public struct PachcaClient {
     public let users: UsersService
     public let views: ViewsService
 
-    private init(bots: BotsService, chats: ChatsService, common: CommonService, groupTags: GroupTagsService, linkPreviews: LinkPreviewsService, members: MembersService, messages: MessagesService, profile: ProfileService, reactions: ReactionsService, readMembers: ReadMembersService, search: SearchService, security: SecurityService, tasks: TasksService, threads: ThreadsService, users: UsersService, views: ViewsService) {
+    private init(bots: BotsService, chats: ChatsService, common: CommonService, customProperties: CustomPropertiesService, files: FilesService, groupTags: GroupTagsService, linkPreviews: LinkPreviewsService, members: MembersService, messages: MessagesService, oauth: OAuthService, profile: ProfileService, reactions: ReactionsService, readMembers: ReadMembersService, search: SearchService, security: SecurityService, tasks: TasksService, threads: ThreadsService, users: UsersService, views: ViewsService) {
         self.bots = bots
         self.chats = chats
         self.common = common
+        self.customProperties = customProperties
+        self.files = files
         self.groupTags = groupTags
         self.linkPreviews = linkPreviews
         self.members = members
         self.messages = messages
+        self.oauth = oauth
         self.profile = profile
         self.reactions = reactions
         self.readMembers = readMembers
@@ -2303,16 +2569,19 @@ public struct PachcaClient {
         self.views = views
     }
 
-    public init(token: String, baseURL: String = pachcaAPIURL, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             bots: bots ?? BotsServiceImpl(baseURL: baseURL, headers: headers),
             chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers),
             common: common ?? CommonServiceImpl(baseURL: baseURL, headers: headers),
+            customProperties: customProperties ?? CustomPropertiesServiceImpl(baseURL: baseURL, headers: headers),
+            files: files ?? FilesServiceImpl(baseURL: baseURL, headers: headers),
             groupTags: groupTags ?? GroupTagsServiceImpl(baseURL: baseURL, headers: headers),
             linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers),
             members: members ?? MembersServiceImpl(baseURL: baseURL, headers: headers),
             messages: messages ?? MessagesServiceImpl(baseURL: baseURL, headers: headers),
+            oauth: oauth ?? OAuthServiceImpl(baseURL: baseURL, headers: headers),
             profile: profile ?? ProfileServiceImpl(baseURL: baseURL, headers: headers),
             reactions: reactions ?? ReactionsServiceImpl(baseURL: baseURL, headers: headers),
             readMembers: readMembers ?? ReadMembersServiceImpl(baseURL: baseURL, headers: headers),
@@ -2325,15 +2594,18 @@ public struct PachcaClient {
         )
     }
 
-    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
         self.init(
             bots: bots ?? BotsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             common: common ?? CommonServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            customProperties: customProperties ?? CustomPropertiesServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            files: files ?? FilesServiceImpl(baseURL: baseURL, headers: headers, session: session),
             groupTags: groupTags ?? GroupTagsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             members: members ?? MembersServiceImpl(baseURL: baseURL, headers: headers, session: session),
             messages: messages ?? MessagesServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            oauth: oauth ?? OAuthServiceImpl(baseURL: baseURL, headers: headers, session: session),
             profile: profile ?? ProfileServiceImpl(baseURL: baseURL, headers: headers, session: session),
             reactions: reactions ?? ReactionsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             readMembers: readMembers ?? ReadMembersServiceImpl(baseURL: baseURL, headers: headers, session: session),
@@ -2346,15 +2618,18 @@ public struct PachcaClient {
         )
     }
 
-    public static func stub(bots: BotsService = BotsService(), chats: ChatsService = ChatsService(), common: CommonService = CommonService(), groupTags: GroupTagsService = GroupTagsService(), linkPreviews: LinkPreviewsService = LinkPreviewsService(), members: MembersService = MembersService(), messages: MessagesService = MessagesService(), profile: ProfileService = ProfileService(), reactions: ReactionsService = ReactionsService(), readMembers: ReadMembersService = ReadMembersService(), search: SearchService = SearchService(), security: SecurityService = SecurityService(), tasks: TasksService = TasksService(), threads: ThreadsService = ThreadsService(), users: UsersService = UsersService(), views: ViewsService = ViewsService()) -> PachcaClient {
+    public static func stub(bots: BotsService = BotsService(), chats: ChatsService = ChatsService(), common: CommonService = CommonService(), customProperties: CustomPropertiesService = CustomPropertiesService(), files: FilesService = FilesService(), groupTags: GroupTagsService = GroupTagsService(), linkPreviews: LinkPreviewsService = LinkPreviewsService(), members: MembersService = MembersService(), messages: MessagesService = MessagesService(), oauth: OAuthService = OAuthService(), profile: ProfileService = ProfileService(), reactions: ReactionsService = ReactionsService(), readMembers: ReadMembersService = ReadMembersService(), search: SearchService = SearchService(), security: SecurityService = SecurityService(), tasks: TasksService = TasksService(), threads: ThreadsService = ThreadsService(), users: UsersService = UsersService(), views: ViewsService = ViewsService()) -> PachcaClient {
         PachcaClient(
             bots: bots,
             chats: chats,
             common: common,
+            customProperties: customProperties,
+            files: files,
             groupTags: groupTags,
             linkPreviews: linkPreviews,
             members: members,
             messages: messages,
+            oauth: oauth,
             profile: profile,
             reactions: reactions,
             readMembers: readMembers,

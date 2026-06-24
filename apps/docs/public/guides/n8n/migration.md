@@ -58,7 +58,7 @@
 | Group Tag | `addTags` | Chat Member | `addGroupTags` |
 | Group Tag | `removeTag` | Chat Member | `removeGroupTags` |
 | Message | `getReadMembers` | Read Member | `getAll` |
-| Message | `unfurl` | Link Preview | `create` |
+| Message | `unfurl` | Message | `unfurl` |
 
 > Все перенесённые операции продолжают работать в v1 workflow без изменений. Маршрутизатор автоматически транслирует v1 имена в v2.
 
@@ -70,9 +70,8 @@
 | **Chat Member** | Управление участниками чата: добавление, удаление, роли, теги |
 | **Custom Property** | Дополнительные поля пространства |
 | **Read Member** | Список прочитавших сообщение |
-| **Link Preview** | Разворачивание ссылок в сообщениях |
 | **Search** | Полнотекстовый поиск по чатам, сообщениям, пользователям |
-| **Chat Export** | Экспорт сообщений из чатов |
+| **OAuth** | Информация о токене (скоупы, даты) |
 | **Security** | Журнал безопасности |
 
 ## Новые функции

@@ -14,7 +14,7 @@
   },
   "BotOperations_getBot": {
     "usage": "let response = try await client.bots.getBot(id: 1738816)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool))"
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool))"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "let response = try await client.bots.getWebhookEvents(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -26,9 +26,13 @@
   "BotOperations_getWebhookEvents_pollWebhookPayloads": {
     "usage": "for try await payload in client.bots.pollWebhookPayloads(interval: 5) {\n    print(payload)\n}"
   },
+  "BotOperations_selfRecreateBotToken": {
+    "usage": "let response = try await client.bots.selfRecreateBotToken()",
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool), accessToken: String)"
+  },
   "BotOperations_createBot": {
-    "usage": "let body = BotCreateRequest(\n    webhook: BotCreateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"],\n        template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine: .liquid,\n        challengeKey: \"challenge\",\n        linkPreviewEnabled: true\n    )\n)\nlet response = try await client.bots.createBot(body: body)",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool), accessToken: String)",
+    "usage": "let body = BotCreateRequest(\n    webhook: BotCreateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"],\n        template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine: .liquid,\n        challengeKey: \"challenge\",\n        linkPreviewEnabled: true,\n        ignoreSelfMessages: false,\n        eventsHistoryEnabled: false\n    )\n)\nlet response = try await client.bots.createBot(body: body)",
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool), accessToken: String)",
     "imports": [
       "BotCreateRequest",
       "BotCreateRequestWebhook",
@@ -37,17 +41,21 @@
       "BotTriggerOn"
     ]
   },
+  "BotOperations_recreateBotToken": {
+    "usage": "let response = try await client.bots.recreateBotToken(id: 1738816)",
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool), accessToken: String)"
+  },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "let body = BotWebhookSelfUpdateRequest(webhook: BotWebhookSelfUpdateRequestWebhook(outgoingUrl: \"https://www.website.com/tasks/new\"))\nlet response = try await client.bots.selfUpdateBotWebhook(body: body)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool))",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool))",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "let body = BotUpdateRequest(\n    webhook: BotUpdateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"],\n        template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine: .liquid,\n        challengeKey: \"challenge\",\n        linkPreviewEnabled: true\n    )\n)\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool))",
+    "usage": "let body = BotUpdateRequest(\n    webhook: BotUpdateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"],\n        template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine: .liquid,\n        challengeKey: \"challenge\",\n        linkPreviewEnabled: true,\n        ignoreSelfMessages: false,\n        eventsHistoryEnabled: false\n    )\n)\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool))",
     "imports": [
       "BotEventName",
       "BotTemplateEngine",
@@ -72,12 +80,22 @@
     "usage": "let response = try await client.chats.getChat(id: 334)",
     "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)"
   },
+  "ExportOperations_downloadExport": {
+    "usage": "let response = try await client.chats.downloadExport(id: 22322)",
+    "output": "String"
+  },
   "ChatOperations_createChat": {
     "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"🤿 aqua\",\n        memberIds: [123],\n        groupTagIds: [123],\n        channel: true,\n        `public`: false\n    )\n)\nlet response = try await client.chats.createChat(body: body)",
     "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
+    ]
+  },
+  "ExportOperations_requestExport": {
+    "usage": "let body = ExportRequest(\n    startAt: \"2025-03-20\",\n    endAt: \"2025-03-20\",\n    webhookUrl: \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    chatIds: [123],\n    skipChatsFile: false\n)\ntry await client.chats.requestExport(body: body)",
+    "imports": [
+      "ExportRequest"
     ]
   },
   "ChatOperations_updateChat": {
@@ -93,33 +111,6 @@
   },
   "ChatOperations_unarchiveChat": {
     "usage": "try await client.chats.unarchiveChat(id: 334)"
-  },
-  "ExportOperations_downloadExport": {
-    "usage": "let response = try await client.common.downloadExport(id: 22322)",
-    "output": "String"
-  },
-  "CommonOperations_listProperties": {
-    "usage": "let response = try await client.common.listProperties(entityType: .User)",
-    "output": "ListPropertiesResponse(data: [CustomPropertyDefinition])",
-    "imports": [
-      "SearchEntityType"
-    ]
-  },
-  "ExportOperations_requestExport": {
-    "usage": "let body = ExportRequest(\n    startAt: \"2025-03-20\",\n    endAt: \"2025-03-20\",\n    webhookUrl: \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    chatIds: [123],\n    skipChatsFile: false\n)\ntry await client.common.requestExport(body: body)",
-    "imports": [
-      "ExportRequest"
-    ]
-  },
-  "DirectUploadOperations_uploadFile": {
-    "usage": "let body = FileUploadRequest(\n    ContentDisposition: \"example\",\n    acl: \"example\",\n    policy: \"example\",\n    xAmzCredential: \"example\",\n    xAmzAlgorithm: \"example\",\n    xAmzDate: \"example\",\n    xAmzSignature: \"example\",\n    key: \"example\",\n    file: Data()\n)\ntry await client.common.uploadFile(directUrl: \"https://example.com\", body: body)",
-    "imports": [
-      "FileUploadRequest"
-    ]
-  },
-  "UploadOperations_getUploadParams": {
-    "usage": "let response = try await client.common.getUploadParams()",
-    "output": "UploadParams(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
   },
   "ChatMemberOperations_listMembers": {
     "usage": "let response = try await client.members.listMembers(id: 334, role: .all, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -151,6 +142,23 @@
   },
   "ChatMemberOperations_removeMember": {
     "usage": "try await client.members.removeMember(id: 334, userId: 186)"
+  },
+  "CommonOperations_listProperties": {
+    "usage": "let response = try await client.customProperties.listProperties(entityType: .User)",
+    "output": "ListPropertiesResponse(data: [CustomPropertyDefinition])",
+    "imports": [
+      "SearchEntityType"
+    ]
+  },
+  "DirectUploadOperations_uploadFile": {
+    "usage": "let body = FileUploadRequest(\n    ContentDisposition: \"example\",\n    acl: \"example\",\n    policy: \"example\",\n    xAmzCredential: \"example\",\n    xAmzAlgorithm: \"example\",\n    xAmzDate: \"example\",\n    xAmzSignature: \"example\",\n    key: \"example\",\n    file: Data()\n)\ntry await client.files.uploadFile(directUrl: \"https://example.com\", body: body)",
+    "imports": [
+      "FileUploadRequest"
+    ]
+  },
+  "UploadOperations_getUploadParams": {
+    "usage": "let response = try await client.files.getUploadParams()",
+    "output": "UploadParams(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
   },
   "GroupTagOperations_listTags": {
     "usage": "let names = [\"example\"]\nlet response = try await client.groupTags.listTags(names: names, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -207,6 +215,14 @@
       "MessageEntityType"
     ]
   },
+  "LinkPreviewOperations_unfurl": {
+    "usage": "let body = LinkPreviewsRequest(\n    linkPreviews: [\"key\": LinkPreview(\n        title: \"Статья: Отправка файлов\",\n        description: \"Пример отправки файлов на удаленный сервер\",\n        imageUrl: \"https://website.com/img/landing.png\",\n        image: LinkPreviewImage(\n            key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name: \"files-to-server.jpg\",\n            size: 695604\n        )\n    )]\n)\ntry await client.messages.unfurl(id: 194275, body: body)",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
+  },
   "MessageOperations_pinMessage": {
     "usage": "try await client.messages.pinMessage(id: 194275)"
   },
@@ -226,14 +242,6 @@
   },
   "MessageOperations_unpinMessage": {
     "usage": "try await client.messages.unpinMessage(id: 194275)"
-  },
-  "LinkPreviewOperations_createLinkPreviews": {
-    "usage": "let body = LinkPreviewsRequest(\n    linkPreviews: [\"key\": LinkPreview(\n        title: \"Статья: Отправка файлов\",\n        description: \"Пример отправки файлов на удаленный сервер\",\n        imageUrl: \"https://website.com/img/landing.png\",\n        image: LinkPreviewImage(\n            key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name: \"files-to-server.jpg\",\n            size: 695604\n        )\n    )]\n)\ntry await client.linkPreviews.createLinkPreviews(id: 194275, body: body)",
-    "imports": [
-      "LinkPreview",
-      "LinkPreviewImage",
-      "LinkPreviewsRequest"
-    ]
   },
   "ReactionOperations_listReactions": {
     "usage": "let response = try await client.reactions.listReactions(id: 194275, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -266,7 +274,7 @@
     "output": "Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)"
   },
   "OAuthOperations_getTokenInfo": {
-    "usage": "let response = try await client.profile.getTokenInfo()",
+    "usage": "let response = try await client.oauth.getTokenInfo()",
     "output": "AccessTokenInfo(id: Int64, token: String, name: String?, userId: Int64, scopes: [OAuthScope], createdAt: String, revokedAt: String?, expiresIn: Int?, lastUsedAt: String?)"
   },
   "ProfileOperations_getProfile": {

@@ -32,26 +32,28 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca bots create` | `POST` Новый бот |
 | `pachca bots get` | `GET` Информация о боте |
 | `pachca bots list-events` | `GET` История событий |
+| `pachca bots recreate-token` | `POST` Ротация токена бота |
+| `pachca bots recreate-token-self` | `POST` Ротация собственного токена бота |
 | `pachca bots remove-event` | `DELETE` Удаление события |
 | `pachca bots update` | `PUT` Редактирование бота |
 | `pachca bots update-webhook` | `PUT` Саморегистрация вебхука бота |
 | `pachca changelog` | История изменений CLI |
 | `pachca chats archive` | `PUT` Архивация чата |
 | `pachca chats create` | `POST` Новый чат |
+| `pachca chats download-export` | `GET` Скачать архив экспорта |
 | `pachca chats get` | `GET` Информация о чате |
 | `pachca chats list` | `GET` Список чатов |
+| `pachca chats request-export` | `POST` Экспорт сообщений |
 | `pachca chats unarchive` | `PUT` Разархивация чата |
 | `pachca chats update` | `PUT` Редактирование чата |
 | `pachca commands` | Список всех команд |
-| `pachca common custom-properties` | `GET` Список дополнительных полей |
-| `pachca common direct-url` | `POST` Загрузка файла |
-| `pachca common get-exports` | `GET` Скачать архив экспорта |
-| `pachca common request-export` | `POST` Экспорт сообщений |
-| `pachca common uploads` | `POST` Получение подписи, ключа и других параметров |
 | `pachca config get` | Получение значения конфигурации |
 | `pachca config list` | Список всех настроек |
 | `pachca config set` | Установка значения конфигурации |
+| `pachca custom-properties list` | `GET` Список дополнительных полей |
 | `pachca doctor` | Диагностика окружения: Node.js, сеть, токен, конфигурация |
+| `pachca files direct-url` | `POST` Загрузка файла |
+| `pachca files uploads` | `POST` Получение подписи, ключа и других параметров |
 | `pachca group-tags create` | `POST` Новый тег |
 | `pachca group-tags delete` | `DELETE` Удаление тега |
 | `pachca group-tags get` | `GET` Информация о теге |
@@ -60,7 +62,6 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca group-tags update` | `PUT` Редактирование тега |
 | `pachca guide` | Поиск сценариев использования |
 | `pachca introspect` | Метаданные команды в машиночитаемом формате |
-| `pachca link-previews add` | `POST` Unfurl (разворачивание ссылок) |
 | `pachca members add` | `POST` Добавление пользователей |
 | `pachca members add-group-tags` | `POST` Добавление тегов |
 | `pachca members leave` | `DELETE` Выход из беседы или канала |
@@ -73,12 +74,13 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca messages get` | `GET` Информация о сообщении |
 | `pachca messages list` | `GET` Список сообщений чата |
 | `pachca messages pin` | `POST` Закрепление сообщения |
+| `pachca messages unfurl` | `POST` Unfurl (разворачивание ссылок) |
 | `pachca messages unpin` | `DELETE` Открепление сообщения |
 | `pachca messages update` | `PUT` Редактирование сообщения |
+| `pachca oauth token-info` | `GET` Информация о токене |
 | `pachca profile delete-avatar` | `DELETE` Удаление своего аватара |
 | `pachca profile delete-status` | `DELETE` Удаление своего статуса |
 | `pachca profile get` | `GET` Свой профиль |
-| `pachca profile get-info` | `GET` Информация о токене |
 | `pachca profile get-status` | `GET` Свой статус |
 | `pachca profile update-avatar` | `PUT` Загрузка своего аватара |
 | `pachca profile update-status` | `PUT` Новый свой статус |

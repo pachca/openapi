@@ -68,7 +68,7 @@ pachca messages create --entity-id 123 < message.txt
 echo "Деплой завершён" | pachca messages create --entity-id 123
 
 # Скачать файл (для команд с редиректом)
-pachca common get-exports 123 --save ./export.zip
+pachca chats download-export 123 --save ./export.zip
 ```
 
 ## Пагинация

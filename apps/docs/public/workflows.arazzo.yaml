@@ -359,6 +359,25 @@ workflows:
           Or: the bot updates its own webhook with its own token — no `id` and no admin (requires
           the `bot_self:webhook:write` scope)
         operationId: BotOperations_selfUpdateBotWebhook
+  - workflowId: rotate-a-bot-token
+    summary: Rotate a bot token
+    description: >-
+      The new token is returned once. The self path (`POST /bot/recreate_token`) invalidates the
+      very token used for the request — capture the new token from the response in the same
+      operation. Manual prerequisites: Save the new `access_token` from the response — returned only
+      once. Update the secret in CI or your secret store.
+    steps:
+      - stepId: rotate-a-bot-token-1
+        description: >-
+          With a user token (admin, company owner or bot creator) — rotate the token by bot `id`.
+          The previous token is invalidated immediately
+        operationId: BotOperations_recreateBotToken
+      - stepId: rotate-a-bot-token-2
+        description: >-
+          Or: the bot rotates its own token with its own token (scope `bot_self:write`). The token
+          used for the request is invalidated immediately — be sure to save the new `access_token`
+          from the response, otherwise the bot loses API access
+        operationId: BotOperations_selfRecreateBotToken
   - workflowId: handle-incoming-webhook-event
     summary: Handle incoming webhook event
     description: >-
@@ -383,7 +402,7 @@ workflows:
     steps:
       - stepId: link-unfurling-1
         description: Send preview data
-        operationId: LinkPreviewOperations_createLinkPreviews
+        operationId: LinkPreviewOperations_unfurl
   - workflowId: handle-button-click-callback
     summary: Handle button click (callback)
     description: >-

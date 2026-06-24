@@ -25,8 +25,77 @@
   ],
   "item": [
     {
-      "name": "Common",
+      "name": "OAuth",
       "item": [
+        {
+          "name": "Информация о токене",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/oauth/token/info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "oauth",
+                "token",
+                "info"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chats",
+      "item": [
+        {
+          "name": "Новый чат",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chats"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chat\": {\n    \"name\": \"🤿 aqua\",\n    \"member_ids\": [\n      186,\n      187\n    ],\n    \"group_tag_ids\": [\n      86,\n      18\n    ],\n    \"channel\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Список чатов",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chats"
+              ]
+            }
+          }
+        },
         {
           "name": "Экспорт сообщений",
           "request": {
@@ -83,25 +152,32 @@
           }
         },
         {
-          "name": "Список дополнительных полей",
+          "name": "Информация о чате",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/custom_properties",
+              "raw": "{{baseUrl}}/chats/:id",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "custom_properties"
+                "chats",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
               ]
             }
           }
         },
         {
-          "name": "Загрузка файла",
+          "name": "Редактирование чата",
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [
               {
                 "key": "Content-Type",
@@ -109,17 +185,24 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/direct_url",
+              "raw": "{{baseUrl}}/chats/:id",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "direct_url"
+                "chats",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"Content-Disposition\": \"your_api_token_here\",\n  \"acl\": \"your_api_token_here\",\n  \"policy\": \"your_api_token_here\",\n  \"x-amz-credential\": \"your_api_token_here\",\n  \"x-amz-algorithm\": \"your_api_token_here\",\n  \"x-amz-date\": \"your_api_token_here\",\n  \"x-amz-signature\": \"your_api_token_here\",\n  \"key\": \"your_api_token_here\",\n  \"file\": \"0101010101010101\"\n}",
+              "raw": "{\n  \"chat\": {\n    \"name\": \"Бассейн\",\n    \"public\": true\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -129,17 +212,49 @@
           }
         },
         {
-          "name": "Получение подписи, ключа и других параметров",
+          "name": "Архивация чата",
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/uploads",
+              "raw": "{{baseUrl}}/chats/:id/archive",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "uploads"
+                "chats",
+                ":id",
+                "archive"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Разархивация чата",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chats/:id/unarchive",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chats",
+                ":id",
+                "unarchive"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
               ]
             }
           }
@@ -149,24 +264,6 @@
     {
       "name": "Profile",
       "item": [
-        {
-          "name": "Информация о токене",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/oauth/token/info",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "oauth",
-                "token",
-                "info"
-              ]
-            }
-          }
-        },
         {
           "name": "Свой профиль",
           "request": {
@@ -739,165 +836,6 @@
       ]
     },
     {
-      "name": "Chats",
-      "item": [
-        {
-          "name": "Новый чат",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/chats",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "chats"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"chat\": {\n    \"name\": \"🤿 aqua\",\n    \"member_ids\": [\n      186,\n      187\n    ],\n    \"group_tag_ids\": [\n      86,\n      18\n    ],\n    \"channel\": true\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Список чатов",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/chats",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "chats"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Информация о чате",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/chats/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "chats",
-                ":id"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": ""
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Редактирование чата",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/chats/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "chats",
-                ":id"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": ""
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"chat\": {\n    \"name\": \"Бассейн\",\n    \"public\": true\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Архивация чата",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/chats/:id/archive",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "chats",
-                ":id",
-                "archive"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": ""
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Разархивация чата",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/chats/:id/unarchive",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "chats",
-                ":id",
-                "unarchive"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": ""
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
       "name": "Members",
       "item": [
         {
@@ -1328,6 +1266,44 @@
           }
         },
         {
+          "name": "Unfurl (разворачивание ссылок)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/messages/:id/link_previews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages",
+                ":id",
+                "link_previews"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"link_previews\": {\n    \"https://website.com/articles/123\": {\n      \"title\": \"Статья: Отправка файлов\",\n      \"description\": \"Пример отправки файлов на удаленный сервер\",\n      \"image_url\": \"https://website.com/img/landing.png\",\n      \"image\": {\n        \"key\": \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n        \"name\": \"files-to-server.jpg\",\n        \"size\": 695604\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
           "name": "Закрепление сообщения",
           "request": {
             "method": "POST",
@@ -1492,49 +1468,6 @@
                   "value": ""
                 }
               ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Link Previews",
-      "item": [
-        {
-          "name": "Unfurl (разворачивание ссылок)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/messages/:id/link_previews",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "messages",
-                ":id",
-                "link_previews"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": ""
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"link_previews\": {\n    \"https://website.com/articles/123\": {\n      \"title\": \"Статья: Отправка файлов\",\n      \"description\": \"Пример отправки файлов на удаленный сервер\",\n      \"image_url\": \"https://website.com/img/landing.png\",\n      \"image\": {\n        \"key\": \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n        \"name\": \"files-to-server.jpg\",\n        \"size\": 695604\n      }\n    }\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
             }
           }
         }
@@ -1770,6 +1703,23 @@
       "name": "Bots",
       "item": [
         {
+          "name": "Ротация собственного токена бота",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bot/recreate_token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bot",
+                "recreate_token"
+              ]
+            }
+          }
+        },
+        {
           "name": "Саморегистрация вебхука бота",
           "request": {
             "method": "PUT",
@@ -1891,6 +1841,30 @@
           }
         },
         {
+          "name": "Ротация токена бота",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bots/:id/recreate_token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bots",
+                ":id",
+                "recreate_token"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "История событий",
           "request": {
             "method": "GET",
@@ -1948,6 +1922,78 @@
               ],
               "path": [
                 "audit_events"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Custom Properties",
+      "item": [
+        {
+          "name": "Список дополнительных полей",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/custom_properties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "custom_properties"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Files",
+      "item": [
+        {
+          "name": "Загрузка файла",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/direct_url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "direct_url"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Content-Disposition\": \"your_api_token_here\",\n  \"acl\": \"your_api_token_here\",\n  \"policy\": \"your_api_token_here\",\n  \"x-amz-credential\": \"your_api_token_here\",\n  \"x-amz-algorithm\": \"your_api_token_here\",\n  \"x-amz-date\": \"your_api_token_here\",\n  \"x-amz-signature\": \"your_api_token_here\",\n  \"key\": \"your_api_token_here\",\n  \"file\": \"0101010101010101\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Получение подписи, ключа и других параметров",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/uploads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "uploads"
               ]
             }
           }

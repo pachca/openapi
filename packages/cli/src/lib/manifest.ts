@@ -107,8 +107,17 @@ export function groupCommandsBySection(
   commands: ManifestCommands,
   baseFlagNames: Set<string>,
 ): CommandSection[] {
+  // Collect backward-compat hidden aliases (old command ids kept working after an IA rename).
+  // oclif registers them as resolvable command entries, but they must NOT appear in docs/help —
+  // only the new canonical command names are shown.
+  const hiddenAliasIds = new Set<string>();
+  for (const meta of Object.values(commands)) {
+    for (const a of (meta.hiddenAliases as string[] | undefined) ?? []) hiddenAliasIds.add(a);
+  }
+
   const bySection = new Map<string, NormalizedCommand[]>();
   for (const [id, meta] of Object.entries(commands)) {
+    if (hiddenAliasIds.has(id)) continue; // hidden backward-compat alias — keep it out of docs/help
     const section = id.includes(':') ? id.split(':')[0] : id;
     const normalized = normalizeCommand(id, meta, baseFlagNames);
     if (!bySection.has(section)) bySection.set(section, []);

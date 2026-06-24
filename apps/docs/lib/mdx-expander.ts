@@ -17,7 +17,7 @@ import { API_CLIENTS } from './api-clients';
 import type { Schema } from './openapi/types';
 import { HTTP_CODES } from './schemas/guide-schemas';
 import { getOrderedPages } from './ordered-pages';
-import { generateNavigation } from './navigation';
+import { generateNavigation, compareEndpointsForNav } from './navigation';
 import { sortTagsByOrder } from './guides-config';
 import { WORKFLOWS } from '@pachca/spec/workflows';
 import { SKILL_TAG_MAP } from '../scripts/skills/config';
@@ -507,14 +507,6 @@ export async function expandMdxComponents(content: string): Promise<string> {
       const grouped = groupEndpointsByTag(api.endpoints);
       const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
 
-      const METHOD_ORDER: Record<string, number> = {
-        POST: 0,
-        GET: 1,
-        PUT: 2,
-        PATCH: 3,
-        DELETE: 4,
-      };
-
       const tagToProperty = (tag: string): string => {
         const words = tag.split(/\s+/);
         return words
@@ -554,7 +546,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
       md += '|-------|----------|\n';
       for (const tag of sortedTags) {
         const endpoints = grouped.get(tag)!;
-        endpoints.sort((a, b) => (METHOD_ORDER[a.method] ?? 99) - (METHOD_ORDER[b.method] ?? 99));
+        endpoints.sort(compareEndpointsForNav);
         for (const ep of endpoints) {
           const call = formatCall(tag, ep.id);
           const href = generateUrlFromOperation(ep);

@@ -2,7 +2,7 @@
 
 1. Запроси экспорт:
    ```bash
-   pachca common request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>
+   pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>
    ```
    > `start_at`, `end_at` (YYYY-MM-DD), `webhook_url` обязателен — запрос асинхронный
 
@@ -10,7 +10,7 @@
 
 3. Скачай файл экспорта:
    ```bash
-   pachca common get-exports <export_id>
+   pachca chats download-export <export_id>
    ```
    > Сервер вернёт 302, HTTP-клиент скачает файл автоматически
 

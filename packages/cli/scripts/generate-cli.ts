@@ -40,6 +40,19 @@ const ENTITY_HINTS: Record<string, string> = {
   bots: 'pachca bots list',
 };
 
+// IA renames: old oclif command ids that must keep working (hidden from help) after a
+// method was moved to a new section/slug. Key: "METHOD /path", value: old "section:action" ids.
+// Emitted as `static hiddenAliases` so existing scripts using the old name don't break.
+const HIDDEN_COMMAND_ALIASES: Record<string, string[]> = {
+  'POST /chats/exports': ['common:request-export'],
+  'GET /chats/exports/{id}': ['common:get-exports'],
+  'POST /uploads': ['common:uploads'],
+  'POST /direct_url': ['common:direct-url'],
+  'GET /custom_properties': ['common:custom-properties'],
+  'GET /oauth/token/info': ['profile:get-info'],
+  'POST /messages/{id}/link_previews': ['link-previews:add'],
+};
+
 // ----- Code Generation -----
 
 interface GeneratedCommand {
@@ -841,6 +854,10 @@ function generateCommandCode(p: CommandGenParams): string {
   const allFlags = [...queryFlagLines, ...bodyFlagLines];
 
   const staticMeta: string[] = [];
+  const hiddenAliases = HIDDEN_COMMAND_ALIASES[`${p.endpoint.method} ${p.endpoint.path}`];
+  if (hiddenAliases?.length) {
+    staticMeta.push(`  static override hiddenAliases = ${JSON.stringify(hiddenAliases)};`);
+  }
   if (p.scope) staticMeta.push(`  static scope = ${JSON.stringify(p.scope)};`);
   if (p.plan) staticMeta.push(`  static plan = ${JSON.stringify(p.plan)};`);
   staticMeta.push(`  static apiMethod = ${JSON.stringify(p.endpoint.method)};`);
@@ -1322,23 +1339,16 @@ async function main(): Promise<void> {
     }
   }
 
-  // Also clean up stale dist/commands/ directories so tsc leftovers don't pollute oclif manifest
+  // Wipe dist/commands entirely so `oclif manifest` (which reads dist/, after tsc)
+  // never picks up .js leftovers from renamed/removed commands. tsc does NOT delete
+  // a .js when its .ts is gone, and a dir-only sweep misses stale FILES inside a
+  // surviving dir (e.g. profile/get-info.js after profile/ keeps other commands) —
+  // those leaked into the committed manifest as ghost commands. tsc rebuilds
+  // dist/commands fresh on the next build step, so a full wipe is safe and complete.
   const DIST_COMMANDS = path.join(CLI_SRC, '..', 'dist', 'commands');
   if (fs.existsSync(DIST_COMMANDS)) {
-    const srcDirNames = new Set(
-      fs.readdirSync(COMMANDS_DIR, { withFileTypes: true })
-        .filter((d) => d.isDirectory())
-        .map((d) => d.name),
-    );
-    const distDirs = fs.readdirSync(DIST_COMMANDS, { withFileTypes: true })
-      .filter((d) => d.isDirectory())
-      .map((d) => d.name);
-    for (const section of distDirs) {
-      if (!srcDirNames.has(section)) {
-        fs.rmSync(path.join(DIST_COMMANDS, section), { recursive: true });
-        console.log(`  Removed stale dist: ${section}/`);
-      }
-    }
+    fs.rmSync(DIST_COMMANDS, { recursive: true, force: true });
+    console.log('  Wiped dist/commands (tsc rebuilds fresh — no stale manifest entries)');
   }
 
   // Generate data files

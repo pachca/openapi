@@ -1,5 +1,89 @@
 [
   {
+    "product": "generator",
+    "version": "1.1.8",
+    "date": "2026-06-24",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Генерация deprecated-алиасов сервисов: при переносе операций в новый сервис старые имена (`client.common` и т.п.) сохраняются как рабочие, но скрытые из примеров аксессоры (обратная совместимость SDK)"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.6.3",
+    "date": "2026-06-24",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Команды реорганизованы по разделам: `files`/`custom-properties`/`oauth` вместо `common`, экспорт чата → `chats`, unfurl → `messages`. Старые имена продолжают работать (скрытые алиасы)"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots recreate-token` — ротация токена бота по его `id` (нужны права администратора, владельца или создателя бота)"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots recreate-token-self` — бот перевыпускает собственный токен своим же токеном"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots create` и `bots update` — настройки вебхука `--ignore-self-messages` и `--events-history-enabled`"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.0.25",
+    "date": "2026-06-24",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Метод `Ротация токена бота` (`POST /bots/{id}/recreate_token`)"
+      },
+      {
+        "type": "+",
+        "description": "Метод `Ротация собственного токена бота` (`POST /bot/recreate_token`)"
+      },
+      {
+        "type": "+",
+        "description": "У бота поля настроек вебхука: `ignore_self_messages`, `events_history_enabled`"
+      },
+      {
+        "type": "+",
+        "description": "Журнал аудита: новые типы событий `bot_token_recreated`, `bot_scopes_updated`, `bot_webhook_settings_updated`"
+      },
+      {
+        "type": "~",
+        "description": "Сервисы реорганизованы: загрузка файлов — `client.files`, дополнительные поля — `client.customProperties`, информация о токене — `client.oauth`, unfurl — `client.messages.unfurl()` (бывш. `createLinkPreviews`). Старые имена (`client.common`, `client.linkPreviews.createLinkPreviews()`, `client.profile.getTokenInfo()`) продолжают работать как deprecated-алиасы — существующий код не ломается"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.0.13",
+    "date": "2026-06-24",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`Bot`: новая операция `Recreate Token` — ротация токена бота по ID"
+      },
+      {
+        "type": "+",
+        "description": "`Bot`: новая операция `Recreate Token Self` — бот перевыпускает собственный токен"
+      },
+      {
+        "type": "+",
+        "description": "`Bot`: настройки вебхука `Ignore Self Messages` и `Events History Enabled` на `Create`/`Update` и в ответе"
+      },
+      {
+        "type": "~",
+        "description": "Ресурсы выровнены с API: экспорт чата — в `Chat` (`Request Export`, `Download Export`), unfurl — в `Message`, информация о токене — в новом `OAuth`. Старые workflow (`Chat Export`/`Link Preview`/`Profile → Get Info`) продолжают работать"
+      }
+    ]
+  },
+  {
     "product": "sdk",
     "version": "1.0.24",
     "date": "2026-06-19",

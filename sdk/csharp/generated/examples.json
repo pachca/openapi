@@ -14,7 +14,7 @@
   },
   "BotOperations_getBot": {
     "usage": "var response = await client.Bots.GetBotAsync(1738816);",
-    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool))"
+    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool))"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "var response = await client.Bots.GetWebhookEventsAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
@@ -29,9 +29,13 @@
       "WebhookPayloadUnion"
     ]
   },
+  "BotOperations_selfRecreateBotToken": {
+    "usage": "var response = await client.Bots.SelfRecreateBotTokenAsync();",
+    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool), AccessToken: string)"
+  },
   "BotOperations_createBot": {
-    "usage": "var request = new BotCreateRequest\n{\n    Webhook = new BotCreateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://www.website.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" },\n        Template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        TemplateEngine = BotTemplateEngine.Liquid,\n        ChallengeKey = \"challenge\",\n        LinkPreviewEnabled = true\n    }\n};\nvar response = await client.Bots.CreateBotAsync(request);",
-    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool), AccessToken: string)",
+    "usage": "var request = new BotCreateRequest\n{\n    Webhook = new BotCreateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://www.website.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" },\n        Template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        TemplateEngine = BotTemplateEngine.Liquid,\n        ChallengeKey = \"challenge\",\n        LinkPreviewEnabled = true,\n        IgnoreSelfMessages = false,\n        EventsHistoryEnabled = false\n    }\n};\nvar response = await client.Bots.CreateBotAsync(request);",
+    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool), AccessToken: string)",
     "imports": [
       "BotCreateRequest",
       "BotCreateRequestWebhook",
@@ -40,17 +44,21 @@
       "BotTriggerOn"
     ]
   },
+  "BotOperations_recreateBotToken": {
+    "usage": "var response = await client.Bots.RecreateBotTokenAsync(1738816);",
+    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool), AccessToken: string)"
+  },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "var request = new BotWebhookSelfUpdateRequest { Webhook = new BotWebhookSelfUpdateRequestWebhook { OutgoingUrl = \"https://www.website.com/tasks/new\" } };\nvar response = await client.Bots.SelfUpdateBotWebhookAsync(request);",
-    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool))",
+    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool))",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "var request = new BotUpdateRequest\n{\n    Webhook = new BotUpdateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://www.website.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" },\n        Template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        TemplateEngine = BotTemplateEngine.Liquid,\n        ChallengeKey = \"challenge\",\n        LinkPreviewEnabled = true\n    }\n};\nvar response = await client.Bots.UpdateBotAsync(1738816, request);",
-    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool))",
+    "usage": "var request = new BotUpdateRequest\n{\n    Webhook = new BotUpdateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://www.website.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" },\n        Template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        TemplateEngine = BotTemplateEngine.Liquid,\n        ChallengeKey = \"challenge\",\n        LinkPreviewEnabled = true,\n        IgnoreSelfMessages = false,\n        EventsHistoryEnabled = false\n    }\n};\nvar response = await client.Bots.UpdateBotAsync(1738816, request);",
+    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool))",
     "imports": [
       "BotEventName",
       "BotTemplateEngine",
@@ -75,12 +83,22 @@
     "usage": "var response = await client.Chats.GetChatAsync(334);",
     "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)"
   },
+  "ExportOperations_downloadExport": {
+    "usage": "var response = await client.Chats.DownloadExportAsync(22322);",
+    "output": "string"
+  },
   "ChatOperations_createChat": {
     "usage": "var request = new ChatCreateRequest\n{\n    Chat = new ChatCreateRequestChat\n    {\n        Name = \"🤿 aqua\",\n        MemberIds = new List<int> { 123 },\n        GroupTagIds = new List<int> { 123 },\n        Channel = true,\n        @Public = false\n    }\n};\nvar response = await client.Chats.CreateChatAsync(request);",
     "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
+    ]
+  },
+  "ExportOperations_requestExport": {
+    "usage": "var request = new ExportRequest\n{\n    StartAt = \"2025-03-20\",\n    EndAt = \"2025-03-20\",\n    WebhookUrl = \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    ChatIds = new List<int> { 123 },\n    SkipChatsFile = false\n};\nawait client.Chats.RequestExportAsync(request);",
+    "imports": [
+      "ExportRequest"
     ]
   },
   "ChatOperations_updateChat": {
@@ -96,33 +114,6 @@
   },
   "ChatOperations_unarchiveChat": {
     "usage": "await client.Chats.UnarchiveChatAsync(334);"
-  },
-  "ExportOperations_downloadExport": {
-    "usage": "var response = await client.Common.DownloadExportAsync(22322);",
-    "output": "string"
-  },
-  "CommonOperations_listProperties": {
-    "usage": "var response = await client.Common.ListPropertiesAsync(SearchEntityType.User);",
-    "output": "ListPropertiesResponse(Data: List<CustomPropertyDefinition>)",
-    "imports": [
-      "SearchEntityType"
-    ]
-  },
-  "ExportOperations_requestExport": {
-    "usage": "var request = new ExportRequest\n{\n    StartAt = \"2025-03-20\",\n    EndAt = \"2025-03-20\",\n    WebhookUrl = \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    ChatIds = new List<int> { 123 },\n    SkipChatsFile = false\n};\nawait client.Common.RequestExportAsync(request);",
-    "imports": [
-      "ExportRequest"
-    ]
-  },
-  "DirectUploadOperations_uploadFile": {
-    "usage": "var request = new FileUploadRequest\n{\n    ContentDisposition = \"example\",\n    Acl = \"example\",\n    Policy = \"example\",\n    XAmzCredential = \"example\",\n    XAmzAlgorithm = \"example\",\n    XAmzDate = \"example\",\n    XAmzSignature = \"example\",\n    Key = \"example\",\n    File = Array.Empty<byte>()\n};\nawait client.Common.UploadFileAsync(\"https://example.com\", request);",
-    "imports": [
-      "FileUploadRequest"
-    ]
-  },
-  "UploadOperations_getUploadParams": {
-    "usage": "var response = await client.Common.GetUploadParamsAsync();",
-    "output": "UploadParams(ContentDisposition: string, Acl: string, Policy: string, XAmzCredential: string, XAmzAlgorithm: string, XAmzDate: string, XAmzSignature: string, Key: string, DirectUrl: string)"
   },
   "ChatMemberOperations_listMembers": {
     "usage": "var response = await client.Members.ListMembersAsync(334, ChatMemberRoleFilter.All, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
@@ -154,6 +145,23 @@
   },
   "ChatMemberOperations_removeMember": {
     "usage": "await client.Members.RemoveMemberAsync(334, 186);"
+  },
+  "CommonOperations_listProperties": {
+    "usage": "var response = await client.CustomProperties.ListPropertiesAsync(SearchEntityType.User);",
+    "output": "ListPropertiesResponse(Data: List<CustomPropertyDefinition>)",
+    "imports": [
+      "SearchEntityType"
+    ]
+  },
+  "DirectUploadOperations_uploadFile": {
+    "usage": "var request = new FileUploadRequest\n{\n    ContentDisposition = \"example\",\n    Acl = \"example\",\n    Policy = \"example\",\n    XAmzCredential = \"example\",\n    XAmzAlgorithm = \"example\",\n    XAmzDate = \"example\",\n    XAmzSignature = \"example\",\n    Key = \"example\",\n    File = Array.Empty<byte>()\n};\nawait client.Files.UploadFileAsync(\"https://example.com\", request);",
+    "imports": [
+      "FileUploadRequest"
+    ]
+  },
+  "UploadOperations_getUploadParams": {
+    "usage": "var response = await client.Files.GetUploadParamsAsync();",
+    "output": "UploadParams(ContentDisposition: string, Acl: string, Policy: string, XAmzCredential: string, XAmzAlgorithm: string, XAmzDate: string, XAmzSignature: string, Key: string, DirectUrl: string)"
   },
   "GroupTagOperations_listTags": {
     "usage": "var names = new List<string> { \"example\" };\nvar response = await client.GroupTags.ListTagsAsync(names, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
@@ -210,6 +218,14 @@
       "MessageEntityType"
     ]
   },
+  "LinkPreviewOperations_unfurl": {
+    "usage": "var request = new LinkPreviewsRequest\n{\n    LinkPreviews = new Dictionary<string, LinkPreview> { [\"key\"] = new LinkPreview\n    {\n        Title = \"Статья: Отправка файлов\",\n        Description = \"Пример отправки файлов на удаленный сервер\",\n        ImageUrl = \"https://website.com/img/landing.png\",\n        Image = new LinkPreviewImage\n        {\n            Key = \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            Name = \"files-to-server.jpg\",\n            Size = 695604\n        }\n    } }\n};\nawait client.Messages.UnfurlAsync(194275, request);",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
+  },
   "MessageOperations_pinMessage": {
     "usage": "await client.Messages.PinMessageAsync(194275);"
   },
@@ -229,14 +245,6 @@
   },
   "MessageOperations_unpinMessage": {
     "usage": "await client.Messages.UnpinMessageAsync(194275);"
-  },
-  "LinkPreviewOperations_createLinkPreviews": {
-    "usage": "var request = new LinkPreviewsRequest\n{\n    LinkPreviews = new Dictionary<string, LinkPreview> { [\"key\"] = new LinkPreview\n    {\n        Title = \"Статья: Отправка файлов\",\n        Description = \"Пример отправки файлов на удаленный сервер\",\n        ImageUrl = \"https://website.com/img/landing.png\",\n        Image = new LinkPreviewImage\n        {\n            Key = \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            Name = \"files-to-server.jpg\",\n            Size = 695604\n        }\n    } }\n};\nawait client.LinkPreviews.CreateLinkPreviewsAsync(194275, request);",
-    "imports": [
-      "LinkPreview",
-      "LinkPreviewImage",
-      "LinkPreviewsRequest"
-    ]
   },
   "ReactionOperations_listReactions": {
     "usage": "var response = await client.Reactions.ListReactionsAsync(194275, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
@@ -269,7 +277,7 @@
     "output": "Thread(Id: long, ChatId: long, MessageId: long, MessageChatId: long, UpdatedAt: DateTimeOffset)"
   },
   "OAuthOperations_getTokenInfo": {
-    "usage": "var response = await client.Profile.GetTokenInfoAsync();",
+    "usage": "var response = await client.Oauth.GetTokenInfoAsync();",
     "output": "AccessTokenInfo(Id: long, Token: string, Name: string?, UserId: long, Scopes: List<OAuthScope>, CreatedAt: DateTimeOffset, RevokedAt: DateTimeOffset?, ExpiresIn: int?, LastUsedAt: DateTimeOffset?)"
   },
   "ProfileOperations_getProfile": {

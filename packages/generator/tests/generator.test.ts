@@ -3,6 +3,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { generate, SUPPORTED_LANGS } from '../src/index.js';
+import { transform } from '../src/transform.js';
+import { parseOpenAPI } from '@pachca/openapi-parser';
 
 const TESTS_DIR = path.resolve(__dirname, '.');
 const SUITES = fs.readdirSync(TESTS_DIR).filter((d) => {
@@ -69,4 +71,46 @@ describe('generator', () => {
       }
     });
   }
+});
+
+// Backward compatibility: after the 2026-06 IA retag, operations moved to new services.
+// The generator must re-expose the OLD service names as deprecated alias services so that
+// existing SDK code (client.common.*, client.linkPreviews.*, client.profile.getTokenInfo) keeps
+// working, while the new names are the documented ones.
+describe('backward-compat alias services (IA rename)', () => {
+  const spec = parseOpenAPI(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml'));
+  const ir = transform(spec);
+  const svc = (tag: string) => ir.services.find((s) => s.tag === tag);
+
+  it('re-exposes Common as a deprecated alias with the moved operations', () => {
+    const common = svc('Common');
+    expect(common?.deprecated).toBe(true);
+    const methods = common!.operations.map((o) => o.methodName);
+    expect(methods).toContain('getUploadParams');
+    expect(methods).toContain('uploadFile');
+    expect(methods).toContain('listProperties');
+    expect(common!.operations.every((o) => o.isAlias)).toBe(true);
+  });
+
+  it('re-exposes Link Previews as a deprecated alias keeping the OLD verb (createLinkPreviews)', () => {
+    const lp = svc('Link Previews');
+    expect(lp?.deprecated).toBe(true);
+    expect(lp!.operations.some((o) => o.methodName === 'createLinkPreviews' && o.isAlias)).toBe(true);
+  });
+
+  it('canonical Messages.unfurl uses the new verb, not the old createLinkPreviews', () => {
+    const messages = svc('Messages');
+    expect(messages!.operations.some((o) => o.methodName === 'unfurl' && !o.isAlias)).toBe(true);
+    expect(messages!.operations.some((o) => o.methodName === 'createLinkPreviews')).toBe(false);
+  });
+
+  it('keeps getTokenInfo on the Profile service as a deprecated alias', () => {
+    const profile = ir.services.find((s) => s.tag === 'Profile' && !s.deprecated);
+    expect(profile!.operations.some((o) => o.path === '/oauth/token/info' && o.isAlias)).toBe(true);
+  });
+
+  it('new services own the operations as primary (not alias)', () => {
+    expect(svc('Files')!.operations.some((o) => o.methodName === 'getUploadParams' && !o.isAlias)).toBe(true);
+    expect(svc('OAuth')!.operations.some((o) => o.path === '/oauth/token/info' && !o.isAlias)).toBe(true);
+  });
 });

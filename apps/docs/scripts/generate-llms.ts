@@ -878,10 +878,10 @@ const fileName = path.basename(filePath)
 const fileBuffer = fs.readFileSync(filePath)
 
 // Step 1: Get S3 presigned upload parameters
-const params = await client.common.getUploadParams()
+const params = await client.files.getUploadParams()
 
 // Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
-await client.common.uploadFile(params.directUrl, {
+await client.files.uploadFile(params.directUrl, {
   contentDisposition: params.contentDisposition,
   acl: params.acl,
   policy: params.policy,
@@ -919,11 +919,11 @@ file_path = "report.pdf"
 file_name = os.path.basename(file_path)
 
 # Step 1: Get S3 presigned upload parameters
-params = await client.common.get_upload_params()
+params = await client.files.get_upload_params()
 
 # Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
 with open(file_path, "rb") as f:
-    await client.common.upload_file(
+    await client.files.upload_file(
         direct_url=params.direct_url,
         request=FileUploadRequest(
             content_disposition=params.content_disposition,
@@ -2315,6 +2315,12 @@ async function main() {
   }
   console.log(`✓ ${skillFiles.length} skill files`);
 
+  const removedSkillDirs = sweepOrphanSkillDirs(skillFiles);
+  if (removedSkillDirs.length > 0)
+    console.log(
+      `✓ removed ${removedSkillDirs.length} orphan skill dirs: ${removedSkillDirs.join(', ')}`
+    );
+
   // scenarios.json removed — its role is covered by the n8n node (n8n-nodes-pachca)
 
   const postmanCollection = generatePostmanCollection(api);
@@ -2387,6 +2393,32 @@ function sweepOrphanMarkdown(dirs: string[], writtenPaths: string[]): string[] {
       }
     };
     walk(abs);
+  }
+  return removed;
+}
+
+/**
+ * Delete whole generated skill directories that the current run did NOT produce
+ * (orphans left behind when a skill is renamed/removed, e.g. after an IA retag).
+ * Dir-level on purpose: hand-written references inside a still-valid skill dir are
+ * preserved. Scoped to our own `pachca*` skill dirs only — never other assets.
+ */
+function sweepOrphanSkillDirs(skillFiles: { path: string }[]): string[] {
+  const valid = new Set<string>();
+  for (const f of skillFiles) {
+    const m = f.path.match(/(?:^|\/)skills\/([^/]+)\//);
+    if (m) valid.add(m[1]);
+  }
+  const removed: string[] = [];
+  for (const base of ['skills', 'apps/docs/public/.well-known/skills']) {
+    const abs = path.join(REPO_ROOT, base);
+    if (!fs.existsSync(abs)) continue;
+    for (const e of fs.readdirSync(abs, { withFileTypes: true })) {
+      if (e.isDirectory() && e.name.startsWith('pachca') && !valid.has(e.name)) {
+        fs.rmSync(path.join(abs, e.name), { recursive: true, force: true });
+        removed.push(`${base}/${e.name}`);
+      }
+    }
   }
   return removed;
 }

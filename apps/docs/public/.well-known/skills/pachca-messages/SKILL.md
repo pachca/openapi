@@ -197,7 +197,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 2. Если нужно добавить новый файл — загрузи его:
    ```bash
-   pachca common uploads
+   pachca files uploads
    ```
 
 3. Обнови сообщение с новым массивом `files`:
@@ -275,12 +275,12 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | /direct_url | Загрузка файла |
 | POST | /messages | Новое сообщение |
 | GET | /messages | Список сообщений чата |
 | GET | /messages/{id} | Информация о сообщении |
 | PUT | /messages/{id} | Редактирование сообщения |
 | DELETE | /messages/{id} | Удаление сообщения |
+| POST | /messages/{id}/link_previews | Unfurl (разворачивание ссылок) |
 | POST | /messages/{id}/pin | Закрепление сообщения |
 | DELETE | /messages/{id}/pin | Открепление сообщения |
 | POST | /messages/{id}/reactions | Добавление реакции |
@@ -290,7 +290,6 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | POST | /messages/{id}/thread | Новый тред |
 | GET | /threads | Список тредов |
 | GET | /threads/{id} | Информация о треде |
-| POST | /uploads | Получение подписи, ключа и других параметров |
 
 ## Advanced workflows
 

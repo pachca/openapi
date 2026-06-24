@@ -36,13 +36,13 @@ console.log(`   Size: ${fileSize} bytes`);
 
 // ── Step 2: Get upload params ───────────────────────────────────
 console.log("2. Getting upload params...");
-const params = await client.common.getUploadParams();
+const params = await client.files.getUploadParams();
 const key = params.key.replace("${filename}", filename);
 console.log(`   Got direct_url: ${params.directUrl}`);
 
 // ── Step 3: Upload the file via SDK ─────────────────────────────
 console.log("3. Uploading file...");
-await client.common.uploadFile(params.directUrl, {
+await client.files.uploadFile(params.directUrl, {
   contentDisposition: params.contentDisposition,
   acl: params.acl,
   policy: params.policy,

@@ -3,22 +3,23 @@ info:
   title: Pachca API
   version: 1.0.0
 tags:
-  - name: Common
+  - name: OAuth
+  - name: Chats
   - name: Profile
   - name: Users
   - name: Group tags
-  - name: Chats
   - name: Members
   - name: Threads
   - name: Messages
   - name: Read members
   - name: Reactions
-  - name: Link Previews
   - name: Search
   - name: Tasks
   - name: Views
   - name: Bots
   - name: Security
+  - name: Custom Properties
+  - name: Files
 paths:
   /audit_events:
     get:
@@ -168,6 +169,82 @@ paths:
       x-requirements:
         scope: audit_events:read
         plan: corporation
+  /bot/recreate_token:
+    post:
+      operationId: BotOperations_selfRecreateBotToken
+      description: >-
+        Bot self token rotation
+
+
+        Allows a bot to generate a new `access_token` for itself using its own token — without an administrator and
+        without knowing its own `id`. The token of the bot that owns the request token is rotated.
+
+
+        The token used for the request is invalidated immediately. The new token is returned in the response once — be
+        sure to save it, otherwise the bot loses access to the API.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotCreateResponse'
+                description: Response wrapper with data
+              example:
+                data:
+                  id: 1738816
+                  webhook:
+                    name: Tasks bot
+                    nickname: tasks_bot
+                    outgoing_url: https://www.website.com/tasks/new
+                    events:
+                      - message_new
+                    trigger_on: commands
+                    commands:
+                      - /task
+                    scopes:
+                      - messages:create
+                    template: Order from {{ client }} for {{ amount }} ₽
+                    template_engine: liquid
+                    challenge_key: challenge
+                    link_preview_enabled: true
+                    ignore_self_messages: false
+                    events_history_enabled: false
+                  access_token: bm90X2FfcmVhbF90b2tlbg
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bot_self:write
   /bot/webhook:
     put:
       operationId: BotOperations_selfUpdateBotWebhook
@@ -176,8 +253,8 @@ paths:
 
 
         Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without
-        knowing its own `user_id`. The webhook of the bot that owns the token is changed. To disable the webhook, send
-        an empty string in `outgoing_url`.
+        knowing its own `id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an
+        empty string in `outgoing_url`.
       parameters: []
       responses:
         '200':
@@ -210,6 +287,8 @@ paths:
                     template_engine: liquid
                     challenge_key: challenge
                     link_preview_enabled: true
+                    ignore_self_messages: false
+                    events_history_enabled: false
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -297,6 +376,8 @@ paths:
                     template_engine: liquid
                     challenge_key: challenge
                     link_preview_enabled: true
+                    ignore_self_messages: false
+                    events_history_enabled: false
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '400':
           description: The server could not understand the request due to invalid syntax.
@@ -350,7 +431,7 @@ paths:
       description: |-
         Bot info
 
-        Retrieves bot parameters by its `user_id`.
+        Retrieves bot parameters by its `id`.
       parameters:
         - name: id
           in: path
@@ -392,6 +473,8 @@ paths:
                     template_engine: liquid
                     challenge_key: challenge
                     link_preview_enabled: true
+                    ignore_self_messages: false
+                    events_history_enabled: false
         '401':
           description: Access is unauthorized.
           content:
@@ -429,8 +512,8 @@ paths:
         Edit a bot's settings.
 
 
-        To edit a bot you need to know its `user_id` and specify it in the request `URL`. All editable bot parameters
-        are specified in the request body.
+        To edit a bot you need to know its `id` and specify it in the request `URL`. All editable bot parameters are
+        specified in the request body.
 
 
         You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located
@@ -502,6 +585,91 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/BotUpdateRequest'
+      x-requirements:
+        scope: bots:write
+  /bots/{id}/recreate_token:
+    post:
+      operationId: BotOperations_recreateBotToken
+      description: >-
+        Bot token rotation
+
+
+        Generates a new `access_token` for the bot and immediately invalidates the previous one. Use it when a token is
+        compromised or for scheduled secret rotation in `CI`.
+
+
+        Available to a company administrator, the company owner, or the bot creator. Specify the bot's `id` in the
+        request `URL`. The new token is returned in the response only once — save it right away.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Bot ID
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotCreateResponse'
+                description: Response wrapper with data
+              example:
+                data:
+                  id: 1738816
+                  webhook:
+                    name: Tasks bot
+                    nickname: tasks_bot
+                    outgoing_url: https://www.website.com/tasks/new
+                    events:
+                      - message_new
+                    trigger_on: commands
+                    commands:
+                      - /task
+                    scopes:
+                      - messages:create
+                    template: Order from {{ client }} for {{ amount }} ₽
+                    template_engine: liquid
+                    challenge_key: challenge
+                    link_preview_enabled: true
+                    ignore_self_messages: false
+                    events_history_enabled: false
+                  access_token: bm90X2FfcmVhbF90b2tlbg
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
       x-requirements:
         scope: bots:write
   /chats:
@@ -752,7 +920,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - Common
+        - Chats
       requestBody:
         required: true
         content:
@@ -819,7 +987,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - Common
+        - Chats
       x-requirements:
         scope: chat_exports:read
         plan: corporation
@@ -1594,7 +1762,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - Common
+        - Custom Properties
       x-requirements:
         scope: custom_properties:read
   /direct_url:
@@ -1611,7 +1779,7 @@ paths:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
       tags:
-        - Common
+        - Files
       requestBody:
         required: true
         content:
@@ -2456,7 +2624,7 @@ paths:
         scope: messages:delete
   /messages/{id}/link_previews:
     post:
-      operationId: LinkPreviewOperations_createLinkPreviews
+      operationId: LinkPreviewOperations_unfurl
       description: |-
         Unfurl (link previews)
 
@@ -2505,7 +2673,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - Link Previews
+        - Messages
       requestBody:
         required: true
         content:
@@ -3039,7 +3207,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OAuthError'
       tags:
-        - Profile
+        - OAuth
   /profile:
     get:
       operationId: ProfileOperations_getProfile
@@ -4299,7 +4467,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OAuthError'
       tags:
-        - Common
+        - Files
       x-requirements:
         scope: uploads:write
   /users:
@@ -5303,6 +5471,35 @@ components:
             string}` for type mismatch errors
           example: null
       description: Detailed error information
+    AuditDetailsBotScopes:
+      type: object
+      required:
+        - added_scopes
+        - removed_scopes
+      properties:
+        added_scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes added to the bot token
+        removed_scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes revoked from the bot token
+      description: 'For: bot_scopes_updated'
+    AuditDetailsBotWebhookSettings:
+      type: object
+      required:
+        - changes
+      properties:
+        changes:
+          type: object
+          additionalProperties: {}
+          description: >-
+            Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages,
+            events_history_enabled), the value is an object with previous and new fields
+      description: 'For: bot_webhook_settings_updated'
     AuditDetailsChatId:
       type: object
       required:
@@ -5585,6 +5782,8 @@ components:
         - $ref: '#/components/schemas/AuditDetailsKms'
         - $ref: '#/components/schemas/AuditDetailsDlp'
         - $ref: '#/components/schemas/AuditDetailsSearch'
+        - $ref: '#/components/schemas/AuditDetailsBotScopes'
+        - $ref: '#/components/schemas/AuditDetailsBotWebhookSettings'
       description: Additional audit event details. Structure depends on the event_key value
     AuditEventKey:
       type: string
@@ -5624,6 +5823,9 @@ components:
         - search_users_api
         - search_chats_api
         - search_messages_api
+        - bot_scopes_updated
+        - bot_webhook_settings_updated
+        - bot_token_recreated
       description: Audit event type
       x-enum-descriptions:
         user_login: User logged in successfully
@@ -5661,6 +5863,9 @@ components:
         search_users_api: Employee search via API
         search_chats_api: Chat search via API
         search_messages_api: Message search via API
+        bot_scopes_updated: Bot token scopes changed
+        bot_webhook_settings_updated: Bot outgoing webhook settings changed
+        bot_token_recreated: Bot token recreated (rotation)
     AvatarData:
       type: object
       required:
@@ -5738,6 +5943,16 @@ components:
               description: Show link previews in incoming webhook messages
               example: true
               default: true
+            ignore_self_messages:
+              type: boolean
+              description: Ignore incoming messages sent by the bot itself
+              example: false
+              default: false
+            events_history_enabled:
+              type: boolean
+              description: Save the bot's event history for later retrieval via the event history method
+              example: false
+              default: false
           required:
             - name
           description: Webhook parameters object of the bot to create
@@ -5761,8 +5976,8 @@ components:
         access_token:
           type: string
           description: >-
-            Bot access token. Issued only at creation. You can obtain the token again only through the interface (the
-            "API" tab of the bot settings).
+            Bot access token. Returned when the bot is created and when the token is rotated. The current token can also
+            be viewed and copied in the interface — the "API" tab of the bot settings.
           example: bm90X2FfcmVhbF90b2tlbg
       description: Created bot parameters
     BotEventName:
@@ -5905,6 +6120,16 @@ components:
               description: Show link previews in incoming webhook messages
               example: true
               default: true
+            ignore_self_messages:
+              type: boolean
+              description: Ignore incoming messages sent by the bot itself
+              example: false
+              default: false
+            events_history_enabled:
+              type: boolean
+              description: Save the bot's event history for later retrieval via the event history method
+              example: false
+              default: false
           description: Webhook parameters object of the bot to update
       description: Bot update request
     BotWebhook:
@@ -5921,6 +6146,8 @@ components:
         - template_engine
         - challenge_key
         - link_preview_enabled
+        - ignore_self_messages
+        - events_history_enabled
       properties:
         name:
           type: string
@@ -5980,6 +6207,14 @@ components:
           type: boolean
           description: Show link previews in incoming webhook messages
           example: true
+        ignore_self_messages:
+          type: boolean
+          description: Ignore incoming messages sent by the bot itself
+          example: false
+        events_history_enabled:
+          type: boolean
+          description: Save the bot's event history for later retrieval via the event history method
+          example: false
       description: Bot webhook parameters
     BotWebhookSelfUpdateRequest:
       type: object
@@ -8684,6 +8919,11 @@ components:
         - min_length
         - max_length
         - use_of_system_words
+        - export_file_not_found
+        - cannot_kick_owner
+        - pin_failed
+        - message_deleted
+        - thread_message
       description: Validation error codes
       x-enum-descriptions:
         blank: Required field (cannot be empty)
@@ -8722,6 +8962,11 @@ components:
         min_length: Value is too short (details provided in the message field)
         max_length: Value is too long (details provided in the message field)
         use_of_system_words: Reserved system word used (here, all)
+        export_file_not_found: Export file not found or not ready yet
+        cannot_kick_owner: Cannot remove the chat owner
+        pin_failed: Failed to pin the message
+        message_deleted: Message has been deleted
+        thread_message: Cannot create a thread for a message that is already in a thread
     ViewBlock:
       type: object
       required:

@@ -732,6 +732,7 @@ function hasWebhookPolling(svc: IRService): boolean {
 function emitServiceContract(lines: string[], svc: IRService, ir: IR): void {
   const serviceName = tagToServiceName(svc.tag);
   const stubName = serviceToStubName(serviceName);
+  if (svc.deprecated) lines.push(`// Deprecated: ${serviceName} is kept for backward compatibility — use the new service(s).`);
   lines.push(`type ${serviceName} interface {`);
   for (const op of svc.operations) {
     const args: string[] = ['ctx context.Context'];
@@ -1468,8 +1469,10 @@ function generateExamples(ir: IR): string {
   };
 
   for (const svc of ir.services) {
+    if (svc.deprecated) continue; // backward-compat alias service — document new names only
     const serviceField = goServiceField(svc.tag);
     for (const op of svc.operations) {
+      if (op.isAlias) continue; // alias op — documented under its new service
       const ex = goBuildOperationExample(op, ir, models, serviceField);
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;

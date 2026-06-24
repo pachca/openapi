@@ -65,12 +65,15 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 
 | Метод | Метод API |
 |-------|----------|
-| `client.Common.RequestExportAsync()` | [Экспорт сообщений](/api/common/request-export) |
-| `client.Common.UploadFileAsync()` | [Загрузка файла](/api/common/direct-url) |
-| `client.Common.GetUploadParamsAsync()` | [Получение подписи, ключа и других параметров](/api/common/uploads) |
-| `client.Common.DownloadExportAsync()` | [Скачать архив экспорта](/api/common/get-exports) |
-| `client.Common.ListPropertiesAsync()` | [Список дополнительных полей](/api/common/custom-properties) |
-| `client.Profile.GetTokenInfoAsync()` | [Информация о токене](/api/profile/get-info) |
+| `client.Oauth.GetTokenInfoAsync()` | [Информация о токене](/api/oauth/token-info) |
+| `client.Chats.CreateChatAsync()` | [Новый чат](/api/chats/create) |
+| `client.Chats.RequestExportAsync()` | [Экспорт сообщений](/api/chats/request-export) |
+| `client.Chats.ListChatsAsync()` | [Список чатов](/api/chats/list) |
+| `client.Chats.GetChatAsync()` | [Информация о чате](/api/chats/get) |
+| `client.Chats.DownloadExportAsync()` | [Скачать архив экспорта](/api/chats/download-export) |
+| `client.Chats.UpdateChatAsync()` | [Редактирование чата](/api/chats/update) |
+| `client.Chats.ArchiveChatAsync()` | [Архивация чата](/api/chats/archive) |
+| `client.Chats.UnarchiveChatAsync()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.Profile.GetProfileAsync()` | [Свой профиль](/api/profile/get) |
 | `client.Profile.GetStatusAsync()` | [Свой статус](/api/profile/get-status) |
 | `client.Profile.UpdateProfileAvatarAsync()` | [Загрузка своего аватара](/api/profile/update-avatar) |
@@ -93,23 +96,18 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.GroupTags.GetTagUsersAsync()` | [Список сотрудников тега](/api/group-tags/list-users) |
 | `client.GroupTags.UpdateTagAsync()` | [Редактирование тега](/api/group-tags/update) |
 | `client.GroupTags.DeleteTagAsync()` | [Удаление тега](/api/group-tags/delete) |
-| `client.Chats.CreateChatAsync()` | [Новый чат](/api/chats/create) |
-| `client.Chats.ListChatsAsync()` | [Список чатов](/api/chats/list) |
-| `client.Chats.GetChatAsync()` | [Информация о чате](/api/chats/get) |
-| `client.Chats.UpdateChatAsync()` | [Редактирование чата](/api/chats/update) |
-| `client.Chats.ArchiveChatAsync()` | [Архивация чата](/api/chats/archive) |
-| `client.Chats.UnarchiveChatAsync()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.Members.AddTagsAsync()` | [Добавление тегов](/api/members/add-group-tags) |
 | `client.Members.AddMembersAsync()` | [Добавление пользователей](/api/members/add) |
 | `client.Members.ListMembersAsync()` | [Список участников чата](/api/members/list) |
 | `client.Members.UpdateMemberRoleAsync()` | [Редактирование роли](/api/members/update) |
-| `client.Members.RemoveTagAsync()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.LeaveChatAsync()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.Members.RemoveTagAsync()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.RemoveMemberAsync()` | [Исключение пользователя](/api/members/remove) |
 | `client.Threads.CreateThreadAsync()` | [Новый тред](/api/threads/add) |
 | `client.Threads.ListThreadsAsync()` | [Список тредов](/api/threads/list) |
 | `client.Threads.GetThreadAsync()` | [Информация о треде](/api/threads/get) |
 | `client.Messages.CreateMessageAsync()` | [Новое сообщение](/api/messages/create) |
+| `client.Messages.UnfurlAsync()` | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
 | `client.Messages.PinMessageAsync()` | [Закрепление сообщения](/api/messages/pin) |
 | `client.Messages.ListChatMessagesAsync()` | [Список сообщений чата](/api/messages/list) |
 | `client.Messages.GetMessageAsync()` | [Информация о сообщении](/api/messages/get) |
@@ -120,7 +118,6 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Reactions.AddReactionAsync()` | [Добавление реакции](/api/reactions/add) |
 | `client.Reactions.ListReactionsAsync()` | [Список реакций](/api/reactions/list) |
 | `client.Reactions.RemoveReactionAsync()` | [Удаление реакции](/api/reactions/remove) |
-| `client.LinkPreviews.CreateLinkPreviewsAsync()` | [Unfurl (разворачивание ссылок)](/api/link-previews/add) |
 | `client.Search.SearchChatsAsync()` | [Поиск чатов](/api/search/list-chats) |
 | `client.Search.SearchMessagesAsync()` | [Поиск сообщений](/api/search/list-messages) |
 | `client.Search.SearchUsersAsync()` | [Поиск сотрудников](/api/search/list-users) |
@@ -131,12 +128,17 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Tasks.DeleteTaskAsync()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.Views.OpenViewAsync()` | [Открытие представления](/api/views/open) |
 | `client.Bots.CreateBotAsync()` | [Новый бот](/api/bots/create) |
+| `client.Bots.SelfRecreateBotTokenAsync()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
+| `client.Bots.RecreateBotTokenAsync()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.Bots.GetBotAsync()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.GetWebhookEventsAsync()` | [История событий](/api/bots/list-events) |
 | `client.Bots.SelfUpdateBotWebhookAsync()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |
 | `client.Bots.DeleteWebhookEventAsync()` | [Удаление события](/api/bots/remove-event) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |
+| `client.CustomProperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.Files.UploadFileAsync()` | [Загрузка файла](/api/files/direct-url) |
+| `client.Files.GetUploadParamsAsync()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 
 
 ## Запросы
@@ -316,11 +318,11 @@ var users = await client.Users.ListUsersAsync(cancellationToken: cts.Token);
 
 ```csharp
 // 1. Получить параметры загрузки
-var uploadParams = await client.Common.GetUploadParamsAsync();
+var uploadParams = await client.Files.GetUploadParamsAsync();
 
 // 2. Загрузить файл на S3
 using var fileStream = File.OpenRead("photo.png");
-await client.Common.UploadFileAsync(uploadParams, fileStream, "photo.png");
+await client.Files.UploadFileAsync(uploadParams, fileStream, "photo.png");
 
 // 3. Прикрепить к сообщению (используя key из uploadParams)
 await client.Messages.CreateMessageAsync(new MessageCreateRequest

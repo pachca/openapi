@@ -353,11 +353,11 @@ class ValidationErrorCode(StrEnum):
     MIN_LENGTH = "min_length"  # Значение слишком короткое (пояснения вы получите в поле message)
     MAX_LENGTH = "max_length"  # Значение слишком длинное (пояснения вы получите в поле message)
     USE_OF_SYSTEM_WORDS = "use_of_system_words"  # Использовано зарезервированное системное слово (here, all)
-    EXPORT_FILE_NOT_FOUND = "export_file_not_found"
-    CANNOT_KICK_OWNER = "cannot_kick_owner"
-    PIN_FAILED = "pin_failed"
-    MESSAGE_DELETED = "message_deleted"
-    THREAD_MESSAGE = "thread_message"
+    EXPORT_FILE_NOT_FOUND = "export_file_not_found"  # Файл экспорта не найден или ещё не готов
+    CANNOT_KICK_OWNER = "cannot_kick_owner"  # Нельзя исключить владельца чата
+    PIN_FAILED = "pin_failed"  # Не удалось закрепить сообщение
+    MESSAGE_DELETED = "message_deleted"  # Сообщение удалено
+    THREAD_MESSAGE = "thread_message"  # Нельзя создать тред для сообщения, которое уже находится в треде
 
 
 class WebhookEventType(StrEnum):

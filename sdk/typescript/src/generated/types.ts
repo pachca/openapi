@@ -531,10 +531,15 @@ export enum ValidationErrorCode {
   MaxLength = "max_length",
   /** Использовано зарезервированное системное слово (here, all) */
   UseOfSystemWords = "use_of_system_words",
+  /** Файл экспорта не найден или ещё не готов */
   ExportFileNotFound = "export_file_not_found",
+  /** Нельзя исключить владельца чата */
   CannotKickOwner = "cannot_kick_owner",
+  /** Не удалось закрепить сообщение */
   PinFailed = "pin_failed",
+  /** Сообщение удалено */
   MessageDeleted = "message_deleted",
+  /** Нельзя создать тред для сообщения, которое уже находится в треде */
   ThreadMessage = "thread_message",
 }
 

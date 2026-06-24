@@ -585,10 +585,15 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("max_length") MAX_LENGTH("max_length"),
     /** Использовано зарезервированное системное слово (here, all) */
     @SerialName("use_of_system_words") USE_OF_SYSTEM_WORDS("use_of_system_words"),
+    /** Файл экспорта не найден или ещё не готов */
     @SerialName("export_file_not_found") EXPORT_FILE_NOT_FOUND("export_file_not_found"),
+    /** Нельзя исключить владельца чата */
     @SerialName("cannot_kick_owner") CANNOT_KICK_OWNER("cannot_kick_owner"),
+    /** Не удалось закрепить сообщение */
     @SerialName("pin_failed") PIN_FAILED("pin_failed"),
+    /** Сообщение удалено */
     @SerialName("message_deleted") MESSAGE_DELETED("message_deleted"),
+    /** Нельзя создать тред для сообщения, которое уже находится в треде */
     @SerialName("thread_message") THREAD_MESSAGE("thread_message"),
 }
 

@@ -1516,10 +1516,15 @@ public enum ValidationErrorCode
     MaxLength,
     /// <summary>Использовано зарезервированное системное слово (here, all)</summary>
     UseOfSystemWords,
+    /// <summary>Файл экспорта не найден или ещё не готов</summary>
     ExportFileNotFound,
+    /// <summary>Нельзя исключить владельца чата</summary>
     CannotKickOwner,
+    /// <summary>Не удалось закрепить сообщение</summary>
     PinFailed,
+    /// <summary>Сообщение удалено</summary>
     MessageDeleted,
+    /// <summary>Нельзя создать тред для сообщения, которое уже находится в треде</summary>
     ThreadMessage,
 }
 

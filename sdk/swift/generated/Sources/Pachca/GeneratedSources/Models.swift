@@ -509,10 +509,15 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case maxLength = "max_length"
     /// Использовано зарезервированное системное слово (here, all)
     case useOfSystemWords = "use_of_system_words"
+    /// Файл экспорта не найден или ещё не готов
     case exportFileNotFound = "export_file_not_found"
+    /// Нельзя исключить владельца чата
     case cannotKickOwner = "cannot_kick_owner"
+    /// Не удалось закрепить сообщение
     case pinFailed = "pin_failed"
+    /// Сообщение удалено
     case messageDeleted = "message_deleted"
+    /// Нельзя создать тред для сообщения, которое уже находится в треде
     case threadMessage = "thread_message"
 }
 

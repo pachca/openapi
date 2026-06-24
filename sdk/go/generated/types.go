@@ -358,11 +358,11 @@ const (
 	ValidationErrorCodeMinLength          ValidationErrorCode = "min_length" // Значение слишком короткое (пояснения вы получите в поле message)
 	ValidationErrorCodeMaxLength          ValidationErrorCode = "max_length" // Значение слишком длинное (пояснения вы получите в поле message)
 	ValidationErrorCodeUseOfSystemWords   ValidationErrorCode = "use_of_system_words" // Использовано зарезервированное системное слово (here, all)
-	ValidationErrorCodeExportFileNotFound ValidationErrorCode = "export_file_not_found"
-	ValidationErrorCodeCannotKickOwner    ValidationErrorCode = "cannot_kick_owner"
-	ValidationErrorCodePinFailed          ValidationErrorCode = "pin_failed"
-	ValidationErrorCodeMessageDeleted     ValidationErrorCode = "message_deleted"
-	ValidationErrorCodeThreadMessage      ValidationErrorCode = "thread_message"
+	ValidationErrorCodeExportFileNotFound ValidationErrorCode = "export_file_not_found" // Файл экспорта не найден или ещё не готов
+	ValidationErrorCodeCannotKickOwner    ValidationErrorCode = "cannot_kick_owner" // Нельзя исключить владельца чата
+	ValidationErrorCodePinFailed          ValidationErrorCode = "pin_failed" // Не удалось закрепить сообщение
+	ValidationErrorCodeMessageDeleted     ValidationErrorCode = "message_deleted" // Сообщение удалено
+	ValidationErrorCodeThreadMessage      ValidationErrorCode = "thread_message" // Нельзя создать тред для сообщения, которое уже находится в треде
 )
 
 type WebhookEventType string

@@ -1020,8 +1020,8 @@ describe('ROUTES table completeness', () => {
 	// Verify all expected resources exist
 	const expectedResources = [
 		'security', 'bot', 'chat', 'member', 'groupTag', 'message',
-		'linkPreview', 'reaction', 'readMember', 'thread', 'profile',
-		'search', 'task', 'user', 'form', 'export', 'customProperty', 'file',
+		'oauth', 'reaction', 'readMember', 'thread', 'profile',
+		'search', 'task', 'user', 'form', 'customProperty', 'file',
 	];
 
 	for (const res of expectedResources) {

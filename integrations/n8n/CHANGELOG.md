@@ -1,6 +1,15 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## 2.0.13 (2026-06-24)
+
+### Improvements
+
+- Bot: new `Recreate Token` operation — rotate a bot token by its ID
+- Bot: new `Recreate Token Self` operation — a bot rotates its own token with its own token
+- Bot: incoming webhook settings on `Create`/`Update` and in the response — `Ignore Self Messages` and `Events History Enabled`
+- Resources realigned with the API: chat export moved into the `Chat` resource (`Request Export`, `Download Export`), unfurl into `Message` (`Unfurl`), token info into a new `OAuth` resource. Workflows saved with the old `Chat Export` / `Link Preview` / `Profile → Get Info` values keep working
+
 ## 2.0.12 (2026-06-19)
 
 ### Improvements

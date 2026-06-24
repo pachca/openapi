@@ -34,6 +34,11 @@ export const messageOperations: INodeProperties[] = [
 				action: 'Pin a message',
 			},
 			{
+				name: 'Unfurl',
+				value: 'unfurl',
+				action: 'Unfurl link preview',
+			},
+			{
 				name: 'Unpin',
 				value: 'unpin',
 				action: 'Unpin a message',
@@ -584,6 +589,24 @@ export const messageFields: INodeProperties[] = [
 		default: 0,
 		displayOptions: { show: { resource: ['message'], operation: ['delete'] } },
 		description: 'Message ID',
+	},
+	{
+		displayName: 'ID',
+		name: 'id',
+		type: 'number',
+		required: true,
+		default: 0,
+		displayOptions: { show: { resource: ['message'], operation: ['unfurl'] } },
+		description: 'Message ID',
+	},
+	{
+		displayName: 'Link Previews',
+		name: 'linkPreviews',
+		type: 'json',
+		required: true,
+		default: "{}",
+		description: 'JSON map of link previews, where each key is a `URL` received in the outgoing webhook about a new message',
+		displayOptions: { show: { resource: ['message'], operation: ['unfurl'] } },
 	},
 	{
 		displayName: 'ID',

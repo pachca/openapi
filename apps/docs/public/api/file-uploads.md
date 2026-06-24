@@ -112,10 +112,10 @@ const fileName = path.basename(filePath)
 const fileBuffer = fs.readFileSync(filePath)
 
 // Шаг 1: Получить параметры загрузки
-const params = await client.common.getUploadParams()
+const params = await client.files.getUploadParams()
 
 // Шаг 2: Загрузить файл на S3 (direct_url — внешний presigned URL)
-await client.common.uploadFile(params.directUrl, {
+await client.files.uploadFile(params.directUrl, {
   contentDisposition: params.contentDisposition,
   acl: params.acl,
   policy: params.policy,
@@ -152,11 +152,11 @@ file_path = "report.pdf"
 file_name = os.path.basename(file_path)
 
 # Шаг 1: Получить параметры загрузки
-params = await client.common.get_upload_params()
+params = await client.files.get_upload_params()
 
 # Шаг 2: Загрузить файл на S3 (direct_url — внешний presigned URL)
 with open(file_path, "rb") as f:
-    await client.common.upload_file(
+    await client.files.upload_file(
         direct_url=params.direct_url,
         request=FileUploadRequest(
             content_disposition=params.content_disposition,

@@ -162,7 +162,7 @@ const V1_EXTRA_BODY_FIELDS: Record<string, Record<string, [string, string][]>> =
 };
 
 /** Resources only visible in v2 (new, not in v1) */
-const V2_ONLY_RESOURCES = new Set(['member', 'readMember', 'linkPreview', 'search', 'security', 'export']);
+const V2_ONLY_RESOURCES = new Set(['member', 'readMember', 'search', 'security', 'oauth']);
 
 /** Resources whose endpoints are sub-paths of another resource but should use standard CRUD names */
 const STANDARD_CRUD_SUBRESOURCES = new Set(['reaction', 'member', 'readMember', 'linkPreview', 'thread', 'export']);
@@ -178,7 +178,7 @@ const PREFERRED_DEFAULT_OPS: Record<string, string> = {
 /** v1 ID parameter fallback — shared ops where v1 used prefixed names (chatId, messageId, userId) */
 const V1_ID_FALLBACKS: Record<string, { v1Name: string; sharedOps: string[] }> = {
   chat: { v1Name: 'chatId', sharedOps: ['get', 'getById', 'update', 'archive', 'unarchive'] },
-  message: { v1Name: 'messageId', sharedOps: ['get', 'getById', 'update', 'delete', 'pin', 'unpin'] },
+  message: { v1Name: 'messageId', sharedOps: ['get', 'getById', 'update', 'delete', 'pin', 'unpin', 'unfurl'] },
   user: { v1Name: 'userId', sharedOps: ['get', 'getById', 'update', 'delete'] },
 };
 
@@ -193,7 +193,8 @@ const V1_ALIAS_ROUTING: Record<string, Record<string, { method: string; url: str
   },
   message: {
     getReadMembers: { method: 'GET', url: '=/messages/{{$parameter["messageId"]}}/read_member_ids', pagination: true },
-    unfurl: { method: 'POST', url: '=/messages/{{$parameter["messageId"]}}/link_previews' },
+    // unfurl is now a native v2 operation under the message resource (IA move from link_previews),
+    // so the shared ROUTES entry covers both versions — no separate v1 alias needed here.
   },
   groupTag: {
     addTags: { method: 'POST', url: '=/chats/{{$parameter["groupTagChatId"]}}/group_tags', splitComma: [['groupTagIds', 'group_tag_ids', 'int']] },
@@ -467,8 +468,7 @@ function resourceDisplayName(resource: string): string {
     thread: 'Thread', reaction: 'Reaction', groupTag: 'Group Tag',
     profile: 'Profile', customProperty: 'Custom Property', task: 'Task',
     bot: 'Bot', file: 'File', form: 'Form', readMember: 'Read Member',
-    linkPreview: 'Link Preview', search: 'Search', security: 'Security',
-    export: 'Chat Export',
+    oauth: 'OAuth', search: 'Search', security: 'Security',
   };
   return MAP[resource] || snakeToPascal(resource);
 }
@@ -492,6 +492,14 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
   if (lastStatic === 'leave') return 'leave';
   // /views/open is the primary create operation for forms
   if (ep.path === '/views/open' && method === 'POST') return 'create';
+  // Bot token rotation — two distinct endpoints (by id vs. self) that would otherwise
+  // both derive to "addRecreateToken" and collide.
+  if (ep.path === '/bots/{id}/recreate_token' && method === 'POST') return 'recreateToken';
+  if (ep.path === '/bot/recreate_token' && method === 'POST') return 'recreateTokenSelf';
+  // IA: exports now live under the Chat resource, unfurl under Message — give them clean op names.
+  if (ep.path === '/chats/exports' && method === 'POST') return 'requestExport';
+  if (ep.path === '/chats/exports/{id}' && method === 'GET') return 'downloadExport';
+  if (ep.path === '/messages/{id}/link_previews' && method === 'POST') return 'unfurl';
 
   // Sub-resource action paths (e.g., /users/{id}/status → getStatus, updateStatus)
   // When last static segment differs from the resource root and is NOT a CRUD collection
@@ -558,6 +566,8 @@ function operationDisplayName(op: string): string {
     getAll: 'Get Many', get: 'Get', create: 'Create', update: 'Update', delete: 'Delete',
     add: 'Add', remove: 'Remove', pin: 'Pin', unpin: 'Unpin',
     archive: 'Archive', unarchive: 'Unarchive', leave: 'Leave', updateRole: 'Update Role',
+    recreateToken: 'Recreate Token', recreateTokenSelf: 'Recreate Token Self',
+    requestExport: 'Request Export', downloadExport: 'Download Export', unfurl: 'Unfurl',
   };
   if (MAP[op]) return MAP[op];
   // Sub-resource operations: "getAllStatus" → "Get Many Status", "updateMembers" → "Update Members"
@@ -607,6 +617,10 @@ function actionLabel(op: string, resourceName: string, resource?: string): strin
     unfurl: 'Unfurl link preview',
     addTags: 'Add tags to chat',
     removeTag: 'Remove tag from chat',
+    recreateToken: 'Recreate bot token',
+    recreateTokenSelf: 'Recreate own bot token',
+    requestExport: 'Request a chat export',
+    downloadExport: 'Download a chat export',
   };
   if (ALIAS_LABELS[op]) return ALIAS_LABELS[op];
 
@@ -949,8 +963,8 @@ function generateResourceDescription(
 
     }
 
-    // Simplify toggle for GET operations (v2 only, skip for noDataWrapper resources like export)
-    if (op.endpoint.method === 'GET' && resource !== 'export') {
+    // Simplify toggle for GET operations (v2 only, skip raw-payload export download)
+    if (op.endpoint.method === 'GET' && !(resource === 'chat' && op.v2Op === 'downloadExport')) {
       lines.push(`\t{`);
       lines.push(`\t\tdisplayName: 'Simplify',`);
       lines.push(`\t\tname: 'simplify',`);
@@ -2066,35 +2080,40 @@ function groupEndpointsByTag(endpoints: Endpoint[]): Map<string, Endpoint[]> {
   return groups;
 }
 
-/** Filter out "Common" tag endpoints that should map to specific resources */
+/**
+ * Re-bucket special endpoints into their stable n8n resources by PATH, independent of the
+ * docs OpenAPI tag. The docs IA groups these under Files/CustomProperties/OAuth/Chats/Messages,
+ * but the n8n surface must stay backward-compatible — moving an operation to a different resource
+ * would break saved workflows — so the n8n resource is keyed off the path here, reproducing the
+ * mapping that previously came from the (now dissolved) `Common`/`Link Previews` tags.
+ */
 function resolveCommonEndpoints(byTag: Map<string, Endpoint[]>): Map<string, Endpoint[]> {
-  const common = byTag.get('Common') ?? [];
-  const result = new Map(byTag);
-  result.delete('Common');
+  // path predicate → n8n synthetic/real tag (null = never exposed in n8n, drop).
+  // Utility endpoints with no skill/resource of their own keep a clean dedicated resource.
+  // exports, unfurl and token-info follow the new IA tags (Chats / Messages / OAuth) — no override —
+  // so they appear under those resources; old saved-workflow values are normalized in the router.
+  const PATH_TAG: { match: (p: string) => boolean; tag: string | null }[] = [
+    { match: (p) => p.startsWith('/custom_properties'), tag: 'CustomProperty' },
+    { match: (p) => p === '/uploads', tag: 'File' },
+    { match: (p) => p === '/direct_url', tag: null },
+  ];
 
-  for (const ep of common) {
-    // /custom_properties → customProperty
-    if (ep.path.startsWith('/custom_properties')) {
-      const tag = 'CustomProperty';
-      if (!result.has(tag)) result.set(tag, []);
-      result.get(tag)!.push(ep);
-    }
-    // /uploads → file
-    else if (ep.path.startsWith('/uploads')) {
-      const tag = 'File';
-      if (!result.has(tag)) result.set(tag, []);
-      result.get(tag)!.push(ep);
-    }
-    // /chats/exports → export
-    else if (ep.path.startsWith('/chats/exports')) {
-      const tag = 'Export';
-      if (!result.has(tag)) result.set(tag, []);
-      result.get(tag)!.push(ep);
-    }
-    // Other common endpoints
-    else {
-      if (!result.has('Common')) result.set('Common', []);
-      result.get('Common')!.push(ep);
+  const result = new Map<string, Endpoint[]>();
+  const push = (tag: string, ep: Endpoint) => {
+    if (!result.has(tag)) result.set(tag, []);
+    result.get(tag)!.push(ep);
+  };
+
+  for (const [tag, eps] of byTag) {
+    if (tag === 'Common') continue; // legacy guard — Common no longer emitted
+    for (const ep of eps) {
+      const override = PATH_TAG.find((r) => r.match(ep.path));
+      if (override) {
+        if (override.tag !== null) push(override.tag, ep);
+        // null → drop (was never exposed in n8n, e.g. /direct_url)
+      } else {
+        push(tag, ep);
+      }
     }
   }
 
@@ -2632,7 +2651,7 @@ function getSpecialHandler(resource: string, v2Op: string): string | null {
   if (resource === 'form' && v2Op === 'create') return 'formBlocks';
   if (resource === 'bot' && v2Op === 'update') return 'botWebhook';
   if (resource === 'user' && v2Op === 'getAll') return 'userGetAllFilters';
-  if (resource === 'export' && v2Op === 'get') return 'exportDownload';
+  if (resource === 'chat' && v2Op === 'downloadExport') return 'exportDownload';
   if ((resource === 'profile' || resource === 'user') && v2Op === 'updateAvatar') return 'avatarUpload';
   return null;
 }
@@ -2700,7 +2719,8 @@ function buildRouteEntry(resource: string, op: OperationInfo): string {
   if (siblingFields.length) parts.push(`siblingFields: [${siblingFields.map(f => `'${f}'`).join(', ')}]`);
 
   if (hasPagination) parts.push('paginated: true');
-  if (resource === 'export') parts.push('noDataWrapper: true');
+  // Chat export endpoints return raw payloads (no { data } wrapper).
+  if (resource === 'chat' && (v2Op === 'requestExport' || v2Op === 'downloadExport')) parts.push('noDataWrapper: true');
 
   const special = getSpecialHandler(resource, v2Op);
   if (special) parts.push(`special: '${special}'`);
@@ -3000,6 +3020,16 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 ${routeBlocks.join(',\n')},
 };
 
+// IA-rename compat: operations that moved to a new resource in the 2026-06 IA cleanup.
+// Workflows saved before the move stored the old resource/operation; map them to the new
+// grouping so they keep executing. New workflows use the new names directly.
+const IA_LEGACY_ALIASES: Record<string, { resource: string; operation: string }> = {
+	'export:create': { resource: 'chat', operation: 'requestExport' },
+	'export:get': { resource: 'chat', operation: 'downloadExport' },
+	'linkPreview:create': { resource: 'message', operation: 'unfurl' },
+	'profile:getInfo': { resource: 'oauth', operation: 'getInfo' },
+};
+
 // ============================================================================
 // Router Entry Point
 // ============================================================================
@@ -3018,6 +3048,13 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 \t\t\tif (nodeVersion === 1) {
 \t\t\t\tresource = V1_RESOURCE_MAP[resource] ?? resource;
 \t\t\t\toperation = V1_OP_MAP[resource]?.[operation] ?? operation;
+\t\t\t}
+
+\t\t\t// IA-rename compat: normalize old resource/operation values from saved workflows (any version)
+\t\t\tconst iaAlias = IA_LEGACY_ALIASES[\`\${resource}:\${operation}\`];
+\t\t\tif (iaAlias) {
+\t\t\t\tresource = iaAlias.resource;
+\t\t\t\toperation = iaAlias.operation;
 \t\t\t}
 
 \t\t\tconst route = ROUTES[resource]?.[operation];
@@ -3460,6 +3497,19 @@ async function main() {
     console.log(`  Generated ${fileName} (${operations.length} operations)`);
     generatedResources.push(resource);
     resourceOperations.set(resource, operations);
+  }
+
+  // Remove orphaned <Resource>Description.ts files for resources that no longer exist
+  // (e.g. after an IA retag dissolves/renames a tag). Mirrors the CLI generator's orphan
+  // cleanup so stale resources don't linger and fail check-n8n-resources.
+  const expectedDescriptionFiles = new Set(
+    generatedResources.map((r) => `${snakeToPascal(r)}Description.ts`),
+  );
+  for (const f of fs.readdirSync(OUTPUT_DIR)) {
+    if (f.endsWith('Description.ts') && !expectedDescriptionFiles.has(f)) {
+      fs.rmSync(path.join(OUTPUT_DIR, f));
+      console.log(`  Removed orphaned ${f}`);
+    }
   }
 
   // Post-process: inject file upload fields

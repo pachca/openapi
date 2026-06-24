@@ -43,6 +43,9 @@ class AuditEventKey(StrEnum):
     SEARCH_USERS_API = "search_users_api"  # Поиск сотрудников через API
     SEARCH_CHATS_API = "search_chats_api"  # Поиск чатов через API
     SEARCH_MESSAGES_API = "search_messages_api"  # Поиск сообщений через API
+    BOT_SCOPES_UPDATED = "bot_scopes_updated"  # Изменены скоупы токена бота
+    BOT_WEBHOOK_SETTINGS_UPDATED = "bot_webhook_settings_updated"  # Изменены настройки исходящего вебхука бота
+    BOT_TOKEN_RECREATED = "bot_token_recreated"  # Токен бота перевыпущен (ротация)
 
 
 class BotEventName(StrEnum):
@@ -350,6 +353,11 @@ class ValidationErrorCode(StrEnum):
     MIN_LENGTH = "min_length"  # Значение слишком короткое (пояснения вы получите в поле message)
     MAX_LENGTH = "max_length"  # Значение слишком длинное (пояснения вы получите в поле message)
     USE_OF_SYSTEM_WORDS = "use_of_system_words"  # Использовано зарезервированное системное слово (here, all)
+    EXPORT_FILE_NOT_FOUND = "export_file_not_found"
+    CANNOT_KICK_OWNER = "cannot_kick_owner"
+    PIN_FAILED = "pin_failed"
+    MESSAGE_DELETED = "message_deleted"
+    THREAD_MESSAGE = "thread_message"
 
 
 class WebhookEventType(StrEnum):
@@ -403,6 +411,17 @@ class ApiErrorItem:
     code: ValidationErrorCode
     value: str | None = None
     payload: dict[str, str] | None = None
+
+
+@dataclass
+class AuditDetailsBotScopes:
+    added_scopes: list[str]
+    removed_scopes: list[str]
+
+
+@dataclass
+class AuditDetailsBotWebhookSettings:
+    changes: dict[str, str]
 
 
 @dataclass
@@ -523,6 +542,8 @@ class BotCreateRequestWebhook:
     template_engine: BotTemplateEngine | None = BotTemplateEngine.LIQUID
     challenge_key: str | None = None
     link_preview_enabled: bool | None = True
+    ignore_self_messages: bool | None = False
+    events_history_enabled: bool | None = False
 
 
 @dataclass
@@ -556,6 +577,8 @@ class BotUpdateRequestWebhook:
     template_engine: BotTemplateEngine | None = BotTemplateEngine.LIQUID
     challenge_key: str | None = None
     link_preview_enabled: bool | None = True
+    ignore_self_messages: bool | None = False
+    events_history_enabled: bool | None = False
 
 
 @dataclass
@@ -573,6 +596,8 @@ class BotWebhook:
     scopes: list[str]
     template_engine: BotTemplateEngine
     link_preview_enabled: bool
+    ignore_self_messages: bool
+    events_history_enabled: bool
     outgoing_url: str | None = None
     template: str | None = None
     challenge_key: str | None = None
@@ -1332,7 +1357,7 @@ class UpdateUserAvatarRequest:
     image: bytes
 
 
-AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch]
+AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings]
 
 
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]

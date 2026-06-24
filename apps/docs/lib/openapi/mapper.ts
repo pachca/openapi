@@ -7,6 +7,17 @@ const OPERATION_OVERRIDES: Record<string, string> = {
   'GET /messages/{id}/read_member_ids': '/api/read-member/list-readers',
   'GET /profile/status': '/api/profile/get-status',
   'GET /users/{user_id}/status': '/api/users/get-status',
+  'POST /bots/{id}/recreate_token': '/api/bots/recreate-token',
+  'POST /bot/recreate_token': '/api/bots/recreate-token-self',
+  // IA renames: дробление тега Common + перенос token-info/unfurl в профильные разделы.
+  // URL пиним явно, т.к. от слага зависит и имя CLI-команды.
+  'POST /chats/exports': '/api/chats/request-export',
+  'GET /chats/exports/{id}': '/api/chats/download-export',
+  'POST /uploads': '/api/files/uploads',
+  'POST /direct_url': '/api/files/direct-url',
+  'GET /custom_properties': '/api/custom-properties/list',
+  'GET /oauth/token/info': '/api/oauth/token-info',
+  'POST /messages/{id}/link_previews': '/api/messages/unfurl',
 };
 
 export function generateUrlFromOperation(endpoint: Endpoint): string {

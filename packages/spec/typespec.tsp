@@ -556,6 +556,21 @@ enum ValidationErrorCode {
 
   @doc("Использовано зарезервированное системное слово (here, all)")
   use_of_system_words: "use_of_system_words",
+
+  @doc("Файл экспорта не найден или ещё не готов")
+  export_file_not_found: "export_file_not_found",
+
+  @doc("Нельзя исключить владельца чата")
+  cannot_kick_owner: "cannot_kick_owner",
+
+  @doc("Не удалось закрепить сообщение")
+  pin_failed: "pin_failed",
+
+  @doc("Сообщение удалено")
+  message_deleted: "message_deleted",
+
+  @doc("Нельзя создать тред для сообщения, которое уже находится в треде")
+  thread_message: "thread_message",
 }
 
 @doc("Тип аудит-события")
@@ -595,6 +610,9 @@ enum ValidationErrorCode {
   search_users_api: "Поиск сотрудников через API",
   search_chats_api: "Поиск чатов через API",
   search_messages_api: "Поиск сообщений через API",
+  bot_scopes_updated: "Изменены скоупы токена бота",
+  bot_webhook_settings_updated: "Изменены настройки исходящего вебхука бота",
+  bot_token_recreated: "Токен бота перевыпущен (ротация)",
 })
 enum AuditEventKey {
   @doc("Пользователь успешно вошел в систему")
@@ -701,6 +719,15 @@ enum AuditEventKey {
 
   @doc("Поиск сообщений через API")
   search_messages_api: "search_messages_api",
+
+  @doc("Изменены скоупы токена бота")
+  bot_scopes_updated: "bot_scopes_updated",
+
+  @doc("Изменены настройки исходящего вебхука бота")
+  bot_webhook_settings_updated: "bot_webhook_settings_updated",
+
+  @doc("Токен бота перевыпущен (ротация)")
+  bot_token_recreated: "bot_token_recreated",
 }
 
 // ============================================================================
@@ -2720,6 +2747,14 @@ model BotCreateRequest {
     @doc("Показывать превью ссылок в сообщениях входящего вебхука")
     @example(true)
     link_preview_enabled?: boolean = true;
+
+    @doc("Игнорировать входящие сообщения, отправленные самим ботом")
+    @example(false)
+    ignore_self_messages?: boolean = false;
+
+    @doc("Сохранять историю событий бота для последующего получения через метод истории событий")
+    @example(false)
+    events_history_enabled?: boolean = false;
   };
 }
 
@@ -2770,6 +2805,14 @@ model BotUpdateRequest {
     @doc("Показывать превью ссылок в сообщениях входящего вебхука")
     @example(true)
     link_preview_enabled?: boolean = true;
+
+    @doc("Игнорировать входящие сообщения, отправленные самим ботом")
+    @example(false)
+    ignore_self_messages?: boolean = false;
+
+    @doc("Сохранять историю событий бота для последующего получения через метод истории событий")
+    @example(false)
+    events_history_enabled?: boolean = false;
   };
 }
 
@@ -2818,6 +2861,14 @@ model BotWebhook {
   @doc("Показывать превью ссылок в сообщениях входящего вебхука")
   @example(true)
   link_preview_enabled: boolean;
+
+  @doc("Игнорировать входящие сообщения, отправленные самим ботом")
+  @example(false)
+  ignore_self_messages: boolean;
+
+  @doc("Сохранять историю событий бота для последующего получения через метод истории событий")
+  @example(false)
+  events_history_enabled: boolean;
 }
 
 @doc("Запрос на саморегистрацию вебхука бота")
@@ -2844,12 +2895,12 @@ model BotResponse {
 model BotCreateResponse {
   ...BotResponse;
 
-  @doc("Токен доступа бота. Выдаётся только при создании. Повторно получить токен можно только через интерфейс (вкладка «API» настроек бота).")
+  @doc("Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота.")
   @example("bm90X2FfcmVhbF90b2tlbg")
   access_token: string;
 }
 
-@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed")
+@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated")
 model AuditDetailsEmpty {}
 
 @doc("При: user_updated")
@@ -2962,6 +3013,20 @@ model AuditDetailsSearch {
   filters: Record<unknown>;
 }
 
+@doc("При: bot_scopes_updated")
+model AuditDetailsBotScopes {
+  @doc("Скоупы, добавленные токену бота")
+  added_scopes: string[];
+  @doc("Скоупы, отозванные у токена бота")
+  removed_scopes: string[];
+}
+
+@doc("При: bot_webhook_settings_updated")
+model AuditDetailsBotWebhookSettings {
+  @doc("Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение)")
+  changes: Record<unknown>;
+}
+
 @doc("Дополнительные детали события аудита. Структура зависит от значения event_key")
 union AuditEventDetailsUnion {
   AuditDetailsEmpty,
@@ -2978,6 +3043,8 @@ union AuditEventDetailsUnion {
   AuditDetailsKms,
   AuditDetailsDlp,
   AuditDetailsSearch,
+  AuditDetailsBotScopes,
+  AuditDetailsBotWebhookSettings,
 }
 
 @doc("Событие аудита")
@@ -3385,130 +3452,26 @@ model ExportRequest {
   skip_chats_file?: boolean = false;
 }
 
-// ============================================================================
-// Common Operations
-// ============================================================================
-
-@route("/custom_properties")
-@tag("Common")
-interface CommonOperations {
-  @extension("x-requirements", #{
-    scope: "custom_properties:read",
-  })
+@route("/oauth/token/info")
+@tag("OAuth")
+interface OAuthOperations {
   @doc("""
-Список дополнительных полей
+Информация о токене
 
-На данный момент работа с дополнительными полями типа "Файл" недоступна.
-
-Метод для получения актуального списка дополнительных полей участников и напоминаний в вашей компании.
-
-По умолчанию в вашей компании все сущности имеют только базовые поля. Но администратор вашей компании может добавлять дополнительные поля, редактировать их и удалять. Если при создании сотрудников (или напоминаний) вы используете дополнительные поля, которые не являются актуальными (удалены или не существуют) - вы получите ошибку.
+Метод для получения информации о текущем OAuth токене, включая его скоупы, дату создания и последнего использования. Токен в ответе маскируется — видны только первые 8 и последние 4 символа.
 """)
   @get
-  listProperties(
-    @doc("Тип сущности")
-    @extension("example", "User")
-    @query entity_type: SearchEntityType
-  ): {
+  getTokenInfo(): {
     @statusCode _: 200;
-    @body body: DataResponse<CustomPropertyDefinition[]>;
+    @body body: DataResponse<AccessTokenInfo>;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
-  } | {
-    @statusCode _: 403;
-    @body body: OAuthError;
-  } | {
-    @statusCode _: 422;
-    @body body: ApiError;
-  } | {
-    @statusCode _: 400;
-    @body body: ApiError;
-  } | {
-    @statusCode _: 402;
-    @body body: ApiError;
   };
-}
-
-@route("/uploads")
-@tag("Common")
-interface UploadOperations {
-  @extension("x-requirements", #{
-    scope: "uploads:write",
-  })
-  @doc("""
-Получение подписи, ключа и других параметров
-
-Метод для получения подписи, ключа и других параметров, необходимых для загрузки файла.
-
-Данный метод необходимо использовать для загрузки каждого файла.
-""")
-  @post
-  getUploadParams(): {
-    @statusCode _: 201;
-    @body body: UploadParams;
-  } | {
-    @statusCode _: 401;
-    @body body: OAuthError;
-  } | {
-    @statusCode _: 403;
-    @body body: OAuthError;
-  } | {
-    @statusCode _: 402;
-    @body body: ApiError;
-  };
-}
-
-@doc("Данные для загрузки файла")
-model FileUploadRequest {
-  @doc("Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  `Content-Disposition`: HttpPart<string>;
-
-  @doc("Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  acl: HttpPart<string>;
-
-  @doc("Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  policy: HttpPart<string>;
-
-  @doc("Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  `x-amz-credential`: HttpPart<string>;
-
-  @doc("Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  `x-amz-algorithm`: HttpPart<string>;
-
-  @doc("Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  `x-amz-date`: HttpPart<string>;
-
-  @doc("Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  `x-amz-signature`: HttpPart<string>;
-  
-  @doc("Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  key: HttpPart<string>;
-  
-  @doc("Файл для загрузки")
-  file: HttpPart<bytes>;
-}
-
-@tag("Common")
-interface DirectUploadOperations {
-  @extension("x-requirements", #{
-    auth: false,
-  })
-  @extension("x-external-url", "directUrl")
-  @doc("""
-Загрузка файла
-
-Загрузка файла на сервер с форматом `multipart/form-data`. Параметры для загрузки получаются через метод [Получение подписи, ключа и других параметров](POST /uploads).
-""")
-  @post
-  @route("direct_url")
-  uploadFile(
-    @multipartBody request: FileUploadRequest
-  ): {@statusCode _: 204};
 }
 
 @route("/chats/exports")
-@tag("Common")
+@tag("Chats")
 interface ExportOperations {
   @extension("x-requirements", #{
     scope: "chat_exports:write",
@@ -5432,7 +5395,7 @@ interface ReactionOperations {
 // Link Preview Operations
 // ============================================================================
 
-@tag("Link Previews")
+@tag("Messages")
 interface LinkPreviewOperations {
   @extension("x-requirements", #{
     scope: "link_previews:write",
@@ -5931,6 +5894,8 @@ interface BotOperations {
             template_engine: BotTemplateEngine.liquid,
             challenge_key: "challenge",
             link_preview_enabled: true,
+            ignore_self_messages: false,
+            events_history_enabled: false,
           },
           access_token: "bm90X2FfcmVhbF90b2tlbg",
         },
@@ -5960,7 +5925,7 @@ interface BotOperations {
   @doc("""
 Информация о боте
 
-Метод для получения параметров бота по его `user_id`.
+Метод для получения параметров бота по его `id`.
 """)
   @route("/bots/{id}")
   @get
@@ -5985,6 +5950,8 @@ interface BotOperations {
             template_engine: BotTemplateEngine.liquid,
             challenge_key: "challenge",
             link_preview_enabled: true,
+            ignore_self_messages: false,
+            events_history_enabled: false,
           },
         },
       },
@@ -6019,7 +5986,7 @@ interface BotOperations {
 
 Метод для редактирования бота.
 
-Для редактирования бота вам необходимо знать его `user_id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса.
+Для редактирования бота вам необходимо знать его `id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса.
 
 Вы не можете редактировать бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).
 """)
@@ -6059,7 +6026,7 @@ interface BotOperations {
   @doc("""
 Саморегистрация вебхука бота
 
-Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `user_id`. Меняется вебхук того бота, которому принадлежит токен. Чтобы отключить вебхук, передайте пустую строку в `outgoing_url`.
+Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `id`. Меняется вебхук того бота, которому принадлежит токен. Чтобы отключить вебхук, передайте пустую строку в `outgoing_url`.
 """)
   @route("/bot/webhook")
   @put
@@ -6088,6 +6055,8 @@ interface BotOperations {
             template_engine: BotTemplateEngine.liquid,
             challenge_key: "challenge",
             link_preview_enabled: true,
+            ignore_self_messages: false,
+            events_history_enabled: false,
           },
         },
       },
@@ -6107,6 +6076,123 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:write",
+  })
+  @doc("""
+Ротация токена бота
+
+Метод генерирует боту новый `access_token` и сразу инвалидирует прежний. Используйте его при компрометации токена или плановой ротации секрета в `CI`.
+
+Доступен администратору, владельцу компании или создателю бота. Укажите `id` бота в `URL` запроса. Новый токен возвращается в ответе только один раз — сохраните его сразу.
+""")
+  @route("/bots/{id}/recreate_token")
+  @post
+  @opExample(#{
+    parameters: #{
+      id: 1738816,
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          id: 1738816,
+          webhook: #{
+            name: "Бот задач",
+            nickname: "tasks_bot",
+            outgoing_url: "https://www.website.com/tasks/new",
+            events: #[BotEventName.message_new],
+            trigger_on: BotTriggerOn.commands,
+            commands: #["/task"],
+            scopes: #["messages:create"],
+            template: "Заказ от {{ client }} на сумму {{ amount }} ₽",
+            template_engine: BotTemplateEngine.liquid,
+            challenge_key: "challenge",
+            link_preview_enabled: true,
+            ignore_self_messages: false,
+            events_history_enabled: false,
+          },
+          access_token: "bm90X2FfcmVhbF90b2tlbg",
+        },
+      },
+    },
+  })
+  recreateBotToken(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<BotCreateResponse>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bot_self:write",
+  })
+  @doc("""
+Ротация собственного токена бота
+
+Метод позволяет боту сгенерировать себе новый `access_token` своим же токеном — без участия администратора и без знания собственного `id`. Ротируется токен того бота, которому принадлежит токен запроса.
+
+Токен, которым выполнен запрос, инвалидируется сразу. Новый токен возвращается в ответе один раз — обязательно сохраните его, иначе бот потеряет доступ к API.
+""")
+  @route("/bot/recreate_token")
+  @post
+  @opExample(#{
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          id: 1738816,
+          webhook: #{
+            name: "Бот задач",
+            nickname: "tasks_bot",
+            outgoing_url: "https://www.website.com/tasks/new",
+            events: #[BotEventName.message_new],
+            trigger_on: BotTriggerOn.commands,
+            commands: #["/task"],
+            scopes: #["messages:create"],
+            template: "Заказ от {{ client }} на сумму {{ amount }} ₽",
+            template_engine: BotTemplateEngine.liquid,
+            challenge_key: "challenge",
+            link_preview_enabled: true,
+            ignore_self_messages: false,
+            events_history_enabled: false,
+          },
+          access_token: "bm90X2FfcmVhbF90b2tlbg",
+        },
+      },
+    },
+  })
+  selfRecreateBotToken(): {
+    @statusCode _: 200;
+    @body body: DataResponse<BotCreateResponse>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
     @body body: ApiError;
   } | {
     @statusCode _: 402;
@@ -6273,20 +6359,126 @@ interface SecurityOperations {
   };
 }
 
-@route("/oauth/token/info")
-@tag("Profile")
-interface OAuthOperations {
-  @doc("""
-Информация о токене
 
-Метод для получения информации о текущем OAuth токене, включая его скоупы, дату создания и последнего использования. Токен в ответе маскируется — видны только первые 8 и последние 4 символа.
+
+// ============================================================================
+// File & Custom Property Operations (utility, listed last in sidebar)
+// ============================================================================
+
+@route("/custom_properties")
+@tag("CustomProperties")
+interface CommonOperations {
+  @extension("x-requirements", #{
+    scope: "custom_properties:read",
+  })
+  @doc("""
+Список дополнительных полей
+
+На данный момент работа с дополнительными полями типа "Файл" недоступна.
+
+Метод для получения актуального списка дополнительных полей участников и напоминаний в вашей компании.
+
+По умолчанию в вашей компании все сущности имеют только базовые поля. Но администратор вашей компании может добавлять дополнительные поля, редактировать их и удалять. Если при создании сотрудников (или напоминаний) вы используете дополнительные поля, которые не являются актуальными (удалены или не существуют) - вы получите ошибку.
 """)
   @get
-  getTokenInfo(): {
+  listProperties(
+    @doc("Тип сущности")
+    @extension("example", "User")
+    @query entity_type: SearchEntityType
+  ): {
     @statusCode _: 200;
-    @body body: DataResponse<AccessTokenInfo>;
+    @body body: DataResponse<CustomPropertyDefinition[]>;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
+}
+
+@route("/uploads")
+@tag("Files")
+interface UploadOperations {
+  @extension("x-requirements", #{
+    scope: "uploads:write",
+  })
+  @doc("""
+Получение подписи, ключа и других параметров
+
+Метод для получения подписи, ключа и других параметров, необходимых для загрузки файла.
+
+Данный метод необходимо использовать для загрузки каждого файла.
+""")
+  @post
+  getUploadParams(): {
+    @statusCode _: 201;
+    @body body: UploadParams;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+}
+
+@doc("Данные для загрузки файла")
+model FileUploadRequest {
+  @doc("Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
+  `Content-Disposition`: HttpPart<string>;
+
+  @doc("Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
+  acl: HttpPart<string>;
+
+  @doc("Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
+  policy: HttpPart<string>;
+
+  @doc("Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
+  `x-amz-credential`: HttpPart<string>;
+
+  @doc("Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
+  `x-amz-algorithm`: HttpPart<string>;
+
+  @doc("Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
+  `x-amz-date`: HttpPart<string>;
+
+  @doc("Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
+  `x-amz-signature`: HttpPart<string>;
+  
+  @doc("Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
+  key: HttpPart<string>;
+  
+  @doc("Файл для загрузки")
+  file: HttpPart<bytes>;
+}
+
+@tag("Files")
+interface DirectUploadOperations {
+  @extension("x-requirements", #{
+    auth: false,
+  })
+  @extension("x-external-url", "directUrl")
+  @doc("""
+Загрузка файла
+
+Загрузка файла на сервер с форматом `multipart/form-data`. Параметры для загрузки получаются через метод [Получение подписи, ключа и других параметров](POST /uploads).
+""")
+  @post
+  @route("direct_url")
+  uploadFile(
+    @multipartBody request: FileUploadRequest
+  ): {@statusCode _: 204};
 }

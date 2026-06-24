@@ -57,6 +57,14 @@ export default class BotsCreate extends BaseCommand {
       description: "Показывать превью ссылок в сообщениях входящего вебхука",
       allowNo: true,
     }),
+    'ignore-self-messages': Flags.boolean({
+      description: "Игнорировать входящие сообщения, отправленные самим ботом",
+      allowNo: true,
+    }),
+    'events-history-enabled': Flags.boolean({
+      description: "Сохранять историю событий бота для последующего получения через метод истории событий",
+      allowNo: true,
+    }),
   };
 
   async run(): Promise<void> {
@@ -96,6 +104,8 @@ export default class BotsCreate extends BaseCommand {
       template_engine: flags['template-engine'],
       challenge_key: flags['challenge-key'],
       link_preview_enabled: flags['link-preview-enabled'],
+      ignore_self_messages: flags['ignore-self-messages'],
+      events_history_enabled: flags['events-history-enabled'],
     } };
     // Clean undefined fields
     const inner = body['webhook'] as Record<string, unknown>;

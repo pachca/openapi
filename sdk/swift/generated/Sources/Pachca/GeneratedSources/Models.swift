@@ -74,6 +74,12 @@ public enum AuditEventKey: String, Codable, CaseIterable {
     case searchChatsApi = "search_chats_api"
     /// Поиск сообщений через API
     case searchMessagesApi = "search_messages_api"
+    /// Изменены скоупы токена бота
+    case botScopesUpdated = "bot_scopes_updated"
+    /// Изменены настройки исходящего вебхука бота
+    case botWebhookSettingsUpdated = "bot_webhook_settings_updated"
+    /// Токен бота перевыпущен (ротация)
+    case botTokenRecreated = "bot_token_recreated"
 }
 
 public enum BotEventName: String, Codable, CaseIterable {
@@ -503,6 +509,11 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case maxLength = "max_length"
     /// Использовано зарезервированное системное слово (here, all)
     case useOfSystemWords = "use_of_system_words"
+    case exportFileNotFound = "export_file_not_found"
+    case cannotKickOwner = "cannot_kick_owner"
+    case pinFailed = "pin_failed"
+    case messageDeleted = "message_deleted"
+    case threadMessage = "thread_message"
 }
 
 public enum WebhookEventType: String, Codable, CaseIterable {
@@ -604,6 +615,29 @@ public struct ApiErrorItem: Codable {
         self.message = message
         self.code = code
         self.payload = payload
+    }
+}
+
+public struct AuditDetailsBotScopes: Codable {
+    public let addedScopes: [String]
+    public let removedScopes: [String]
+
+    public init(addedScopes: [String], removedScopes: [String]) {
+        self.addedScopes = addedScopes
+        self.removedScopes = removedScopes
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case addedScopes = "added_scopes"
+        case removedScopes = "removed_scopes"
+    }
+}
+
+public struct AuditDetailsBotWebhookSettings: Codable {
+    public let changes: [String: String]
+
+    public init(changes: [String: String]) {
+        self.changes = changes
     }
 }
 
@@ -869,8 +903,10 @@ public struct BotCreateRequestWebhook: Codable {
     public let templateEngine: BotTemplateEngine?
     public let challengeKey: String?
     public let linkPreviewEnabled: Bool?
+    public let ignoreSelfMessages: Bool?
+    public let eventsHistoryEnabled: Bool?
 
-    public init(name: String, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil) {
+    public init(name: String, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil, ignoreSelfMessages: Bool? = nil, eventsHistoryEnabled: Bool? = nil) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
@@ -882,6 +918,8 @@ public struct BotCreateRequestWebhook: Codable {
         self.templateEngine = templateEngine
         self.challengeKey = challengeKey
         self.linkPreviewEnabled = linkPreviewEnabled
+        self.ignoreSelfMessages = ignoreSelfMessages
+        self.eventsHistoryEnabled = eventsHistoryEnabled
     }
 
     enum CodingKeys: String, CodingKey {
@@ -896,6 +934,8 @@ public struct BotCreateRequestWebhook: Codable {
         case templateEngine = "template_engine"
         case challengeKey = "challenge_key"
         case linkPreviewEnabled = "link_preview_enabled"
+        case ignoreSelfMessages = "ignore_self_messages"
+        case eventsHistoryEnabled = "events_history_enabled"
     }
 }
 
@@ -947,8 +987,10 @@ public struct BotUpdateRequestWebhook: Codable {
     public let templateEngine: BotTemplateEngine?
     public let challengeKey: String?
     public let linkPreviewEnabled: Bool?
+    public let ignoreSelfMessages: Bool?
+    public let eventsHistoryEnabled: Bool?
 
-    public init(name: String? = nil, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil) {
+    public init(name: String? = nil, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil, ignoreSelfMessages: Bool? = nil, eventsHistoryEnabled: Bool? = nil) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
@@ -960,6 +1002,8 @@ public struct BotUpdateRequestWebhook: Codable {
         self.templateEngine = templateEngine
         self.challengeKey = challengeKey
         self.linkPreviewEnabled = linkPreviewEnabled
+        self.ignoreSelfMessages = ignoreSelfMessages
+        self.eventsHistoryEnabled = eventsHistoryEnabled
     }
 
     enum CodingKeys: String, CodingKey {
@@ -974,6 +1018,8 @@ public struct BotUpdateRequestWebhook: Codable {
         case templateEngine = "template_engine"
         case challengeKey = "challenge_key"
         case linkPreviewEnabled = "link_preview_enabled"
+        case ignoreSelfMessages = "ignore_self_messages"
+        case eventsHistoryEnabled = "events_history_enabled"
     }
 }
 
@@ -997,8 +1043,10 @@ public struct BotWebhook: Codable {
     public let templateEngine: BotTemplateEngine
     public let challengeKey: String?
     public let linkPreviewEnabled: Bool
+    public let ignoreSelfMessages: Bool
+    public let eventsHistoryEnabled: Bool
 
-    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String? = nil, templateEngine: BotTemplateEngine, challengeKey: String? = nil, linkPreviewEnabled: Bool) {
+    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String? = nil, templateEngine: BotTemplateEngine, challengeKey: String? = nil, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
@@ -1010,6 +1058,8 @@ public struct BotWebhook: Codable {
         self.templateEngine = templateEngine
         self.challengeKey = challengeKey
         self.linkPreviewEnabled = linkPreviewEnabled
+        self.ignoreSelfMessages = ignoreSelfMessages
+        self.eventsHistoryEnabled = eventsHistoryEnabled
     }
 
     enum CodingKeys: String, CodingKey {
@@ -1024,6 +1074,8 @@ public struct BotWebhook: Codable {
         case templateEngine = "template_engine"
         case challengeKey = "challenge_key"
         case linkPreviewEnabled = "link_preview_enabled"
+        case ignoreSelfMessages = "ignore_self_messages"
+        case eventsHistoryEnabled = "events_history_enabled"
     }
 }
 
@@ -2869,6 +2921,8 @@ public enum AuditEventDetailsUnion: Codable {
     case auditDetailsKms(AuditDetailsKms)
     case auditDetailsDlp(AuditDetailsDlp)
     case auditDetailsSearch(AuditDetailsSearch)
+    case auditDetailsBotScopes(AuditDetailsBotScopes)
+    case auditDetailsBotWebhookSettings(AuditDetailsBotWebhookSettings)
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -2906,6 +2960,10 @@ public enum AuditEventDetailsUnion: Codable {
             self = .auditDetailsDlp(try AuditDetailsDlp(from: decoder))
         case "auditDetailsSearch":
             self = .auditDetailsSearch(try AuditDetailsSearch(from: decoder))
+        case "auditDetailsBotScopes":
+            self = .auditDetailsBotScopes(try AuditDetailsBotScopes(from: decoder))
+        case "auditDetailsBotWebhookSettings":
+            self = .auditDetailsBotWebhookSettings(try AuditDetailsBotWebhookSettings(from: decoder))
         default:
             throw DecodingError.dataCorrupted(
                 DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unknown type: \(type)")
@@ -2942,6 +3000,10 @@ public enum AuditEventDetailsUnion: Codable {
         case .auditDetailsDlp(let value):
             try value.encode(to: encoder)
         case .auditDetailsSearch(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsBotScopes(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsBotWebhookSettings(let value):
             try value.encode(to: encoder)
         }
     }

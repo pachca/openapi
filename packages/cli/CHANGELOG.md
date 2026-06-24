@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026.6.3  (24 июня 2026)
+
+- **Изменено** (files, custom-properties, oauth): Команды реорганизованы по разделам: `common uploads`→`files uploads`, `common direct-url`→`files direct-url`, `common custom-properties`→`custom-properties list`, `common request-export`→`chats request-export`, `common get-exports`→`chats download-export`, `profile get-info`→`oauth token-info`, `link-previews add`→`messages unfurl`. Старые имена продолжают работать (скрытые алиасы)
+- **Добавлено** (bots recreate-token): Новая команда — ротация токена бота по его `id` (нужны права администратора, владельца компании или создателя бота)
+- **Добавлено** (bots recreate-token-self): Новая команда — бот перевыпускает собственный токен своим же токеном
+- **Добавлено** (bots create): Настройки вебхука — параметры `ignore-self-messages` (игнорировать свои сообщения) и `events-history-enabled` (сохранять историю событий)
+- **Добавлено** (bots update): Настройки вебхука — параметры `ignore-self-messages` (игнорировать свои сообщения) и `events-history-enabled` (сохранять историю событий)
+
 ## 2026.6.2  (19 июня 2026)
 
 - **Добавлено** (bots create): Настройки входящего вебхука — параметры `template`, `template_engine`, `challenge_key`, `link_preview_enabled`

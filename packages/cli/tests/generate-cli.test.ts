@@ -14,8 +14,8 @@ describe('generate-cli', () => {
   describe('generated commands structure', () => {
     it('should generate commands from known sections', () => {
       const expectedSections = [
-        'bots', 'chats', 'common', 'group-tags', 'link-previews',
-        'members', 'messages', 'profile', 'reactions', 'read-member',
+        'bots', 'chats', 'custom-properties', 'files', 'group-tags',
+        'members', 'messages', 'oauth', 'profile', 'reactions', 'read-member',
         'search', 'security', 'tasks', 'threads', 'users', 'views',
       ];
 
@@ -143,7 +143,7 @@ describe('generate-cli', () => {
   describe('toKebabCase via generated output', () => {
     it('should convert camelCase flag names to kebab-case (direct-url)', () => {
       const content = fs.readFileSync(
-        path.join(COMMANDS_DIR, 'common', 'direct-url.ts'),
+        path.join(COMMANDS_DIR, 'files', 'direct-url.ts'),
         'utf-8',
       );
       expect(content).toContain("'content-disposition'");
@@ -201,7 +201,7 @@ describe('generate-cli', () => {
   describe('multipart wire names', () => {
     it('direct-url should use correct wire names in formData.append', () => {
       const content = fs.readFileSync(
-        path.join(COMMANDS_DIR, 'common', 'direct-url.ts'),
+        path.join(COMMANDS_DIR, 'files', 'direct-url.ts'),
         'utf-8',
       );
       expect(content).toContain("formData.append('Content-Disposition'");
@@ -226,5 +226,25 @@ describe('generate-cli', () => {
       expect(content).toContain("'chat-ids'");
       expect(content).toContain("'user-ids'");
     });
+  });
+
+  // Backward compatibility: IA-renamed commands must keep their OLD command ids working as
+  // hidden aliases (oclif hiddenAliases) so existing scripts don't break after the rename.
+  describe('IA-rename backward-compat (hiddenAliases)', () => {
+    const cases: { file: string[]; alias: string }[] = [
+      { file: ['files', 'uploads.ts'], alias: 'common:uploads' },
+      { file: ['files', 'direct-url.ts'], alias: 'common:direct-url' },
+      { file: ['custom-properties', 'list.ts'], alias: 'common:custom-properties' },
+      { file: ['chats', 'request-export.ts'], alias: 'common:request-export' },
+      { file: ['chats', 'download-export.ts'], alias: 'common:get-exports' },
+      { file: ['oauth', 'token-info.ts'], alias: 'profile:get-info' },
+      { file: ['messages', 'unfurl.ts'], alias: 'link-previews:add' },
+    ];
+    for (const c of cases) {
+      it(`${c.file.join('/')} keeps old command id "${c.alias}" as a hidden alias`, () => {
+        const content = fs.readFileSync(path.join(COMMANDS_DIR, ...c.file), 'utf-8');
+        expect(content).toContain(`static override hiddenAliases = ["${c.alias}"]`);
+      });
+    }
   });
 });

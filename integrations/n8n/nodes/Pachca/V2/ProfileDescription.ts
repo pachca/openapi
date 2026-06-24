@@ -24,11 +24,6 @@ export const profileOperations: INodeProperties[] = [
 				action: 'Get a profile',
 			},
 			{
-				name: 'Get Info',
-				value: 'getInfo',
-				action: 'Get profile info',
-			},
-			{
 				name: 'Get Status',
 				value: 'getStatus',
 				action: 'Get profile status',
@@ -44,19 +39,11 @@ export const profileOperations: INodeProperties[] = [
 				action: 'Update profile status',
 			},
 		],
-		default: 'getInfo',
+		default: 'get',
 	},
 ];
 
 export const profileFields: INodeProperties[] = [
-	{
-		displayName: 'Simplify',
-		name: 'simplify',
-		type: 'boolean',
-		default: true,
-		description: 'Whether to return a simplified version of the response instead of all fields',
-		displayOptions: { show: { resource: ['profile'], operation: ['getInfo'] } },
-	},
 	{
 		displayName: 'Simplify',
 		name: 'simplify',

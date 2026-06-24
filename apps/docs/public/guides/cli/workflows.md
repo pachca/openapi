@@ -27,7 +27,7 @@ pachca guide "кастомные поля профиля"
 
 #  Сценарий: Получить кастомные поля профиля  (pachca-profile)
 #
-#  1. $ pachca common custom-properties  # entity_type=User
+#  1. $ pachca custom-properties list  # entity_type=User
 #  2. $ pachca profile get  # custom_properties содержит значения полей
 
 pachca guide "активные чаты"

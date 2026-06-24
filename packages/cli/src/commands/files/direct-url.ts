@@ -5,9 +5,10 @@ import * as clack from '@clack/prompts';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-export default class CommonDirectUrl extends BaseCommand {
+export default class FilesDirectUrl extends BaseCommand {
   static override description = "Загрузка файла";
 
+  static override hiddenAliases = ["common:direct-url"];
   static apiMethod = "POST";
   static apiPath = "/direct_url";
   static requiredFlags = ["content-disposition","acl","policy","x-amz-credential","x-amz-algorithm","x-amz-date","x-amz-signature","key"];
@@ -52,7 +53,7 @@ export default class CommonDirectUrl extends BaseCommand {
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(CommonDirectUrl);
+    const { args, flags } = await this.parse(FilesDirectUrl);
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
@@ -78,7 +79,7 @@ export default class CommonDirectUrl extends BaseCommand {
       } else {
         this.validationError(
           missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
-          { hint: "Обязательные: --content-disposition <string>, --acl <string>, --policy <string>, --x-amz-credential <string>, --x-amz-algorithm <string>, --x-amz-date <string>, --x-amz-signature <string>, --key <string>. pachca introspect common direct-url" },
+          { hint: "Обязательные: --content-disposition <string>, --acl <string>, --policy <string>, --x-amz-credential <string>, --x-amz-algorithm <string>, --x-amz-date <string>, --x-amz-signature <string>, --key <string>. pachca introspect files direct-url" },
         );
       }
     }

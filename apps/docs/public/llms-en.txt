@@ -448,10 +448,10 @@ const fileName = path.basename(filePath)
 const fileBuffer = fs.readFileSync(filePath)
 
 // Step 1: Get S3 presigned upload parameters
-const params = await client.common.getUploadParams()
+const params = await client.files.getUploadParams()
 
 // Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
-await client.common.uploadFile(params.directUrl, {
+await client.files.uploadFile(params.directUrl, {
   contentDisposition: params.contentDisposition,
   acl: params.acl,
   policy: params.policy,
@@ -489,11 +489,11 @@ file_path = "report.pdf"
 file_name = os.path.basename(file_path)
 
 # Step 1: Get S3 presigned upload parameters
-params = await client.common.get_upload_params()
+params = await client.files.get_upload_params()
 
 # Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
 with open(file_path, "rb") as f:
-    await client.common.upload_file(
+    await client.files.upload_file(
         direct_url=params.direct_url,
         request=FileUploadRequest(
             content_disposition=params.content_disposition,
@@ -801,7 +801,20 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 All endpoints require `Authorization: Bearer <TOKEN>` header.
 
-## Common
+## OAuth
+
+### GET /api/shared/v1/oauth/token/info
+Retrieve information about the current OAuth token, including its scopes, creation date, and last usage date. The token in the response is masked — only the first 8 and last 4 characters are visible.
+
+## Chats
+
+### GET /api/shared/v1/chats
+Retrieve a list of chats based on the specified parameters.
+Parameters: sort?, order?, availability?, last_message_at_after?, last_message_at_before?, personal?, limit?, cursor?
+
+### POST /api/shared/v1/chats
+Create a new chat. To create a one-on-one direct message with a user, use the [New message](POST /messages) method. When creating a chat, you automatically become a member.
+Body: { chat: { name*, member_ids, group_tag_ids, channel, public } }
 
 ### POST /api/shared/v1/chats/exports
 Request a message export for the specified time period.
@@ -811,21 +824,24 @@ Body: { start_at*, end_at*, webhook_url*, chat_ids, skip_chats_file }
 Download a completed message export archive. To download the archive you need to know its `id` and specify it in the request `URL`. The server will respond with `302 Found` and a `Location` header containing a temporary download link. Most HTTP clients automatically follow the redirect and download the file.
 Parameters: id
 
-### GET /api/shared/v1/custom_properties
-Working with "File" type custom properties is currently unavailable. Retrieve the current list of custom properties for employees and tasks in your workspace. By default, all entities in your workspace only have basic fields. However, your workspace administrator can add, edit, and delete custom properties. If you use custom properties that are no longer current (deleted or non-existent) when creating employees (or tasks), you will receive an error.
-Parameters: entity_type
+### GET /api/shared/v1/chats/{id}
+Retrieve information about a chat. To get a chat you need to know its `id` and specify it in the request `URL`.
+Parameters: id
 
-### POST /api/shared/v1/direct_url
-Upload a file to the server using `multipart/form-data` format. Upload parameters are obtained via the [Get signature, key and other parameters](POST /uploads) method.
-Body: { Content-Disposition*, acl*, policy*, x-amz-credential*, x-amz-algorithm*, x-amz-date*, x-amz-signature*, key*, file* }
+### PUT /api/shared/v1/chats/{id}
+Update chat parameters. To update a chat you need to know its `id` and specify it in the `URL`. All updatable fields are passed in the request body.
+Parameters: id
+Body: { chat: { name, public } }
 
-### POST /api/shared/v1/uploads
-Retrieve the signature, key, and other parameters required for file upload. This method must be used for each file upload.
+### PUT /api/shared/v1/chats/{id}/archive
+Archive a chat. To archive a chat you need to know its `id` and specify it in the request `URL`.
+Parameters: id
+
+### PUT /api/shared/v1/chats/{id}/unarchive
+Restore a chat from the archive. To unarchive a chat you need to know its `id` and specify it in the request `URL`.
+Parameters: id
 
 ## Profile
-
-### GET /api/shared/v1/oauth/token/info
-Retrieve information about the current OAuth token, including its scopes, creation date, and last usage date. The token in the response is masked — only the first 8 and last 4 characters are visible.
 
 ### GET /api/shared/v1/profile
 Retrieve information about your own profile.
@@ -919,33 +935,6 @@ Parameters: id
 Retrieve the current list of employees in a tag.
 Parameters: id, limit?, cursor?
 
-## Chats
-
-### GET /api/shared/v1/chats
-Retrieve a list of chats based on the specified parameters.
-Parameters: sort?, order?, availability?, last_message_at_after?, last_message_at_before?, personal?, limit?, cursor?
-
-### POST /api/shared/v1/chats
-Create a new chat. To create a one-on-one direct message with a user, use the [New message](POST /messages) method. When creating a chat, you automatically become a member.
-Body: { chat: { name*, member_ids, group_tag_ids, channel, public } }
-
-### GET /api/shared/v1/chats/{id}
-Retrieve information about a chat. To get a chat you need to know its `id` and specify it in the request `URL`.
-Parameters: id
-
-### PUT /api/shared/v1/chats/{id}
-Update chat parameters. To update a chat you need to know its `id` and specify it in the `URL`. All updatable fields are passed in the request body.
-Parameters: id
-Body: { chat: { name, public } }
-
-### PUT /api/shared/v1/chats/{id}/archive
-Archive a chat. To archive a chat you need to know its `id` and specify it in the request `URL`.
-Parameters: id
-
-### PUT /api/shared/v1/chats/{id}/unarchive
-Restore a chat from the archive. To unarchive a chat you need to know its `id` and specify it in the request `URL`.
-Parameters: id
-
 ## Members
 
 ### POST /api/shared/v1/chats/{id}/group_tags
@@ -1016,6 +1005,11 @@ Body: { message: { content, files, buttons, display_avatar_url, display_name } }
 Delete a message. Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. There are no time restrictions on message deletion. To delete a message you need to know its `id` and specify it in the request `URL`.
 Parameters: id
 
+### POST /api/shared/v1/messages/{id}/link_previews
+Create link previews in messages. Only available for Unfurl bots.
+Parameters: id
+Body: { link_previews* }
+
 ### POST /api/shared/v1/messages/{id}/pin
 Pin a message in a chat. To pin a message you need to know the message `id` and specify it in the request `URL`.
 Parameters: id
@@ -1044,13 +1038,6 @@ Body: { code*, name }
 ### DELETE /api/shared/v1/messages/{id}/reactions
 Remove a reaction from a message. To remove a reaction you need to know the message `id` and specify it in the request `URL`. Message reactions are stored as `Emoji` characters. You can only remove reactions that were added by the authenticated user.
 Parameters: id, code, name?
-
-## Link Previews
-
-### POST /api/shared/v1/messages/{id}/link_previews
-Create link previews in messages. Only available for Unfurl bots.
-Parameters: id
-Body: { link_previews* }
 
 ## Search
 
@@ -1097,22 +1084,29 @@ Body: { type*, trigger_id*, private_metadata, callback_id, view* }
 
 ## Bots
 
+### POST /api/shared/v1/bot/recreate_token
+Allows a bot to generate a new `access_token` for itself using its own token — without an administrator and without knowing its own `id`. The token of the bot that owns the request token is rotated. The token used for the request is invalidated immediately. The new token is returned in the response once — be sure to save it, otherwise the bot loses access to the API.
+
 ### PUT /api/shared/v1/bot/webhook
-Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without knowing its own `user_id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an empty string in `outgoing_url`.
+Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without knowing its own `id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an empty string in `outgoing_url`.
 Body: { webhook: { outgoing_url* } }
 
 ### POST /api/shared/v1/bots
 Creates a bot and returns its `access_token`. When the bot is created, you receive its `access_token` — save it right away. You can obtain the token again only through the interface (the "API" tab of the bot settings).
-Body: { webhook: { name*, nickname, outgoing_url, events, trigger_on, commands, scopes, template, template_engine, challenge_key, link_preview_enabled } }
+Body: { webhook: { name*, nickname, outgoing_url, events, trigger_on, commands, scopes, template, template_engine, challenge_key, link_preview_enabled, ignore_self_messages, events_history_enabled } }
 
 ### GET /api/shared/v1/bots/{id}
-Retrieves bot parameters by its `user_id`.
+Retrieves bot parameters by its `id`.
 Parameters: id
 
 ### PUT /api/shared/v1/bots/{id}
-Edit a bot's settings. To edit a bot you need to know its `user_id` and specify it in the request `URL`. All editable bot parameters are specified in the request body. You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on the "General" tab in the bot settings).
+Edit a bot's settings. To edit a bot you need to know its `id` and specify it in the request `URL`. All editable bot parameters are specified in the request body. You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on the "General" tab in the bot settings).
 Parameters: id
-Body: { webhook: { name, nickname, outgoing_url, events, trigger_on, commands, scopes, template, template_engine, challenge_key, link_preview_enabled } }
+Body: { webhook: { name, nickname, outgoing_url, events, trigger_on, commands, scopes, template, template_engine, challenge_key, link_preview_enabled, ignore_self_messages, events_history_enabled } }
+
+### POST /api/shared/v1/bots/{id}/recreate_token
+Generates a new `access_token` for the bot and immediately invalidates the previous one. Use it when a token is compromised or for scheduled secret rotation in `CI`. Available to a company administrator, the company owner, or the bot creator. Specify the bot's `id` in the request `URL`. The new token is returned in the response only once — save it right away.
+Parameters: id
 
 ### GET /api/shared/v1/webhooks/events
 Retrieve the history of a bot's recent events. This method is useful if you cannot receive events in real time at your `URL`, but need to process all events you have subscribed to. Event history is only saved when the "Save event history" option is enabled in the "Outgoing webhook" tab of the bot settings. Specifying a "Webhook `URL`" is not required. To retrieve the event history of a specific bot, you need to know its `access_token` and use it in the request. Each event is a webhook `JSON` object.
@@ -1127,4 +1121,19 @@ Parameters: id
 ### GET /api/shared/v1/audit_events
 Retrieve event logs based on the specified filters.
 Parameters: start_time?, end_time?, event_key?, actor_id?, actor_type?, entity_id?, entity_type?, limit?, cursor?
+
+## CustomProperties
+
+### GET /api/shared/v1/custom_properties
+Working with "File" type custom properties is currently unavailable. Retrieve the current list of custom properties for employees and tasks in your workspace. By default, all entities in your workspace only have basic fields. However, your workspace administrator can add, edit, and delete custom properties. If you use custom properties that are no longer current (deleted or non-existent) when creating employees (or tasks), you will receive an error.
+Parameters: entity_type
+
+## Files
+
+### POST /api/shared/v1/direct_url
+Upload a file to the server using `multipart/form-data` format. Upload parameters are obtained via the [Get signature, key and other parameters](POST /uploads) method.
+Body: { Content-Disposition*, acl*, policy*, x-amz-credential*, x-amz-algorithm*, x-amz-date*, x-amz-signature*, key*, file* }
+
+### POST /api/shared/v1/uploads
+Retrieve the signature, key, and other parameters required for file upload. This method must be used for each file upload.
 

@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.pachca.sdk
 
 import io.ktor.client.*
@@ -132,8 +133,16 @@ interface BotsService {
         throw NotImplementedError("Bots.getWebhookEventsAll is not implemented")
     }
 
+    suspend fun selfRecreateBotToken(): BotCreateResponse {
+        throw NotImplementedError("Bots.selfRecreateBotToken is not implemented")
+    }
+
     suspend fun createBot(request: BotCreateRequest): BotCreateResponse {
         throw NotImplementedError("Bots.createBot is not implemented")
+    }
+
+    suspend fun recreateBotToken(id: Int): BotCreateResponse {
+        throw NotImplementedError("Bots.recreateBotToken is not implemented")
     }
 
     suspend fun selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): BotResponse {
@@ -188,6 +197,15 @@ class BotsServiceImpl internal constructor(
         return items
     }
 
+    override suspend fun selfRecreateBotToken(): BotCreateResponse {
+        val response = client.post("$baseUrl/bot/recreate_token")
+        return when (response.status.value) {
+            200 -> response.body<BotCreateResponseDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     override suspend fun createBot(request: BotCreateRequest): BotCreateResponse {
         val response = client.post("$baseUrl/bots") {
             contentType(ContentType.Application.Json)
@@ -195,6 +213,15 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body<BotCreateResponseDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun recreateBotToken(id: Int): BotCreateResponse {
+        val response = client.post("$baseUrl/bots/$id/recreate_token")
+        return when (response.status.value) {
+            200 -> response.body<BotCreateResponseDataWrapper>().data
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -315,8 +342,16 @@ interface ChatsService {
         throw NotImplementedError("Chats.getChat is not implemented")
     }
 
+    suspend fun downloadExport(id: Int): String {
+        throw NotImplementedError("Chats.downloadExport is not implemented")
+    }
+
     suspend fun createChat(request: ChatCreateRequest): Chat {
         throw NotImplementedError("Chats.createChat is not implemented")
+    }
+
+    suspend fun requestExport(request: ExportRequest) {
+        throw NotImplementedError("Chats.requestExport is not implemented")
     }
 
     suspend fun updateChat(id: Int, request: ChatUpdateRequest): Chat {
@@ -403,6 +438,16 @@ class ChatsServiceImpl internal constructor(
         }
     }
 
+    override suspend fun downloadExport(id: Int): String {
+        val response = client.get("$baseUrl/chats/exports/$id")
+        return when (response.status.value) {
+            302 -> response.headers[HttpHeaders.Location]
+                ?: error("Missing Location header in redirect response")
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     override suspend fun createChat(request: ChatCreateRequest): Chat {
         val response = client.post("$baseUrl/chats") {
             contentType(ContentType.Application.Json)
@@ -410,6 +455,18 @@ class ChatsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body<ChatDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun requestExport(request: ExportRequest) {
+        val response = client.post("$baseUrl/chats/exports") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        when (response.status.value) {
+            204 -> return
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -440,100 +497,6 @@ class ChatsServiceImpl internal constructor(
         val response = client.put("$baseUrl/chats/$id/unarchive")
         when (response.status.value) {
             204 -> return
-            401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
-        }
-    }
-}
-
-interface CommonService {
-    suspend fun downloadExport(id: Int): String {
-        throw NotImplementedError("Common.downloadExport is not implemented")
-    }
-
-    suspend fun listProperties(entityType: SearchEntityType): ListPropertiesResponse {
-        throw NotImplementedError("Common.listProperties is not implemented")
-    }
-
-    suspend fun requestExport(request: ExportRequest) {
-        throw NotImplementedError("Common.requestExport is not implemented")
-    }
-
-    suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
-        throw NotImplementedError("Common.uploadFile is not implemented")
-    }
-
-    suspend fun getUploadParams(): UploadParams {
-        throw NotImplementedError("Common.getUploadParams is not implemented")
-    }
-}
-
-class CommonServiceImpl internal constructor(
-    private val baseUrl: String,
-    private val client: HttpClient,
-) : CommonService {
-    override suspend fun downloadExport(id: Int): String {
-        val response = client.get("$baseUrl/chats/exports/$id")
-        return when (response.status.value) {
-            302 -> response.headers[HttpHeaders.Location]
-                ?: error("Missing Location header in redirect response")
-            401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
-        }
-    }
-
-    override suspend fun listProperties(entityType: SearchEntityType): ListPropertiesResponse {
-        val response = client.get("$baseUrl/custom_properties") {
-            parameter("entity_type", entityType.value)
-        }
-        return when (response.status.value) {
-            200 -> response.body()
-            401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
-        }
-    }
-
-    override suspend fun requestExport(request: ExportRequest) {
-        val response = client.post("$baseUrl/chats/exports") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }
-        when (response.status.value) {
-            204 -> return
-            401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
-        }
-    }
-
-    override suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
-        val response = client.submitFormWithBinaryData(
-            directUrl,
-            formData {
-                append("Content-Disposition", request.contentDisposition)
-                append("acl", request.acl)
-                append("policy", request.policy)
-                append("x-amz-credential", request.xAmzCredential)
-                append("x-amz-algorithm", request.xAmzAlgorithm)
-                append("x-amz-date", request.xAmzDate)
-                append("x-amz-signature", request.xAmzSignature)
-                append("key", request.key)
-                append("file", request.file, Headers.build {
-                    append(HttpHeaders.ContentDisposition, "filename=\"file\"")
-                })
-            },
-        ) {
-            headers.remove(HttpHeaders.Authorization)
-        }
-        when (response.status.value) {
-            204 -> return
-            else -> throw response.body<ApiError>()
-        }
-    }
-
-    override suspend fun getUploadParams(): UploadParams {
-        val response = client.post("$baseUrl/uploads")
-        return when (response.status.value) {
-            201 -> response.body()
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -694,6 +657,77 @@ class MembersServiceImpl internal constructor(
         val response = client.delete("$baseUrl/chats/$id/members/$userId")
         when (response.status.value) {
             204 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+}
+
+interface CustomPropertiesService {
+    suspend fun listProperties(entityType: SearchEntityType): ListPropertiesResponse {
+        throw NotImplementedError("CustomProperties.listProperties is not implemented")
+    }
+}
+
+class CustomPropertiesServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : CustomPropertiesService {
+    override suspend fun listProperties(entityType: SearchEntityType): ListPropertiesResponse {
+        val response = client.get("$baseUrl/custom_properties") {
+            parameter("entity_type", entityType.value)
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+}
+
+interface FilesService {
+    suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
+        throw NotImplementedError("Files.uploadFile is not implemented")
+    }
+
+    suspend fun getUploadParams(): UploadParams {
+        throw NotImplementedError("Files.getUploadParams is not implemented")
+    }
+}
+
+class FilesServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : FilesService {
+    override suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
+        val response = client.submitFormWithBinaryData(
+            directUrl,
+            formData {
+                append("Content-Disposition", request.contentDisposition)
+                append("acl", request.acl)
+                append("policy", request.policy)
+                append("x-amz-credential", request.xAmzCredential)
+                append("x-amz-algorithm", request.xAmzAlgorithm)
+                append("x-amz-date", request.xAmzDate)
+                append("x-amz-signature", request.xAmzSignature)
+                append("key", request.key)
+                append("file", request.file, Headers.build {
+                    append(HttpHeaders.ContentDisposition, "filename=\"file\"")
+                })
+            },
+        ) {
+            headers.remove(HttpHeaders.Authorization)
+        }
+        when (response.status.value) {
+            204 -> return
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun getUploadParams(): UploadParams {
+        val response = client.post("$baseUrl/uploads")
+        return when (response.status.value) {
+            201 -> response.body()
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -878,6 +912,10 @@ interface MessagesService {
         throw NotImplementedError("Messages.createMessage is not implemented")
     }
 
+    suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
+        throw NotImplementedError("Messages.createLinkPreviews is not implemented")
+    }
+
     suspend fun pinMessage(id: Int) {
         throw NotImplementedError("Messages.pinMessage is not implemented")
     }
@@ -966,6 +1004,18 @@ class MessagesServiceImpl internal constructor(
         }
     }
 
+    override suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
+        val response = client.post("$baseUrl/messages/$id/link_previews") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        when (response.status.value) {
+            204 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     override suspend fun pinMessage(id: Int) {
         val response = client.post("$baseUrl/messages/$id/pin")
         when (response.status.value) {
@@ -998,29 +1048,6 @@ class MessagesServiceImpl internal constructor(
 
     override suspend fun unpinMessage(id: Int) {
         val response = client.delete("$baseUrl/messages/$id/pin")
-        when (response.status.value) {
-            204 -> return
-            401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
-        }
-    }
-}
-
-interface LinkPreviewsService {
-    suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
-        throw NotImplementedError("Link Previews.createLinkPreviews is not implemented")
-    }
-}
-
-class LinkPreviewsServiceImpl internal constructor(
-    private val baseUrl: String,
-    private val client: HttpClient,
-) : LinkPreviewsService {
-    override suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
-        val response = client.post("$baseUrl/messages/$id/link_previews") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
@@ -1241,11 +1268,27 @@ class ThreadsServiceImpl internal constructor(
     }
 }
 
-interface ProfileService {
+interface OAuthService {
     suspend fun getTokenInfo(): AccessTokenInfo {
-        throw NotImplementedError("Profile.getTokenInfo is not implemented")
+        throw NotImplementedError("OAuth.getTokenInfo is not implemented")
     }
+}
 
+class OAuthServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : OAuthService {
+    override suspend fun getTokenInfo(): AccessTokenInfo {
+        val response = client.get("$baseUrl/oauth/token/info")
+        return when (response.status.value) {
+            200 -> response.body<AccessTokenInfoDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+}
+
+interface ProfileService {
     suspend fun getProfile(): User {
         throw NotImplementedError("Profile.getProfile is not implemented")
     }
@@ -1269,21 +1312,16 @@ interface ProfileService {
     suspend fun deleteStatus() {
         throw NotImplementedError("Profile.deleteStatus is not implemented")
     }
+
+    suspend fun getTokenInfo(): AccessTokenInfo {
+        throw NotImplementedError("Profile.getTokenInfo is not implemented")
+    }
 }
 
 class ProfileServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) : ProfileService {
-    override suspend fun getTokenInfo(): AccessTokenInfo {
-        val response = client.get("$baseUrl/oauth/token/info")
-        return when (response.status.value) {
-            200 -> response.body<AccessTokenInfoDataWrapper>().data
-            401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
-        }
-    }
-
     override suspend fun getProfile(): User {
         val response = client.get("$baseUrl/profile")
         return when (response.status.value) {
@@ -1343,6 +1381,15 @@ class ProfileServiceImpl internal constructor(
         val response = client.delete("$baseUrl/profile/status")
         when (response.status.value) {
             204 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun getTokenInfo(): AccessTokenInfo {
+        val response = client.get("$baseUrl/oauth/token/info")
+        return when (response.status.value) {
+            200 -> response.body<AccessTokenInfoDataWrapper>().data
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -1922,6 +1969,125 @@ class ViewsServiceImpl internal constructor(
     }
 }
 
+@Deprecated("Kept for backward compatibility — use the new service(s).")
+interface CommonService {
+    suspend fun getUploadParams(): UploadParams {
+        throw NotImplementedError("Common.getUploadParams is not implemented")
+    }
+
+    suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
+        throw NotImplementedError("Common.uploadFile is not implemented")
+    }
+
+    suspend fun listProperties(entityType: SearchEntityType): ListPropertiesResponse {
+        throw NotImplementedError("Common.listProperties is not implemented")
+    }
+
+    suspend fun requestExport(request: ExportRequest) {
+        throw NotImplementedError("Common.requestExport is not implemented")
+    }
+
+    suspend fun downloadExport(id: Int): String {
+        throw NotImplementedError("Common.downloadExport is not implemented")
+    }
+}
+
+class CommonServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : CommonService {
+    override suspend fun getUploadParams(): UploadParams {
+        val response = client.post("$baseUrl/uploads")
+        return when (response.status.value) {
+            201 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
+        val response = client.submitFormWithBinaryData(
+            directUrl,
+            formData {
+                append("Content-Disposition", request.contentDisposition)
+                append("acl", request.acl)
+                append("policy", request.policy)
+                append("x-amz-credential", request.xAmzCredential)
+                append("x-amz-algorithm", request.xAmzAlgorithm)
+                append("x-amz-date", request.xAmzDate)
+                append("x-amz-signature", request.xAmzSignature)
+                append("key", request.key)
+                append("file", request.file, Headers.build {
+                    append(HttpHeaders.ContentDisposition, "filename=\"file\"")
+                })
+            },
+        ) {
+            headers.remove(HttpHeaders.Authorization)
+        }
+        when (response.status.value) {
+            204 -> return
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun listProperties(entityType: SearchEntityType): ListPropertiesResponse {
+        val response = client.get("$baseUrl/custom_properties") {
+            parameter("entity_type", entityType.value)
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun requestExport(request: ExportRequest) {
+        val response = client.post("$baseUrl/chats/exports") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        when (response.status.value) {
+            204 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun downloadExport(id: Int): String {
+        val response = client.get("$baseUrl/chats/exports/$id")
+        return when (response.status.value) {
+            302 -> response.headers[HttpHeaders.Location]
+                ?: error("Missing Location header in redirect response")
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+}
+
+@Deprecated("Kept for backward compatibility — use the new service(s).")
+interface LinkPreviewsService {
+    suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
+        throw NotImplementedError("Link Previews.createLinkPreviews is not implemented")
+    }
+}
+
+class LinkPreviewsServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : LinkPreviewsService {
+    override suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
+        val response = client.post("$baseUrl/messages/$id/link_previews") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        when (response.status.value) {
+            204 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+}
+
 const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 class PachcaClient private constructor(
@@ -1929,10 +2095,13 @@ class PachcaClient private constructor(
     val bots: BotsService,
     val chats: ChatsService,
     val common: CommonService,
+    val customproperties: CustomPropertiesService,
+    val files: FilesService,
     val groupTags: GroupTagsService,
     val linkPreviews: LinkPreviewsService,
     val members: MembersService,
     val messages: MessagesService,
+    val oauth: OAuthService,
     val profile: ProfileService,
     val reactions: ReactionsService,
     val readMembers: ReadMembersService,
@@ -1951,10 +2120,13 @@ class PachcaClient private constructor(
             bots: BotsService? = null,
             chats: ChatsService? = null,
             common: CommonService? = null,
+            customproperties: CustomPropertiesService? = null,
+            files: FilesService? = null,
             groupTags: GroupTagsService? = null,
             linkPreviews: LinkPreviewsService? = null,
             members: MembersService? = null,
             messages: MessagesService? = null,
+            oauth: OAuthService? = null,
             profile: ProfileService? = null,
             reactions: ReactionsService? = null,
             readMembers: ReadMembersService? = null,
@@ -1971,10 +2143,13 @@ class PachcaClient private constructor(
                 bots = bots ?: BotsServiceImpl(baseUrl, client),
                 chats = chats ?: ChatsServiceImpl(baseUrl, client),
                 common = common ?: CommonServiceImpl(baseUrl, client),
+                customproperties = customproperties ?: CustomPropertiesServiceImpl(baseUrl, client),
+                files = files ?: FilesServiceImpl(baseUrl, client),
                 groupTags = groupTags ?: GroupTagsServiceImpl(baseUrl, client),
                 linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client),
                 members = members ?: MembersServiceImpl(baseUrl, client),
                 messages = messages ?: MessagesServiceImpl(baseUrl, client),
+                oauth = oauth ?: OAuthServiceImpl(baseUrl, client),
                 profile = profile ?: ProfileServiceImpl(baseUrl, client),
                 reactions = reactions ?: ReactionsServiceImpl(baseUrl, client),
                 readMembers = readMembers ?: ReadMembersServiceImpl(baseUrl, client),
@@ -1991,10 +2166,13 @@ class PachcaClient private constructor(
             bots: BotsService = object : BotsService {},
             chats: ChatsService = object : ChatsService {},
             common: CommonService = object : CommonService {},
+            customproperties: CustomPropertiesService = object : CustomPropertiesService {},
+            files: FilesService = object : FilesService {},
             groupTags: GroupTagsService = object : GroupTagsService {},
             linkPreviews: LinkPreviewsService = object : LinkPreviewsService {},
             members: MembersService = object : MembersService {},
             messages: MessagesService = object : MessagesService {},
+            oauth: OAuthService = object : OAuthService {},
             profile: ProfileService = object : ProfileService {},
             reactions: ReactionsService = object : ReactionsService {},
             readMembers: ReadMembersService = object : ReadMembersService {},
@@ -2009,10 +2187,13 @@ class PachcaClient private constructor(
             bots = bots,
             chats = chats,
             common = common,
+            customproperties = customproperties,
+            files = files,
             groupTags = groupTags,
             linkPreviews = linkPreviews,
             members = members,
             messages = messages,
+            oauth = oauth,
             profile = profile,
             reactions = reactions,
             readMembers = readMembers,
@@ -2054,10 +2235,13 @@ class PachcaClient private constructor(
         bots: BotsService? = null,
         chats: ChatsService? = null,
         common: CommonService? = null,
+        customproperties: CustomPropertiesService? = null,
+        files: FilesService? = null,
         groupTags: GroupTagsService? = null,
         linkPreviews: LinkPreviewsService? = null,
         members: MembersService? = null,
         messages: MessagesService? = null,
+        oauth: OAuthService? = null,
         profile: ProfileService? = null,
         reactions: ReactionsService? = null,
         readMembers: ReadMembersService? = null,
@@ -2072,10 +2256,13 @@ class PachcaClient private constructor(
         bots = bots ?: BotsServiceImpl(baseUrl, client),
         chats = chats ?: ChatsServiceImpl(baseUrl, client),
         common = common ?: CommonServiceImpl(baseUrl, client),
+        customproperties = customproperties ?: CustomPropertiesServiceImpl(baseUrl, client),
+        files = files ?: FilesServiceImpl(baseUrl, client),
         groupTags = groupTags ?: GroupTagsServiceImpl(baseUrl, client),
         linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client),
         members = members ?: MembersServiceImpl(baseUrl, client),
         messages = messages ?: MessagesServiceImpl(baseUrl, client),
+        oauth = oauth ?: OAuthServiceImpl(baseUrl, client),
         profile = profile ?: ProfileServiceImpl(baseUrl, client),
         reactions = reactions ?: ReactionsServiceImpl(baseUrl, client),
         readMembers = readMembers ?: ReadMembersServiceImpl(baseUrl, client),

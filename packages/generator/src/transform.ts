@@ -763,6 +763,44 @@ export function transform(spec: ParsedAPI): IR {
       }),
     }));
 
+  // Backward-compat alias services: after the 2026-06 IA retag some operations moved to new
+  // services (Common → Files/CustomProperties/Chats, Link Previews → Messages, token-info →
+  // OAuth). Re-expose them under their OLD service names as deprecated, doc-hidden accessors so
+  // existing SDK code (`client.common.*`, `client.linkPreviews.*`, `client.profile.getTokenInfo`)
+  // keeps working. The new service names are the documented ones.
+  const allOps = services.flatMap((s) => s.operations);
+  // Only alias when the op currently lives under the expected NEW Pachca tag — so this never
+  // fires for unrelated specs that happen to share a path (e.g. a generic /uploads).
+  const aliasClone = (method: string, path: string, newTag: string, oldTag: string): IROperation | null => {
+    const op = allOps.find((o) => o.method === method && o.path === path && o.tag === newTag);
+    return op ? { ...op, tag: oldTag, isAlias: true } : null;
+  };
+
+  const commonAliasOps = [
+    aliasClone('POST', '/uploads', 'Files', 'Common'),
+    aliasClone('POST', '/direct_url', 'Files', 'Common'),
+    aliasClone('GET', '/custom_properties', 'CustomProperties', 'Common'),
+    aliasClone('POST', '/chats/exports', 'Chats', 'Common'),
+    aliasClone('GET', '/chats/exports/{id}', 'Chats', 'Common'),
+  ].filter((o): o is IROperation => o !== null);
+  if (commonAliasOps.length > 0 && !services.some((s) => s.tag === 'Common')) {
+    services.push({ tag: 'Common', operations: commonAliasOps, deprecated: true });
+  }
+
+  const linkPreviewAliasOps = [
+    aliasClone('POST', '/messages/{id}/link_previews', 'Messages', 'Link Previews'),
+  ].filter((o): o is IROperation => o !== null);
+  if (linkPreviewAliasOps.length > 0 && !services.some((s) => s.tag === 'Link Previews')) {
+    services.push({ tag: 'Link Previews', operations: linkPreviewAliasOps, deprecated: true });
+  }
+
+  // token-info also stays reachable via the (still-existing) Profile service as a deprecated alias.
+  const tokenInfoAlias = aliasClone('GET', '/oauth/token/info', 'OAuth', 'Profile');
+  const profileSvc = services.find((s) => s.tag === 'Profile' && !s.deprecated);
+  if (tokenInfoAlias && profileSvc && !profileSvc.operations.some((o) => o.path === '/oauth/token/info')) {
+    profileSvc.operations.push(tokenInfoAlias);
+  }
+
   const baseUrl = spec.servers[0]?.url;
 
   return {

@@ -196,6 +196,18 @@
             "type": "boolean",
             "required": false,
             "description": "Показывать превью ссылок в сообщениях входящего вебхука"
+          },
+          {
+            "name": "ignore-self-messages",
+            "type": "boolean",
+            "required": false,
+            "description": "Игнорировать входящие сообщения, отправленные самим ботом"
+          },
+          {
+            "name": "events-history-enabled",
+            "type": "boolean",
+            "required": false,
+            "description": "Сохранять историю событий бота для последующего получения через метод истории событий"
           }
         ]
       },
@@ -242,6 +254,31 @@
             "description": "Загрузить все страницы автоматически"
           }
         ]
+      },
+      {
+        "command": "pachca bots recreate-token",
+        "summary": "Ротация токена бота",
+        "method": "POST",
+        "path": "/bots/{id}/recreate_token",
+        "scope": "bots:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca bots recreate-token-self",
+        "summary": "Ротация собственного токена бота",
+        "method": "POST",
+        "path": "/bot/recreate_token",
+        "scope": "bot_self:write",
+        "plan": null,
+        "flags": []
       },
       {
         "command": "pachca bots remove-event",
@@ -346,6 +383,18 @@
             "type": "boolean",
             "required": false,
             "description": "Показывать превью ссылок в сообщениях входящего вебхука"
+          },
+          {
+            "name": "ignore-self-messages",
+            "type": "boolean",
+            "required": false,
+            "description": "Игнорировать входящие сообщения, отправленные самим ботом"
+          },
+          {
+            "name": "events-history-enabled",
+            "type": "boolean",
+            "required": false,
+            "description": "Сохранять историю событий бота для последующего получения через метод истории событий"
           }
         ]
       },
@@ -437,6 +486,29 @@
             "type": "boolean",
             "required": false,
             "description": "Открытый доступ"
+          }
+        ]
+      },
+      {
+        "command": "pachca chats download-export",
+        "summary": "Скачать архив экспорта",
+        "method": "GET",
+        "path": "/chats/exports/{id}",
+        "scope": "chat_exports:read",
+        "plan": "corporation",
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор экспорта (pachca chats list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "save",
+            "type": "option",
+            "required": false,
+            "description": "Путь для сохранения файла"
           }
         ]
       },
@@ -533,6 +605,46 @@
         ]
       },
       {
+        "command": "pachca chats request-export",
+        "summary": "Экспорт сообщений",
+        "method": "POST",
+        "path": "/chats/exports",
+        "scope": "chat_exports:write",
+        "plan": "corporation",
+        "flags": [
+          {
+            "name": "start-at",
+            "type": "option",
+            "required": true,
+            "description": "Дата начала для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD"
+          },
+          {
+            "name": "end-at",
+            "type": "option",
+            "required": true,
+            "description": "Дата окончания для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD"
+          },
+          {
+            "name": "webhook-url",
+            "type": "option",
+            "required": true,
+            "description": "Адрес, на который будет отправлен вебхук по завершению экспорта"
+          },
+          {
+            "name": "chat-ids",
+            "type": "option",
+            "required": false,
+            "description": "Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов."
+          },
+          {
+            "name": "skip-chats-file",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропуск формирования файла со списком чатов (chats.json)"
+          }
+        ]
+      },
+      {
         "command": "pachca chats unarchive",
         "summary": "Разархивация чата",
         "method": "PUT",
@@ -601,10 +713,61 @@
     ]
   },
   {
-    "section": "common",
+    "section": "config",
     "commands": [
       {
-        "command": "pachca common custom-properties",
+        "command": "pachca config get",
+        "summary": "Получение значения конфигурации",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "args": [
+          {
+            "name": "key",
+            "required": true,
+            "description": "Ключ настройки"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca config list",
+        "summary": "Список всех настроек",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "flags": []
+      },
+      {
+        "command": "pachca config set",
+        "summary": "Установка значения конфигурации",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "args": [
+          {
+            "name": "key",
+            "required": true,
+            "description": "Ключ настройки"
+          },
+          {
+            "name": "value",
+            "required": true,
+            "description": "Значение настройки"
+          }
+        ],
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "custom-properties",
+    "commands": [
+      {
+        "command": "pachca custom-properties list",
         "summary": "Список дополнительных полей",
         "method": "GET",
         "path": "/custom_properties",
@@ -622,9 +785,28 @@
             ]
           }
         ]
-      },
+      }
+    ]
+  },
+  {
+    "section": "doctor",
+    "commands": [
       {
-        "command": "pachca common direct-url",
+        "command": "pachca doctor",
+        "summary": "Диагностика окружения: Node.js, сеть, токен, конфигурация",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "files",
+    "commands": [
+      {
+        "command": "pachca files direct-url",
         "summary": "Загрузка файла",
         "method": "POST",
         "path": "/direct_url",
@@ -694,139 +876,11 @@
         ]
       },
       {
-        "command": "pachca common get-exports",
-        "summary": "Скачать архив экспорта",
-        "method": "GET",
-        "path": "/chats/exports/{id}",
-        "scope": "chat_exports:read",
-        "plan": "corporation",
-        "args": [
-          {
-            "name": "id",
-            "required": true,
-            "description": "Идентификатор экспорта"
-          }
-        ],
-        "flags": [
-          {
-            "name": "save",
-            "type": "option",
-            "required": false,
-            "description": "Путь для сохранения файла"
-          }
-        ]
-      },
-      {
-        "command": "pachca common request-export",
-        "summary": "Экспорт сообщений",
-        "method": "POST",
-        "path": "/chats/exports",
-        "scope": "chat_exports:write",
-        "plan": "corporation",
-        "flags": [
-          {
-            "name": "start-at",
-            "type": "option",
-            "required": true,
-            "description": "Дата начала для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD"
-          },
-          {
-            "name": "end-at",
-            "type": "option",
-            "required": true,
-            "description": "Дата окончания для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD"
-          },
-          {
-            "name": "webhook-url",
-            "type": "option",
-            "required": true,
-            "description": "Адрес, на который будет отправлен вебхук по завершению экспорта"
-          },
-          {
-            "name": "chat-ids",
-            "type": "option",
-            "required": false,
-            "description": "Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов."
-          },
-          {
-            "name": "skip-chats-file",
-            "type": "boolean",
-            "required": false,
-            "description": "Пропуск формирования файла со списком чатов (chats.json)"
-          }
-        ]
-      },
-      {
-        "command": "pachca common uploads",
+        "command": "pachca files uploads",
         "summary": "Получение подписи, ключа и других параметров",
         "method": "POST",
         "path": "/uploads",
         "scope": "uploads:write",
-        "plan": null,
-        "flags": []
-      }
-    ]
-  },
-  {
-    "section": "config",
-    "commands": [
-      {
-        "command": "pachca config get",
-        "summary": "Получение значения конфигурации",
-        "method": null,
-        "path": null,
-        "scope": null,
-        "plan": null,
-        "args": [
-          {
-            "name": "key",
-            "required": true,
-            "description": "Ключ настройки"
-          }
-        ],
-        "flags": []
-      },
-      {
-        "command": "pachca config list",
-        "summary": "Список всех настроек",
-        "method": null,
-        "path": null,
-        "scope": null,
-        "plan": null,
-        "flags": []
-      },
-      {
-        "command": "pachca config set",
-        "summary": "Установка значения конфигурации",
-        "method": null,
-        "path": null,
-        "scope": null,
-        "plan": null,
-        "args": [
-          {
-            "name": "key",
-            "required": true,
-            "description": "Ключ настройки"
-          },
-          {
-            "name": "value",
-            "required": true,
-            "description": "Значение настройки"
-          }
-        ],
-        "flags": []
-      }
-    ]
-  },
-  {
-    "section": "doctor",
-    "commands": [
-      {
-        "command": "pachca doctor",
-        "summary": "Диагностика окружения: Node.js, сеть, токен, конфигурация",
-        "method": null,
-        "path": null,
-        "scope": null,
         "plan": null,
         "flags": []
       }
@@ -1023,34 +1077,6 @@
           }
         ],
         "flags": []
-      }
-    ]
-  },
-  {
-    "section": "link-previews",
-    "commands": [
-      {
-        "command": "pachca link-previews add",
-        "summary": "Unfurl (разворачивание ссылок)",
-        "method": "POST",
-        "path": "/messages/{id}/link_previews",
-        "scope": "link_previews:write",
-        "plan": null,
-        "args": [
-          {
-            "name": "id",
-            "required": true,
-            "description": "Идентификатор сообщения"
-          }
-        ],
-        "flags": [
-          {
-            "name": "link-previews",
-            "type": "option",
-            "required": true,
-            "description": "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении."
-          }
-        ]
       }
     ]
   },
@@ -1455,6 +1481,29 @@
         "flags": []
       },
       {
+        "command": "pachca messages unfurl",
+        "summary": "Unfurl (разворачивание ссылок)",
+        "method": "POST",
+        "path": "/messages/{id}/link_previews",
+        "scope": "link_previews:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения (pachca messages list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "link-previews",
+            "type": "option",
+            "required": true,
+            "description": "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении."
+          }
+        ]
+      },
+      {
         "command": "pachca messages unpin",
         "summary": "Открепление сообщения",
         "method": "DELETE",
@@ -1527,6 +1576,20 @@
     ]
   },
   {
+    "section": "oauth",
+    "commands": [
+      {
+        "command": "pachca oauth token-info",
+        "summary": "Информация о токене",
+        "method": "GET",
+        "path": "/oauth/token/info",
+        "scope": null,
+        "plan": null,
+        "flags": []
+      }
+    ]
+  },
+  {
     "section": "profile",
     "commands": [
       {
@@ -1567,15 +1630,6 @@
         "method": "GET",
         "path": "/profile",
         "scope": "profile:read",
-        "plan": null,
-        "flags": []
-      },
-      {
-        "command": "pachca profile get-info",
-        "summary": "Информация о токене",
-        "method": "GET",
-        "path": "/oauth/token/info",
-        "scope": null,
         "plan": null,
         "flags": []
       },
@@ -2092,7 +2146,10 @@
               "dlp_violation_detected",
               "search_users_api",
               "search_chats_api",
-              "search_messages_api"
+              "search_messages_api",
+              "bot_scopes_updated",
+              "bot_webhook_settings_updated",
+              "bot_token_recreated"
             ]
           },
           {

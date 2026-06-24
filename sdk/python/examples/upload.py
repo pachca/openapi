@@ -40,13 +40,13 @@ async def main():
 
     # 2. Get upload params
     print("2. Getting upload params...")
-    params = await client.common.get_upload_params()
+    params = await client.files.get_upload_params()
     key = params.key.replace("${filename}", filename)
     print(f"   Got direct_url: {params.direct_url}")
 
     # 3. Upload file via SDK
     print("3. Uploading file...")
-    await client.common.upload_file(
+    await client.files.upload_file(
         params.direct_url,
         FileUploadRequest(
             content_disposition=params.content_disposition,

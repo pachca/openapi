@@ -103,6 +103,10 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 		},
 	},
 	bot: {
+		recreateTokenSelf: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/bot/recreate_token',
+		},
 		updateWebhook: {
 			method: 'PUT' as IHttpRequestMethods,
 			path: '/bot/webhook',
@@ -129,6 +133,8 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'template_engine', n8n: 'templateEngine' },
 				{ api: 'challenge_key', n8n: 'challengeKey' },
 				{ api: 'link_preview_enabled', n8n: 'linkPreviewEnabled' },
+				{ api: 'ignore_self_messages', n8n: 'ignoreSelfMessages' },
+				{ api: 'events_history_enabled', n8n: 'eventsHistoryEnabled' },
 			],
 		},
 		get: {
@@ -154,7 +160,14 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'template_engine', n8n: 'templateEngine' },
 				{ api: 'challenge_key', n8n: 'challengeKey' },
 				{ api: 'link_preview_enabled', n8n: 'linkPreviewEnabled' },
+				{ api: 'ignore_self_messages', n8n: 'ignoreSelfMessages' },
+				{ api: 'events_history_enabled', n8n: 'eventsHistoryEnabled' },
 			],
+		},
+		recreateToken: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/bots/{id}/recreate_token',
+			pathParams: [{ api: 'id', n8n: 'id' }],
 		},
 		getAllEvents: {
 			method: 'GET' as IHttpRequestMethods,
@@ -188,6 +201,27 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			paginated: true,
 			queryMap: [{ api: 'sort', n8n: 'sort' }, { api: 'order', n8n: 'order' }, { api: 'availability', n8n: 'availability' }, { api: 'last_message_at_after', n8n: 'lastMessageAtAfter' }, { api: 'last_message_at_before', n8n: 'lastMessageAtBefore' }],
 			optionalQueryMap: [{ api: 'personal', n8n: 'personal' }],
+		},
+		requestExport: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/chats/exports',
+			noDataWrapper: true,
+			bodyMap: [
+				{ api: 'start_at', n8n: 'startAt' },
+				{ api: 'end_at', n8n: 'endAt' },
+				{ api: 'webhook_url', n8n: 'webhookUrl' },
+			],
+			optionalBodyMap: [
+				{ api: 'chat_ids', n8n: 'chatIds', isArray: true, arrayType: 'int' },
+				{ api: 'skip_chats_file', n8n: 'skipChatsFile' },
+			],
+		},
+		downloadExport: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/chats/exports/{id}',
+			pathParams: [{ api: 'id', n8n: 'id', locator: true }],
+			noDataWrapper: true,
+			special: 'exportDownload',
 		},
 		get: {
 			method: 'GET' as IHttpRequestMethods,
@@ -297,6 +331,20 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			],
 		},
 	},
+	customProperty: {
+		get: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/custom_properties',
+			queryMap: [{ api: 'entity_type', n8n: 'entityType', required: true }],
+		},
+	},
+	file: {
+		create: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/uploads',
+			special: 'fileUpload',
+		},
+	},
 	groupTag: {
 		create: {
 			method: 'POST' as IHttpRequestMethods,
@@ -399,6 +447,14 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/messages/{id}',
 			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
 		},
+		unfurl: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/messages/{id}/link_previews',
+			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
+			bodyMap: [
+				{ api: 'link_previews', n8n: 'linkPreviews' },
+			],
+		},
 		pin: {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/messages/{id}/pin',
@@ -416,23 +472,6 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			paginated: true,
 			v1Collection: 'readMembersOptions',
 			optionalQueryMap: [{ api: 'per', n8n: 'readMembersPer' }, { api: 'page', n8n: 'readMembersPage' }],
-		},
-		unfurl: {
-			method: 'POST' as IHttpRequestMethods,
-			path: '/messages/{messageId}/link_previews',
-			pathParams: [{ api: 'messageId', n8n: 'messageId' }],
-			special: 'unfurlLinkPreviews',
-			bodyMap: [{ api: 'link_previews', n8n: 'linkPreviews' }],
-		},
-	},
-	linkPreview: {
-		create: {
-			method: 'POST' as IHttpRequestMethods,
-			path: '/messages/{id}/link_previews',
-			pathParams: [{ api: 'id', n8n: 'id' }],
-			bodyMap: [
-				{ api: 'link_previews', n8n: 'linkPreviews' },
-			],
 		},
 	},
 	reaction: {
@@ -488,11 +527,13 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			pathParams: [{ api: 'id', n8n: 'threadThreadId' }],
 		},
 	},
-	profile: {
+	oauth: {
 		getInfo: {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/oauth/token/info',
 		},
+	},
+	profile: {
 		get: {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/profile',
@@ -726,43 +767,16 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			special: 'formProcessSubmission',
 		},
 	},
-	export: {
-		create: {
-			method: 'POST' as IHttpRequestMethods,
-			path: '/chats/exports',
-			noDataWrapper: true,
-			bodyMap: [
-				{ api: 'start_at', n8n: 'startAt' },
-				{ api: 'end_at', n8n: 'endAt' },
-				{ api: 'webhook_url', n8n: 'webhookUrl' },
-			],
-			optionalBodyMap: [
-				{ api: 'chat_ids', n8n: 'chatIds', isArray: true, arrayType: 'int' },
-				{ api: 'skip_chats_file', n8n: 'skipChatsFile' },
-			],
-		},
-		get: {
-			method: 'GET' as IHttpRequestMethods,
-			path: '/chats/exports/{id}',
-			pathParams: [{ api: 'id', n8n: 'id' }],
-			noDataWrapper: true,
-			special: 'exportDownload',
-		},
-	},
-	customProperty: {
-		get: {
-			method: 'GET' as IHttpRequestMethods,
-			path: '/custom_properties',
-			queryMap: [{ api: 'entity_type', n8n: 'entityType', required: true }],
-		},
-	},
-	file: {
-		create: {
-			method: 'POST' as IHttpRequestMethods,
-			path: '/uploads',
-			special: 'fileUpload',
-		},
-	},
+};
+
+// IA-rename compat: operations that moved to a new resource in the 2026-06 IA cleanup.
+// Workflows saved before the move stored the old resource/operation; map them to the new
+// grouping so they keep executing. New workflows use the new names directly.
+const IA_LEGACY_ALIASES: Record<string, { resource: string; operation: string }> = {
+	'export:create': { resource: 'chat', operation: 'requestExport' },
+	'export:get': { resource: 'chat', operation: 'downloadExport' },
+	'linkPreview:create': { resource: 'message', operation: 'unfurl' },
+	'profile:getInfo': { resource: 'oauth', operation: 'getInfo' },
 };
 
 // ============================================================================
@@ -783,6 +797,13 @@ export async function router(this: IExecuteFunctions): Promise<INodeExecutionDat
 			if (nodeVersion === 1) {
 				resource = V1_RESOURCE_MAP[resource] ?? resource;
 				operation = V1_OP_MAP[resource]?.[operation] ?? operation;
+			}
+
+			// IA-rename compat: normalize old resource/operation values from saved workflows (any version)
+			const iaAlias = IA_LEGACY_ALIASES[`${resource}:${operation}`];
+			if (iaAlias) {
+				resource = iaAlias.resource;
+				operation = iaAlias.operation;
 			}
 
 			const route = ROUTES[resource]?.[operation];

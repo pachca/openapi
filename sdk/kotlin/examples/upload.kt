@@ -38,13 +38,13 @@ fun main() = runBlocking {
 
     // ── Step 2: Get upload params ───────────────────────────────────
     println("2. Getting upload params...")
-    val params = client.common.getUploadParams()
+    val params = client.files.getUploadParams()
     val key = params.key.replace("\${filename}", filename)
     println("   Got direct_url: ${params.directUrl}")
 
     // ── Step 3: Upload the file via SDK ─────────────────────────────
     println("3. Uploading file...")
-    client.common.uploadFile(
+    client.files.uploadFile(
         params.directUrl,
         FileUploadRequest(
             contentDisposition = params.contentDisposition,

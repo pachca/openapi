@@ -8,7 +8,7 @@
 
 4. Отправь превью-данные:
    ```bash
-   pachca link-previews add <message_id> --link-previews='{"https://example.com":{"title":"Example","description":"Description"}}'
+   pachca messages unfurl <message_id> --link-previews='{"https://example.com":{"title":"Example","description":"Description"}}'
    ```
 
 > Эндпоинт привязан к конкретному сообщению. Необходим специальный Unfurl-бот с указанными доменами.

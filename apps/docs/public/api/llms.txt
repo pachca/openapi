@@ -14,15 +14,20 @@
 - [Лимиты](https://dev.pachca.com/api/limits.md): Лимиты запросов (rate limits) в API Пачки: числа по типам операций, поведение ответа 429, заголовок Retry-After, готовые примеры экспоненциального backoff на TypeScript и Python
 - [Модели](https://dev.pachca.com/api/models.md): Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, задачи, теги, вебхуки и другие сущности
 
-## Common
-- [Экспорт сообщений](https://dev.pachca.com/api/common/request-export.md): POST /chats/exports
-- [Скачать архив экспорта](https://dev.pachca.com/api/common/get-exports.md): GET /chats/exports/{id}
-- [Список дополнительных полей](https://dev.pachca.com/api/common/custom-properties.md): GET /custom_properties
-- [Загрузка файла](https://dev.pachca.com/api/common/direct-url.md): POST /direct_url
-- [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/common/uploads.md): POST /uploads
+## OAuth
+- [Информация о токене](https://dev.pachca.com/api/oauth/token-info.md): GET /oauth/token/info
+
+## Chats
+- [Новый чат](https://dev.pachca.com/api/chats/create.md): POST /chats
+- [Список чатов](https://dev.pachca.com/api/chats/list.md): GET /chats
+- [Экспорт сообщений](https://dev.pachca.com/api/chats/request-export.md): POST /chats/exports
+- [Скачать архив экспорта](https://dev.pachca.com/api/chats/download-export.md): GET /chats/exports/{id}
+- [Информация о чате](https://dev.pachca.com/api/chats/get.md): GET /chats/{id}
+- [Редактирование чата](https://dev.pachca.com/api/chats/update.md): PUT /chats/{id}
+- [Архивация чата](https://dev.pachca.com/api/chats/archive.md): PUT /chats/{id}/archive
+- [Разархивация чата](https://dev.pachca.com/api/chats/unarchive.md): PUT /chats/{id}/unarchive
 
 ## Profile
-- [Информация о токене](https://dev.pachca.com/api/profile/get-info.md): GET /oauth/token/info
 - [Свой профиль](https://dev.pachca.com/api/profile/get.md): GET /profile
 - [Загрузка своего аватара](https://dev.pachca.com/api/profile/update-avatar.md): PUT /profile/avatar
 - [Удаление своего аватара](https://dev.pachca.com/api/profile/delete-avatar.md): DELETE /profile/avatar
@@ -50,14 +55,6 @@
 - [Удаление тега](https://dev.pachca.com/api/group-tags/delete.md): DELETE /group_tags/{id}
 - [Список сотрудников тега](https://dev.pachca.com/api/group-tags/list-users.md): GET /group_tags/{id}/users
 
-## Chats
-- [Новый чат](https://dev.pachca.com/api/chats/create.md): POST /chats
-- [Список чатов](https://dev.pachca.com/api/chats/list.md): GET /chats
-- [Информация о чате](https://dev.pachca.com/api/chats/get.md): GET /chats/{id}
-- [Редактирование чата](https://dev.pachca.com/api/chats/update.md): PUT /chats/{id}
-- [Архивация чата](https://dev.pachca.com/api/chats/archive.md): PUT /chats/{id}/archive
-- [Разархивация чата](https://dev.pachca.com/api/chats/unarchive.md): PUT /chats/{id}/unarchive
-
 ## Members
 - [Добавление тегов](https://dev.pachca.com/api/members/add-group-tags.md): POST /chats/{id}/group_tags
 - [Исключение тега](https://dev.pachca.com/api/members/remove-group-tag.md): DELETE /chats/{id}/group_tags/{tag_id}
@@ -78,6 +75,7 @@
 - [Информация о сообщении](https://dev.pachca.com/api/messages/get.md): GET /messages/{id}
 - [Редактирование сообщения](https://dev.pachca.com/api/messages/update.md): PUT /messages/{id}
 - [Удаление сообщения](https://dev.pachca.com/api/messages/delete.md): DELETE /messages/{id}
+- [Unfurl (разворачивание ссылок)](https://dev.pachca.com/api/messages/unfurl.md): POST /messages/{id}/link_previews
 - [Закрепление сообщения](https://dev.pachca.com/api/messages/pin.md): POST /messages/{id}/pin
 - [Открепление сообщения](https://dev.pachca.com/api/messages/unpin.md): DELETE /messages/{id}/pin
 
@@ -88,9 +86,6 @@
 - [Добавление реакции](https://dev.pachca.com/api/reactions/add.md): POST /messages/{id}/reactions
 - [Удаление реакции](https://dev.pachca.com/api/reactions/remove.md): DELETE /messages/{id}/reactions
 - [Список реакций](https://dev.pachca.com/api/reactions/list.md): GET /messages/{id}/reactions
-
-## Link Previews
-- [Unfurl (разворачивание ссылок)](https://dev.pachca.com/api/link-previews/add.md): POST /messages/{id}/link_previews
 
 ## Search
 - [Поиск чатов](https://dev.pachca.com/api/search/list-chats.md): GET /search/chats
@@ -108,13 +103,22 @@
 - [Открытие представления](https://dev.pachca.com/api/views/open.md): POST /views/open
 
 ## Bots
+- [Ротация собственного токена бота](https://dev.pachca.com/api/bots/recreate-token-self.md): POST /bot/recreate_token
 - [Саморегистрация вебхука бота](https://dev.pachca.com/api/bots/update-webhook.md): PUT /bot/webhook
 - [Новый бот](https://dev.pachca.com/api/bots/create.md): POST /bots
 - [Информация о боте](https://dev.pachca.com/api/bots/get.md): GET /bots/{id}
 - [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
+- [Ротация токена бота](https://dev.pachca.com/api/bots/recreate-token.md): POST /bots/{id}/recreate_token
 - [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
 - [Удаление события](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}
 
 ## Security
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
+
+## CustomProperties
+- [Список дополнительных полей](https://dev.pachca.com/api/custom-properties/list.md): GET /custom_properties
+
+## Files
+- [Загрузка файла](https://dev.pachca.com/api/files/direct-url.md): POST /direct_url
+- [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 

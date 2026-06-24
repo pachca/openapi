@@ -19,8 +19,8 @@ from .models import (
     GetWebhookEventsResponse,
     WebhookEvent,
     WebhookPayloadUnion,
-    BotCreateRequest,
     BotCreateResponse,
+    BotCreateRequest,
     BotWebhookSelfUpdateRequest,
     BotUpdateRequest,
     ListChatsParams,
@@ -30,19 +30,19 @@ from .models import (
     SortOrder,
     ChatAvailability,
     ChatCreateRequest,
-    ChatUpdateRequest,
-    ListPropertiesParams,
-    ListPropertiesResponse,
-    SearchEntityType,
     ExportRequest,
-    FileUploadRequest,
-    UploadParams,
+    ChatUpdateRequest,
     ListMembersParams,
     ListMembersResponse,
     User,
     ChatMemberRoleFilter,
     AddMembersRequest,
     ChatMemberRole,
+    ListPropertiesParams,
+    ListPropertiesResponse,
+    SearchEntityType,
+    FileUploadRequest,
+    UploadParams,
     ListTagsParams,
     ListTagsResponse,
     GroupTag,
@@ -54,8 +54,8 @@ from .models import (
     Message,
     MessageSortField,
     MessageCreateRequest,
-    MessageUpdateRequest,
     LinkPreviewsRequest,
+    MessageUpdateRequest,
     ListReactionsParams,
     ListReactionsResponse,
     Reaction,
@@ -248,11 +248,21 @@ class BotsService:
             if payload_type is None or isinstance(event.payload, payload_type):
                 yield event.payload
 
+    async def self_recreate_bot_token(
+        self) -> BotCreateResponse:
+        raise NotImplementedError("Bots.selfRecreateBotToken is not implemented")
+
     async def create_bot(
         self,
         request: BotCreateRequest,
     ) -> BotCreateResponse:
         raise NotImplementedError("Bots.createBot is not implemented")
+
+    async def recreate_bot_token(
+        self,
+        id: int,
+    ) -> BotCreateResponse:
+        raise NotImplementedError("Bots.recreateBotToken is not implemented")
 
     async def self_update_bot_webhook(
         self,
@@ -336,6 +346,20 @@ class BotsServiceImpl(BotsService):
             has_next = True if reported_has_next is None else reported_has_next
         return items
 
+    async def self_recreate_bot_token(
+        self) -> BotCreateResponse:
+        response = await self._client.post(
+            "/bot/recreate_token",
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(BotCreateResponse, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
     async def create_bot(
         self,
         request: BotCreateRequest,
@@ -347,6 +371,22 @@ class BotsServiceImpl(BotsService):
         body = response.json()
         match response.status_code:
             case 201:
+                return deserialize(BotCreateResponse, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def recreate_bot_token(
+        self,
+        id: int,
+    ) -> BotCreateResponse:
+        response = await self._client.post(
+            f"/bots/{id}/recreate_token",
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
                 return deserialize(BotCreateResponse, body["data"])
             case 401:
                 raise deserialize(OAuthError, body)
@@ -423,11 +463,23 @@ class ChatsService:
     ) -> Chat:
         raise NotImplementedError("Chats.getChat is not implemented")
 
+    async def download_export(
+        self,
+        id: int,
+    ) -> str:
+        raise NotImplementedError("Chats.downloadExport is not implemented")
+
     async def create_chat(
         self,
         request: ChatCreateRequest,
     ) -> Chat:
         raise NotImplementedError("Chats.createChat is not implemented")
+
+    async def request_export(
+        self,
+        request: ExportRequest,
+    ) -> None:
+        raise NotImplementedError("Chats.requestExport is not implemented")
 
     async def update_chat(
         self,
@@ -523,6 +575,27 @@ class ChatsServiceImpl(ChatsService):
             case _:
                 raise deserialize(ApiError, body)
 
+    async def download_export(
+        self,
+        id: int,
+    ) -> str:
+        response = await self._client.get(
+            f"/chats/exports/{id}",
+            follow_redirects=False,
+        )
+        match response.status_code:
+            case 302:
+                location = response.headers.get("location")
+                if not location:
+                    raise RuntimeError(
+                        "Missing Location header in redirect response"
+                    )
+                return location
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
+
     async def create_chat(
         self,
         request: ChatCreateRequest,
@@ -539,6 +612,22 @@ class ChatsServiceImpl(ChatsService):
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def request_export(
+        self,
+        request: ExportRequest,
+    ) -> None:
+        response = await self._client.post(
+            "/chats/exports",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
 
     async def update_chat(
         self,
@@ -587,138 +676,6 @@ class ChatsServiceImpl(ChatsService):
                 raise deserialize(OAuthError, response.json())
             case _:
                 raise deserialize(ApiError, response.json())
-
-
-class CommonService:
-    async def download_export(
-        self,
-        id: int,
-    ) -> str:
-        raise NotImplementedError("Common.downloadExport is not implemented")
-
-    async def list_properties(
-        self,
-        params: ListPropertiesParams,
-    ) -> ListPropertiesResponse:
-        raise NotImplementedError("Common.listProperties is not implemented")
-
-    async def request_export(
-        self,
-        request: ExportRequest,
-    ) -> None:
-        raise NotImplementedError("Common.requestExport is not implemented")
-
-    async def upload_file(
-        self,
-        direct_url: str,
-        request: FileUploadRequest,
-    ) -> None:
-        raise NotImplementedError("Common.uploadFile is not implemented")
-
-    async def get_upload_params(
-        self) -> UploadParams:
-        raise NotImplementedError("Common.getUploadParams is not implemented")
-
-
-class CommonServiceImpl(CommonService):
-    def __init__(self, client: httpx.AsyncClient) -> None:
-        self._client = client
-
-    async def download_export(
-        self,
-        id: int,
-    ) -> str:
-        response = await self._client.get(
-            f"/chats/exports/{id}",
-            follow_redirects=False,
-        )
-        match response.status_code:
-            case 302:
-                location = response.headers.get("location")
-                if not location:
-                    raise RuntimeError(
-                        "Missing Location header in redirect response"
-                    )
-                return location
-            case 401:
-                raise deserialize(OAuthError, response.json())
-            case _:
-                raise deserialize(ApiError, response.json())
-
-    async def list_properties(
-        self,
-        params: ListPropertiesParams,
-    ) -> ListPropertiesResponse:
-        query: list[tuple[str, str]] = []
-        query.append(("entity_type", params.entity_type))
-        response = await self._client.get(
-            "/custom_properties",
-            params=query,
-        )
-        body = response.json()
-        match response.status_code:
-            case 200:
-                return deserialize(ListPropertiesResponse, body)
-            case 401:
-                raise deserialize(OAuthError, body)
-            case _:
-                raise deserialize(ApiError, body)
-
-    async def request_export(
-        self,
-        request: ExportRequest,
-    ) -> None:
-        response = await self._client.post(
-            "/chats/exports",
-            json=serialize(request),
-        )
-        match response.status_code:
-            case 204:
-                return
-            case 401:
-                raise deserialize(OAuthError, response.json())
-            case _:
-                raise deserialize(ApiError, response.json())
-
-    async def upload_file(
-        self,
-        direct_url: str,
-        request: FileUploadRequest,
-    ) -> None:
-        data: dict[str, str] = {}
-        data["Content-Disposition"] = request.content_disposition
-        data["acl"] = request.acl
-        data["policy"] = request.policy
-        data["x-amz-credential"] = request.x_amz_credential
-        data["x-amz-algorithm"] = request.x_amz_algorithm
-        data["x-amz-date"] = request.x_amz_date
-        data["x-amz-signature"] = request.x_amz_signature
-        data["key"] = request.key
-        async with httpx.AsyncClient() as _no_auth:
-            response = await _no_auth.post(
-                direct_url,
-                data=data,
-                files={"file": request.file},
-            )
-        match response.status_code:
-            case 204:
-                return
-            case _:
-                raise deserialize(ApiError, response.json())
-
-    async def get_upload_params(
-        self) -> UploadParams:
-        response = await self._client.post(
-            "/uploads",
-        )
-        body = response.json()
-        match response.status_code:
-            case 201:
-                return deserialize(UploadParams, body)
-            case 401:
-                raise deserialize(OAuthError, body)
-            case _:
-                raise deserialize(ApiError, body)
 
 
 class MembersService:
@@ -927,6 +884,96 @@ class MembersServiceImpl(MembersService):
                 raise deserialize(OAuthError, response.json())
             case _:
                 raise deserialize(ApiError, response.json())
+
+
+class CustomPropertiesService:
+    async def list_properties(
+        self,
+        params: ListPropertiesParams,
+    ) -> ListPropertiesResponse:
+        raise NotImplementedError("CustomProperties.listProperties is not implemented")
+
+
+class CustomPropertiesServiceImpl(CustomPropertiesService):
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+
+    async def list_properties(
+        self,
+        params: ListPropertiesParams,
+    ) -> ListPropertiesResponse:
+        query: list[tuple[str, str]] = []
+        query.append(("entity_type", params.entity_type))
+        response = await self._client.get(
+            "/custom_properties",
+            params=query,
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(ListPropertiesResponse, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+
+class FilesService:
+    async def upload_file(
+        self,
+        direct_url: str,
+        request: FileUploadRequest,
+    ) -> None:
+        raise NotImplementedError("Files.uploadFile is not implemented")
+
+    async def get_upload_params(
+        self) -> UploadParams:
+        raise NotImplementedError("Files.getUploadParams is not implemented")
+
+
+class FilesServiceImpl(FilesService):
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+
+    async def upload_file(
+        self,
+        direct_url: str,
+        request: FileUploadRequest,
+    ) -> None:
+        data: dict[str, str] = {}
+        data["Content-Disposition"] = request.content_disposition
+        data["acl"] = request.acl
+        data["policy"] = request.policy
+        data["x-amz-credential"] = request.x_amz_credential
+        data["x-amz-algorithm"] = request.x_amz_algorithm
+        data["x-amz-date"] = request.x_amz_date
+        data["x-amz-signature"] = request.x_amz_signature
+        data["key"] = request.key
+        async with httpx.AsyncClient() as _no_auth:
+            response = await _no_auth.post(
+                direct_url,
+                data=data,
+                files={"file": request.file},
+            )
+        match response.status_code:
+            case 204:
+                return
+            case _:
+                raise deserialize(ApiError, response.json())
+
+    async def get_upload_params(
+        self) -> UploadParams:
+        response = await self._client.post(
+            "/uploads",
+        )
+        body = response.json()
+        match response.status_code:
+            case 201:
+                return deserialize(UploadParams, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
 
 
 class GroupTagsService:
@@ -1167,6 +1214,13 @@ class MessagesService:
     ) -> Message:
         raise NotImplementedError("Messages.createMessage is not implemented")
 
+    async def create_link_previews(
+        self,
+        id: int,
+        request: LinkPreviewsRequest,
+    ) -> None:
+        raise NotImplementedError("Messages.createLinkPreviews is not implemented")
+
     async def pin_message(
         self,
         id: int,
@@ -1277,6 +1331,23 @@ class MessagesServiceImpl(MessagesService):
             case _:
                 raise deserialize(ApiError, body)
 
+    async def create_link_previews(
+        self,
+        id: int,
+        request: LinkPreviewsRequest,
+    ) -> None:
+        response = await self._client.post(
+            f"/messages/{id}/link_previews",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
+
     async def pin_message(
         self,
         id: int,
@@ -1331,37 +1402,6 @@ class MessagesServiceImpl(MessagesService):
     ) -> None:
         response = await self._client.delete(
             f"/messages/{id}/pin",
-        )
-        match response.status_code:
-            case 204:
-                return
-            case 401:
-                raise deserialize(OAuthError, response.json())
-            case _:
-                raise deserialize(ApiError, response.json())
-
-
-class LinkPreviewsService:
-    async def create_link_previews(
-        self,
-        id: int,
-        request: LinkPreviewsRequest,
-    ) -> None:
-        raise NotImplementedError("Link Previews.createLinkPreviews is not implemented")
-
-
-class LinkPreviewsServiceImpl(LinkPreviewsService):
-    def __init__(self, client: httpx.AsyncClient) -> None:
-        self._client = client
-
-    async def create_link_previews(
-        self,
-        id: int,
-        request: LinkPreviewsRequest,
-    ) -> None:
-        response = await self._client.post(
-            f"/messages/{id}/link_previews",
-            json=serialize(request),
         )
         match response.status_code:
             case 204:
@@ -1636,11 +1676,32 @@ class ThreadsServiceImpl(ThreadsService):
                 raise deserialize(ApiError, body)
 
 
-class ProfileService:
+class OAuthService:
     async def get_token_info(
         self) -> AccessTokenInfo:
-        raise NotImplementedError("Profile.getTokenInfo is not implemented")
+        raise NotImplementedError("OAuth.getTokenInfo is not implemented")
 
+
+class OAuthServiceImpl(OAuthService):
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+
+    async def get_token_info(
+        self) -> AccessTokenInfo:
+        response = await self._client.get(
+            "/oauth/token/info",
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(AccessTokenInfo, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+
+class ProfileService:
     async def get_profile(
         self) -> User:
         raise NotImplementedError("Profile.getProfile is not implemented")
@@ -1669,24 +1730,14 @@ class ProfileService:
         self) -> None:
         raise NotImplementedError("Profile.deleteStatus is not implemented")
 
+    async def get_token_info(
+        self) -> AccessTokenInfo:
+        raise NotImplementedError("Profile.getTokenInfo is not implemented")
+
 
 class ProfileServiceImpl(ProfileService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
-
-    async def get_token_info(
-        self) -> AccessTokenInfo:
-        response = await self._client.get(
-            "/oauth/token/info",
-        )
-        body = response.json()
-        match response.status_code:
-            case 200:
-                return deserialize(AccessTokenInfo, body["data"])
-            case 401:
-                raise deserialize(OAuthError, body)
-            case _:
-                raise deserialize(ApiError, body)
 
     async def get_profile(
         self) -> User:
@@ -1777,6 +1828,20 @@ class ProfileServiceImpl(ProfileService):
                 raise deserialize(OAuthError, response.json())
             case _:
                 raise deserialize(ApiError, response.json())
+
+    async def get_token_info(
+        self) -> AccessTokenInfo:
+        response = await self._client.get(
+            "/oauth/token/info",
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(AccessTokenInfo, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
 
 
 class SearchService:
@@ -2435,11 +2500,176 @@ class ViewsServiceImpl(ViewsService):
                 raise deserialize(ApiError, response.json())
 
 
+# Deprecated: CommonService is kept for backward compatibility — use the new service(s).
+class CommonService:
+    async def get_upload_params(
+        self) -> UploadParams:
+        raise NotImplementedError("Common.getUploadParams is not implemented")
+
+    async def upload_file(
+        self,
+        direct_url: str,
+        request: FileUploadRequest,
+    ) -> None:
+        raise NotImplementedError("Common.uploadFile is not implemented")
+
+    async def list_properties(
+        self,
+        params: ListPropertiesParams,
+    ) -> ListPropertiesResponse:
+        raise NotImplementedError("Common.listProperties is not implemented")
+
+    async def request_export(
+        self,
+        request: ExportRequest,
+    ) -> None:
+        raise NotImplementedError("Common.requestExport is not implemented")
+
+    async def download_export(
+        self,
+        id: int,
+    ) -> str:
+        raise NotImplementedError("Common.downloadExport is not implemented")
+
+
+class CommonServiceImpl(CommonService):
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+
+    async def get_upload_params(
+        self) -> UploadParams:
+        response = await self._client.post(
+            "/uploads",
+        )
+        body = response.json()
+        match response.status_code:
+            case 201:
+                return deserialize(UploadParams, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def upload_file(
+        self,
+        direct_url: str,
+        request: FileUploadRequest,
+    ) -> None:
+        data: dict[str, str] = {}
+        data["Content-Disposition"] = request.content_disposition
+        data["acl"] = request.acl
+        data["policy"] = request.policy
+        data["x-amz-credential"] = request.x_amz_credential
+        data["x-amz-algorithm"] = request.x_amz_algorithm
+        data["x-amz-date"] = request.x_amz_date
+        data["x-amz-signature"] = request.x_amz_signature
+        data["key"] = request.key
+        async with httpx.AsyncClient() as _no_auth:
+            response = await _no_auth.post(
+                direct_url,
+                data=data,
+                files={"file": request.file},
+            )
+        match response.status_code:
+            case 204:
+                return
+            case _:
+                raise deserialize(ApiError, response.json())
+
+    async def list_properties(
+        self,
+        params: ListPropertiesParams,
+    ) -> ListPropertiesResponse:
+        query: list[tuple[str, str]] = []
+        query.append(("entity_type", params.entity_type))
+        response = await self._client.get(
+            "/custom_properties",
+            params=query,
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(ListPropertiesResponse, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def request_export(
+        self,
+        request: ExportRequest,
+    ) -> None:
+        response = await self._client.post(
+            "/chats/exports",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
+
+    async def download_export(
+        self,
+        id: int,
+    ) -> str:
+        response = await self._client.get(
+            f"/chats/exports/{id}",
+            follow_redirects=False,
+        )
+        match response.status_code:
+            case 302:
+                location = response.headers.get("location")
+                if not location:
+                    raise RuntimeError(
+                        "Missing Location header in redirect response"
+                    )
+                return location
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
+
+
+# Deprecated: LinkPreviewsService is kept for backward compatibility — use the new service(s).
+class LinkPreviewsService:
+    async def create_link_previews(
+        self,
+        id: int,
+        request: LinkPreviewsRequest,
+    ) -> None:
+        raise NotImplementedError("Link Previews.createLinkPreviews is not implemented")
+
+
+class LinkPreviewsServiceImpl(LinkPreviewsService):
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+
+    async def create_link_previews(
+        self,
+        id: int,
+        request: LinkPreviewsRequest,
+    ) -> None:
+        response = await self._client.post(
+            f"/messages/{id}/link_previews",
+            json=serialize(request),
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
+
+
 PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, group_tags: GroupTagsService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, customproperties: CustomPropertiesService | None = None, files: FilesService | None = None, group_tags: GroupTagsService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, oauth: OAuthService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
@@ -2448,10 +2678,13 @@ class PachcaClient:
         self.bots: BotsService = bots or BotsServiceImpl(self._client)
         self.chats: ChatsService = chats or ChatsServiceImpl(self._client)
         self.common: CommonService = common or CommonServiceImpl(self._client)
+        self.customproperties: CustomPropertiesService = customproperties or CustomPropertiesServiceImpl(self._client)
+        self.files: FilesService = files or FilesServiceImpl(self._client)
         self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(self._client)
         self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(self._client)
         self.members: MembersService = members or MembersServiceImpl(self._client)
         self.messages: MessagesService = messages or MessagesServiceImpl(self._client)
+        self.oauth: OAuthService = oauth or OAuthServiceImpl(self._client)
         self.profile: ProfileService = profile or ProfileServiceImpl(self._client)
         self.reactions: ReactionsService = reactions or ReactionsServiceImpl(self._client)
         self.read_members: ReadMembersService = read_members or ReadMembersServiceImpl(self._client)
@@ -2472,10 +2705,13 @@ class PachcaClient:
         bots: BotsService | None = None,
         chats: ChatsService | None = None,
         common: CommonService | None = None,
+        customproperties: CustomPropertiesService | None = None,
+        files: FilesService | None = None,
         group_tags: GroupTagsService | None = None,
         link_previews: LinkPreviewsService | None = None,
         members: MembersService | None = None,
         messages: MessagesService | None = None,
+        oauth: OAuthService | None = None,
         profile: ProfileService | None = None,
         reactions: ReactionsService | None = None,
         read_members: ReadMembersService | None = None,
@@ -2491,10 +2727,13 @@ class PachcaClient:
         self.bots: BotsService = bots or BotsServiceImpl(client)
         self.chats: ChatsService = chats or ChatsServiceImpl(client)
         self.common: CommonService = common or CommonServiceImpl(client)
+        self.customproperties: CustomPropertiesService = customproperties or CustomPropertiesServiceImpl(client)
+        self.files: FilesService = files or FilesServiceImpl(client)
         self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(client)
         self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(client)
         self.members: MembersService = members or MembersServiceImpl(client)
         self.messages: MessagesService = messages or MessagesServiceImpl(client)
+        self.oauth: OAuthService = oauth or OAuthServiceImpl(client)
         self.profile: ProfileService = profile or ProfileServiceImpl(client)
         self.reactions: ReactionsService = reactions or ReactionsServiceImpl(client)
         self.read_members: ReadMembersService = read_members or ReadMembersServiceImpl(client)
@@ -2512,10 +2751,13 @@ class PachcaClient:
         bots: BotsService | None = None,
         chats: ChatsService | None = None,
         common: CommonService | None = None,
+        customproperties: CustomPropertiesService | None = None,
+        files: FilesService | None = None,
         group_tags: GroupTagsService | None = None,
         link_previews: LinkPreviewsService | None = None,
         members: MembersService | None = None,
         messages: MessagesService | None = None,
+        oauth: OAuthService | None = None,
         profile: ProfileService | None = None,
         reactions: ReactionsService | None = None,
         read_members: ReadMembersService | None = None,
@@ -2531,10 +2773,13 @@ class PachcaClient:
         self.bots = bots or BotsService()
         self.chats = chats or ChatsService()
         self.common = common or CommonService()
+        self.customproperties = customproperties or CustomPropertiesService()
+        self.files = files or FilesService()
         self.group_tags = group_tags or GroupTagsService()
         self.link_previews = link_previews or LinkPreviewsService()
         self.members = members or MembersService()
         self.messages = messages or MessagesService()
+        self.oauth = oauth or OAuthService()
         self.profile = profile or ProfileService()
         self.reactions = reactions or ReactionsService()
         self.read_members = read_members or ReadMembersService()

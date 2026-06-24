@@ -472,14 +472,19 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
 
   if (hasServices) {
     const serviceEntries = ir.services
-      .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
+      .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag), deprecated: s.deprecated }))
       .sort((a, b) => a.prop.localeCompare(b.prop));
     if (ir.baseUrl) {
       lines.push(`export const PACHCA_API_URL = ${JSON.stringify(ir.baseUrl)};`);
       lines.push('');
     }
     lines.push('export class PachcaClient {');
-    for (const s of serviceEntries) lines.push(`  readonly ${s.prop}: ${s.cls};`);
+    for (const s of serviceEntries) {
+      if (s.deprecated) {
+        lines.push('  /** @deprecated Renamed for clarity — use the new service(s). Kept working for backward compatibility. */');
+      }
+      lines.push(`  readonly ${s.prop}: ${s.cls};`);
+    }
     lines.push('');
     const defaultUrl = ir.baseUrl ? ' = PACHCA_API_URL' : '';
     const configFields = ['headers: Record<string, string>', 'baseUrl?: string'];
@@ -1408,8 +1413,10 @@ function generateExamples(ir: IR): string {
   };
 
   for (const svc of ir.services) {
+    if (svc.deprecated) continue; // backward-compat alias service — document new names only
     const serviceProp = tagToProperty(svc.tag);
     for (const op of svc.operations) {
+      if (op.isAlias) continue; // alias op — documented under its new service
       const ex = tsBuildOperationExample(op, ir, models, serviceProp);
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;

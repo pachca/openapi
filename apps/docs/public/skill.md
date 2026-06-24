@@ -54,15 +54,20 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 
 ## Capabilities
 
-### Common
+### OAuth
+- `GET /oauth/token/info` — Get token info
+
+### Chats
+- `POST /chats` — Create chat
+- `GET /chats` — List chats
 - `POST /chats/exports` — Request export
 - `GET /chats/exports/{id}` — Download export
-- `GET /custom_properties` — List properties
-- `POST /direct_url` — Upload file
-- `POST /uploads` — Get upload params
+- `GET /chats/{id}` — Get chat
+- `PUT /chats/{id}` — Update chat
+- `PUT /chats/{id}/archive` — Archive chat
+- `PUT /chats/{id}/unarchive` — Unarchive chat
 
 ### Profile
-- `GET /oauth/token/info` — Get token info
 - `GET /profile` — Get profile
 - `PUT /profile/avatar` — Update profile avatar
 - `DELETE /profile/avatar` — Delete profile avatar
@@ -90,14 +95,6 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `DELETE /group_tags/{id}` — Delete tag
 - `GET /group_tags/{id}/users` — Get tag users
 
-### Chats
-- `POST /chats` — Create chat
-- `GET /chats` — List chats
-- `GET /chats/{id}` — Get chat
-- `PUT /chats/{id}` — Update chat
-- `PUT /chats/{id}/archive` — Archive chat
-- `PUT /chats/{id}/unarchive` — Unarchive chat
-
 ### Members
 - `POST /chats/{id}/group_tags` — Add tags
 - `DELETE /chats/{id}/group_tags/{tag_id}` — Remove tag
@@ -118,6 +115,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `GET /messages/{id}` — Get message
 - `PUT /messages/{id}` — Update message
 - `DELETE /messages/{id}` — Delete message
+- `POST /messages/{id}/link_previews` — Create link previews
 - `POST /messages/{id}/pin` — Pin message
 - `DELETE /messages/{id}/pin` — Unpin message
 
@@ -128,9 +126,6 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `POST /messages/{id}/reactions` — Add reaction
 - `DELETE /messages/{id}/reactions` — Remove reaction
 - `GET /messages/{id}/reactions` — List reactions
-
-### Link Previews
-- `POST /messages/{id}/link_previews` — Create link previews
 
 ### Search
 - `GET /search/chats` — Search chats
@@ -148,15 +143,24 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `POST /views/open` — Open view
 
 ### Bots
+- `POST /bot/recreate_token` — Self recreate bot token
 - `PUT /bot/webhook` — Self update bot webhook
 - `POST /bots` — Create bot
 - `GET /bots/{id}` — Get bot
 - `PUT /bots/{id}` — Update bot
+- `POST /bots/{id}/recreate_token` — Recreate bot token
 - `GET /webhooks/events` — Get webhook events
 - `DELETE /webhooks/events/{id}` — Delete webhook event
 
 ### Security
 - `GET /audit_events` — Get audit events
+
+### CustomProperties
+- `GET /custom_properties` — List properties
+
+### Files
+- `POST /direct_url` — Upload file
+- `POST /uploads` — Get upload params
 
 
 ## Common Workflows
@@ -298,11 +302,12 @@ npx skills add pachca/openapi
 
 | Skill | Description |
 |-------|-------------|
-| pachca-profile | Pachca — МОЙ профиль, МОЙ статус, МОЙ токен, кастомные поля |
+| pachca-profile | Pachca — МОЙ профиль, МОЙ статус, кастомные поля |
+| pachca-oauth | Pachca — информация о текущем OAuth-токене: его скоупы (права доступа), даты создания и последнего использования, тип владельца (пользователь или бот) |
 | pachca-users | Pachca — управление сотрудниками (участниками пространства) и тегами (группами) |
 | pachca-chats | Pachca — управление чатами, каналами и беседами |
 | pachca-messages | Pachca — сообщения: отправка, редактирование, удаление |
-| pachca-bots | Pachca — управление ботами, вебхуки и превью ссылок |
+| pachca-bots | Pachca — управление ботами и вебхуки |
 | pachca-forms | Pachca — интерактивные формы и модальные окна для ботов |
 | pachca-tasks | Pachca — задачи и напоминания: создание, список, обновление, выполнение, удаление |
 | pachca-search | Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям |

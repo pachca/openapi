@@ -63,12 +63,15 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 
 | Метод | Метод API |
 |-------|----------|
-| `client.common.requestExport()` | [Экспорт сообщений](/api/common/request-export) |
-| `client.common.uploadFile()` | [Загрузка файла](/api/common/direct-url) |
-| `client.common.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/common/uploads) |
-| `client.common.downloadExport()` | [Скачать архив экспорта](/api/common/get-exports) |
-| `client.common.listProperties()` | [Список дополнительных полей](/api/common/custom-properties) |
-| `client.profile.getTokenInfo()` | [Информация о токене](/api/profile/get-info) |
+| `client.oauth.getTokenInfo()` | [Информация о токене](/api/oauth/token-info) |
+| `client.chats.createChat()` | [Новый чат](/api/chats/create) |
+| `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
+| `client.chats.listChats()` | [Список чатов](/api/chats/list) |
+| `client.chats.downloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
+| `client.chats.getChat()` | [Информация о чате](/api/chats/get) |
+| `client.chats.updateChat()` | [Редактирование чата](/api/chats/update) |
+| `client.chats.archiveChat()` | [Архивация чата](/api/chats/archive) |
+| `client.chats.unarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.profile.getProfile()` | [Свой профиль](/api/profile/get) |
 | `client.profile.getStatus()` | [Свой статус](/api/profile/get-status) |
 | `client.profile.updateProfileAvatar()` | [Загрузка своего аватара](/api/profile/update-avatar) |
@@ -91,12 +94,6 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.groupTags.getTagUsers()` | [Список сотрудников тега](/api/group-tags/list-users) |
 | `client.groupTags.updateTag()` | [Редактирование тега](/api/group-tags/update) |
 | `client.groupTags.deleteTag()` | [Удаление тега](/api/group-tags/delete) |
-| `client.chats.createChat()` | [Новый чат](/api/chats/create) |
-| `client.chats.listChats()` | [Список чатов](/api/chats/list) |
-| `client.chats.getChat()` | [Информация о чате](/api/chats/get) |
-| `client.chats.updateChat()` | [Редактирование чата](/api/chats/update) |
-| `client.chats.archiveChat()` | [Архивация чата](/api/chats/archive) |
-| `client.chats.unarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.members.addTags()` | [Добавление тегов](/api/members/add-group-tags) |
 | `client.members.addMembers()` | [Добавление пользователей](/api/members/add) |
 | `client.members.listMembers()` | [Список участников чата](/api/members/list) |
@@ -108,6 +105,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.threads.listThreads()` | [Список тредов](/api/threads/list) |
 | `client.threads.getThread()` | [Информация о треде](/api/threads/get) |
 | `client.messages.createMessage()` | [Новое сообщение](/api/messages/create) |
+| `client.messages.createLinkPreviews()` | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
 | `client.messages.pinMessage()` | [Закрепление сообщения](/api/messages/pin) |
 | `client.messages.listChatMessages()` | [Список сообщений чата](/api/messages/list) |
 | `client.messages.getMessage()` | [Информация о сообщении](/api/messages/get) |
@@ -118,7 +116,6 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.reactions.addReaction()` | [Добавление реакции](/api/reactions/add) |
 | `client.reactions.listReactions()` | [Список реакций](/api/reactions/list) |
 | `client.reactions.removeReaction()` | [Удаление реакции](/api/reactions/remove) |
-| `client.linkPreviews.createLinkPreviews()` | [Unfurl (разворачивание ссылок)](/api/link-previews/add) |
 | `client.search.searchChats()` | [Поиск чатов](/api/search/list-chats) |
 | `client.search.searchMessages()` | [Поиск сообщений](/api/search/list-messages) |
 | `client.search.searchUsers()` | [Поиск сотрудников](/api/search/list-users) |
@@ -128,13 +125,18 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.tasks.updateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.deleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.openView()` | [Открытие представления](/api/views/open) |
+| `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
+| `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
+| `client.customproperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
+| `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 
 
 ## Запросы

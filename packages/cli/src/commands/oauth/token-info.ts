@@ -2,13 +2,14 @@
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
-export default class ProfileGetInfo extends BaseCommand {
+export default class OauthTokenInfo extends BaseCommand {
   static override description = "Информация о токене";
 
   static override examples = [
-      "Проверить свой токен:\n  $ pachca profile get-info"
+      "Проверить свой токен:\n  $ pachca oauth token-info"
   ];
 
+  static override hiddenAliases = ["profile:get-info"];
   static apiMethod = "GET";
   static apiPath = "/oauth/token/info";
   static defaultColumns = ["id","name","created_at","token","user_id"];
@@ -23,7 +24,7 @@ export default class ProfileGetInfo extends BaseCommand {
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(ProfileGetInfo);
+    const { args, flags } = await this.parse(OauthTokenInfo);
     this.parsedFlags = flags;
 
     const { data } = await this.apiRequest({

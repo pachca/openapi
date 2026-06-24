@@ -15,7 +15,7 @@
   },
   "BotOperations_getBot": {
     "usage": "response, err := client.Bots.GetBot(ctx, int32(1738816))",
-    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool}}"
+    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool}}"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "params := &GetWebhookEventsParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Bots.GetWebhookEvents(ctx, params)",
@@ -30,9 +30,13 @@
   "BotOperations_getWebhookEvents_pollWebhookPayloads": {
     "usage": "err := client.Bots.PollWebhookPayloads(ctx, nil, func(payload pachca.WebhookPayloadUnion) error {\n\t_ = payload\n\treturn nil\n})"
   },
+  "BotOperations_selfRecreateBotToken": {
+    "usage": "response, err := client.Bots.SelfRecreateBotToken(ctx)",
+    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool}, AccessToken: string}"
+  },
   "BotOperations_createBot": {
-    "usage": "request := BotCreateRequest{\n\tWebhook: BotCreateRequestWebhook{\n\t\tName: \"Бот задач\",\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t},\n}\nresponse, err := client.Bots.CreateBot(ctx, request)",
-    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool}, AccessToken: string}",
+    "usage": "request := BotCreateRequest{\n\tWebhook: BotCreateRequestWebhook{\n\t\tName: \"Бот задач\",\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t},\n}\nresponse, err := client.Bots.CreateBot(ctx, request)",
+    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool}, AccessToken: string}",
     "imports": [
       "BotCreateRequest",
       "BotCreateRequestWebhook",
@@ -41,17 +45,21 @@
       "BotTriggerOn"
     ]
   },
+  "BotOperations_recreateBotToken": {
+    "usage": "response, err := client.Bots.RecreateBotToken(ctx, int32(1738816))",
+    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool}, AccessToken: string}"
+  },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "request := BotWebhookSelfUpdateRequest{\n\tWebhook: BotWebhookSelfUpdateRequestWebhook{\n\t\tOutgoingURL: \"https://www.website.com/tasks/new\",\n\t},\n}\nresponse, err := client.Bots.SelfUpdateBotWebhook(ctx, request)",
-    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool}}",
+    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool}}",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "request := BotUpdateRequest{\n\tWebhook: BotUpdateRequestWebhook{\n\t\tName: Ptr(\"Бот задач\"),\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t},\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
-    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool}}",
+    "usage": "request := BotUpdateRequest{\n\tWebhook: BotUpdateRequestWebhook{\n\t\tName: Ptr(\"Бот задач\"),\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t},\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
+    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool}}",
     "imports": [
       "BotEventName",
       "BotTemplateEngine",
@@ -77,12 +85,22 @@
     "usage": "response, err := client.Chats.GetChat(ctx, int32(334))",
     "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}"
   },
+  "ExportOperations_downloadExport": {
+    "usage": "response, err := client.Chats.DownloadExport(ctx, int32(22322))",
+    "output": "string"
+  },
   "ChatOperations_createChat": {
     "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"🤿 aqua\",\n\t\tMemberIDs: []int32{int32(123)},\n\t\tGroupTagIDs: []int32{int32(123)},\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(false),\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
     "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
+    ]
+  },
+  "ExportOperations_requestExport": {
+    "usage": "request := ExportRequest{\n\tStartAt: \"2025-03-20\",\n\tEndAt: \"2025-03-20\",\n\tWebhookURL: \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n\tChatIDs: []int32{int32(123)},\n\tSkipChatsFile: Ptr(false),\n}\nclient.Chats.RequestExport(ctx, request)",
+    "imports": [
+      "ExportRequest"
     ]
   },
   "ChatOperations_updateChat": {
@@ -98,34 +116,6 @@
   },
   "ChatOperations_unarchiveChat": {
     "usage": "client.Chats.UnarchiveChat(ctx, int32(334))"
-  },
-  "ExportOperations_downloadExport": {
-    "usage": "response, err := client.Common.DownloadExport(ctx, int32(22322))",
-    "output": "string"
-  },
-  "CommonOperations_listProperties": {
-    "usage": "params := ListPropertiesParams{\n\tEntityType: SearchEntityTypeUser,\n}\nresponse, err := client.Common.ListProperties(ctx, params)",
-    "output": "ListPropertiesResponse{Data: []CustomPropertyDefinition}",
-    "imports": [
-      "ListPropertiesParams",
-      "SearchEntityType"
-    ]
-  },
-  "ExportOperations_requestExport": {
-    "usage": "request := ExportRequest{\n\tStartAt: \"2025-03-20\",\n\tEndAt: \"2025-03-20\",\n\tWebhookURL: \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n\tChatIDs: []int32{int32(123)},\n\tSkipChatsFile: Ptr(false),\n}\nclient.Common.RequestExport(ctx, request)",
-    "imports": [
-      "ExportRequest"
-    ]
-  },
-  "DirectUploadOperations_uploadFile": {
-    "usage": "request := FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: \"example\",\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tFile: bytes.NewReader(nil),\n}\nclient.Common.UploadFile(ctx, \"https://example.com\", request)",
-    "imports": [
-      "FileUploadRequest"
-    ]
-  },
-  "UploadOperations_getUploadParams": {
-    "usage": "response, err := client.Common.GetUploadParams(ctx)",
-    "output": "UploadParams{ContentDisposition: string, ACL: string, Policy: string, XAMZCredential: string, XAMZAlgorithm: string, XAMZDate: string, XAMZSignature: string, Key: string, DirectURL: string}"
   },
   "ChatMemberOperations_listMembers": {
     "usage": "params := &ListMembersParams{\n\tRole: Ptr(ChatMemberRoleFilterAll),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Members.ListMembers(ctx, int32(334), params)",
@@ -158,6 +148,24 @@
   },
   "ChatMemberOperations_removeMember": {
     "usage": "client.Members.RemoveMember(ctx, int32(334), int32(186))"
+  },
+  "CommonOperations_listProperties": {
+    "usage": "params := ListPropertiesParams{\n\tEntityType: SearchEntityTypeUser,\n}\nresponse, err := client.Customproperties.ListProperties(ctx, params)",
+    "output": "ListPropertiesResponse{Data: []CustomPropertyDefinition}",
+    "imports": [
+      "ListPropertiesParams",
+      "SearchEntityType"
+    ]
+  },
+  "DirectUploadOperations_uploadFile": {
+    "usage": "request := FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: \"example\",\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tFile: bytes.NewReader(nil),\n}\nclient.Files.UploadFile(ctx, \"https://example.com\", request)",
+    "imports": [
+      "FileUploadRequest"
+    ]
+  },
+  "UploadOperations_getUploadParams": {
+    "usage": "response, err := client.Files.GetUploadParams(ctx)",
+    "output": "UploadParams{ContentDisposition: string, ACL: string, Policy: string, XAMZCredential: string, XAMZAlgorithm: string, XAMZDate: string, XAMZSignature: string, Key: string, DirectURL: string}"
   },
   "GroupTagOperations_listTags": {
     "usage": "params := &ListTagsParams{\n\tNames: []string{\"example\"},\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.GroupTags.ListTags(ctx, params)",
@@ -221,6 +229,14 @@
       "MessageEntityType"
     ]
   },
+  "LinkPreviewOperations_createLinkPreviews": {
+    "usage": "request := LinkPreviewsRequest{\n\tLinkPreviews: map[string]LinkPreview{\"key\": LinkPreview{\n\t\tTitle: \"Статья: Отправка файлов\",\n\t\tDescription: \"Пример отправки файлов на удаленный сервер\",\n\t\tImageURL: Ptr(\"https://website.com/img/landing.png\"),\n\t\tImage: Ptr(LinkPreviewImage{\n\t\t\tKey: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n\t\t\tName: \"files-to-server.jpg\",\n\t\t\tSize: Ptr(int32(695604)),\n\t\t}),\n\t}},\n}\nclient.Messages.CreateLinkPreviews(ctx, int32(194275), request)",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
+  },
   "MessageOperations_pinMessage": {
     "usage": "client.Messages.PinMessage(ctx, int32(194275))"
   },
@@ -240,14 +256,6 @@
   },
   "MessageOperations_unpinMessage": {
     "usage": "client.Messages.UnpinMessage(ctx, int32(194275))"
-  },
-  "LinkPreviewOperations_createLinkPreviews": {
-    "usage": "request := LinkPreviewsRequest{\n\tLinkPreviews: map[string]LinkPreview{\"key\": LinkPreview{\n\t\tTitle: \"Статья: Отправка файлов\",\n\t\tDescription: \"Пример отправки файлов на удаленный сервер\",\n\t\tImageURL: Ptr(\"https://website.com/img/landing.png\"),\n\t\tImage: Ptr(LinkPreviewImage{\n\t\t\tKey: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n\t\t\tName: \"files-to-server.jpg\",\n\t\t\tSize: Ptr(int32(695604)),\n\t\t}),\n\t}},\n}\nclient.LinkPreviews.CreateLinkPreviews(ctx, int32(194275), request)",
-    "imports": [
-      "LinkPreview",
-      "LinkPreviewImage",
-      "LinkPreviewsRequest"
-    ]
   },
   "ReactionOperations_listReactions": {
     "usage": "params := &ListReactionsParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Reactions.ListReactions(ctx, int32(194275), params)",
@@ -292,7 +300,7 @@
     "output": "Thread{ID: int64, ChatID: int64, MessageID: int64, MessageChatID: int64, UpdatedAt: string}"
   },
   "OAuthOperations_getTokenInfo": {
-    "usage": "response, err := client.Profile.GetTokenInfo(ctx)",
+    "usage": "response, err := client.Oauth.GetTokenInfo(ctx)",
     "output": "AccessTokenInfo{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []OAuthScope, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string}"
   },
   "ProfileOperations_getProfile": {

@@ -140,7 +140,9 @@ type BotsService interface {
 	GetWebhookEventsAll(ctx context.Context, params *GetWebhookEventsParams) ([]WebhookEvent, error)
 	PollWebhookEvents(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookEvent) error) error
 	PollWebhookPayloads(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookPayloadUnion) error) error
+	SelfRecreateBotToken(ctx context.Context) (*BotCreateResponse, error)
 	CreateBot(ctx context.Context, request BotCreateRequest) (*BotCreateResponse, error)
+	RecreateBotToken(ctx context.Context, id int32) (*BotCreateResponse, error)
 	SelfUpdateBotWebhook(ctx context.Context, request BotWebhookSelfUpdateRequest) (*BotResponse, error)
 	UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error)
 	DeleteWebhookEvent(ctx context.Context, id string) error
@@ -175,8 +177,16 @@ func (s *BotsServiceStub) PollWebhookPayloads(ctx context.Context, options *Poll
 	return NotImplementedError{Method: "Bots.pollWebhookPayloads"}
 }
 
+func (s *BotsServiceStub) SelfRecreateBotToken(ctx context.Context) (*BotCreateResponse, error) {
+	return nil, NotImplementedError{Method: "Bots.selfRecreateBotToken"}
+}
+
 func (s *BotsServiceStub) CreateBot(ctx context.Context, request BotCreateRequest) (*BotCreateResponse, error) {
 	return nil, NotImplementedError{Method: "Bots.createBot"}
+}
+
+func (s *BotsServiceStub) RecreateBotToken(ctx context.Context, id int32) (*BotCreateResponse, error) {
+	return nil, NotImplementedError{Method: "Bots.recreateBotToken"}
 }
 
 func (s *BotsServiceStub) SelfUpdateBotWebhook(ctx context.Context, request BotWebhookSelfUpdateRequest) (*BotResponse, error) {
@@ -391,6 +401,40 @@ func (s *BotsServiceImpl) PollWebhookPayloads(ctx context.Context, options *Poll
 	})
 }
 
+func (s *BotsServiceImpl) SelfRecreateBotToken(ctx context.Context) (*BotCreateResponse, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/bot/recreate_token", s.baseURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data BotCreateResponse `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
 func (s *BotsServiceImpl) CreateBot(ctx context.Context, request BotCreateRequest) (*BotCreateResponse, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
@@ -408,6 +452,40 @@ func (s *BotsServiceImpl) CreateBot(ctx context.Context, request BotCreateReques
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusCreated:
+		var result struct {
+			Data BotCreateResponse `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *BotsServiceImpl) RecreateBotToken(ctx context.Context, id int32) (*BotCreateResponse, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/bots/%v/recreate_token", s.baseURL, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
 		var result struct {
 			Data BotCreateResponse `json:"data"`
 		}
@@ -540,7 +618,9 @@ type ChatsService interface {
 	ListChats(ctx context.Context, params *ListChatsParams) (*ListChatsResponse, error)
 	ListChatsAll(ctx context.Context, params *ListChatsParams) ([]Chat, error)
 	GetChat(ctx context.Context, id int32) (*Chat, error)
+	DownloadExport(ctx context.Context, id int32) (string, error)
 	CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error)
+	RequestExport(ctx context.Context, request ExportRequest) error
 	UpdateChat(ctx context.Context, id int32, request ChatUpdateRequest) (*Chat, error)
 	ArchiveChat(ctx context.Context, id int32) error
 	UnarchiveChat(ctx context.Context, id int32) error
@@ -560,8 +640,16 @@ func (s *ChatsServiceStub) GetChat(ctx context.Context, id int32) (*Chat, error)
 	return nil, NotImplementedError{Method: "Chats.getChat"}
 }
 
+func (s *ChatsServiceStub) DownloadExport(ctx context.Context, id int32) (string, error) {
+	return "", NotImplementedError{Method: "Chats.downloadExport"}
+}
+
 func (s *ChatsServiceStub) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
 	return nil, NotImplementedError{Method: "Chats.createChat"}
+}
+
+func (s *ChatsServiceStub) RequestExport(ctx context.Context, request ExportRequest) error {
+	return NotImplementedError{Method: "Chats.requestExport"}
 }
 
 func (s *ChatsServiceStub) UpdateChat(ctx context.Context, id int32, request ChatUpdateRequest) (*Chat, error) {
@@ -703,6 +791,38 @@ func (s *ChatsServiceImpl) GetChat(ctx context.Context, id int32) (*Chat, error)
 	}
 }
 
+func (s *ChatsServiceImpl) DownloadExport(ctx context.Context, id int32) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/chats/exports/%v", s.baseURL, id), nil)
+	if err != nil {
+		return "", err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusFound:
+		location := resp.Header.Get("Location")
+		if location == "" {
+			return "", errors.New("missing Location header in redirect response")
+		}
+		return location, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return "", &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return "", fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return "", &e
+	}
+}
+
 func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
@@ -739,6 +859,39 @@ func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateReq
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	}
+}
+
+func (s *ChatsServiceImpl) RequestExport(ctx context.Context, request ExportRequest) error {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/chats/exports", s.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
 	}
 }
 
@@ -834,223 +987,6 @@ func (s *ChatsServiceImpl) UnarchiveChat(ctx context.Context, id int32) error {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
-	}
-}
-
-type CommonService interface {
-	DownloadExport(ctx context.Context, id int32) (string, error)
-	ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error)
-	RequestExport(ctx context.Context, request ExportRequest) error
-	UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error
-	GetUploadParams(ctx context.Context) (*UploadParams, error)
-}
-
-type CommonServiceStub struct{}
-
-func (s *CommonServiceStub) DownloadExport(ctx context.Context, id int32) (string, error) {
-	return "", NotImplementedError{Method: "Common.downloadExport"}
-}
-
-func (s *CommonServiceStub) ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error) {
-	return nil, NotImplementedError{Method: "Common.listProperties"}
-}
-
-func (s *CommonServiceStub) RequestExport(ctx context.Context, request ExportRequest) error {
-	return NotImplementedError{Method: "Common.requestExport"}
-}
-
-func (s *CommonServiceStub) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
-	return NotImplementedError{Method: "Common.uploadFile"}
-}
-
-func (s *CommonServiceStub) GetUploadParams(ctx context.Context) (*UploadParams, error) {
-	return nil, NotImplementedError{Method: "Common.getUploadParams"}
-}
-
-type CommonServiceImpl struct {
-	baseURL string
-	client  *http.Client
-}
-
-func (s *CommonServiceImpl) DownloadExport(ctx context.Context, id int32) (string, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/chats/exports/%v", s.baseURL, id), nil)
-	if err != nil {
-		return "", err
-	}
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusFound:
-		location := resp.Header.Get("Location")
-		if location == "" {
-			return "", errors.New("missing Location header in redirect response")
-		}
-		return location, nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return "", &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return "", fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return "", &e
-	}
-}
-
-func (s *CommonServiceImpl) ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error) {
-	u, err := url.Parse(fmt.Sprintf("%s/custom_properties", s.baseURL))
-	if err != nil {
-		return nil, err
-	}
-	q := u.Query()
-	q.Set("entity_type", string(params.EntityType))
-	u.RawQuery = q.Encode()
-	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusOK:
-		var result ListPropertiesResponse
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			return nil, err
-		}
-		return &result, nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return nil, &e
-	}
-}
-
-func (s *CommonServiceImpl) RequestExport(ctx context.Context, request ExportRequest) error {
-	body, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/chats/exports", s.baseURL), bytes.NewReader(body))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return &e
-	}
-}
-
-func (s *CommonServiceImpl) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
-	pr, pw := io.Pipe()
-	writer := multipart.NewWriter(pw)
-	go func() {
-		defer pw.Close()
-		defer writer.Close()
-		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.ContentDisposition))
-		writer.WriteField("acl", fmt.Sprintf("%v", request.ACL))
-		writer.WriteField("policy", fmt.Sprintf("%v", request.Policy))
-		writer.WriteField("x-amz-credential", fmt.Sprintf("%v", request.XAMZCredential))
-		writer.WriteField("x-amz-algorithm", fmt.Sprintf("%v", request.XAMZAlgorithm))
-		writer.WriteField("x-amz-date", fmt.Sprintf("%v", request.XAMZDate))
-		writer.WriteField("x-amz-signature", fmt.Sprintf("%v", request.XAMZSignature))
-		writer.WriteField("key", fmt.Sprintf("%v", request.Key))
-		part, err := writer.CreateFormFile("file", "upload")
-		if err != nil {
-			pw.CloseWithError(err)
-			return
-		}
-		if _, err := io.Copy(part, request.File); err != nil {
-			pw.CloseWithError(err)
-			return
-		}
-	}()
-	req, err := http.NewRequestWithContext(ctx, "POST", directUrl, pr)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-	resp, err := doWithRetry(http.DefaultClient, req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return &e
-	}
-}
-
-func (s *CommonServiceImpl) GetUploadParams(ctx context.Context) (*UploadParams, error) {
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/uploads", s.baseURL), nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusCreated:
-		var result UploadParams
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			return nil, err
-		}
-		return &result, nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return nil, &e
 	}
 }
 
@@ -1357,6 +1293,158 @@ func (s *MembersServiceImpl) RemoveMember(ctx context.Context, id int32, userId 
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	}
+}
+
+type CustomPropertiesService interface {
+	ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error)
+}
+
+type CustomPropertiesServiceStub struct{}
+
+func (s *CustomPropertiesServiceStub) ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error) {
+	return nil, NotImplementedError{Method: "CustomProperties.listProperties"}
+}
+
+type CustomPropertiesServiceImpl struct {
+	baseURL string
+	client  *http.Client
+}
+
+func (s *CustomPropertiesServiceImpl) ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/custom_properties", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	q.Set("entity_type", string(params.EntityType))
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListPropertiesResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+type FilesService interface {
+	UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error
+	GetUploadParams(ctx context.Context) (*UploadParams, error)
+}
+
+type FilesServiceStub struct{}
+
+func (s *FilesServiceStub) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
+	return NotImplementedError{Method: "Files.uploadFile"}
+}
+
+func (s *FilesServiceStub) GetUploadParams(ctx context.Context) (*UploadParams, error) {
+	return nil, NotImplementedError{Method: "Files.getUploadParams"}
+}
+
+type FilesServiceImpl struct {
+	baseURL string
+	client  *http.Client
+}
+
+func (s *FilesServiceImpl) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
+	pr, pw := io.Pipe()
+	writer := multipart.NewWriter(pw)
+	go func() {
+		defer pw.Close()
+		defer writer.Close()
+		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.ContentDisposition))
+		writer.WriteField("acl", fmt.Sprintf("%v", request.ACL))
+		writer.WriteField("policy", fmt.Sprintf("%v", request.Policy))
+		writer.WriteField("x-amz-credential", fmt.Sprintf("%v", request.XAMZCredential))
+		writer.WriteField("x-amz-algorithm", fmt.Sprintf("%v", request.XAMZAlgorithm))
+		writer.WriteField("x-amz-date", fmt.Sprintf("%v", request.XAMZDate))
+		writer.WriteField("x-amz-signature", fmt.Sprintf("%v", request.XAMZSignature))
+		writer.WriteField("key", fmt.Sprintf("%v", request.Key))
+		part, err := writer.CreateFormFile("file", "upload")
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		if _, err := io.Copy(part, request.File); err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+	}()
+	req, err := http.NewRequestWithContext(ctx, "POST", directUrl, pr)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err := doWithRetry(http.DefaultClient, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
+	}
+}
+
+func (s *FilesServiceImpl) GetUploadParams(ctx context.Context) (*UploadParams, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/uploads", s.baseURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusCreated:
+		var result UploadParams
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
 	}
 }
 
@@ -1700,6 +1788,7 @@ type MessagesService interface {
 	ListChatMessagesAll(ctx context.Context, params *ListChatMessagesParams) ([]Message, error)
 	GetMessage(ctx context.Context, id int32) (*Message, error)
 	CreateMessage(ctx context.Context, request MessageCreateRequest) (*Message, error)
+	CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error
 	PinMessage(ctx context.Context, id int32) error
 	UpdateMessage(ctx context.Context, id int32, request MessageUpdateRequest) (*Message, error)
 	DeleteMessage(ctx context.Context, id int32) error
@@ -1722,6 +1811,10 @@ func (s *MessagesServiceStub) GetMessage(ctx context.Context, id int32) (*Messag
 
 func (s *MessagesServiceStub) CreateMessage(ctx context.Context, request MessageCreateRequest) (*Message, error) {
 	return nil, NotImplementedError{Method: "Messages.createMessage"}
+}
+
+func (s *MessagesServiceStub) CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error {
+	return NotImplementedError{Method: "Messages.createLinkPreviews"}
 }
 
 func (s *MessagesServiceStub) PinMessage(ctx context.Context, id int32) error {
@@ -1895,6 +1988,39 @@ func (s *MessagesServiceImpl) CreateMessage(ctx context.Context, request Message
 	}
 }
 
+func (s *MessagesServiceImpl) CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/messages/%v/link_previews", s.baseURL, id), bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
+	}
+}
+
 func (s *MessagesServiceImpl) PinMessage(ctx context.Context, id int32) error {
 	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/messages/%v/pin", s.baseURL, id), nil)
 	if err != nil {
@@ -1995,54 +2121,6 @@ func (s *MessagesServiceImpl) UnpinMessage(ctx context.Context, id int32) error 
 	if err != nil {
 		return err
 	}
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return &e
-	}
-}
-
-type LinkPreviewsService interface {
-	CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error
-}
-
-type LinkPreviewsServiceStub struct{}
-
-func (s *LinkPreviewsServiceStub) CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error {
-	return NotImplementedError{Method: "Link Previews.createLinkPreviews"}
-}
-
-type LinkPreviewsServiceImpl struct {
-	baseURL string
-	client  *http.Client
-}
-
-func (s *LinkPreviewsServiceImpl) CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error {
-	body, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/messages/%v/link_previews", s.baseURL, id), bytes.NewReader(body))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
 	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
@@ -2474,52 +2552,22 @@ func (s *ThreadsServiceImpl) CreateThread(ctx context.Context, id int32) (*Threa
 	}
 }
 
-type ProfileService interface {
+type OAuthService interface {
 	GetTokenInfo(ctx context.Context) (*AccessTokenInfo, error)
-	GetProfile(ctx context.Context) (*User, error)
-	GetStatus(ctx context.Context) (*any, error)
-	UpdateProfileAvatar(ctx context.Context, image io.Reader) (*AvatarData, error)
-	UpdateStatus(ctx context.Context, request StatusUpdateRequest) (*UserStatus, error)
-	DeleteProfileAvatar(ctx context.Context) error
-	DeleteStatus(ctx context.Context) error
 }
 
-type ProfileServiceStub struct{}
+type OAuthServiceStub struct{}
 
-func (s *ProfileServiceStub) GetTokenInfo(ctx context.Context) (*AccessTokenInfo, error) {
-	return nil, NotImplementedError{Method: "Profile.getTokenInfo"}
+func (s *OAuthServiceStub) GetTokenInfo(ctx context.Context) (*AccessTokenInfo, error) {
+	return nil, NotImplementedError{Method: "OAuth.getTokenInfo"}
 }
 
-func (s *ProfileServiceStub) GetProfile(ctx context.Context) (*User, error) {
-	return nil, NotImplementedError{Method: "Profile.getProfile"}
-}
-
-func (s *ProfileServiceStub) GetStatus(ctx context.Context) (*any, error) {
-	return nil, NotImplementedError{Method: "Profile.getStatus"}
-}
-
-func (s *ProfileServiceStub) UpdateProfileAvatar(ctx context.Context, image io.Reader) (*AvatarData, error) {
-	return nil, NotImplementedError{Method: "Profile.updateProfileAvatar"}
-}
-
-func (s *ProfileServiceStub) UpdateStatus(ctx context.Context, request StatusUpdateRequest) (*UserStatus, error) {
-	return nil, NotImplementedError{Method: "Profile.updateStatus"}
-}
-
-func (s *ProfileServiceStub) DeleteProfileAvatar(ctx context.Context) error {
-	return NotImplementedError{Method: "Profile.deleteProfileAvatar"}
-}
-
-func (s *ProfileServiceStub) DeleteStatus(ctx context.Context) error {
-	return NotImplementedError{Method: "Profile.deleteStatus"}
-}
-
-type ProfileServiceImpl struct {
+type OAuthServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *ProfileServiceImpl) GetTokenInfo(ctx context.Context) (*AccessTokenInfo, error) {
+func (s *OAuthServiceImpl) GetTokenInfo(ctx context.Context) (*AccessTokenInfo, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/oauth/token/info", s.baseURL), nil)
 	if err != nil {
 		return nil, err
@@ -2551,6 +2599,51 @@ func (s *ProfileServiceImpl) GetTokenInfo(ctx context.Context) (*AccessTokenInfo
 		}
 		return nil, &e
 	}
+}
+
+type ProfileService interface {
+	GetProfile(ctx context.Context) (*User, error)
+	GetStatus(ctx context.Context) (*any, error)
+	UpdateProfileAvatar(ctx context.Context, image io.Reader) (*AvatarData, error)
+	UpdateStatus(ctx context.Context, request StatusUpdateRequest) (*UserStatus, error)
+	DeleteProfileAvatar(ctx context.Context) error
+	DeleteStatus(ctx context.Context) error
+	GetTokenInfo(ctx context.Context) (*AccessTokenInfo, error)
+}
+
+type ProfileServiceStub struct{}
+
+func (s *ProfileServiceStub) GetProfile(ctx context.Context) (*User, error) {
+	return nil, NotImplementedError{Method: "Profile.getProfile"}
+}
+
+func (s *ProfileServiceStub) GetStatus(ctx context.Context) (*any, error) {
+	return nil, NotImplementedError{Method: "Profile.getStatus"}
+}
+
+func (s *ProfileServiceStub) UpdateProfileAvatar(ctx context.Context, image io.Reader) (*AvatarData, error) {
+	return nil, NotImplementedError{Method: "Profile.updateProfileAvatar"}
+}
+
+func (s *ProfileServiceStub) UpdateStatus(ctx context.Context, request StatusUpdateRequest) (*UserStatus, error) {
+	return nil, NotImplementedError{Method: "Profile.updateStatus"}
+}
+
+func (s *ProfileServiceStub) DeleteProfileAvatar(ctx context.Context) error {
+	return NotImplementedError{Method: "Profile.deleteProfileAvatar"}
+}
+
+func (s *ProfileServiceStub) DeleteStatus(ctx context.Context) error {
+	return NotImplementedError{Method: "Profile.deleteStatus"}
+}
+
+func (s *ProfileServiceStub) GetTokenInfo(ctx context.Context) (*AccessTokenInfo, error) {
+	return nil, NotImplementedError{Method: "Profile.getTokenInfo"}
+}
+
+type ProfileServiceImpl struct {
+	baseURL string
+	client  *http.Client
 }
 
 func (s *ProfileServiceImpl) GetProfile(ctx context.Context) (*User, error) {
@@ -2761,6 +2854,40 @@ func (s *ProfileServiceImpl) DeleteStatus(ctx context.Context) error {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	}
+}
+
+func (s *ProfileServiceImpl) GetTokenInfo(ctx context.Context) (*AccessTokenInfo, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/oauth/token/info", s.baseURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data AccessTokenInfo `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
 	}
 }
 
@@ -3821,23 +3948,293 @@ func (s *ViewsServiceImpl) OpenView(ctx context.Context, request OpenViewRequest
 	}
 }
 
+// Deprecated: CommonService is kept for backward compatibility — use the new service(s).
+type CommonService interface {
+	GetUploadParams(ctx context.Context) (*UploadParams, error)
+	UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error
+	ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error)
+	RequestExport(ctx context.Context, request ExportRequest) error
+	DownloadExport(ctx context.Context, id int32) (string, error)
+}
+
+type CommonServiceStub struct{}
+
+func (s *CommonServiceStub) GetUploadParams(ctx context.Context) (*UploadParams, error) {
+	return nil, NotImplementedError{Method: "Common.getUploadParams"}
+}
+
+func (s *CommonServiceStub) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
+	return NotImplementedError{Method: "Common.uploadFile"}
+}
+
+func (s *CommonServiceStub) ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error) {
+	return nil, NotImplementedError{Method: "Common.listProperties"}
+}
+
+func (s *CommonServiceStub) RequestExport(ctx context.Context, request ExportRequest) error {
+	return NotImplementedError{Method: "Common.requestExport"}
+}
+
+func (s *CommonServiceStub) DownloadExport(ctx context.Context, id int32) (string, error) {
+	return "", NotImplementedError{Method: "Common.downloadExport"}
+}
+
+type CommonServiceImpl struct {
+	baseURL string
+	client  *http.Client
+}
+
+func (s *CommonServiceImpl) GetUploadParams(ctx context.Context) (*UploadParams, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/uploads", s.baseURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusCreated:
+		var result UploadParams
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *CommonServiceImpl) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
+	pr, pw := io.Pipe()
+	writer := multipart.NewWriter(pw)
+	go func() {
+		defer pw.Close()
+		defer writer.Close()
+		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.ContentDisposition))
+		writer.WriteField("acl", fmt.Sprintf("%v", request.ACL))
+		writer.WriteField("policy", fmt.Sprintf("%v", request.Policy))
+		writer.WriteField("x-amz-credential", fmt.Sprintf("%v", request.XAMZCredential))
+		writer.WriteField("x-amz-algorithm", fmt.Sprintf("%v", request.XAMZAlgorithm))
+		writer.WriteField("x-amz-date", fmt.Sprintf("%v", request.XAMZDate))
+		writer.WriteField("x-amz-signature", fmt.Sprintf("%v", request.XAMZSignature))
+		writer.WriteField("key", fmt.Sprintf("%v", request.Key))
+		part, err := writer.CreateFormFile("file", "upload")
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		if _, err := io.Copy(part, request.File); err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+	}()
+	req, err := http.NewRequestWithContext(ctx, "POST", directUrl, pr)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err := doWithRetry(http.DefaultClient, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
+	}
+}
+
+func (s *CommonServiceImpl) ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/custom_properties", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	q.Set("entity_type", string(params.EntityType))
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListPropertiesResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *CommonServiceImpl) RequestExport(ctx context.Context, request ExportRequest) error {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/chats/exports", s.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
+	}
+}
+
+func (s *CommonServiceImpl) DownloadExport(ctx context.Context, id int32) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/chats/exports/%v", s.baseURL, id), nil)
+	if err != nil {
+		return "", err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusFound:
+		location := resp.Header.Get("Location")
+		if location == "" {
+			return "", errors.New("missing Location header in redirect response")
+		}
+		return location, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return "", &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return "", fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return "", &e
+	}
+}
+
+// Deprecated: LinkPreviewsService is kept for backward compatibility — use the new service(s).
+type LinkPreviewsService interface {
+	CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error
+}
+
+type LinkPreviewsServiceStub struct{}
+
+func (s *LinkPreviewsServiceStub) CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error {
+	return NotImplementedError{Method: "Link Previews.createLinkPreviews"}
+}
+
+type LinkPreviewsServiceImpl struct {
+	baseURL string
+	client  *http.Client
+}
+
+func (s *LinkPreviewsServiceImpl) CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/messages/%v/link_previews", s.baseURL, id), bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
+	}
+}
+
 type PachcaClient struct {
-	Bots         BotsService
-	Chats        ChatsService
-	Common       CommonService
-	GroupTags    GroupTagsService
-	LinkPreviews LinkPreviewsService
-	Members      MembersService
-	Messages     MessagesService
-	Profile      ProfileService
-	Reactions    ReactionsService
-	ReadMembers  ReadMembersService
-	Search       SearchService
-	Security     SecurityService
-	Tasks        TasksService
-	Threads      ThreadsService
-	Users        UsersService
-	Views        ViewsService
+	Bots             BotsService
+	Chats            ChatsService
+	Common           CommonService
+	Customproperties CustomPropertiesService
+	Files            FilesService
+	GroupTags        GroupTagsService
+	LinkPreviews     LinkPreviewsService
+	Members          MembersService
+	Messages         MessagesService
+	Oauth            OAuthService
+	Profile          ProfileService
+	Reactions        ReactionsService
+	ReadMembers      ReadMembersService
+	Search           SearchService
+	Security         SecurityService
+	Tasks            TasksService
+	Threads          ThreadsService
+	Users            UsersService
+	Views            ViewsService
 }
 
 type clientConfig struct {
@@ -3845,10 +4242,13 @@ type clientConfig struct {
 	bots BotsService
 	chats ChatsService
 	common CommonService
+	customproperties CustomPropertiesService
+	files FilesService
 	groupTags GroupTagsService
 	linkPreviews LinkPreviewsService
 	members MembersService
 	messages MessagesService
+	oauth OAuthService
 	profile ProfileService
 	reactions ReactionsService
 	readMembers ReadMembersService
@@ -3866,10 +4266,13 @@ type stubClientConfig struct {
 	bots BotsService
 	chats ChatsService
 	common CommonService
+	customproperties CustomPropertiesService
+	files FilesService
 	groupTags GroupTagsService
 	linkPreviews LinkPreviewsService
 	members MembersService
 	messages MessagesService
+	oauth OAuthService
 	profile ProfileService
 	reactions ReactionsService
 	readMembers ReadMembersService
@@ -3901,6 +4304,14 @@ func WithCommon(service CommonService) ClientOption {
 	return func(cfg *clientConfig) { cfg.common = service }
 }
 
+func WithCustomproperties(service CustomPropertiesService) ClientOption {
+	return func(cfg *clientConfig) { cfg.customproperties = service }
+}
+
+func WithFiles(service FilesService) ClientOption {
+	return func(cfg *clientConfig) { cfg.files = service }
+}
+
 func WithGroupTags(service GroupTagsService) ClientOption {
 	return func(cfg *clientConfig) { cfg.groupTags = service }
 }
@@ -3915,6 +4326,10 @@ func WithMembers(service MembersService) ClientOption {
 
 func WithMessages(service MessagesService) ClientOption {
 	return func(cfg *clientConfig) { cfg.messages = service }
+}
+
+func WithOauth(service OAuthService) ClientOption {
+	return func(cfg *clientConfig) { cfg.oauth = service }
 }
 
 func WithProfile(service ProfileService) ClientOption {
@@ -3965,6 +4380,14 @@ func WithStubCommon(service CommonService) StubClientOption {
 	return func(cfg *stubClientConfig) { cfg.common = service }
 }
 
+func WithStubCustomproperties(service CustomPropertiesService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.customproperties = service }
+}
+
+func WithStubFiles(service FilesService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.files = service }
+}
+
 func WithStubGroupTags(service GroupTagsService) StubClientOption {
 	return func(cfg *stubClientConfig) { cfg.groupTags = service }
 }
@@ -3979,6 +4402,10 @@ func WithStubMembers(service MembersService) StubClientOption {
 
 func WithStubMessages(service MessagesService) StubClientOption {
 	return func(cfg *stubClientConfig) { cfg.messages = service }
+}
+
+func WithStubOauth(service OAuthService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.oauth = service }
 }
 
 func WithStubProfile(service ProfileService) StubClientOption {
@@ -4040,6 +4467,14 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	if cfg.common != nil {
 		common = cfg.common
 	}
+	var customproperties CustomPropertiesService = &CustomPropertiesServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.customproperties != nil {
+		customproperties = cfg.customproperties
+	}
+	var files FilesService = &FilesServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.files != nil {
+		files = cfg.files
+	}
 	var groupTags GroupTagsService = &GroupTagsServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.groupTags != nil {
 		groupTags = cfg.groupTags
@@ -4055,6 +4490,10 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	var messages MessagesService = &MessagesServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.messages != nil {
 		messages = cfg.messages
+	}
+	var oauth OAuthService = &OAuthServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.oauth != nil {
+		oauth = cfg.oauth
 	}
 	var profile ProfileService = &ProfileServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.profile != nil {
@@ -4093,22 +4532,25 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 		views = cfg.views
 	}
 	return &PachcaClient{
-		Bots        : bots,
-		Chats       : chats,
-		Common      : common,
-		GroupTags   : groupTags,
-		LinkPreviews: linkPreviews,
-		Members     : members,
-		Messages    : messages,
-		Profile     : profile,
-		Reactions   : reactions,
-		ReadMembers : readMembers,
-		Search      : search,
-		Security    : security,
-		Tasks       : tasks,
-		Threads     : threads,
-		Users       : users,
-		Views       : views,
+		Bots            : bots,
+		Chats           : chats,
+		Common          : common,
+		Customproperties: customproperties,
+		Files           : files,
+		GroupTags       : groupTags,
+		LinkPreviews    : linkPreviews,
+		Members         : members,
+		Messages        : messages,
+		Oauth           : oauth,
+		Profile         : profile,
+		Reactions       : reactions,
+		ReadMembers     : readMembers,
+		Search          : search,
+		Security        : security,
+		Tasks           : tasks,
+		Threads         : threads,
+		Users           : users,
+		Views           : views,
 	}
 }
 
@@ -4129,6 +4571,14 @@ func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...Client
 	if cfg.common != nil {
 		common = cfg.common
 	}
+	var customproperties CustomPropertiesService = &CustomPropertiesServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.customproperties != nil {
+		customproperties = cfg.customproperties
+	}
+	var files FilesService = &FilesServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.files != nil {
+		files = cfg.files
+	}
 	var groupTags GroupTagsService = &GroupTagsServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.groupTags != nil {
 		groupTags = cfg.groupTags
@@ -4144,6 +4594,10 @@ func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...Client
 	var messages MessagesService = &MessagesServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.messages != nil {
 		messages = cfg.messages
+	}
+	var oauth OAuthService = &OAuthServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.oauth != nil {
+		oauth = cfg.oauth
 	}
 	var profile ProfileService = &ProfileServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.profile != nil {
@@ -4182,22 +4636,25 @@ func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...Client
 		views = cfg.views
 	}
 	return &PachcaClient{
-		Bots        : bots,
-		Chats       : chats,
-		Common      : common,
-		GroupTags   : groupTags,
-		LinkPreviews: linkPreviews,
-		Members     : members,
-		Messages    : messages,
-		Profile     : profile,
-		Reactions   : reactions,
-		ReadMembers : readMembers,
-		Search      : search,
-		Security    : security,
-		Tasks       : tasks,
-		Threads     : threads,
-		Users       : users,
-		Views       : views,
+		Bots            : bots,
+		Chats           : chats,
+		Common          : common,
+		Customproperties: customproperties,
+		Files           : files,
+		GroupTags       : groupTags,
+		LinkPreviews    : linkPreviews,
+		Members         : members,
+		Messages        : messages,
+		Oauth           : oauth,
+		Profile         : profile,
+		Reactions       : reactions,
+		ReadMembers     : readMembers,
+		Search          : search,
+		Security        : security,
+		Tasks           : tasks,
+		Threads         : threads,
+		Users           : users,
+		Views           : views,
 	}
 }
 
@@ -4218,6 +4675,14 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	if cfg.common != nil {
 		common = cfg.common
 	}
+	var customproperties CustomPropertiesService = &CustomPropertiesServiceStub{}
+	if cfg.customproperties != nil {
+		customproperties = cfg.customproperties
+	}
+	var files FilesService = &FilesServiceStub{}
+	if cfg.files != nil {
+		files = cfg.files
+	}
 	var groupTags GroupTagsService = &GroupTagsServiceStub{}
 	if cfg.groupTags != nil {
 		groupTags = cfg.groupTags
@@ -4233,6 +4698,10 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	var messages MessagesService = &MessagesServiceStub{}
 	if cfg.messages != nil {
 		messages = cfg.messages
+	}
+	var oauth OAuthService = &OAuthServiceStub{}
+	if cfg.oauth != nil {
+		oauth = cfg.oauth
 	}
 	var profile ProfileService = &ProfileServiceStub{}
 	if cfg.profile != nil {
@@ -4271,21 +4740,24 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 		views = cfg.views
 	}
 	return &PachcaClient{
-		Bots        : bots,
-		Chats       : chats,
-		Common      : common,
-		GroupTags   : groupTags,
-		LinkPreviews: linkPreviews,
-		Members     : members,
-		Messages    : messages,
-		Profile     : profile,
-		Reactions   : reactions,
-		ReadMembers : readMembers,
-		Search      : search,
-		Security    : security,
-		Tasks       : tasks,
-		Threads     : threads,
-		Users       : users,
-		Views       : views,
+		Bots            : bots,
+		Chats           : chats,
+		Common          : common,
+		Customproperties: customproperties,
+		Files           : files,
+		GroupTags       : groupTags,
+		LinkPreviews    : linkPreviews,
+		Members         : members,
+		Messages        : messages,
+		Oauth           : oauth,
+		Profile         : profile,
+		Reactions       : reactions,
+		ReadMembers     : readMembers,
+		Search          : search,
+		Security        : security,
+		Tasks           : tasks,
+		Threads         : threads,
+		Users           : users,
+		Views           : views,
 	}
 }

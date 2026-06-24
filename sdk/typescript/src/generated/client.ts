@@ -9,25 +9,25 @@ import {
   GetWebhookEventsResponse,
   WebhookEvent,
   WebhookPayloadUnion,
-  BotCreateRequest,
   BotCreateResponse,
+  BotCreateRequest,
   BotWebhookSelfUpdateRequest,
   BotUpdateRequest,
   ListChatsParams,
   ListChatsResponse,
   Chat,
   ChatCreateRequest,
-  ChatUpdateRequest,
-  ListPropertiesParams,
-  ListPropertiesResponse,
   ExportRequest,
-  FileUploadRequest,
-  UploadParams,
+  ChatUpdateRequest,
   ListMembersParams,
   ListMembersResponse,
   User,
   AddMembersRequest,
   ChatMemberRole,
+  ListPropertiesParams,
+  ListPropertiesResponse,
+  FileUploadRequest,
+  UploadParams,
   ListTagsParams,
   ListTagsResponse,
   GroupTag,
@@ -38,8 +38,8 @@ import {
   ListChatMessagesResponse,
   Message,
   MessageCreateRequest,
-  MessageUpdateRequest,
   LinkPreviewsRequest,
+  MessageUpdateRequest,
   ListReactionsParams,
   ListReactionsResponse,
   Reaction,
@@ -209,8 +209,16 @@ export class BotsService {
     }
   }
 
+  async selfRecreateBotToken(): Promise<BotCreateResponse> {
+    throw new Error("Bots.selfRecreateBotToken is not implemented");
+  }
+
   async createBot(request: BotCreateRequest): Promise<BotCreateResponse> {
     throw new Error("Bots.createBot is not implemented");
+  }
+
+  async recreateBotToken(id: number): Promise<BotCreateResponse> {
+    throw new Error("Bots.recreateBotToken is not implemented");
   }
 
   async selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): Promise<BotResponse> {
@@ -282,6 +290,22 @@ export class BotsServiceImpl extends BotsService {
     return items;
   }
 
+  async selfRecreateBotToken(): Promise<BotCreateResponse> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bot/recreate_token`, {
+      method: "POST",
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("BotCreateResponse", body.data) as BotCreateResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
   async createBot(request: BotCreateRequest): Promise<BotCreateResponse> {
     const response = await fetchWithRetry(`${this.baseUrl}/bots`, {
       method: "POST",
@@ -291,6 +315,22 @@ export class BotsServiceImpl extends BotsService {
     const body = await response.json();
     switch (response.status) {
       case 201:
+        return deserializeType("BotCreateResponse", body.data) as BotCreateResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async recreateBotToken(id: number): Promise<BotCreateResponse> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}/recreate_token`, {
+      method: "POST",
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
         return deserializeType("BotCreateResponse", body.data) as BotCreateResponse;
       case 401:
         throw new OAuthError(body.error);
@@ -362,8 +402,16 @@ export class ChatsService {
     throw new Error("Chats.getChat is not implemented");
   }
 
+  async downloadExport(id: number): Promise<string> {
+    throw new Error("Chats.downloadExport is not implemented");
+  }
+
   async createChat(request: ChatCreateRequest): Promise<Chat> {
     throw new Error("Chats.createChat is not implemented");
+  }
+
+  async requestExport(request: ExportRequest): Promise<void> {
+    throw new Error("Chats.requestExport is not implemented");
   }
 
   async updateChat(id: number, request: ChatUpdateRequest): Promise<Chat> {
@@ -441,6 +489,26 @@ export class ChatsServiceImpl extends ChatsService {
     }
   }
 
+  async downloadExport(id: number): Promise<string> {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/exports/${id}`, {
+      headers: this.headers,
+      redirect: "manual",
+    });
+    switch (response.status) {
+      case 302: {
+        const location = response.headers.get("location");
+        if (!location) {
+          throw new Error("Missing Location header in redirect response");
+        }
+        return location;
+      }
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+
   async createChat(request: ChatCreateRequest): Promise<Chat> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
       method: "POST",
@@ -455,6 +523,22 @@ export class ChatsServiceImpl extends ChatsService {
         throw new OAuthError(body.error);
       default:
         throw new ApiError(body.errors);
+    }
+  }
+
+  async requestExport(request: ExportRequest): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/exports`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("ExportRequest", request)),
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
     }
   }
 
@@ -502,129 +586,6 @@ export class ChatsServiceImpl extends ChatsService {
         throw new OAuthError(((await response.json()) as any).error);
       default:
         throw new ApiError(((await response.json()) as any).errors);
-    }
-  }
-}
-
-export class CommonService {
-  async downloadExport(id: number): Promise<string> {
-    throw new Error("Common.downloadExport is not implemented");
-  }
-
-  async listProperties(params: ListPropertiesParams): Promise<ListPropertiesResponse> {
-    throw new Error("Common.listProperties is not implemented");
-  }
-
-  async requestExport(request: ExportRequest): Promise<void> {
-    throw new Error("Common.requestExport is not implemented");
-  }
-
-  async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
-    throw new Error("Common.uploadFile is not implemented");
-  }
-
-  async getUploadParams(): Promise<UploadParams> {
-    throw new Error("Common.getUploadParams is not implemented");
-  }
-}
-
-export class CommonServiceImpl extends CommonService {
-  constructor(
-    private baseUrl: string,
-    private headers: Record<string, string>,
-  ) {
-    super();
-  }
-
-  async downloadExport(id: number): Promise<string> {
-    const response = await fetchWithRetry(`${this.baseUrl}/chats/exports/${id}`, {
-      headers: this.headers,
-      redirect: "manual",
-    });
-    switch (response.status) {
-      case 302: {
-        const location = response.headers.get("location");
-        if (!location) {
-          throw new Error("Missing Location header in redirect response");
-        }
-        return location;
-      }
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
-      default:
-        throw new ApiError(((await response.json()) as any).errors);
-    }
-  }
-
-  async listProperties(params: ListPropertiesParams): Promise<ListPropertiesResponse> {
-    const query = new URLSearchParams();
-    query.set("entity_type", params.entityType);
-    const response = await fetchWithRetry(`${this.baseUrl}/custom_properties?${query}`, {
-      headers: this.headers,
-    });
-    const body = await response.json();
-    switch (response.status) {
-      case 200:
-        return deserialize(body) as ListPropertiesResponse;
-      case 401:
-        throw new OAuthError(body.error);
-      default:
-        throw new ApiError(body.errors);
-    }
-  }
-
-  async requestExport(request: ExportRequest): Promise<void> {
-    const response = await fetchWithRetry(`${this.baseUrl}/chats/exports`, {
-      method: "POST",
-      headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serializeType("ExportRequest", request)),
-    });
-    switch (response.status) {
-      case 204:
-        return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
-      default:
-        throw new ApiError(((await response.json()) as any).errors);
-    }
-  }
-
-  async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
-    const form = new FormData();
-    form.set("Content-Disposition", request.contentDisposition);
-    form.set("acl", request.acl);
-    form.set("policy", request.policy);
-    form.set("x-amz-credential", request.xAmzCredential);
-    form.set("x-amz-algorithm", request.xAmzAlgorithm);
-    form.set("x-amz-date", request.xAmzDate);
-    form.set("x-amz-signature", request.xAmzSignature);
-    form.set("key", request.key);
-    form.set("file", request.file, "upload");
-    const response = await fetchWithRetry(directUrl, {
-      method: "POST",
-      body: form,
-    });
-    switch (response.status) {
-      case 204:
-        return;
-      default:
-        throw new ApiError(((await response.json()) as any).errors);
-    }
-  }
-
-  async getUploadParams(): Promise<UploadParams> {
-    const response = await fetchWithRetry(`${this.baseUrl}/uploads`, {
-      method: "POST",
-      headers: this.headers,
-    });
-    const body = await response.json();
-    switch (response.status) {
-      case 201:
-        return deserializeType("UploadParams", body) as UploadParams;
-      case 401:
-        throw new OAuthError(body.error);
-      default:
-        throw new ApiError(body.errors);
     }
   }
 }
@@ -795,6 +756,96 @@ export class MembersServiceImpl extends MembersService {
         throw new OAuthError(((await response.json()) as any).error);
       default:
         throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+}
+
+export class CustomPropertiesService {
+  async listProperties(params: ListPropertiesParams): Promise<ListPropertiesResponse> {
+    throw new Error("CustomProperties.listProperties is not implemented");
+  }
+}
+
+export class CustomPropertiesServiceImpl extends CustomPropertiesService {
+  constructor(
+    private baseUrl: string,
+    private headers: Record<string, string>,
+  ) {
+    super();
+  }
+
+  async listProperties(params: ListPropertiesParams): Promise<ListPropertiesResponse> {
+    const query = new URLSearchParams();
+    query.set("entity_type", params.entityType);
+    const response = await fetchWithRetry(`${this.baseUrl}/custom_properties?${query}`, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserialize(body) as ListPropertiesResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+}
+
+export class FilesService {
+  async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
+    throw new Error("Files.uploadFile is not implemented");
+  }
+
+  async getUploadParams(): Promise<UploadParams> {
+    throw new Error("Files.getUploadParams is not implemented");
+  }
+}
+
+export class FilesServiceImpl extends FilesService {
+  constructor(
+    private baseUrl: string,
+    private headers: Record<string, string>,
+  ) {
+    super();
+  }
+
+  async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
+    const form = new FormData();
+    form.set("Content-Disposition", request.contentDisposition);
+    form.set("acl", request.acl);
+    form.set("policy", request.policy);
+    form.set("x-amz-credential", request.xAmzCredential);
+    form.set("x-amz-algorithm", request.xAmzAlgorithm);
+    form.set("x-amz-date", request.xAmzDate);
+    form.set("x-amz-signature", request.xAmzSignature);
+    form.set("key", request.key);
+    form.set("file", request.file, "upload");
+    const response = await fetchWithRetry(directUrl, {
+      method: "POST",
+      body: form,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+
+  async getUploadParams(): Promise<UploadParams> {
+    const response = await fetchWithRetry(`${this.baseUrl}/uploads`, {
+      method: "POST",
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 201:
+        return deserializeType("UploadParams", body) as UploadParams;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
     }
   }
 }
@@ -992,6 +1043,10 @@ export class MessagesService {
     throw new Error("Messages.createMessage is not implemented");
   }
 
+  async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
+    throw new Error("Messages.createLinkPreviews is not implemented");
+  }
+
   async pinMessage(id: number): Promise<void> {
     throw new Error("Messages.pinMessage is not implemented");
   }
@@ -1084,6 +1139,22 @@ export class MessagesServiceImpl extends MessagesService {
     }
   }
 
+  async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("LinkPreviewsRequest", request)),
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+
   async pinMessage(id: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/pin`, {
       method: "POST",
@@ -1135,37 +1206,6 @@ export class MessagesServiceImpl extends MessagesService {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/pin`, {
       method: "DELETE",
       headers: this.headers,
-    });
-    switch (response.status) {
-      case 204:
-        return;
-      case 401:
-        throw new OAuthError(((await response.json()) as any).error);
-      default:
-        throw new ApiError(((await response.json()) as any).errors);
-    }
-  }
-}
-
-export class LinkPreviewsService {
-  async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
-    throw new Error("Link Previews.createLinkPreviews is not implemented");
-  }
-}
-
-export class LinkPreviewsServiceImpl extends LinkPreviewsService {
-  constructor(
-    private baseUrl: string,
-    private headers: Record<string, string>,
-  ) {
-    super();
-  }
-
-  async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
-    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
-      method: "POST",
-      headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serializeType("LinkPreviewsRequest", request)),
     });
     switch (response.status) {
       case 204:
@@ -1400,11 +1440,37 @@ export class ThreadsServiceImpl extends ThreadsService {
   }
 }
 
-export class ProfileService {
+export class OAuthService {
   async getTokenInfo(): Promise<AccessTokenInfo> {
-    throw new Error("Profile.getTokenInfo is not implemented");
+    throw new Error("OAuth.getTokenInfo is not implemented");
+  }
+}
+
+export class OAuthServiceImpl extends OAuthService {
+  constructor(
+    private baseUrl: string,
+    private headers: Record<string, string>,
+  ) {
+    super();
   }
 
+  async getTokenInfo(): Promise<AccessTokenInfo> {
+    const response = await fetchWithRetry(`${this.baseUrl}/oauth/token/info`, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("AccessTokenInfo", body.data) as AccessTokenInfo;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+}
+
+export class ProfileService {
   async getProfile(): Promise<User> {
     throw new Error("Profile.getProfile is not implemented");
   }
@@ -1428,6 +1494,10 @@ export class ProfileService {
   async deleteStatus(): Promise<void> {
     throw new Error("Profile.deleteStatus is not implemented");
   }
+
+  async getTokenInfo(): Promise<AccessTokenInfo> {
+    throw new Error("Profile.getTokenInfo is not implemented");
+  }
 }
 
 export class ProfileServiceImpl extends ProfileService {
@@ -1436,21 +1506,6 @@ export class ProfileServiceImpl extends ProfileService {
     private headers: Record<string, string>,
   ) {
     super();
-  }
-
-  async getTokenInfo(): Promise<AccessTokenInfo> {
-    const response = await fetchWithRetry(`${this.baseUrl}/oauth/token/info`, {
-      headers: this.headers,
-    });
-    const body = await response.json();
-    switch (response.status) {
-      case 200:
-        return deserializeType("AccessTokenInfo", body.data) as AccessTokenInfo;
-      case 401:
-        throw new OAuthError(body.error);
-      default:
-        throw new ApiError(body.errors);
-    }
   }
 
   async getProfile(): Promise<User> {
@@ -1546,6 +1601,21 @@ export class ProfileServiceImpl extends ProfileService {
         throw new OAuthError(((await response.json()) as any).error);
       default:
         throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+
+  async getTokenInfo(): Promise<AccessTokenInfo> {
+    const response = await fetchWithRetry(`${this.baseUrl}/oauth/token/info`, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("AccessTokenInfo", body.data) as AccessTokenInfo;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
     }
   }
 }
@@ -2102,16 +2172,175 @@ export class ViewsServiceImpl extends ViewsService {
   }
 }
 
+export class CommonService {
+  async getUploadParams(): Promise<UploadParams> {
+    throw new Error("Common.getUploadParams is not implemented");
+  }
+
+  async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
+    throw new Error("Common.uploadFile is not implemented");
+  }
+
+  async listProperties(params: ListPropertiesParams): Promise<ListPropertiesResponse> {
+    throw new Error("Common.listProperties is not implemented");
+  }
+
+  async requestExport(request: ExportRequest): Promise<void> {
+    throw new Error("Common.requestExport is not implemented");
+  }
+
+  async downloadExport(id: number): Promise<string> {
+    throw new Error("Common.downloadExport is not implemented");
+  }
+}
+
+export class CommonServiceImpl extends CommonService {
+  constructor(
+    private baseUrl: string,
+    private headers: Record<string, string>,
+  ) {
+    super();
+  }
+
+  async getUploadParams(): Promise<UploadParams> {
+    const response = await fetchWithRetry(`${this.baseUrl}/uploads`, {
+      method: "POST",
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 201:
+        return deserializeType("UploadParams", body) as UploadParams;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
+    const form = new FormData();
+    form.set("Content-Disposition", request.contentDisposition);
+    form.set("acl", request.acl);
+    form.set("policy", request.policy);
+    form.set("x-amz-credential", request.xAmzCredential);
+    form.set("x-amz-algorithm", request.xAmzAlgorithm);
+    form.set("x-amz-date", request.xAmzDate);
+    form.set("x-amz-signature", request.xAmzSignature);
+    form.set("key", request.key);
+    form.set("file", request.file, "upload");
+    const response = await fetchWithRetry(directUrl, {
+      method: "POST",
+      body: form,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+
+  async listProperties(params: ListPropertiesParams): Promise<ListPropertiesResponse> {
+    const query = new URLSearchParams();
+    query.set("entity_type", params.entityType);
+    const response = await fetchWithRetry(`${this.baseUrl}/custom_properties?${query}`, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserialize(body) as ListPropertiesResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async requestExport(request: ExportRequest): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/exports`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("ExportRequest", request)),
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+
+  async downloadExport(id: number): Promise<string> {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/exports/${id}`, {
+      headers: this.headers,
+      redirect: "manual",
+    });
+    switch (response.status) {
+      case 302: {
+        const location = response.headers.get("location");
+        if (!location) {
+          throw new Error("Missing Location header in redirect response");
+        }
+        return location;
+      }
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+}
+
+export class LinkPreviewsService {
+  async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
+    throw new Error("Link Previews.createLinkPreviews is not implemented");
+  }
+}
+
+export class LinkPreviewsServiceImpl extends LinkPreviewsService {
+  constructor(
+    private baseUrl: string,
+    private headers: Record<string, string>,
+  ) {
+    super();
+  }
+
+  async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("LinkPreviewsRequest", request)),
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+}
+
 export const PACHCA_API_URL = "https://api.pachca.com/api/shared/v1";
 
 export class PachcaClient {
   readonly bots: BotsService;
   readonly chats: ChatsService;
+  /** @deprecated Renamed for clarity — use the new service(s). Kept working for backward compatibility. */
   readonly common: CommonService;
+  readonly customproperties: CustomPropertiesService;
+  readonly files: FilesService;
   readonly groupTags: GroupTagsService;
+  /** @deprecated Renamed for clarity — use the new service(s). Kept working for backward compatibility. */
   readonly linkPreviews: LinkPreviewsService;
   readonly members: MembersService;
   readonly messages: MessagesService;
+  readonly oauth: OAuthService;
   readonly profile: ProfileService;
   readonly reactions: ReactionsService;
   readonly readMembers: ReadMembersService;
@@ -2123,8 +2352,8 @@ export class PachcaClient {
   readonly views: ViewsService;
 
   constructor(token: string, baseUrl?: string);
-  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
-  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customproperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customproperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
     let resolvedHeaders: Record<string, string>;
     let resolvedBaseUrl: string;
     if (typeof tokenOrConfig === 'string') {
@@ -2133,10 +2362,13 @@ export class PachcaClient {
       this.bots = new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.chats = new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.common = new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.customproperties = new CustomPropertiesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.files = new FilesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.groupTags = new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.linkPreviews = new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.members = new MembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.messages = new MessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.oauth = new OAuthServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.profile = new ProfileServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.reactions = new ReactionsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.readMembers = new ReadMembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -2152,10 +2384,13 @@ export class PachcaClient {
       this.bots = tokenOrConfig.bots ?? new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.chats = tokenOrConfig.chats ?? new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.common = tokenOrConfig.common ?? new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.customproperties = tokenOrConfig.customproperties ?? new CustomPropertiesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.files = tokenOrConfig.files ?? new FilesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.groupTags = tokenOrConfig.groupTags ?? new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.linkPreviews = tokenOrConfig.linkPreviews ?? new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.members = tokenOrConfig.members ?? new MembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.messages = tokenOrConfig.messages ?? new MessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.oauth = tokenOrConfig.oauth ?? new OAuthServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.profile = tokenOrConfig.profile ?? new ProfileServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.reactions = tokenOrConfig.reactions ?? new ReactionsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.readMembers = tokenOrConfig.readMembers ?? new ReadMembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -2168,15 +2403,18 @@ export class PachcaClient {
     }
   }
 
-  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
+  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; customproperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
     client.bots = overrides.bots ?? new BotsService();
     client.chats = overrides.chats ?? new ChatsService();
     client.common = overrides.common ?? new CommonService();
+    client.customproperties = overrides.customproperties ?? new CustomPropertiesService();
+    client.files = overrides.files ?? new FilesService();
     client.groupTags = overrides.groupTags ?? new GroupTagsService();
     client.linkPreviews = overrides.linkPreviews ?? new LinkPreviewsService();
     client.members = overrides.members ?? new MembersService();
     client.messages = overrides.messages ?? new MessagesService();
+    client.oauth = overrides.oauth ?? new OAuthService();
     client.profile = overrides.profile ?? new ProfileService();
     client.reactions = overrides.reactions ?? new ReactionsService();
     client.readMembers = overrides.readMembers ?? new ReadMembersService();

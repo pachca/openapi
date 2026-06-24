@@ -4,13 +4,14 @@ import { BaseCommand } from '../../base-command.js';
 import { downloadFile } from '../../client.js';
 import { formatSize } from '../../utils.js';
 
-export default class CommonGetExports extends BaseCommand {
+export default class ChatsDownloadExport extends BaseCommand {
   static override description = "Скачать архив экспорта";
 
   static override examples = [
-      "Экспорт истории чата:\n  $ pachca common get-exports"
+      "Экспорт истории чата:\n  $ pachca chats download-export"
   ];
 
+  static override hiddenAliases = ["common:get-exports"];
   static scope = "chat_exports:read";
   static plan = "corporation";
   static apiMethod = "GET";
@@ -18,7 +19,7 @@ export default class CommonGetExports extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор экспорта",
+      description: "Идентификатор экспорта (pachca chats list)",
       required: true,
     }),
   };
@@ -31,7 +32,7 @@ export default class CommonGetExports extends BaseCommand {
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(CommonGetExports);
+    const { args, flags } = await this.parse(ChatsDownloadExport);
     this.parsedFlags = flags;
 
     const { data } = await this.apiRequest({

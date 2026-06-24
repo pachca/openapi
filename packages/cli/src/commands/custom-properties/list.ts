@@ -3,38 +3,38 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
-export default class LinkPreviewsAdd extends BaseCommand {
-  static override description = "Unfurl (разворачивание ссылок)";
+export default class CustomPropertiesList extends BaseCommand {
+  static override description = "Список дополнительных полей";
 
   static override examples = [
-      "Разворачивание ссылок (unfurling):\n  $ pachca link-previews add"
+      "Получить кастомные поля профиля:\n  $ pachca custom-properties list"
   ];
 
-  static scope = "link_previews:write";
-  static apiMethod = "POST";
-  static apiPath = "/messages/{id}/link_previews";
-  static requiredFlags = ["link-previews"];
+  static override hiddenAliases = ["common:custom-properties"];
+  static scope = "custom_properties:read";
+  static apiMethod = "GET";
+  static apiPath = "/custom_properties";
+  static defaultColumns = ["id","name","data_type"];
+  static requiredFlags = ["entity-type"];
 
   static override args = {
-    id: Args.integer({
-      description: "Идентификатор сообщения",
-      required: true,
-    }),
+
   };
 
   static override flags = {
     ...BaseCommand.baseFlags,
-    'link-previews': Flags.string({
-      description: "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении.",
+    'entity-type': Flags.string({
+      description: "Тип сущности",
+      options: ["User","Task"],
     }),
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(LinkPreviewsAdd);
+    const { args, flags } = await this.parse(CustomPropertiesList);
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'link-previews', label: "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении.", type: 'string' },
+      { flag: 'entity-type', label: "Тип сущности", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {
@@ -49,21 +49,17 @@ export default class LinkPreviewsAdd extends BaseCommand {
       } else {
         this.validationError(
           missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
-          { hint: "Обязательные: --link-previews <string>. pachca introspect link-previews add" },
+          { hint: "Обязательные: --entity-type <string>. pachca introspect custom-properties list" },
         );
       }
     }
 
-    const body: Record<string, unknown> = {
-      link_previews: flags['link-previews'] ? this.parseJSON(flags['link-previews'], 'link-previews') : undefined,
-    };
-    // Clean undefined fields
-    for (const [k, v] of Object.entries(body)) { if (v === undefined) delete body[k]; }
-
     const { data } = await this.apiRequest({
-      method: 'POST',
-      path: `/messages/${args.id}/link_previews`,
-      body,
+      method: 'GET',
+      path: '/custom_properties',
+      query: {
+      'entity_type': flags['entity-type'],
+      },
     });
 
     const responseBody = data as Record<string, unknown>;

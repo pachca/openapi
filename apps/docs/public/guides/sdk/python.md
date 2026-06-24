@@ -70,12 +70,15 @@ await client.close()
 
 | Метод | Метод API |
 |-------|----------|
-| `client.common.request_export()` | [Экспорт сообщений](/api/common/request-export) |
-| `client.common.upload_file()` | [Загрузка файла](/api/common/direct-url) |
-| `client.common.get_upload_params()` | [Получение подписи, ключа и других параметров](/api/common/uploads) |
-| `client.common.download_export()` | [Скачать архив экспорта](/api/common/get-exports) |
-| `client.common.list_properties()` | [Список дополнительных полей](/api/common/custom-properties) |
-| `client.profile.get_token_info()` | [Информация о токене](/api/profile/get-info) |
+| `client.oauth.get_token_info()` | [Информация о токене](/api/oauth/token-info) |
+| `client.chats.create_chat()` | [Новый чат](/api/chats/create) |
+| `client.chats.request_export()` | [Экспорт сообщений](/api/chats/request-export) |
+| `client.chats.list_chats()` | [Список чатов](/api/chats/list) |
+| `client.chats.download_export()` | [Скачать архив экспорта](/api/chats/download-export) |
+| `client.chats.get_chat()` | [Информация о чате](/api/chats/get) |
+| `client.chats.update_chat()` | [Редактирование чата](/api/chats/update) |
+| `client.chats.archive_chat()` | [Архивация чата](/api/chats/archive) |
+| `client.chats.unarchive_chat()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.profile.get_profile()` | [Свой профиль](/api/profile/get) |
 | `client.profile.get_status()` | [Свой статус](/api/profile/get-status) |
 | `client.profile.update_profile_avatar()` | [Загрузка своего аватара](/api/profile/update-avatar) |
@@ -98,12 +101,6 @@ await client.close()
 | `client.group_tags.get_tag_users()` | [Список сотрудников тега](/api/group-tags/list-users) |
 | `client.group_tags.update_tag()` | [Редактирование тега](/api/group-tags/update) |
 | `client.group_tags.delete_tag()` | [Удаление тега](/api/group-tags/delete) |
-| `client.chats.create_chat()` | [Новый чат](/api/chats/create) |
-| `client.chats.list_chats()` | [Список чатов](/api/chats/list) |
-| `client.chats.get_chat()` | [Информация о чате](/api/chats/get) |
-| `client.chats.update_chat()` | [Редактирование чата](/api/chats/update) |
-| `client.chats.archive_chat()` | [Архивация чата](/api/chats/archive) |
-| `client.chats.unarchive_chat()` | [Разархивация чата](/api/chats/unarchive) |
 | `client.members.add_tags()` | [Добавление тегов](/api/members/add-group-tags) |
 | `client.members.add_members()` | [Добавление пользователей](/api/members/add) |
 | `client.members.list_members()` | [Список участников чата](/api/members/list) |
@@ -115,6 +112,7 @@ await client.close()
 | `client.threads.list_threads()` | [Список тредов](/api/threads/list) |
 | `client.threads.get_thread()` | [Информация о треде](/api/threads/get) |
 | `client.messages.create_message()` | [Новое сообщение](/api/messages/create) |
+| `client.messages.create_link_previews()` | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
 | `client.messages.pin_message()` | [Закрепление сообщения](/api/messages/pin) |
 | `client.messages.list_chat_messages()` | [Список сообщений чата](/api/messages/list) |
 | `client.messages.get_message()` | [Информация о сообщении](/api/messages/get) |
@@ -125,7 +123,6 @@ await client.close()
 | `client.reactions.add_reaction()` | [Добавление реакции](/api/reactions/add) |
 | `client.reactions.list_reactions()` | [Список реакций](/api/reactions/list) |
 | `client.reactions.remove_reaction()` | [Удаление реакции](/api/reactions/remove) |
-| `client.link_previews.create_link_previews()` | [Unfurl (разворачивание ссылок)](/api/link-previews/add) |
 | `client.search.search_chats()` | [Поиск чатов](/api/search/list-chats) |
 | `client.search.search_messages()` | [Поиск сообщений](/api/search/list-messages) |
 | `client.search.search_users()` | [Поиск сотрудников](/api/search/list-users) |
@@ -135,13 +132,18 @@ await client.close()
 | `client.tasks.update_task()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.delete_task()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.open_view()` | [Открытие представления](/api/views/open) |
+| `client.bots.self_recreate_bot_token()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.create_bot()` | [Новый бот](/api/bots/create) |
+| `client.bots.recreate_bot_token()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.bots.get_bot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.get_webhook_events()` | [История событий](/api/bots/list-events) |
 | `client.bots.self_update_bot_webhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.update_bot()` | [Редактирование бота](/api/bots/update) |
 | `client.bots.delete_webhook_event()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |
+| `client.customproperties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |
+| `client.files.upload_file()` | [Загрузка файла](/api/files/direct-url) |
+| `client.files.get_upload_params()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
 
 
 ## Запросы

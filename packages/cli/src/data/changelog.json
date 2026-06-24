@@ -1,5 +1,36 @@
 [
   {
+    "version": "2026.6.3",
+    "date": "24 июня 2026",
+    "changes": [
+      {
+        "type": "~",
+        "command": "files, custom-properties, oauth",
+        "description": "Команды реорганизованы по разделам: `common uploads`→`files uploads`, `common direct-url`→`files direct-url`, `common custom-properties`→`custom-properties list`, `common request-export`→`chats request-export`, `common get-exports`→`chats download-export`, `profile get-info`→`oauth token-info`, `link-previews add`→`messages unfurl`. Старые имена продолжают работать (скрытые алиасы)"
+      },
+      {
+        "type": "+",
+        "command": "bots recreate-token",
+        "description": "Новая команда — ротация токена бота по его `id` (нужны права администратора, владельца компании или создателя бота)"
+      },
+      {
+        "type": "+",
+        "command": "bots recreate-token-self",
+        "description": "Новая команда — бот перевыпускает собственный токен своим же токеном"
+      },
+      {
+        "type": "+",
+        "command": "bots create",
+        "description": "Настройки вебхука — параметры `ignore-self-messages` (игнорировать свои сообщения) и `events-history-enabled` (сохранять историю событий)"
+      },
+      {
+        "type": "+",
+        "command": "bots update",
+        "description": "Настройки вебхука — параметры `ignore-self-messages` (игнорировать свои сообщения) и `events-history-enabled` (сохранять историю событий)"
+      }
+    ]
+  },
+  {
     "version": "2026.6.2",
     "date": "19 июня 2026",
     "changes": [

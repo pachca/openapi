@@ -24,6 +24,16 @@ export const botOperations: INodeProperties[] = [
 				action: 'Get many bot events',
 			},
 			{
+				name: 'Recreate Token',
+				value: 'recreateToken',
+				action: 'Recreate bot token',
+			},
+			{
+				name: 'Recreate Token Self',
+				value: 'recreateTokenSelf',
+				action: 'Recreate own bot token',
+			},
+			{
 				name: 'Remove Events',
 				value: 'removeEvents',
 				action: 'Remove events from bot',
@@ -39,11 +49,18 @@ export const botOperations: INodeProperties[] = [
 				action: 'Update bot webhook',
 			},
 		],
-		default: 'updateWebhook',
+		default: 'recreateTokenSelf',
 	},
 ];
 
 export const botFields: INodeProperties[] = [
+	{
+		displayName: 'Requires bot roles',
+		name: 'botRecreateTokenSelfNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: { show: { resource: ['bot'], operation: ['recreateTokenSelf'] } },
+	},
 	{
 		displayName: 'Requires bot roles',
 		name: 'botUpdateWebhookNotice',
@@ -109,6 +126,20 @@ export const botFields: INodeProperties[] = [
 				default: "",
 				description: 'Events the bot is subscribed to',
 				placeholder: 'message_new',
+			},
+			{
+				displayName: 'Events History Enabled',
+				name: 'eventsHistoryEnabled',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to save the bot\'s event history for later retrieval via the event history method',
+			},
+			{
+				displayName: 'Ignore Self Messages',
+				name: 'ignoreSelfMessages',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to ignore incoming messages sent by the bot itself',
 			},
 			{
 				displayName: 'Link Preview Enabled',
@@ -253,6 +284,20 @@ export const botFields: INodeProperties[] = [
 				placeholder: 'message_new',
 			},
 			{
+				displayName: 'Events History Enabled',
+				name: 'eventsHistoryEnabled',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to save the bot\'s event history for later retrieval via the event history method',
+			},
+			{
+				displayName: 'Ignore Self Messages',
+				name: 'ignoreSelfMessages',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to ignore incoming messages sent by the bot itself',
+			},
+			{
 				displayName: 'Link Preview Enabled',
 				name: 'linkPreviewEnabled',
 				type: 'boolean',
@@ -319,6 +364,22 @@ export const botFields: INodeProperties[] = [
 				description: 'Outgoing webhook trigger condition',
 			},
 		],
+	},
+	{
+		displayName: 'ID',
+		name: 'id',
+		type: 'number',
+		required: true,
+		default: 0,
+		displayOptions: { show: { resource: ['bot'], operation: ['recreateToken'] } },
+		description: 'Bot ID',
+	},
+	{
+		displayName: 'Requires owner, admin, user roles',
+		name: 'botRecreateTokenNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: { show: { resource: ['bot'], operation: ['recreateToken'] } },
 	},
 	{
 		displayName: 'Return All',

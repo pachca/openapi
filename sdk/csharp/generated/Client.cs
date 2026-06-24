@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Runtime.CompilerServices;
 
+#pragma warning disable CS0618
 namespace Pachca.Sdk;
 
 public class SecurityService
@@ -220,9 +221,19 @@ public class BotsService
         }
     }
 
+    public virtual async System.Threading.Tasks.Task<BotCreateResponse> SelfRecreateBotTokenAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.selfRecreateBotToken is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<BotCreateResponse> CreateBotAsync(BotCreateRequest request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Bots.createBot is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<BotCreateResponse> RecreateBotTokenAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.recreateBotToken is not implemented");
     }
 
     public virtual async System.Threading.Tasks.Task<BotResponse> SelfUpdateBotWebhookAsync(BotWebhookSelfUpdateRequest request, CancellationToken cancellationToken = default)
@@ -315,6 +326,23 @@ public sealed class BotsServiceImpl : BotsService
         return items;
     }
 
+    public override async System.Threading.Tasks.Task<BotCreateResponse> SelfRecreateBotTokenAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/bot/recreate_token";
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<BotCreateResponseDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
     public override async System.Threading.Tasks.Task<BotCreateResponse> CreateBotAsync(BotCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/bots";
@@ -325,6 +353,23 @@ public sealed class BotsServiceImpl : BotsService
         switch ((int)response.StatusCode)
         {
             case 201:
+                return PachcaUtils.Deserialize<BotCreateResponseDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<BotCreateResponse> RecreateBotTokenAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/bots/{id}/recreate_token";
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
                 return PachcaUtils.Deserialize<BotCreateResponseDataWrapper>(json).Data;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
@@ -425,9 +470,19 @@ public class ChatsService
         throw new NotImplementedException("Chats.getChat is not implemented");
     }
 
+    public virtual async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.downloadExport is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Chats.createChat is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.requestExport is not implemented");
     }
 
     public virtual async System.Threading.Tasks.Task<Chat> UpdateChatAsync(
@@ -544,6 +599,24 @@ public sealed class ChatsServiceImpl : ChatsService
         }
     }
 
+    public override async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/chats/exports/{id}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 302:
+                return response.Headers.Location?.ToString()
+                    ?? throw new InvalidOperationException("Missing Location header in redirect response");
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
     public override async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats";
@@ -555,6 +628,24 @@ public sealed class ChatsServiceImpl : ChatsService
         {
             case 201:
                 return PachcaUtils.Deserialize<ChatDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/chats/exports";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -610,152 +701,6 @@ public sealed class ChatsServiceImpl : ChatsService
         {
             case 204:
                 return;
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
-            default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
-        }
-    }
-}
-
-public class CommonService
-{
-
-    public virtual async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Common.downloadExport is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Common.listProperties is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Common.requestExport is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task UploadFileAsync(
-        string directUrl,
-        FileUploadRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Common.uploadFile is not implemented");
-    }
-
-    public virtual async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Common.getUploadParams is not implemented");
-    }
-}
-
-public sealed class CommonServiceImpl : CommonService
-{
-    private readonly string _baseUrl;
-    private readonly HttpClient _client;
-
-    internal CommonServiceImpl(string baseUrl, HttpClient client)
-    {
-        _baseUrl = baseUrl;
-        _client = client;
-    }
-
-    public override async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/chats/exports/{id}";
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 302:
-                return response.Headers.Location?.ToString()
-                    ?? throw new InvalidOperationException("Missing Location header in redirect response");
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
-            default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
-        }
-    }
-
-    public override async System.Threading.Tasks.Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
-    {
-        var queryParts = new List<string>();
-        queryParts.Add($"entity_type={Uri.EscapeDataString(PachcaUtils.EnumToApiString(entityType))}");
-        var url = $"{_baseUrl}/custom_properties" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 200:
-                return PachcaUtils.Deserialize<ListPropertiesResponse>(json);
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
-            default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
-        }
-    }
-
-    public override async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/chats/exports";
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
-        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 204:
-                return;
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
-            default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
-        }
-    }
-
-    public override async System.Threading.Tasks.Task UploadFileAsync(
-        string directUrl,
-        FileUploadRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var url = directUrl;
-        using var content = new MultipartFormDataContent();
-        content.Add(new StringContent($"{request.ContentDisposition}"), "Content-Disposition");
-        content.Add(new StringContent($"{request.Acl}"), "acl");
-        content.Add(new StringContent($"{request.Policy}"), "policy");
-        content.Add(new StringContent($"{request.XAmzCredential}"), "x-amz-credential");
-        content.Add(new StringContent($"{request.XAmzAlgorithm}"), "x-amz-algorithm");
-        content.Add(new StringContent($"{request.XAmzDate}"), "x-amz-date");
-        content.Add(new StringContent($"{request.XAmzSignature}"), "x-amz-signature");
-        content.Add(new StringContent($"{request.Key}"), "key");
-        content.Add(new ByteArrayContent(request.File), "file", "file");
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
-        httpRequest.Content = content;
-        httpRequest.Headers.Authorization = null;
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 204:
-                return;
-            default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
-        }
-    }
-
-    public override async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/uploads";
-        using var request = new HttpRequestMessage(HttpMethod.Post, url);
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 201:
-                return PachcaUtils.Deserialize<UploadParams>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1009,6 +954,122 @@ public sealed class MembersServiceImpl : MembersService
         {
             case 204:
                 return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+}
+
+public class CustomPropertiesService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("CustomProperties.listProperties is not implemented");
+    }
+}
+
+public sealed class CustomPropertiesServiceImpl : CustomPropertiesService
+{
+    private readonly string _baseUrl;
+    private readonly HttpClient _client;
+
+    internal CustomPropertiesServiceImpl(string baseUrl, HttpClient client)
+    {
+        _baseUrl = baseUrl;
+        _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
+    {
+        var queryParts = new List<string>();
+        queryParts.Add($"entity_type={Uri.EscapeDataString(PachcaUtils.EnumToApiString(entityType))}");
+        var url = $"{_baseUrl}/custom_properties" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListPropertiesResponse>(json);
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+}
+
+public class FilesService
+{
+
+    public virtual async System.Threading.Tasks.Task UploadFileAsync(
+        string directUrl,
+        FileUploadRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Files.uploadFile is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Files.getUploadParams is not implemented");
+    }
+}
+
+public sealed class FilesServiceImpl : FilesService
+{
+    private readonly string _baseUrl;
+    private readonly HttpClient _client;
+
+    internal FilesServiceImpl(string baseUrl, HttpClient client)
+    {
+        _baseUrl = baseUrl;
+        _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task UploadFileAsync(
+        string directUrl,
+        FileUploadRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var url = directUrl;
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent($"{request.ContentDisposition}"), "Content-Disposition");
+        content.Add(new StringContent($"{request.Acl}"), "acl");
+        content.Add(new StringContent($"{request.Policy}"), "policy");
+        content.Add(new StringContent($"{request.XAmzCredential}"), "x-amz-credential");
+        content.Add(new StringContent($"{request.XAmzAlgorithm}"), "x-amz-algorithm");
+        content.Add(new StringContent($"{request.XAmzDate}"), "x-amz-date");
+        content.Add(new StringContent($"{request.XAmzSignature}"), "x-amz-signature");
+        content.Add(new StringContent($"{request.Key}"), "key");
+        content.Add(new ByteArrayContent(request.File), "file", "file");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = content;
+        httpRequest.Headers.Authorization = null;
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/uploads";
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 201:
+                return PachcaUtils.Deserialize<UploadParams>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1290,6 +1351,14 @@ public class MessagesService
         throw new NotImplementedException("Messages.createMessage is not implemented");
     }
 
+    public virtual async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
+        int id,
+        LinkPreviewsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Messages.createLinkPreviews is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Messages.pinMessage is not implemented");
@@ -1414,6 +1483,27 @@ public sealed class MessagesServiceImpl : MessagesService
         }
     }
 
+    public override async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
+        int id,
+        LinkPreviewsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/messages/{id}/link_previews";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
     public override async System.Threading.Tasks.Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}/pin";
@@ -1474,51 +1564,6 @@ public sealed class MessagesServiceImpl : MessagesService
         var url = $"{_baseUrl}/messages/{id}/pin";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 204:
-                return;
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
-            default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
-        }
-    }
-}
-
-public class LinkPreviewsService
-{
-
-    public virtual async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
-        int id,
-        LinkPreviewsRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException("Link Previews.createLinkPreviews is not implemented");
-    }
-}
-
-public sealed class LinkPreviewsServiceImpl : LinkPreviewsService
-{
-    private readonly string _baseUrl;
-    private readonly HttpClient _client;
-
-    internal LinkPreviewsServiceImpl(string baseUrl, HttpClient client)
-    {
-        _baseUrl = baseUrl;
-        _client = client;
-    }
-
-    public override async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
-        int id,
-        LinkPreviewsRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/messages/{id}/link_previews";
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
-        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         switch ((int)response.StatusCode)
         {
@@ -1854,13 +1899,46 @@ public sealed class ThreadsServiceImpl : ThreadsService
     }
 }
 
-public class ProfileService
+public class OAuthService
 {
 
     public virtual async System.Threading.Tasks.Task<AccessTokenInfo> GetTokenInfoAsync(CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException("Profile.getTokenInfo is not implemented");
+        throw new NotImplementedException("OAuth.getTokenInfo is not implemented");
     }
+}
+
+public sealed class OAuthServiceImpl : OAuthService
+{
+    private readonly string _baseUrl;
+    private readonly HttpClient _client;
+
+    internal OAuthServiceImpl(string baseUrl, HttpClient client)
+    {
+        _baseUrl = baseUrl;
+        _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task<AccessTokenInfo> GetTokenInfoAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/oauth/token/info";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AccessTokenInfoDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+}
+
+public class ProfileService
+{
 
     public virtual async System.Threading.Tasks.Task<User> GetProfileAsync(CancellationToken cancellationToken = default)
     {
@@ -1891,6 +1969,11 @@ public class ProfileService
     {
         throw new NotImplementedException("Profile.deleteStatus is not implemented");
     }
+
+    public virtual async System.Threading.Tasks.Task<AccessTokenInfo> GetTokenInfoAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Profile.getTokenInfo is not implemented");
+    }
 }
 
 public sealed class ProfileServiceImpl : ProfileService
@@ -1902,23 +1985,6 @@ public sealed class ProfileServiceImpl : ProfileService
     {
         _baseUrl = baseUrl;
         _client = client;
-    }
-
-    public override async System.Threading.Tasks.Task<AccessTokenInfo> GetTokenInfoAsync(CancellationToken cancellationToken = default)
-    {
-        var url = $"{_baseUrl}/oauth/token/info";
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        switch ((int)response.StatusCode)
-        {
-            case 200:
-                return PachcaUtils.Deserialize<AccessTokenInfoDataWrapper>(json).Data;
-            case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
-            default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
-        }
     }
 
     public override async System.Threading.Tasks.Task<User> GetProfileAsync(CancellationToken cancellationToken = default)
@@ -2020,6 +2086,23 @@ public sealed class ProfileServiceImpl : ProfileService
         {
             case 204:
                 return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<AccessTokenInfo> GetTokenInfoAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/oauth/token/info";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AccessTokenInfoDataWrapper>(json).Data;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -2852,6 +2935,199 @@ public sealed class ViewsServiceImpl : ViewsService
     }
 }
 
+[Obsolete("Kept for backward compatibility — use the new service(s).")]
+public class CommonService
+{
+
+    public virtual async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.getUploadParams is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task UploadFileAsync(
+        string directUrl,
+        FileUploadRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.uploadFile is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.listProperties is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.requestExport is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.downloadExport is not implemented");
+    }
+}
+
+public sealed class CommonServiceImpl : CommonService
+{
+    private readonly string _baseUrl;
+    private readonly HttpClient _client;
+
+    internal CommonServiceImpl(string baseUrl, HttpClient client)
+    {
+        _baseUrl = baseUrl;
+        _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/uploads";
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 201:
+                return PachcaUtils.Deserialize<UploadParams>(json);
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task UploadFileAsync(
+        string directUrl,
+        FileUploadRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var url = directUrl;
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent($"{request.ContentDisposition}"), "Content-Disposition");
+        content.Add(new StringContent($"{request.Acl}"), "acl");
+        content.Add(new StringContent($"{request.Policy}"), "policy");
+        content.Add(new StringContent($"{request.XAmzCredential}"), "x-amz-credential");
+        content.Add(new StringContent($"{request.XAmzAlgorithm}"), "x-amz-algorithm");
+        content.Add(new StringContent($"{request.XAmzDate}"), "x-amz-date");
+        content.Add(new StringContent($"{request.XAmzSignature}"), "x-amz-signature");
+        content.Add(new StringContent($"{request.Key}"), "key");
+        content.Add(new ByteArrayContent(request.File), "file", "file");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = content;
+        httpRequest.Headers.Authorization = null;
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
+    {
+        var queryParts = new List<string>();
+        queryParts.Add($"entity_type={Uri.EscapeDataString(PachcaUtils.EnumToApiString(entityType))}");
+        var url = $"{_baseUrl}/custom_properties" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListPropertiesResponse>(json);
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/chats/exports";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/chats/exports/{id}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 302:
+                return response.Headers.Location?.ToString()
+                    ?? throw new InvalidOperationException("Missing Location header in redirect response");
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+}
+
+[Obsolete("Kept for backward compatibility — use the new service(s).")]
+public class LinkPreviewsService
+{
+
+    public virtual async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
+        int id,
+        LinkPreviewsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Link Previews.createLinkPreviews is not implemented");
+    }
+}
+
+public sealed class LinkPreviewsServiceImpl : LinkPreviewsService
+{
+    private readonly string _baseUrl;
+    private readonly HttpClient _client;
+
+    internal LinkPreviewsServiceImpl(string baseUrl, HttpClient client)
+    {
+        _baseUrl = baseUrl;
+        _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
+        int id,
+        LinkPreviewsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/messages/{id}/link_previews";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+}
+
 public static class PachcaConstants
 {
     public const string PachcaApiUrl = "https://api.pachca.com/api/shared/v1";
@@ -2864,10 +3140,13 @@ public sealed class PachcaClient : IDisposable
     public BotsService Bots { get; }
     public ChatsService Chats { get; }
     public CommonService Common { get; }
+    public CustomPropertiesService Customproperties { get; }
+    public FilesService Files { get; }
     public GroupTagsService GroupTags { get; }
     public LinkPreviewsService LinkPreviews { get; }
     public MembersService Members { get; }
     public MessagesService Messages { get; }
+    public OAuthService Oauth { get; }
     public ProfileService Profile { get; }
     public ReactionsService Reactions { get; }
     public ReadMembersService ReadMembers { get; }
@@ -2878,15 +3157,18 @@ public sealed class PachcaClient : IDisposable
     public UsersService Users { get; }
     public ViewsService Views { get; }
 
-    private PachcaClient(BotsService bots, ChatsService chats, CommonService common, GroupTagsService groupTags, LinkPreviewsService linkPreviews, MembersService members, MessagesService messages, ProfileService profile, ReactionsService reactions, ReadMembersService readMembers, SearchService search, SecurityService security, TasksService tasks, ThreadsService threads, UsersService users, ViewsService views)
+    private PachcaClient(BotsService bots, ChatsService chats, CommonService common, CustomPropertiesService customproperties, FilesService files, GroupTagsService groupTags, LinkPreviewsService linkPreviews, MembersService members, MessagesService messages, OAuthService oauth, ProfileService profile, ReactionsService reactions, ReadMembersService readMembers, SearchService search, SecurityService security, TasksService tasks, ThreadsService threads, UsersService users, ViewsService views)
     {
         Bots = bots;
         Chats = chats;
         Common = common;
+        Customproperties = customproperties;
+        Files = files;
         GroupTags = groupTags;
         LinkPreviews = linkPreviews;
         Members = members;
         Messages = messages;
+        Oauth = oauth;
         Profile = profile;
         Reactions = reactions;
         ReadMembers = readMembers;
@@ -2898,7 +3180,7 @@ public sealed class PachcaClient : IDisposable
         Views = views;
     }
 
-    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customproperties = null, FilesService? files = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
         var handler = new SocketsHttpHandler
         {
@@ -2911,10 +3193,13 @@ public sealed class PachcaClient : IDisposable
         Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
         Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
         Common = common ?? new CommonServiceImpl(baseUrl, _client);
+        Customproperties = customproperties ?? new CustomPropertiesServiceImpl(baseUrl, _client);
+        Files = files ?? new FilesServiceImpl(baseUrl, _client);
         GroupTags = groupTags ?? new GroupTagsServiceImpl(baseUrl, _client);
         LinkPreviews = linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
         Members = members ?? new MembersServiceImpl(baseUrl, _client);
         Messages = messages ?? new MessagesServiceImpl(baseUrl, _client);
+        Oauth = oauth ?? new OAuthServiceImpl(baseUrl, _client);
         Profile = profile ?? new ProfileServiceImpl(baseUrl, _client);
         Reactions = reactions ?? new ReactionsServiceImpl(baseUrl, _client);
         ReadMembers = readMembers ?? new ReadMembersServiceImpl(baseUrl, _client);
@@ -2926,17 +3211,20 @@ public sealed class PachcaClient : IDisposable
         Views = views ?? new ViewsServiceImpl(baseUrl, _client);
     }
 
-    public PachcaClient(string baseUrl, HttpClient client, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public PachcaClient(string baseUrl, HttpClient client, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customproperties = null, FilesService? files = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
         _client = client;
 
         Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
         Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
         Common = common ?? new CommonServiceImpl(baseUrl, _client);
+        Customproperties = customproperties ?? new CustomPropertiesServiceImpl(baseUrl, _client);
+        Files = files ?? new FilesServiceImpl(baseUrl, _client);
         GroupTags = groupTags ?? new GroupTagsServiceImpl(baseUrl, _client);
         LinkPreviews = linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
         Members = members ?? new MembersServiceImpl(baseUrl, _client);
         Messages = messages ?? new MessagesServiceImpl(baseUrl, _client);
+        Oauth = oauth ?? new OAuthServiceImpl(baseUrl, _client);
         Profile = profile ?? new ProfileServiceImpl(baseUrl, _client);
         Reactions = reactions ?? new ReactionsServiceImpl(baseUrl, _client);
         ReadMembers = readMembers ?? new ReadMembersServiceImpl(baseUrl, _client);
@@ -2948,9 +3236,9 @@ public sealed class PachcaClient : IDisposable
         Views = views ?? new ViewsServiceImpl(baseUrl, _client);
     }
 
-    public static PachcaClient Stub(BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public static PachcaClient Stub(BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, CustomPropertiesService? customproperties = null, FilesService? files = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, OAuthService? oauth = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
-        return new PachcaClient(bots ?? new BotsService(), chats ?? new ChatsService(), common ?? new CommonService(), groupTags ?? new GroupTagsService(), linkPreviews ?? new LinkPreviewsService(), members ?? new MembersService(), messages ?? new MessagesService(), profile ?? new ProfileService(), reactions ?? new ReactionsService(), readMembers ?? new ReadMembersService(), search ?? new SearchService(), security ?? new SecurityService(), tasks ?? new TasksService(), threads ?? new ThreadsService(), users ?? new UsersService(), views ?? new ViewsService());
+        return new PachcaClient(bots ?? new BotsService(), chats ?? new ChatsService(), common ?? new CommonService(), customproperties ?? new CustomPropertiesService(), files ?? new FilesService(), groupTags ?? new GroupTagsService(), linkPreviews ?? new LinkPreviewsService(), members ?? new MembersService(), messages ?? new MessagesService(), oauth ?? new OAuthService(), profile ?? new ProfileService(), reactions ?? new ReactionsService(), readMembers ?? new ReadMembersService(), search ?? new SearchService(), security ?? new SecurityService(), tasks ?? new TasksService(), threads ?? new ThreadsService(), users ?? new UsersService(), views ?? new ViewsService());
     }
 
     public void Dispose()

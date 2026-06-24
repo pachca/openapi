@@ -894,6 +894,7 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
   for (const svc of ir.services) {
     const serviceName = tagToServiceName(svc.tag);
     const implName = serviceToImplName(serviceName);
+    if (svc.deprecated) lines.push(`# Deprecated: ${serviceName} is kept for backward compatibility — use the new service(s).`);
     lines.push(`class ${serviceName}:`);
     for (let i = 0; i < svc.operations.length; i++) {
       emitThrowingOperation(lines, svc.operations[i], ir);
@@ -1456,8 +1457,10 @@ function generateExamples(ir: IR): string {
   };
 
   for (const svc of ir.services) {
+    if (svc.deprecated) continue; // backward-compat alias service — document new names only
     const serviceProp = pyServiceProp(svc.tag);
     for (const op of svc.operations) {
+      if (op.isAlias) continue; // alias op — documented under its new service
       const ex = pyBuildOperationExample(op, ir, models, serviceProp);
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;

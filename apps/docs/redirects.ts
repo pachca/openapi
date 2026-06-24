@@ -9,6 +9,42 @@ const redirects: Redirect[] = [
   { source: '/api', destination: '/api/authorization', permanent: false },
   { source: '/guides', destination: '/guides/quickstart', permanent: false },
 
+  // ===== IA-переносы методов (роспуск Common, token-info → OAuth, unfurl → Messages) =====
+  { source: '/api/profile/get-info', destination: '/api/oauth/token-info', permanent: true },
+  { source: '/api/profile/get-info.md', destination: '/api/oauth/token-info.md', permanent: true },
+  {
+    source: '/api/common/request-export',
+    destination: '/api/chats/request-export',
+    permanent: true,
+  },
+  {
+    source: '/api/common/request-export.md',
+    destination: '/api/chats/request-export.md',
+    permanent: true,
+  },
+  { source: '/api/common/get-exports', destination: '/api/chats/download-export', permanent: true },
+  {
+    source: '/api/common/get-exports.md',
+    destination: '/api/chats/download-export.md',
+    permanent: true,
+  },
+  { source: '/api/common/uploads', destination: '/api/files/uploads', permanent: true },
+  { source: '/api/common/uploads.md', destination: '/api/files/uploads.md', permanent: true },
+  { source: '/api/common/direct-url', destination: '/api/files/direct-url', permanent: true },
+  { source: '/api/common/direct-url.md', destination: '/api/files/direct-url.md', permanent: true },
+  {
+    source: '/api/common/custom-properties',
+    destination: '/api/custom-properties/list',
+    permanent: true,
+  },
+  {
+    source: '/api/common/custom-properties.md',
+    destination: '/api/custom-properties/list.md',
+    permanent: true,
+  },
+  { source: '/api/link-previews/add', destination: '/api/messages/unfurl', permanent: true },
+  { source: '/api/link-previews/add.md', destination: '/api/messages/unfurl.md', permanent: true },
+
   // ===== Guides → Standalone (temporary to avoid browser 308 cache issues) =====
   { source: '/guides/updates', destination: '/updates', permanent: false },
   { source: '/guides/updates.md', destination: '/updates.md', permanent: false },

@@ -480,6 +480,9 @@ function generateClient(ir: IR): string {
   );
 
   // Header
+  // The client internally wires up backward-compat alias services that are @Deprecated;
+  // suppress that here so the generated file is clean (external callers still get the warning).
+  if (ir.services.some((s) => s.deprecated)) lines.push('@file:Suppress("DEPRECATION")');
   lines.push('package com.pachca.sdk');
   lines.push('');
   lines.push('import io.ktor.client.*');
@@ -542,6 +545,7 @@ function emitService(
   const serviceName = tagToServiceName(svc.tag);
   const implName = serviceToImplName(serviceName);
 
+  if (svc.deprecated) lines.push(`@Deprecated("Kept for backward compatibility — use the new service(s).")`);
   lines.push(`interface ${serviceName} {`);
   for (let i = 0; i < svc.operations.length; i++) {
     if (i > 0) lines.push('');
@@ -1447,8 +1451,10 @@ function generateExamples(ir: IR): string {
   };
 
   for (const svc of ir.services) {
+    if (svc.deprecated) continue; // backward-compat alias service — document new names only
     const serviceProp = tagToProperty(svc.tag);
     for (const op of svc.operations) {
+      if (op.isAlias) continue; // alias op — documented under its new service
       const ex = buildOperationExample(op, ir, models, serviceProp);
       const entry: Record<string, unknown> = { usage: ex.usage };
       if (ex.output) entry.output = ex.output;

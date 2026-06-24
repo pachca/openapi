@@ -88,9 +88,8 @@ describe('Generated files exist', () => {
     'SecurityDescription.ts',
     'CustomPropertyDescription.ts',
     'FileDescription.ts',
-    'LinkPreviewDescription.ts',
+    'OauthDescription.ts',
     'ReadMemberDescription.ts',
-    'ExportDescription.ts',
   ];
 
   for (const file of v2Files) {

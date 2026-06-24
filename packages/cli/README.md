@@ -78,10 +78,12 @@ pachca guide            # список всех сценариев
 
 | Команда | Описание |
 |---------|---------|
+| `pachca bots recreate-token-self` | Ротация собственного токена бота |
 | `pachca bots update-webhook` | Саморегистрация вебхука бота |
 | `pachca bots create` | Новый бот |
 | `pachca bots get` | Информация о боте |
 | `pachca bots update` | Редактирование бота |
+| `pachca bots recreate-token` | Ротация токена бота |
 | `pachca bots list-events` | История событий |
 | `pachca bots remove-event` | Удаление события |
 
@@ -91,20 +93,12 @@ pachca guide            # список всех сценариев
 |---------|---------|
 | `pachca chats create` | Новый чат |
 | `pachca chats list` | Список чатов |
+| `pachca chats request-export` | Экспорт сообщений |
+| `pachca chats download-export` | Скачать архив экспорта |
 | `pachca chats get` | Информация о чате |
 | `pachca chats update` | Редактирование чата |
 | `pachca chats archive` | Архивация чата |
 | `pachca chats unarchive` | Разархивация чата |
-
-### common
-
-| Команда | Описание |
-|---------|---------|
-| `pachca common request-export` | Экспорт сообщений |
-| `pachca common get-exports` | Скачать архив экспорта |
-| `pachca common custom-properties` | Список дополнительных полей |
-| `pachca common direct-url` | Загрузка файла |
-| `pachca common uploads` | Получение подписи, ключа и других параметров |
 
 ### members
 
@@ -117,6 +111,19 @@ pachca guide            # список всех сценариев
 | `pachca members add` | Добавление пользователей |
 | `pachca members remove` | Исключение пользователя |
 | `pachca members update` | Редактирование роли |
+
+### custom-properties
+
+| Команда | Описание |
+|---------|---------|
+| `pachca custom-properties list` | Список дополнительных полей |
+
+### files
+
+| Команда | Описание |
+|---------|---------|
+| `pachca files direct-url` | Загрузка файла |
+| `pachca files uploads` | Получение подписи, ключа и других параметров |
 
 ### group-tags
 
@@ -138,14 +145,9 @@ pachca guide            # список всех сценариев
 | `pachca messages get` | Информация о сообщении |
 | `pachca messages update` | Редактирование сообщения |
 | `pachca messages delete` | Удаление сообщения |
+| `pachca messages unfurl` | Unfurl (разворачивание ссылок) |
 | `pachca messages pin` | Закрепление сообщения |
 | `pachca messages unpin` | Открепление сообщения |
-
-### link-previews
-
-| Команда | Описание |
-|---------|---------|
-| `pachca link-previews add` | Unfurl (разворачивание ссылок) |
 
 ### reactions
 
@@ -169,11 +171,16 @@ pachca guide            # список всех сценариев
 | `pachca threads list` | Список тредов |
 | `pachca threads get` | Информация о треде |
 
+### oauth
+
+| Команда | Описание |
+|---------|---------|
+| `pachca oauth token-info` | Информация о токене |
+
 ### profile
 
 | Команда | Описание |
 |---------|---------|
-| `pachca profile get-info` | Информация о токене |
 | `pachca profile get` | Свой профиль |
 | `pachca profile update-avatar` | Загрузка своего аватара |
 | `pachca profile delete-avatar` | Удаление своего аватара |

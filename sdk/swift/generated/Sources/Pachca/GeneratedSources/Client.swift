@@ -1088,8 +1088,8 @@ open class MessagesService {
         throw pachcaNotImplemented("Messages.createMessage")
     }
 
-    open func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
-        throw pachcaNotImplemented("Messages.createLinkPreviews")
+    open func unfurl(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
+        throw pachcaNotImplemented("Messages.unfurl")
     }
 
     open func pinMessage(id: Int) async throws -> Void {
@@ -1191,7 +1191,7 @@ public final class MessagesServiceImpl: MessagesService {
         }
     }
 
-    public override func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
+    public override func unfurl(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/link_previews")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }

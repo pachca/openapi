@@ -1214,12 +1214,12 @@ class MessagesService:
     ) -> Message:
         raise NotImplementedError("Messages.createMessage is not implemented")
 
-    async def create_link_previews(
+    async def unfurl(
         self,
         id: int,
         request: LinkPreviewsRequest,
     ) -> None:
-        raise NotImplementedError("Messages.createLinkPreviews is not implemented")
+        raise NotImplementedError("Messages.unfurl is not implemented")
 
     async def pin_message(
         self,
@@ -1331,7 +1331,7 @@ class MessagesServiceImpl(MessagesService):
             case _:
                 raise deserialize(ApiError, body)
 
-    async def create_link_previews(
+    async def unfurl(
         self,
         id: int,
         request: LinkPreviewsRequest,

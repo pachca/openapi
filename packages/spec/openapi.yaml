@@ -2552,7 +2552,7 @@ paths:
         scope: messages:delete
   /messages/{id}/link_previews:
     post:
-      operationId: LinkPreviewOperations_createLinkPreviews
+      operationId: LinkPreviewOperations_unfurl
       description: |-
         Unfurl (разворачивание ссылок)
 

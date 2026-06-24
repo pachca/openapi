@@ -5407,7 +5407,7 @@ Unfurl (разворачивание ссылок)
 """)
   @route("/messages/{id}/link_previews")
   @post
-  createLinkPreviews(
+  unfurl(
     @doc("Идентификатор сообщения")
     @extension("example", 194275)
     @path id: int32,

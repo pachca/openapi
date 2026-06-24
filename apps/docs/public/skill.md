@@ -115,7 +115,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `GET /messages/{id}` — Get message
 - `PUT /messages/{id}` — Update message
 - `DELETE /messages/{id}` — Delete message
-- `POST /messages/{id}/link_previews` — Create link previews
+- `POST /messages/{id}/link_previews` — Unfurl
 - `POST /messages/{id}/pin` — Pin message
 - `DELETE /messages/{id}/pin` — Unpin message
 

@@ -1351,12 +1351,12 @@ public class MessagesService
         throw new NotImplementedException("Messages.createMessage is not implemented");
     }
 
-    public virtual async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
+    public virtual async System.Threading.Tasks.Task UnfurlAsync(
         int id,
         LinkPreviewsRequest request,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException("Messages.createLinkPreviews is not implemented");
+        throw new NotImplementedException("Messages.unfurl is not implemented");
     }
 
     public virtual async System.Threading.Tasks.Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
@@ -1483,7 +1483,7 @@ public sealed class MessagesServiceImpl : MessagesService
         }
     }
 
-    public override async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
+    public override async System.Threading.Tasks.Task UnfurlAsync(
         int id,
         LinkPreviewsRequest request,
         CancellationToken cancellationToken = default)

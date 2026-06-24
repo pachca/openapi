@@ -771,9 +771,20 @@ export function transform(spec: ParsedAPI): IR {
   const allOps = services.flatMap((s) => s.operations);
   // Only alias when the op currently lives under the expected NEW Pachca tag — so this never
   // fires for unrelated specs that happen to share a path (e.g. a generic /uploads).
-  const aliasClone = (method: string, path: string, newTag: string, oldTag: string): IROperation | null => {
+  // oldMethodName: only for the rare case where the verb ALSO changed (not just the service),
+  // e.g. createLinkPreviews -> unfurl. The deprecated alias must keep the OLD method name so
+  // existing `client.linkPreviews.createLinkPreviews()` still resolves; the canonical service
+  // gets the new verb. For pure service moves (uploadFile etc.) the verb is unchanged — omit it.
+  const aliasClone = (
+    method: string,
+    path: string,
+    newTag: string,
+    oldTag: string,
+    oldMethodName?: string,
+  ): IROperation | null => {
     const op = allOps.find((o) => o.method === method && o.path === path && o.tag === newTag);
-    return op ? { ...op, tag: oldTag, isAlias: true } : null;
+    if (!op) return null;
+    return { ...op, tag: oldTag, isAlias: true, ...(oldMethodName ? { methodName: oldMethodName } : {}) };
   };
 
   const commonAliasOps = [
@@ -788,7 +799,7 @@ export function transform(spec: ParsedAPI): IR {
   }
 
   const linkPreviewAliasOps = [
-    aliasClone('POST', '/messages/{id}/link_previews', 'Messages', 'Link Previews'),
+    aliasClone('POST', '/messages/{id}/link_previews', 'Messages', 'Link Previews', 'createLinkPreviews'),
   ].filter((o): o is IROperation => o !== null);
   if (linkPreviewAliasOps.length > 0 && !services.some((s) => s.tag === 'Link Previews')) {
     services.push({ tag: 'Link Previews', operations: linkPreviewAliasOps, deprecated: true });

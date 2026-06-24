@@ -112,7 +112,7 @@ await client.close()
 | `client.threads.list_threads()` | [Список тредов](/api/threads/list) |
 | `client.threads.get_thread()` | [Информация о треде](/api/threads/get) |
 | `client.messages.create_message()` | [Новое сообщение](/api/messages/create) |
-| `client.messages.create_link_previews()` | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
+| `client.messages.unfurl()` | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
 | `client.messages.pin_message()` | [Закрепление сообщения](/api/messages/pin) |
 | `client.messages.list_chat_messages()` | [Список сообщений чата](/api/messages/list) |
 | `client.messages.get_message()` | [Информация о сообщении](/api/messages/get) |

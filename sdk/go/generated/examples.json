@@ -229,8 +229,8 @@
       "MessageEntityType"
     ]
   },
-  "LinkPreviewOperations_createLinkPreviews": {
-    "usage": "request := LinkPreviewsRequest{\n\tLinkPreviews: map[string]LinkPreview{\"key\": LinkPreview{\n\t\tTitle: \"Статья: Отправка файлов\",\n\t\tDescription: \"Пример отправки файлов на удаленный сервер\",\n\t\tImageURL: Ptr(\"https://website.com/img/landing.png\"),\n\t\tImage: Ptr(LinkPreviewImage{\n\t\t\tKey: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n\t\t\tName: \"files-to-server.jpg\",\n\t\t\tSize: Ptr(int32(695604)),\n\t\t}),\n\t}},\n}\nclient.Messages.CreateLinkPreviews(ctx, int32(194275), request)",
+  "LinkPreviewOperations_unfurl": {
+    "usage": "request := LinkPreviewsRequest{\n\tLinkPreviews: map[string]LinkPreview{\"key\": LinkPreview{\n\t\tTitle: \"Статья: Отправка файлов\",\n\t\tDescription: \"Пример отправки файлов на удаленный сервер\",\n\t\tImageURL: Ptr(\"https://website.com/img/landing.png\"),\n\t\tImage: Ptr(LinkPreviewImage{\n\t\t\tKey: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n\t\t\tName: \"files-to-server.jpg\",\n\t\t\tSize: Ptr(int32(695604)),\n\t\t}),\n\t}},\n}\nclient.Messages.Unfurl(ctx, int32(194275), request)",
     "imports": [
       "LinkPreview",
       "LinkPreviewImage",

@@ -114,7 +114,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Threads.ListThreads()` | [Список тредов](/api/threads/list) |
 | `client.Threads.GetThread()` | [Информация о треде](/api/threads/get) |
 | `client.Messages.CreateMessage()` | [Новое сообщение](/api/messages/create) |
-| `client.Messages.CreateLinkPreviews()` | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
+| `client.Messages.Unfurl()` | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
 | `client.Messages.PinMessage()` | [Закрепление сообщения](/api/messages/pin) |
 | `client.Messages.ListChatMessages()` | [Список сообщений чата](/api/messages/list) |
 | `client.Messages.GetMessage()` | [Информация о сообщении](/api/messages/get) |

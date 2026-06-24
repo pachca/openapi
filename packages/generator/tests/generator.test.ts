@@ -92,10 +92,16 @@ describe('backward-compat alias services (IA rename)', () => {
     expect(common!.operations.every((o) => o.isAlias)).toBe(true);
   });
 
-  it('re-exposes Link Previews as a deprecated alias', () => {
+  it('re-exposes Link Previews as a deprecated alias keeping the OLD verb (createLinkPreviews)', () => {
     const lp = svc('Link Previews');
     expect(lp?.deprecated).toBe(true);
     expect(lp!.operations.some((o) => o.methodName === 'createLinkPreviews' && o.isAlias)).toBe(true);
+  });
+
+  it('canonical Messages.unfurl uses the new verb, not the old createLinkPreviews', () => {
+    const messages = svc('Messages');
+    expect(messages!.operations.some((o) => o.methodName === 'unfurl' && !o.isAlias)).toBe(true);
+    expect(messages!.operations.some((o) => o.methodName === 'createLinkPreviews')).toBe(false);
   });
 
   it('keeps getTokenInfo on the Profile service as a deprecated alias', () => {

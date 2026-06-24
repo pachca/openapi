@@ -1788,7 +1788,7 @@ type MessagesService interface {
 	ListChatMessagesAll(ctx context.Context, params *ListChatMessagesParams) ([]Message, error)
 	GetMessage(ctx context.Context, id int32) (*Message, error)
 	CreateMessage(ctx context.Context, request MessageCreateRequest) (*Message, error)
-	CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error
+	Unfurl(ctx context.Context, id int32, request LinkPreviewsRequest) error
 	PinMessage(ctx context.Context, id int32) error
 	UpdateMessage(ctx context.Context, id int32, request MessageUpdateRequest) (*Message, error)
 	DeleteMessage(ctx context.Context, id int32) error
@@ -1813,8 +1813,8 @@ func (s *MessagesServiceStub) CreateMessage(ctx context.Context, request Message
 	return nil, NotImplementedError{Method: "Messages.createMessage"}
 }
 
-func (s *MessagesServiceStub) CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error {
-	return NotImplementedError{Method: "Messages.createLinkPreviews"}
+func (s *MessagesServiceStub) Unfurl(ctx context.Context, id int32, request LinkPreviewsRequest) error {
+	return NotImplementedError{Method: "Messages.unfurl"}
 }
 
 func (s *MessagesServiceStub) PinMessage(ctx context.Context, id int32) error {
@@ -1988,7 +1988,7 @@ func (s *MessagesServiceImpl) CreateMessage(ctx context.Context, request Message
 	}
 }
 
-func (s *MessagesServiceImpl) CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error {
+func (s *MessagesServiceImpl) Unfurl(ctx context.Context, id int32, request LinkPreviewsRequest) error {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return err

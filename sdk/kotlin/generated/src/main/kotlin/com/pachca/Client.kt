@@ -912,8 +912,8 @@ interface MessagesService {
         throw NotImplementedError("Messages.createMessage is not implemented")
     }
 
-    suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
-        throw NotImplementedError("Messages.createLinkPreviews is not implemented")
+    suspend fun unfurl(id: Int, request: LinkPreviewsRequest) {
+        throw NotImplementedError("Messages.unfurl is not implemented")
     }
 
     suspend fun pinMessage(id: Int) {
@@ -1004,7 +1004,7 @@ class MessagesServiceImpl internal constructor(
         }
     }
 
-    override suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
+    override suspend fun unfurl(id: Int, request: LinkPreviewsRequest) {
         val response = client.post("$baseUrl/messages/$id/link_previews") {
             contentType(ContentType.Application.Json)
             setBody(request)

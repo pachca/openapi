@@ -107,7 +107,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Threads.ListThreadsAsync()` | [Список тредов](/api/threads/list) |
 | `client.Threads.GetThreadAsync()` | [Информация о треде](/api/threads/get) |
 | `client.Messages.CreateMessageAsync()` | [Новое сообщение](/api/messages/create) |
-| `client.Messages.CreateLinkPreviewsAsync()` | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
+| `client.Messages.UnfurlAsync()` | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
 | `client.Messages.PinMessageAsync()` | [Закрепление сообщения](/api/messages/pin) |
 | `client.Messages.ListChatMessagesAsync()` | [Список сообщений чата](/api/messages/list) |
 | `client.Messages.GetMessageAsync()` | [Информация о сообщении](/api/messages/get) |

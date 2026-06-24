@@ -1043,8 +1043,8 @@ export class MessagesService {
     throw new Error("Messages.createMessage is not implemented");
   }
 
-  async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
-    throw new Error("Messages.createLinkPreviews is not implemented");
+  async unfurl(id: number, request: LinkPreviewsRequest): Promise<void> {
+    throw new Error("Messages.unfurl is not implemented");
   }
 
   async pinMessage(id: number): Promise<void> {
@@ -1139,7 +1139,7 @@ export class MessagesServiceImpl extends MessagesService {
     }
   }
 
-  async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
+  async unfurl(id: number, request: LinkPreviewsRequest): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },

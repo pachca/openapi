@@ -402,7 +402,7 @@ workflows:
     steps:
       - stepId: link-unfurling-1
         description: Send preview data
-        operationId: LinkPreviewOperations_createLinkPreviews
+        operationId: LinkPreviewOperations_unfurl
   - workflowId: handle-button-click-callback
     summary: Handle button click (callback)
     description: >-

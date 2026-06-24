@@ -122,7 +122,7 @@ client.close()
 | `client.threads.listThreads()` | [Список тредов](/api/threads/list) |
 | `client.threads.getThread()` | [Информация о треде](/api/threads/get) |
 | `client.messages.createMessage()` | [Новое сообщение](/api/messages/create) |
-| `client.messages.createLinkPreviews()` | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
+| `client.messages.unfurl()` | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
 | `client.messages.pinMessage()` | [Закрепление сообщения](/api/messages/pin) |
 | `client.messages.listChatMessages()` | [Список сообщений чата](/api/messages/list) |
 | `client.messages.getMessage()` | [Информация о сообщении](/api/messages/get) |

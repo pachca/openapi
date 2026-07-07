@@ -27,7 +27,7 @@ export default class SearchListUsers extends BaseCommand {
     }),
     'sort': Flags.string({
       description: "Сортировка результатов",
-      options: ["by_score","alphabetical"],
+      options: ["by_score","alphabetical","creation"],
     }),
     'order': Flags.string({
       description: "Направление сортировки",

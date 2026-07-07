@@ -8,7 +8,8 @@ export default class BotsCreate extends BaseCommand {
 
   static override examples = [
       "Создать бота через API и получить токен:\n  $ pachca bots create",
-      "Настроить бота с исходящим вебхуком:\n  $ pachca bots create"
+      "Настроить бота с исходящим вебхуком:\n  $ pachca bots create",
+      "Найти и удалить бота:\n  $ pachca bots list"
   ];
 
   static scope = "bots:write";
@@ -65,6 +66,16 @@ export default class BotsCreate extends BaseCommand {
       description: "Сохранять историю событий бота для последующего получения через метод истории событий",
       allowNo: true,
     }),
+    'who-can-add': Flags.string({
+      description: "Кто может добавлять бота в чаты",
+    }),
+    'can-edit': Flags.string({
+      description: "Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.",
+    }),
+    'single-chat': Flags.boolean({
+      description: "Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Задаётся только при создании, при редактировании не меняется.",
+      allowNo: true,
+    }),
   };
 
   async run(): Promise<void> {
@@ -106,6 +117,9 @@ export default class BotsCreate extends BaseCommand {
       link_preview_enabled: flags['link-preview-enabled'],
       ignore_self_messages: flags['ignore-self-messages'],
       events_history_enabled: flags['events-history-enabled'],
+      who_can_add: flags['who-can-add'],
+      can_edit: flags['can-edit'] ? this.parseJSON(flags['can-edit'], 'can-edit') : undefined,
+      single_chat: flags['single-chat'],
     } };
     // Clean undefined fields
     const inner = body['webhook'] as Record<string, unknown>;

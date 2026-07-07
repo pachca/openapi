@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026.7.0  (7 июля 2026)
+
+- **Добавлено** (bots list): Новая команда — список ботов с поиском по имени (`--query`)
+- **Добавлено** (bots delete): Новая команда — удаление бота по его `id`
+- **Добавлено** (bots create): Права доступа бота — параметры `who-can-add` (кто может добавлять бота в чаты), `can-edit` (роли, редактирующие настройки) и `single-chat` (только один чат)
+- **Добавлено** (bots update): Права доступа бота — параметры `who-can-add` (кто может добавлять бота в чаты) и `can-edit` (роли, редактирующие настройки)
+- **Добавлено** (search users): Значение сортировки `--sort creation` — по дате создания
+
 ## 2026.6.3  (24 июня 2026)
 
 - **Изменено** (files, custom-properties, oauth): Команды реорганизованы по разделам: `common uploads`→`files uploads`, `common direct-url`→`files direct-url`, `common custom-properties`→`custom-properties list`, `common request-export`→`chats request-export`, `common get-exports`→`chats download-export`, `profile get-info`→`oauth token-info`, `link-previews add`→`messages unfurl`. Старые имена продолжают работать (скрытые алиасы)

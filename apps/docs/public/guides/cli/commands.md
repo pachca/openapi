@@ -30,7 +30,9 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca auth status` | Статус текущего профиля |
 | `pachca auth switch` | Переключение активного профиля |
 | `pachca bots create` | `POST` Новый бот |
+| `pachca bots delete` | `DELETE` Удаление бота |
 | `pachca bots get` | `GET` Информация о боте |
+| `pachca bots list` | `GET` Список ботов |
 | `pachca bots list-events` | `GET` История событий |
 | `pachca bots recreate-token` | `POST` Ротация токена бота |
 | `pachca bots recreate-token-self` | `POST` Ротация собственного токена бота |

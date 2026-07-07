@@ -378,6 +378,25 @@ workflows:
           used for the request is invalidated immediately — be sure to save the new `access_token`
           from the response, otherwise the bot loses API access
         operationId: BotOperations_selfRecreateBotToken
+  - workflowId: find-and-delete-a-bot
+    summary: Find and delete a bot
+    description: >-
+      Deletion is irreversible: the bot token is invalidated immediately and the bot is removed from
+      chats. The event is recorded in the audit log as `bot_deleted`.
+    steps:
+      - stepId: find-and-delete-a-bot-1
+        description: >-
+          With a user token (scope `bots:read`) get the list of bots you can edit: those you created
+          and those whose settings grant you edit access. Filter by name with `query`, take the next
+          page from `meta.paginate.next_page`
+        operationId: BotOperations_listBots
+      - stepId: find-and-delete-a-bot-2
+        description: >-
+          Take the target bot `id` from the list and delete it (scope `bots:write`). Available to an
+          admin, the company owner or the bot creator — chat owners cannot delete a bot. The
+          previous token is invalidated immediately, the bot is removed from all chats, and its
+          outgoing webhook is deleted
+        operationId: BotOperations_deleteBot
   - workflowId: handle-incoming-webhook-event
     summary: Handle incoming webhook event
     description: >-

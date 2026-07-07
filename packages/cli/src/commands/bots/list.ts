@@ -2,20 +2,19 @@
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
-export default class SecurityList extends BaseCommand {
-  static override description = "Журнал аудита событий";
+export default class BotsList extends BaseCommand {
+  static override description = "Список ботов";
 
   static override examples = [
-      "Получить журнал аудита событий:\n  $ pachca security list",
-      "Мониторинг подозрительных входов:\n  $ pachca security list",
-      "Экспорт логов за период:\n  $ pachca security list"
+      "Создать бота через API и получить токен:\n  $ pachca bots create",
+      "Настроить бота с исходящим вебхуком:\n  $ pachca bots create",
+      "Найти и удалить бота:\n  $ pachca bots list"
   ];
 
-  static scope = "audit_events:read";
-  static plan = "corporation";
+  static scope = "bots:read";
   static apiMethod = "GET";
-  static apiPath = "/audit_events";
-  static defaultColumns = ["id","created_at","event_key","entity_id","entity_type"];
+  static apiPath = "/bots";
+  static defaultColumns = ["id","webhook"];
 
   static override args = {
 
@@ -23,27 +22,8 @@ export default class SecurityList extends BaseCommand {
 
   static override flags = {
     ...BaseCommand.baseFlags,
-    'start-time': Flags.string({
-      description: "Начальная метка времени (включительно)",
-    }),
-    'end-time': Flags.string({
-      description: "Конечная метка времени (исключительно)",
-    }),
-    'event-key': Flags.string({
-      description: "Фильтр по конкретному типу события",
-      options: ["user_login","user_logout","user_2fa_fail","user_2fa_success","user_created","user_deleted","user_role_changed","user_updated","tag_created","tag_deleted","user_added_to_tag","user_removed_from_tag","chat_created","chat_renamed","chat_permission_changed","user_chat_join","user_chat_leave","tag_added_to_chat","tag_removed_from_chat","message_updated","message_deleted","message_created","reaction_created","reaction_deleted","thread_created","access_token_created","access_token_updated","access_token_destroy","kms_encrypt","kms_decrypt","audit_events_accessed","dlp_violation_detected","search_users_api","search_chats_api","search_messages_api","bot_scopes_updated","bot_webhook_settings_updated","bot_token_recreated","bot_deleted"],
-    }),
-    'actor-id': Flags.string({
-      description: "Идентификатор пользователя, выполнившего действие",
-    }),
-    'actor-type': Flags.string({
-      description: "Тип актора",
-    }),
-    'entity-id': Flags.string({
-      description: "Идентификатор затронутой сущности",
-    }),
-    'entity-type': Flags.string({
-      description: "Тип сущности",
+    'query': Flags.string({
+      description: "Поисковая фраза для фильтрации ботов по имени",
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',
@@ -58,7 +38,7 @@ export default class SecurityList extends BaseCommand {
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(SecurityList);
+    const { args, flags } = await this.parse(BotsList);
     this.parsedFlags = flags;
 
     if (flags.all) {
@@ -70,17 +50,11 @@ export default class SecurityList extends BaseCommand {
 
       while (pages < 500) {
         const query: Record<string, string | number | boolean | string[] | undefined> = {
-        'start_time': flags['start-time'],
-        'end_time': flags['end-time'],
-        'event_key': flags['event-key'],
-        'actor_id': flags['actor-id'],
-        'actor_type': flags['actor-type'],
-        'entity_id': flags['entity-id'],
-        'entity_type': flags['entity-type'],
+        query: flags['query'],
         limit: flags.limit,
           cursor: nextCursor,
         };
-        const response = await this.apiRequest({ method: 'GET', path: '/audit_events', query });
+        const response = await this.apiRequest({ method: 'GET', path: '/bots', query });
         const body = response.data as Record<string, unknown>;
         const items = body.data as unknown[];
         if (items) allData.push(...items);
@@ -120,15 +94,9 @@ export default class SecurityList extends BaseCommand {
 
     const { data } = await this.apiRequest({
       method: 'GET',
-      path: '/audit_events',
+      path: '/bots',
       query: {
-      'start_time': flags['start-time'],
-      'end_time': flags['end-time'],
-      'event_key': flags['event-key'],
-      'actor_id': flags['actor-id'],
-      'actor_type': flags['actor-type'],
-      'entity_id': flags['entity-id'],
-      'entity_type': flags['entity-type'],
+      query: flags['query'],
       limit: flags.limit,
       cursor: flags.cursor,
       },

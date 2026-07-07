@@ -208,6 +208,47 @@
             "type": "boolean",
             "required": false,
             "description": "Сохранять историю событий бота для последующего получения через метод истории событий"
+          },
+          {
+            "name": "who-can-add",
+            "type": "option",
+            "required": false,
+            "description": "Кто может добавлять бота в чаты"
+          },
+          {
+            "name": "can-edit",
+            "type": "option",
+            "required": false,
+            "description": "Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель."
+          },
+          {
+            "name": "single-chat",
+            "type": "boolean",
+            "required": false,
+            "description": "Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Задаётся только при создании, при редактировании не меняется."
+          }
+        ]
+      },
+      {
+        "command": "pachca bots delete",
+        "summary": "Удаление бота",
+        "method": "DELETE",
+        "path": "/bots/{id}",
+        "scope": "bots:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
           }
         ]
       },
@@ -226,6 +267,40 @@
           }
         ],
         "flags": []
+      },
+      {
+        "command": "pachca bots list",
+        "summary": "Список ботов",
+        "method": "GET",
+        "path": "/bots",
+        "scope": "bots:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "query",
+            "type": "option",
+            "required": false,
+            "description": "Поисковая фраза для фильтрации ботов по имени"
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
       },
       {
         "command": "pachca bots list-events",
@@ -395,6 +470,18 @@
             "type": "boolean",
             "required": false,
             "description": "Сохранять историю событий бота для последующего получения через метод истории событий"
+          },
+          {
+            "name": "who-can-add",
+            "type": "option",
+            "required": false,
+            "description": "Кто может добавлять бота в чаты"
+          },
+          {
+            "name": "can-edit",
+            "type": "option",
+            "required": false,
+            "description": "Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель."
           }
         ]
       },
@@ -2030,7 +2117,8 @@
             "description": "Сортировка результатов",
             "options": [
               "by_score",
-              "alphabetical"
+              "alphabetical",
+              "creation"
             ]
           },
           {
@@ -2149,7 +2237,8 @@
               "search_messages_api",
               "bot_scopes_updated",
               "bot_webhook_settings_updated",
-              "bot_token_recreated"
+              "bot_token_recreated",
+              "bot_deleted"
             ]
           },
           {

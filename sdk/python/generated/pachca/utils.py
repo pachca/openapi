@@ -15,6 +15,7 @@ from .models import (
     LinkSharedWebhookPayload,
     MessageWebhookPayload,
     ReactionWebhookPayload,
+    VideoCallWebhookPayload,
     ViewSubmitWebhookPayload,
     WebhookPayloadUnion,
 )
@@ -107,6 +108,8 @@ def _webhook_payload_union_deserialize(data: dict) -> WebhookPayloadUnion:
             return _deserialize_instance(ChatMemberWebhookPayload, data)
         case ("company_member", _):
             return _deserialize_instance(CompanyMemberWebhookPayload, data)
+        case ("video_call", _):
+            return _deserialize_instance(VideoCallWebhookPayload, data)
         case _:
             raise ValueError(f"Unknown WebhookPayloadUnion discriminator: {data.get('type')}")
 

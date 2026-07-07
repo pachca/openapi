@@ -289,6 +289,7 @@ enum MessageSortField {
 @extension("x-enum-descriptions", #{
   by_score: "По релевантности",
   alphabetical: "По алфавиту",
+  creation: "По дате создания",
 })
 enum SearchSortOrder {
   @doc("По релевантности")
@@ -296,6 +297,9 @@ enum SearchSortOrder {
 
   @doc("По алфавиту")
   alphabetical: "alphabetical",
+
+  @doc("По дате создания")
+  creation: "creation",
 }
 
 @doc("Доступность чатов для пользователя")
@@ -618,6 +622,7 @@ enum ValidationErrorCode {
   bot_scopes_updated: "Изменены скоупы токена бота",
   bot_webhook_settings_updated: "Изменены настройки исходящего вебхука бота",
   bot_token_recreated: "Токен бота перевыпущен (ротация)",
+  bot_deleted: "Бот удалён",
 })
 enum AuditEventKey {
   @doc("Пользователь успешно вошел в систему")
@@ -733,6 +738,9 @@ enum AuditEventKey {
 
   @doc("Токен бота перевыпущен (ротация)")
   bot_token_recreated: "bot_token_recreated",
+
+  @doc("Бот удалён")
+  bot_deleted: "bot_deleted",
 }
 
 // ============================================================================
@@ -2703,6 +2711,33 @@ enum BotEventName {
   company_member_delete: "company_member_delete",
   company_member_update: "company_member_update",
   bill_created: "bill_created",
+  video_call_started: "video_call_started",
+  video_call_finished: "video_call_finished",
+  video_call_recording_ready: "video_call_recording_ready",
+}
+
+@doc("Кто может добавлять бота в чаты")
+@extension("x-enum-descriptions", #{
+  creator: "Только создатель бота",
+  creator_admin: "Создатель и администраторы компании",
+  creator_admin_user: "Создатель, администраторы и участники компании",
+  anyone: "Любой пользователь, в том числе гости",
+})
+enum BotWhoCanAdd {
+  creator: "creator",
+  creator_admin: "creator_admin",
+  creator_admin_user: "creator_admin_user",
+  anyone: "anyone",
+}
+
+@doc("Роль, которой разрешено редактировать настройки бота")
+@extension("x-enum-descriptions", #{
+  admin: "Администраторы компании",
+  chat_owners: "Владельцы чатов, в которые добавлен бот",
+})
+enum BotCanEdit {
+  admin: "admin",
+  chat_owners: "chat_owners",
 }
 
 @doc("Запрос на создание бота")
@@ -2760,6 +2795,18 @@ model BotCreateRequest {
     @doc("Сохранять историю событий бота для последующего получения через метод истории событий")
     @example(false)
     events_history_enabled?: boolean = false;
+
+    @doc("Кто может добавлять бота в чаты")
+    @example(BotWhoCanAdd.creator)
+    who_can_add?: BotWhoCanAdd = BotWhoCanAdd.creator;
+
+    @doc("Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.")
+    @example(#[BotCanEdit.admin])
+    can_edit?: BotCanEdit[];
+
+    @doc("Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Задаётся только при создании, при редактировании не меняется.")
+    @example(false)
+    single_chat?: boolean = false;
   };
 }
 
@@ -2818,6 +2865,14 @@ model BotUpdateRequest {
     @doc("Сохранять историю событий бота для последующего получения через метод истории событий")
     @example(false)
     events_history_enabled?: boolean = false;
+
+    @doc("Кто может добавлять бота в чаты")
+    @example(BotWhoCanAdd.creator)
+    who_can_add?: BotWhoCanAdd = BotWhoCanAdd.creator;
+
+    @doc("Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.")
+    @example(#[BotCanEdit.admin])
+    can_edit?: BotCanEdit[];
   };
 }
 
@@ -2874,6 +2929,18 @@ model BotWebhook {
   @doc("Сохранять историю событий бота для последующего получения через метод истории событий")
   @example(false)
   events_history_enabled: boolean;
+
+  @doc("Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.")
+  @example(false)
+  single_chat: boolean;
+
+  @doc("Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.")
+  @example(#[BotCanEdit.admin])
+  can_edit: BotCanEdit[];
+
+  @doc("Кто может добавлять бота в чаты")
+  @example(BotWhoCanAdd.creator)
+  who_can_add: BotWhoCanAdd;
 }
 
 @doc("Запрос на саморегистрацию вебхука бота")
@@ -2905,7 +2972,7 @@ model BotCreateResponse {
   access_token: string;
 }
 
-@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated")
+@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted")
 model AuditDetailsEmpty {}
 
 @doc("При: user_updated")
@@ -3404,6 +3471,121 @@ model LinkSharedWebhookPayload {
   webhook_timestamp: int32;
 }
 
+@doc("Тип события видеозвонка")
+@extension("x-enum-descriptions", #{
+  started: "Видеозвонок начался",
+  finished: "Видеозвонок завершился",
+  recording_ready: "Запись видеозвонка готова",
+})
+enum VideoCallEventType {
+  @doc("Видеозвонок начался")
+  started: "started",
+
+  @doc("Видеозвонок завершился")
+  finished: "finished",
+
+  @doc("Запись видеозвонка готова")
+  recording_ready: "recording_ready",
+}
+
+@doc("Параметры треда, в котором проходит видеозвонок")
+model WebhookVideoCallThread {
+  @doc("Идентификатор треда")
+  @example(12345)
+  id: int32;
+
+  @doc("Идентификатор чата треда")
+  @example(67890)
+  chat_id: int32;
+
+  @doc("Идентификатор сообщения, к которому создан тред")
+  @example(268092)
+  message_id: int32;
+
+  @doc("Идентификатор чата сообщения, к которому создан тред")
+  @example(23438)
+  message_chat_id: int32;
+}
+
+@doc("Участник видеозвонка")
+model WebhookVideoCallMember {
+  @doc("Идентификатор участника")
+  @example(2345)
+  user_id: int32;
+
+  @doc("Дата и время первого подключения к звонку (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @example(utcDateTime.fromISO("2025-05-15T14:30:00.000Z"))
+  joined_at: utcDateTime;
+
+  @doc("Дата и время выхода из звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Если участник оставался в звонке до его завершения, совпадает с временем окончания звонка.")
+  @example(utcDateTime.fromISO("2025-05-15T14:45:00.000Z"))
+  left_at: utcDateTime;
+}
+
+@doc("Структура исходящего вебхука о видеозвонке")
+model VideoCallWebhookPayload {
+  @doc("Тип объекта")
+  @example("video_call")
+  @extension("x-enum-descriptions", #{
+    video_call: "Для видеозвонков всегда video_call"
+  })
+  type: "video_call";
+
+  @doc("Тип события")
+  @example(VideoCallEventType.started)
+  event: VideoCallEventType;
+
+  @doc("Идентификатор видеозвонка")
+  @example(9012)
+  video_room_id: int32;
+
+  @doc("Идентификатор чата, в котором проходит видеозвонок")
+  @example(23438)
+  chat_id: int32;
+
+  @doc("Идентификатор пользователя, начавшего видеозвонок")
+  @example(2345)
+  owner_id: int32;
+
+  @doc("Объект с параметрами треда, если видеозвонок проходит в треде. `null`, если звонок не в треде.")
+  thread?: WebhookVideoCallThread | null;
+
+  @doc("Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished.")
+  @example(utcDateTime.fromISO("2025-05-15T14:30:00.000Z"))
+  started_at?: utcDateTime;
+
+  @doc("Дата и время завершения звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для события finished.")
+  @example(utcDateTime.fromISO("2025-05-15T14:45:00.000Z"))
+  finished_at?: utcDateTime;
+
+  @doc("Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи.")
+  @example(900)
+  duration?: int32;
+
+  @doc("Список участников звонка. Присутствует для события finished.")
+  members?: WebhookVideoCallMember[];
+
+  @doc("Идентификатор записи. Присутствует для события recording_ready.")
+  @example(4567)
+  recording_id?: int32;
+
+  @doc("Идентификатор файла записи. Присутствует для события recording_ready. `null`, если файл ещё не привязан.")
+  @example(89012)
+  file_id?: int32 | null;
+
+  @doc("Прямая ссылка на файл записи. Присутствует для события recording_ready.")
+  @example("https://api.pachca.com/files/89012")
+  url?: string;
+
+  @doc("Размер файла записи в байтах. Присутствует для события recording_ready.")
+  @example(10485760)
+  size?: int32;
+
+  @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
+  @example(1747574400)
+  webhook_timestamp: int32;
+}
+
 @doc("Объединение всех типов payload вебхуков")
 @extension("x-union-deserializer", "webhook-payload")
 union WebhookPayloadUnion {
@@ -3414,6 +3596,7 @@ union WebhookPayloadUnion {
   ChatMemberWebhookPayload,
   CompanyMemberWebhookPayload,
   LinkSharedWebhookPayload,
+  VideoCallWebhookPayload,
 }
 
 @doc("Событие исходящего вебхука")
@@ -5857,6 +6040,79 @@ interface FormOperations {
 @tag("Bots")
 interface BotOperations {
   @extension("x-requirements", #{
+    scope: "bots:read",
+  })
+  @doc("""
+Список ботов
+
+Метод для получения списка ботов. Возвращаются только боты, доступные вам для редактирования: созданные вами и те, чьи настройки открывают вам доступ к редактированию.
+""")
+  @extension("x-paginated", true)
+  @route("/bots")
+  @get
+  @opExample(#{
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #[
+          #{
+            id: 1738816,
+            webhook: #{
+              name: "Бот задач",
+              nickname: "tasks_bot",
+              outgoing_url: "https://www.website.com/tasks/new",
+              events: #[BotEventName.message_new],
+              trigger_on: BotTriggerOn.commands,
+              commands: #["/task"],
+              scopes: #["messages:create"],
+              template: "Заказ от {{ client }} на сумму {{ amount }} ₽",
+              template_engine: BotTemplateEngine.liquid,
+              challenge_key: "challenge",
+              link_preview_enabled: true,
+              ignore_self_messages: false,
+              events_history_enabled: false,
+              single_chat: false,
+              can_edit: #[BotCanEdit.admin],
+              who_can_add: BotWhoCanAdd.creator,
+            },
+          }
+        ],
+        meta: #{
+          paginate: #{
+            next_page: "eyJpZCI6MTczODgxNn0",
+          },
+        },
+      },
+    },
+  })
+  listBots(
+    @doc("Поисковая фраза для фильтрации ботов по имени")
+    @extension("example", "задач")
+    @query query?: string,
+    @doc("Количество возвращаемых сущностей за один запрос")
+    @query
+    @extension("example", 1)
+    @minValue(1)
+    @maxValue(50)
+    limit?: int32 = 50,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @extension("example", "eyJpZCI6MTczODgxNn0")
+    @query cursor?: string
+  ): {
+    @statusCode _: 200;
+    @body body: PaginatedDataResponse<BotResponse[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
     scope: "bots:write",
   })
   @doc("""
@@ -5901,6 +6157,9 @@ interface BotOperations {
             link_preview_enabled: true,
             ignore_self_messages: false,
             events_history_enabled: false,
+            single_chat: false,
+            can_edit: #[BotCanEdit.admin],
+            who_can_add: BotWhoCanAdd.creator,
           },
           access_token: "bm90X2FfcmVhbF90b2tlbg",
         },
@@ -5957,6 +6216,9 @@ interface BotOperations {
             link_preview_enabled: true,
             ignore_self_messages: false,
             events_history_enabled: false,
+            single_chat: false,
+            can_edit: #[BotCanEdit.admin],
+            who_can_add: BotWhoCanAdd.creator,
           },
         },
       },
@@ -6026,6 +6288,40 @@ interface BotOperations {
   };
 
   @extension("x-requirements", #{
+    scope: "bots:write",
+  })
+  @doc("""
+Удаление бота
+
+Метод для удаления бота. Прежний `access_token` бота сразу инвалидируется, бот исключается из всех чатов, его исходящий вебхук удаляется.
+
+Удаление доступно создателю бота, а также администратору компании, если настройки бота открывают администраторам доступ к редактированию. Владельцы и администраторы чатов удалять бота не могут, даже если им разрешено его редактировать.
+
+Для удаления бота вам необходимо знать его `id` и указать его в `URL` запроса.
+""")
+  @route("/bots/{id}")
+  @delete
+  deleteBot(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32
+  ): {
+    @statusCode _: 204;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
     scope: "bot_self:webhook:write",
   })
   @doc("""
@@ -6062,6 +6358,9 @@ interface BotOperations {
             link_preview_enabled: true,
             ignore_self_messages: false,
             events_history_enabled: false,
+            single_chat: false,
+            can_edit: #[BotCanEdit.admin],
+            who_can_add: BotWhoCanAdd.creator,
           },
         },
       },
@@ -6095,7 +6394,7 @@ interface BotOperations {
 
 Метод генерирует боту новый `access_token` и сразу инвалидирует прежний. Используйте его при компрометации токена или плановой ротации секрета в `CI`.
 
-Доступен администратору, владельцу компании или создателю бота. Укажите `id` бота в `URL` запроса. Новый токен возвращается в ответе только один раз — сохраните его сразу.
+Ротация доступна создателю бота, а также администратору компании, если настройки бота открывают администраторам доступ к редактированию. Укажите `id` бота в `URL` запроса. Новый токен возвращается в ответе только один раз — сохраните его сразу.
 """)
   @route("/bots/{id}/recreate_token")
   @post
@@ -6122,6 +6421,9 @@ interface BotOperations {
             link_preview_enabled: true,
             ignore_self_messages: false,
             events_history_enabled: false,
+            single_chat: false,
+            can_edit: #[BotCanEdit.admin],
+            who_can_add: BotWhoCanAdd.creator,
           },
           access_token: "bm90X2FfcmVhbF90b2tlbg",
         },
@@ -6181,6 +6483,9 @@ interface BotOperations {
             link_preview_enabled: true,
             ignore_self_messages: false,
             events_history_enabled: false,
+            single_chat: false,
+            can_edit: #[BotCanEdit.admin],
+            who_can_add: BotWhoCanAdd.creator,
           },
           access_token: "bm90X2FfcmVhbF90b2tlbg",
         },

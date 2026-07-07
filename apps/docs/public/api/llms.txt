@@ -105,9 +105,11 @@
 ## Bots
 - [Ротация собственного токена бота](https://dev.pachca.com/api/bots/recreate-token-self.md): POST /bot/recreate_token
 - [Саморегистрация вебхука бота](https://dev.pachca.com/api/bots/update-webhook.md): PUT /bot/webhook
+- [Список ботов](https://dev.pachca.com/api/bots/list.md): GET /bots
 - [Новый бот](https://dev.pachca.com/api/bots/create.md): POST /bots
 - [Информация о боте](https://dev.pachca.com/api/bots/get.md): GET /bots/{id}
 - [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
+- [Удаление бота](https://dev.pachca.com/api/bots/delete.md): DELETE /bots/{id}
 - [Ротация токена бота](https://dev.pachca.com/api/bots/recreate-token.md): POST /bots/{id}/recreate_token
 - [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
 - [Удаление события](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}

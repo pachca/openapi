@@ -108,6 +108,21 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 > Новый токен возвращается один раз. Self-путь (`POST /bot/recreate_token`) инвалидирует именно тот токен, которым выполнен запрос, — захвати новый токен из ответа в той же операции.
 
 
+### Найти и удалить бота
+
+1. Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`, следующую страницу бери из `meta.paginate.next_page`:
+   ```bash
+   pachca bots list --query="задач"
+   ```
+
+2. Возьми `id` нужного бота из списка и удали его (скоуп `bots:write`). Доступно администратору, владельцу компании или создателю бота — владельцы чатов удалять бота не могут. Прежний токен инвалидируется сразу, бот исключается из всех чатов, его исходящий вебхук удаляется:
+   ```bash
+   pachca bots delete <bot_id>
+   ```
+
+> Удаление необратимо: токен бота инвалидируется сразу, бот исключается из чатов. Событие фиксируется в журнале аудита как `bot_deleted`.
+
+
 ### Периодический дайджест/отчёт
 
 1. По расписанию (cron/scheduler): собери данные из своей системы
@@ -127,6 +142,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `webhook.trigger_on`: allowed values — `commands` (Только на команды (триггер-слова) из commands), `all_messages` (На все сообщения в чатах, где есть бот), `unfurl` (На развёртывание ссылок (link previews))
 - `webhook.template_engine`: allowed values — `liquid` (Liquid — условия, циклы и фильтры), `mustache` (Mustache — простая подстановка без логики)
+- `webhook.who_can_add`: allowed values — `creator` (Только создатель бота), `creator_admin` (Создатель и администраторы компании), `creator_admin_user` (Создатель, администраторы и участники компании), `anyone` (Любой пользователь, в том числе гости)
 - `limit`: max 50
 - Pagination: cursor-based (limit + cursor)
 
@@ -136,9 +152,11 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 |--------|------|-------------|
 | POST | /bot/recreate_token | Ротация собственного токена бота |
 | PUT | /bot/webhook | Саморегистрация вебхука бота |
+| GET | /bots | Список ботов |
 | POST | /bots | Новый бот |
 | GET | /bots/{id} | Информация о боте |
 | PUT | /bots/{id} | Редактирование бота |
+| DELETE | /bots/{id} | Удаление бота |
 | POST | /bots/{id}/recreate_token | Ротация токена бота |
 | GET | /webhooks/events | История событий |
 | DELETE | /webhooks/events/{id} | Удаление события |

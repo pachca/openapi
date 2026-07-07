@@ -1,5 +1,36 @@
 [
   {
+    "version": "2026.7.0",
+    "date": "7 июля 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "bots list",
+        "description": "Новая команда — список ботов с поиском по имени (`--query`)"
+      },
+      {
+        "type": "+",
+        "command": "bots delete",
+        "description": "Новая команда — удаление бота по его `id`"
+      },
+      {
+        "type": "+",
+        "command": "bots create",
+        "description": "Права доступа бота — параметры `who-can-add` (кто может добавлять бота в чаты), `can-edit` (роли, редактирующие настройки) и `single-chat` (только один чат)"
+      },
+      {
+        "type": "+",
+        "command": "bots update",
+        "description": "Права доступа бота — параметры `who-can-add` (кто может добавлять бота в чаты) и `can-edit` (роли, редактирующие настройки)"
+      },
+      {
+        "type": "+",
+        "command": "search users",
+        "description": "Значение сортировки `--sort creation` — по дате создания"
+      }
+    ]
+  },
+  {
     "version": "2026.6.3",
     "date": "24 июня 2026",
     "changes": [

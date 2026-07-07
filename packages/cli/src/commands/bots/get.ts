@@ -6,7 +6,8 @@ export default class BotsGet extends BaseCommand {
   static override description = "Информация о боте";
 
   static override examples = [
-      "Обновить Webhook URL бота:\n  $ pachca bots update"
+      "Обновить Webhook URL бота:\n  $ pachca bots update",
+      "Найти и удалить бота:\n  $ pachca bots delete"
   ];
 
   static scope = "bots:read";

@@ -217,6 +217,7 @@ const RU_TO_EN: Record<string, string> = {
 	'Разработка': 'Development',
 	'футболки': 't-shirts',
 	'Олег': 'Oleg',
+	'задач': 'task',
 	'Петров': 'Petrov',
 	'Продукт': 'Product',
 	'Санкт-Петербург': 'Saint Petersburg',

@@ -136,10 +136,12 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
 | `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.bots.listBots()` | [Список ботов](/api/bots/list) |
 | `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.deleteBot()` | [Удаление бота](/api/bots/delete) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |

@@ -1,201 +1,38 @@
 > Расположение: Методы API → Боты и Webhook
-> Краткое содержание: Метод для создания бота и получения его accesstoken.
+> Краткое содержание: Метод для удаления бота
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
-# Новый бот
+# Удаление бота
 
-**Метод**: `POST`
+**Метод**: `DELETE`
 
-**Путь**: `/bots`
+**Путь**: `/bots/{id}`
 
 > **Скоуп:** `bots:write`
 
-Метод для создания бота и получения его `access_token`.
+Метод для удаления бота. Прежний `access_token` бота сразу инвалидируется, бот исключается из всех чатов, его исходящий вебхук удаляется.
 
-При создании вы получите `access_token` бота — сразу сохраните его. Повторно получить токен вы сможете только через интерфейс (вкладка «API» настроек бота).
+Удаление доступно создателю бота, а также администратору компании, если настройки бота открывают администраторам доступ к редактированию. Владельцы и администраторы чатов удалять бота не могут, даже если им разрешено его редактировать.
 
-## Тело запроса
+Для удаления бота вам необходимо знать его `id` и указать его в `URL` запроса.
 
-**Обязательно**
+## Параметры
 
-Формат: `application/json`
+### Path параметры
 
-### Схема
+- `id: integer, int32` (required) — Идентификатор бота
 
-- `webhook: object` (required) — Объект параметров вебхука создаваемого бота
-  - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
-  - `nickname: string` — Никнейм бота. Должен заканчиваться на `_bot`.. Пример: `"tasks_bot"`
-  - `outgoing_url: string` — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
-  - `events: array of string` — События, на которые подписан бот. Пример: `["message_new"]`
-  - `trigger_on: string` — Условие срабатывания исходящего вебхука
-    Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
-  - `commands: array of string` — Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Пример: `["/task","/help"]`
-  - `scopes: array of string` — Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.. Пример: `["messages:create"]`
-  - `template: string` — Шаблон форматирования входящего вебхука. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
-  - `template_engine: string` — Шаблонизатор для обработки шаблона входящего вебхука
-    Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
-  - `challenge_key: string` — Название поля проверки для верификации входящего вебхука. Пример: `"challenge"`
-  - `link_preview_enabled: boolean` (default: true) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
-  - `ignore_self_messages: boolean` (default: false) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
-  - `events_history_enabled: boolean` (default: false) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
-  - `who_can_add: string` — Кто может добавлять бота в чаты
-    Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
-  - `can_edit: array of string` — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
-  - `single_chat: boolean` (default: false) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Задаётся только при создании, при редактировании не меняется.. Пример: `false`
-
-### Пример
-
-```json
-{
-  "webhook": {
-    "name": "Бот задач",
-    "nickname": "tasks_bot",
-    "outgoing_url": "https://www.website.com/tasks/new",
-    "events": [
-      "message_new"
-    ],
-    "commands": [
-      "/task",
-      "/help"
-    ],
-    "scopes": [
-      "messages:create"
-    ],
-    "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
-    "challenge_key": "challenge",
-    "can_edit": [
-      "admin"
-    ]
-  }
-}
-```
 
 ## Пример запроса
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/bots" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-  "webhook": {
-    "name": "Бот задач",
-    "nickname": "tasks_bot",
-    "outgoing_url": "https://www.website.com/tasks/new",
-    "events": [
-      "message_new"
-    ],
-    "commands": [
-      "/task",
-      "/help"
-    ],
-    "scopes": [
-      "messages:create"
-    ],
-    "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
-    "challenge_key": "challenge",
-    "can_edit": [
-      "admin"
-    ]
-  }
-}'
+curl -X DELETE "https://api.pachca.com/api/shared/v1/bots/1738816" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ## Ответы
 
-### 201: The request has succeeded and a new resource has been created as a result.
-
-**Схема ответа:**
-
-- `data: object` (required) — Параметры созданного бота
-  - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
-  - `webhook: object` (required) — Объект параметров вебхука
-    - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
-    - `nickname: string` (required) — Никнейм бота. Пример: `"tasks_bot"`
-    - `outgoing_url: string` (required) — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
-    - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
-    - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
-      Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
-    - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
-    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
-    - `template: string` (required) — Шаблон форматирования входящего вебхука. `null`, если не задан.. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
-    - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
-      Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
-    - `challenge_key: string` (required) — Название поля проверки для верификации входящего вебхука. `null`, если не задано.. Пример: `"challenge"`
-    - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
-    - `ignore_self_messages: boolean` (required) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
-    - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
-    - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.. Пример: `false`
-    - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
-    - `who_can_add: string` (required) — Кто может добавлять бота в чаты
-      Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
-  - `access_token: string` (required) — Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота.. Пример: `"bm90X2FfcmVhbF90b2tlbg"`
-
-**Пример ответа:**
-
-```json
-{
-  "data": {
-    "id": 1738816,
-    "webhook": {
-      "name": "Бот задач",
-      "nickname": "tasks_bot",
-      "outgoing_url": "https://www.website.com/tasks/new",
-      "events": [
-        "message_new"
-      ],
-      "trigger_on": "commands",
-      "commands": [
-        "/task"
-      ],
-      "scopes": [
-        "messages:create"
-      ],
-      "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
-      "template_engine": "liquid",
-      "challenge_key": "challenge",
-      "link_preview_enabled": true,
-      "ignore_self_messages": false,
-      "events_history_enabled": false,
-      "single_chat": false,
-      "can_edit": [
-        "admin"
-      ],
-      "who_can_add": "creator"
-    },
-    "access_token": "bm90X2FfcmVhbF90b2tlbg"
-  }
-}
-```
-
-### 400: The server could not understand the request due to invalid syntax.
-
-**Схема ответа при ошибке:**
-
-- `errors: array of object` (required) — Массив ошибок
-  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
-  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
-  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
-  - `code: string` (required) — Код ошибки
-    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде
-  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
-    **Структура значений Record:**
-    - Тип значения: `any`
-
-**Пример ответа:**
-
-```json
-{
-  "errors": [
-    {
-      "key": "field.name",
-      "value": "invalid_value",
-      "message": "Поле не может быть пустым",
-      "code": "blank",
-      "payload": null
-    }
-  ]
-}
-```
+### 204: There is no content to send for this request, but the headers may be useful. 
 
 ### 401: Access is unauthorized.
 
@@ -256,6 +93,36 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
 {
   "error": "invalid_token",
   "error_description": "Access token is missing"
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:**
+
+- `errors: array of object` (required) — Массив ошибок
+  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
+  - `code: string` (required) — Код ошибки
+    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
+    **Структура значений Record:**
+    - Тип значения: `any`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
 }
 ```
 

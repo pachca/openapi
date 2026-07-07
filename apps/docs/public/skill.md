@@ -145,9 +145,11 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 ### Bots
 - `POST /bot/recreate_token` — Self recreate bot token
 - `PUT /bot/webhook` — Self update bot webhook
+- `GET /bots` — List bots
 - `POST /bots` — Create bot
 - `GET /bots/{id}` — Get bot
 - `PUT /bots/{id}` — Update bot
+- `DELETE /bots/{id}` — Delete bot
 - `POST /bots/{id}/recreate_token` — Recreate bot token
 - `GET /webhooks/events` — Get webhook events
 - `DELETE /webhooks/events/{id}` — Delete webhook event

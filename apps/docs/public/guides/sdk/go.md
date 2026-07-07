@@ -137,10 +137,12 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Bots.CreateBot()` | [Новый бот](/api/bots/create) |
 | `client.Bots.SelfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.RecreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.Bots.ListBots()` | [Список ботов](/api/bots/list) |
 | `client.Bots.GetBot()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.GetWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.Bots.SelfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.Bots.DeleteBot()` | [Удаление бота](/api/bots/delete) |
 | `client.Bots.DeleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.Security.GetAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.CustomProperties.ListProperties()` | [Список дополнительных полей](/api/custom-properties/list) |

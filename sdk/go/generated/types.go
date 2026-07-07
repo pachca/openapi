@@ -49,27 +49,38 @@ const (
 	AuditEventKeyBotScopesUpdated          AuditEventKey = "bot_scopes_updated" // Изменены скоупы токена бота
 	AuditEventKeyBotWebhookSettingsUpdated AuditEventKey = "bot_webhook_settings_updated" // Изменены настройки исходящего вебхука бота
 	AuditEventKeyBotTokenRecreated         AuditEventKey = "bot_token_recreated" // Токен бота перевыпущен (ротация)
+	AuditEventKeyBotDeleted                AuditEventKey = "bot_deleted" // Бот удалён
+)
+
+type BotCanEdit string
+
+const (
+	BotCanEditAdmin      BotCanEdit = "admin" // Администраторы компании
+	BotCanEditChatOwners BotCanEdit = "chat_owners" // Владельцы чатов, в которые добавлен бот
 )
 
 type BotEventName string
 
 const (
-	BotEventNameMessageNew            BotEventName = "message_new" // Новое сообщение
-	BotEventNameMessageUpdate         BotEventName = "message_update" // Сообщение отредактировано
-	BotEventNameMessageDelete         BotEventName = "message_delete" // Сообщение удалено
-	BotEventNameReactionNew           BotEventName = "reaction_new" // Добавлена реакция
-	BotEventNameReactionDelete        BotEventName = "reaction_delete" // Реакция удалена
-	BotEventNameButtonClick           BotEventName = "button_click" // Нажата кнопка
-	BotEventNameMessageLinkShared     BotEventName = "message_link_shared" // В сообщении отправлена ссылка (для unfurl)
-	BotEventNameChatMemberAdd         BotEventName = "chat_member_add" // Участник добавлен в чат
-	BotEventNameChatMemberRemove      BotEventName = "chat_member_remove" // Участник удалён из чата
-	BotEventNameCompanyMemberInvite   BotEventName = "company_member_invite" // Сотрудник приглашён в компанию
-	BotEventNameCompanyMemberConfirm  BotEventName = "company_member_confirm" // Сотрудник подтвердил приглашение
-	BotEventNameCompanyMemberSuspend  BotEventName = "company_member_suspend" // Сотрудник деактивирован
-	BotEventNameCompanyMemberActivate BotEventName = "company_member_activate" // Сотрудник активирован
-	BotEventNameCompanyMemberDelete   BotEventName = "company_member_delete" // Сотрудник удалён из компании
-	BotEventNameCompanyMemberUpdate   BotEventName = "company_member_update" // Данные сотрудника изменены
-	BotEventNameBillCreated           BotEventName = "bill_created" // Создан счёт
+	BotEventNameMessageNew              BotEventName = "message_new" // Новое сообщение
+	BotEventNameMessageUpdate           BotEventName = "message_update" // Сообщение отредактировано
+	BotEventNameMessageDelete           BotEventName = "message_delete" // Сообщение удалено
+	BotEventNameReactionNew             BotEventName = "reaction_new" // Добавлена реакция
+	BotEventNameReactionDelete          BotEventName = "reaction_delete" // Реакция удалена
+	BotEventNameButtonClick             BotEventName = "button_click" // Нажата кнопка
+	BotEventNameMessageLinkShared       BotEventName = "message_link_shared" // В сообщении отправлена ссылка (для unfurl)
+	BotEventNameChatMemberAdd           BotEventName = "chat_member_add" // Участник добавлен в чат
+	BotEventNameChatMemberRemove        BotEventName = "chat_member_remove" // Участник удалён из чата
+	BotEventNameCompanyMemberInvite     BotEventName = "company_member_invite" // Сотрудник приглашён в компанию
+	BotEventNameCompanyMemberConfirm    BotEventName = "company_member_confirm" // Сотрудник подтвердил приглашение
+	BotEventNameCompanyMemberSuspend    BotEventName = "company_member_suspend" // Сотрудник деактивирован
+	BotEventNameCompanyMemberActivate   BotEventName = "company_member_activate" // Сотрудник активирован
+	BotEventNameCompanyMemberDelete     BotEventName = "company_member_delete" // Сотрудник удалён из компании
+	BotEventNameCompanyMemberUpdate     BotEventName = "company_member_update" // Данные сотрудника изменены
+	BotEventNameBillCreated             BotEventName = "bill_created" // Создан счёт
+	BotEventNameVideoCallStarted        BotEventName = "video_call_started"
+	BotEventNameVideoCallFinished       BotEventName = "video_call_finished"
+	BotEventNameVideoCallRecordingReady BotEventName = "video_call_recording_ready"
 )
 
 type BotTemplateEngine string
@@ -85,6 +96,15 @@ const (
 	BotTriggerOnCommands    BotTriggerOn = "commands" // Только на команды (триггер-слова) из commands
 	BotTriggerOnAllMessages BotTriggerOn = "all_messages" // На все сообщения в чатах, где есть бот
 	BotTriggerOnUnfurl      BotTriggerOn = "unfurl" // На развёртывание ссылок (link previews)
+)
+
+type BotWhoCanAdd string
+
+const (
+	BotWhoCanAddCreator          BotWhoCanAdd = "creator" // Только создатель бота
+	BotWhoCanAddCreatorAdmin     BotWhoCanAdd = "creator_admin" // Создатель и администраторы компании
+	BotWhoCanAddCreatorAdminUser BotWhoCanAdd = "creator_admin_user" // Создатель, администраторы и участники компании
+	BotWhoCanAddAnyone           BotWhoCanAdd = "anyone" // Любой пользователь, в том числе гости
 )
 
 type ChatAvailability string
@@ -256,6 +276,7 @@ type SearchSortOrder string
 const (
 	SearchSortOrderByScore      SearchSortOrder = "by_score" // По релевантности
 	SearchSortOrderAlphabetical SearchSortOrder = "alphabetical" // По алфавиту
+	SearchSortOrderCreation     SearchSortOrder = "creation" // По дате создания
 )
 
 type SortOrder string
@@ -363,6 +384,14 @@ const (
 	ValidationErrorCodePinFailed          ValidationErrorCode = "pin_failed" // Не удалось закрепить сообщение
 	ValidationErrorCodeMessageDeleted     ValidationErrorCode = "message_deleted" // Сообщение удалено
 	ValidationErrorCodeThreadMessage      ValidationErrorCode = "thread_message" // Нельзя создать тред для сообщения, которое уже находится в треде
+)
+
+type VideoCallEventType string
+
+const (
+	VideoCallEventTypeStarted        VideoCallEventType = "started" // Видеозвонок начался
+	VideoCallEventTypeFinished       VideoCallEventType = "finished" // Видеозвонок завершился
+	VideoCallEventTypeRecordingReady VideoCallEventType = "recording_ready" // Запись видеозвонка готова
 )
 
 type WebhookEventType string
@@ -531,6 +560,9 @@ type BotCreateRequestWebhook struct {
 	LinkPreviewEnabled   *bool              `json:"link_preview_enabled,omitempty"`
 	IgnoreSelfMessages   *bool              `json:"ignore_self_messages,omitempty"`
 	EventsHistoryEnabled *bool              `json:"events_history_enabled,omitempty"`
+	WhoCanAdd            *BotWhoCanAdd      `json:"who_can_add,omitempty"`
+	CanEdit              []BotCanEdit       `json:"can_edit,omitempty"`
+	SingleChat           *bool              `json:"single_chat,omitempty"`
 }
 
 func (m BotCreateRequestWebhook) MarshalJSON() ([]byte, error) {
@@ -551,6 +583,9 @@ func (m BotCreateRequestWebhook) MarshalJSON() ([]byte, error) {
 	}
 	if m.Scopes != nil {
 		raw["scopes"] = m.Scopes
+	}
+	if m.CanEdit != nil {
+		raw["can_edit"] = m.CanEdit
 	}
 	return json.Marshal(raw)
 }
@@ -584,6 +619,8 @@ type BotUpdateRequestWebhook struct {
 	LinkPreviewEnabled   *bool              `json:"link_preview_enabled,omitempty"`
 	IgnoreSelfMessages   *bool              `json:"ignore_self_messages,omitempty"`
 	EventsHistoryEnabled *bool              `json:"events_history_enabled,omitempty"`
+	WhoCanAdd            *BotWhoCanAdd      `json:"who_can_add,omitempty"`
+	CanEdit              []BotCanEdit       `json:"can_edit,omitempty"`
 }
 
 func (m BotUpdateRequestWebhook) MarshalJSON() ([]byte, error) {
@@ -605,6 +642,9 @@ func (m BotUpdateRequestWebhook) MarshalJSON() ([]byte, error) {
 	if m.Scopes != nil {
 		raw["scopes"] = m.Scopes
 	}
+	if m.CanEdit != nil {
+		raw["can_edit"] = m.CanEdit
+	}
 	return json.Marshal(raw)
 }
 
@@ -623,6 +663,9 @@ type BotWebhook struct {
 	LinkPreviewEnabled   bool              `json:"link_preview_enabled"`
 	IgnoreSelfMessages   bool              `json:"ignore_self_messages"`
 	EventsHistoryEnabled bool              `json:"events_history_enabled"`
+	SingleChat           bool              `json:"single_chat"`
+	CanEdit              []BotCanEdit      `json:"can_edit"`
+	WhoCanAdd            BotWhoCanAdd      `json:"who_can_add"`
 	OutgoingURL          *string           `json:"outgoing_url"`
 	Template             *string           `json:"template"`
 	ChallengeKey         *string           `json:"challenge_key"`
@@ -1294,6 +1337,40 @@ type UserUpdateRequest struct {
 	User UserUpdateRequestUser `json:"user"`
 }
 
+type VideoCallWebhookPayload struct {
+	Type             string                   `json:"type"` // always "video_call"
+	Event            VideoCallEventType       `json:"event"`
+	VideoRoomID      int32                    `json:"video_room_id"`
+	ChatID           int32                    `json:"chat_id"`
+	OwnerID          int32                    `json:"owner_id"`
+	WebhookTimestamp int32                    `json:"webhook_timestamp"`
+	Thread           *WebhookVideoCallThread  `json:"thread"`
+	StartedAt        *time.Time               `json:"started_at,omitempty"`
+	FinishedAt       *time.Time               `json:"finished_at,omitempty"`
+	Duration         *int32                   `json:"duration,omitempty"`
+	Members          []WebhookVideoCallMember `json:"members,omitempty"`
+	RecordingID      *int32                   `json:"recording_id,omitempty"`
+	FileID           *int32                   `json:"file_id"`
+	URL              *string                  `json:"url,omitempty"`
+	Size             *int32                   `json:"size,omitempty"`
+}
+
+func (m VideoCallWebhookPayload) MarshalJSON() ([]byte, error) {
+	type Alias VideoCallWebhookPayload
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Members != nil {
+		raw["members"] = m.Members
+	}
+	return json.Marshal(raw)
+}
+
 type ViewBlock struct {
 	Type        string     `json:"type"`
 	Text        *string    `json:"text,omitempty"`
@@ -1504,6 +1581,19 @@ type WebhookLink struct {
 }
 
 type WebhookMessageThread struct {
+	MessageID     int32 `json:"message_id"`
+	MessageChatID int32 `json:"message_chat_id"`
+}
+
+type WebhookVideoCallMember struct {
+	UserID   int32     `json:"user_id"`
+	JoinedAt time.Time `json:"joined_at"`
+	LeftAt   time.Time `json:"left_at"`
+}
+
+type WebhookVideoCallThread struct {
+	ID            int32 `json:"id"`
+	ChatID        int32 `json:"chat_id"`
 	MessageID     int32 `json:"message_id"`
 	MessageChatID int32 `json:"message_chat_id"`
 }
@@ -1753,6 +1843,7 @@ type WebhookPayloadUnion struct {
 	ChatMemberWebhookPayload    *ChatMemberWebhookPayload
 	CompanyMemberWebhookPayload *CompanyMemberWebhookPayload
 	LinkSharedWebhookPayload    *LinkSharedWebhookPayload
+	VideoCallWebhookPayload     *VideoCallWebhookPayload
 }
 
 func (u *WebhookPayloadUnion) UnmarshalJSON(data []byte) error {
@@ -1785,6 +1876,9 @@ func (u *WebhookPayloadUnion) UnmarshalJSON(data []byte) error {
 	case disc.Type == "company_member":
 		u.CompanyMemberWebhookPayload = &CompanyMemberWebhookPayload{}
 		return json.Unmarshal(data, u.CompanyMemberWebhookPayload)
+	case disc.Type == "video_call":
+		u.VideoCallWebhookPayload = &VideoCallWebhookPayload{}
+		return json.Unmarshal(data, u.VideoCallWebhookPayload)
 	default:
 		return fmt.Errorf("unknown WebhookPayloadUnion type: %s", disc.Type)
 	}
@@ -1812,6 +1906,9 @@ func (u WebhookPayloadUnion) MarshalJSON() ([]byte, error) {
 	if u.LinkSharedWebhookPayload != nil {
 		return json.Marshal(u.LinkSharedWebhookPayload)
 	}
+	if u.VideoCallWebhookPayload != nil {
+		return json.Marshal(u.VideoCallWebhookPayload)
+	}
 	return nil, fmt.Errorf("empty WebhookPayloadUnion")
 }
 
@@ -1825,6 +1922,12 @@ type GetAuditEventsParams struct {
 	EntityType *string
 	Limit      *int32
 	Cursor     *string
+}
+
+type ListBotsParams struct {
+	Query  *string
+	Limit  *int32
+	Cursor *string
 }
 
 type ListChatsParams struct {
@@ -1943,6 +2046,11 @@ type GetWebhookEventsParams struct {
 
 type GetAuditEventsResponse struct {
 	Data []AuditEvent   `json:"data"`
+	Meta PaginationMeta `json:"meta"`
+}
+
+type ListBotsResponse struct {
+	Data []BotResponse  `json:"data"`
 	Meta PaginationMeta `json:"meta"`
 }
 

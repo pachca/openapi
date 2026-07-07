@@ -88,6 +88,8 @@ public enum AuditEventKey
     BotWebhookSettingsUpdated,
     /// <summary>Токен бота перевыпущен (ротация)</summary>
     BotTokenRecreated,
+    /// <summary>Бот удалён</summary>
+    BotDeleted,
 }
 
 internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
@@ -135,6 +137,7 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             "bot_scopes_updated" => AuditEventKey.BotScopesUpdated,
             "bot_webhook_settings_updated" => AuditEventKey.BotWebhookSettingsUpdated,
             "bot_token_recreated" => AuditEventKey.BotTokenRecreated,
+            "bot_deleted" => AuditEventKey.BotDeleted,
             _ => throw new JsonException($"Unknown AuditEventKey value: {value}"),
         };
     }
@@ -181,6 +184,42 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             AuditEventKey.BotScopesUpdated => "bot_scopes_updated",
             AuditEventKey.BotWebhookSettingsUpdated => "bot_webhook_settings_updated",
             AuditEventKey.BotTokenRecreated => "bot_token_recreated",
+            AuditEventKey.BotDeleted => "bot_deleted",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
+/// <summary>Роль, которой разрешено редактировать настройки бота</summary>
+[JsonConverter(typeof(BotCanEditConverter))]
+public enum BotCanEdit
+{
+    /// <summary>Администраторы компании</summary>
+    Admin,
+    /// <summary>Владельцы чатов, в которые добавлен бот</summary>
+    ChatOwners,
+}
+
+internal class BotCanEditConverter : JsonConverter<BotCanEdit>
+{
+    public override BotCanEdit Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "admin" => BotCanEdit.Admin,
+            "chat_owners" => BotCanEdit.ChatOwners,
+            _ => throw new JsonException($"Unknown BotCanEdit value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, BotCanEdit value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            BotCanEdit.Admin => "admin",
+            BotCanEdit.ChatOwners => "chat_owners",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -223,6 +262,9 @@ public enum BotEventName
     CompanyMemberUpdate,
     /// <summary>Создан счёт</summary>
     BillCreated,
+    VideoCallStarted,
+    VideoCallFinished,
+    VideoCallRecordingReady,
 }
 
 internal class BotEventNameConverter : JsonConverter<BotEventName>
@@ -248,6 +290,9 @@ internal class BotEventNameConverter : JsonConverter<BotEventName>
             "company_member_delete" => BotEventName.CompanyMemberDelete,
             "company_member_update" => BotEventName.CompanyMemberUpdate,
             "bill_created" => BotEventName.BillCreated,
+            "video_call_started" => BotEventName.VideoCallStarted,
+            "video_call_finished" => BotEventName.VideoCallFinished,
+            "video_call_recording_ready" => BotEventName.VideoCallRecordingReady,
             _ => throw new JsonException($"Unknown BotEventName value: {value}"),
         };
     }
@@ -272,6 +317,9 @@ internal class BotEventNameConverter : JsonConverter<BotEventName>
             BotEventName.CompanyMemberDelete => "company_member_delete",
             BotEventName.CompanyMemberUpdate => "company_member_update",
             BotEventName.BillCreated => "bill_created",
+            BotEventName.VideoCallStarted => "video_call_started",
+            BotEventName.VideoCallFinished => "video_call_finished",
+            BotEventName.VideoCallRecordingReady => "video_call_recording_ready",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -346,6 +394,49 @@ internal class BotTriggerOnConverter : JsonConverter<BotTriggerOn>
             BotTriggerOn.Commands => "commands",
             BotTriggerOn.AllMessages => "all_messages",
             BotTriggerOn.Unfurl => "unfurl",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
+/// <summary>Кто может добавлять бота в чаты</summary>
+[JsonConverter(typeof(BotWhoCanAddConverter))]
+public enum BotWhoCanAdd
+{
+    /// <summary>Только создатель бота</summary>
+    Creator,
+    /// <summary>Создатель и администраторы компании</summary>
+    CreatorAdmin,
+    /// <summary>Создатель, администраторы и участники компании</summary>
+    CreatorAdminUser,
+    /// <summary>Любой пользователь, в том числе гости</summary>
+    Anyone,
+}
+
+internal class BotWhoCanAddConverter : JsonConverter<BotWhoCanAdd>
+{
+    public override BotWhoCanAdd Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "creator" => BotWhoCanAdd.Creator,
+            "creator_admin" => BotWhoCanAdd.CreatorAdmin,
+            "creator_admin_user" => BotWhoCanAdd.CreatorAdminUser,
+            "anyone" => BotWhoCanAdd.Anyone,
+            _ => throw new JsonException($"Unknown BotWhoCanAdd value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, BotWhoCanAdd value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            BotWhoCanAdd.Creator => "creator",
+            BotWhoCanAdd.CreatorAdmin => "creator_admin",
+            BotWhoCanAdd.CreatorAdminUser => "creator_admin_user",
+            BotWhoCanAdd.Anyone => "anyone",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -1120,6 +1211,8 @@ public enum SearchSortOrder
     ByScore,
     /// <summary>По алфавиту</summary>
     Alphabetical,
+    /// <summary>По дате создания</summary>
+    Creation,
 }
 
 internal class SearchSortOrderConverter : JsonConverter<SearchSortOrder>
@@ -1131,6 +1224,7 @@ internal class SearchSortOrderConverter : JsonConverter<SearchSortOrder>
         {
             "by_score" => SearchSortOrder.ByScore,
             "alphabetical" => SearchSortOrder.Alphabetical,
+            "creation" => SearchSortOrder.Creation,
             _ => throw new JsonException($"Unknown SearchSortOrder value: {value}"),
         };
     }
@@ -1141,6 +1235,7 @@ internal class SearchSortOrderConverter : JsonConverter<SearchSortOrder>
         {
             SearchSortOrder.ByScore => "by_score",
             SearchSortOrder.Alphabetical => "alphabetical",
+            SearchSortOrder.Creation => "creation",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -1631,6 +1726,45 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
     }
 }
 
+/// <summary>Тип события видеозвонка</summary>
+[JsonConverter(typeof(VideoCallEventTypeConverter))]
+public enum VideoCallEventType
+{
+    /// <summary>Видеозвонок начался</summary>
+    Started,
+    /// <summary>Видеозвонок завершился</summary>
+    Finished,
+    /// <summary>Запись видеозвонка готова</summary>
+    RecordingReady,
+}
+
+internal class VideoCallEventTypeConverter : JsonConverter<VideoCallEventType>
+{
+    public override VideoCallEventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "started" => VideoCallEventType.Started,
+            "finished" => VideoCallEventType.Finished,
+            "recording_ready" => VideoCallEventType.RecordingReady,
+            _ => throw new JsonException($"Unknown VideoCallEventType value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, VideoCallEventType value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            VideoCallEventType.Started => "started",
+            VideoCallEventType.Finished => "finished",
+            VideoCallEventType.RecordingReady => "recording_ready",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Тип события webhook</summary>
 [JsonConverter(typeof(WebhookEventTypeConverter))]
 public enum WebhookEventType
@@ -2032,6 +2166,7 @@ internal sealed class WebhookPayloadUnionConverter : JsonConverter<WebhookPayloa
             "view" => JsonSerializer.Deserialize<ViewSubmitWebhookPayload>(raw, options)!,
             "chat_member" => JsonSerializer.Deserialize<ChatMemberWebhookPayload>(raw, options)!,
             "company_member" => JsonSerializer.Deserialize<CompanyMemberWebhookPayload>(raw, options)!,
+            "video_call" => JsonSerializer.Deserialize<VideoCallWebhookPayload>(raw, options)!,
             _ => throw new JsonException($"Unknown WebhookPayloadUnion type: {type}")
         };
     }
@@ -2186,6 +2321,40 @@ public class LinkSharedWebhookPayload : WebhookPayloadUnion
     public int WebhookTimestamp { get; set; } = default!;
 }
 
+public class VideoCallWebhookPayload : WebhookPayloadUnion
+{
+    [JsonPropertyName("type")]
+    public override string Type => "video_call";
+    [JsonPropertyName("event")]
+    public VideoCallEventType @Event { get; set; } = default!;
+    [JsonPropertyName("video_room_id")]
+    public int VideoRoomId { get; set; } = default!;
+    [JsonPropertyName("chat_id")]
+    public int ChatId { get; set; } = default!;
+    [JsonPropertyName("owner_id")]
+    public int OwnerId { get; set; } = default!;
+    [JsonPropertyName("thread")]
+    public WebhookVideoCallThread? Thread { get; set; }
+    [JsonPropertyName("started_at")]
+    public DateTimeOffset? StartedAt { get; set; }
+    [JsonPropertyName("finished_at")]
+    public DateTimeOffset? FinishedAt { get; set; }
+    [JsonPropertyName("duration")]
+    public int? Duration { get; set; }
+    [JsonPropertyName("members")]
+    public List<WebhookVideoCallMember>? Members { get; set; }
+    [JsonPropertyName("recording_id")]
+    public int? RecordingId { get; set; }
+    [JsonPropertyName("file_id")]
+    public int? FileId { get; set; }
+    [JsonPropertyName("url")]
+    public string? Url { get; set; }
+    [JsonPropertyName("size")]
+    public int? Size { get; set; }
+    [JsonPropertyName("webhook_timestamp")]
+    public int WebhookTimestamp { get; set; } = default!;
+}
+
 public class AccessTokenInfo
 {
     [JsonPropertyName("id")]
@@ -2305,6 +2474,12 @@ public class BotCreateRequestWebhook
     public bool? IgnoreSelfMessages { get; set; }
     [JsonPropertyName("events_history_enabled")]
     public bool? EventsHistoryEnabled { get; set; }
+    [JsonPropertyName("who_can_add")]
+    public BotWhoCanAdd? WhoCanAdd { get; set; }
+    [JsonPropertyName("can_edit")]
+    public List<BotCanEdit>? CanEdit { get; set; }
+    [JsonPropertyName("single_chat")]
+    public bool? SingleChat { get; set; }
 }
 
 public class BotCreateRequest
@@ -2359,6 +2534,10 @@ public class BotUpdateRequestWebhook
     public bool? IgnoreSelfMessages { get; set; }
     [JsonPropertyName("events_history_enabled")]
     public bool? EventsHistoryEnabled { get; set; }
+    [JsonPropertyName("who_can_add")]
+    public BotWhoCanAdd? WhoCanAdd { get; set; }
+    [JsonPropertyName("can_edit")]
+    public List<BotCanEdit>? CanEdit { get; set; }
 }
 
 public class BotUpdateRequest
@@ -2395,6 +2574,12 @@ public class BotWebhook
     public bool IgnoreSelfMessages { get; set; } = default!;
     [JsonPropertyName("events_history_enabled")]
     public bool EventsHistoryEnabled { get; set; } = default!;
+    [JsonPropertyName("single_chat")]
+    public bool SingleChat { get; set; } = default!;
+    [JsonPropertyName("can_edit")]
+    public List<BotCanEdit> CanEdit { get; set; } = default!;
+    [JsonPropertyName("who_can_add")]
+    public BotWhoCanAdd WhoCanAdd { get; set; } = default!;
 }
 
 public class BotWebhookSelfUpdateRequestWebhook
@@ -3249,6 +3434,28 @@ public class WebhookMessageThread
     public int MessageChatId { get; set; } = default!;
 }
 
+public class WebhookVideoCallMember
+{
+    [JsonPropertyName("user_id")]
+    public int UserId { get; set; } = default!;
+    [JsonPropertyName("joined_at")]
+    public DateTimeOffset JoinedAt { get; set; } = default!;
+    [JsonPropertyName("left_at")]
+    public DateTimeOffset LeftAt { get; set; } = default!;
+}
+
+public class WebhookVideoCallThread
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
+    [JsonPropertyName("chat_id")]
+    public int ChatId { get; set; } = default!;
+    [JsonPropertyName("message_id")]
+    public int MessageId { get; set; } = default!;
+    [JsonPropertyName("message_chat_id")]
+    public int MessageChatId { get; set; } = default!;
+}
+
 public class UpdateProfileAvatarRequest
 {
     [JsonIgnore]
@@ -3265,6 +3472,14 @@ public class GetAuditEventsResponse
 {
     [JsonPropertyName("data")]
     public List<AuditEvent> Data { get; set; } = new();
+    [JsonPropertyName("meta")]
+    public PaginationMeta Meta { get; set; } = default!;
+}
+
+public class ListBotsResponse
+{
+    [JsonPropertyName("data")]
+    public List<BotResponse> Data { get; set; } = new();
     [JsonPropertyName("meta")]
     public PaginationMeta Meta { get; set; } = default!;
 }

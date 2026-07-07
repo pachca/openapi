@@ -45,6 +45,10 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bot/recreate_token" \
     - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
     - `ignore_self_messages: boolean` (required) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
     - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+    - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.. Пример: `false`
+    - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
+    - `who_can_add: string` (required) — Кто может добавлять бота в чаты
+      Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
   - `access_token: string` (required) — Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота.. Пример: `"bm90X2FfcmVhbF90b2tlbg"`
 
 **Пример ответа:**
@@ -72,7 +76,12 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bot/recreate_token" \
       "challenge_key": "challenge",
       "link_preview_enabled": true,
       "ignore_self_messages": false,
-      "events_history_enabled": false
+      "events_history_enabled": false,
+      "single_chat": false,
+      "can_edit": [
+        "admin"
+      ],
+      "who_can_add": "creator"
     },
     "access_token": "bm90X2FfcmVhbF90b2tlbg"
   }

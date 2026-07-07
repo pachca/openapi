@@ -6,7 +6,8 @@ export default class BotsUpdate extends BaseCommand {
   static override description = "Редактирование бота";
 
   static override examples = [
-      "Обновить Webhook URL бота:\n  $ pachca bots update"
+      "Обновить Webhook URL бота:\n  $ pachca bots update",
+      "Найти и удалить бота:\n  $ pachca bots delete"
   ];
 
   static scope = "bots:write";
@@ -65,6 +66,12 @@ export default class BotsUpdate extends BaseCommand {
       description: "Сохранять историю событий бота для последующего получения через метод истории событий",
       allowNo: true,
     }),
+    'who-can-add': Flags.string({
+      description: "Кто может добавлять бота в чаты",
+    }),
+    'can-edit': Flags.string({
+      description: "Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.",
+    }),
   };
 
   async run(): Promise<void> {
@@ -85,6 +92,8 @@ export default class BotsUpdate extends BaseCommand {
       link_preview_enabled: flags['link-preview-enabled'],
       ignore_self_messages: flags['ignore-self-messages'],
       events_history_enabled: flags['events-history-enabled'],
+      who_can_add: flags['who-can-add'],
+      can_edit: flags['can-edit'] ? this.parseJSON(flags['can-edit'], 'can-edit') : undefined,
     } };
     // Clean undefined fields
     const inner = body['webhook'] as Record<string, unknown>;

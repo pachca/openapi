@@ -20,7 +20,7 @@
 - `limit: integer, int32` (default: 200) — Количество возвращаемых результатов за один запрос
 - `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page`)
 - `sort: string` — Сортировка результатов
-  Значения: `by_score`, `alphabetical`
+  Значения: `by_score`, `alphabetical`, `creation`
 - `order: string` — Направление сортировки
   Значения: `asc`, `desc`
 - `created_from: date-time` — Фильтр по дате создания (от)

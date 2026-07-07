@@ -395,8 +395,10 @@
 ## Параметры бота
 
 - [Новый бот](POST /bots)
+- [Список ботов](GET /bots)
 - [Информация о боте](GET /bots/{id})
 - [Редактирование бота](PUT /bots/{id})
+- [Удаление бота](DELETE /bots/{id})
 - [Саморегистрация вебхука бота](PUT /bot/webhook)
 - [Ротация токена бота](POST /bots/{id}/recreate_token)
 - [Ротация собственного токена бота](POST /bot/recreate_token)
@@ -420,6 +422,10 @@
   - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
   - `ignore_self_messages: boolean` (required) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
   - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+  - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.. Пример: `false`
+  - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
+  - `who_can_add: string` (required) — Кто может добавлять бота в чаты
+    Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
 
 
 ## Событие исходящего вебхука
@@ -521,6 +527,31 @@
     - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
     - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-09-18T19:53:14.000Z"`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1726685594`
+  - **VideoCallWebhookPayload**: Структура исходящего вебхука о видеозвонке
+    - `type: string` (required) — Тип объекта. Пример: `"video_call"`
+      Значения: `video_call` — Для видеозвонков всегда video_call
+    - `event: string` (required) — Тип события
+      Значения: `started` — Видеозвонок начался, `finished` — Видеозвонок завершился, `recording_ready` — Запись видеозвонка готова
+    - `video_room_id: integer, int32` (required) — Идентификатор видеозвонка. Пример: `9012`
+    - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок. Пример: `23438`
+    - `owner_id: integer, int32` (required) — Идентификатор пользователя, начавшего видеозвонок. Пример: `2345`
+    - `thread: object` — Объект с параметрами треда, если видеозвонок проходит в треде. `null`, если звонок не в треде.
+      - `id: integer, int32` (required) — Идентификатор треда. Пример: `12345`
+      - `chat_id: integer, int32` (required) — Идентификатор чата треда. Пример: `67890`
+      - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому создан тред. Пример: `268092`
+      - `message_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому создан тред. Пример: `23438`
+    - `started_at: date-time` — Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished.. Пример: `"2025-05-15T14:30:00.000Z"`
+    - `finished_at: date-time` — Дата и время завершения звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для события finished.. Пример: `"2025-05-15T14:45:00.000Z"`
+    - `duration: integer, int32` — Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи.. Пример: `900`
+    - `members: array of object` — Список участников звонка. Присутствует для события finished.
+      - `user_id: integer, int32` (required) — Идентификатор участника. Пример: `2345`
+      - `joined_at: date-time` (required) — Дата и время первого подключения к звонку (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+      - `left_at: date-time` (required) — Дата и время выхода из звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Если участник оставался в звонке до его завершения, совпадает с временем окончания звонка.. Пример: `"2025-05-15T14:45:00.000Z"`
+    - `recording_id: integer, int32` — Идентификатор записи. Присутствует для события recording_ready.. Пример: `4567`
+    - `file_id: integer, int32` — Идентификатор файла записи. Присутствует для события recording_ready. `null`, если файл ещё не привязан.. Пример: `89012`
+    - `url: string` — Прямая ссылка на файл записи. Присутствует для события recording_ready.. Пример: `"https://api.pachca.com/files/89012"`
+    - `size: integer, int32` — Размер файла записи в байтах. Присутствует для события recording_ready.. Пример: `10485760`
+    - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 
 
@@ -533,7 +564,7 @@
 - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 - `event_key: string` (required) — Ключ типа события
-  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация)
+  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён
 - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
 - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
 - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
@@ -541,7 +572,7 @@
 - `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
   **Возможные варианты:**
 
-  - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated
+  - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted
   - **AuditDetailsUserUpdated**: При: user_updated
     - `changed_attrs: array of string` (required) — Список изменённых полей
   - **AuditDetailsRoleChanged**: При: user_role_changed

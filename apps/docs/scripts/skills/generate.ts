@@ -613,6 +613,17 @@ function generateWebhookEventsMd(): string {
   );
   lines.push('');
 
+  lines.push('## Video calls');
+  lines.push('');
+  lines.push('Sent for video calls in chats where the bot is a member.');
+  lines.push(
+    'Field `event` distinguishes: `started`, `finished` (includes participants and duration), `recording_ready` (includes recording file `url`, `size`, `duration`).'
+  );
+  lines.push(
+    'Field `type` is always `video_call`. Common fields: `video_room_id`, `chat_id`, `owner_id`, `thread`.'
+  );
+  lines.push('');
+
   lines.push('## Security');
   lines.push('');
   lines.push('1. Verify signature: `HMAC-SHA256(Signing secret, raw body)` === `Pachca-Signature`');

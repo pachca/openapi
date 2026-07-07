@@ -54,6 +54,41 @@ actions:
   - target: $.paths['/bots/{id}'].put.parameters[?(@.name=='id')]
     update:
       description: Bot ID
+  - target: $.paths['/bots'].get
+    update:
+      description: >-
+        List bots
+
+
+        Retrieve a list of bots. The response includes only the bots you can edit: those you created and those whose
+        settings grant you edit access.
+  - target: $.paths['/bots'].get.parameters[?(@.name=='query')]
+    update:
+      description: Search phrase to filter bots by name
+  - target: $.paths['/bots'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of entities returned per request
+  - target: $.paths['/bots'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/bots/{id}'].delete
+    update:
+      description: >-
+        Delete bot
+
+
+        Delete a bot. The bot's previous `access_token` is invalidated immediately, the bot is removed from all chats,
+        and its outgoing webhook is deleted.
+
+
+        Deletion is available to the bot creator, and to a company administrator if the bot's settings grant
+        administrators edit access. Chat owners and admins cannot delete a bot, even if they are allowed to edit it.
+
+
+        To delete a bot you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/bots/{id}'].delete.parameters[?(@.name=='id')]
+    update:
+      description: Bot ID
   - target: $.paths['/chats'].post
     update:
       description: |-
@@ -1309,6 +1344,7 @@ actions:
         bot_scopes_updated: Bot token scopes changed
         bot_webhook_settings_updated: Bot outgoing webhook settings changed
         bot_token_recreated: Bot token recreated (rotation)
+        bot_deleted: Bot deleted
   - target: $.components.schemas.AvatarData
     update:
       description: Avatar data
@@ -1348,6 +1384,15 @@ actions:
   - target: $.components.schemas.BotResponse.properties.webhook.properties.events_history_enabled
     update:
       description: Save the bot's event history for later retrieval via the event history method
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.single_chat
+    update:
+      description: Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don't count toward this limit
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.can_edit
+    update:
+      description: Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.who_can_add
+    update:
+      description: Who can add the bot to chats
   - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.scopes
     update:
       description: Bot token scopes (permissions)
@@ -1369,6 +1414,15 @@ actions:
   - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.events_history_enabled
     update:
       description: Save the bot's event history for later retrieval via the event history method
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.single_chat
+    update:
+      description: Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don't count toward this limit
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.can_edit
+    update:
+      description: Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.
+  - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.who_can_add
+    update:
+      description: Who can add the bot to chats
   - target: $.components.schemas.BotUpdateRequest
     update:
       description: Bot update request
@@ -1414,6 +1468,12 @@ actions:
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.events_history_enabled
     update:
       description: Save the bot's event history for later retrieval via the event history method
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.who_can_add
+    update:
+      description: Who can add the bot to chats
+  - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.can_edit
+    update:
+      description: Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.
   - target: $.paths['/bots'].post
     update:
       description: >-
@@ -1468,6 +1528,23 @@ actions:
         company_member_delete: Employee removed from the company
         company_member_update: Employee data changed
         bill_created: Bill created
+        video_call_started: Video call started
+        video_call_finished: Video call finished
+        video_call_recording_ready: Video call recording ready
+  - target: $.components.schemas.BotWhoCanAdd
+    update:
+      description: Who can add the bot to chats
+      x-enum-descriptions:
+        creator: Only the bot creator
+        creator_admin: The creator and company administrators
+        creator_admin_user: The creator, administrators, and company members
+        anyone: Anyone, including guests
+  - target: $.components.schemas.BotCanEdit
+    update:
+      description: Role allowed to edit the bot settings
+      x-enum-descriptions:
+        admin: Company administrators
+        chat_owners: Owners of the chats the bot is added to
   - target: $.components.schemas.BotCreateRequest
     update:
       description: Bot creation request
@@ -1513,6 +1590,15 @@ actions:
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.events_history_enabled
     update:
       description: Save the bot's event history for later retrieval via the event history method
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.who_can_add
+    update:
+      description: Who can add the bot to chats
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.can_edit
+    update:
+      description: Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.
+  - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.single_chat
+    update:
+      description: Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don't count toward this limit. Set only on creation and not changed on update.
   - target: $.components.schemas.BotWebhook
     update:
       description: Bot webhook parameters
@@ -1555,6 +1641,15 @@ actions:
   - target: $.components.schemas.BotWebhook.properties.events_history_enabled
     update:
       description: Save the bot's event history for later retrieval via the event history method
+  - target: $.components.schemas.BotWebhook.properties.single_chat
+    update:
+      description: Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don't count toward this limit
+  - target: $.components.schemas.BotWebhook.properties.can_edit
+    update:
+      description: Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.
+  - target: $.components.schemas.BotWebhook.properties.who_can_add
+    update:
+      description: Who can add the bot to chats
   - target: $.components.schemas.BotWebhookSelfUpdateRequest
     update:
       description: Bot webhook self-registration request
@@ -1583,8 +1678,9 @@ actions:
         compromised or for scheduled secret rotation in `CI`.
 
 
-        Available to a company administrator, the company owner, or the bot creator. Specify the bot's `id` in the
-        request `URL`. The new token is returned in the response only once — save it right away.
+        Rotation is available to the bot creator, and to a company administrator if the bot's settings grant
+        administrators edit access. Specify the bot's `id` in the request `URL`. The new token is returned in the
+        response only once — save it right away.
   - target: $.paths['/bots/{id}/recreate_token'].post.parameters[?(@.name=='id')]
     update:
       description: Bot ID
@@ -2141,6 +2237,120 @@ actions:
   - target: $.components.schemas.LinkSharedWebhookPayload.properties.webhook_timestamp
     update:
       description: Webhook send date and time (UTC+0) in UNIX format
+  - target: $.components.schemas.WebhookVideoCallThread
+    update:
+      description: Parameters of the thread the video call takes place in
+  - target: $.components.schemas.WebhookVideoCallThread.properties.id
+    update:
+      description: Thread ID
+  - target: $.components.schemas.WebhookVideoCallThread.properties.chat_id
+    update:
+      description: Thread chat ID
+  - target: $.components.schemas.WebhookVideoCallThread.properties.message_id
+    update:
+      description: ID of the message the thread was created for
+  - target: $.components.schemas.WebhookVideoCallThread.properties.message_chat_id
+    update:
+      description: Chat ID of the message the thread was created for
+  - target: $.components.schemas.WebhookVideoCallMember
+    update:
+      description: Video call participant
+  - target: $.components.schemas.WebhookVideoCallMember.properties.user_id
+    update:
+      description: Participant ID
+  - target: $.components.schemas.WebhookVideoCallMember.properties.joined_at
+    update:
+      description: First join date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.WebhookVideoCallMember.properties.left_at
+    update:
+      description: >-
+        Leave date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. If the participant stayed until the
+        call ended, it matches the call end time.
+  - target: $.components.schemas.VideoCallWebhookPayload
+    update:
+      description: Video call outgoing webhook structure
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.type
+    update:
+      description: Object type
+      x-enum-descriptions:
+        video_call: Always video_call for video calls
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.event
+    update:
+      description: Event type
+  - target: $.components.schemas.VideoCallEventType
+    update:
+      description: Video call event type
+      x-enum-descriptions:
+        started: Video call started
+        finished: Video call finished
+        recording_ready: Video call recording is ready
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.video_room_id
+    update:
+      description: Video call ID
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.chat_id
+    update:
+      description: ID of the chat the video call takes place in
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.owner_id
+    update:
+      description: ID of the user who started the video call
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.thread
+    update:
+      description: Thread parameters object if the video call takes place in a thread. `null` if the call is not in a thread.
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.thread.properties.id
+    update:
+      description: Thread ID
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.thread.properties.chat_id
+    update:
+      description: Thread chat ID
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.thread.properties.message_id
+    update:
+      description: ID of the message the thread was created for
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.thread.properties.message_chat_id
+    update:
+      description: Chat ID of the message the thread was created for
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.started_at
+    update:
+      description: >-
+        Call start date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Present for the started and
+        finished events.
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.finished_at
+    update:
+      description: >-
+        Call end date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Present for the finished event.
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.duration
+    update:
+      description: >-
+        Duration in seconds. For the finished event it is the call duration, for recording_ready it is the recording
+        duration.
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.members
+    update:
+      description: List of call participants. Present for the finished event.
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.members.items.properties.user_id
+    update:
+      description: Participant ID
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.members.items.properties.joined_at
+    update:
+      description: First join date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.members.items.properties.left_at
+    update:
+      description: >-
+        Leave date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. If the participant stayed until the
+        call ended, it matches the call end time.
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.recording_id
+    update:
+      description: Recording ID. Present for the recording_ready event.
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.file_id
+    update:
+      description: Recording file ID. Present for the recording_ready event. `null` if the file is not attached yet.
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.url
+    update:
+      description: Direct link to the recording file. Present for the recording_ready event.
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.size
+    update:
+      description: Recording file size in bytes. Present for the recording_ready event.
+  - target: $.components.schemas.VideoCallWebhookPayload.properties.webhook_timestamp
+    update:
+      description: Webhook send date and time (UTC+0) in UNIX format
   - target: $.components.schemas.MemberEventType
     update:
       description: Webhook event type for members
@@ -2582,6 +2792,7 @@ actions:
       x-enum-descriptions:
         by_score: By relevance
         alphabetical: Alphabetically
+        creation: By creation date
   - target: $.components.schemas.SortOrder
     update:
       description: Sort order

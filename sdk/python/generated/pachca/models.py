@@ -46,6 +46,14 @@ class AuditEventKey(StrEnum):
     BOT_SCOPES_UPDATED = "bot_scopes_updated"  # Изменены скоупы токена бота
     BOT_WEBHOOK_SETTINGS_UPDATED = "bot_webhook_settings_updated"  # Изменены настройки исходящего вебхука бота
     BOT_TOKEN_RECREATED = "bot_token_recreated"  # Токен бота перевыпущен (ротация)
+    BOT_DELETED = "bot_deleted"  # Бот удалён
+
+
+class BotCanEdit(StrEnum):
+    """Роль, которой разрешено редактировать настройки бота"""
+
+    ADMIN = "admin"  # Администраторы компании
+    CHAT_OWNERS = "chat_owners"  # Владельцы чатов, в которые добавлен бот
 
 
 class BotEventName(StrEnum):
@@ -67,6 +75,9 @@ class BotEventName(StrEnum):
     COMPANY_MEMBER_DELETE = "company_member_delete"  # Сотрудник удалён из компании
     COMPANY_MEMBER_UPDATE = "company_member_update"  # Данные сотрудника изменены
     BILL_CREATED = "bill_created"  # Создан счёт
+    VIDEO_CALL_STARTED = "video_call_started"
+    VIDEO_CALL_FINISHED = "video_call_finished"
+    VIDEO_CALL_RECORDING_READY = "video_call_recording_ready"
 
 
 class BotTemplateEngine(StrEnum):
@@ -82,6 +93,15 @@ class BotTriggerOn(StrEnum):
     COMMANDS = "commands"  # Только на команды (триггер-слова) из commands
     ALL_MESSAGES = "all_messages"  # На все сообщения в чатах, где есть бот
     UNFURL = "unfurl"  # На развёртывание ссылок (link previews)
+
+
+class BotWhoCanAdd(StrEnum):
+    """Кто может добавлять бота в чаты"""
+
+    CREATOR = "creator"  # Только создатель бота
+    CREATOR_ADMIN = "creator_admin"  # Создатель и администраторы компании
+    CREATOR_ADMIN_USER = "creator_admin_user"  # Создатель, администраторы и участники компании
+    ANYONE = "anyone"  # Любой пользователь, в том числе гости
 
 
 class ChatAvailability(StrEnum):
@@ -251,6 +271,7 @@ class SearchSortOrder(StrEnum):
 
     BY_SCORE = "by_score"  # По релевантности
     ALPHABETICAL = "alphabetical"  # По алфавиту
+    CREATION = "creation"  # По дате создания
 
 
 class SortOrder(StrEnum):
@@ -358,6 +379,14 @@ class ValidationErrorCode(StrEnum):
     PIN_FAILED = "pin_failed"  # Не удалось закрепить сообщение
     MESSAGE_DELETED = "message_deleted"  # Сообщение удалено
     THREAD_MESSAGE = "thread_message"  # Нельзя создать тред для сообщения, которое уже находится в треде
+
+
+class VideoCallEventType(StrEnum):
+    """Тип события видеозвонка"""
+
+    STARTED = "started"  # Видеозвонок начался
+    FINISHED = "finished"  # Видеозвонок завершился
+    RECORDING_READY = "recording_ready"  # Запись видеозвонка готова
 
 
 class WebhookEventType(StrEnum):
@@ -544,6 +573,9 @@ class BotCreateRequestWebhook:
     link_preview_enabled: bool | None = True
     ignore_self_messages: bool | None = False
     events_history_enabled: bool | None = False
+    who_can_add: BotWhoCanAdd | None = BotWhoCanAdd.CREATOR
+    can_edit: list[BotCanEdit] | None = None
+    single_chat: bool | None = False
 
 
 @dataclass
@@ -579,6 +611,8 @@ class BotUpdateRequestWebhook:
     link_preview_enabled: bool | None = True
     ignore_self_messages: bool | None = False
     events_history_enabled: bool | None = False
+    who_can_add: BotWhoCanAdd | None = BotWhoCanAdd.CREATOR
+    can_edit: list[BotCanEdit] | None = None
 
 
 @dataclass
@@ -598,6 +632,9 @@ class BotWebhook:
     link_preview_enabled: bool
     ignore_self_messages: bool
     events_history_enabled: bool
+    single_chat: bool
+    can_edit: list[BotCanEdit]
+    who_can_add: BotWhoCanAdd
     outgoing_url: str | None = None
     template: str | None = None
     challenge_key: str | None = None
@@ -1178,6 +1215,25 @@ class UserUpdateRequest:
 
 
 @dataclass
+class VideoCallWebhookPayload:
+    type: str  # literal "video_call"
+    event: VideoCallEventType
+    video_room_id: int
+    chat_id: int
+    owner_id: int
+    webhook_timestamp: int
+    thread: WebhookVideoCallThread | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    duration: int | None = None
+    members: list[WebhookVideoCallMember] | None = None
+    recording_id: int | None = None
+    file_id: int | None = None
+    url: str | None = None
+    size: int | None = None
+
+
+@dataclass
 class ViewBlock:
     type: str
     text: str | None = None
@@ -1348,6 +1404,21 @@ class WebhookMessageThread:
 
 
 @dataclass
+class WebhookVideoCallMember:
+    user_id: int
+    joined_at: datetime
+    left_at: datetime
+
+
+@dataclass
+class WebhookVideoCallThread:
+    id: int
+    chat_id: int
+    message_id: int
+    message_chat_id: int
+
+
+@dataclass
 class UpdateProfileAvatarRequest:
     image: bytes
 
@@ -1363,7 +1434,7 @@ AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, Audit
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]
 
 
-WebhookPayloadUnion = Union[MessageWebhookPayload, ReactionWebhookPayload, ButtonWebhookPayload, ViewSubmitWebhookPayload, ChatMemberWebhookPayload, CompanyMemberWebhookPayload, LinkSharedWebhookPayload]
+WebhookPayloadUnion = Union[MessageWebhookPayload, ReactionWebhookPayload, ButtonWebhookPayload, ViewSubmitWebhookPayload, ChatMemberWebhookPayload, CompanyMemberWebhookPayload, LinkSharedWebhookPayload, VideoCallWebhookPayload]
 
 
 @dataclass
@@ -1375,6 +1446,13 @@ class GetAuditEventsParams:
     actor_type: str | None = None
     entity_id: str | None = None
     entity_type: str | None = None
+    limit: int | None = None
+    cursor: str | None = None
+
+
+@dataclass
+class ListBotsParams:
+    query: str | None = None
     limit: int | None = None
     cursor: str | None = None
 
@@ -1512,6 +1590,12 @@ class GetWebhookEventsParams:
 @dataclass
 class GetAuditEventsResponse:
     data: list[AuditEvent]
+    meta: PaginationMeta
+
+
+@dataclass
+class ListBotsResponse:
+    data: list[BotResponse]
     meta: PaginationMeta
 
 

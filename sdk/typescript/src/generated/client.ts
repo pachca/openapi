@@ -4,6 +4,8 @@ import {
   AuditEvent,
   OAuthError,
   ApiError,
+  ListBotsParams,
+  ListBotsResponse,
   BotResponse,
   GetWebhookEventsParams,
   GetWebhookEventsResponse,
@@ -150,6 +152,14 @@ export class SecurityServiceImpl extends SecurityService {
 }
 
 export class BotsService {
+  async listBots(params?: ListBotsParams): Promise<ListBotsResponse> {
+    throw new Error("Bots.listBots is not implemented");
+  }
+
+  async listBotsAll(params?: Omit<ListBotsParams, 'cursor'>): Promise<BotResponse[]> {
+    throw new Error("Bots.listBotsAll is not implemented");
+  }
+
   async getBot(id: number): Promise<BotResponse> {
     throw new Error("Bots.getBot is not implemented");
   }
@@ -229,6 +239,10 @@ export class BotsService {
     throw new Error("Bots.updateBot is not implemented");
   }
 
+  async deleteBot(id: number): Promise<void> {
+    throw new Error("Bots.deleteBot is not implemented");
+  }
+
   async deleteWebhookEvent(id: string): Promise<void> {
     throw new Error("Bots.deleteWebhookEvent is not implemented");
   }
@@ -240,6 +254,40 @@ export class BotsServiceImpl extends BotsService {
     private headers: Record<string, string>,
   ) {
     super();
+  }
+
+  async listBots(params?: ListBotsParams): Promise<ListBotsResponse> {
+    const query = new URLSearchParams();
+    if (params?.query !== undefined) query.set("query", params.query);
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
+    const url = `${this.baseUrl}/bots${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserialize(body) as ListBotsResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async listBotsAll(params?: Omit<ListBotsParams, 'cursor'>): Promise<BotResponse[]> {
+    const items: BotResponse[] = [];
+    let cursor: string | undefined;
+    let hasNext = true;
+    while (hasNext) {
+      const response = await this.listBots({ ...params, cursor } as ListBotsParams);
+      items.push(...response.data);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
+    return items;
   }
 
   async getBot(id: number): Promise<BotResponse> {
@@ -370,6 +418,21 @@ export class BotsServiceImpl extends BotsService {
         throw new OAuthError(body.error);
       default:
         throw new ApiError(body.errors);
+    }
+  }
+
+  async deleteBot(id: number): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
     }
   }
 

@@ -16,7 +16,7 @@
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 98–200 |
 | How-to Guides — рецепты задач с кодом TS/Python | 201–884 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 885–11536 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 885–11634 |
 | · Обзор | 890–992 |
 | · Быстрый старт | 993–1082 |
 | · AI агенты | 1083–1220 |
@@ -24,76 +24,76 @@
 | · Markdown и документы | 1290–1346 |
 | · Треды | 1347–1474 |
 | · Боты | 1475–1537 |
-| · Создание и настройка | 1538–1664 |
-| · Доступы к чатам и сообщениям | 1665–1737 |
-| · Готовые примеры реализации | 1738–1772 |
-| · Входящие вебхуки | 1773–1924 |
-| · Исходящие вебхуки | 1925–1979 |
-| · Настройка и типы событий | 1980–2185 |
-| · Безопасность и обработчик | 2186–2376 |
-| · Поллинг | 2377–2560 |
-| · Кнопки в сообщениях | 2561–2716 |
-| · Формы | 2717–2786 |
-| · Блоки представления | 2787–3000 |
-| · Обработка форм | 3001–3140 |
-| · Разворачивание ссылок | 3141–3253 |
-| · Экспорт сообщений | 3254–3395 |
-| · DLP-система | 3396–3603 |
-| · Пачка Audit Events API | 3604–3678 |
-| · Форматирование текста | 3679–3759 |
-| · Сценарии | 3760–4265 |
-| · CLI | 4266–4359 |
-| · Установка | 4360–4452 |
-| · Авторизация | 4453–4526 |
-| · Вывод | 4527–4630 |
-| · Флаги и скрипты | 4631–4857 |
-| · Сценарии | 4858–4905 |
-| · Файлы | 4906–4940 |
-| · Прямые запросы | 4941–5051 |
-| · Команды | 5052–5191 |
-| · SDK и генератор | 5192–5277 |
-| · TypeScript | 5278–5697 |
-| · Python | 5698–6111 |
-| · Go | 6112–6550 |
-| · Kotlin | 6551–6981 |
-| · Swift | 6982–7381 |
-| · C# | 7382–7842 |
-| · n8n | 7843–7918 |
-| · Начало работы | 7919–8146 |
-| · Ресурсы и операции | 8147–8508 |
-| · Триггер | 8509–8760 |
-| · Тестирование | 8761–9034 |
-| · Примеры workflow | 9035–9250 |
-| · Продвинутые функции | 9251–9487 |
-| · Устранение ошибок | 9488–9667 |
-| · Миграция с v1 | 9668–9788 |
-| · Последние обновления | 9789–9798 |
-| · Обзор | 9799–9898 |
-| · Авторизация | 9899–10102 |
-| · Запросы и ответы | 10103–10293 |
-| · Пагинация | 10294–10530 |
-| · Загрузка файлов | 10531–10748 |
-| · Ошибки | 10749–10822 |
-| · Лимиты | 10823–10940 |
-| · Модели | 10941–11536 |
-| API-методы — все эндпоинты со схемами и примерами | 11537–28260 |
-| · OAuth | 11539–11638 |
-| · Chats | 11639–13246 |
-| · Profile | 13247–14150 |
-| · Users | 14151–16530 |
-| · Group tags | 16531–17878 |
-| · Members | 17879–19223 |
-| · Threads | 19224–19781 |
-| · Messages | 19782–21916 |
-| · Read members | 21917–22163 |
-| · Reactions | 22164–22810 |
-| · Search | 22811–23623 |
-| · Tasks | 23624–24913 |
-| · Views | 24914–25476 |
-| · Bots | 25477–27488 |
-| · Security | 27489–27807 |
-| · Custom Properties | 27808–28017 |
-| · Files | 28018–28260 |
+| · Создание и настройка | 1538–1673 |
+| · Доступы к чатам и сообщениям | 1674–1746 |
+| · Готовые примеры реализации | 1747–1781 |
+| · Входящие вебхуки | 1782–1933 |
+| · Исходящие вебхуки | 1934–1988 |
+| · Настройка и типы событий | 1989–2229 |
+| · Безопасность и обработчик | 2230–2420 |
+| · Поллинг | 2421–2604 |
+| · Кнопки в сообщениях | 2605–2760 |
+| · Формы | 2761–2830 |
+| · Блоки представления | 2831–3044 |
+| · Обработка форм | 3045–3184 |
+| · Разворачивание ссылок | 3185–3297 |
+| · Экспорт сообщений | 3298–3439 |
+| · DLP-система | 3440–3647 |
+| · Пачка Audit Events API | 3648–3722 |
+| · Форматирование текста | 3723–3803 |
+| · Сценарии | 3804–4316 |
+| · CLI | 4317–4410 |
+| · Установка | 4411–4503 |
+| · Авторизация | 4504–4577 |
+| · Вывод | 4578–4681 |
+| · Флаги и скрипты | 4682–4908 |
+| · Сценарии | 4909–4956 |
+| · Файлы | 4957–4991 |
+| · Прямые запросы | 4992–5102 |
+| · Команды | 5103–5244 |
+| · SDK и генератор | 5245–5330 |
+| · TypeScript | 5331–5752 |
+| · Python | 5753–6168 |
+| · Go | 6169–6609 |
+| · Kotlin | 6610–7042 |
+| · Swift | 7043–7444 |
+| · C# | 7445–7907 |
+| · n8n | 7908–7983 |
+| · Начало работы | 7984–8211 |
+| · Ресурсы и операции | 8212–8575 |
+| · Триггер | 8576–8827 |
+| · Тестирование | 8828–9101 |
+| · Примеры workflow | 9102–9317 |
+| · Продвинутые функции | 9318–9554 |
+| · Устранение ошибок | 9555–9734 |
+| · Миграция с v1 | 9735–9855 |
+| · Последние обновления | 9856–9865 |
+| · Обзор | 9866–9965 |
+| · Авторизация | 9966–10169 |
+| · Запросы и ответы | 10170–10360 |
+| · Пагинация | 10361–10597 |
+| · Загрузка файлов | 10598–10815 |
+| · Ошибки | 10816–10889 |
+| · Лимиты | 10890–11007 |
+| · Модели | 11008–11634 |
+| API-методы — все эндпоинты со схемами и примерами | 11635–28826 |
+| · OAuth | 11637–11736 |
+| · Chats | 11737–13344 |
+| · Profile | 13345–14248 |
+| · Users | 14249–16628 |
+| · Group tags | 16629–17976 |
+| · Members | 17977–19321 |
+| · Threads | 19322–19879 |
+| · Messages | 19880–22014 |
+| · Read members | 22015–22261 |
+| · Reactions | 22262–22908 |
+| · Search | 22909–23721 |
+| · Tasks | 23722–25011 |
+| · Views | 25012–25574 |
+| · Bots | 25575–28054 |
+| · Security | 28055–28373 |
+| · Custom Properties | 28374–28583 |
+| · Files | 28584–28826 |
 
 # LIBRARY RULES
 
@@ -1590,6 +1590,8 @@ pachca messages create \
 
 Передайте параметры бота в объекте `bot.webhook`: имя, никнейм, Webhook URL, список событий и команды. Никнейм должен заканчиваться на `_bot`.
 
+Тип бота — в один или несколько чатов — задаётся полем `single_chat` и только при создании: изменить его потом нельзя, как и тип бота в интерфейсе. Ограничение «в один чат» распространяется только на беседы и каналы, треды и личные сообщения не в счёт.
+
 
   ### Шаг 2. Сохраните access_token
 
@@ -1629,6 +1631,13 @@ pachca messages create \
 - **Создатель и Администраторы**
 - **Все участники (кроме гостей)**
 - **Публичный бот**
+
+### Настройка через API
+
+Эти доступы можно задать не только в интерфейсе, но и через API — методом [Редактирование бота](PUT /bots/{id}) или сразу при создании:
+
+- **Кто может редактировать настройки бота** — поле `can_edit` (роли `admin` и `chat_owners`). Создатель имеет доступ всегда, поэтому в поле перечисляются только дополнительные роли, а пустой массив означает «только создатель»
+- **Кто может добавлять бота в чаты** — поле `who_can_add` (`creator`, `creator_admin`, `creator_admin_user`, `anyone`)
 
 ## Настройка вебхуков и API
 
@@ -2169,6 +2178,41 @@ Liquid также поддерживает:
 
 
 > Payload содержит обнаруженные ссылки. Полное сообщение получите методом [Информация о сообщении](GET /messages/{id}) по `message_id`.
+
+
+## Видеозвонки
+
+Вебхук отправляется для видеозвонков в чатах, где состоит бот, и в тредах этих чатов. Поле `event` в payload различает три события: `started` (звонок начался), `finished` (звонок завершился) и `recording_ready` (запись готова). Набор полей payload зависит от события.
+
+#### VideoCallWebhookPayload
+
+- `type: string` (required) — Тип объекта. Пример: `"video_call"`
+  Значения: `video_call` — Для видеозвонков всегда video_call
+- `event: string` (required) — Тип события
+  Значения: `started` — Видеозвонок начался, `finished` — Видеозвонок завершился, `recording_ready` — Запись видеозвонка готова
+- `video_room_id: integer, int32` (required) — Идентификатор видеозвонка. Пример: `9012`
+- `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок. Пример: `23438`
+- `owner_id: integer, int32` (required) — Идентификатор пользователя, начавшего видеозвонок. Пример: `2345`
+- `thread: object` — Объект с параметрами треда, если видеозвонок проходит в треде. `null`, если звонок не в треде.
+  - `id: integer, int32` (required) — Идентификатор треда. Пример: `12345`
+  - `chat_id: integer, int32` (required) — Идентификатор чата треда. Пример: `67890`
+  - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому создан тред. Пример: `268092`
+  - `message_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому создан тред. Пример: `23438`
+- `started_at: date-time` — Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished.. Пример: `"2025-05-15T14:30:00.000Z"`
+- `finished_at: date-time` — Дата и время завершения звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для события finished.. Пример: `"2025-05-15T14:45:00.000Z"`
+- `duration: integer, int32` — Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи.. Пример: `900`
+- `members: array of object` — Список участников звонка. Присутствует для события finished.
+  - `user_id: integer, int32` (required) — Идентификатор участника. Пример: `2345`
+  - `joined_at: date-time` (required) — Дата и время первого подключения к звонку (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+  - `left_at: date-time` (required) — Дата и время выхода из звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Если участник оставался в звонке до его завершения, совпадает с временем окончания звонка.. Пример: `"2025-05-15T14:45:00.000Z"`
+- `recording_id: integer, int32` — Идентификатор записи. Присутствует для события recording_ready.. Пример: `4567`
+- `file_id: integer, int32` — Идентификатор файла записи. Присутствует для события recording_ready. `null`, если файл ещё не привязан.. Пример: `89012`
+- `url: string` — Прямая ссылка на файл записи. Присутствует для события recording_ready.. Пример: `"https://api.pachca.com/files/89012"`
+- `size: integer, int32` — Размер файла записи в байтах. Присутствует для события recording_ready.. Пример: `10485760`
+- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
+
+
+> Для события `finished` payload содержит список участников с временем подключения и выхода, для `recording_ready` — ссылку на файл записи, её размер и длительность. Полные данные участников получите методом [Информация о сотруднике](GET /users/{id}) по каждому `user_id`, а чат — методом [Информация о чате](GET /chats/{id}) по `chat_id`.
 
 
 
@@ -4083,6 +4127,13 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 
 > Новый токен возвращается один раз. Self-путь (`POST /bot/recreate_token`) инвалидирует именно тот токен, которым выполнен запрос, — захвати новый токен из ответа в той же операции.
 
+**Найти и удалить бота**
+
+1. Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`, следующую страницу бери из `meta.paginate.next_page`
+2. Возьми `id` нужного бота из списка и удали его (скоуп `bots:write`). Доступно администратору, владельцу компании или создателю бота — владельцы чатов удалять бота не могут. Прежний токен инвалидируется сразу, бот исключается из всех чатов, его исходящий вебхук удаляется
+
+> Удаление необратимо: токен бота инвалидируется сразу, бот исключается из чатов. Событие фиксируется в журнале аудита как `bot_deleted`.
+
 **Обработать входящий вебхук-событие**
 
 1. Получи POST-запрос на свой Webhook URL
@@ -4418,7 +4469,7 @@ pachca doctor
 # ✔ Конфиг         ~/.config/pachca/config.toml (права: 600)
 # ✔ Профиль        personal (user: Иван Иванов)
 # ✔ Токен          действителен (11 скоупов)
-# ✔ CLI            v2026.6.3 (актуальная версия)
+# ✔ CLI            v2026.7.0 (актуальная версия)
 ```
 
 ## Обновление
@@ -5076,7 +5127,9 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca auth status` | Статус текущего профиля |
 | `pachca auth switch` | Переключение активного профиля |
 | `pachca bots create` | `POST` Новый бот |
+| `pachca bots delete` | `DELETE` Удаление бота |
 | `pachca bots get` | `GET` Информация о боте |
+| `pachca bots list` | `GET` Список ботов |
 | `pachca bots list-events` | `GET` История событий |
 | `pachca bots recreate-token` | `POST` Ротация токена бота |
 | `pachca bots recreate-token-self` | `POST` Ротация собственного токена бота |
@@ -5400,10 +5453,12 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
 | `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.bots.listBots()` | [Список ботов](/api/bots/list) |
 | `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.deleteBot()` | [Удаление бота](/api/bots/delete) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
@@ -5827,10 +5882,12 @@ await client.close()
 | `client.bots.create_bot()` | [Новый бот](/api/bots/create) |
 | `client.bots.self_recreate_bot_token()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreate_bot_token()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.bots.list_bots()` | [Список ботов](/api/bots/list) |
 | `client.bots.get_bot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.get_webhook_events()` | [История событий](/api/bots/list-events) |
 | `client.bots.self_update_bot_webhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.update_bot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.delete_bot()` | [Удаление бота](/api/bots/delete) |
 | `client.bots.delete_webhook_event()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |
 | `client.custom_properties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |
@@ -6243,10 +6300,12 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Bots.CreateBot()` | [Новый бот](/api/bots/create) |
 | `client.Bots.SelfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.RecreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.Bots.ListBots()` | [Список ботов](/api/bots/list) |
 | `client.Bots.GetBot()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.GetWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.Bots.SelfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.Bots.DeleteBot()` | [Удаление бота](/api/bots/delete) |
 | `client.Bots.DeleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.Security.GetAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.CustomProperties.ListProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
@@ -6690,10 +6749,12 @@ client.close()
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
 | `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.bots.listBots()` | [Список ботов](/api/bots/list) |
 | `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.deleteBot()` | [Удаление бота](/api/bots/delete) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
@@ -7112,10 +7173,12 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
 | `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.bots.listBots()` | [Список ботов](/api/bots/list) |
 | `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.deleteBot()` | [Удаление бота](/api/bots/delete) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
@@ -7506,10 +7569,12 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.CreateBotAsync()` | [Новый бот](/api/bots/create) |
 | `client.Bots.SelfRecreateBotTokenAsync()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.RecreateBotTokenAsync()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.Bots.ListBotsAsync()` | [Список ботов](/api/bots/list) |
 | `client.Bots.GetBotAsync()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.GetWebhookEventsAsync()` | [История событий](/api/bots/list-events) |
 | `client.Bots.SelfUpdateBotWebhookAsync()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |
+| `client.Bots.DeleteBotAsync()` | [Удаление бота](/api/bots/delete) |
 | `client.Bots.DeleteWebhookEventAsync()` | [Удаление события](/api/bots/remove-event) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |
 | `client.CustomProperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |
@@ -8174,7 +8239,7 @@ Workflow — визуальный редактор, в котором выстр
 | 8 | [Profile](#profile) | 6 | Мой профиль: информация, аватар, статус | |
 | 9 | [OAuth](#oauth) | 1 | Информация о токене | да |
 | 10 | [Task](#task) | 5 | Задачи: полный CRUD | |
-| 11 | [Bot](#bot) | 8 | Боты: создание, получение, редактирование, вебхук, ротация токена, события | |
+| 11 | [Bot](#bot) | 10 | Боты: создание, получение, список, редактирование, удаление, вебхук, ротация токена, события | |
 | 12 | [File](#file) | 1 | Загрузка файлов через S3 | |
 | 13 | [Form](#form) | 1 | Модальные формы | |
 | 14 | [Custom Property](#custom-property) | 1 | Дополнительные поля | да |
@@ -8356,13 +8421,15 @@ Workflow — визуальный редактор, в котором выстр
 
 ## Bot
 
-Боты: создание, получение, редактирование, саморегистрация вебхука, ротация токена, история и удаление событий.
+Боты: создание, получение, список, редактирование, удаление, саморегистрация вебхука, ротация токена, история и удаление событий.
 
 | Операция | API |
 |----------|-----|
 | Create | [Новый бот](POST /bots) |
 | Get | [Информация о боте](GET /bots/{id}) |
+| Get Many | [Список ботов](GET /bots) |
 | Update | [Редактирование бота](PUT /bots/{id}) |
+| Delete | [Удаление бота](DELETE /bots/{id}) |
 | Update Webhook | [Саморегистрация вебхука бота](PUT /bot/webhook) |
 | Recreate Token | [Ротация токена бота](POST /bots/{id}/recreate_token) |
 | Recreate Token Self | [Ротация собственного токена бота](POST /bot/recreate_token) |
@@ -11330,8 +11397,10 @@ users = await with_retry(lambda: client.users.list_users())
 ## Параметры бота
 
 - [Новый бот](POST /bots)
+- [Список ботов](GET /bots)
 - [Информация о боте](GET /bots/{id})
 - [Редактирование бота](PUT /bots/{id})
+- [Удаление бота](DELETE /bots/{id})
 - [Саморегистрация вебхука бота](PUT /bot/webhook)
 - [Ротация токена бота](POST /bots/{id}/recreate_token)
 - [Ротация собственного токена бота](POST /bot/recreate_token)
@@ -11355,6 +11424,10 @@ users = await with_retry(lambda: client.users.list_users())
   - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
   - `ignore_self_messages: boolean` (required) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
   - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+  - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.. Пример: `false`
+  - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
+  - `who_can_add: string` (required) — Кто может добавлять бота в чаты
+    Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
 
 
 ## Событие исходящего вебхука
@@ -11456,6 +11529,31 @@ users = await with_retry(lambda: client.users.list_users())
     - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
     - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-09-18T19:53:14.000Z"`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1726685594`
+  - **VideoCallWebhookPayload**: Структура исходящего вебхука о видеозвонке
+    - `type: string` (required) — Тип объекта. Пример: `"video_call"`
+      Значения: `video_call` — Для видеозвонков всегда video_call
+    - `event: string` (required) — Тип события
+      Значения: `started` — Видеозвонок начался, `finished` — Видеозвонок завершился, `recording_ready` — Запись видеозвонка готова
+    - `video_room_id: integer, int32` (required) — Идентификатор видеозвонка. Пример: `9012`
+    - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок. Пример: `23438`
+    - `owner_id: integer, int32` (required) — Идентификатор пользователя, начавшего видеозвонок. Пример: `2345`
+    - `thread: object` — Объект с параметрами треда, если видеозвонок проходит в треде. `null`, если звонок не в треде.
+      - `id: integer, int32` (required) — Идентификатор треда. Пример: `12345`
+      - `chat_id: integer, int32` (required) — Идентификатор чата треда. Пример: `67890`
+      - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому создан тред. Пример: `268092`
+      - `message_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому создан тред. Пример: `23438`
+    - `started_at: date-time` — Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished.. Пример: `"2025-05-15T14:30:00.000Z"`
+    - `finished_at: date-time` — Дата и время завершения звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для события finished.. Пример: `"2025-05-15T14:45:00.000Z"`
+    - `duration: integer, int32` — Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи.. Пример: `900`
+    - `members: array of object` — Список участников звонка. Присутствует для события finished.
+      - `user_id: integer, int32` (required) — Идентификатор участника. Пример: `2345`
+      - `joined_at: date-time` (required) — Дата и время первого подключения к звонку (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+      - `left_at: date-time` (required) — Дата и время выхода из звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Если участник оставался в звонке до его завершения, совпадает с временем окончания звонка.. Пример: `"2025-05-15T14:45:00.000Z"`
+    - `recording_id: integer, int32` — Идентификатор записи. Присутствует для события recording_ready.. Пример: `4567`
+    - `file_id: integer, int32` — Идентификатор файла записи. Присутствует для события recording_ready. `null`, если файл ещё не привязан.. Пример: `89012`
+    - `url: string` — Прямая ссылка на файл записи. Присутствует для события recording_ready.. Пример: `"https://api.pachca.com/files/89012"`
+    - `size: integer, int32` — Размер файла записи в байтах. Присутствует для события recording_ready.. Пример: `10485760`
+    - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 
 
@@ -11468,7 +11566,7 @@ users = await with_retry(lambda: client.users.list_users())
 - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 - `event_key: string` (required) — Ключ типа события
-  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация)
+  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён
 - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
 - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
 - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
@@ -11476,7 +11574,7 @@ users = await with_retry(lambda: client.users.list_users())
 - `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
   **Возможные варианты:**
 
-  - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated
+  - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted
   - **AuditDetailsUserUpdated**: При: user_updated
     - `changed_attrs: array of string` (required) — Список изменённых полей
   - **AuditDetailsRoleChanged**: При: user_role_changed
@@ -23364,7 +23462,7 @@ response = await client.search.search_messages(params=params)
 - `limit: integer, int32` (default: 200) — Количество возвращаемых результатов за один запрос
 - `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page`)
 - `sort: string` — Сортировка результатов
-  Значения: `by_score`, `alphabetical`
+  Значения: `by_score`, `alphabetical`, `creation`
 - `order: string` — Направление сортировки
   Значения: `asc`, `desc`
 - `created_from: date-time` — Фильтр по дате создания (от)
@@ -25521,6 +25619,10 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bot/recreate_token" \
     - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
     - `ignore_self_messages: boolean` (required) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
     - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+    - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.. Пример: `false`
+    - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
+    - `who_can_add: string` (required) — Кто может добавлять бота в чаты
+      Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
   - `access_token: string` (required) — Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота.. Пример: `"bm90X2FfcmVhbF90b2tlbg"`
 
 **Пример ответа:**
@@ -25548,7 +25650,12 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bot/recreate_token" \
       "challenge_key": "challenge",
       "link_preview_enabled": true,
       "ignore_self_messages": false,
-      "events_history_enabled": false
+      "events_history_enabled": false,
+      "single_chat": false,
+      "can_edit": [
+        "admin"
+      ],
+      "who_can_add": "creator"
     },
     "access_token": "bm90X2FfcmVhbF90b2tlbg"
   }
@@ -25658,7 +25765,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.bots.selfRecreateBotToken()
-// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean }), accessToken: string })
+// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })
 ```
 
 ### Python
@@ -25669,7 +25776,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.bots.self_recreate_bot_token()
-# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool), access_token: str)
+# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), access_token: str)
 ```
 
 ---
@@ -25744,6 +25851,10 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
     - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
     - `ignore_self_messages: boolean` (required) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
     - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+    - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.. Пример: `false`
+    - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
+    - `who_can_add: string` (required) — Кто может добавлять бота в чаты
+      Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
 
 **Пример ответа:**
 
@@ -25770,7 +25881,12 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
       "challenge_key": "challenge",
       "link_preview_enabled": true,
       "ignore_self_messages": false,
-      "events_history_enabled": false
+      "events_history_enabled": false,
+      "single_chat": false,
+      "can_edit": [
+        "admin"
+      ],
+      "who_can_add": "creator"
     }
   }
 }
@@ -25910,7 +26026,7 @@ const client = new PachcaClient("YOUR_TOKEN")
 
 const request: BotWebhookSelfUpdateRequest = { webhook: { outgoingUrl: "https://www.website.com/tasks/new" } }
 const response = client.bots.selfUpdateBotWebhook(request)
-// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean }) })
+// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })
 ```
 
 ### Python
@@ -25923,7 +26039,216 @@ client = PachcaClient("YOUR_TOKEN")
 
 request = BotWebhookSelfUpdateRequest(webhook=BotWebhookSelfUpdateRequestWebhook(outgoing_url="https://www.website.com/tasks/new"))
 response = await client.bots.self_update_bot_webhook(request=request)
-# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool))
+# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd))
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/bots/list.md) ---
+
+# Список ботов
+
+**Метод**: `GET`
+
+**Путь**: `/bots`
+
+> **Скоуп:** `bots:read`
+
+Метод для получения списка ботов. Возвращаются только боты, доступные вам для редактирования: созданные вами и те, чьи настройки открывают вам доступ к редактированию.
+
+## Параметры
+
+### Query параметры
+
+- `query: string` — Поисковая фраза для фильтрации ботов по имени
+- `limit: integer, int32` (default: 50) — Количество возвращаемых сущностей за один запрос
+- `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page`)
+
+
+## Пример запроса
+
+```bash
+# Для получения следующей страницы используйте cursor из meta.paginate.next_page
+curl "https://api.pachca.com/api/shared/v1/bots?query=задач&limit=1" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Ответы
+
+### 200: The request has succeeded.
+
+**Схема ответа:**
+
+- `data: array of object` (required)
+  - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
+  - `webhook: object` (required) — Объект параметров вебхука
+    - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
+    - `nickname: string` (required) — Никнейм бота. Пример: `"tasks_bot"`
+    - `outgoing_url: string` (required) — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
+    - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
+    - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
+      Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
+    - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
+    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+    - `template: string` (required) — Шаблон форматирования входящего вебхука. `null`, если не задан.. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
+    - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
+      Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
+    - `challenge_key: string` (required) — Название поля проверки для верификации входящего вебхука. `null`, если не задано.. Пример: `"challenge"`
+    - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
+    - `ignore_self_messages: boolean` (required) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
+    - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+    - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.. Пример: `false`
+    - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
+    - `who_can_add: string` (required) — Кто может добавлять бота в чаты
+      Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`
+    - `prev_page: string` — Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка.. Пример: `"eyJxZCO2MiwiZGlyIjoiYXNjIn0"`
+    - `has_next: boolean` — Есть ли ещё данные на следующей странице. На последней странице — `false`.. Пример: `true`
+    - `has_prev: boolean` — Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`.. Пример: `false`
+
+**Пример ответа:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1738816,
+      "webhook": {
+        "name": "Бот задач",
+        "nickname": "tasks_bot",
+        "outgoing_url": "https://www.website.com/tasks/new",
+        "events": [
+          "message_new"
+        ],
+        "trigger_on": "commands",
+        "commands": [
+          "/task"
+        ],
+        "scopes": [
+          "messages:create"
+        ],
+        "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
+        "template_engine": "liquid",
+        "challenge_key": "challenge",
+        "link_preview_enabled": true,
+        "ignore_self_messages": false,
+        "events_history_enabled": false,
+        "single_chat": false,
+        "can_edit": [
+          "admin"
+        ],
+        "who_can_add": "creator"
+      }
+    }
+  ],
+  "meta": {
+    "paginate": {
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3",
+      "prev_page": "eyJxZCO2MiwiZGlyIjoiYXNjIn0",
+      "has_next": true,
+      "has_prev": false
+    }
+  }
+}
+```
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:**
+
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:**
+
+- `errors: array of object` (required) — Массив ошибок
+  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
+  - `code: string` (required) — Код ошибки
+    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
+    **Структура значений Record:**
+    - Тип значения: `any`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:**
+
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.bots.listBots({
+  query: "задач",
+  limit: 1,
+  cursor: "eyJpZCI6MTczODgxNn0"
+})
+// → ListBotsResponse({ data: BotResponse[], meta: PaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ListBotsParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = ListBotsParams(
+    query="задач",
+    limit=1,
+    cursor="eyJpZCI6MTczODgxNn0"
+)
+response = await client.bots.list_bots(params=params)
+# → ListBotsResponse(data: list[BotResponse], meta: PaginationMeta)
 ```
 
 ---
@@ -25966,6 +26291,10 @@ response = await client.bots.self_update_bot_webhook(request=request)
   - `link_preview_enabled: boolean` (default: true) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
   - `ignore_self_messages: boolean` (default: false) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
   - `events_history_enabled: boolean` (default: false) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+  - `who_can_add: string` — Кто может добавлять бота в чаты
+    Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+  - `can_edit: array of string` — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
+  - `single_chat: boolean` (default: false) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Задаётся только при создании, при редактировании не меняется.. Пример: `false`
 
 ### Пример
 
@@ -25986,7 +26315,10 @@ response = await client.bots.self_update_bot_webhook(request=request)
       "messages:create"
     ],
     "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
-    "challenge_key": "challenge"
+    "challenge_key": "challenge",
+    "can_edit": [
+      "admin"
+    ]
   }
 }
 ```
@@ -26013,7 +26345,10 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
       "messages:create"
     ],
     "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
-    "challenge_key": "challenge"
+    "challenge_key": "challenge",
+    "can_edit": [
+      "admin"
+    ]
   }
 }'
 ```
@@ -26042,6 +26377,10 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
     - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
     - `ignore_self_messages: boolean` (required) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
     - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+    - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.. Пример: `false`
+    - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
+    - `who_can_add: string` (required) — Кто может добавлять бота в чаты
+      Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
   - `access_token: string` (required) — Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота.. Пример: `"bm90X2FfcmVhbF90b2tlbg"`
 
 **Пример ответа:**
@@ -26069,7 +26408,12 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
       "challenge_key": "challenge",
       "link_preview_enabled": true,
       "ignore_self_messages": false,
-      "events_history_enabled": false
+      "events_history_enabled": false,
+      "single_chat": false,
+      "can_edit": [
+        "admin"
+      ],
+      "who_can_add": "creator"
     },
     "access_token": "bm90X2FfcmVhbF90b2tlbg"
   }
@@ -26174,7 +26518,7 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
 ### TypeScript
 
 ```typescript
-import { BotCreateRequest, BotCreateRequestWebhook, BotEventName, BotTemplateEngine, BotTriggerOn, PachcaClient } from "@pachca/sdk"
+import { BotCanEdit, BotCreateRequest, BotCreateRequestWebhook, BotEventName, BotTemplateEngine, BotTriggerOn, BotWhoCanAdd, PachcaClient } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
@@ -26192,18 +26536,21 @@ const request: BotCreateRequest = {
     challengeKey: "challenge",
     linkPreviewEnabled: true,
     ignoreSelfMessages: false,
-    eventsHistoryEnabled: false
+    eventsHistoryEnabled: false,
+    whoCanAdd: BotWhoCanAdd.Creator,
+    canEdit: [BotCanEdit.Admin],
+    singleChat: false
   }
 }
 const response = client.bots.createBot(request)
-// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean }), accessToken: string })
+// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })
 ```
 
 ### Python
 
 ```python
 from pachca.client import PachcaClient
-from pachca.models import BotCreateRequest, BotCreateRequestWebhook, BotEventName, BotTemplateEngine, BotTriggerOn
+from pachca.models import BotCanEdit, BotCreateRequest, BotCreateRequestWebhook, BotEventName, BotTemplateEngine, BotTriggerOn, BotWhoCanAdd
 
 client = PachcaClient("YOUR_TOKEN")
 
@@ -26221,11 +26568,14 @@ request = BotCreateRequest(
         challenge_key="challenge",
         link_preview_enabled=True,
         ignore_self_messages=False,
-        events_history_enabled=False
+        events_history_enabled=False,
+        who_can_add=BotWhoCanAdd.CREATOR,
+        can_edit=[BotCanEdit.ADMIN],
+        single_chat=False
     )
 )
 response = await client.bots.create_bot(request=request)
-# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool), access_token: str)
+# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), access_token: str)
 ```
 
 ---
@@ -26280,6 +26630,10 @@ curl "https://api.pachca.com/api/shared/v1/bots/1738816" \
     - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
     - `ignore_self_messages: boolean` (required) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
     - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+    - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.. Пример: `false`
+    - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
+    - `who_can_add: string` (required) — Кто может добавлять бота в чаты
+      Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
 
 **Пример ответа:**
 
@@ -26306,7 +26660,12 @@ curl "https://api.pachca.com/api/shared/v1/bots/1738816" \
       "challenge_key": "challenge",
       "link_preview_enabled": true,
       "ignore_self_messages": false,
-      "events_history_enabled": false
+      "events_history_enabled": false,
+      "single_chat": false,
+      "can_edit": [
+        "admin"
+      ],
+      "who_can_add": "creator"
     }
   }
 }
@@ -26415,7 +26774,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.bots.getBot(1738816)
-// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean }) })
+// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })
 ```
 
 ### Python
@@ -26426,7 +26785,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.bots.get_bot(id=1738816)
-# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool))
+# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd))
 ```
 
 ---
@@ -26478,6 +26837,9 @@ response = await client.bots.get_bot(id=1738816)
   - `link_preview_enabled: boolean` (default: true) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
   - `ignore_self_messages: boolean` (default: false) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
   - `events_history_enabled: boolean` (default: false) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+  - `who_can_add: string` — Кто может добавлять бота в чаты
+    Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+  - `can_edit: array of string` — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
 
 ### Пример
 
@@ -26498,7 +26860,10 @@ response = await client.bots.get_bot(id=1738816)
       "messages:create"
     ],
     "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
-    "challenge_key": "challenge"
+    "challenge_key": "challenge",
+    "can_edit": [
+      "admin"
+    ]
   }
 }
 ```
@@ -26525,7 +26890,10 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
       "messages:create"
     ],
     "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
-    "challenge_key": "challenge"
+    "challenge_key": "challenge",
+    "can_edit": [
+      "admin"
+    ]
   }
 }'
 ```
@@ -26554,6 +26922,10 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
     - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
     - `ignore_self_messages: boolean` (required) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
     - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+    - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.. Пример: `false`
+    - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
+    - `who_can_add: string` (required) — Кто может добавлять бота в чаты
+      Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
 
 **Пример ответа:**
 
@@ -26580,7 +26952,12 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
       "challenge_key": "challenge",
       "link_preview_enabled": true,
       "ignore_self_messages": false,
-      "events_history_enabled": false
+      "events_history_enabled": false,
+      "single_chat": false,
+      "can_edit": [
+        "admin"
+      ],
+      "who_can_add": "creator"
     }
   }
 }
@@ -26744,7 +27121,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
 ### TypeScript
 
 ```typescript
-import { BotEventName, BotTemplateEngine, BotTriggerOn, BotUpdateRequest, BotUpdateRequestWebhook, PachcaClient } from "@pachca/sdk"
+import { BotCanEdit, BotEventName, BotTemplateEngine, BotTriggerOn, BotUpdateRequest, BotUpdateRequestWebhook, BotWhoCanAdd, PachcaClient } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
@@ -26762,18 +27139,20 @@ const request: BotUpdateRequest = {
     challengeKey: "challenge",
     linkPreviewEnabled: true,
     ignoreSelfMessages: false,
-    eventsHistoryEnabled: false
+    eventsHistoryEnabled: false,
+    whoCanAdd: BotWhoCanAdd.Creator,
+    canEdit: [BotCanEdit.Admin]
   }
 }
 const response = client.bots.updateBot(1738816, request)
-// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean }) })
+// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })
 ```
 
 ### Python
 
 ```python
 from pachca.client import PachcaClient
-from pachca.models import BotEventName, BotTemplateEngine, BotTriggerOn, BotUpdateRequest, BotUpdateRequestWebhook
+from pachca.models import BotCanEdit, BotEventName, BotTemplateEngine, BotTriggerOn, BotUpdateRequest, BotUpdateRequestWebhook, BotWhoCanAdd
 
 client = PachcaClient("YOUR_TOKEN")
 
@@ -26791,11 +27170,164 @@ request = BotUpdateRequest(
         challenge_key="challenge",
         link_preview_enabled=True,
         ignore_self_messages=False,
-        events_history_enabled=False
+        events_history_enabled=False,
+        who_can_add=BotWhoCanAdd.CREATOR,
+        can_edit=[BotCanEdit.ADMIN]
     )
 )
 response = await client.bots.update_bot(id=1738816, request=request)
-# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool))
+# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd))
+```
+
+---
+
+--- [Document source](https://dev.pachca.com/api/bots/delete.md) ---
+
+# Удаление бота
+
+**Метод**: `DELETE`
+
+**Путь**: `/bots/{id}`
+
+> **Скоуп:** `bots:write`
+
+Метод для удаления бота. Прежний `access_token` бота сразу инвалидируется, бот исключается из всех чатов, его исходящий вебхук удаляется.
+
+Удаление доступно создателю бота, а также администратору компании, если настройки бота открывают администраторам доступ к редактированию. Владельцы и администраторы чатов удалять бота не могут, даже если им разрешено его редактировать.
+
+Для удаления бота вам необходимо знать его `id` и указать его в `URL` запроса.
+
+## Параметры
+
+### Path параметры
+
+- `id: integer, int32` (required) — Идентификатор бота
+
+
+## Пример запроса
+
+```bash
+curl -X DELETE "https://api.pachca.com/api/shared/v1/bots/1738816" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+## Ответы
+
+### 204: There is no content to send for this request, but the headers may be useful. 
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:**
+
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:**
+
+- `errors: array of object` (required) — Массив ошибок
+  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
+  - `code: string` (required) — Код ошибки
+    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
+    **Структура значений Record:**
+    - Тип значения: `any`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:**
+
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:**
+
+- `errors: array of object` (required) — Массив ошибок
+  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
+  - `code: string` (required) — Код ошибки
+    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
+    **Структура значений Record:**
+    - Тип значения: `any`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.bots.deleteBot(1738816)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.bots.delete_bot(id=1738816)
 ```
 
 ---
@@ -26812,7 +27344,7 @@ response = await client.bots.update_bot(id=1738816, request=request)
 
 Метод генерирует боту новый `access_token` и сразу инвалидирует прежний. Используйте его при компрометации токена или плановой ротации секрета в `CI`.
 
-Доступен администратору, владельцу компании или создателю бота. Укажите `id` бота в `URL` запроса. Новый токен возвращается в ответе только один раз — сохраните его сразу.
+Ротация доступна создателю бота, а также администратору компании, если настройки бота открывают администраторам доступ к редактированию. Укажите `id` бота в `URL` запроса. Новый токен возвращается в ответе только один раз — сохраните его сразу.
 
 ## Параметры
 
@@ -26852,6 +27384,10 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bots/1738816/recreate_token" 
     - `link_preview_enabled: boolean` (required) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
     - `ignore_self_messages: boolean` (required) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
     - `events_history_enabled: boolean` (required) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+    - `single_chat: boolean` (required) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.. Пример: `false`
+    - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.. Пример: `["admin"]`
+    - `who_can_add: string` (required) — Кто может добавлять бота в чаты
+      Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
   - `access_token: string` (required) — Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота.. Пример: `"bm90X2FfcmVhbF90b2tlbg"`
 
 **Пример ответа:**
@@ -26879,7 +27415,12 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bots/1738816/recreate_token" 
       "challenge_key": "challenge",
       "link_preview_enabled": true,
       "ignore_self_messages": false,
-      "events_history_enabled": false
+      "events_history_enabled": false,
+      "single_chat": false,
+      "can_edit": [
+        "admin"
+      ],
+      "who_can_add": "creator"
     },
     "access_token": "bm90X2FfcmVhbF90b2tlbg"
   }
@@ -26989,7 +27530,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.bots.recreateBotToken(1738816)
-// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean }), accessToken: string })
+// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })
 ```
 
 ### Python
@@ -27000,7 +27541,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.bots.recreate_bot_token(id=1738816)
-# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool), access_token: str)
+# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), access_token: str)
 ```
 
 ---
@@ -27136,6 +27677,31 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
       - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
       - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-09-18T19:53:14.000Z"`
       - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1726685594`
+    - **VideoCallWebhookPayload**: Структура исходящего вебхука о видеозвонке
+      - `type: string` (required) — Тип объекта. Пример: `"video_call"`
+        Значения: `video_call` — Для видеозвонков всегда video_call
+      - `event: string` (required) — Тип события
+        Значения: `started` — Видеозвонок начался, `finished` — Видеозвонок завершился, `recording_ready` — Запись видеозвонка готова
+      - `video_room_id: integer, int32` (required) — Идентификатор видеозвонка. Пример: `9012`
+      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок. Пример: `23438`
+      - `owner_id: integer, int32` (required) — Идентификатор пользователя, начавшего видеозвонок. Пример: `2345`
+      - `thread: object` — Объект с параметрами треда, если видеозвонок проходит в треде. `null`, если звонок не в треде.
+        - `id: integer, int32` (required) — Идентификатор треда. Пример: `12345`
+        - `chat_id: integer, int32` (required) — Идентификатор чата треда. Пример: `67890`
+        - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому создан тред. Пример: `268092`
+        - `message_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому создан тред. Пример: `23438`
+      - `started_at: date-time` — Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished.. Пример: `"2025-05-15T14:30:00.000Z"`
+      - `finished_at: date-time` — Дата и время завершения звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для события finished.. Пример: `"2025-05-15T14:45:00.000Z"`
+      - `duration: integer, int32` — Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи.. Пример: `900`
+      - `members: array of object` — Список участников звонка. Присутствует для события finished.
+        - `user_id: integer, int32` (required) — Идентификатор участника. Пример: `2345`
+        - `joined_at: date-time` (required) — Дата и время первого подключения к звонку (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+        - `left_at: date-time` (required) — Дата и время выхода из звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Если участник оставался в звонке до его завершения, совпадает с временем окончания звонка.. Пример: `"2025-05-15T14:45:00.000Z"`
+      - `recording_id: integer, int32` — Идентификатор записи. Присутствует для события recording_ready.. Пример: `4567`
+      - `file_id: integer, int32` — Идентификатор файла записи. Присутствует для события recording_ready. `null`, если файл ещё не привязан.. Пример: `89012`
+      - `url: string` — Прямая ссылка на файл записи. Присутствует для события recording_ready.. Пример: `"https://api.pachca.com/files/89012"`
+      - `size: integer, int32` — Размер файла записи в байтах. Присутствует для события recording_ready.. Пример: `10485760`
+      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
   - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
@@ -27509,7 +28075,7 @@ await client.bots.delete_webhook_event(id="01KAJZ2XDSS2S3DSW9EXJZ0TBV")
 - `start_time: date-time` — Начальная метка времени (включительно)
 - `end_time: date-time` — Конечная метка времени (исключительно)
 - `event_key: string` — Фильтр по конкретному типу события
-  Значения: `user_login`, `user_logout`, `user_2fa_fail`, `user_2fa_success`, `user_created`, `user_deleted`, `user_role_changed`, `user_updated`, `tag_created`, `tag_deleted`, `user_added_to_tag`, `user_removed_from_tag`, `chat_created`, `chat_renamed`, `chat_permission_changed`, `user_chat_join`, `user_chat_leave`, `tag_added_to_chat`, `tag_removed_from_chat`, `message_updated`, `message_deleted`, `message_created`, `reaction_created`, `reaction_deleted`, `thread_created`, `access_token_created`, `access_token_updated`, `access_token_destroy`, `kms_encrypt`, `kms_decrypt`, `audit_events_accessed`, `dlp_violation_detected`, `search_users_api`, `search_chats_api`, `search_messages_api`, `bot_scopes_updated`, `bot_webhook_settings_updated`, `bot_token_recreated`
+  Значения: `user_login`, `user_logout`, `user_2fa_fail`, `user_2fa_success`, `user_created`, `user_deleted`, `user_role_changed`, `user_updated`, `tag_created`, `tag_deleted`, `user_added_to_tag`, `user_removed_from_tag`, `chat_created`, `chat_renamed`, `chat_permission_changed`, `user_chat_join`, `user_chat_leave`, `tag_added_to_chat`, `tag_removed_from_chat`, `message_updated`, `message_deleted`, `message_created`, `reaction_created`, `reaction_deleted`, `thread_created`, `access_token_created`, `access_token_updated`, `access_token_destroy`, `kms_encrypt`, `kms_decrypt`, `audit_events_accessed`, `dlp_violation_detected`, `search_users_api`, `search_chats_api`, `search_messages_api`, `bot_scopes_updated`, `bot_webhook_settings_updated`, `bot_token_recreated`, `bot_deleted`
 - `actor_id: string` — Идентификатор пользователя, выполнившего действие
 - `actor_type: string` — Тип актора
 - `entity_id: string` — Идентификатор затронутой сущности
@@ -27536,7 +28102,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
   - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
   - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
   - `event_key: string` (required) — Ключ типа события
-    Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация)
+    Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён
   - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
   - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
   - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
@@ -27544,7 +28110,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
   - `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
     **Возможные варианты:**
 
-    - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated
+    - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted
     - **AuditDetailsUserUpdated**: При: user_updated
       - `changed_attrs: array of string` (required) — Список изменённых полей
     - **AuditDetailsRoleChanged**: При: user_role_changed

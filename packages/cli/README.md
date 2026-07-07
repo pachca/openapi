@@ -80,9 +80,11 @@ pachca guide            # список всех сценариев
 |---------|---------|
 | `pachca bots recreate-token-self` | Ротация собственного токена бота |
 | `pachca bots update-webhook` | Саморегистрация вебхука бота |
+| `pachca bots list` | Список ботов |
 | `pachca bots create` | Новый бот |
 | `pachca bots get` | Информация о боте |
 | `pachca bots update` | Редактирование бота |
+| `pachca bots delete` | Удаление бота |
 | `pachca bots recreate-token` | Ротация токена бота |
 | `pachca bots list-events` | История событий |
 | `pachca bots remove-event` | Удаление события |

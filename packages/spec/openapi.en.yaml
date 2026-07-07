@@ -216,6 +216,10 @@ paths:
                     link_preview_enabled: true
                     ignore_self_messages: false
                     events_history_enabled: false
+                    single_chat: false
+                    can_edit:
+                      - admin
+                    who_can_add: creator
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '401':
           description: Access is unauthorized.
@@ -289,6 +293,10 @@ paths:
                     link_preview_enabled: true
                     ignore_self_messages: false
                     events_history_enabled: false
+                    single_chat: false
+                    can_edit:
+                      - admin
+                    who_can_add: creator
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -333,6 +341,114 @@ paths:
       x-requirements:
         scope: bot_self:webhook:write
   /bots:
+    get:
+      operationId: BotOperations_listBots
+      description: >-
+        List bots
+
+
+        Retrieve a list of bots. The response includes only the bots you can edit: those you created and those whose
+        settings grant you edit access.
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Search phrase to filter bots by name
+          schema:
+            type: string
+            example: task
+          example: task
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Number of entities returned per request
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            example: 1
+            default: 50
+          example: 1
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Pagination cursor (from `meta.paginate.next_page`)
+          schema:
+            type: string
+            example: eyJpZCI6MTczODgxNn0
+          example: eyJpZCI6MTczODgxNn0
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BotResponse'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                description: Response wrapper with data and pagination
+              example:
+                data:
+                  - id: 1738816
+                    webhook:
+                      name: Tasks bot
+                      nickname: tasks_bot
+                      outgoing_url: https://www.website.com/tasks/new
+                      events:
+                        - message_new
+                      trigger_on: commands
+                      commands:
+                        - /task
+                      scopes:
+                        - messages:create
+                      template: Order from {{ client }} for {{ amount }} ₽
+                      template_engine: liquid
+                      challenge_key: challenge
+                      link_preview_enabled: true
+                      ignore_self_messages: false
+                      events_history_enabled: false
+                      single_chat: false
+                      can_edit:
+                        - admin
+                      who_can_add: creator
+                meta:
+                  paginate:
+                    next_page: eyJpZCI6MTczODgxNn0
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Bots
+      x-paginated: true
+      x-requirements:
+        scope: bots:read
     post:
       operationId: BotOperations_createBot
       description: >-
@@ -378,6 +494,10 @@ paths:
                     link_preview_enabled: true
                     ignore_self_messages: false
                     events_history_enabled: false
+                    single_chat: false
+                    can_edit:
+                      - admin
+                    who_can_add: creator
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '400':
           description: The server could not understand the request due to invalid syntax.
@@ -475,6 +595,10 @@ paths:
                     link_preview_enabled: true
                     ignore_self_messages: false
                     events_history_enabled: false
+                    single_chat: false
+                    can_edit:
+                      - admin
+                    who_can_add: creator
         '401':
           description: Access is unauthorized.
           content:
@@ -587,6 +711,62 @@ paths:
               $ref: '#/components/schemas/BotUpdateRequest'
       x-requirements:
         scope: bots:write
+    delete:
+      operationId: BotOperations_deleteBot
+      description: >-
+        Delete bot
+
+
+        Delete a bot. The bot's previous `access_token` is invalidated immediately, the bot is removed from all chats,
+        and its outgoing webhook is deleted.
+
+
+        Deletion is available to the bot creator, and to a company administrator if the bot's settings grant
+        administrators edit access. Chat owners and admins cannot delete a bot, even if they are allowed to edit it.
+
+
+        To delete a bot you need to know its `id` and specify it in the request `URL`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Bot ID
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bots:write
   /bots/{id}/recreate_token:
     post:
       operationId: BotOperations_recreateBotToken
@@ -598,8 +778,9 @@ paths:
         compromised or for scheduled secret rotation in `CI`.
 
 
-        Available to a company administrator, the company owner, or the bot creator. Specify the bot's `id` in the
-        request `URL`. The new token is returned in the response only once — save it right away.
+        Rotation is available to the bot creator, and to a company administrator if the bot's settings grant
+        administrators edit access. Specify the bot's `id` in the request `URL`. The new token is returned in the
+        response only once — save it right away.
       parameters:
         - name: id
           in: path
@@ -643,6 +824,10 @@ paths:
                     link_preview_enabled: true
                     ignore_self_messages: false
                     events_history_enabled: false
+                    single_chat: false
+                    can_edit:
+                      - admin
+                    who_can_add: creator
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '401':
           description: Access is unauthorized.
@@ -5826,6 +6011,7 @@ components:
         - bot_scopes_updated
         - bot_webhook_settings_updated
         - bot_token_recreated
+        - bot_deleted
       description: Audit event type
       x-enum-descriptions:
         user_login: User logged in successfully
@@ -5866,6 +6052,7 @@ components:
         bot_scopes_updated: Bot token scopes changed
         bot_webhook_settings_updated: Bot outgoing webhook settings changed
         bot_token_recreated: Bot token recreated (rotation)
+        bot_deleted: Bot deleted
     AvatarData:
       type: object
       required:
@@ -5876,6 +6063,15 @@ components:
           description: Avatar URL
           example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
       description: Avatar data
+    BotCanEdit:
+      type: string
+      enum:
+        - admin
+        - chat_owners
+      description: Role allowed to edit the bot settings
+      x-enum-descriptions:
+        admin: Company administrators
+        chat_owners: Owners of the chats the bot is added to
     BotCreateRequest:
       type: object
       required:
@@ -5953,6 +6149,29 @@ components:
               description: Save the bot's event history for later retrieval via the event history method
               example: false
               default: false
+            who_can_add:
+              allOf:
+                - $ref: '#/components/schemas/BotWhoCanAdd'
+              description: Who can add the bot to chats
+              example: creator
+              default: creator
+            can_edit:
+              type: array
+              items:
+                $ref: '#/components/schemas/BotCanEdit'
+              description: >-
+                Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty
+                array means only the creator can edit.
+              example:
+                - admin
+            single_chat:
+              type: boolean
+              description: >-
+                Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel
+                only, `false` — to multiple. Personal chats and threads don't count toward this limit. Set only on
+                creation and not changed on update.
+              example: false
+              default: false
           required:
             - name
           description: Webhook parameters object of the bot to create
@@ -5999,6 +6218,9 @@ components:
         - company_member_delete
         - company_member_update
         - bill_created
+        - video_call_started
+        - video_call_finished
+        - video_call_recording_ready
       description: Bot outgoing webhook event
       x-enum-descriptions:
         message_new: New message
@@ -6017,6 +6239,9 @@ components:
         company_member_delete: Employee removed from the company
         company_member_update: Employee data changed
         bill_created: Bill created
+        video_call_started: Video call started
+        video_call_finished: Video call finished
+        video_call_recording_ready: Video call recording ready
     BotResponse:
       type: object
       required:
@@ -6130,6 +6355,21 @@ components:
               description: Save the bot's event history for later retrieval via the event history method
               example: false
               default: false
+            who_can_add:
+              allOf:
+                - $ref: '#/components/schemas/BotWhoCanAdd'
+              description: Who can add the bot to chats
+              example: creator
+              default: creator
+            can_edit:
+              type: array
+              items:
+                $ref: '#/components/schemas/BotCanEdit'
+              description: >-
+                Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty
+                array means only the creator can edit.
+              example:
+                - admin
           description: Webhook parameters object of the bot to update
       description: Bot update request
     BotWebhook:
@@ -6148,6 +6388,9 @@ components:
         - link_preview_enabled
         - ignore_self_messages
         - events_history_enabled
+        - single_chat
+        - can_edit
+        - who_can_add
       properties:
         name:
           type: string
@@ -6215,6 +6458,26 @@ components:
           type: boolean
           description: Save the bot's event history for later retrieval via the event history method
           example: false
+        single_chat:
+          type: boolean
+          description: >-
+            Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only,
+            `false` — to multiple. Personal chats and threads don't count toward this limit
+          example: false
+        can_edit:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotCanEdit'
+          description: >-
+            Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty
+            array means only the creator can edit.
+          example:
+            - admin
+        who_can_add:
+          allOf:
+            - $ref: '#/components/schemas/BotWhoCanAdd'
+          description: Who can add the bot to chats
+          example: creator
       description: Bot webhook parameters
     BotWebhookSelfUpdateRequest:
       type: object
@@ -6232,6 +6495,19 @@ components:
             - outgoing_url
           description: Webhook parameters object
       description: Bot webhook self-registration request
+    BotWhoCanAdd:
+      type: string
+      enum:
+        - creator
+        - creator_admin
+        - creator_admin_user
+        - anyone
+      description: Who can add the bot to chats
+      x-enum-descriptions:
+        creator: Only the bot creator
+        creator_admin: The creator and company administrators
+        creator_admin_user: The creator, administrators, and company members
+        anyone: Anyone, including guests
     Button:
       type: object
       required:
@@ -8078,10 +8354,12 @@ components:
       enum:
         - by_score
         - alphabetical
+        - creation
       description: Search results sort order
       x-enum-descriptions:
         by_score: By relevance
         alphabetical: Alphabetically
+        creation: By creation date
     SortOrder:
       type: string
       enum:
@@ -8967,6 +9245,111 @@ components:
         pin_failed: Failed to pin the message
         message_deleted: Message has been deleted
         thread_message: Cannot create a thread for a message that is already in a thread
+    VideoCallEventType:
+      type: string
+      enum:
+        - started
+        - finished
+        - recording_ready
+      description: Video call event type
+      x-enum-descriptions:
+        started: Video call started
+        finished: Video call finished
+        recording_ready: Video call recording is ready
+    VideoCallWebhookPayload:
+      type: object
+      required:
+        - type
+        - event
+        - video_room_id
+        - chat_id
+        - owner_id
+        - webhook_timestamp
+      properties:
+        type:
+          type: string
+          enum:
+            - video_call
+          description: Object type
+          example: video_call
+          x-enum-descriptions:
+            video_call: Always video_call for video calls
+        event:
+          allOf:
+            - $ref: '#/components/schemas/VideoCallEventType'
+          description: Event type
+          example: started
+        video_room_id:
+          type: integer
+          format: int32
+          description: Video call ID
+          example: 9012
+        chat_id:
+          type: integer
+          format: int32
+          description: ID of the chat the video call takes place in
+          example: 23438
+        owner_id:
+          type: integer
+          format: int32
+          description: ID of the user who started the video call
+          example: 2345
+        thread:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/WebhookVideoCallThread'
+          nullable: true
+          description: Thread parameters object if the video call takes place in a thread. `null` if the call is not in a thread.
+        started_at:
+          type: string
+          format: date-time
+          description: >-
+            Call start date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Present for the started and
+            finished events.
+          example: '2025-05-15T14:30:00.000Z'
+        finished_at:
+          type: string
+          format: date-time
+          description: Call end date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Present for the finished event.
+          example: '2025-05-15T14:45:00.000Z'
+        duration:
+          type: integer
+          format: int32
+          description: >-
+            Duration in seconds. For the finished event it is the call duration, for recording_ready it is the recording
+            duration.
+          example: 900
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookVideoCallMember'
+          description: List of call participants. Present for the finished event.
+        recording_id:
+          type: integer
+          format: int32
+          description: Recording ID. Present for the recording_ready event.
+          example: 4567
+        file_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Recording file ID. Present for the recording_ready event. `null` if the file is not attached yet.
+          example: 89012
+        url:
+          type: string
+          description: Direct link to the recording file. Present for the recording_ready event.
+          example: https://api.pachca.com/files/89012
+        size:
+          type: integer
+          format: int32
+          description: Recording file size in bytes. Present for the recording_ready event.
+          example: 10485760
+        webhook_timestamp:
+          type: integer
+          format: int32
+          description: Webhook send date and time (UTC+0) in UNIX format
+          example: 1747574400
+      description: Video call outgoing webhook structure
     ViewBlock:
       type: object
       required:
@@ -9650,8 +10033,63 @@ components:
         - $ref: '#/components/schemas/ChatMemberWebhookPayload'
         - $ref: '#/components/schemas/CompanyMemberWebhookPayload'
         - $ref: '#/components/schemas/LinkSharedWebhookPayload'
+        - $ref: '#/components/schemas/VideoCallWebhookPayload'
       description: Union of all webhook payload types
       x-union-deserializer: webhook-payload
+    WebhookVideoCallMember:
+      type: object
+      required:
+        - user_id
+        - joined_at
+        - left_at
+      properties:
+        user_id:
+          type: integer
+          format: int32
+          description: Participant ID
+          example: 2345
+        joined_at:
+          type: string
+          format: date-time
+          description: First join date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          example: '2025-05-15T14:30:00.000Z'
+        left_at:
+          type: string
+          format: date-time
+          description: >-
+            Leave date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. If the participant stayed until
+            the call ended, it matches the call end time.
+          example: '2025-05-15T14:45:00.000Z'
+      description: Video call participant
+    WebhookVideoCallThread:
+      type: object
+      required:
+        - id
+        - chat_id
+        - message_id
+        - message_chat_id
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Thread ID
+          example: 12345
+        chat_id:
+          type: integer
+          format: int32
+          description: Thread chat ID
+          example: 67890
+        message_id:
+          type: integer
+          format: int32
+          description: ID of the message the thread was created for
+          example: 268092
+        message_chat_id:
+          type: integer
+          format: int32
+          description: Chat ID of the message the thread was created for
+          example: 23438
+      description: Parameters of the thread the video call takes place in
   securitySchemes:
     BearerAuth:
       type: http

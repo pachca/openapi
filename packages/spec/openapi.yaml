@@ -212,6 +212,10 @@ paths:
                     link_preview_enabled: true
                     ignore_self_messages: false
                     events_history_enabled: false
+                    single_chat: false
+                    can_edit:
+                      - admin
+                    who_can_add: creator
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '401':
           description: Access is unauthorized.
@@ -282,6 +286,10 @@ paths:
                     link_preview_enabled: true
                     ignore_self_messages: false
                     events_history_enabled: false
+                    single_chat: false
+                    can_edit:
+                      - admin
+                    who_can_add: creator
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -326,6 +334,112 @@ paths:
       x-requirements:
         scope: bot_self:webhook:write
   /bots:
+    get:
+      operationId: BotOperations_listBots
+      description: |-
+        Список ботов
+
+        Метод для получения списка ботов. Возвращаются только боты, доступные вам для редактирования: созданные вами и те, чьи настройки открывают вам доступ к редактированию.
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Поисковая фраза для фильтрации ботов по имени
+          schema:
+            type: string
+            example: задач
+          example: задач
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Количество возвращаемых сущностей за один запрос
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            example: 1
+            default: 50
+          example: 1
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Курсор для пагинации (из `meta.paginate.next_page`)
+          schema:
+            type: string
+            example: eyJpZCI6MTczODgxNn0
+          example: eyJpZCI6MTczODgxNn0
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BotResponse'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                description: Обертка ответа с данными и пагинацией
+              example:
+                data:
+                  - id: 1738816
+                    webhook:
+                      name: Бот задач
+                      nickname: tasks_bot
+                      outgoing_url: https://www.website.com/tasks/new
+                      events:
+                        - message_new
+                      trigger_on: commands
+                      commands:
+                        - /task
+                      scopes:
+                        - messages:create
+                      template: Заказ от {{ client }} на сумму {{ amount }} ₽
+                      template_engine: liquid
+                      challenge_key: challenge
+                      link_preview_enabled: true
+                      ignore_self_messages: false
+                      events_history_enabled: false
+                      single_chat: false
+                      can_edit:
+                        - admin
+                      who_can_add: creator
+                meta:
+                  paginate:
+                    next_page: eyJpZCI6MTczODgxNn0
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Bots
+      x-paginated: true
+      x-requirements:
+        scope: bots:read
     post:
       operationId: BotOperations_createBot
       description: |-
@@ -368,6 +482,10 @@ paths:
                     link_preview_enabled: true
                     ignore_self_messages: false
                     events_history_enabled: false
+                    single_chat: false
+                    can_edit:
+                      - admin
+                    who_can_add: creator
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '400':
           description: The server could not understand the request due to invalid syntax.
@@ -465,6 +583,10 @@ paths:
                     link_preview_enabled: true
                     ignore_self_messages: false
                     events_history_enabled: false
+                    single_chat: false
+                    can_edit:
+                      - admin
+                    who_can_add: creator
         '401':
           description: Access is unauthorized.
           content:
@@ -572,6 +694,57 @@ paths:
               $ref: '#/components/schemas/BotUpdateRequest'
       x-requirements:
         scope: bots:write
+    delete:
+      operationId: BotOperations_deleteBot
+      description: |-
+        Удаление бота
+
+        Метод для удаления бота. Прежний `access_token` бота сразу инвалидируется, бот исключается из всех чатов, его исходящий вебхук удаляется.
+
+        Удаление доступно создателю бота, а также администратору компании, если настройки бота открывают администраторам доступ к редактированию. Владельцы и администраторы чатов удалять бота не могут, даже если им разрешено его редактировать.
+
+        Для удаления бота вам необходимо знать его `id` и указать его в `URL` запроса.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор бота
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bots:write
   /bots/{id}/recreate_token:
     post:
       operationId: BotOperations_recreateBotToken
@@ -580,7 +753,7 @@ paths:
 
         Метод генерирует боту новый `access_token` и сразу инвалидирует прежний. Используйте его при компрометации токена или плановой ротации секрета в `CI`.
 
-        Доступен администратору, владельцу компании или создателю бота. Укажите `id` бота в `URL` запроса. Новый токен возвращается в ответе только один раз — сохраните его сразу.
+        Ротация доступна создателю бота, а также администратору компании, если настройки бота открывают администраторам доступ к редактированию. Укажите `id` бота в `URL` запроса. Новый токен возвращается в ответе только один раз — сохраните его сразу.
       parameters:
         - name: id
           in: path
@@ -624,6 +797,10 @@ paths:
                     link_preview_enabled: true
                     ignore_self_messages: false
                     events_history_enabled: false
+                    single_chat: false
+                    can_edit:
+                      - admin
+                    who_can_add: creator
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '401':
           description: Access is unauthorized.
@@ -5440,7 +5617,7 @@ components:
       description: 'При: dlp_violation_detected'
     AuditDetailsEmpty:
       type: object
-      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated'
+      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted'
     AuditDetailsInitiator:
       type: object
       required:
@@ -5687,6 +5864,7 @@ components:
         - bot_scopes_updated
         - bot_webhook_settings_updated
         - bot_token_recreated
+        - bot_deleted
       description: Тип аудит-события
       x-enum-descriptions:
         user_login: Пользователь успешно вошел в систему
@@ -5727,6 +5905,7 @@ components:
         bot_scopes_updated: Изменены скоупы токена бота
         bot_webhook_settings_updated: Изменены настройки исходящего вебхука бота
         bot_token_recreated: Токен бота перевыпущен (ротация)
+        bot_deleted: Бот удалён
     AvatarData:
       type: object
       required:
@@ -5737,6 +5916,15 @@ components:
           description: URL аватара
           example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
       description: Данные аватара
+    BotCanEdit:
+      type: string
+      enum:
+        - admin
+        - chat_owners
+      description: Роль, которой разрешено редактировать настройки бота
+      x-enum-descriptions:
+        admin: Администраторы компании
+        chat_owners: Владельцы чатов, в которые добавлен бот
     BotCreateRequest:
       type: object
       required:
@@ -5814,6 +6002,24 @@ components:
               description: Сохранять историю событий бота для последующего получения через метод истории событий
               example: false
               default: false
+            who_can_add:
+              allOf:
+                - $ref: '#/components/schemas/BotWhoCanAdd'
+              description: Кто может добавлять бота в чаты
+              example: creator
+              default: creator
+            can_edit:
+              type: array
+              items:
+                $ref: '#/components/schemas/BotCanEdit'
+              description: Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.
+              example:
+                - admin
+            single_chat:
+              type: boolean
+              description: 'Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Задаётся только при создании, при редактировании не меняется.'
+              example: false
+              default: false
           required:
             - name
           description: Объект параметров вебхука создаваемого бота
@@ -5858,6 +6064,9 @@ components:
         - company_member_delete
         - company_member_update
         - bill_created
+        - video_call_started
+        - video_call_finished
+        - video_call_recording_ready
       description: Событие исходящего вебхука бота
       x-enum-descriptions:
         message_new: Новое сообщение
@@ -5989,6 +6198,19 @@ components:
               description: Сохранять историю событий бота для последующего получения через метод истории событий
               example: false
               default: false
+            who_can_add:
+              allOf:
+                - $ref: '#/components/schemas/BotWhoCanAdd'
+              description: Кто может добавлять бота в чаты
+              example: creator
+              default: creator
+            can_edit:
+              type: array
+              items:
+                $ref: '#/components/schemas/BotCanEdit'
+              description: Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.
+              example:
+                - admin
           description: Объект параметров вебхука редактируемого бота
       description: Запрос на обновление бота
     BotWebhook:
@@ -6007,6 +6229,9 @@ components:
         - link_preview_enabled
         - ignore_self_messages
         - events_history_enabled
+        - single_chat
+        - can_edit
+        - who_can_add
       properties:
         name:
           type: string
@@ -6074,6 +6299,22 @@ components:
           type: boolean
           description: Сохранять историю событий бота для последующего получения через метод истории событий
           example: false
+        single_chat:
+          type: boolean
+          description: 'Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.'
+          example: false
+        can_edit:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotCanEdit'
+          description: Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.
+          example:
+            - admin
+        who_can_add:
+          allOf:
+            - $ref: '#/components/schemas/BotWhoCanAdd'
+          description: Кто может добавлять бота в чаты
+          example: creator
       description: Параметры вебхука бота
     BotWebhookSelfUpdateRequest:
       type: object
@@ -6091,6 +6332,19 @@ components:
             - outgoing_url
           description: Объект параметров вебхука
       description: Запрос на саморегистрацию вебхука бота
+    BotWhoCanAdd:
+      type: string
+      enum:
+        - creator
+        - creator_admin
+        - creator_admin_user
+        - anyone
+      description: Кто может добавлять бота в чаты
+      x-enum-descriptions:
+        creator: Только создатель бота
+        creator_admin: Создатель и администраторы компании
+        creator_admin_user: Создатель, администраторы и участники компании
+        anyone: Любой пользователь, в том числе гости
     Button:
       type: object
       required:
@@ -7904,10 +8158,12 @@ components:
       enum:
         - by_score
         - alphabetical
+        - creation
       description: Сортировка результатов поиска
       x-enum-descriptions:
         by_score: По релевантности
         alphabetical: По алфавиту
+        creation: По дате создания
     SortOrder:
       type: string
       enum:
@@ -8770,6 +9026,107 @@ components:
         pin_failed: Не удалось закрепить сообщение
         message_deleted: Сообщение удалено
         thread_message: Нельзя создать тред для сообщения, которое уже находится в треде
+    VideoCallEventType:
+      type: string
+      enum:
+        - started
+        - finished
+        - recording_ready
+      description: Тип события видеозвонка
+      x-enum-descriptions:
+        started: Видеозвонок начался
+        finished: Видеозвонок завершился
+        recording_ready: Запись видеозвонка готова
+    VideoCallWebhookPayload:
+      type: object
+      required:
+        - type
+        - event
+        - video_room_id
+        - chat_id
+        - owner_id
+        - webhook_timestamp
+      properties:
+        type:
+          type: string
+          enum:
+            - video_call
+          description: Тип объекта
+          example: video_call
+          x-enum-descriptions:
+            video_call: Для видеозвонков всегда video_call
+        event:
+          allOf:
+            - $ref: '#/components/schemas/VideoCallEventType'
+          description: Тип события
+          example: started
+        video_room_id:
+          type: integer
+          format: int32
+          description: Идентификатор видеозвонка
+          example: 9012
+        chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор чата, в котором проходит видеозвонок
+          example: 23438
+        owner_id:
+          type: integer
+          format: int32
+          description: Идентификатор пользователя, начавшего видеозвонок
+          example: 2345
+        thread:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/WebhookVideoCallThread'
+          nullable: true
+          description: Объект с параметрами треда, если видеозвонок проходит в треде. `null`, если звонок не в треде.
+        started_at:
+          type: string
+          format: date-time
+          description: Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished.
+          example: '2025-05-15T14:30:00.000Z'
+        finished_at:
+          type: string
+          format: date-time
+          description: Дата и время завершения звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для события finished.
+          example: '2025-05-15T14:45:00.000Z'
+        duration:
+          type: integer
+          format: int32
+          description: Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи.
+          example: 900
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookVideoCallMember'
+          description: Список участников звонка. Присутствует для события finished.
+        recording_id:
+          type: integer
+          format: int32
+          description: Идентификатор записи. Присутствует для события recording_ready.
+          example: 4567
+        file_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор файла записи. Присутствует для события recording_ready. `null`, если файл ещё не привязан.
+          example: 89012
+        url:
+          type: string
+          description: Прямая ссылка на файл записи. Присутствует для события recording_ready.
+          example: https://api.pachca.com/files/89012
+        size:
+          type: integer
+          format: int32
+          description: Размер файла записи в байтах. Присутствует для события recording_ready.
+          example: 10485760
+        webhook_timestamp:
+          type: integer
+          format: int32
+          description: Дата и время отправки вебхука (UTC+0) в формате UNIX
+          example: 1747574400
+      description: Структура исходящего вебхука о видеозвонке
     ViewBlock:
       type: object
       required:
@@ -9442,8 +9799,61 @@ components:
         - $ref: '#/components/schemas/ChatMemberWebhookPayload'
         - $ref: '#/components/schemas/CompanyMemberWebhookPayload'
         - $ref: '#/components/schemas/LinkSharedWebhookPayload'
+        - $ref: '#/components/schemas/VideoCallWebhookPayload'
       description: Объединение всех типов payload вебхуков
       x-union-deserializer: webhook-payload
+    WebhookVideoCallMember:
+      type: object
+      required:
+        - user_id
+        - joined_at
+        - left_at
+      properties:
+        user_id:
+          type: integer
+          format: int32
+          description: Идентификатор участника
+          example: 2345
+        joined_at:
+          type: string
+          format: date-time
+          description: Дата и время первого подключения к звонку (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+          example: '2025-05-15T14:30:00.000Z'
+        left_at:
+          type: string
+          format: date-time
+          description: Дата и время выхода из звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Если участник оставался в звонке до его завершения, совпадает с временем окончания звонка.
+          example: '2025-05-15T14:45:00.000Z'
+      description: Участник видеозвонка
+    WebhookVideoCallThread:
+      type: object
+      required:
+        - id
+        - chat_id
+        - message_id
+        - message_chat_id
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор треда
+          example: 12345
+        chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор чата треда
+          example: 67890
+        message_id:
+          type: integer
+          format: int32
+          description: Идентификатор сообщения, к которому создан тред
+          example: 268092
+        message_chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор чата сообщения, к которому создан тред
+          example: 23438
+      description: Параметры треда, в котором проходит видеозвонок
   securitySchemes:
     BearerAuth:
       type: http

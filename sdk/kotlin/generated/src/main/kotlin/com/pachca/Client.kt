@@ -121,6 +121,18 @@ class SecurityServiceImpl internal constructor(
 }
 
 interface BotsService {
+    suspend fun listBots(
+        query: String? = null,
+        limit: Int? = null,
+        cursor: String? = null,
+    ): ListBotsResponse {
+        throw NotImplementedError("Bots.listBots is not implemented")
+    }
+
+    suspend fun listBotsAll(query: String? = null, limit: Int? = null): List<BotResponse> {
+        throw NotImplementedError("Bots.listBotsAll is not implemented")
+    }
+
     suspend fun getBot(id: Int): BotResponse {
         throw NotImplementedError("Bots.getBot is not implemented")
     }
@@ -153,6 +165,10 @@ interface BotsService {
         throw NotImplementedError("Bots.updateBot is not implemented")
     }
 
+    suspend fun deleteBot(id: Int) {
+        throw NotImplementedError("Bots.deleteBot is not implemented")
+    }
+
     suspend fun deleteWebhookEvent(id: String) {
         throw NotImplementedError("Bots.deleteWebhookEvent is not implemented")
     }
@@ -162,6 +178,37 @@ class BotsServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) : BotsService {
+    override suspend fun listBots(
+        query: String?,
+        limit: Int?,
+        cursor: String?,
+    ): ListBotsResponse {
+        val response = client.get("$baseUrl/bots") {
+            query?.let { parameter("query", it) }
+            limit?.let { parameter("limit", it) }
+            cursor?.let { parameter("cursor", it) }
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun listBotsAll(query: String?, limit: Int?): List<BotResponse> {
+        val items = mutableListOf<BotResponse>()
+        var cursor: String? = null
+        var hasNext = true
+        while (hasNext) {
+            val response = listBots(query = query, limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
+        return items
+    }
+
     override suspend fun getBot(id: Int): BotResponse {
         val response = client.get("$baseUrl/bots/$id")
         return when (response.status.value) {
@@ -246,6 +293,15 @@ class BotsServiceImpl internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<BotResponseDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun deleteBot(id: Int) {
+        val response = client.delete("$baseUrl/bots/$id")
+        when (response.status.value) {
+            204 -> return
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }

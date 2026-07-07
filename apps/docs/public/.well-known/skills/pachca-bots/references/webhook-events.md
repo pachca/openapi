@@ -44,6 +44,12 @@ Sent when members are added/removed in chats where the bot is a member.
 
 Global event (does not require the bot to be in a chat). Events: invite, confirm, update, suspend, activate, delete.
 
+## Video calls
+
+Sent for video calls in chats where the bot is a member.
+Field `event` distinguishes: `started`, `finished` (includes participants and duration), `recording_ready` (includes recording file `url`, `size`, `duration`).
+Field `type` is always `video_call`. Common fields: `video_room_id`, `chat_id`, `owner_id`, `thread`.
+
 ## Security
 
 1. Verify signature: `HMAC-SHA256(Signing secret, raw body)` === `Pachca-Signature`

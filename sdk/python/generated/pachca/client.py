@@ -14,6 +14,8 @@ from .models import (
     OAuthError,
     ApiError,
     AuditEventKey,
+    ListBotsParams,
+    ListBotsResponse,
     BotResponse,
     GetWebhookEventsParams,
     GetWebhookEventsResponse,
@@ -169,6 +171,18 @@ class SecurityServiceImpl(SecurityService):
 
 
 class BotsService:
+    async def list_bots(
+        self,
+        params: ListBotsParams | None = None,
+    ) -> ListBotsResponse:
+        raise NotImplementedError("Bots.listBots is not implemented")
+
+    async def list_bots_all(
+        self,
+        params: ListBotsParams | None = None,
+    ) -> list[BotResponse]:
+        raise NotImplementedError("Bots.listBotsAll is not implemented")
+
     async def get_bot(
         self,
         id: int,
@@ -277,6 +291,12 @@ class BotsService:
     ) -> BotResponse:
         raise NotImplementedError("Bots.updateBot is not implemented")
 
+    async def delete_bot(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Bots.deleteBot is not implemented")
+
     async def delete_webhook_event(
         self,
         id: str,
@@ -287,6 +307,50 @@ class BotsService:
 class BotsServiceImpl(BotsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
+
+    async def list_bots(
+        self,
+        params: ListBotsParams | None = None,
+    ) -> ListBotsResponse:
+        query: dict[str, str] = {}
+        if params is not None and params.query is not None:
+            query["query"] = params.query
+        if params is not None and params.limit is not None:
+            query["limit"] = str(params.limit)
+        if params is not None and params.cursor is not None:
+            query["cursor"] = params.cursor
+        response = await self._client.get(
+            "/bots",
+            params=query,
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(ListBotsResponse, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def list_bots_all(
+        self,
+        params: ListBotsParams | None = None,
+    ) -> list[BotResponse]:
+        items: list[BotResponse] = []
+        cursor: str | None = None
+        has_next = True
+        while has_next:
+            if params is None:
+                params = ListBotsParams()
+            params.cursor = cursor
+            response = await self.list_bots(params=params)
+            items.extend(response.data)
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
+        return items
 
     async def get_bot(
         self,
@@ -427,6 +491,21 @@ class BotsServiceImpl(BotsService):
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def delete_bot(
+        self,
+        id: int,
+    ) -> None:
+        response = await self._client.delete(
+            f"/bots/{id}",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
 
     async def delete_webhook_event(
         self,

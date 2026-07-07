@@ -6,7 +6,7 @@
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~387K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~397K токенов — обычно не помещается в контекст целиком).
 
 > English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~13K токенов).
 
@@ -52,9 +52,9 @@
 | SDK | Типизированные клиенты для 6 языков | 78–104 |
 | Agent Skills | Скиллы для AI-агентов и установка | 105–128 |
 | Руководства | Страницы-руководства (Markdown по `.md`) | 129–189 |
-| API-методы | Все эндпоинты, сгруппированы по разделам | 190–297 |
-| Обновления | Журнал обновлений по датам | 298–351 |
-| Дополнительно | Прочие ссылки и контакты | 352–360 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 190–299 |
+| Обновления | Журнал обновлений по датам | 300–354 |
+| Дополнительно | Прочие ссылки и контакты | 355–363 |
 
 ## CLI Quick Start
 
@@ -278,9 +278,11 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 ## Bots
 - [Ротация собственного токена бота](https://dev.pachca.com/api/bots/recreate-token-self.md): POST /bot/recreate_token
 - [Саморегистрация вебхука бота](https://dev.pachca.com/api/bots/update-webhook.md): PUT /bot/webhook
+- [Список ботов](https://dev.pachca.com/api/bots/list.md): GET /bots
 - [Новый бот](https://dev.pachca.com/api/bots/create.md): POST /bots
 - [Информация о боте](https://dev.pachca.com/api/bots/get.md): GET /bots/{id}
 - [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
+- [Удаление бота](https://dev.pachca.com/api/bots/delete.md): DELETE /bots/{id}
 - [Ротация токена бота](https://dev.pachca.com/api/bots/recreate-token.md): POST /bots/{id}/recreate_token
 - [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
 - [Удаление события](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}
@@ -296,6 +298,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 
 ## Обновления
+- [07 июля 2026 — Список и удаление ботов, права доступа бота, вебхуки видеозвонков](https://dev.pachca.com/updates/2026-07-07.md)
 - [24 июня 2026 — Ротация токена бота и новые настройки вебхука](https://dev.pachca.com/updates/2026-06-24.md)
 - [19 июня 2026 — Настройки входящего вебхука бота и сортировка в поиске сообщений](https://dev.pachca.com/updates/2026-06-19.md)
 - [16 июня 2026 — Настраиваемые скоупы ботов и саморегистрация вебхука](https://dev.pachca.com/updates/2026-06-16.md)

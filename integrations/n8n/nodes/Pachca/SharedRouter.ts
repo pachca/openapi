@@ -115,6 +115,12 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'outgoing_url', n8n: 'outgoingUrl' },
 			],
 		},
+		getAll: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/bots',
+			paginated: true,
+			queryMap: [{ api: 'query', n8n: 'query' }],
+		},
 		create: {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/bots',
@@ -135,6 +141,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'link_preview_enabled', n8n: 'linkPreviewEnabled' },
 				{ api: 'ignore_self_messages', n8n: 'ignoreSelfMessages' },
 				{ api: 'events_history_enabled', n8n: 'eventsHistoryEnabled' },
+				{ api: 'who_can_add', n8n: 'whoCanAdd' },
+				{ api: 'can_edit', n8n: 'canEdit', isArray: true, arrayType: 'string' },
+				{ api: 'single_chat', n8n: 'singleChat' },
 			],
 		},
 		get: {
@@ -162,7 +171,14 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'link_preview_enabled', n8n: 'linkPreviewEnabled' },
 				{ api: 'ignore_self_messages', n8n: 'ignoreSelfMessages' },
 				{ api: 'events_history_enabled', n8n: 'eventsHistoryEnabled' },
+				{ api: 'who_can_add', n8n: 'whoCanAdd' },
+				{ api: 'can_edit', n8n: 'canEdit', isArray: true, arrayType: 'string' },
 			],
+		},
+		delete: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/bots/{id}',
+			pathParams: [{ api: 'id', n8n: 'id' }],
 		},
 		recreateToken: {
 			method: 'POST' as IHttpRequestMethods,

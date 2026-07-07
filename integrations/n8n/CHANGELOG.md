@@ -1,6 +1,16 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## 2.0.14 (2026-07-07)
+
+### Improvements
+
+- Bot: new `Get Many` operation — list bots with name search
+- Bot: new `Delete` operation — delete a bot by its ID
+- Bot: access-control fields on `Create`/`Update` and in the response — `Who Can Add`, `Can Edit`, `Single Chat`
+- Trigger: video call events — `video_call_started`, `video_call_finished`, `video_call_recording_ready`
+- User: search — `Creation` sort option (by creation date)
+
 ## 2.0.13 (2026-06-24)
 
 ### Improvements

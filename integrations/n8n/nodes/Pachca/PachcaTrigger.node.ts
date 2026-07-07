@@ -27,6 +27,9 @@ const EVENT_FILTER: Record<string, { type: string; event: string }> = {
 	'company_member_invite': { type: 'company_member', event: 'invite' },
 	'company_member_suspend': { type: 'company_member', event: 'suspend' },
 	'company_member_update': { type: 'company_member', event: 'update' },
+	'video_call_finished': { type: 'video_call', event: 'finished' },
+	'video_call_recording_ready': { type: 'video_call', event: 'recording_ready' },
+	'video_call_started': { type: 'video_call', event: 'started' },
 };
 
 export class PachcaTrigger implements INodeType {
@@ -75,6 +78,9 @@ export class PachcaTrigger implements INodeType {
 					{ name: 'User Invited', value: 'company_member_invite' },
 					{ name: 'User Suspended', value: 'company_member_suspend' },
 					{ name: 'User Updated', value: 'company_member_update' },
+					{ name: 'VideoCall Finished', value: 'video_call_finished' },
+					{ name: 'VideoCall RecordingReady', value: 'video_call_recording_ready' },
+					{ name: 'VideoCall Started', value: 'video_call_started' },
 				],
 				default: 'new_message',
 				description: 'The event to listen for',

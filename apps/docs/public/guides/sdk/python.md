@@ -135,10 +135,12 @@ await client.close()
 | `client.bots.create_bot()` | [Новый бот](/api/bots/create) |
 | `client.bots.self_recreate_bot_token()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreate_bot_token()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.bots.list_bots()` | [Список ботов](/api/bots/list) |
 | `client.bots.get_bot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.get_webhook_events()` | [История событий](/api/bots/list-events) |
 | `client.bots.self_update_bot_webhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.update_bot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.delete_bot()` | [Удаление бота](/api/bots/delete) |
 | `client.bots.delete_webhook_event()` | [Удаление события](/api/bots/remove-event) |
 | `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |
 | `client.custom_properties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |

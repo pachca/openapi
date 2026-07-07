@@ -133,6 +133,23 @@ public sealed class SecurityServiceImpl : SecurityService
 public class BotsService
 {
 
+    public virtual async System.Threading.Tasks.Task<ListBotsResponse> ListBotsAsync(
+        string? query = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.listBots is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<BotResponse>> ListBotsAllAsync(
+        string? query = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.listBotsAll is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<BotResponse> GetBotAsync(int id, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Bots.getBot is not implemented");
@@ -249,6 +266,11 @@ public class BotsService
         throw new NotImplementedException("Bots.updateBot is not implemented");
     }
 
+    public virtual async System.Threading.Tasks.Task DeleteBotAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.deleteBot is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task DeleteWebhookEventAsync(string id, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Bots.deleteWebhookEvent is not implemented");
@@ -264,6 +286,53 @@ public sealed class BotsServiceImpl : BotsService
     {
         _baseUrl = baseUrl;
         _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task<ListBotsResponse> ListBotsAsync(
+        string? query = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        var queryParts = new List<string>();
+        if (query != null)
+            queryParts.Add($"query={Uri.EscapeDataString(query)}");
+        if (limit != null)
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
+        if (cursor != null)
+            queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
+        var url = $"{_baseUrl}/bots" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListBotsResponse>(json);
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<List<BotResponse>> ListBotsAllAsync(
+        string? query = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        var items = new List<BotResponse>();
+        string? cursor = null;
+        var hasNext = true;
+        while (hasNext)
+        {
+            var response = await ListBotsAsync(query: query, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            items.AddRange(response.Data);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
+        return items;
     }
 
     public override async System.Threading.Tasks.Task<BotResponse> GetBotAsync(int id, CancellationToken cancellationToken = default)
@@ -410,6 +479,23 @@ public sealed class BotsServiceImpl : BotsService
         {
             case 200:
                 return PachcaUtils.Deserialize<BotResponseDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task DeleteBotAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/bots/{id}";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:

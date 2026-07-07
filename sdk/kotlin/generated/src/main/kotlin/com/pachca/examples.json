@@ -12,9 +12,13 @@
       "AuditEventKey"
     ]
   },
+  "BotOperations_listBots": {
+    "usage": "val response = client.bots.listBots(query = \"задач\", limit = 1, cursor = \"eyJpZCI6MTczODgxNn0\")",
+    "output": "ListBotsResponse(data: List<BotResponse>, meta: PaginationMeta)"
+  },
   "BotOperations_getBot": {
     "usage": "val response = client.bots.getBot(id = 1738816)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean))"
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd))"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "val response = client.bots.getWebhookEvents(limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -35,41 +39,48 @@
   },
   "BotOperations_selfRecreateBotToken": {
     "usage": "val response = client.bots.selfRecreateBotToken()",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean), accessToken: String)"
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd), accessToken: String)"
   },
   "BotOperations_createBot": {
-    "usage": "val request = BotCreateRequest(\n    webhook = BotCreateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true,\n        ignoreSelfMessages = false,\n        eventsHistoryEnabled = false\n    )\n)\nval response = client.bots.createBot(request = request)",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean), accessToken: String)",
+    "usage": "val request = BotCreateRequest(\n    webhook = BotCreateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true,\n        ignoreSelfMessages = false,\n        eventsHistoryEnabled = false,\n        whoCanAdd = BotWhoCanAdd.CREATOR,\n        canEdit = listOf(BotCanEdit.ADMIN),\n        singleChat = false\n    )\n)\nval response = client.bots.createBot(request = request)",
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd), accessToken: String)",
     "imports": [
+      "BotCanEdit",
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
       "BotTemplateEngine",
-      "BotTriggerOn"
+      "BotTriggerOn",
+      "BotWhoCanAdd"
     ]
   },
   "BotOperations_recreateBotToken": {
     "usage": "val response = client.bots.recreateBotToken(id = 1738816)",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean), accessToken: String)"
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd), accessToken: String)"
   },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "val request = BotWebhookSelfUpdateRequest(webhook = BotWebhookSelfUpdateRequestWebhook(outgoingUrl = \"https://www.website.com/tasks/new\"))\nval response = client.bots.selfUpdateBotWebhook(request = request)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean))",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd))",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "val request = BotUpdateRequest(\n    webhook = BotUpdateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true,\n        ignoreSelfMessages = false,\n        eventsHistoryEnabled = false\n    )\n)\nval response = client.bots.updateBot(id = 1738816, request = request)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean))",
+    "usage": "val request = BotUpdateRequest(\n    webhook = BotUpdateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true,\n        ignoreSelfMessages = false,\n        eventsHistoryEnabled = false,\n        whoCanAdd = BotWhoCanAdd.CREATOR,\n        canEdit = listOf(BotCanEdit.ADMIN)\n    )\n)\nval response = client.bots.updateBot(id = 1738816, request = request)",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd))",
     "imports": [
+      "BotCanEdit",
       "BotEventName",
       "BotTemplateEngine",
       "BotTriggerOn",
       "BotUpdateRequest",
-      "BotUpdateRequestWebhook"
+      "BotUpdateRequestWebhook",
+      "BotWhoCanAdd"
     ]
+  },
+  "BotOperations_deleteBot": {
+    "usage": "client.bots.deleteBot(id = 1738816)"
   },
   "BotOperations_deleteWebhookEvent": {
     "usage": "client.bots.deleteWebhookEvent(id = \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"

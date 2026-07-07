@@ -130,10 +130,12 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.CreateBotAsync()` | [Новый бот](/api/bots/create) |
 | `client.Bots.SelfRecreateBotTokenAsync()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.RecreateBotTokenAsync()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.Bots.ListBotsAsync()` | [Список ботов](/api/bots/list) |
 | `client.Bots.GetBotAsync()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.GetWebhookEventsAsync()` | [История событий](/api/bots/list-events) |
 | `client.Bots.SelfUpdateBotWebhookAsync()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |
+| `client.Bots.DeleteBotAsync()` | [Удаление бота](/api/bots/delete) |
 | `client.Bots.DeleteWebhookEventAsync()` | [Удаление события](/api/bots/remove-event) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |
 | `client.CustomProperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |

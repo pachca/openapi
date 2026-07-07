@@ -103,6 +103,17 @@ enum class AuditEventKey(val value: String) {
     @SerialName("bot_webhook_settings_updated") BOT_WEBHOOK_SETTINGS_UPDATED("bot_webhook_settings_updated"),
     /** Токен бота перевыпущен (ротация) */
     @SerialName("bot_token_recreated") BOT_TOKEN_RECREATED("bot_token_recreated"),
+    /** Бот удалён */
+    @SerialName("bot_deleted") BOT_DELETED("bot_deleted"),
+}
+
+/** Роль, которой разрешено редактировать настройки бота */
+@Serializable
+enum class BotCanEdit(val value: String) {
+    /** Администраторы компании */
+    @SerialName("admin") ADMIN("admin"),
+    /** Владельцы чатов, в которые добавлен бот */
+    @SerialName("chat_owners") CHAT_OWNERS("chat_owners"),
 }
 
 /** Событие исходящего вебхука бота */
@@ -140,6 +151,9 @@ enum class BotEventName(val value: String) {
     @SerialName("company_member_update") COMPANY_MEMBER_UPDATE("company_member_update"),
     /** Создан счёт */
     @SerialName("bill_created") BILL_CREATED("bill_created"),
+    @SerialName("video_call_started") VIDEO_CALL_STARTED("video_call_started"),
+    @SerialName("video_call_finished") VIDEO_CALL_FINISHED("video_call_finished"),
+    @SerialName("video_call_recording_ready") VIDEO_CALL_RECORDING_READY("video_call_recording_ready"),
 }
 
 /** Шаблонизатор для форматирования входящих вебхуков */
@@ -160,6 +174,19 @@ enum class BotTriggerOn(val value: String) {
     @SerialName("all_messages") ALL_MESSAGES("all_messages"),
     /** На развёртывание ссылок (link previews) */
     @SerialName("unfurl") UNFURL("unfurl"),
+}
+
+/** Кто может добавлять бота в чаты */
+@Serializable
+enum class BotWhoCanAdd(val value: String) {
+    /** Только создатель бота */
+    @SerialName("creator") CREATOR("creator"),
+    /** Создатель и администраторы компании */
+    @SerialName("creator_admin") CREATOR_ADMIN("creator_admin"),
+    /** Создатель, администраторы и участники компании */
+    @SerialName("creator_admin_user") CREATOR_ADMIN_USER("creator_admin_user"),
+    /** Любой пользователь, в том числе гости */
+    @SerialName("anyone") ANYONE("anyone"),
 }
 
 /** Доступность чатов для пользователя */
@@ -421,6 +448,8 @@ enum class SearchSortOrder(val value: String) {
     @SerialName("by_score") BY_SCORE("by_score"),
     /** По алфавиту */
     @SerialName("alphabetical") ALPHABETICAL("alphabetical"),
+    /** По дате создания */
+    @SerialName("creation") CREATION("creation"),
 }
 
 /** Порядок сортировки */
@@ -595,6 +624,17 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("message_deleted") MESSAGE_DELETED("message_deleted"),
     /** Нельзя создать тред для сообщения, которое уже находится в треде */
     @SerialName("thread_message") THREAD_MESSAGE("thread_message"),
+}
+
+/** Тип события видеозвонка */
+@Serializable
+enum class VideoCallEventType(val value: String) {
+    /** Видеозвонок начался */
+    @SerialName("started") STARTED("started"),
+    /** Видеозвонок завершился */
+    @SerialName("finished") FINISHED("finished"),
+    /** Запись видеозвонка готова */
+    @SerialName("recording_ready") RECORDING_READY("recording_ready"),
 }
 
 /** Тип события webhook */
@@ -873,6 +913,7 @@ object WebhookPayloadUnionSerializer : KSerializer<WebhookPayloadUnion> {
             is ChatMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(ChatMemberWebhookPayload.serializer(), value)
             is CompanyMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(CompanyMemberWebhookPayload.serializer(), value)
             is LinkSharedWebhookPayload -> jsonEncoder.encodeSerializableValue(LinkSharedWebhookPayload.serializer(), value)
+            is VideoCallWebhookPayload -> jsonEncoder.encodeSerializableValue(VideoCallWebhookPayload.serializer(), value)
         }
     }
 
@@ -889,6 +930,7 @@ object WebhookPayloadUnionSerializer : KSerializer<WebhookPayloadUnion> {
             type == "view" -> jsonDecoder.json.decodeFromJsonElement(ViewSubmitWebhookPayload.serializer(), element)
             type == "chat_member" -> jsonDecoder.json.decodeFromJsonElement(ChatMemberWebhookPayload.serializer(), element)
             type == "company_member" -> jsonDecoder.json.decodeFromJsonElement(CompanyMemberWebhookPayload.serializer(), element)
+            type == "video_call" -> jsonDecoder.json.decodeFromJsonElement(VideoCallWebhookPayload.serializer(), element)
             else -> error("Unknown WebhookPayloadUnion type: $type")
         }
     }
@@ -991,6 +1033,26 @@ data class LinkSharedWebhookPayload(
 }
 
 @Serializable
+@SerialName("video_call")
+data class VideoCallWebhookPayload(
+    override val type: String = "video_call",
+    val event: VideoCallEventType,
+    @SerialName("video_room_id") val videoRoomId: Int,
+    @SerialName("chat_id") val chatId: Int,
+    @SerialName("owner_id") val ownerId: Int,
+    val thread: WebhookVideoCallThread? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("started_at") val startedAt: OffsetDateTime? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("finished_at") val finishedAt: OffsetDateTime? = null,
+    val duration: Int? = null,
+    val members: List<WebhookVideoCallMember>? = null,
+    @SerialName("recording_id") val recordingId: Int? = null,
+    @SerialName("file_id") val fileId: Int? = null,
+    val url: String? = null,
+    val size: Int? = null,
+    @SerialName("webhook_timestamp") val webhookTimestamp: Int,
+) : WebhookPayloadUnion
+
+@Serializable
 data class AccessTokenInfo(
     val id: Long,
     val token: String,
@@ -1070,6 +1132,9 @@ data class BotCreateRequestWebhook(
     @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = true,
     @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean? = false,
     @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean? = false,
+    @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd? = BotWhoCanAdd.CREATOR,
+    @SerialName("can_edit") val canEdit: List<BotCanEdit>? = null,
+    @SerialName("single_chat") val singleChat: Boolean? = false,
 )
 
 @Serializable
@@ -1105,6 +1170,8 @@ data class BotUpdateRequestWebhook(
     @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = true,
     @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean? = false,
     @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean? = false,
+    @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd? = BotWhoCanAdd.CREATOR,
+    @SerialName("can_edit") val canEdit: List<BotCanEdit>? = null,
 )
 
 @Serializable
@@ -1127,6 +1194,9 @@ data class BotWebhook(
     @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean,
     @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean,
     @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean,
+    @SerialName("single_chat") val singleChat: Boolean,
+    @SerialName("can_edit") val canEdit: List<BotCanEdit>,
+    @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd,
 )
 
 @Serializable
@@ -1690,6 +1760,21 @@ data class WebhookMessageThread(
 )
 
 @Serializable
+data class WebhookVideoCallMember(
+    @SerialName("user_id") val userId: Int,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("joined_at") val joinedAt: OffsetDateTime,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("left_at") val leftAt: OffsetDateTime,
+)
+
+@Serializable
+data class WebhookVideoCallThread(
+    val id: Int,
+    @SerialName("chat_id") val chatId: Int,
+    @SerialName("message_id") val messageId: Int,
+    @SerialName("message_chat_id") val messageChatId: Int,
+)
+
+@Serializable
 data class UpdateProfileAvatarRequest(
     @Transient val image: ByteArray = ByteArray(0),
 )
@@ -1702,6 +1787,12 @@ data class UpdateUserAvatarRequest(
 @Serializable
 data class GetAuditEventsResponse(
     val data: List<AuditEvent>,
+    val meta: PaginationMeta,
+)
+
+@Serializable
+data class ListBotsResponse(
+    val data: List<BotResponse>,
     val meta: PaginationMeta,
 )
 

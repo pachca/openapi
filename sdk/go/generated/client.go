@@ -135,6 +135,8 @@ func (s *SecurityServiceImpl) GetAuditEventsAll(ctx context.Context, params *Get
 }
 
 type BotsService interface {
+	ListBots(ctx context.Context, params *ListBotsParams) (*ListBotsResponse, error)
+	ListBotsAll(ctx context.Context, params *ListBotsParams) ([]BotResponse, error)
 	GetBot(ctx context.Context, id int32) (*BotResponse, error)
 	GetWebhookEvents(ctx context.Context, params *GetWebhookEventsParams) (*GetWebhookEventsResponse, error)
 	GetWebhookEventsAll(ctx context.Context, params *GetWebhookEventsParams) ([]WebhookEvent, error)
@@ -145,6 +147,7 @@ type BotsService interface {
 	RecreateBotToken(ctx context.Context, id int32) (*BotCreateResponse, error)
 	SelfUpdateBotWebhook(ctx context.Context, request BotWebhookSelfUpdateRequest) (*BotResponse, error)
 	UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error)
+	DeleteBot(ctx context.Context, id int32) error
 	DeleteWebhookEvent(ctx context.Context, id string) error
 }
 
@@ -156,6 +159,14 @@ type PollWebhookEventsOptions struct {
 }
 
 type BotsServiceStub struct{}
+
+func (s *BotsServiceStub) ListBots(ctx context.Context, params *ListBotsParams) (*ListBotsResponse, error) {
+	return nil, NotImplementedError{Method: "Bots.listBots"}
+}
+
+func (s *BotsServiceStub) ListBotsAll(ctx context.Context, params *ListBotsParams) ([]BotResponse, error) {
+	return nil, NotImplementedError{Method: "Bots.listBotsAll"}
+}
 
 func (s *BotsServiceStub) GetBot(ctx context.Context, id int32) (*BotResponse, error) {
 	return nil, NotImplementedError{Method: "Bots.getBot"}
@@ -197,6 +208,10 @@ func (s *BotsServiceStub) UpdateBot(ctx context.Context, id int32, request BotUp
 	return nil, NotImplementedError{Method: "Bots.updateBot"}
 }
 
+func (s *BotsServiceStub) DeleteBot(ctx context.Context, id int32) error {
+	return NotImplementedError{Method: "Bots.deleteBot"}
+}
+
 func (s *BotsServiceStub) DeleteWebhookEvent(ctx context.Context, id string) error {
 	return NotImplementedError{Method: "Bots.deleteWebhookEvent"}
 }
@@ -204,6 +219,79 @@ func (s *BotsServiceStub) DeleteWebhookEvent(ctx context.Context, id string) err
 type BotsServiceImpl struct {
 	baseURL string
 	client  *http.Client
+}
+
+func (s *BotsServiceImpl) ListBots(ctx context.Context, params *ListBotsParams) (*ListBotsResponse, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/bots", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	if params != nil && params.Query != nil {
+		q.Set("query", fmt.Sprintf("%v", *params.Query))
+	}
+	if params != nil && params.Limit != nil {
+		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
+	}
+	if params != nil && params.Cursor != nil {
+		q.Set("cursor", fmt.Sprintf("%v", *params.Cursor))
+	}
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListBotsResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *BotsServiceImpl) ListBotsAll(ctx context.Context, params *ListBotsParams) ([]BotResponse, error) {
+	if params == nil {
+		params = &ListBotsParams{}
+	}
+	var items []BotResponse
+	var cursor *string
+	hasNext := true
+	for hasNext {
+		params.Cursor = cursor
+		result, err := s.ListBots(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if len(result.Data) == 0 {
+			return items, nil
+		}
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
+	}
+	return items, nil
 }
 
 func (s *BotsServiceImpl) GetBot(ctx context.Context, id int32) (*BotResponse, error) {
@@ -583,6 +671,34 @@ func (s *BotsServiceImpl) UpdateBot(ctx context.Context, id int32, request BotUp
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	}
+}
+
+func (s *BotsServiceImpl) DeleteBot(ctx context.Context, id int32) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/bots/%v", s.baseURL, id), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
 	}
 }
 

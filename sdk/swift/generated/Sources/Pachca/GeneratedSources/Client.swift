@@ -83,6 +83,14 @@ public final class SecurityServiceImpl: SecurityService {
 open class BotsService {
     public init() {}
 
+    open func listBots(query: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListBotsResponse {
+        throw pachcaNotImplemented("Bots.listBots")
+    }
+
+    open func listBotsAll(query: String? = nil, limit: Int? = nil) async throws -> [BotResponse] {
+        throw pachcaNotImplemented("Bots.listBotsAll")
+    }
+
     open func getBot(id: Int) async throws -> BotResponse {
         throw pachcaNotImplemented("Bots.getBot")
     }
@@ -199,6 +207,10 @@ open class BotsService {
         throw pachcaNotImplemented("Bots.updateBot")
     }
 
+    open func deleteBot(id: Int) async throws -> Void {
+        throw pachcaNotImplemented("Bots.deleteBot")
+    }
+
     open func deleteWebhookEvent(id: String) async throws -> Void {
         throw pachcaNotImplemented("Bots.deleteWebhookEvent")
     }
@@ -214,6 +226,41 @@ public final class BotsServiceImpl: BotsService {
         self.headers = headers
         self.session = session
         super.init()
+    }
+
+    public override func listBots(query: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListBotsResponse {
+        var components = URLComponents(string: "\(baseURL)/bots")!
+        var queryItems: [URLQueryItem] = []
+        if let query { queryItems.append(URLQueryItem(name: "query", value: String(query))) }
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ListBotsResponse.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func listBotsAll(query: String? = nil, limit: Int? = nil) async throws -> [BotResponse] {
+        var items: [BotResponse] = []
+        var cursor: String? = nil
+        var hasNext = true
+        while hasNext {
+            let response = try await listBots(query: query, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
+        return items
     }
 
     public override func getBot(id: Int) async throws -> BotResponse {
@@ -344,6 +391,22 @@ public final class BotsServiceImpl: BotsService {
         switch statusCode {
         case 200:
             return try deserialize(BotResponseDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func deleteBot(id: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)")!)
+        request.httpMethod = "DELETE"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:

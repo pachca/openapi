@@ -265,37 +265,40 @@ function emitUnion(
   lines.push('}');
 
   if (useWebhookPayloadDeserializer) {
+    // Member-driven: the serialize/deserialize branches iterate the union's
+    // members, so a newly added payload type is wired up automatically. Only the
+    // message/link_shared collision (same `type`, disambiguated by `event`) is
+    // special-cased first — mirroring the go/swift/python/csharp generators.
     lines.push('');
-    lines.push('object WebhookPayloadUnionSerializer : KSerializer<WebhookPayloadUnion> {');
-    lines.push('    override val descriptor = buildClassSerialDescriptor("WebhookPayloadUnion")');
+    lines.push(`object ${u.name}Serializer : KSerializer<${u.name}> {`);
+    lines.push(`    override val descriptor = buildClassSerialDescriptor("${u.name}")`);
     lines.push('');
-    lines.push('    override fun serialize(encoder: Encoder, value: WebhookPayloadUnion) {');
-    lines.push('        val jsonEncoder = encoder as? JsonEncoder ?: error("WebhookPayloadUnionSerializer only supports JSON")');
+    lines.push(`    override fun serialize(encoder: Encoder, value: ${u.name}) {`);
+    lines.push(`        val jsonEncoder = encoder as? JsonEncoder ?: error("${u.name}Serializer only supports JSON")`);
     lines.push('        when (value) {');
-    lines.push('            is MessageWebhookPayload -> jsonEncoder.encodeSerializableValue(MessageWebhookPayload.serializer(), value)');
-    lines.push('            is ReactionWebhookPayload -> jsonEncoder.encodeSerializableValue(ReactionWebhookPayload.serializer(), value)');
-    lines.push('            is ButtonWebhookPayload -> jsonEncoder.encodeSerializableValue(ButtonWebhookPayload.serializer(), value)');
-    lines.push('            is ViewSubmitWebhookPayload -> jsonEncoder.encodeSerializableValue(ViewSubmitWebhookPayload.serializer(), value)');
-    lines.push('            is ChatMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(ChatMemberWebhookPayload.serializer(), value)');
-    lines.push('            is CompanyMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(CompanyMemberWebhookPayload.serializer(), value)');
-    lines.push('            is LinkSharedWebhookPayload -> jsonEncoder.encodeSerializableValue(LinkSharedWebhookPayload.serializer(), value)');
+    for (const ref of u.memberRefs) {
+      lines.push(`            is ${ref} -> jsonEncoder.encodeSerializableValue(${ref}.serializer(), value)`);
+    }
     lines.push('        }');
     lines.push('    }');
     lines.push('');
-    lines.push('    override fun deserialize(decoder: Decoder): WebhookPayloadUnion {');
-    lines.push('        val jsonDecoder = decoder as? JsonDecoder ?: error("WebhookPayloadUnionSerializer only supports JSON")');
+    lines.push(`    override fun deserialize(decoder: Decoder): ${u.name} {`);
+    lines.push(`        val jsonDecoder = decoder as? JsonDecoder ?: error("${u.name}Serializer only supports JSON")`);
     lines.push('        val element = jsonDecoder.decodeJsonElement()');
-    lines.push('        val type = element.jsonObject["type"]?.jsonPrimitive?.contentOrNull');
+    lines.push(`        val type = element.jsonObject["${discriminatorField}"]?.jsonPrimitive?.contentOrNull`);
     lines.push('        val event = element.jsonObject["event"]?.jsonPrimitive?.contentOrNull');
     lines.push('        return when {');
     lines.push('            type == "message" && event == "link_shared" -> jsonDecoder.json.decodeFromJsonElement(LinkSharedWebhookPayload.serializer(), element)');
     lines.push('            type == "message" -> jsonDecoder.json.decodeFromJsonElement(MessageWebhookPayload.serializer(), element)');
-    lines.push('            type == "reaction" -> jsonDecoder.json.decodeFromJsonElement(ReactionWebhookPayload.serializer(), element)');
-    lines.push('            type == "button" -> jsonDecoder.json.decodeFromJsonElement(ButtonWebhookPayload.serializer(), element)');
-    lines.push('            type == "view" -> jsonDecoder.json.decodeFromJsonElement(ViewSubmitWebhookPayload.serializer(), element)');
-    lines.push('            type == "chat_member" -> jsonDecoder.json.decodeFromJsonElement(ChatMemberWebhookPayload.serializer(), element)');
-    lines.push('            type == "company_member" -> jsonDecoder.json.decodeFromJsonElement(CompanyMemberWebhookPayload.serializer(), element)');
-    lines.push('            else -> error("Unknown WebhookPayloadUnion type: $type")');
+    for (const ref of u.memberRefs.filter((ref) => ref !== 'MessageWebhookPayload' && ref !== 'LinkSharedWebhookPayload')) {
+      const model = ir.models.find((m) => m.name === ref);
+      const litField = model?.fields.find(
+        (f) => f.name === discriminatorField && f.type.kind === 'literal',
+      ) ?? model?.fields.find((f) => f.type.kind === 'literal');
+      const litValue = litField?.type.literalValue ?? '';
+      lines.push(`            type == ${JSON.stringify(litValue)} -> jsonDecoder.json.decodeFromJsonElement(${ref}.serializer(), element)`);
+    }
+    lines.push(`            else -> error("Unknown ${u.name} type: $type")`);
     lines.push('        }');
     lines.push('    }');
     lines.push('}');

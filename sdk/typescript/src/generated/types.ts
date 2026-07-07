@@ -76,6 +76,16 @@ export enum AuditEventKey {
   BotWebhookSettingsUpdated = "bot_webhook_settings_updated",
   /** Токен бота перевыпущен (ротация) */
   BotTokenRecreated = "bot_token_recreated",
+  /** Бот удалён */
+  BotDeleted = "bot_deleted",
+}
+
+/** Роль, которой разрешено редактировать настройки бота */
+export enum BotCanEdit {
+  /** Администраторы компании */
+  Admin = "admin",
+  /** Владельцы чатов, в которые добавлен бот */
+  ChatOwners = "chat_owners",
 }
 
 /** Событие исходящего вебхука бота */
@@ -112,6 +122,9 @@ export enum BotEventName {
   CompanyMemberUpdate = "company_member_update",
   /** Создан счёт */
   BillCreated = "bill_created",
+  VideoCallStarted = "video_call_started",
+  VideoCallFinished = "video_call_finished",
+  VideoCallRecordingReady = "video_call_recording_ready",
 }
 
 /** Шаблонизатор для форматирования входящих вебхуков */
@@ -130,6 +143,18 @@ export enum BotTriggerOn {
   AllMessages = "all_messages",
   /** На развёртывание ссылок (link previews) */
   Unfurl = "unfurl",
+}
+
+/** Кто может добавлять бота в чаты */
+export enum BotWhoCanAdd {
+  /** Только создатель бота */
+  Creator = "creator",
+  /** Создатель и администраторы компании */
+  CreatorAdmin = "creator_admin",
+  /** Создатель, администраторы и участники компании */
+  CreatorAdminUser = "creator_admin_user",
+  /** Любой пользователь, в том числе гости */
+  Anyone = "anyone",
 }
 
 /** Доступность чатов для пользователя */
@@ -375,6 +400,8 @@ export enum SearchSortOrder {
   ByScore = "by_score",
   /** По алфавиту */
   Alphabetical = "alphabetical",
+  /** По дате создания */
+  Creation = "creation",
 }
 
 /** Порядок сортировки */
@@ -543,6 +570,16 @@ export enum ValidationErrorCode {
   ThreadMessage = "thread_message",
 }
 
+/** Тип события видеозвонка */
+export enum VideoCallEventType {
+  /** Видеозвонок начался */
+  Started = "started",
+  /** Видеозвонок завершился */
+  Finished = "finished",
+  /** Запись видеозвонка готова */
+  RecordingReady = "recording_ready",
+}
+
 /** Тип события webhook */
 export enum WebhookEventType {
   /** Создание */
@@ -707,6 +744,11 @@ export interface BotCreateRequest {
     ignoreSelfMessages?: boolean;
     /** @default false */
     eventsHistoryEnabled?: boolean;
+    /** @default creator */
+    whoCanAdd?: BotWhoCanAdd;
+    canEdit?: BotCanEdit[];
+    /** @default false */
+    singleChat?: boolean;
   };
 }
 
@@ -741,6 +783,9 @@ export interface BotUpdateRequest {
     ignoreSelfMessages?: boolean;
     /** @default false */
     eventsHistoryEnabled?: boolean;
+    /** @default creator */
+    whoCanAdd?: BotWhoCanAdd;
+    canEdit?: BotCanEdit[];
   };
 }
 
@@ -758,6 +803,9 @@ export interface BotWebhook {
   linkPreviewEnabled: boolean;
   ignoreSelfMessages: boolean;
   eventsHistoryEnabled: boolean;
+  singleChat: boolean;
+  canEdit: BotCanEdit[];
+  whoCanAdd: BotWhoCanAdd;
 }
 
 export interface BotWebhookSelfUpdateRequest {
@@ -1250,6 +1298,24 @@ export interface UserUpdateRequest {
   };
 }
 
+export interface VideoCallWebhookPayload {
+  type: "video_call";
+  event: VideoCallEventType;
+  videoRoomId: number;
+  chatId: number;
+  ownerId: number;
+  thread?: WebhookVideoCallThread | null;
+  startedAt?: string;
+  finishedAt?: string;
+  duration?: number;
+  members?: WebhookVideoCallMember[];
+  recordingId?: number;
+  fileId?: number | null;
+  url?: string;
+  size?: number;
+  webhookTimestamp: number;
+}
+
 export interface ViewBlock {
   type: string;
   text?: string;
@@ -1409,6 +1475,19 @@ export interface WebhookMessageThread {
   messageChatId: number;
 }
 
+export interface WebhookVideoCallMember {
+  userId: number;
+  joinedAt: string;
+  leftAt: string;
+}
+
+export interface WebhookVideoCallThread {
+  id: number;
+  chatId: number;
+  messageId: number;
+  messageChatId: number;
+}
+
 export interface UpdateProfileAvatarRequest {
   image: Blob;
 }
@@ -1421,7 +1500,7 @@ export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 
-export type WebhookPayloadUnion = MessageWebhookPayload | ReactionWebhookPayload | ButtonWebhookPayload | ViewSubmitWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | LinkSharedWebhookPayload;
+export type WebhookPayloadUnion = MessageWebhookPayload | ReactionWebhookPayload | ButtonWebhookPayload | ViewSubmitWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | LinkSharedWebhookPayload | VideoCallWebhookPayload;
 
 export interface GetAuditEventsParams {
   startTime?: string;
@@ -1431,6 +1510,12 @@ export interface GetAuditEventsParams {
   actorType?: string;
   entityId?: string;
   entityType?: string;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface ListBotsParams {
+  query?: string;
   limit?: number;
   cursor?: string;
 }
@@ -1551,6 +1636,11 @@ export interface GetWebhookEventsParams {
 
 export interface GetAuditEventsResponse {
   data: AuditEvent[];
+  meta: PaginationMeta;
+}
+
+export interface ListBotsResponse {
+  data: BotResponse[];
   meta: PaginationMeta;
 }
 

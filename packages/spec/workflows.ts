@@ -912,6 +912,36 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         'The new token is returned once. The self path (`POST /bot/recreate_token`) invalidates the very token used for the request — capture the new token from the response in the same operation.',
     },
     {
+      title: 'Найти и удалить бота',
+      titleEn: 'Find and delete a bot',
+      related: ['Создать бота через API и получить токен'],
+      relatedEn: ['Create a bot via API and get its token'],
+      steps: [
+        {
+          description:
+            'Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`, следующую страницу бери из `meta.paginate.next_page`',
+          descriptionEn:
+            'With a user token (scope `bots:read`) get the list of bots you can edit: those you created and those whose settings grant you edit access. Filter by name with `query`, take the next page from `meta.paginate.next_page`',
+          command: 'pachca bots list --query="задач"',
+          apiMethod: 'GET',
+          apiPath: '/bots',
+        },
+        {
+          description:
+            'Возьми `id` нужного бота из списка и удали его (скоуп `bots:write`). Доступно администратору, владельцу компании или создателю бота — владельцы чатов удалять бота не могут. Прежний токен инвалидируется сразу, бот исключается из всех чатов, его исходящий вебхук удаляется',
+          descriptionEn:
+            'Take the target bot `id` from the list and delete it (scope `bots:write`). Available to an admin, the company owner or the bot creator — chat owners cannot delete a bot. The previous token is invalidated immediately, the bot is removed from all chats, and its outgoing webhook is deleted',
+          command: 'pachca bots delete <bot_id>',
+          apiMethod: 'DELETE',
+          apiPath: '/bots/{id}',
+        },
+      ],
+      notes:
+        'Удаление необратимо: токен бота инвалидируется сразу, бот исключается из чатов. Событие фиксируется в журнале аудита как `bot_deleted`.',
+      notesEn:
+        'Deletion is irreversible: the bot token is invalidated immediately and the bot is removed from chats. The event is recorded in the audit log as `bot_deleted`.',
+    },
+    {
       title: 'Обработать входящий вебхук-событие',
       titleEn: 'Handle incoming webhook event',
       inline: false,

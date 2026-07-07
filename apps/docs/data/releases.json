@@ -1,5 +1,93 @@
 [
   {
+    "product": "sdk",
+    "version": "1.0.26",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Метод `Список ботов` (`GET /bots`) — список ботов с поиском по имени"
+      },
+      {
+        "type": "+",
+        "description": "Метод `Удаление бота` (`DELETE /bots/{id}`)"
+      },
+      {
+        "type": "+",
+        "description": "У бота поля прав доступа: `who_can_add`, `can_edit`, `single_chat`"
+      },
+      {
+        "type": "+",
+        "description": "Новый payload исходящего вебхука `VideoCallWebhookPayload` и события `video_call_started`, `video_call_finished`, `video_call_recording_ready`"
+      },
+      {
+        "type": "+",
+        "description": "Журнал аудита: новый тип события `bot_deleted`"
+      },
+      {
+        "type": "+",
+        "description": "Поиск сотрудников (`GET /search/users`): значение сортировки `creation` (по дате создания)"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.7.0",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca bots list` — список ботов с поиском по имени (`--query`)"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots delete` — удаление бота по его `id`"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots create` и `bots update` — права доступа бота: `--who-can-add`, `--can-edit`, `--single-chat`"
+      },
+      {
+        "type": "+",
+        "description": "`pachca search users` — значение сортировки `--sort creation` (по дате создания)"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.0.14",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Bot: новые операции `Get Many` (список ботов) и `Delete`"
+      },
+      {
+        "type": "+",
+        "description": "Bot: поля прав доступа `who_can_add`, `can_edit`, `single_chat` в операциях `Create` и `Update`"
+      },
+      {
+        "type": "+",
+        "description": "Trigger: события видеозвонков `video_call_started`, `video_call_finished`, `video_call_recording_ready`"
+      },
+      {
+        "type": "+",
+        "description": "User: поиск — опция сортировки `Creation` (по дате создания)"
+      }
+    ]
+  },
+  {
+    "product": "generator",
+    "version": "1.1.9",
+    "date": "2026-07-07",
+    "changes": [
+      {
+        "type": "-",
+        "description": "Kotlin SDK: сериализатор union исходящих вебхуков теперь строится по членам union, а не по захардкоженному списку — новый тип payload подхватывается автоматически (чинит компиляцию при добавлении `VideoCallWebhookPayload`)"
+      }
+    ]
+  },
+  {
     "product": "generator",
     "version": "1.1.8",
     "date": "2026-06-24",

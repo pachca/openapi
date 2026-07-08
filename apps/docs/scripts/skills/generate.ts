@@ -194,6 +194,13 @@ export function generateAllSkills(api: ParsedAPI) {
     results.push({ path: `${base}/SKILL.md`, content: routerMd });
   }
 
+  // Root-level entry points for skill catalogs that scan the repository root
+  // rather than recursing into skills/<name>/ (e.g. OpenAgentSkill wants a
+  // skill.json manifest; simpler crawlers look for a top-level SKILL.md). The
+  // recursive registries (skills.sh, GuildSkills) already read skills/*/SKILL.md.
+  results.push({ path: 'SKILL.md', content: routerMd });
+  results.push({ path: 'skill.json', content: generateSkillJson() });
+
   // Agent Skills Discovery RFC v0.2.0 index. Canonical path is
   // /.well-known/agent-skills/index.json; also served at the legacy
   // /.well-known/skills/index.json (Mintlify-style path, referenced by
@@ -696,6 +703,40 @@ function generateRouterSkillMd(): string {
 }
 
 /**
+ * Root skill.json manifest for catalogs that require it (OpenAgentSkill).
+ * Distinct from the RFC discovery index — this is a single flat manifest
+ * describing the repository as one publishable skill package. Fields follow
+ * the OpenAgentSkill schema: name, version, description, category, platforms,
+ * author. Version tracks the TypeSpec spec package.
+ */
+function generateSkillJson(): string {
+  let version = '1.0.0';
+  try {
+    const specPkg = JSON.parse(
+      fs.readFileSync(path.join(REPO_ROOT, 'packages/spec/package.json'), 'utf8')
+    );
+    if (specPkg.version) version = specPkg.version;
+  } catch {
+    // fall back to the default version
+  }
+
+  const manifest = {
+    name: 'pachca',
+    version,
+    description:
+      'Agent skills and CLI for the Pachca corporate messenger REST API — messages, chats, employees, threads, tasks, bots, and webhooks.',
+    category: 'communication',
+    platforms: ['claude-code', 'cursor', 'codex', 'gemini-cli'],
+    author: { name: 'Pachca', github: 'pachca' },
+    homepage: 'https://dev.pachca.com',
+    repository: 'https://github.com/pachca/openapi',
+    license: 'MIT',
+  };
+
+  return JSON.stringify(manifest, null, 2) + '\n';
+}
+
+/**
  * Agent Skills Discovery RFC v0.2.0 index.
  * Schema: https://schemas.agentskills.io/discovery/0.2.0/schema.json
  * Top-level: `$schema` + `skills[]`; each skill: name, type ("skill-md"),
@@ -809,7 +850,7 @@ review generated diffs → commit. Branch from \`origin/main\`; open a PR
 | Generated | Source of truth |
 |-----------|-----------------|
 | \`packages/spec/openapi.yaml\` | \`packages/spec/typespec.tsp\` (then \`npx turbo build --filter=@pachca/spec --force\`) |
-| \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, \`public/skill.md\`, \`public/.well-known/**\`, \`public/workflows.arazzo.yaml\`, Postman collection | \`apps/docs/scripts/generate-llms.ts\` + \`scripts/skills/\` |
+| \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, \`public/skill.md\`, \`public/.well-known/**\`, \`public/workflows.arazzo.yaml\`, Postman collection, root \`SKILL.md\` + \`skill.json\` | \`apps/docs/scripts/generate-llms.ts\` + \`scripts/skills/\` |
 | \`packages/cli/src/commands/**\` (except \`auth\`/\`config\`), \`packages/cli/CHANGELOG.md\` | \`packages/cli/scripts/generate-cli.ts\`; \`src/data/changelog.json\` |
 | n8n node files | \`n8n-nodes-pachca\` generator |
 | \`AGENTS.md\` (this file) | \`apps/docs/scripts/skills/generate.ts\` (\`generateAgentsMd()\`) |

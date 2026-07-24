@@ -66,6 +66,7 @@
 
 ## Threads
 - [Новый тред](https://dev.pachca.com/api/threads/add.md): POST /messages/{id}/thread
+- [Новый самостоятельный тред](https://dev.pachca.com/api/threads/create.md): POST /threads
 - [Список тредов](https://dev.pachca.com/api/threads/list.md): GET /threads
 - [Информация о треде](https://dev.pachca.com/api/threads/get.md): GET /threads/{id}
 

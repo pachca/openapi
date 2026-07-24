@@ -496,6 +496,9 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
   // both derive to "addRecreateToken" and collide.
   if (ep.path === '/bots/{id}/recreate_token' && method === 'POST') return 'recreateToken';
   if (ep.path === '/bot/recreate_token' && method === 'POST') return 'recreateTokenSelf';
+  // Two thread-create endpoints: on a message (/messages/{id}/thread → create) and
+  // standalone (/threads → createStandalone) — they would otherwise both derive to "create" and collide.
+  if (ep.path === '/threads' && method === 'POST') return 'createStandalone';
   // IA: exports now live under the Chat resource, unfurl under Message — give them clean op names.
   if (ep.path === '/chats/exports' && method === 'POST') return 'requestExport';
   if (ep.path === '/chats/exports/{id}' && method === 'GET') return 'downloadExport';
@@ -568,6 +571,7 @@ function operationDisplayName(op: string): string {
     archive: 'Archive', unarchive: 'Unarchive', leave: 'Leave', updateRole: 'Update Role',
     recreateToken: 'Recreate Token', recreateTokenSelf: 'Recreate Token Self',
     requestExport: 'Request Export', downloadExport: 'Download Export', unfurl: 'Unfurl',
+    createStandalone: 'Create Standalone',
   };
   if (MAP[op]) return MAP[op];
   // Sub-resource operations: "getAllStatus" → "Get Many Status", "updateMembers" → "Update Members"
@@ -619,6 +623,7 @@ function actionLabel(op: string, resourceName: string, resource?: string): strin
     removeTag: 'Remove tag from chat',
     recreateToken: 'Recreate bot token',
     recreateTokenSelf: 'Recreate own bot token',
+    createStandalone: 'Create a standalone thread',
     requestExport: 'Request a chat export',
     downloadExport: 'Download a chat export',
   };

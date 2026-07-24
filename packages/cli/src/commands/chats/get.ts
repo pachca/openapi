@@ -5,10 +5,6 @@ import { BaseCommand } from '../../base-command.js';
 export default class ChatsGet extends BaseCommand {
   static override description = "Информация о чате";
 
-  static override examples = [
-      "Переименовать или обновить чат:\n  $ pachca chats update"
-  ];
-
   static scope = "chats:read";
   static apiMethod = "GET";
   static apiPath = "/chats/{id}";

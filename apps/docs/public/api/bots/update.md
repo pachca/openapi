@@ -32,13 +32,13 @@
 ### Схема
 
 - `webhook: object` (required) — Объект параметров вебхука редактируемого бота
-  - `name: string` — Имя бота. Пример: `"Бот задач"`
-  - `nickname: string` — Никнейм бота. Должен заканчиваться на `_bot`.. Пример: `"tasks_bot"`
+  - `name: string` (max length: 255) — Имя бота. Пример: `"Бот задач"`
+  - `nickname: string` (max length: 255) — Никнейм бота. Должен заканчиваться на `_bot`.. Пример: `"tasks_bot"`
   - `outgoing_url: string` — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
   - `events: array of string` — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
-  - `commands: array of string` — Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Пример: `["/task","/help"]`
+  - `commands: array of string` — Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.. Пример: `["/task","/help"]`
   - `scopes: array of string` — Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.. Пример: `["messages:create"]`
   - `template: string` — Шаблон форматирования входящего вебхука. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
   - `template_engine: string` — Шаблонизатор для обработки шаблона входящего вебхука
@@ -117,8 +117,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
 - `data: object` (required) — Параметры бота
   - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
   - `webhook: object` (required) — Объект параметров вебхука
-    - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
-    - `nickname: string` (required) — Никнейм бота. Пример: `"tasks_bot"`
+    - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
+    - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
     - `outgoing_url: string` (required) — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
     - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука

@@ -50,10 +50,10 @@ curl "https://api.pachca.com/api/shared/v1/tasks?limit=1" \
   - `all_day: boolean` (required) — Напоминание на весь день (без указания времени). Пример: `false`
   - `custom_properties: array of object` (required) — Дополнительные поля напоминания
     - `id: integer, int32` (required) — Идентификатор поля. Пример: `1678`
-    - `name: string` (required) — Название поля. Пример: `"Город"`
+    - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`

@@ -25,12 +25,12 @@
 ### Схема
 
 - `user: object` (required)
-  - `first_name: string` — Имя. Пример: `"Олег"`
-  - `last_name: string` — Фамилия. Пример: `"Петров"`
-  - `email: string` (required) — Электронная почта. Пример: `"olegp@example.com"`
-  - `phone_number: string` — Телефон. Пример: `"+79001234567"`
-  - `nickname: string` — Имя пользователя. Пример: `"olegpetrov"`
-  - `department: string` — Департамент. Пример: `"Продукт"`
+  - `first_name: string` (max length: 255) — Имя. Пример: `"Олег"`
+  - `last_name: string` (max length: 255) — Фамилия. Пример: `"Петров"`
+  - `email: string` (required, max length: 255) — Электронная почта. Пример: `"olegp@example.com"`
+  - `phone_number: string` (max length: 255) — Телефон. Пример: `"+79001234567"`
+  - `nickname: string` (max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
+  - `department: string` (max length: 255) — Департамент. Пример: `"Продукт"`
   - `title: string` — Должность. Пример: `"CIO"`
   - `role: string` — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
@@ -39,7 +39,7 @@
   - `chat_ids: array of integer` — Идентификаторы чатов, в которые сотрудник будет добавлен сразу при создании. Для роли `guest` параметр обязателен и должен содержать ровно один активный чат.. Пример: `[12345]`
   - `custom_properties: array of object` — Задаваемые дополнительные поля
     - `id: integer, int32` (required) — Идентификатор поля. Пример: `1678`
-    - `value: string` (required) — Устанавливаемое значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, max length: 768) — Устанавливаемое значение. Пример: `"Санкт-Петербург"`
 - `skip_email_notify: boolean` (default: false) — Пропуск этапа отправки приглашения сотруднику. Сотруднику не будет отправлено письмо на электронную почту с приглашением создать аккаунт. Полезно при предварительном создании аккаунтов перед входом через SSO.. Пример: `false`
 
 ### Пример
@@ -113,12 +113,12 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 
 - `data: object` (required) — Сотрудник
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-  - `first_name: string` (required) — Имя. Пример: `"Олег"`
-  - `last_name: string` (required) — Фамилия. Пример: `"Петров"`
-  - `nickname: string` (required) — Имя пользователя. Пример: `"olegpetrov"`
-  - `email: string` (required) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.. Пример: `"olegp@example.com"`
-  - `phone_number: string` (required) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.. Пример: `"+79001234567"`
-  - `department: string` (required) — Департамент. Пример: `"Продукт"`
+  - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+  - `last_name: string` (required, max length: 255) — Фамилия. Пример: `"Петров"`
+  - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
+  - `email: string` (required, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.. Пример: `"olegp@example.com"`
+  - `phone_number: string` (required, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.. Пример: `"+79001234567"`
+  - `department: string` (required, max length: 255) — Департамент. Пример: `"Продукт"`
   - `title: string` (required) — Должность. Пример: `"CIO"`
   - `role: string` (required) — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
@@ -129,22 +129,22 @@ curl "https://api.pachca.com/api/shared/v1/users" \
   - `list_tags: array of string` (required) — Массив тегов, привязанных к сотруднику. Пример: `["Product","Design"]`
   - `custom_properties: array of object` (required) — Дополнительные поля сотрудника
     - `id: integer, int32` (required) — Идентификатор поля. Пример: `1678`
-    - `name: string` (required) — Название поля. Пример: `"Город"`
+    - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
   - `user_status: object` (required) — Статус
     - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
-    - `title: string` (required) — Текст статуса. Пример: `"Очень занят"`
+    - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
     - `expires_at: date-time` (required) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-04-08T10:00:00.000Z"`
     - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
     - `away_message: object` (required) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
-      - `text: string` (required) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
+      - `text: string` (required, max length: 1024) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
   - `bot: boolean` (required) — Является ботом. Пример: `false`
   - `sso: boolean` (required) — Использует ли пользователь SSO. Пример: `false`
   - `created_at: date-time` (required) — Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2020-06-08T09:32:57.000Z"`
   - `last_activity_at: date-time` (required) — Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-01-20T13:40:07.000Z"`
-  - `time_zone: string` (required) — Часовой пояс пользователя. Пример: `"Europe/Moscow"`
+  - `time_zone: string` (required, max length: 32) — Часовой пояс пользователя. Пример: `"Europe/Moscow"`
   - `image_url: string` (required) — Ссылка на скачивание аватарки пользователя. Пример: `"https://app.pachca.com/users/12/photo.jpg"`
 
 **Пример ответа:**

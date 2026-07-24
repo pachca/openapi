@@ -844,6 +844,14 @@ actions:
   - target: $.paths['/threads/{id}'].get.parameters[?(@.name=='id')]
     update:
       description: Thread ID
+  - target: $.paths['/threads'].post
+    update:
+      description: |-
+        New standalone thread
+
+        Create a standalone thread — a thread not linked to any message.
+
+        No request body is required. The thread creator becomes its only member, and the `message_id` and `message_chat_id` fields in the response are returned as `null`.
   - target: $.paths['/threads'].get
     update:
       description: |-
@@ -1235,6 +1243,30 @@ actions:
       description: >-
         Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages,
         events_history_enabled), the value is an object with previous and new fields
+  - target: $.components.schemas.AuditDetailsVideoCall
+    update:
+      description: 'For: video_call_started, video_call_finished'
+  - target: $.components.schemas.AuditDetailsVideoCall.properties.chat_id
+    update:
+      description: ID of the chat where the video call takes place
+  - target: $.components.schemas.AuditDetailsVideoCall.properties.duration
+    update:
+      description: Call duration in seconds at the moment of the event. Equals 0 for video_call_started.
+  - target: $.components.schemas.AuditDetailsVideoCall.properties.max_members_count
+    update:
+      description: Maximum number of simultaneous participants during the call
+  - target: $.components.schemas.AuditDetailsVideoCallRecording
+    update:
+      description: 'For: video_call_recording_ready'
+  - target: $.components.schemas.AuditDetailsVideoCallRecording.properties.chat_id
+    update:
+      description: ID of the chat where the video call took place
+  - target: $.components.schemas.AuditDetailsVideoCallRecording.properties.duration
+    update:
+      description: Recording duration in seconds
+  - target: $.components.schemas.AuditDetailsVideoCallRecording.properties.size
+    update:
+      description: Recording file size in bytes
   - target: $.components.schemas.AuditDetailsTagChat
     update:
       description: 'For: tag_added_to_chat'
@@ -1345,6 +1377,9 @@ actions:
         bot_webhook_settings_updated: Bot outgoing webhook settings changed
         bot_token_recreated: Bot token recreated (rotation)
         bot_deleted: Bot deleted
+        video_call_started: Video call started
+        video_call_finished: Video call finished
+        video_call_recording_ready: Video call recording ready
   - target: $.components.schemas.AvatarData
     update:
       description: Avatar data
@@ -1446,7 +1481,7 @@ actions:
       description: Outgoing webhook trigger condition
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.commands
     update:
-      description: Bot commands (trigger words) it reacts to when trigger_on = commands
+      description: Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.scopes
     update:
       description: Bot token scopes (permissions). If omitted, the bot receives the default set.
@@ -1527,7 +1562,6 @@ actions:
         company_member_activate: Employee activated
         company_member_delete: Employee removed from the company
         company_member_update: Employee data changed
-        bill_created: Bill created
         video_call_started: Video call started
         video_call_finished: Video call finished
         video_call_recording_ready: Video call recording ready
@@ -1568,7 +1602,7 @@ actions:
       description: Outgoing webhook trigger condition
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.commands
     update:
-      description: Bot commands (trigger words) it reacts to when trigger_on = commands
+      description: Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.scopes
     update:
       description: Bot token scopes (permissions). If omitted, the bot receives the default set.
@@ -2978,10 +3012,10 @@ actions:
         /messages))
   - target: $.components.schemas.Thread.properties.message_id
     update:
-      description: ID of the message the thread was created for
+      description: ID of the message the thread was created for. `null` for a standalone thread created without a message.
   - target: $.components.schemas.Thread.properties.message_chat_id
     update:
-      description: Message chat ID
+      description: Message chat ID. `null` for a standalone thread created without a message.
   - target: $.components.schemas.Thread.properties.updated_at
     update:
       description: Thread update date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format

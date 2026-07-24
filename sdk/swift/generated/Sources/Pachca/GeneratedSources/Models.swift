@@ -82,6 +82,12 @@ public enum AuditEventKey: String, Codable, CaseIterable {
     case botTokenRecreated = "bot_token_recreated"
     /// Бот удалён
     case botDeleted = "bot_deleted"
+    /// Видеозвонок начат
+    case videoCallStarted = "video_call_started"
+    /// Видеозвонок завершён
+    case videoCallFinished = "video_call_finished"
+    /// Запись видеозвонка готова
+    case videoCallRecordingReady = "video_call_recording_ready"
 }
 
 public enum BotCanEdit: String, Codable, CaseIterable {
@@ -122,10 +128,11 @@ public enum BotEventName: String, Codable, CaseIterable {
     case companyMemberDelete = "company_member_delete"
     /// Данные сотрудника изменены
     case companyMemberUpdate = "company_member_update"
-    /// Создан счёт
-    case billCreated = "bill_created"
+    /// Видеозвонок начался
     case videoCallStarted = "video_call_started"
+    /// Видеозвонок завершился
     case videoCallFinished = "video_call_finished"
+    /// Запись видеозвонка готова
     case videoCallRecordingReady = "video_call_recording_ready"
 }
 
@@ -876,6 +883,42 @@ public struct AuditDetailsUserUpdated: Codable {
 
     enum CodingKeys: String, CodingKey {
         case changedAttrs = "changed_attrs"
+    }
+}
+
+public struct AuditDetailsVideoCall: Codable {
+    public let chatId: Int
+    public let duration: Int
+    public let maxMembersCount: Int
+
+    public init(chatId: Int, duration: Int, maxMembersCount: Int) {
+        self.chatId = chatId
+        self.duration = duration
+        self.maxMembersCount = maxMembersCount
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case chatId = "chat_id"
+        case duration
+        case maxMembersCount = "max_members_count"
+    }
+}
+
+public struct AuditDetailsVideoCallRecording: Codable {
+    public let chatId: Int
+    public let duration: Int
+    public let size: Int64
+
+    public init(chatId: Int, duration: Int, size: Int64) {
+        self.chatId = chatId
+        self.duration = duration
+        self.size = size
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case chatId = "chat_id"
+        case duration
+        case size
     }
 }
 
@@ -2276,11 +2319,11 @@ public struct TaskUpdateRequest: Codable {
 public struct Thread: Codable {
     public let id: Int64
     public let chatId: Int64
-    public let messageId: Int64
-    public let messageChatId: Int64
+    public let messageId: Int64?
+    public let messageChatId: Int64?
     public let updatedAt: String
 
-    public init(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String) {
+    public init(id: Int64, chatId: Int64, messageId: Int64? = nil, messageChatId: Int64? = nil, updatedAt: String) {
         self.id = id
         self.chatId = chatId
         self.messageId = messageId
@@ -3079,6 +3122,8 @@ public enum AuditEventDetailsUnion: Codable {
     case auditDetailsSearch(AuditDetailsSearch)
     case auditDetailsBotScopes(AuditDetailsBotScopes)
     case auditDetailsBotWebhookSettings(AuditDetailsBotWebhookSettings)
+    case auditDetailsVideoCall(AuditDetailsVideoCall)
+    case auditDetailsVideoCallRecording(AuditDetailsVideoCallRecording)
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -3120,6 +3165,10 @@ public enum AuditEventDetailsUnion: Codable {
             self = .auditDetailsBotScopes(try AuditDetailsBotScopes(from: decoder))
         case "auditDetailsBotWebhookSettings":
             self = .auditDetailsBotWebhookSettings(try AuditDetailsBotWebhookSettings(from: decoder))
+        case "auditDetailsVideoCall":
+            self = .auditDetailsVideoCall(try AuditDetailsVideoCall(from: decoder))
+        case "auditDetailsVideoCallRecording":
+            self = .auditDetailsVideoCallRecording(try AuditDetailsVideoCallRecording(from: decoder))
         default:
             throw DecodingError.dataCorrupted(
                 DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unknown type: \(type)")
@@ -3160,6 +3209,10 @@ public enum AuditEventDetailsUnion: Codable {
         case .auditDetailsBotScopes(let value):
             try value.encode(to: encoder)
         case .auditDetailsBotWebhookSettings(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsVideoCall(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsVideoCallRecording(let value):
             try value.encode(to: encoder)
         }
     }

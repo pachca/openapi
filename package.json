@@ -5,7 +5,10 @@
   "scripts": {
     "sdk:build": "bash scripts/build-sdks.sh",
     "check:changelog": "node scripts/check-changelog-sync.mjs",
-    "check:generated": "node scripts/check-generated-sync.mjs"
+    "check:generated": "node scripts/check-generated-sync.mjs",
+    "check:docs-format": "prettier --check --config apps/docs/prettier.config.mjs \"docs/**/*.md\" \"integrations/**/*.md\"",
+    "format:docs": "prettier --write --config apps/docs/prettier.config.mjs \"docs/**/*.md\" \"integrations/**/*.md\"",
+    "check:markdown": "markdownlint-cli2 \"docs/**/*.md\" \"integrations/**/*.md\" \"!**/node_modules/**\" \"!integrations/n8n/e2e/**\""
   },
   "workspaces": [
     "apps/*",
@@ -15,8 +18,10 @@
     "integrations/*"
   ],
   "devDependencies": {
-    "turbo": "^2.8.1",
-    "@playwright/test": "^1.50.0"
+    "@playwright/test": "^1.50.0",
+    "markdownlint-cli2": "^0.23.1",
+    "prettier": "3.8.1",
+    "turbo": "^2.8.1"
   },
   "trustedDependencies": [
     "esbuild",

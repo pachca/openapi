@@ -278,11 +278,15 @@
   },
   "ThreadOperations_getThread": {
     "usage": "let response = try await client.threads.getThread(id: 265142)",
-    "output": "Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)"
+    "output": "Thread(id: Int64, chatId: Int64, messageId: Int64?, messageChatId: Int64?, updatedAt: String)"
   },
   "ThreadOperations_createThread": {
     "usage": "let response = try await client.threads.createThread(id: 154332686)",
-    "output": "Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)"
+    "output": "Thread(id: Int64, chatId: Int64, messageId: Int64?, messageChatId: Int64?, updatedAt: String)"
+  },
+  "ThreadOperations_createStandaloneThread": {
+    "usage": "let response = try await client.threads.createStandaloneThread()",
+    "output": "Thread(id: Int64, chatId: Int64, messageId: Int64?, messageChatId: Int64?, updatedAt: String)"
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "let response = try await client.oauth.getTokenInfo()",

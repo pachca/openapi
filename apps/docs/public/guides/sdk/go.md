@@ -110,6 +110,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Members.LeaveChat()` | [Выход из беседы или канала](/api/members/leave) |
 | `client.Members.RemoveTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.RemoveMember()` | [Исключение пользователя](/api/members/remove) |
+| `client.Threads.CreateStandaloneThread()` | [Новый самостоятельный тред](/api/threads/create) |
 | `client.Threads.CreateThread()` | [Новый тред](/api/threads/add) |
 | `client.Threads.ListThreads()` | [Список тредов](/api/threads/list) |
 | `client.Threads.GetThread()` | [Информация о треде](/api/threads/get) |

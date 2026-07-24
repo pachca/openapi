@@ -43,8 +43,8 @@ curl "https://api.pachca.com/api/shared/v1/threads?last_message_at_after=2025-01
 - `data: array of object` (required)
   - `id: integer, int64` (required) — Идентификатор созданного треда (используется для отправки [новых комментариев](POST /messages) в тред). Пример: `265142`
   - `chat_id: integer, int64` (required) — Идентификатор чата треда (используется для отправки [новых комментариев](POST /messages) в тред и получения [списка комментариев](GET /messages)). Пример: `2637266155`
-  - `message_id: integer, int64` (required) — Идентификатор сообщения, к которому был создан тред. Пример: `154332686`
-  - `message_chat_id: integer, int64` (required) — Идентификатор чата сообщения. Пример: `2637266154`
+  - `message_id: integer, int64` (required) — Идентификатор сообщения, к которому был создан тред. `null` для самостоятельного треда, созданного без привязки к сообщению.. Пример: `154332686`
+  - `message_chat_id: integer, int64` (required) — Идентификатор чата сообщения. `null` для самостоятельного треда, созданного без привязки к сообщению.. Пример: `2637266154`
   - `updated_at: date-time` (required) — Дата и время обновления треда (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2023-02-01T19:20:47.204Z"`
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация

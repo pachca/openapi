@@ -6,8 +6,6 @@ export default class BotsList extends BaseCommand {
   static override description = "Список ботов";
 
   static override examples = [
-      "Создать бота через API и получить токен:\n  $ pachca bots create",
-      "Настроить бота с исходящим вебхуком:\n  $ pachca bots create",
       "Найти и удалить бота:\n  $ pachca bots list"
   ];
 

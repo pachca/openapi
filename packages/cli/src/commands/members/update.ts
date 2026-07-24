@@ -7,8 +7,7 @@ export default class MembersUpdate extends BaseCommand {
   static override description = "Редактирование роли";
 
   static override examples = [
-      "Архивация и управление чатом:\n  $ pachca members update",
-      "Архивация и управление чатом:\n  $ pachca members remove"
+      "Архивация и управление чатом:\n  $ pachca members update"
   ];
 
   static scope = "chat_members:write";

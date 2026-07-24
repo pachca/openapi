@@ -7,7 +7,6 @@ export default class BotsDelete extends BaseCommand {
   static override description = "Удаление бота";
 
   static override examples = [
-      "Обновить Webhook URL бота:\n  $ pachca bots update",
       "Найти и удалить бота:\n  $ pachca bots delete"
   ];
 

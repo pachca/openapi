@@ -196,7 +196,15 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 ## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
+- `group_tag.name`: max 255 characters
+- `user.first_name`: max 255 characters
+- `user.last_name`: max 255 characters
+- `user.email`: max 255 characters
+- `user.phone_number`: max 255 characters
+- `user.nickname`: max 255 characters
+- `user.department`: max 255 characters
 - `user.role`: allowed values — `admin` (Администратор), `user` (Сотрудник), `multi_guest` (Мульти-гость), `guest` (Гость)
+- `status.title`: max 50 characters
 - `status.away_message`: max 1024 characters
 - `limit`: max 50
 - Pagination: cursor-based (limit + cursor)

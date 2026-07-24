@@ -115,6 +115,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 ## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
+- `chat.name`: max 255 characters
 - `role`: allowed values — `admin` (Админ), `editor` (Редактор (доступно только для каналов)), `member` (Участник или подписчик)
 - `limit`: max 50
 - Pagination: cursor-based (limit + cursor)

@@ -4,7 +4,7 @@
 
 The n8n node is **auto-generated** from the Pachca OpenAPI specification using the **VersionedNodeType** pattern (the standard pattern used by core n8n-nodes-base nodes):
 
-```
+```text
 TypeSpec (typespec.tsp)
     |
 OpenAPI YAML (openapi.yaml + overlay.en.yaml)
@@ -29,40 +29,40 @@ nodes/Pachca/
 
 ### Generated Files (do not edit manually)
 
-| File | What is generated |
-|------|-------------------|
-| `Pachca.node.ts` | VersionedNodeType wrapper with V1/V2 classes |
-| `SharedRouter.ts` | Shared router with V1_RESOURCE_MAP, V1_OP_MAP, and ROUTES |
-| `V2/PachcaV2.node.ts` | V2 node class with resource list |
-| `V2/*Description.ts` | 18 V2 resource descriptions (operations, fields, routing) |
-| `PachcaApi.credentials.ts` | Credential type with fields and test endpoint |
+| File                       | What is generated                                         |
+| -------------------------- | --------------------------------------------------------- |
+| `Pachca.node.ts`           | VersionedNodeType wrapper with V1/V2 classes              |
+| `SharedRouter.ts`          | Shared router with V1_RESOURCE_MAP, V1_OP_MAP, and ROUTES |
+| `V2/PachcaV2.node.ts`      | V2 node class with resource list                          |
+| `V2/*Description.ts`       | 18 V2 resource descriptions (operations, fields, routing) |
+| `PachcaApi.credentials.ts` | Credential type with fields and test endpoint             |
 
 ### Frozen V1 Files (do not edit)
 
-| File | What it contains |
-|------|-----------------|
+| File                  | What it contains                      |
+| --------------------- | ------------------------------------- |
 | `V1/PachcaV1.node.ts` | Frozen V1 node class from npm v1.0.27 |
-| `V1/*Description.ts` | 12 frozen V1 resource descriptions |
+| `V1/*Description.ts`  | 12 frozen V1 resource descriptions    |
 
 These files were captured by `scripts/freeze-v1.ts` and must not be modified. They ensure existing V1 workflows continue to work.
 
 ### Hand-Written Files
 
-| File | Purpose |
-|------|---------|
-| `GenericFunctions.ts` | Cursor paginator, body wrapper, S3 upload, error handler, button transformer, form resolver, webhook signature verification, 5xx/429 retry with backoff |
-| `PachcaTrigger.node.ts` | Webhook trigger with auto-registration, 16 event types, signature verification |
-| `V2/FormDescription.ts` | Form resource with template/JSON builder modes |
+| File                    | Purpose                                                                                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GenericFunctions.ts`   | Cursor paginator, body wrapper, S3 upload, error handler, button transformer, form resolver, webhook signature verification, 5xx/429 retry with backoff |
+| `PachcaTrigger.node.ts` | Webhook trigger with auto-registration, 16 event types, signature verification                                                                          |
+| `V2/FormDescription.ts` | Form resource with template/JSON builder modes                                                                                                          |
 
 ### Source Data
 
-| Source | What it provides |
-|--------|-----------------|
-| `@pachca/openapi-parser` | API endpoints, schemas, parameters |
-| `packages/spec/workflows.ts` | English descriptions for operations |
-| `packages/spec/examples.ts` | Form templates (Feedback, Time Off, Survey, Bug Report) |
-| `packages/generator/src/naming.ts` | Case conversion utilities |
-| `apps/docs/lib/openapi/mapper.ts` | URL generation for API docs |
+| Source                             | What it provides                                        |
+| ---------------------------------- | ------------------------------------------------------- |
+| `@pachca/openapi-parser`           | API endpoints, schemas, parameters                      |
+| `packages/spec/workflows.ts`       | English descriptions for operations                     |
+| `packages/spec/examples.ts`        | Form templates (Feedback, Time Off, Survey, Bug Report) |
+| `packages/generator/src/naming.ts` | Case conversion utilities                               |
+| `apps/docs/lib/openapi/mapper.ts`  | URL generation for API docs                             |
 
 ## Local Development
 
@@ -119,16 +119,16 @@ pkill -f n8n; npx n8n start
 
 ## Test Structure
 
-| Test File | What it covers |
-|-----------|---------------|
-| `tests/contract.test.ts` | Generated output matches OpenAPI spec (endpoints, methods, parameters) |
-| `tests/compatibility.test.ts` | V1 backward compatibility (operations, parameters, pagination) |
+| Test File                         | What it covers                                                         |
+| --------------------------------- | ---------------------------------------------------------------------- |
+| `tests/contract.test.ts`          | Generated output matches OpenAPI spec (endpoints, methods, parameters) |
+| `tests/compatibility.test.ts`     | V1 backward compatibility (operations, parameters, pagination)         |
 | `tests/generic-functions.test.ts` | Unit tests for GenericFunctions.ts (paginator, buttons, forms, upload) |
-| `e2e/` | Playwright E2E tests against a real n8n instance (mock + integration) |
+| `e2e/`                            | Playwright E2E tests against a real n8n instance (mock + integration)  |
 
 ## Versioning
 
-- **npm version**: SemVer (`MAJOR.MINOR.PATCH`), current: `2.0.14`
+- **npm version**: SemVer (`MAJOR.MINOR.PATCH`), current: `2.0.15`
 - **n8n node version**: VersionedNodeType with `defaultVersion: 2`
   - `typeVersion: 1` — loads PachcaV1 (frozen V1 class)
   - `typeVersion: 2` — loads PachcaV2 (generated V2 class)

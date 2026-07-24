@@ -7,7 +7,6 @@ export default class ProfileDeleteStatus extends BaseCommand {
   static override description = "Удаление своего статуса";
 
   static override examples = [
-      "Установить статус:\n  $ pachca profile update-status",
       "Сбросить статус:\n  $ pachca profile delete-status"
   ];
 

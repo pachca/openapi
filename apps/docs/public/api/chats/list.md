@@ -42,7 +42,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability
 
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор созданного чата. Пример: `334`
-  - `name: string` (required) — Название. Пример: `"🤿 aqua"`
+  - `name: string` (required, max length: 255) — Название. Пример: `"🤿 aqua"`
   - `created_at: date-time` (required) — Дата и время создания чата (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
   - `owner_id: integer, int32` (required) — Идентификатор пользователя, создавшего чат. Пример: `185`
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`

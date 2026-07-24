@@ -7,9 +7,7 @@ export default class UsersDelete extends BaseCommand {
   static override description = "Удаление сотрудника";
 
   static override examples = [
-      "Получить сотрудника по ID:\n  $ pachca users get",
-      "Массовое создание сотрудников с тегами:\n  $ pachca users update",
-      "Offboarding сотрудника:\n  $ pachca users update"
+      "Offboarding сотрудника:\n  $ pachca users delete"
   ];
 
   static scope = "users:delete";

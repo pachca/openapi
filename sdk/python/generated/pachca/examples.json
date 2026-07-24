@@ -307,11 +307,15 @@
   },
   "ThreadOperations_getThread": {
     "usage": "response = await client.threads.get_thread(id=265142)",
-    "output": "Thread(id: int, chat_id: int, message_id: int, message_chat_id: int, updated_at: datetime)"
+    "output": "Thread(id: int, chat_id: int, message_id: int | None, message_chat_id: int | None, updated_at: datetime)"
   },
   "ThreadOperations_createThread": {
     "usage": "response = await client.threads.create_thread(id=154332686)",
-    "output": "Thread(id: int, chat_id: int, message_id: int, message_chat_id: int, updated_at: datetime)"
+    "output": "Thread(id: int, chat_id: int, message_id: int | None, message_chat_id: int | None, updated_at: datetime)"
+  },
+  "ThreadOperations_createStandaloneThread": {
+    "usage": "response = await client.threads.create_standalone_thread()",
+    "output": "Thread(id: int, chat_id: int, message_id: int | None, message_chat_id: int | None, updated_at: datetime)"
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "response = await client.oauth.get_token_info()",

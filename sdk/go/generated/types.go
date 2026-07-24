@@ -50,6 +50,9 @@ const (
 	AuditEventKeyBotWebhookSettingsUpdated AuditEventKey = "bot_webhook_settings_updated" // Изменены настройки исходящего вебхука бота
 	AuditEventKeyBotTokenRecreated         AuditEventKey = "bot_token_recreated" // Токен бота перевыпущен (ротация)
 	AuditEventKeyBotDeleted                AuditEventKey = "bot_deleted" // Бот удалён
+	AuditEventKeyVideoCallStarted          AuditEventKey = "video_call_started" // Видеозвонок начат
+	AuditEventKeyVideoCallFinished         AuditEventKey = "video_call_finished" // Видеозвонок завершён
+	AuditEventKeyVideoCallRecordingReady   AuditEventKey = "video_call_recording_ready" // Запись видеозвонка готова
 )
 
 type BotCanEdit string
@@ -77,10 +80,9 @@ const (
 	BotEventNameCompanyMemberActivate   BotEventName = "company_member_activate" // Сотрудник активирован
 	BotEventNameCompanyMemberDelete     BotEventName = "company_member_delete" // Сотрудник удалён из компании
 	BotEventNameCompanyMemberUpdate     BotEventName = "company_member_update" // Данные сотрудника изменены
-	BotEventNameBillCreated             BotEventName = "bill_created" // Создан счёт
-	BotEventNameVideoCallStarted        BotEventName = "video_call_started"
-	BotEventNameVideoCallFinished       BotEventName = "video_call_finished"
-	BotEventNameVideoCallRecordingReady BotEventName = "video_call_recording_ready"
+	BotEventNameVideoCallStarted        BotEventName = "video_call_started" // Видеозвонок начался
+	BotEventNameVideoCallFinished       BotEventName = "video_call_finished" // Видеозвонок завершился
+	BotEventNameVideoCallRecordingReady BotEventName = "video_call_recording_ready" // Запись видеозвонка готова
 )
 
 type BotTemplateEngine string
@@ -527,6 +529,18 @@ type AuditDetailsTokenScopes struct {
 
 type AuditDetailsUserUpdated struct {
 	ChangedAttrs []string `json:"changed_attrs"`
+}
+
+type AuditDetailsVideoCall struct {
+	ChatID          int32 `json:"chat_id"`
+	Duration        int32 `json:"duration"`
+	MaxMembersCount int32 `json:"max_members_count"`
+}
+
+type AuditDetailsVideoCallRecording struct {
+	ChatID   int32 `json:"chat_id"`
+	Duration int32 `json:"duration"`
+	Size     int64 `json:"size"`
 }
 
 type AuditEvent struct {
@@ -1191,9 +1205,9 @@ type TaskUpdateRequest struct {
 type Thread struct {
 	ID            int64     `json:"id"`
 	ChatID        int64     `json:"chat_id"`
-	MessageID     int64     `json:"message_id"`
-	MessageChatID int64     `json:"message_chat_id"`
 	UpdatedAt     time.Time `json:"updated_at"`
+	MessageID     *int64    `json:"message_id"`
+	MessageChatID *int64    `json:"message_chat_id"`
 }
 
 type UpdateMemberRoleRequest struct {
@@ -1623,6 +1637,8 @@ type AuditEventDetailsUnion struct {
 	AuditDetailsSearch             *AuditDetailsSearch
 	AuditDetailsBotScopes          *AuditDetailsBotScopes
 	AuditDetailsBotWebhookSettings *AuditDetailsBotWebhookSettings
+	AuditDetailsVideoCall          *AuditDetailsVideoCall
+	AuditDetailsVideoCallRecording *AuditDetailsVideoCallRecording
 }
 
 func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
@@ -1681,6 +1697,12 @@ func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
 	case "AuditDetailsBotWebhookSettings":
 		u.AuditDetailsBotWebhookSettings = &AuditDetailsBotWebhookSettings{}
 		return json.Unmarshal(data, u.AuditDetailsBotWebhookSettings)
+	case "AuditDetailsVideoCall":
+		u.AuditDetailsVideoCall = &AuditDetailsVideoCall{}
+		return json.Unmarshal(data, u.AuditDetailsVideoCall)
+	case "AuditDetailsVideoCallRecording":
+		u.AuditDetailsVideoCallRecording = &AuditDetailsVideoCallRecording{}
+		return json.Unmarshal(data, u.AuditDetailsVideoCallRecording)
 	default:
 		return fmt.Errorf("unknown AuditEventDetailsUnion type: %s", disc.Type)
 	}
@@ -1734,6 +1756,12 @@ func (u AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {
 	}
 	if u.AuditDetailsBotWebhookSettings != nil {
 		return json.Marshal(u.AuditDetailsBotWebhookSettings)
+	}
+	if u.AuditDetailsVideoCall != nil {
+		return json.Marshal(u.AuditDetailsVideoCall)
+	}
+	if u.AuditDetailsVideoCallRecording != nil {
+		return json.Marshal(u.AuditDetailsVideoCallRecording)
 	}
 	return nil, fmt.Errorf("empty AuditEventDetailsUnion")
 }

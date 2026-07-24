@@ -6,9 +6,9 @@ export default class MessagesUpdate extends BaseCommand {
   static override description = "Редактирование сообщения";
 
   static override examples = [
-      "Получить вложения из сообщения:\n  $ pachca messages get",
       "Отредактировать сообщение:\n  $ pachca messages update",
-      "Изменить вложения сообщения:\n  $ pachca messages get"
+      "Изменить вложения сообщения:\n  $ pachca messages update",
+      "Обработать нажатие кнопки (callback):\n  $ pachca messages update"
   ];
 
   static scope = "messages:update";

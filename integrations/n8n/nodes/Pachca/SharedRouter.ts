@@ -531,6 +531,10 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/messages/{id}/thread',
 			pathParams: [{ api: 'id', n8n: 'threadMessageId' }],
 		},
+		createStandalone: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/threads',
+		},
 		getAll: {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/threads',

@@ -49,7 +49,7 @@
     "eslint-config-next": "^16",
     "eslint-config-prettier": "^10",
     "knip": "^5",
-    "prettier": "^3",
+    "prettier": "3.8.1",
     "tailwindcss": "^4"
   }
 }

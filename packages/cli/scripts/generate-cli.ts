@@ -1257,21 +1257,23 @@ async function loadWorkflowExamples(endpoints: Endpoint[]): Promise<Map<string, 
     for (const workflows of Object.values(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string; apiMethod?: string; apiPath?: string }[] }[]>)) {
       for (const w of workflows) {
         for (const step of w.steps) {
-          if (step.command && step.apiPath) {
-            // Use explicit apiPath from step
+          // Key examples by "METHOD /path", not path alone — otherwise operations
+          // sharing a path (e.g. GET and POST /threads) inherit each other's examples.
+          if (step.command && step.apiPath && step.apiMethod) {
+            // Use explicit method + apiPath from step
             const cmdBase = step.command.split(/\s+/).slice(0, 3).join(' ');
-            const apiPath = step.apiPath;
-            if (!map.has(apiPath)) map.set(apiPath, []);
-            const existing = map.get(apiPath)!;
+            const key = `${step.apiMethod} ${step.apiPath}`;
+            if (!map.has(key)) map.set(key, []);
+            const existing = map.get(key)!;
             const example = `${w.title}:\n  $ ${cmdBase}`;
             if (!existing.includes(example)) existing.push(example);
           } else if (step.command) {
-            // Fallback: try to match from description
+            // Fallback: try to match method + path from description
             const match = step.description.match(/(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s?,—.()]+)/);
             if (match) {
-              const apiPath = match[2];
-              if (!map.has(apiPath)) map.set(apiPath, []);
-              const existing = map.get(apiPath)!;
+              const key = `${match[1]} ${match[2]}`;
+              if (!map.has(key)) map.set(key, []);
+              const existing = map.get(key)!;
               const cmdBase = step.command.split(/\s+/).slice(0, 3).join(' ');
               const example = `${w.title}:\n  $ ${cmdBase}`;
               if (!existing.includes(example)) existing.push(example);
@@ -1298,7 +1300,7 @@ async function main(): Promise<void> {
   const commands: GeneratedCommand[] = [];
 
   for (const endpoint of endpoints) {
-    const examples = workflowExamples.get(endpoint.path)?.slice(0, 3);
+    const examples = workflowExamples.get(`${endpoint.method} ${endpoint.path}`)?.slice(0, 3);
     const cmd = generateCommand(endpoint, examples);
     commands.push(cmd);
 

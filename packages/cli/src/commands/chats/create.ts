@@ -8,8 +8,7 @@ export default class ChatsCreate extends BaseCommand {
 
   static override examples = [
       "Создать канал и пригласить участников:\n  $ pachca chats create",
-      "Создать проектную беседу из шаблона:\n  $ pachca chats create",
-      "Найти активные чаты за период:\n  $ pachca chats list"
+      "Создать проектную беседу из шаблона:\n  $ pachca chats create"
   ];
 
   static scope = "chats:create";
@@ -25,7 +24,7 @@ export default class ChatsCreate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'name': Flags.string({
-      description: "Название",
+      description: "Название (макс. 255 символов)",
     }),
     'member-ids': Flags.string({
       description: "Массив идентификаторов пользователей, которые станут участниками",
@@ -66,6 +65,14 @@ export default class ChatsCreate extends BaseCommand {
           { hint: "Обязательные: --name <string>. pachca introspect chats create" },
         );
       }
+    }
+
+    const validationErrors: { message: string; flag: string }[] = [];
+    if (flags['name'] && String(flags['name']).length > 255) {
+      validationErrors.push({ message: `--name: максимум 255 символов (передано: ${String(flags['name']).length})`, flag: 'name' });
+    }
+    if (validationErrors.length > 0) {
+      this.validationError(validationErrors);
     }
 
     const body: Record<string, unknown> = { chat: {

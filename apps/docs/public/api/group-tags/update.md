@@ -30,7 +30,7 @@
 ### Схема
 
 - `group_tag: object` (required)
-  - `name: string` (required) — Название тега. Пример: `"Новое название тега"`
+  - `name: string` (required, max length: 255) — Название тега. Пример: `"Новое название тега"`
 
 ### Пример
 
@@ -63,7 +63,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/group_tags/9111" \
 
 - `data: object` (required) — Тег
   - `id: integer, int32` (required) — Идентификатор тега. Пример: `9111`
-  - `name: string` (required) — Название тега. Пример: `"Design"`
+  - `name: string` (required, max length: 255) — Название тега. Пример: `"Design"`
   - `users_count: integer, int32` (required) — Количество сотрудников, которые имеют этот тег. Пример: `6`
 
 **Пример ответа:**

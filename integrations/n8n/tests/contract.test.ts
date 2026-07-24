@@ -63,6 +63,7 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
 	if (ep.path === '/views/open' && method === 'POST') return 'create';
 	if (ep.path === '/bots/{id}/recreate_token' && method === 'POST') return 'recreateToken';
 	if (ep.path === '/bot/recreate_token' && method === 'POST') return 'recreateTokenSelf';
+	if (ep.path === '/threads' && method === 'POST') return 'createStandalone';
 	if (ep.path === '/chats/exports' && method === 'POST') return 'requestExport';
 	if (ep.path === '/chats/exports/{id}' && method === 'GET') return 'downloadExport';
 	if (ep.path === '/messages/{id}/link_previews' && method === 'POST') return 'unfurl';

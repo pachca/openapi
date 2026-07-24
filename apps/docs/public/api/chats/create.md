@@ -25,7 +25,7 @@
 ### Схема
 
 - `chat: object` (required) — Собранный объект параметров создаваемого чата
-  - `name: string` (required) — Название. Пример: `"🤿 aqua"`
+  - `name: string` (required, max length: 255) — Название. Пример: `"🤿 aqua"`
   - `member_ids: array of integer` — Массив идентификаторов пользователей, которые станут участниками. Пример: `[186,187]`
   - `group_tag_ids: array of integer` — Массив идентификаторов тегов, которые станут участниками. Пример: `[86,18]`
   - `channel: boolean` (default: false) — Является каналом. Пример: `true`
@@ -80,7 +80,7 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 
 - `data: object` (required) — Чат
   - `id: integer, int32` (required) — Идентификатор созданного чата. Пример: `334`
-  - `name: string` (required) — Название. Пример: `"🤿 aqua"`
+  - `name: string` (required, max length: 255) — Название. Пример: `"🤿 aqua"`
   - `created_at: date-time` (required) — Дата и время создания чата (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
   - `owner_id: integer, int32` (required) — Идентификатор пользователя, создавшего чат. Пример: `185`
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`

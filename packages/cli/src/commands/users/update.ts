@@ -6,7 +6,6 @@ export default class UsersUpdate extends BaseCommand {
   static override description = "Редактирование сотрудника";
 
   static override examples = [
-      "Получить сотрудника по ID:\n  $ pachca users get",
       "Массовое создание сотрудников с тегами:\n  $ pachca users update",
       "Offboarding сотрудника:\n  $ pachca users update"
   ];
@@ -26,22 +25,22 @@ export default class UsersUpdate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'first-name': Flags.string({
-      description: "Имя",
+      description: "Имя (макс. 255 символов)",
     }),
     'last-name': Flags.string({
-      description: "Фамилия",
+      description: "Фамилия (макс. 255 символов)",
     }),
     'email': Flags.string({
-      description: "Электронная почта",
+      description: "Электронная почта (макс. 255 символов)",
     }),
     'phone-number': Flags.string({
-      description: "Телефон",
+      description: "Телефон (макс. 255 символов)",
     }),
     'nickname': Flags.string({
-      description: "Имя пользователя",
+      description: "Имя пользователя (макс. 255 символов)",
     }),
     'department': Flags.string({
-      description: "Департамент",
+      description: "Департамент (макс. 255 символов)",
     }),
     'title': Flags.string({
       description: "Должность",
@@ -64,6 +63,29 @@ export default class UsersUpdate extends BaseCommand {
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UsersUpdate);
     this.parsedFlags = flags;
+
+    const validationErrors: { message: string; flag: string }[] = [];
+    if (flags['first-name'] && String(flags['first-name']).length > 255) {
+      validationErrors.push({ message: `--first-name: максимум 255 символов (передано: ${String(flags['first-name']).length})`, flag: 'first-name' });
+    }
+    if (flags['last-name'] && String(flags['last-name']).length > 255) {
+      validationErrors.push({ message: `--last-name: максимум 255 символов (передано: ${String(flags['last-name']).length})`, flag: 'last-name' });
+    }
+    if (flags['email'] && String(flags['email']).length > 255) {
+      validationErrors.push({ message: `--email: максимум 255 символов (передано: ${String(flags['email']).length})`, flag: 'email' });
+    }
+    if (flags['phone-number'] && String(flags['phone-number']).length > 255) {
+      validationErrors.push({ message: `--phone-number: максимум 255 символов (передано: ${String(flags['phone-number']).length})`, flag: 'phone-number' });
+    }
+    if (flags['nickname'] && String(flags['nickname']).length > 255) {
+      validationErrors.push({ message: `--nickname: максимум 255 символов (передано: ${String(flags['nickname']).length})`, flag: 'nickname' });
+    }
+    if (flags['department'] && String(flags['department']).length > 255) {
+      validationErrors.push({ message: `--department: максимум 255 символов (передано: ${String(flags['department']).length})`, flag: 'department' });
+    }
+    if (validationErrors.length > 0) {
+      this.validationError(validationErrors);
+    }
 
     const body: Record<string, unknown> = { user: {
       first_name: flags['first-name'],

@@ -175,7 +175,7 @@ export const botFields: INodeProperties[] = [
 				name: 'commands',
 				type: 'string',
 				default: "",
-				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands',
+				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.',
 				placeholder: '/task,/help',
 			},
 			{
@@ -357,7 +357,7 @@ export const botFields: INodeProperties[] = [
 				name: 'commands',
 				type: 'string',
 				default: "",
-				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands',
+				description: 'Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.',
 				placeholder: '/task,/help',
 			},
 			{

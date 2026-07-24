@@ -1671,6 +1671,10 @@ class ThreadsService:
     ) -> Thread:
         raise NotImplementedError("Threads.createThread is not implemented")
 
+    async def create_standalone_thread(
+        self) -> Thread:
+        raise NotImplementedError("Threads.createStandaloneThread is not implemented")
+
 
 class ThreadsServiceImpl(ThreadsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -1744,6 +1748,20 @@ class ThreadsServiceImpl(ThreadsService):
     ) -> Thread:
         response = await self._client.post(
             f"/messages/{id}/thread",
+        )
+        body = response.json()
+        match response.status_code:
+            case 201:
+                return deserialize(Thread, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def create_standalone_thread(
+        self) -> Thread:
+        response = await self._client.post(
+            "/threads",
         )
         body = response.json()
         match response.status_code:

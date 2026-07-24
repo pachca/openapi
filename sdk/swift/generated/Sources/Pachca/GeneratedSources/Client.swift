@@ -1504,6 +1504,10 @@ open class ThreadsService {
     open func createThread(id: Int) async throws -> Thread {
         throw pachcaNotImplemented("Threads.createThread")
     }
+
+    open func createStandaloneThread() async throws -> Thread {
+        throw pachcaNotImplemented("Threads.createStandaloneThread")
+    }
 }
 
 public final class ThreadsServiceImpl: ThreadsService {
@@ -1571,6 +1575,22 @@ public final class ThreadsServiceImpl: ThreadsService {
 
     public override func createThread(id: Int) async throws -> Thread {
         var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/thread")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 201:
+            return try deserialize(ThreadDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func createStandaloneThread() async throws -> Thread {
+        var request = URLRequest(url: URL(string: "\(baseURL)/threads")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)

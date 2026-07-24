@@ -7,8 +7,7 @@ export default class GroupTagsCreate extends BaseCommand {
   static override description = "Новый тег";
 
   static override examples = [
-      "Массовое создание сотрудников с тегами:\n  $ pachca group-tags create",
-      "Получить всех сотрудников тега/департамента:\n  $ pachca group-tags list"
+      "Массовое создание сотрудников с тегами:\n  $ pachca group-tags create"
   ];
 
   static scope = "group_tags:write";
@@ -24,7 +23,7 @@ export default class GroupTagsCreate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'name': Flags.string({
-      description: "Название тега",
+      description: "Название тега (макс. 255 символов)",
     }),
   };
 
@@ -51,6 +50,14 @@ export default class GroupTagsCreate extends BaseCommand {
           { hint: "Обязательные: --name <string>. pachca introspect group-tags create" },
         );
       }
+    }
+
+    const validationErrors: { message: string; flag: string }[] = [];
+    if (flags['name'] && String(flags['name']).length > 255) {
+      validationErrors.push({ message: `--name: максимум 255 символов (передано: ${String(flags['name']).length})`, flag: 'name' });
+    }
+    if (validationErrors.length > 0) {
+      this.validationError(validationErrors);
     }
 
     const body: Record<string, unknown> = { group_tag: {

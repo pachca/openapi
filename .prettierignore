@@ -1,0 +1,10 @@
+# Root-level Prettier ignore — used by the repo-wide `check:format` / `format:docs`
+# scripts (run from the repo root). apps/docs has its own .prettierignore.
+# Only files matched by those scripts' globs are affected; everything else is
+# formatted by each package's own tooling.
+node_modules/
+**/node_modules/
+
+# Generated e2e artifacts (gitignored — absent in fresh clones, listed here so
+# local runs skip them too).
+integrations/n8n/e2e/

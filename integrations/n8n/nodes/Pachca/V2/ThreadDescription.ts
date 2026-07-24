@@ -14,6 +14,11 @@ export const threadOperations: INodeProperties[] = [
 				action: 'Create a thread',
 			},
 			{
+				name: 'Create Standalone',
+				value: 'createStandalone',
+				action: 'Create a standalone thread',
+			},
+			{
 				name: 'Get',
 				value: 'get',
 				action: 'Get a thread',

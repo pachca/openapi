@@ -8,8 +8,8 @@ export default class MembersAdd extends BaseCommand {
 
   static override examples = [
       "Подписаться на тред сообщения:\n  $ pachca members add",
-      "Упомянуть пользователя:\n  $ pachca members list",
-      "Создать канал и пригласить участников:\n  $ pachca members add"
+      "Создать канал и пригласить участников:\n  $ pachca members add",
+      "Онбординг нового сотрудника:\n  $ pachca members add"
   ];
 
   static scope = "chat_members:write";

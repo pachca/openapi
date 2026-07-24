@@ -1093,6 +1093,22 @@
           }
         },
         {
+          "name": "Новый самостоятельный тред",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/threads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "threads"
+              ]
+            }
+          }
+        },
+        {
           "name": "Список тредов",
           "request": {
             "method": "GET",

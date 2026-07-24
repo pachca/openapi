@@ -1886,6 +1886,11 @@ public class ThreadsService
     {
         throw new NotImplementedException("Threads.createThread is not implemented");
     }
+
+    public virtual async System.Threading.Tasks.Task<Pachca.Sdk.Thread> CreateStandaloneThreadAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Threads.createStandaloneThread is not implemented");
+    }
 }
 
 public sealed class ThreadsServiceImpl : ThreadsService
@@ -1970,6 +1975,23 @@ public sealed class ThreadsServiceImpl : ThreadsService
     public override async System.Threading.Tasks.Task<Pachca.Sdk.Thread> CreateThreadAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}/thread";
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 201:
+                return PachcaUtils.Deserialize<Pachca.Sdk.ThreadDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<Pachca.Sdk.Thread> CreateStandaloneThreadAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/threads";
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);

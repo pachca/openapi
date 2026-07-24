@@ -7,9 +7,7 @@ export default class UsersUpdateStatus extends BaseCommand {
   static override description = "Новый статус сотрудника";
 
   static override examples = [
-      "Управление статусом сотрудника:\n  $ pachca users get-status",
-      "Управление статусом сотрудника:\n  $ pachca users update-status",
-      "Управление статусом сотрудника:\n  $ pachca users remove-status"
+      "Управление статусом сотрудника:\n  $ pachca users update-status"
   ];
 
   static scope = "user_status:write";
@@ -31,7 +29,7 @@ export default class UsersUpdateStatus extends BaseCommand {
       description: "Emoji символ статуса",
     }),
     'title': Flags.string({
-      description: "Текст статуса",
+      description: "Текст статуса (макс. 50 символов)",
     }),
     'expires-at': Flags.string({
       description: "Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ",
@@ -72,6 +70,9 @@ export default class UsersUpdateStatus extends BaseCommand {
     }
 
     const validationErrors: { message: string; flag: string }[] = [];
+    if (flags['title'] && String(flags['title']).length > 50) {
+      validationErrors.push({ message: `--title: максимум 50 символов (передано: ${String(flags['title']).length})`, flag: 'title' });
+    }
     if (flags['away-message'] && String(flags['away-message']).length > 1024) {
       validationErrors.push({ message: `--away-message: максимум 1024 символов (передано: ${String(flags['away-message']).length})`, flag: 'away-message' });
     }

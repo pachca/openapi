@@ -1,5 +1,13 @@
 <!-- markdownlint-disable MD024 -->
+
 # Changelog
+
+## 2.0.15 (2026-07-24)
+
+### Improvements
+
+- Thread: new `Create a standalone thread` operation — create a thread not linked to any message
+- Security: audit event filter gains `video_call_started`, `video_call_finished`, `video_call_recording_ready`
 
 ## 2.0.14 (2026-07-07)
 

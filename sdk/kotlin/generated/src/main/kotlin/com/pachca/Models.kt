@@ -105,6 +105,12 @@ enum class AuditEventKey(val value: String) {
     @SerialName("bot_token_recreated") BOT_TOKEN_RECREATED("bot_token_recreated"),
     /** Бот удалён */
     @SerialName("bot_deleted") BOT_DELETED("bot_deleted"),
+    /** Видеозвонок начат */
+    @SerialName("video_call_started") VIDEO_CALL_STARTED("video_call_started"),
+    /** Видеозвонок завершён */
+    @SerialName("video_call_finished") VIDEO_CALL_FINISHED("video_call_finished"),
+    /** Запись видеозвонка готова */
+    @SerialName("video_call_recording_ready") VIDEO_CALL_RECORDING_READY("video_call_recording_ready"),
 }
 
 /** Роль, которой разрешено редактировать настройки бота */
@@ -149,10 +155,11 @@ enum class BotEventName(val value: String) {
     @SerialName("company_member_delete") COMPANY_MEMBER_DELETE("company_member_delete"),
     /** Данные сотрудника изменены */
     @SerialName("company_member_update") COMPANY_MEMBER_UPDATE("company_member_update"),
-    /** Создан счёт */
-    @SerialName("bill_created") BILL_CREATED("bill_created"),
+    /** Видеозвонок начался */
     @SerialName("video_call_started") VIDEO_CALL_STARTED("video_call_started"),
+    /** Видеозвонок завершился */
     @SerialName("video_call_finished") VIDEO_CALL_FINISHED("video_call_finished"),
+    /** Запись видеозвонка готова */
     @SerialName("video_call_recording_ready") VIDEO_CALL_RECORDING_READY("video_call_recording_ready"),
 }
 
@@ -779,6 +786,24 @@ data class AuditDetailsBotScopes(
 data class AuditDetailsBotWebhookSettings(
     override val type: String = "",
     val changes: Map<String, String>,
+) : AuditEventDetailsUnion
+
+@Serializable
+@SerialName("")
+data class AuditDetailsVideoCall(
+    override val type: String = "",
+    @SerialName("chat_id") val chatId: Int,
+    val duration: Int,
+    @SerialName("max_members_count") val maxMembersCount: Int,
+) : AuditEventDetailsUnion
+
+@Serializable
+@SerialName("")
+data class AuditDetailsVideoCallRecording(
+    override val type: String = "",
+    @SerialName("chat_id") val chatId: Int,
+    val duration: Int,
+    val size: Long,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1583,8 +1608,8 @@ data class TaskUpdateRequest(
 data class Thread(
     val id: Long,
     @SerialName("chat_id") val chatId: Long,
-    @SerialName("message_id") val messageId: Long,
-    @SerialName("message_chat_id") val messageChatId: Long,
+    @SerialName("message_id") val messageId: Long? = null,
+    @SerialName("message_chat_id") val messageChatId: Long? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("updated_at") val updatedAt: OffsetDateTime,
 )
 

@@ -6,7 +6,6 @@ export default class GroupTagsList extends BaseCommand {
   static override description = "Список тегов сотрудников";
 
   static override examples = [
-      "Массовое создание сотрудников с тегами:\n  $ pachca group-tags create",
       "Получить всех сотрудников тега/департамента:\n  $ pachca group-tags list"
   ];
 

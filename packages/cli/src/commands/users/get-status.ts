@@ -6,9 +6,7 @@ export default class UsersGetStatus extends BaseCommand {
   static override description = "Статус сотрудника";
 
   static override examples = [
-      "Управление статусом сотрудника:\n  $ pachca users get-status",
-      "Управление статусом сотрудника:\n  $ pachca users update-status",
-      "Управление статусом сотрудника:\n  $ pachca users remove-status"
+      "Управление статусом сотрудника:\n  $ pachca users get-status"
   ];
 
   static scope = "user_status:read";

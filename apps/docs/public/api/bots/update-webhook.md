@@ -55,8 +55,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
 - `data: object` (required) — Параметры бота
   - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
   - `webhook: object` (required) — Объект параметров вебхука
-    - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
-    - `nickname: string` (required) — Никнейм бота. Пример: `"tasks_bot"`
+    - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
+    - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
     - `outgoing_url: string` (required) — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
     - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука

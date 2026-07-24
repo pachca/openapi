@@ -6,8 +6,7 @@ export default class BotsUpdate extends BaseCommand {
   static override description = "Редактирование бота";
 
   static override examples = [
-      "Обновить Webhook URL бота:\n  $ pachca bots update",
-      "Найти и удалить бота:\n  $ pachca bots delete"
+      "Обновить Webhook URL бота:\n  $ pachca bots update"
   ];
 
   static scope = "bots:write";
@@ -25,10 +24,10 @@ export default class BotsUpdate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'name': Flags.string({
-      description: "Имя бота",
+      description: "Имя бота (макс. 255 символов)",
     }),
     'nickname': Flags.string({
-      description: "Никнейм бота. Должен заканчиваться на `_bot`.",
+      description: "Никнейм бота. Должен заканчиваться на `_bot`. (макс. 255 символов)",
     }),
     'outgoing-url': Flags.string({
       description: "URL исходящего вебхука",
@@ -40,7 +39,7 @@ export default class BotsUpdate extends BaseCommand {
       description: "Условие срабатывания исходящего вебхука",
     }),
     'commands': Flags.string({
-      description: "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands",
+      description: "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.",
     }),
     'scopes': Flags.string({
       description: "Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.",
@@ -77,6 +76,17 @@ export default class BotsUpdate extends BaseCommand {
   async run(): Promise<void> {
     const { args, flags } = await this.parse(BotsUpdate);
     this.parsedFlags = flags;
+
+    const validationErrors: { message: string; flag: string }[] = [];
+    if (flags['name'] && String(flags['name']).length > 255) {
+      validationErrors.push({ message: `--name: максимум 255 символов (передано: ${String(flags['name']).length})`, flag: 'name' });
+    }
+    if (flags['nickname'] && String(flags['nickname']).length > 255) {
+      validationErrors.push({ message: `--nickname: максимум 255 символов (передано: ${String(flags['nickname']).length})`, flag: 'nickname' });
+    }
+    if (validationErrors.length > 0) {
+      this.validationError(validationErrors);
+    }
 
     const body: Record<string, unknown> = { webhook: {
       name: flags['name'],

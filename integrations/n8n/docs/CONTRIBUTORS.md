@@ -10,7 +10,7 @@
 
 ## Project Structure
 
-```
+```text
 integrations/n8n/
 ├── scripts/                    # Generator code
 │   ├── generate-n8n.ts             # Main generator (~1000 lines)
@@ -49,12 +49,14 @@ integrations/n8n/
 ## Generated vs Hand-Written
 
 The generator (`scripts/generate-n8n.ts`) reads the OpenAPI spec and produces:
+
 - VersionedNodeType wrapper (`Pachca.node.ts`) with V1/V2 class references
 - Shared router (`SharedRouter.ts`) with V1 name translation maps and route table
 - V2 resource descriptions with operations, parameters, and routing
 - Credential type with fields and authentication
 
 Hand-written files handle logic that can't be expressed declaratively:
+
 - Cursor-based pagination with retry
 - S3 two-stage file upload
 - Webhook signature verification

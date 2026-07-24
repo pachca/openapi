@@ -38,6 +38,13 @@ jobs:
       - name: Run checks
         run: bun turbo check
 
+      - name: Docs & integrations markdown (Prettier + markdownlint)
+        # turbo's format:check only covers apps/docs; these repo-root docs and
+        # the n8n integration are otherwise unchecked and drift silently.
+        run: |
+          bun run check:docs-format
+          bun run check:markdown
+
       - name: Generated files in sync with their sources
         # Runs `turbo build` (cached when possible) and asserts that no
         # tracked or untracked generator output diverges from what's

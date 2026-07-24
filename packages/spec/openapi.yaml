@@ -4333,6 +4333,57 @@ paths:
       x-requirements:
         scope: tasks:delete
   /threads:
+    post:
+      operationId: ThreadOperations_createStandaloneThread
+      description: |-
+        Новый самостоятельный тред
+
+        Метод для создания самостоятельного треда — треда, не связанного с каким-либо сообщением.
+
+        Тело запроса не требуется. Создатель треда становится его единственным участником, а поля `message_id` и `message_chat_id` в ответе возвращаются как `null`.
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Thread'
+                description: Обертка ответа с данными
+              example:
+                data:
+                  id: 265142
+                  chat_id: 2637266155
+                  message_id: null
+                  message_chat_id: null
+                  updated_at: '2023-02-01T19:20:47.204Z'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Threads
+      x-requirements:
+        scope: threads:create
     get:
       operationId: ThreadOperations_listThreads
       description: |-
@@ -5747,6 +5798,46 @@ components:
             type: string
           description: Список изменённых полей
       description: 'При: user_updated'
+    AuditDetailsVideoCall:
+      type: object
+      required:
+        - chat_id
+        - duration
+        - max_members_count
+      properties:
+        chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор чата, в котором проходит видеозвонок
+        duration:
+          type: integer
+          format: int32
+          description: Длительность звонка в секундах на момент события. Для video_call_started равна 0.
+        max_members_count:
+          type: integer
+          format: int32
+          description: Максимальное число одновременных участников за время звонка
+      description: 'При: video_call_started, video_call_finished'
+    AuditDetailsVideoCallRecording:
+      type: object
+      required:
+        - chat_id
+        - duration
+        - size
+      properties:
+        chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор чата, в котором проходил видеозвонок
+        duration:
+          type: integer
+          format: int32
+          description: Длительность записи в секундах
+        size:
+          type: integer
+          format: int64
+          description: Размер файла записи в байтах
+      description: 'При: video_call_recording_ready'
     AuditEvent:
       type: object
       required:
@@ -5822,6 +5913,8 @@ components:
         - $ref: '#/components/schemas/AuditDetailsSearch'
         - $ref: '#/components/schemas/AuditDetailsBotScopes'
         - $ref: '#/components/schemas/AuditDetailsBotWebhookSettings'
+        - $ref: '#/components/schemas/AuditDetailsVideoCall'
+        - $ref: '#/components/schemas/AuditDetailsVideoCallRecording'
       description: Дополнительные детали события аудита. Структура зависит от значения event_key
     AuditEventKey:
       type: string
@@ -5865,6 +5958,9 @@ components:
         - bot_webhook_settings_updated
         - bot_token_recreated
         - bot_deleted
+        - video_call_started
+        - video_call_finished
+        - video_call_recording_ready
       description: Тип аудит-события
       x-enum-descriptions:
         user_login: Пользователь успешно вошел в систему
@@ -5906,6 +6002,9 @@ components:
         bot_webhook_settings_updated: Изменены настройки исходящего вебхука бота
         bot_token_recreated: Токен бота перевыпущен (ротация)
         bot_deleted: Бот удалён
+        video_call_started: Видеозвонок начат
+        video_call_finished: Видеозвонок завершён
+        video_call_recording_ready: Запись видеозвонка готова
     AvatarData:
       type: object
       required:
@@ -5935,10 +6034,12 @@ components:
           properties:
             name:
               type: string
+              maxLength: 255
               description: Имя бота
               example: Бот задач
             nickname:
               type: string
+              maxLength: 255
               description: Никнейм бота. Должен заканчиваться на `_bot`.
               example: tasks_bot
             outgoing_url:
@@ -5962,7 +6063,7 @@ components:
               type: array
               items:
                 type: string
-              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands
+              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.
               example:
                 - /task
                 - /help
@@ -6063,7 +6164,6 @@ components:
         - company_member_activate
         - company_member_delete
         - company_member_update
-        - bill_created
         - video_call_started
         - video_call_finished
         - video_call_recording_ready
@@ -6084,7 +6184,9 @@ components:
         company_member_activate: Сотрудник активирован
         company_member_delete: Сотрудник удалён из компании
         company_member_update: Данные сотрудника изменены
-        bill_created: Создан счёт
+        video_call_started: Видеозвонок начался
+        video_call_finished: Видеозвонок завершился
+        video_call_recording_ready: Запись видеозвонка готова
     BotResponse:
       type: object
       required:
@@ -6131,10 +6233,12 @@ components:
           properties:
             name:
               type: string
+              maxLength: 255
               description: Имя бота
               example: Бот задач
             nickname:
               type: string
+              maxLength: 255
               description: Никнейм бота. Должен заканчиваться на `_bot`.
               example: tasks_bot
             outgoing_url:
@@ -6158,7 +6262,7 @@ components:
               type: array
               items:
                 type: string
-              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands
+              description: Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.
               example:
                 - /task
                 - /help
@@ -6235,10 +6339,12 @@ components:
       properties:
         name:
           type: string
+          maxLength: 255
           description: Имя бота
           example: Бот задач
         nickname:
           type: string
+          maxLength: 255
           description: Никнейм бота
           example: tasks_bot
         outgoing_url:
@@ -6444,6 +6550,7 @@ components:
           example: 334
         name:
           type: string
+          maxLength: 255
           description: Название
           example: 🤿 aqua
         created_at:
@@ -6515,6 +6622,7 @@ components:
           properties:
             name:
               type: string
+              maxLength: 255
               description: Название
               example: 🤿 aqua
             member_ids:
@@ -6657,6 +6765,7 @@ components:
           properties:
             name:
               type: string
+              maxLength: 255
               description: Название
               example: Бассейн
             public:
@@ -6722,6 +6831,7 @@ components:
           example: 1678
         name:
           type: string
+          maxLength: 32
           description: Название поля
           example: Город
         data_type:
@@ -6731,6 +6841,7 @@ components:
           example: string
         value:
           type: string
+          maxLength: 768
           description: Значение
           example: Санкт-Петербург
       description: Дополнительное поле
@@ -6761,6 +6872,7 @@ components:
           example: 1678
         name:
           type: string
+          maxLength: 32
           description: Название поля
           example: Город
         data_type:
@@ -6966,6 +7078,7 @@ components:
           example: 9111
         name:
           type: string
+          maxLength: 255
           description: Название тега
           example: Design
         users_count:
@@ -6984,6 +7097,7 @@ components:
           properties:
             name:
               type: string
+              maxLength: 255
               description: Название тега
               example: Новое название тега
           required:
@@ -8187,6 +8301,7 @@ components:
               example: 🎮
             title:
               type: string
+              maxLength: 50
               description: Текст статуса
               example: Очень занят
             expires_at:
@@ -8479,12 +8594,14 @@ components:
         message_id:
           type: integer
           format: int64
-          description: Идентификатор сообщения, к которому был создан тред
+          nullable: true
+          description: Идентификатор сообщения, к которому был создан тред. `null` для самостоятельного треда, созданного без привязки к сообщению.
           example: 154332686
         message_chat_id:
           type: integer
           format: int64
-          description: Идентификатор чата сообщения
+          nullable: true
+          description: Идентификатор чата сообщения. `null` для самостоятельного треда, созданного без привязки к сообщению.
           example: 2637266154
         updated_at:
           type: string
@@ -8585,30 +8702,36 @@ components:
           example: 12
         first_name:
           type: string
+          maxLength: 255
           description: Имя
           example: Олег
         last_name:
           type: string
           nullable: true
+          maxLength: 255
           description: Фамилия
           example: Петров
         nickname:
           type: string
+          maxLength: 255
           description: Имя пользователя
           example: olegpetrov
         email:
           type: string
           nullable: true
+          maxLength: 255
           description: Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.
           example: olegp@example.com
         phone_number:
           type: string
           nullable: true
+          maxLength: 255
           description: Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.
           example: '+79001234567'
         department:
           type: string
           nullable: true
+          maxLength: 255
           description: Департамент
           example: Продукт
         title:
@@ -8677,6 +8800,7 @@ components:
         time_zone:
           type: string
           nullable: true
+          maxLength: 32
           description: Часовой пояс пользователя
           example: Europe/Moscow
         image_url:
@@ -8695,26 +8819,32 @@ components:
           properties:
             first_name:
               type: string
+              maxLength: 255
               description: Имя
               example: Олег
             last_name:
               type: string
+              maxLength: 255
               description: Фамилия
               example: Петров
             email:
               type: string
+              maxLength: 255
               description: Электронная почта
               example: olegp@example.com
             phone_number:
               type: string
+              maxLength: 255
               description: Телефон
               example: '+79001234567'
             nickname:
               type: string
+              maxLength: 255
               description: Имя пользователя
               example: olegpetrov
             department:
               type: string
+              maxLength: 255
               description: Департамент
               example: Продукт
             title:
@@ -8759,6 +8889,7 @@ components:
                     example: 1678
                   value:
                     type: string
+                    maxLength: 768
                     description: Устанавливаемое значение
                     example: Санкт-Петербург
                 required:
@@ -8842,6 +8973,7 @@ components:
           example: 🎮
         title:
           type: string
+          maxLength: 50
           description: Текст статуса
           example: Очень занят
         expires_at:
@@ -8859,6 +8991,7 @@ components:
           properties:
             text:
               type: string
+              maxLength: 1024
               description: Текст сообщения
               example: Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov.
           required:
@@ -8876,26 +9009,32 @@ components:
           properties:
             first_name:
               type: string
+              maxLength: 255
               description: Имя
               example: Олег
             last_name:
               type: string
+              maxLength: 255
               description: Фамилия
               example: Петров
             email:
               type: string
+              maxLength: 255
               description: Электронная почта
               example: olegpetrov@example.com
             phone_number:
               type: string
+              maxLength: 255
               description: Телефон
               example: '+79001234567'
             nickname:
               type: string
+              maxLength: 255
               description: Имя пользователя
               example: olegpetrov
             department:
               type: string
+              maxLength: 255
               description: Департамент
               example: Отдел разработки
             title:
@@ -8931,6 +9070,7 @@ components:
                     example: 1678
                   value:
                     type: string
+                    maxLength: 768
                     description: Устанавливаемое значение
                     example: Санкт-Петербург
                 required:

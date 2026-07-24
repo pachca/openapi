@@ -106,6 +106,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 
 ### Threads
 - `POST /messages/{id}/thread` — Create thread
+- `POST /threads` — Create standalone thread
 - `GET /threads` — List threads
 - `GET /threads/{id}` — Get thread
 
@@ -238,7 +239,7 @@ Detailed documentation on specific topics is available at:
 - [AI агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview) — Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — llms.txt, CLI как основной путь, Agent Skills, OpenAPI, Arazzo, Context7
 - [AI агенты, Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction) — Как агент в Пачке получает события через вебхук, собирает контекст треда, выполняет действия и отвечает. Реакция-индикатор и таймер agent-thinking
 - [AI агенты, Markdown и документы](https://dev.pachca.com/guides/ai-agents/markdown) — Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чеклисты, подсветка кода, diff, диаграммы Mermaid
-- [Треды](https://dev.pachca.com/guides/threads) — Треды в Пачке для разработчиков: сквозные треды как уникальная особенность, создание через POST /messages/{id}/thread, отправка комментариев, добавление участников, видимость родительского чата, нюансы API и поля Message.thread/root_chat_id
+- [Треды](https://dev.pachca.com/guides/threads) — Треды в Пачке для разработчиков: сквозные и самостоятельные треды как уникальная особенность, создание у сообщения (POST /messages/{id}/thread) и без привязки к сообщению (POST /threads), отправка комментариев, добавление участников, видимость родительского чата, нюансы API и поля Message.thread/root_chat_id
 - [Боты, Обзор](https://dev.pachca.com/guides/bots/overview) — Боты в Пачке: что это, типы ботов, доступность в чатах и подмена имени и аватара отправителя в сообщениях
 - [Боты, Создание и настройка](https://dev.pachca.com/guides/bots/setup) — Как создать бота в Пачке: выбор типа, копирование токена, настройка имени и аватара, настройка доступов и вкладок вебхуков и API
 - [Боты, Доступы к чатам и сообщениям](https://dev.pachca.com/guides/bots/access) — Как бот получает доступ к закрытым каналам и беседам, тредам и личным сообщениям в Пачке

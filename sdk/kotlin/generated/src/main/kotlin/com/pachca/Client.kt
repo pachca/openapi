@@ -1257,6 +1257,10 @@ interface ThreadsService {
     suspend fun createThread(id: Int): Thread {
         throw NotImplementedError("Threads.createThread is not implemented")
     }
+
+    suspend fun createStandaloneThread(): Thread {
+        throw NotImplementedError("Threads.createStandaloneThread is not implemented")
+    }
 }
 
 class ThreadsServiceImpl internal constructor(
@@ -1316,6 +1320,15 @@ class ThreadsServiceImpl internal constructor(
 
     override suspend fun createThread(id: Int): Thread {
         val response = client.post("$baseUrl/messages/$id/thread")
+        return when (response.status.value) {
+            201 -> response.body<ThreadDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun createStandaloneThread(): Thread {
+        val response = client.post("$baseUrl/threads")
         return when (response.status.value) {
             201 -> response.body<ThreadDataWrapper>().data
             401 -> throw response.body<OAuthError>()

@@ -2499,6 +2499,7 @@ type ThreadsService interface {
 	ListThreadsAll(ctx context.Context, params *ListThreadsParams) ([]Thread, error)
 	GetThread(ctx context.Context, id int32) (*Thread, error)
 	CreateThread(ctx context.Context, id int32) (*Thread, error)
+	CreateStandaloneThread(ctx context.Context) (*Thread, error)
 }
 
 type ThreadsServiceStub struct{}
@@ -2517,6 +2518,10 @@ func (s *ThreadsServiceStub) GetThread(ctx context.Context, id int32) (*Thread, 
 
 func (s *ThreadsServiceStub) CreateThread(ctx context.Context, id int32) (*Thread, error) {
 	return nil, NotImplementedError{Method: "Threads.createThread"}
+}
+
+func (s *ThreadsServiceStub) CreateStandaloneThread(ctx context.Context) (*Thread, error) {
+	return nil, NotImplementedError{Method: "Threads.createStandaloneThread"}
 }
 
 type ThreadsServiceImpl struct {
@@ -2636,6 +2641,40 @@ func (s *ThreadsServiceImpl) GetThread(ctx context.Context, id int32) (*Thread, 
 
 func (s *ThreadsServiceImpl) CreateThread(ctx context.Context, id int32) (*Thread, error) {
 	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/messages/%v/thread", s.baseURL, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusCreated:
+		var result struct {
+			Data Thread `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *ThreadsServiceImpl) CreateStandaloneThread(ctx context.Context) (*Thread, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/threads", s.baseURL), nil)
 	if err != nil {
 		return nil, err
 	}

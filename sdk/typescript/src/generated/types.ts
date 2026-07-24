@@ -78,6 +78,12 @@ export enum AuditEventKey {
   BotTokenRecreated = "bot_token_recreated",
   /** Бот удалён */
   BotDeleted = "bot_deleted",
+  /** Видеозвонок начат */
+  VideoCallStarted = "video_call_started",
+  /** Видеозвонок завершён */
+  VideoCallFinished = "video_call_finished",
+  /** Запись видеозвонка готова */
+  VideoCallRecordingReady = "video_call_recording_ready",
 }
 
 /** Роль, которой разрешено редактировать настройки бота */
@@ -120,10 +126,11 @@ export enum BotEventName {
   CompanyMemberDelete = "company_member_delete",
   /** Данные сотрудника изменены */
   CompanyMemberUpdate = "company_member_update",
-  /** Создан счёт */
-  BillCreated = "bill_created",
+  /** Видеозвонок начался */
   VideoCallStarted = "video_call_started",
+  /** Видеозвонок завершился */
   VideoCallFinished = "video_call_finished",
+  /** Запись видеозвонка готова */
   VideoCallRecordingReady = "video_call_recording_ready",
 }
 
@@ -707,6 +714,18 @@ export interface AuditDetailsUserUpdated {
   changedAttrs: string[];
 }
 
+export interface AuditDetailsVideoCall {
+  chatId: number;
+  duration: number;
+  maxMembersCount: number;
+}
+
+export interface AuditDetailsVideoCallRecording {
+  chatId: number;
+  duration: number;
+  size: number;
+}
+
 export interface AuditEvent {
   id: string;
   createdAt: string;
@@ -1196,8 +1215,8 @@ export interface TaskUpdateRequest {
 export interface Thread {
   id: number;
   chatId: number;
-  messageId: number;
-  messageChatId: number;
+  messageId: number | null;
+  messageChatId: number | null;
   updatedAt: string;
 }
 
@@ -1496,7 +1515,7 @@ export interface UpdateUserAvatarRequest {
   image: Blob;
 }
 
-export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings;
+export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsVideoCall | AuditDetailsVideoCallRecording;
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 

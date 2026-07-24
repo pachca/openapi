@@ -7,8 +7,7 @@ export default class ReactionsAdd extends BaseCommand {
   static override description = "Добавление реакции";
 
   static override examples = [
-      "Добавить реакцию на сообщение:\n  $ pachca reactions add",
-      "Добавить реакцию на сообщение:\n  $ pachca reactions remove"
+      "Добавить реакцию на сообщение:\n  $ pachca reactions add"
   ];
 
   static scope = "reactions:write";

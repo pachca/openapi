@@ -24,7 +24,7 @@ Or install from archive (Docker, custom n8n images):
 # Download from GitHub Releases
 # Find the latest n8n-nodes-pachca.tgz at:
 # https://github.com/pachca/openapi/releases?q=n8n
-wget https://github.com/pachca/openapi/releases/download/n8n-v2.0.14/n8n-nodes-pachca.tgz
+wget https://github.com/pachca/openapi/releases/download/n8n-v2.0.15/n8n-nodes-pachca.tgz
 
 # Via npm (recommended)
 cd ~/.n8n/nodes && npm install ./n8n-nodes-pachca.tgz
@@ -41,39 +41,39 @@ tar -xzf n8n-nodes-pachca.tgz -C ~/.n8n/nodes/
 
 Main node for interacting with the Pachca API. Supports 18 resources and 65+ operations:
 
-| Resource | Operations |
-|----------|-----------|
-| Bot | Update, Get Many Events, Remove Events |
-| Chat | Create, Get, Get Many, Update, Archive, Unarchive |
-| Chat Export | Create, Get |
-| Chat Member | Get Many, Create, Delete, Update, Leave, Add/Remove Group Tags |
-| Custom Property | Get |
-| File | Create (S3 two-stage upload) |
-| Form | Create (visual builder, templates, or JSON) |
-| Group Tag | Create, Get, Get Many, Update, Delete, Get Many Users |
-| Link Preview | Create |
-| Message | Create, Get, Get Many, Update, Delete, Pin, Unpin |
-| Profile | Get Info, Get, Update/Delete Avatar, Get/Update/Delete Status |
-| Reaction | Create, Delete, Get Many |
-| Read Member | Get Many |
-| Search | Chats, Messages, Users |
-| Security | Get Many |
-| Task | Create, Get, Get Many, Update, Delete |
-| Thread | Create, Get |
-| User | Create, Get, Get Many, Update, Delete, Update/Delete Avatar, Get/Update/Delete Status |
+| Resource        | Operations                                                                            |
+| --------------- | ------------------------------------------------------------------------------------- |
+| Bot             | Update, Get Many Events, Remove Events                                                |
+| Chat            | Create, Get, Get Many, Update, Archive, Unarchive                                     |
+| Chat Export     | Create, Get                                                                           |
+| Chat Member     | Get Many, Create, Delete, Update, Leave, Add/Remove Group Tags                        |
+| Custom Property | Get                                                                                   |
+| File            | Create (S3 two-stage upload)                                                          |
+| Form            | Create (visual builder, templates, or JSON)                                           |
+| Group Tag       | Create, Get, Get Many, Update, Delete, Get Many Users                                 |
+| Link Preview    | Create                                                                                |
+| Message         | Create, Get, Get Many, Update, Delete, Pin, Unpin                                     |
+| Profile         | Get Info, Get, Update/Delete Avatar, Get/Update/Delete Status                         |
+| Reaction        | Create, Delete, Get Many                                                              |
+| Read Member     | Get Many                                                                              |
+| Search          | Chats, Messages, Users                                                                |
+| Security        | Get Many                                                                              |
+| Task            | Create, Get, Get Many, Update, Delete                                                 |
+| Thread          | Create, Get                                                                           |
+| User            | Create, Get, Get Many, Update, Delete, Update/Delete Avatar, Get/Update/Delete Status |
 
 ### Pachca Trigger
 
 Webhook-based trigger that listens for 16 Pachca event types:
 
-| Category | Events |
-|----------|--------|
-| Messages | new, updated, deleted |
-| Reactions | new, deleted |
-| Interactive | button pressed, form submitted, link shared |
-| Chat members | added, removed |
-| Users | invited, confirmed, activated, suspended, updated, deleted |
-| Wildcard | all events |
+| Category     | Events                                                     |
+| ------------ | ---------------------------------------------------------- |
+| Messages     | new, updated, deleted                                      |
+| Reactions    | new, deleted                                               |
+| Interactive  | button pressed, form submitted, link shared                |
+| Chat members | added, removed                                             |
+| Users        | invited, confirmed, activated, suspended, updated, deleted |
+| Wildcard     | all events                                                 |
 
 Automatic mode registers the webhook URL when the workflow is activated and clears it on deactivation. A bot token self-registers via `PUT /bot/webhook` (no Bot ID needed); a personal token uses `PUT /bots/:id` and needs the `bots:write` scope, editor access to the bot, and the Bot ID.
 
@@ -81,13 +81,13 @@ Automatic mode registers the webhook URL when the workflow is activated and clea
 
 Create a **Pachca API** credential with:
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| **Base URL** | no | Default: `https://api.pachca.com/api/shared/v1`. Change only for on-premise. |
-| **Access Token** | yes | Bot or personal API token |
-| **Bot ID** | no | For automatic webhook registration in Trigger with a **personal token**. Not needed for bot tokens — they self-register. |
-| **Signing Secret** | no | For HMAC-SHA256 verification of incoming webhooks (`pachca-signature` header) |
-| **Webhook Allowed IPs** | no | Comma-separated IPs allowed to send webhooks. Pachca sends from `37.200.70.177`. Empty = allow all. |
+| Field                   | Required | Description                                                                                                              |
+| ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Base URL**            | no       | Default: `https://api.pachca.com/api/shared/v1`. Change only for on-premise.                                             |
+| **Access Token**        | yes      | Bot or personal API token                                                                                                |
+| **Bot ID**              | no       | For automatic webhook registration in Trigger with a **personal token**. Not needed for bot tokens — they self-register. |
+| **Signing Secret**      | no       | For HMAC-SHA256 verification of incoming webhooks (`pachca-signature` header)                                            |
+| **Webhook Allowed IPs** | no       | Comma-separated IPs allowed to send webhooks. Pachca sends from `37.200.70.177`. Empty = allow all.                      |
 
 **Where to get tokens:**
 
@@ -123,7 +123,12 @@ Chat ID and User ID fields support search by name — type to find instead of en
 Create messages with interactive buttons via JSON:
 
 ```json
-[[{"text": "Approve", "data": "approve"}, {"text": "Reject", "data": "reject"}]]
+[
+  [
+    { "text": "Approve", "data": "approve" },
+    { "text": "Reject", "data": "reject" }
+  ]
+]
 ```
 
 Button types: **URL** (opens link) and **Data** (sends `button_pressed` webhook event).
@@ -187,7 +192,12 @@ Set **Resource** = Message, **Operation** = Create:
 Set **Resource** = Message, **Operation** = Create, then in **Additional Fields** add **Buttons**:
 
 ```json
-[[{"text": "Approve", "data": "approve"}, {"text": "Reject", "data": "reject"}]]
+[
+  [
+    { "text": "Approve", "data": "approve" },
+    { "text": "Reject", "data": "reject" }
+  ]
+]
 ```
 
 When a user clicks a Data button, the Pachca Trigger node receives a `button_pressed` event with the button's `data` value.

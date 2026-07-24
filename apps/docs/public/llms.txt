@@ -6,7 +6,7 @@
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~397K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~401K токенов — обычно не помещается в контекст целиком).
 
 > English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~13K токенов).
 
@@ -52,9 +52,9 @@
 | SDK | Типизированные клиенты для 6 языков | 78–104 |
 | Agent Skills | Скиллы для AI-агентов и установка | 105–128 |
 | Руководства | Страницы-руководства (Markdown по `.md`) | 129–189 |
-| API-методы | Все эндпоинты, сгруппированы по разделам | 190–299 |
-| Обновления | Журнал обновлений по датам | 300–354 |
-| Дополнительно | Прочие ссылки и контакты | 355–363 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 190–300 |
+| Обновления | Журнал обновлений по датам | 301–356 |
+| Дополнительно | Прочие ссылки и контакты | 357–365 |
 
 ## CLI Quick Start
 
@@ -132,7 +132,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [AI агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview.md): Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — llms.txt, CLI как основной путь, Agent Skills, OpenAPI, Arazzo, Context7
 - [AI агенты, Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction.md): Как агент в Пачке получает события через вебхук, собирает контекст треда, выполняет действия и отвечает. Реакция-индикатор и таймер agent-thinking
 - [AI агенты, Markdown и документы](https://dev.pachca.com/guides/ai-agents/markdown.md): Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чеклисты, подсветка кода, diff, диаграммы Mermaid
-- [Треды](https://dev.pachca.com/guides/threads.md): Треды в Пачке для разработчиков: сквозные треды как уникальная особенность, создание через POST /messages/{id}/thread, отправка комментариев, добавление участников, видимость родительского чата, нюансы API и поля Message.thread/root_chat_id
+- [Треды](https://dev.pachca.com/guides/threads.md): Треды в Пачке для разработчиков: сквозные и самостоятельные треды как уникальная особенность, создание у сообщения (POST /messages/{id}/thread) и без привязки к сообщению (POST /threads), отправка комментариев, добавление участников, видимость родительского чата, нюансы API и поля Message.thread/root_chat_id
 - [Боты, Обзор](https://dev.pachca.com/guides/bots/overview.md): Боты в Пачке: что это, типы ботов, доступность в чатах и подмена имени и аватара отправителя в сообщениях
 - [Боты, Создание и настройка](https://dev.pachca.com/guides/bots/setup.md): Как создать бота в Пачке: выбор типа, копирование токена, настройка имени и аватара, настройка доступов и вкладок вебхуков и API
 - [Боты, Доступы к чатам и сообщениям](https://dev.pachca.com/guides/bots/access.md): Как бот получает доступ к закрытым каналам и беседам, тредам и личным сообщениям в Пачке
@@ -239,6 +239,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 
 ## Threads
 - [Новый тред](https://dev.pachca.com/api/threads/add.md): POST /messages/{id}/thread
+- [Новый самостоятельный тред](https://dev.pachca.com/api/threads/create.md): POST /threads
 - [Список тредов](https://dev.pachca.com/api/threads/list.md): GET /threads
 - [Информация о треде](https://dev.pachca.com/api/threads/get.md): GET /threads/{id}
 
@@ -298,6 +299,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 
 ## Обновления
+- [24 июля 2026 — Самостоятельные треды и аудит видеозвонков](https://dev.pachca.com/updates/2026-07-24.md)
 - [07 июля 2026 — Список и удаление ботов, права доступа бота, вебхуки видеозвонков](https://dev.pachca.com/updates/2026-07-07.md)
 - [24 июня 2026 — Ротация токена бота и новые настройки вебхука](https://dev.pachca.com/updates/2026-06-24.md)
 - [19 июня 2026 — Настройки входящего вебхука бота и сортировка в поиске сообщений](https://dev.pachca.com/updates/2026-06-19.md)

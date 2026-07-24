@@ -24,7 +24,7 @@ export default class ChatsUpdate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'name': Flags.string({
-      description: "Название",
+      description: "Название (макс. 255 символов)",
     }),
     'public': Flags.boolean({
       description: "Открытый доступ",
@@ -35,6 +35,14 @@ export default class ChatsUpdate extends BaseCommand {
   async run(): Promise<void> {
     const { args, flags } = await this.parse(ChatsUpdate);
     this.parsedFlags = flags;
+
+    const validationErrors: { message: string; flag: string }[] = [];
+    if (flags['name'] && String(flags['name']).length > 255) {
+      validationErrors.push({ message: `--name: максимум 255 символов (передано: ${String(flags['name']).length})`, flag: 'name' });
+    }
+    if (validationErrors.length > 0) {
+      this.validationError(validationErrors);
+    }
 
     const body: Record<string, unknown> = { chat: {
       name: flags['name'],

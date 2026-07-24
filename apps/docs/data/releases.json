@@ -1,6 +1,55 @@
 [
   {
     "product": "sdk",
+    "version": "1.0.27",
+    "date": "2026-07-24",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Метод `Новый самостоятельный тред` (`POST /threads`) — создание треда без привязки к сообщению"
+      },
+      {
+        "type": "~",
+        "description": "У модели `Thread` поля `message_id` и `message_chat_id` стали nullable (`null` для самостоятельного треда)"
+      },
+      {
+        "type": "+",
+        "description": "Журнал аудита: типы событий `video_call_started`, `video_call_finished`, `video_call_recording_ready` и модели деталей `AuditDetailsVideoCall`, `AuditDetailsVideoCallRecording`"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.7.1",
+    "date": "2026-07-24",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca threads create` — создание самостоятельного треда без привязки к сообщению"
+      },
+      {
+        "type": "-",
+        "description": "Примеры в `--help` больше не смешиваются между командами с общим путём"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.0.15",
+    "date": "2026-07-24",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`Thread`: операция `Create a standalone thread` — создание треда без привязки к сообщению"
+      },
+      {
+        "type": "+",
+        "description": "`Security`: в фильтр событий добавлены `video_call_started`, `video_call_finished`, `video_call_recording_ready`"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
     "version": "1.0.26",
     "date": "2026-07-07",
     "changes": [

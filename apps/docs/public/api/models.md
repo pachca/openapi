@@ -17,7 +17,7 @@
 Дополнительное поле
 
 - `id: integer, int32` (required) — Идентификатор поля. Пример: `1678`
-- `name: string` (required) — Название поля. Пример: `"Город"`
+- `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
 - `data_type: string` (required) — Тип поля
   Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
 
@@ -51,11 +51,11 @@
 Статус пользователя
 
 - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
-- `title: string` (required) — Текст статуса. Пример: `"Очень занят"`
+- `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
 - `expires_at: date-time` (required) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-04-08T10:00:00.000Z"`
 - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
 - `away_message: object` (required) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
-  - `text: string` (required) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
+  - `text: string` (required, max length: 1024) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
 
 
 ## Аватар
@@ -85,12 +85,12 @@
 Сотрудник
 
 - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-- `first_name: string` (required) — Имя. Пример: `"Олег"`
-- `last_name: string` (required) — Фамилия. Пример: `"Петров"`
-- `nickname: string` (required) — Имя пользователя. Пример: `"olegpetrov"`
-- `email: string` (required) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.. Пример: `"olegp@example.com"`
-- `phone_number: string` (required) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.. Пример: `"+79001234567"`
-- `department: string` (required) — Департамент. Пример: `"Продукт"`
+- `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+- `last_name: string` (required, max length: 255) — Фамилия. Пример: `"Петров"`
+- `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
+- `email: string` (required, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.. Пример: `"olegp@example.com"`
+- `phone_number: string` (required, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.. Пример: `"+79001234567"`
+- `department: string` (required, max length: 255) — Департамент. Пример: `"Продукт"`
 - `title: string` (required) — Должность. Пример: `"CIO"`
 - `role: string` (required) — Уровень доступа
   Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
@@ -101,22 +101,22 @@
 - `list_tags: array of string` (required) — Массив тегов, привязанных к сотруднику. Пример: `["Product","Design"]`
 - `custom_properties: array of object` (required) — Дополнительные поля сотрудника
   - `id: integer, int32` (required) — Идентификатор поля. Пример: `1678`
-  - `name: string` (required) — Название поля. Пример: `"Город"`
+  - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
   - `data_type: string` (required) — Тип поля
     Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-  - `value: string` (required) — Значение. Пример: `"Санкт-Петербург"`
+  - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
 - `user_status: object` (required) — Статус
   - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
-  - `title: string` (required) — Текст статуса. Пример: `"Очень занят"`
+  - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
   - `expires_at: date-time` (required) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-04-08T10:00:00.000Z"`
   - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
   - `away_message: object` (required) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
-    - `text: string` (required) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
+    - `text: string` (required, max length: 1024) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
 - `bot: boolean` (required) — Является ботом. Пример: `false`
 - `sso: boolean` (required) — Использует ли пользователь SSO. Пример: `false`
 - `created_at: date-time` (required) — Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2020-06-08T09:32:57.000Z"`
 - `last_activity_at: date-time` (required) — Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-01-20T13:40:07.000Z"`
-- `time_zone: string` (required) — Часовой пояс пользователя. Пример: `"Europe/Moscow"`
+- `time_zone: string` (required, max length: 32) — Часовой пояс пользователя. Пример: `"Europe/Moscow"`
 - `image_url: string` (required) — Ссылка на скачивание аватарки пользователя. Пример: `"https://app.pachca.com/users/12/photo.jpg"`
 
 
@@ -133,7 +133,7 @@
 Тег
 
 - `id: integer, int32` (required) — Идентификатор тега. Пример: `9111`
-- `name: string` (required) — Название тега. Пример: `"Design"`
+- `name: string` (required, max length: 255) — Название тега. Пример: `"Design"`
 - `users_count: integer, int32` (required) — Количество сотрудников, которые имеют этот тег. Пример: `6`
 
 
@@ -156,7 +156,7 @@
 Чат
 
 - `id: integer, int32` (required) — Идентификатор созданного чата. Пример: `334`
-- `name: string` (required) — Название. Пример: `"🤿 aqua"`
+- `name: string` (required, max length: 255) — Название. Пример: `"🤿 aqua"`
 - `created_at: date-time` (required) — Дата и время создания чата (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
 - `owner_id: integer, int32` (required) — Идентификатор пользователя, создавшего чат. Пример: `185`
 - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
@@ -171,6 +171,7 @@
 ## Тред
 
 - [Новый тред](POST /messages/{id}/thread)
+- [Новый самостоятельный тред](POST /threads)
 - [Информация о треде](GET /threads/{id})
 - [Список тредов](GET /threads)
 
@@ -178,8 +179,8 @@
 
 - `id: integer, int64` (required) — Идентификатор созданного треда (используется для отправки [новых комментариев](POST /messages) в тред). Пример: `265142`
 - `chat_id: integer, int64` (required) — Идентификатор чата треда (используется для отправки [новых комментариев](POST /messages) в тред и получения [списка комментариев](GET /messages)). Пример: `2637266155`
-- `message_id: integer, int64` (required) — Идентификатор сообщения, к которому был создан тред. Пример: `154332686`
-- `message_chat_id: integer, int64` (required) — Идентификатор чата сообщения. Пример: `2637266154`
+- `message_id: integer, int64` (required) — Идентификатор сообщения, к которому был создан тред. `null` для самостоятельного треда, созданного без привязки к сообщению.. Пример: `154332686`
+- `message_chat_id: integer, int64` (required) — Идентификатор чата сообщения. `null` для самостоятельного треда, созданного без привязки к сообщению.. Пример: `2637266154`
 - `updated_at: date-time` (required) — Дата и время обновления треда (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2023-02-01T19:20:47.204Z"`
 
 
@@ -279,10 +280,10 @@
 - `all_day: boolean` (required) — Напоминание на весь день (без указания времени). Пример: `false`
 - `custom_properties: array of object` (required) — Дополнительные поля напоминания
   - `id: integer, int32` (required) — Идентификатор поля. Пример: `1678`
-  - `name: string` (required) — Название поля. Пример: `"Город"`
+  - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
   - `data_type: string` (required) — Тип поля
     Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-  - `value: string` (required) — Значение. Пример: `"Санкт-Петербург"`
+  - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
 
 
 ## Представление
@@ -407,8 +408,8 @@
 
 - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
 - `webhook: object` (required) — Объект параметров вебхука
-  - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
-  - `nickname: string` (required) — Никнейм бота. Пример: `"tasks_bot"`
+  - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
+  - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
   - `outgoing_url: string` (required) — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
   - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
@@ -564,7 +565,7 @@
 - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 - `event_key: string` (required) — Ключ типа события
-  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён
+  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова
 - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
 - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
 - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
@@ -624,6 +625,14 @@
     - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение)
       **Структура значений Record:**
       - Тип значения: `any`
+  - **AuditDetailsVideoCall**: При: video_call_started, video_call_finished
+    - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
+    - `duration: integer, int32` (required) — Длительность звонка в секундах на момент события. Для video_call_started равна 0.
+    - `max_members_count: integer, int32` (required) — Максимальное число одновременных участников за время звонка
+  - **AuditDetailsVideoCallRecording**: При: video_call_recording_ready
+    - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходил видеозвонок
+    - `duration: integer, int32` (required) — Длительность записи в секундах
+    - `size: integer, int64` (required) — Размер файла записи в байтах
 - `ip_address: string` (required) — IP-адрес, с которого было выполнено действие. Пример: `"192.168.1.100"`
 - `user_agent: string` (required) — User agent клиента. Пример: `"Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0"`
 

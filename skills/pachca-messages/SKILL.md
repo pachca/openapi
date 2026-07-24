@@ -288,6 +288,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | GET | /messages/{id}/reactions | Список реакций |
 | GET | /messages/{id}/read_member_ids | Список прочитавших сообщение |
 | POST | /messages/{id}/thread | Новый тред |
+| POST | /threads | Новый самостоятельный тред |
 | GET | /threads | Список тредов |
 | GET | /threads/{id} | Информация о треде |
 

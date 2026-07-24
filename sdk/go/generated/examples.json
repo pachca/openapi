@@ -307,11 +307,15 @@
   },
   "ThreadOperations_getThread": {
     "usage": "response, err := client.Threads.GetThread(ctx, int32(265142))",
-    "output": "Thread{ID: int64, ChatID: int64, MessageID: int64, MessageChatID: int64, UpdatedAt: string}"
+    "output": "Thread{ID: int64, ChatID: int64, MessageID: *int64, MessageChatID: *int64, UpdatedAt: string}"
   },
   "ThreadOperations_createThread": {
     "usage": "response, err := client.Threads.CreateThread(ctx, int32(154332686))",
-    "output": "Thread{ID: int64, ChatID: int64, MessageID: int64, MessageChatID: int64, UpdatedAt: string}"
+    "output": "Thread{ID: int64, ChatID: int64, MessageID: *int64, MessageChatID: *int64, UpdatedAt: string}"
+  },
+  "ThreadOperations_createStandaloneThread": {
+    "usage": "response, err := client.Threads.CreateStandaloneThread(ctx)",
+    "output": "Thread{ID: int64, ChatID: int64, MessageID: *int64, MessageChatID: *int64, UpdatedAt: string}"
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "response, err := client.Oauth.GetTokenInfo(ctx)",

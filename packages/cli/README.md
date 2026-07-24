@@ -170,6 +170,7 @@ pachca guide            # список всех сценариев
 | Команда | Описание |
 |---------|---------|
 | `pachca threads add` | Новый тред |
+| `pachca threads create` | Новый самостоятельный тред |
 | `pachca threads list` | Список тредов |
 | `pachca threads get` | Информация о треде |
 

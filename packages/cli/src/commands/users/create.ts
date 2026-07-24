@@ -7,9 +7,9 @@ export default class UsersCreate extends BaseCommand {
   static override description = "Новый сотрудник";
 
   static override examples = [
-      "Проверить, кто прочитал сообщение:\n  $ pachca users list",
-      "Разослать уведомление нескольким пользователям:\n  $ pachca users list",
-      "Массовое создание сотрудников с тегами:\n  $ pachca users create"
+      "Массовое создание сотрудников с тегами:\n  $ pachca users create",
+      "Создать гостя в чат:\n  $ pachca users create",
+      "Онбординг нового сотрудника:\n  $ pachca users create"
   ];
 
   static scope = "users:create";
@@ -25,22 +25,22 @@ export default class UsersCreate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'first-name': Flags.string({
-      description: "Имя",
+      description: "Имя (макс. 255 символов)",
     }),
     'last-name': Flags.string({
-      description: "Фамилия",
+      description: "Фамилия (макс. 255 символов)",
     }),
     'email': Flags.string({
-      description: "Электронная почта",
+      description: "Электронная почта (макс. 255 символов)",
     }),
     'phone-number': Flags.string({
-      description: "Телефон",
+      description: "Телефон (макс. 255 символов)",
     }),
     'nickname': Flags.string({
-      description: "Имя пользователя",
+      description: "Имя пользователя (макс. 255 символов)",
     }),
     'department': Flags.string({
-      description: "Департамент",
+      description: "Департамент (макс. 255 символов)",
     }),
     'title': Flags.string({
       description: "Должность",
@@ -90,6 +90,29 @@ export default class UsersCreate extends BaseCommand {
           { hint: "Обязательные: --email <string>. pachca introspect users create" },
         );
       }
+    }
+
+    const validationErrors: { message: string; flag: string }[] = [];
+    if (flags['first-name'] && String(flags['first-name']).length > 255) {
+      validationErrors.push({ message: `--first-name: максимум 255 символов (передано: ${String(flags['first-name']).length})`, flag: 'first-name' });
+    }
+    if (flags['last-name'] && String(flags['last-name']).length > 255) {
+      validationErrors.push({ message: `--last-name: максимум 255 символов (передано: ${String(flags['last-name']).length})`, flag: 'last-name' });
+    }
+    if (flags['email'] && String(flags['email']).length > 255) {
+      validationErrors.push({ message: `--email: максимум 255 символов (передано: ${String(flags['email']).length})`, flag: 'email' });
+    }
+    if (flags['phone-number'] && String(flags['phone-number']).length > 255) {
+      validationErrors.push({ message: `--phone-number: максимум 255 символов (передано: ${String(flags['phone-number']).length})`, flag: 'phone-number' });
+    }
+    if (flags['nickname'] && String(flags['nickname']).length > 255) {
+      validationErrors.push({ message: `--nickname: максимум 255 символов (передано: ${String(flags['nickname']).length})`, flag: 'nickname' });
+    }
+    if (flags['department'] && String(flags['department']).length > 255) {
+      validationErrors.push({ message: `--department: максимум 255 символов (передано: ${String(flags['department']).length})`, flag: 'department' });
+    }
+    if (validationErrors.length > 0) {
+      this.validationError(validationErrors);
     }
 
     const body: Record<string, unknown> = {

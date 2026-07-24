@@ -7,7 +7,6 @@ export default class MembersRemove extends BaseCommand {
   static override description = "Исключение пользователя";
 
   static override examples = [
-      "Архивация и управление чатом:\n  $ pachca members update",
       "Архивация и управление чатом:\n  $ pachca members remove"
   ];
 

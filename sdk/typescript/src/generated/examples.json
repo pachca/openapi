@@ -278,11 +278,15 @@
   },
   "ThreadOperations_getThread": {
     "usage": "const response = client.threads.getThread(265142)",
-    "output": "Thread({ id: number, chatId: number, messageId: number, messageChatId: number, updatedAt: string })"
+    "output": "Thread({ id: number, chatId: number, messageId: number | null, messageChatId: number | null, updatedAt: string })"
   },
   "ThreadOperations_createThread": {
     "usage": "const response = client.threads.createThread(154332686)",
-    "output": "Thread({ id: number, chatId: number, messageId: number, messageChatId: number, updatedAt: string })"
+    "output": "Thread({ id: number, chatId: number, messageId: number | null, messageChatId: number | null, updatedAt: string })"
+  },
+  "ThreadOperations_createStandaloneThread": {
+    "usage": "const response = client.threads.createStandaloneThread()",
+    "output": "Thread({ id: number, chatId: number, messageId: number | null, messageChatId: number | null, updatedAt: string })"
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "const response = client.oauth.getTokenInfo()",

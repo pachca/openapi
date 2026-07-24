@@ -135,13 +135,13 @@
             "name": "name",
             "type": "option",
             "required": true,
-            "description": "Имя бота"
+            "description": "Имя бота (макс. 255 символов)"
           },
           {
             "name": "nickname",
             "type": "option",
             "required": false,
-            "description": "Никнейм бота. Должен заканчиваться на `_bot`."
+            "description": "Никнейм бота. Должен заканчиваться на `_bot`. (макс. 255 символов)"
           },
           {
             "name": "outgoing-url",
@@ -165,7 +165,7 @@
             "name": "commands",
             "type": "option",
             "required": false,
-            "description": "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands"
+            "description": "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов."
           },
           {
             "name": "scopes",
@@ -397,13 +397,13 @@
             "name": "name",
             "type": "option",
             "required": false,
-            "description": "Имя бота"
+            "description": "Имя бота (макс. 255 символов)"
           },
           {
             "name": "nickname",
             "type": "option",
             "required": false,
-            "description": "Никнейм бота. Должен заканчиваться на `_bot`."
+            "description": "Никнейм бота. Должен заканчиваться на `_bot`. (макс. 255 символов)"
           },
           {
             "name": "outgoing-url",
@@ -427,7 +427,7 @@
             "name": "commands",
             "type": "option",
             "required": false,
-            "description": "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands"
+            "description": "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов."
           },
           {
             "name": "scopes",
@@ -548,7 +548,7 @@
             "name": "name",
             "type": "option",
             "required": true,
-            "description": "Название"
+            "description": "Название (макс. 255 символов)"
           },
           {
             "name": "member-ids",
@@ -766,7 +766,7 @@
             "name": "name",
             "type": "option",
             "required": false,
-            "description": "Название"
+            "description": "Название (макс. 255 символов)"
           },
           {
             "name": "public",
@@ -988,7 +988,7 @@
             "name": "name",
             "type": "option",
             "required": true,
-            "description": "Название тега"
+            "description": "Название тега (макс. 255 символов)"
           }
         ]
       },
@@ -1119,7 +1119,7 @@
             "name": "name",
             "type": "option",
             "required": true,
-            "description": "Название тега"
+            "description": "Название тега (макс. 255 символов)"
           }
         ]
       }
@@ -1763,7 +1763,7 @@
             "name": "title",
             "type": "option",
             "required": true,
-            "description": "Текст статуса"
+            "description": "Текст статуса (макс. 50 символов)"
           },
           {
             "name": "expires-at",
@@ -2238,7 +2238,10 @@
               "bot_scopes_updated",
               "bot_webhook_settings_updated",
               "bot_token_recreated",
-              "bot_deleted"
+              "bot_deleted",
+              "video_call_started",
+              "video_call_finished",
+              "video_call_recording_ready"
             ]
           },
           {
@@ -2508,6 +2511,15 @@
         "flags": []
       },
       {
+        "command": "pachca threads create",
+        "summary": "Новый самостоятельный тред",
+        "method": "POST",
+        "path": "/threads",
+        "scope": "threads:create",
+        "plan": null,
+        "flags": []
+      },
+      {
         "command": "pachca threads get",
         "summary": "Информация о треде",
         "method": "GET",
@@ -2615,37 +2627,37 @@
             "name": "first-name",
             "type": "option",
             "required": false,
-            "description": "Имя"
+            "description": "Имя (макс. 255 символов)"
           },
           {
             "name": "last-name",
             "type": "option",
             "required": false,
-            "description": "Фамилия"
+            "description": "Фамилия (макс. 255 символов)"
           },
           {
             "name": "email",
             "type": "option",
             "required": true,
-            "description": "Электронная почта"
+            "description": "Электронная почта (макс. 255 символов)"
           },
           {
             "name": "phone-number",
             "type": "option",
             "required": false,
-            "description": "Телефон"
+            "description": "Телефон (макс. 255 символов)"
           },
           {
             "name": "nickname",
             "type": "option",
             "required": false,
-            "description": "Имя пользователя"
+            "description": "Имя пользователя (макс. 255 символов)"
           },
           {
             "name": "department",
             "type": "option",
             "required": false,
-            "description": "Департамент"
+            "description": "Департамент (макс. 255 символов)"
           },
           {
             "name": "title",
@@ -2845,37 +2857,37 @@
             "name": "first-name",
             "type": "option",
             "required": false,
-            "description": "Имя"
+            "description": "Имя (макс. 255 символов)"
           },
           {
             "name": "last-name",
             "type": "option",
             "required": false,
-            "description": "Фамилия"
+            "description": "Фамилия (макс. 255 символов)"
           },
           {
             "name": "email",
             "type": "option",
             "required": false,
-            "description": "Электронная почта"
+            "description": "Электронная почта (макс. 255 символов)"
           },
           {
             "name": "phone-number",
             "type": "option",
             "required": false,
-            "description": "Телефон"
+            "description": "Телефон (макс. 255 символов)"
           },
           {
             "name": "nickname",
             "type": "option",
             "required": false,
-            "description": "Имя пользователя"
+            "description": "Имя пользователя (макс. 255 символов)"
           },
           {
             "name": "department",
             "type": "option",
             "required": false,
-            "description": "Департамент"
+            "description": "Департамент (макс. 255 символов)"
           },
           {
             "name": "title",
@@ -2957,7 +2969,7 @@
             "name": "title",
             "type": "option",
             "required": true,
-            "description": "Текст статуса"
+            "description": "Текст статуса (макс. 50 символов)"
           },
           {
             "name": "expires-at",

@@ -1426,6 +1426,10 @@ export class ThreadsService {
   async createThread(id: number): Promise<Thread> {
     throw new Error("Threads.createThread is not implemented");
   }
+
+  async createStandaloneThread(): Promise<Thread> {
+    throw new Error("Threads.createStandaloneThread is not implemented");
+  }
 }
 
 export class ThreadsServiceImpl extends ThreadsService {
@@ -1488,6 +1492,22 @@ export class ThreadsServiceImpl extends ThreadsService {
 
   async createThread(id: number): Promise<Thread> {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/thread`, {
+      method: "POST",
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 201:
+        return deserializeType("Thread", body.data) as Thread;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async createStandaloneThread(): Promise<Thread> {
+    const response = await fetchWithRetry(`${this.baseUrl}/threads`, {
       method: "POST",
       headers: this.headers,
     });

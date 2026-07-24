@@ -623,6 +623,9 @@ enum ValidationErrorCode {
   bot_webhook_settings_updated: "Изменены настройки исходящего вебхука бота",
   bot_token_recreated: "Токен бота перевыпущен (ротация)",
   bot_deleted: "Бот удалён",
+  video_call_started: "Видеозвонок начат",
+  video_call_finished: "Видеозвонок завершён",
+  video_call_recording_ready: "Запись видеозвонка готова",
 })
 enum AuditEventKey {
   @doc("Пользователь успешно вошел в систему")
@@ -741,6 +744,15 @@ enum AuditEventKey {
 
   @doc("Бот удалён")
   bot_deleted: "bot_deleted",
+
+  @doc("Видеозвонок начат")
+  video_call_started: "video_call_started",
+
+  @doc("Видеозвонок завершён")
+  video_call_finished: "video_call_finished",
+
+  @doc("Запись видеозвонка готова")
+  video_call_recording_ready: "video_call_recording_ready",
 }
 
 // ============================================================================
@@ -754,6 +766,7 @@ model CustomProperty {
   id: int32;
   
   @doc("Название поля")
+  @maxLength(32)
   @example("Город")
   name: string;
   
@@ -762,6 +775,7 @@ model CustomProperty {
   data_type: CustomPropertyDataType;
 
   @doc("Значение")
+  @maxLength(768)
   @example("Санкт-Петербург")
   value: string;
 }
@@ -773,6 +787,7 @@ model CustomPropertyDefinition {
   id: int32;
 
   @doc("Название поля")
+  @maxLength(32)
   @example("Город")
   name: string;
 
@@ -788,6 +803,7 @@ model UserStatus {
   emoji: string;
 
   @doc("Текст статуса")
+  @maxLength(50)
   @example("Очень занят")
   title: string;
 
@@ -802,6 +818,7 @@ model UserStatus {
   @doc("Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.")
   away_message: {
     @doc("Текст сообщения")
+    @maxLength(1024)
     @example("Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov.")
     text: string;
   } | null;
@@ -865,13 +882,13 @@ model Thread {
   @example(2637266155)
   chat_id: int64;
   
-  @doc("Идентификатор сообщения, к которому был создан тред")
+  @doc("Идентификатор сообщения, к которому был создан тред. `null` для самостоятельного треда, созданного без привязки к сообщению.")
   @example(154332686)
-  message_id: int64;
-  
-  @doc("Идентификатор чата сообщения")
+  message_id: int64 | null;
+
+  @doc("Идентификатор чата сообщения. `null` для самостоятельного треда, созданного без привязки к сообщению.")
   @example(2637266154)
-  message_chat_id: int64;
+  message_chat_id: int64 | null;
   
   @doc("Дата и время обновления треда (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
   @example(utcDateTime.fromISO("2023-02-01T19:20:47.204Z"))
@@ -920,26 +937,32 @@ model User {
   id: int32;
   
   @doc("Имя")
+  @maxLength(255)
   @example("Олег")
   first_name: string;
   
   @doc("Фамилия")
+  @maxLength(255)
   @example("Петров")
   last_name: string | null;
 
   @doc("Имя пользователя")
+  @maxLength(255)
   @example("olegpetrov")
   nickname: string;
 
   @doc("Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.")
+  @maxLength(255)
   @example("olegp@example.com")
   email: string | null;
 
   @doc("Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.")
+  @maxLength(255)
   @example("+79001234567")
   phone_number: string | null;
 
   @doc("Департамент")
+  @maxLength(255)
   @example("Продукт")
   department: string | null;
 
@@ -990,6 +1013,7 @@ model User {
   last_activity_at: utcDateTime | null;
 
   @doc("Часовой пояс пользователя")
+  @maxLength(32)
   @example("Europe/Moscow")
   time_zone: string | null;
   
@@ -1005,6 +1029,7 @@ model Chat {
   id: int32;
   
   @doc("Название")
+  @maxLength(255)
   @example("🤿 aqua")
   name: string;
   
@@ -1149,6 +1174,7 @@ model GroupTag {
   id: int32;
   
   @doc("Название тега")
+  @maxLength(255)
   @example("Design")
   name: string;
   
@@ -1701,26 +1727,32 @@ model UploadParams {
 model UserCreateRequest {
   user: {
     @doc("Имя")
+    @maxLength(255)
     @example("Олег")
     first_name?: string;
-    
+
     @doc("Фамилия")
+    @maxLength(255)
     @example("Петров")
     last_name?: string;
-    
+
     @doc("Электронная почта")
+    @maxLength(255)
     @example("olegp@example.com")
     email: string;
-    
+
     @doc("Телефон")
+    @maxLength(255)
     @example("+79001234567")
     phone_number?: string;
 
     @doc("Имя пользователя")
+    @maxLength(255)
     @example("olegpetrov")
     nickname?: string;
 
     @doc("Департамент")
+    @maxLength(255)
     @example("Продукт")
     department?: string;
 
@@ -1751,6 +1783,7 @@ model UserCreateRequest {
       id: int32;
 
       @doc("Устанавливаемое значение")
+      @maxLength(768)
       @example("Санкт-Петербург")
       value: string;
     }[];
@@ -1766,26 +1799,32 @@ model UserUpdateRequest {
   @doc("Собранный объект параметров редактируемого сотрудника")
   user: {
     @doc("Имя")
+    @maxLength(255)
     @example("Олег")
     first_name?: string;
-    
+
     @doc("Фамилия")
+    @maxLength(255)
     @example("Петров")
     last_name?: string;
-    
+
     @doc("Электронная почта")
+    @maxLength(255)
     @example("olegpetrov@example.com")
     email?: string;
-    
+
     @doc("Телефон")
+    @maxLength(255)
     @example("+79001234567")
     phone_number?: string;
-    
+
     @doc("Имя пользователя")
+    @maxLength(255)
     @example("olegpetrov")
     nickname?: string;
-    
+
     @doc("Департамент")
+    @maxLength(255)
     @example("Отдел разработки")
     department?: string;
     
@@ -1812,6 +1851,7 @@ model UserUpdateRequest {
       id: int32;
       
       @doc("Устанавливаемое значение")
+      @maxLength(768)
       @example("Санкт-Петербург")
       value: string;
     }[];
@@ -1826,6 +1866,7 @@ model StatusUpdateRequest {
     emoji: string;
 
     @doc("Текст статуса")
+    @maxLength(50)
     @example("Очень занят")
     title: string;
 
@@ -1848,6 +1889,7 @@ model StatusUpdateRequest {
 model GroupTagRequest {
   group_tag: {
     @doc("Название тега")
+    @maxLength(255)
     @example("Новое название тега")
     name: string;
   };
@@ -1858,6 +1900,7 @@ model ChatCreateRequest {
   @doc("Собранный объект параметров создаваемого чата")
   chat: {
     @doc("Название")
+    @maxLength(255)
     @example("🤿 aqua")
     name: string;
 
@@ -1884,6 +1927,7 @@ model ChatUpdateRequest {
   @doc("Собранный объект параметров обновляемого чата")
   chat: {
     @doc("Название")
+    @maxLength(255)
     @example("Бассейн")
     name?: string;
 
@@ -2692,7 +2736,9 @@ enum BotTemplateEngine {
   company_member_activate: "Сотрудник активирован",
   company_member_delete: "Сотрудник удалён из компании",
   company_member_update: "Данные сотрудника изменены",
-  bill_created: "Создан счёт",
+  video_call_started: "Видеозвонок начался",
+  video_call_finished: "Видеозвонок завершился",
+  video_call_recording_ready: "Запись видеозвонка готова",
 })
 enum BotEventName {
   message_new: "message_new",
@@ -2710,7 +2756,6 @@ enum BotEventName {
   company_member_activate: "company_member_activate",
   company_member_delete: "company_member_delete",
   company_member_update: "company_member_update",
-  bill_created: "bill_created",
   video_call_started: "video_call_started",
   video_call_finished: "video_call_finished",
   video_call_recording_ready: "video_call_recording_ready",
@@ -2745,10 +2790,12 @@ model BotCreateRequest {
   @doc("Объект параметров вебхука создаваемого бота")
   webhook: {
     @doc("Имя бота")
+    @maxLength(255)
     @example("Бот задач")
     name: string;
 
     @doc("Никнейм бота. Должен заканчиваться на `_bot`.")
+    @maxLength(255)
     @example("tasks_bot")
     nickname?: string;
 
@@ -2764,7 +2811,7 @@ model BotCreateRequest {
     @example(BotTriggerOn.commands)
     trigger_on?: BotTriggerOn = BotTriggerOn.commands;
 
-    @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands")
+    @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.")
     @example(#["/task", "/help"])
     commands?: string[];
 
@@ -2815,10 +2862,12 @@ model BotUpdateRequest {
   @doc("Объект параметров вебхука редактируемого бота")
   webhook: {
     @doc("Имя бота")
+    @maxLength(255)
     @example("Бот задач")
     name?: string;
 
     @doc("Никнейм бота. Должен заканчиваться на `_bot`.")
+    @maxLength(255)
     @example("tasks_bot")
     nickname?: string;
 
@@ -2834,7 +2883,7 @@ model BotUpdateRequest {
     @example(BotTriggerOn.commands)
     trigger_on?: BotTriggerOn = BotTriggerOn.commands;
 
-    @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands")
+    @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.")
     @example(#["/task", "/help"])
     commands?: string[];
 
@@ -2879,10 +2928,12 @@ model BotUpdateRequest {
 @doc("Параметры вебхука бота")
 model BotWebhook {
   @doc("Имя бота")
+  @maxLength(255)
   @example("Бот задач")
   name: string;
 
   @doc("Никнейм бота")
+  @maxLength(255)
   @example("tasks_bot")
   nickname: string;
 
@@ -3099,6 +3150,26 @@ model AuditDetailsBotWebhookSettings {
   changes: Record<unknown>;
 }
 
+@doc("При: video_call_started, video_call_finished")
+model AuditDetailsVideoCall {
+  @doc("Идентификатор чата, в котором проходит видеозвонок")
+  chat_id: int32;
+  @doc("Длительность звонка в секундах на момент события. Для video_call_started равна 0.")
+  duration: int32;
+  @doc("Максимальное число одновременных участников за время звонка")
+  max_members_count: int32;
+}
+
+@doc("При: video_call_recording_ready")
+model AuditDetailsVideoCallRecording {
+  @doc("Идентификатор чата, в котором проходил видеозвонок")
+  chat_id: int32;
+  @doc("Длительность записи в секундах")
+  duration: int32;
+  @doc("Размер файла записи в байтах")
+  size: int64;
+}
+
 @doc("Дополнительные детали события аудита. Структура зависит от значения event_key")
 union AuditEventDetailsUnion {
   AuditDetailsEmpty,
@@ -3117,6 +3188,8 @@ union AuditEventDetailsUnion {
   AuditDetailsSearch,
   AuditDetailsBotScopes,
   AuditDetailsBotWebhookSettings,
+  AuditDetailsVideoCall,
+  AuditDetailsVideoCallRecording,
 }
 
 @doc("Событие аудита")
@@ -5030,7 +5103,47 @@ interface ThreadOperations {
     @statusCode _: 404;
     @body body: ApiError;
   };
-  
+
+  @extension("x-requirements", #{
+    scope: "threads:create",
+  })
+  @doc("""
+Новый самостоятельный тред
+
+Метод для создания самостоятельного треда — треда, не связанного с каким-либо сообщением.
+
+Тело запроса не требуется. Создатель треда становится его единственным участником, а поля `message_id` и `message_chat_id` в ответе возвращаются как `null`.
+""")
+  @opExample(#{
+    returnType: #{
+      _: 201,
+      body: #{
+        data: #{
+          id: 265142,
+          chat_id: 2637266155,
+          message_id: null,
+          message_chat_id: null,
+          updated_at: utcDateTime.fromISO("2023-02-01T19:20:47.204Z"),
+        },
+      },
+    },
+  })
+  @route("/threads")
+  @post
+  createStandaloneThread(): {
+    @statusCode _: 201;
+    @body body: DataResponse<Thread>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  };
+
   @extension("x-requirements", #{
     scope: "threads:read",
   })

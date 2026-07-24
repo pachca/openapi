@@ -7,9 +7,7 @@ export default class MessagesList extends BaseCommand {
   static override description = "Список сообщений чата";
 
   static override examples = [
-      "Найти чат по имени и отправить сообщение:\n  $ pachca messages create",
-      "Отправить сообщение в канал или беседу (если chat_id известен):\n  $ pachca messages create",
-      "Отправить личное сообщение пользователю:\n  $ pachca messages create"
+      "Получить историю сообщений чата:\n  $ pachca messages list"
   ];
 
   static scope = "messages:read";

@@ -7,7 +7,6 @@ export default class ProfileDeleteAvatar extends BaseCommand {
   static override description = "Удаление своего аватара";
 
   static override examples = [
-      "Загрузить аватар профиля:\n  $ pachca profile update-avatar",
       "Удалить аватар профиля:\n  $ pachca profile delete-avatar"
   ];
 

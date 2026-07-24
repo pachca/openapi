@@ -4441,6 +4441,60 @@ paths:
       x-requirements:
         scope: tasks:delete
   /threads:
+    post:
+      operationId: ThreadOperations_createStandaloneThread
+      description: >-
+        New standalone thread
+
+
+        Create a standalone thread — a thread not linked to any message.
+
+
+        No request body is required. The thread creator becomes its only member, and the `message_id` and
+        `message_chat_id` fields in the response are returned as `null`.
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Thread'
+                description: Response wrapper with data
+              example:
+                data:
+                  id: 265142
+                  chat_id: 2637266155
+                  message_id: null
+                  message_chat_id: null
+                  updated_at: '2023-02-01T19:20:47.204Z'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Threads
+      x-requirements:
+        scope: threads:create
     get:
       operationId: ThreadOperations_listThreads
       description: >-
@@ -5892,6 +5946,46 @@ components:
             type: string
           description: List of changed fields
       description: 'For: user_updated'
+    AuditDetailsVideoCall:
+      type: object
+      required:
+        - chat_id
+        - duration
+        - max_members_count
+      properties:
+        chat_id:
+          type: integer
+          format: int32
+          description: ID of the chat where the video call takes place
+        duration:
+          type: integer
+          format: int32
+          description: Call duration in seconds at the moment of the event. Equals 0 for video_call_started.
+        max_members_count:
+          type: integer
+          format: int32
+          description: Maximum number of simultaneous participants during the call
+      description: 'For: video_call_started, video_call_finished'
+    AuditDetailsVideoCallRecording:
+      type: object
+      required:
+        - chat_id
+        - duration
+        - size
+      properties:
+        chat_id:
+          type: integer
+          format: int32
+          description: ID of the chat where the video call took place
+        duration:
+          type: integer
+          format: int32
+          description: Recording duration in seconds
+        size:
+          type: integer
+          format: int64
+          description: Recording file size in bytes
+      description: 'For: video_call_recording_ready'
     AuditEvent:
       type: object
       required:
@@ -5969,6 +6063,8 @@ components:
         - $ref: '#/components/schemas/AuditDetailsSearch'
         - $ref: '#/components/schemas/AuditDetailsBotScopes'
         - $ref: '#/components/schemas/AuditDetailsBotWebhookSettings'
+        - $ref: '#/components/schemas/AuditDetailsVideoCall'
+        - $ref: '#/components/schemas/AuditDetailsVideoCallRecording'
       description: Additional audit event details. Structure depends on the event_key value
     AuditEventKey:
       type: string
@@ -6012,6 +6108,9 @@ components:
         - bot_webhook_settings_updated
         - bot_token_recreated
         - bot_deleted
+        - video_call_started
+        - video_call_finished
+        - video_call_recording_ready
       description: Audit event type
       x-enum-descriptions:
         user_login: User logged in successfully
@@ -6053,6 +6152,9 @@ components:
         bot_webhook_settings_updated: Bot outgoing webhook settings changed
         bot_token_recreated: Bot token recreated (rotation)
         bot_deleted: Bot deleted
+        video_call_started: Video call started
+        video_call_finished: Video call finished
+        video_call_recording_ready: Video call recording ready
     AvatarData:
       type: object
       required:
@@ -6082,10 +6184,12 @@ components:
           properties:
             name:
               type: string
+              maxLength: 255
               description: Bot name
               example: Tasks bot
             nickname:
               type: string
+              maxLength: 255
               description: Bot nickname. Must end with `_bot`.
               example: tasks_bot
             outgoing_url:
@@ -6109,7 +6213,9 @@ components:
               type: array
               items:
                 type: string
-              description: Bot commands (trigger words) it reacts to when trigger_on = commands
+              description: >-
+                Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the
+                comma-joined commands must not exceed 255 characters.
               example:
                 - /task
                 - /help
@@ -6217,7 +6323,6 @@ components:
         - company_member_activate
         - company_member_delete
         - company_member_update
-        - bill_created
         - video_call_started
         - video_call_finished
         - video_call_recording_ready
@@ -6238,7 +6343,6 @@ components:
         company_member_activate: Employee activated
         company_member_delete: Employee removed from the company
         company_member_update: Employee data changed
-        bill_created: Bill created
         video_call_started: Video call started
         video_call_finished: Video call finished
         video_call_recording_ready: Video call recording ready
@@ -6288,10 +6392,12 @@ components:
           properties:
             name:
               type: string
+              maxLength: 255
               description: Bot name
               example: Tasks bot
             nickname:
               type: string
+              maxLength: 255
               description: Bot nickname. Must end with `_bot`.
               example: tasks_bot
             outgoing_url:
@@ -6315,7 +6421,9 @@ components:
               type: array
               items:
                 type: string
-              description: Bot commands (trigger words) it reacts to when trigger_on = commands
+              description: >-
+                Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the
+                comma-joined commands must not exceed 255 characters.
               example:
                 - /task
                 - /help
@@ -6394,10 +6502,12 @@ components:
       properties:
         name:
           type: string
+          maxLength: 255
           description: Bot name
           example: Tasks bot
         nickname:
           type: string
+          maxLength: 255
           description: Bot nickname
           example: tasks_bot
         outgoing_url:
@@ -6607,6 +6717,7 @@ components:
           example: 334
         name:
           type: string
+          maxLength: 255
           description: Name
           example: 🤿 aqua
         created_at:
@@ -6678,6 +6789,7 @@ components:
           properties:
             name:
               type: string
+              maxLength: 255
               description: Name
               example: 🤿 aqua
             member_ids:
@@ -6820,6 +6932,7 @@ components:
           properties:
             name:
               type: string
+              maxLength: 255
               description: Name
               example: Pool
             public:
@@ -6885,6 +6998,7 @@ components:
           example: 1678
         name:
           type: string
+          maxLength: 32
           description: Custom property name
           example: City
         data_type:
@@ -6894,6 +7008,7 @@ components:
           example: string
         value:
           type: string
+          maxLength: 768
           description: Custom property value
           example: Saint Petersburg
       description: Custom property
@@ -6924,6 +7039,7 @@ components:
           example: 1678
         name:
           type: string
+          maxLength: 32
           description: Property name
           example: City
         data_type:
@@ -7138,6 +7254,7 @@ components:
           example: 9111
         name:
           type: string
+          maxLength: 255
           description: Tag name
           example: Design
         users_count:
@@ -7156,6 +7273,7 @@ components:
           properties:
             name:
               type: string
+              maxLength: 255
               description: Tag name
               example: New tag name
           required:
@@ -8383,6 +8501,7 @@ components:
               example: 🎮
             title:
               type: string
+              maxLength: 50
               description: Status text
               example: Very busy
             expires_at:
@@ -8681,12 +8800,14 @@ components:
         message_id:
           type: integer
           format: int64
-          description: ID of the message the thread was created for
+          nullable: true
+          description: ID of the message the thread was created for. `null` for a standalone thread created without a message.
           example: 154332686
         message_chat_id:
           type: integer
           format: int64
-          description: Message chat ID
+          nullable: true
+          description: Message chat ID. `null` for a standalone thread created without a message.
           example: 2637266154
         updated_at:
           type: string
@@ -8788,20 +8909,24 @@ components:
           example: 12
         first_name:
           type: string
+          maxLength: 255
           description: First name
           example: Oleg
         last_name:
           type: string
           nullable: true
+          maxLength: 255
           description: Last name
           example: Petrov
         nickname:
           type: string
+          maxLength: 255
           description: Username
           example: olegpetrov
         email:
           type: string
           nullable: true
+          maxLength: 255
           description: >-
             Email. Returns `null` for bots without permission to view personal data, and when a bot for which personal
             data of employees is hidden requests another user's data.
@@ -8809,6 +8934,7 @@ components:
         phone_number:
           type: string
           nullable: true
+          maxLength: 255
           description: >-
             Phone number. Returns `null` for bots without permission to view personal data, and when a bot for which
             personal data of employees is hidden requests another user's data.
@@ -8816,6 +8942,7 @@ components:
         department:
           type: string
           nullable: true
+          maxLength: 255
           description: Department
           example: Product
         title:
@@ -8886,6 +9013,7 @@ components:
         time_zone:
           type: string
           nullable: true
+          maxLength: 32
           description: User time zone
           example: Europe/Moscow
         image_url:
@@ -8904,26 +9032,32 @@ components:
           properties:
             first_name:
               type: string
+              maxLength: 255
               description: First name
               example: Oleg
             last_name:
               type: string
+              maxLength: 255
               description: Last name
               example: Petrov
             email:
               type: string
+              maxLength: 255
               description: Email
               example: olegp@example.com
             phone_number:
               type: string
+              maxLength: 255
               description: Phone number
               example: '+79001234567'
             nickname:
               type: string
+              maxLength: 255
               description: Username
               example: olegpetrov
             department:
               type: string
+              maxLength: 255
               description: Department
               example: Product
             title:
@@ -8970,6 +9104,7 @@ components:
                     example: 1678
                   value:
                     type: string
+                    maxLength: 768
                     description: Value to set
                     example: Saint Petersburg
                 required:
@@ -9059,6 +9194,7 @@ components:
           example: 🎮
         title:
           type: string
+          maxLength: 50
           description: Status text
           example: Very busy
         expires_at:
@@ -9076,6 +9212,7 @@ components:
           properties:
             text:
               type: string
+              maxLength: 1024
               description: Message text
               example: I am on vacation until April 15. For urgent matters, contact @ivanov.
           required:
@@ -9095,26 +9232,32 @@ components:
           properties:
             first_name:
               type: string
+              maxLength: 255
               description: First name
               example: Oleg
             last_name:
               type: string
+              maxLength: 255
               description: Last name
               example: Petrov
             email:
               type: string
+              maxLength: 255
               description: Email
               example: olegpetrov@example.com
             phone_number:
               type: string
+              maxLength: 255
               description: Phone number
               example: '+79001234567'
             nickname:
               type: string
+              maxLength: 255
               description: Username
               example: olegpetrov
             department:
               type: string
+              maxLength: 255
               description: Department
               example: Engineering
             title:
@@ -9150,6 +9293,7 @@ components:
                     example: 1678
                   value:
                     type: string
+                    maxLength: 768
                     description: Value to set
                     example: Saint Petersburg
                 required:

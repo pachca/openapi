@@ -90,6 +90,12 @@ public enum AuditEventKey
     BotTokenRecreated,
     /// <summary>Бот удалён</summary>
     BotDeleted,
+    /// <summary>Видеозвонок начат</summary>
+    VideoCallStarted,
+    /// <summary>Видеозвонок завершён</summary>
+    VideoCallFinished,
+    /// <summary>Запись видеозвонка готова</summary>
+    VideoCallRecordingReady,
 }
 
 internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
@@ -138,6 +144,9 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             "bot_webhook_settings_updated" => AuditEventKey.BotWebhookSettingsUpdated,
             "bot_token_recreated" => AuditEventKey.BotTokenRecreated,
             "bot_deleted" => AuditEventKey.BotDeleted,
+            "video_call_started" => AuditEventKey.VideoCallStarted,
+            "video_call_finished" => AuditEventKey.VideoCallFinished,
+            "video_call_recording_ready" => AuditEventKey.VideoCallRecordingReady,
             _ => throw new JsonException($"Unknown AuditEventKey value: {value}"),
         };
     }
@@ -185,6 +194,9 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             AuditEventKey.BotWebhookSettingsUpdated => "bot_webhook_settings_updated",
             AuditEventKey.BotTokenRecreated => "bot_token_recreated",
             AuditEventKey.BotDeleted => "bot_deleted",
+            AuditEventKey.VideoCallStarted => "video_call_started",
+            AuditEventKey.VideoCallFinished => "video_call_finished",
+            AuditEventKey.VideoCallRecordingReady => "video_call_recording_ready",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -260,10 +272,11 @@ public enum BotEventName
     CompanyMemberDelete,
     /// <summary>Данные сотрудника изменены</summary>
     CompanyMemberUpdate,
-    /// <summary>Создан счёт</summary>
-    BillCreated,
+    /// <summary>Видеозвонок начался</summary>
     VideoCallStarted,
+    /// <summary>Видеозвонок завершился</summary>
     VideoCallFinished,
+    /// <summary>Запись видеозвонка готова</summary>
     VideoCallRecordingReady,
 }
 
@@ -289,7 +302,6 @@ internal class BotEventNameConverter : JsonConverter<BotEventName>
             "company_member_activate" => BotEventName.CompanyMemberActivate,
             "company_member_delete" => BotEventName.CompanyMemberDelete,
             "company_member_update" => BotEventName.CompanyMemberUpdate,
-            "bill_created" => BotEventName.BillCreated,
             "video_call_started" => BotEventName.VideoCallStarted,
             "video_call_finished" => BotEventName.VideoCallFinished,
             "video_call_recording_ready" => BotEventName.VideoCallRecordingReady,
@@ -316,7 +328,6 @@ internal class BotEventNameConverter : JsonConverter<BotEventName>
             BotEventName.CompanyMemberActivate => "company_member_activate",
             BotEventName.CompanyMemberDelete => "company_member_delete",
             BotEventName.CompanyMemberUpdate => "company_member_update",
-            BotEventName.BillCreated => "bill_created",
             BotEventName.VideoCallStarted => "video_call_started",
             BotEventName.VideoCallFinished => "video_call_finished",
             BotEventName.VideoCallRecordingReady => "video_call_recording_ready",
@@ -1821,6 +1832,8 @@ internal class WebhookEventTypeConverter : JsonConverter<WebhookEventType>
 [JsonDerivedType(typeof(AuditDetailsSearch), "")]
 [JsonDerivedType(typeof(AuditDetailsBotScopes), "")]
 [JsonDerivedType(typeof(AuditDetailsBotWebhookSettings), "")]
+[JsonDerivedType(typeof(AuditDetailsVideoCall), "")]
+[JsonDerivedType(typeof(AuditDetailsVideoCallRecording), "")]
 public abstract class AuditEventDetailsUnion
 {
     [JsonPropertyName("type")]
@@ -1969,6 +1982,28 @@ public class AuditDetailsBotWebhookSettings : AuditEventDetailsUnion
     public override string Type => "";
     [JsonPropertyName("changes")]
     public Dictionary<string, string> Changes { get; set; } = default!;
+}
+
+public class AuditDetailsVideoCall : AuditEventDetailsUnion
+{
+    public override string Type => "";
+    [JsonPropertyName("chat_id")]
+    public int ChatId { get; set; } = default!;
+    [JsonPropertyName("duration")]
+    public int Duration { get; set; } = default!;
+    [JsonPropertyName("max_members_count")]
+    public int MaxMembersCount { get; set; } = default!;
+}
+
+public class AuditDetailsVideoCallRecording : AuditEventDetailsUnion
+{
+    public override string Type => "";
+    [JsonPropertyName("chat_id")]
+    public int ChatId { get; set; } = default!;
+    [JsonPropertyName("duration")]
+    public int Duration { get; set; } = default!;
+    [JsonPropertyName("size")]
+    public long Size { get; set; } = default!;
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
@@ -3161,9 +3196,9 @@ public class Thread
     [JsonPropertyName("chat_id")]
     public long ChatId { get; set; } = default!;
     [JsonPropertyName("message_id")]
-    public long MessageId { get; set; } = default!;
+    public long? MessageId { get; set; }
     [JsonPropertyName("message_chat_id")]
-    public long MessageChatId { get; set; } = default!;
+    public long? MessageChatId { get; set; }
     [JsonPropertyName("updated_at")]
     public DateTimeOffset UpdatedAt { get; set; } = default!;
 }

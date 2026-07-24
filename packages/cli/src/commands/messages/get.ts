@@ -7,8 +7,8 @@ export default class MessagesGet extends BaseCommand {
 
   static override examples = [
       "Получить вложения из сообщения:\n  $ pachca messages get",
-      "Отредактировать сообщение:\n  $ pachca messages update",
-      "Изменить вложения сообщения:\n  $ pachca messages get"
+      "Изменить вложения сообщения:\n  $ pachca messages get",
+      "Обработать входящий вебхук-событие:\n  $ pachca messages get"
   ];
 
   static scope = "messages:read";

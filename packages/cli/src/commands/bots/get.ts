@@ -5,11 +5,6 @@ import { BaseCommand } from '../../base-command.js';
 export default class BotsGet extends BaseCommand {
   static override description = "Информация о боте";
 
-  static override examples = [
-      "Обновить Webhook URL бота:\n  $ pachca bots update",
-      "Найти и удалить бота:\n  $ pachca bots delete"
-  ];
-
   static scope = "bots:read";
   static apiMethod = "GET";
   static apiPath = "/bots/{id}";

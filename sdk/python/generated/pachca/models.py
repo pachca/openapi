@@ -47,6 +47,9 @@ class AuditEventKey(StrEnum):
     BOT_WEBHOOK_SETTINGS_UPDATED = "bot_webhook_settings_updated"  # Изменены настройки исходящего вебхука бота
     BOT_TOKEN_RECREATED = "bot_token_recreated"  # Токен бота перевыпущен (ротация)
     BOT_DELETED = "bot_deleted"  # Бот удалён
+    VIDEO_CALL_STARTED = "video_call_started"  # Видеозвонок начат
+    VIDEO_CALL_FINISHED = "video_call_finished"  # Видеозвонок завершён
+    VIDEO_CALL_RECORDING_READY = "video_call_recording_ready"  # Запись видеозвонка готова
 
 
 class BotCanEdit(StrEnum):
@@ -74,10 +77,9 @@ class BotEventName(StrEnum):
     COMPANY_MEMBER_ACTIVATE = "company_member_activate"  # Сотрудник активирован
     COMPANY_MEMBER_DELETE = "company_member_delete"  # Сотрудник удалён из компании
     COMPANY_MEMBER_UPDATE = "company_member_update"  # Данные сотрудника изменены
-    BILL_CREATED = "bill_created"  # Создан счёт
-    VIDEO_CALL_STARTED = "video_call_started"
-    VIDEO_CALL_FINISHED = "video_call_finished"
-    VIDEO_CALL_RECORDING_READY = "video_call_recording_ready"
+    VIDEO_CALL_STARTED = "video_call_started"  # Видеозвонок начался
+    VIDEO_CALL_FINISHED = "video_call_finished"  # Видеозвонок завершился
+    VIDEO_CALL_RECORDING_READY = "video_call_recording_ready"  # Запись видеозвонка готова
 
 
 class BotTemplateEngine(StrEnum):
@@ -537,6 +539,20 @@ class AuditDetailsTokenScopes:
 @dataclass
 class AuditDetailsUserUpdated:
     changed_attrs: list[str]
+
+
+@dataclass
+class AuditDetailsVideoCall:
+    chat_id: int
+    duration: int
+    max_members_count: int
+
+
+@dataclass
+class AuditDetailsVideoCallRecording:
+    chat_id: int
+    duration: int
+    size: int
 
 
 @dataclass
@@ -1098,9 +1114,9 @@ class TaskUpdateRequest:
 class Thread:
     id: int
     chat_id: int
-    message_id: int
-    message_chat_id: int
     updated_at: datetime
+    message_id: int | None = None
+    message_chat_id: int | None = None
 
 
 @dataclass
@@ -1428,7 +1444,7 @@ class UpdateUserAvatarRequest:
     image: bytes
 
 
-AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings]
+AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsVideoCall, AuditDetailsVideoCallRecording]
 
 
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]

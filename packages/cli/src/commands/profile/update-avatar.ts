@@ -8,8 +8,7 @@ export default class ProfileUpdateAvatar extends BaseCommand {
   static override description = "Загрузка своего аватара";
 
   static override examples = [
-      "Загрузить аватар профиля:\n  $ pachca profile update-avatar",
-      "Удалить аватар профиля:\n  $ pachca profile delete-avatar"
+      "Загрузить аватар профиля:\n  $ pachca profile update-avatar"
   ];
 
   static scope = "profile_avatar:write";

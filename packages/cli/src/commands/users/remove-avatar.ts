@@ -7,7 +7,6 @@ export default class UsersRemoveAvatar extends BaseCommand {
   static override description = "Удаление аватара сотрудника";
 
   static override examples = [
-      "Загрузить аватар сотрудника:\n  $ pachca users update-avatar",
       "Удалить аватар сотрудника:\n  $ pachca users remove-avatar"
   ];
 

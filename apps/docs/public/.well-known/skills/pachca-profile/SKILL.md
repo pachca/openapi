@@ -122,6 +122,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 ## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
+- `status.title`: max 50 characters
 - `status.away_message`: max 1024 characters
 - Pagination: cursor-based (limit + cursor)
 

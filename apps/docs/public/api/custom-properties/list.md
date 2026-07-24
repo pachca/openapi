@@ -39,7 +39,7 @@ curl "https://api.pachca.com/api/shared/v1/custom_properties?entity_type=User" \
 
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор поля. Пример: `1678`
-  - `name: string` (required) — Название поля. Пример: `"Город"`
+  - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
   - `data_type: string` (required) — Тип поля
     Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
 

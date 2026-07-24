@@ -281,11 +281,15 @@
   },
   "ThreadOperations_getThread": {
     "usage": "var response = await client.Threads.GetThreadAsync(265142);",
-    "output": "Thread(Id: long, ChatId: long, MessageId: long, MessageChatId: long, UpdatedAt: DateTimeOffset)"
+    "output": "Thread(Id: long, ChatId: long, MessageId: long?, MessageChatId: long?, UpdatedAt: DateTimeOffset)"
   },
   "ThreadOperations_createThread": {
     "usage": "var response = await client.Threads.CreateThreadAsync(154332686);",
-    "output": "Thread(Id: long, ChatId: long, MessageId: long, MessageChatId: long, UpdatedAt: DateTimeOffset)"
+    "output": "Thread(Id: long, ChatId: long, MessageId: long?, MessageChatId: long?, UpdatedAt: DateTimeOffset)"
+  },
+  "ThreadOperations_createStandaloneThread": {
+    "usage": "var response = await client.Threads.CreateStandaloneThreadAsync();",
+    "output": "Thread(Id: long, ChatId: long, MessageId: long?, MessageChatId: long?, UpdatedAt: DateTimeOffset)"
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "var response = await client.Oauth.GetTokenInfoAsync();",

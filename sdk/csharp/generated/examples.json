@@ -6,7 +6,7 @@
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "var response = await client.Security.GetAuditEventsAsync(DateTimeOffset.Parse(\"2025-05-01T09:11:00Z\"), DateTimeOffset.Parse(\"2025-05-02T09:11:00Z\"), AuditEventKey.UserLogin, \"98765\", \"User\", \"98765\", \"User\", 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "usage": "var response = await client.Security.GetAuditEventsAsync(DateTimeOffset.Parse(\"2025-05-01T09:11:00.000Z\"), DateTimeOffset.Parse(\"2025-05-02T09:11:00.000Z\"), AuditEventKey.UserLogin, \"98765\", \"User\", \"98765\", \"User\", 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
     "output": "GetAuditEventsResponse(Data: List<AuditEvent>, Meta: PaginationMeta)",
     "imports": [
       "AuditEventKey"

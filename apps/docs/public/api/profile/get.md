@@ -28,12 +28,12 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 - `data: object` (required) — Сотрудник
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
   - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-  - `last_name: string` (required, nullable, max length: 255) — Фамилия. Пример: `"Петров"`
+  - `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
   - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-  - `department: string` (required, nullable, max length: 255) — Департамент. Пример: `"Продукт"`
-  - `title: string` (required, nullable) — Должность. Пример: `"CIO"`
+  - `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
+  - `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
   - `role: string` (required) — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
   - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -47,19 +47,19 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
     - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
-  - `user_status: object` (required) — Статус
+  - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
     - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
     - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
-    - `expires_at: date-time` (required, nullable) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-04-08T10:00:00.000Z"`
+    - `expires_at: date-time` (required, nullable) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан — такой статус не сбрасывается автоматически. Пример: `"2024-04-08T10:00:00.000Z"`
     - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
-    - `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
+    - `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. `null`, если текст автоответа не задан.
       - `text: string` (required, max length: 1024) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
   - `bot: boolean` (required) — Является ботом. Пример: `false`
   - `sso: boolean` (required) — Использует ли пользователь SSO. Пример: `false`
   - `created_at: date-time` (required) — Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2020-06-08T09:32:57.000Z"`
-  - `last_activity_at: date-time` (required, nullable) — Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-01-20T13:40:07.000Z"`
-  - `time_zone: string` (required, nullable, max length: 32) — Часовой пояс пользователя. Пример: `"Europe/Moscow"`
-  - `image_url: string` (required, nullable) — Ссылка на скачивание аватарки пользователя. Пример: `"https://app.pachca.com/users/12/photo.jpg"`
+  - `last_activity_at: date-time` (required, nullable) — Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если сотрудник ещё ни разу не заходил в Пачку — в этом случае `invite_status` возвращает `sent`. Пример: `"2025-01-20T13:40:07.000Z"`
+  - `time_zone: string` (required, nullable, max length: 32) — Часовой пояс пользователя. `null`, если сотрудник не задал личный часовой пояс — тогда применяется часовой пояс компании. Пример: `"Europe/Moscow"`
+  - `image_url: string` (required, nullable) — Ссылка на скачивание аватарки пользователя. `null`, если аватарка не загружена. Пример: `"https://app.pachca.com/users/12/photo.jpg"`
 
 **Пример ответа:**
 

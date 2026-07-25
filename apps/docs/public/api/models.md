@@ -30,13 +30,13 @@
 
 - `id: integer, int64` (required) — Идентификатор токена. Пример: `4827`
 - `token: string` (required) — Маскированный токен (видны первые 8 и последние 4 символа). Пример: `"cH5kR9mN...x7Qp"`
-- `name: string` (required, nullable) — Пользовательское имя токена. Пример: `"Мой API токен"`
+- `name: string` (required, nullable) — Пользовательское имя токена. `null` у токена бота — имя задаётся только при создании токена вручную. Пример: `"Мой API токен"`
 - `user_id: integer, int64` (required) — Идентификатор владельца токена. Пример: `12`
 - `scopes: array of string` (required) — Список скоупов токена. Пример: `["messages:read","chats:read"]`
 - `created_at: date-time` (required) — Дата создания токена. Пример: `"2025-01-15T10:30:00.000Z"`
-- `revoked_at: date-time` (required, nullable) — Дата отзыва токена. Пример: `null`
-- `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. Пример: `null`
-- `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. Пример: `"2025-02-24T14:20:00.000Z"`
+- `revoked_at: date-time` (required, nullable) — Дата отзыва токена. Всегда `null`: по отозванному токену метод возвращает 401. Пример: `null`
+- `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. Всегда `null` — токены выдаются бессрочно. Пример: `null`
+- `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать. Пример: `"2025-02-24T14:20:00.000Z"`
 
 
 ## Статус пользователя
@@ -52,9 +52,9 @@
 
 - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
 - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
-- `expires_at: date-time` (required, nullable) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-04-08T10:00:00.000Z"`
+- `expires_at: date-time` (required, nullable) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан — такой статус не сбрасывается автоматически. Пример: `"2024-04-08T10:00:00.000Z"`
 - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
-- `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
+- `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. `null`, если текст автоответа не задан.
   - `text: string` (required, max length: 1024) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
 
 
@@ -86,12 +86,12 @@
 
 - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
 - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-- `last_name: string` (required, nullable, max length: 255) — Фамилия. Пример: `"Петров"`
+- `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
 - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
 - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
 - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-- `department: string` (required, nullable, max length: 255) — Департамент. Пример: `"Продукт"`
-- `title: string` (required, nullable) — Должность. Пример: `"CIO"`
+- `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
+- `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
 - `role: string` (required) — Уровень доступа
   Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
 - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -105,19 +105,19 @@
   - `data_type: string` (required) — Тип поля
     Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
   - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
-- `user_status: object` (required) — Статус
+- `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
   - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
   - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
-  - `expires_at: date-time` (required, nullable) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-04-08T10:00:00.000Z"`
+  - `expires_at: date-time` (required, nullable) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан — такой статус не сбрасывается автоматически. Пример: `"2024-04-08T10:00:00.000Z"`
   - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
-  - `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
+  - `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. `null`, если текст автоответа не задан.
     - `text: string` (required, max length: 1024) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
 - `bot: boolean` (required) — Является ботом. Пример: `false`
 - `sso: boolean` (required) — Использует ли пользователь SSO. Пример: `false`
 - `created_at: date-time` (required) — Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2020-06-08T09:32:57.000Z"`
-- `last_activity_at: date-time` (required, nullable) — Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-01-20T13:40:07.000Z"`
-- `time_zone: string` (required, nullable, max length: 32) — Часовой пояс пользователя. Пример: `"Europe/Moscow"`
-- `image_url: string` (required, nullable) — Ссылка на скачивание аватарки пользователя. Пример: `"https://app.pachca.com/users/12/photo.jpg"`
+- `last_activity_at: date-time` (required, nullable) — Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если сотрудник ещё ни разу не заходил в Пачку — в этом случае `invite_status` возвращает `sent`. Пример: `"2025-01-20T13:40:07.000Z"`
+- `time_zone: string` (required, nullable, max length: 32) — Часовой пояс пользователя. `null`, если сотрудник не задал личный часовой пояс — тогда применяется часовой пояс компании. Пример: `"Europe/Moscow"`
+- `image_url: string` (required, nullable) — Ссылка на скачивание аватарки пользователя. `null`, если аватарка не загружена. Пример: `"https://app.pachca.com/users/12/photo.jpg"`
 
 
 ## Тег
@@ -216,29 +216,29 @@
   - `file_type: string` (required) — Тип файла
     Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение
   - `url: string` (required) — Прямая ссылка на скачивание файла. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
-  - `width: integer, int32` (nullable) — Ширина изображения в пикселях. Пример: `1920`
-  - `height: integer, int32` (nullable) — Высота изображения в пикселях. Пример: `1080`
+  - `width: integer, int32` (nullable) — Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1920`
+  - `height: integer, int32` (nullable) — Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1080`
 - `voice_content: object` (required) — Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.
   - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
   - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
   - `transcript: string` (required, nullable) — Расшифровка голосового сообщения в текст. `null`, пока расшифровка не готова или недоступна. Пример: `"Привет, посмотри пожалуйста последний отчёт"`
-- `buttons: array of array` (required, nullable) — Массив строк, каждая из которых представлена массивом кнопок
-- `thread: object` (required, nullable) — Тред сообщения
+- `buttons: array of array` (required, nullable) — Массив строк, каждая из которых представлена массивом кнопок. `null`, если сообщение отправлено без кнопок.
+- `thread: object` (required, nullable) — Тред, созданный к этому сообщению. `null`, если тред не создан, а также у сообщений, которые сами находятся внутри треда.
   - `id: integer, int64` (required) — Идентификатор треда. Пример: `265142`
   - `chat_id: integer, int64` (required) — Идентификатор чата треда. Пример: `2637266155`
-- `forwarding: object` (required) — Информация о пересланном сообщении
+- `forwarding: object` (required) — Информация о пересланном сообщении. `null`, если сообщение не является пересланным.
   - `original_message_id: integer, int32` (required) — Идентификатор оригинального сообщения. Пример: `194275`
   - `original_chat_id: integer, int32` (required) — Идентификатор чата, в котором находится оригинальное сообщение. Пример: `334`
   - `author_id: integer, int32` (required) — Идентификатор пользователя, создавшего оригинальное сообщение. Пример: `12`
   - `original_created_at: date-time` (required) — Дата и время создания оригинального сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-01-15T10:30:00.000Z"`
   - `original_thread_id: integer, int32` (required, nullable) — Идентификатор треда, в котором находится оригинальное сообщение. Пример: `null`
-  - `original_thread_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. Пример: `null`
-  - `original_thread_parent_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. Пример: `null`
-- `parent_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому написан ответ. Пример: `null`
+  - `original_thread_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
+  - `original_thread_parent_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
+- `parent_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `null`
 - `display_avatar_url: string` (required, nullable) — Ссылка на аватарку отправителя сообщения. Пример: `null`
 - `display_name: string` (required, nullable) — Полное имя отправителя сообщения. Пример: `null`
-- `changed_at: date-time` (required, nullable) — Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T16:10:00.000Z"`
-- `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `null`
+- `changed_at: date-time` (required, nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2021-08-28T16:10:00.000Z"`
+- `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются. Пример: `null`
 
 
 ## Реакция на сообщение
@@ -269,10 +269,10 @@
 - `kind: string` (required) — Тип
   Значения: `call` — Позвонить контакту, `meeting` — Встреча, `reminder` — Простое напоминание, `event` — Событие, `email` — Написать письмо
 - `content: string` (required) — Описание. Пример: `"Забрать со склада 21 заказ"`
-- `due_at: date-time` (required, nullable) — Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2020-06-05T09:00:00.000Z"`
+- `due_at: date-time` (required, nullable) — Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан. Пример: `"2020-06-05T09:00:00.000Z"`
 - `priority: integer, int32` (required) — Приоритет. Пример: `2`
 - `user_id: integer, int32` (required) — Идентификатор пользователя-создателя напоминания. Пример: `12`
-- `chat_id: integer, int32` (required, nullable) — Идентификатор чата, к которому привязано напоминание. Пример: `334`
+- `chat_id: integer, int32` (required, nullable) — Идентификатор чата, к которому привязано напоминание. `null`, если напоминание не привязано к чату. Пример: `334`
 - `status: string` (required) — Статус напоминания
   Значения: `done` — Выполнено, `undone` — Активно
 - `created_at: date-time` (required) — Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2020-06-04T10:37:57.000Z"`
@@ -388,7 +388,7 @@
       - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
       - `label: string` (required, max length: 150) — Подпись к полю
       - `filetypes: array of string` — Массив допустимых расширений файлов, указанные в виде строк (например, ["png","jpg","gif"]). Если это поле не указано, все расширения файлов будут приняты.
-      - `max_files: integer, int32` (default: 10, min: 1, max: 10) — Максимальное количество файлов, которое может загрузить пользователь в это поле.
+      - `max_files: integer, int32` (default: 10, min: 1, max: 10) — Максимальное количество файлов, которое может загрузить пользователь в это поле
       - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
 
@@ -410,7 +410,7 @@
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://www.website.com/tasks/new"`
   - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -455,8 +455,8 @@
     - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
     - `url: string` (required) — Прямая ссылка на сообщение. Пример: `"https://pachca.com/chats/1245817/messages/5678"`
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Пример: `9012`
-    - `parent_message_id: integer, int32` (nullable) — Идентификатор сообщения, к которому написан ответ. Пример: `3456`
-    - `thread: object` — Объект с параметрами треда
+    - `parent_message_id: integer, int32` (nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `3456`
+    - `thread: object` — Тред, в котором отправлено сообщение. `null`, если сообщение отправлено не в треде. В отличие от поля `thread` в объекте сообщения REST API, здесь описывается тред, внутри которого находится сообщение.
       - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому был создан тред. Пример: `12345`
       - `message_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому был создан тред. Пример: `67890`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
@@ -488,11 +488,11 @@
       Значения: `view` — Для формы всегда view
     - `event: string` (required) — Тип события. Пример: `"submit"`
       Значения: `submit` — Отправка формы
-    - `callback_id: string` (required, nullable) — Идентификатор обратного вызова, указанный при открытии представления. Пример: `"timeoff_request_form"`
-    - `private_metadata: string` (required, nullable) — Приватные метаданные, указанные при открытии представления. Пример: `"{\"timeoff_id\":4378}"`
+    - `callback_id: string` (required, nullable) — Идентификатор обратного вызова, указанный при открытии представления. `null`, если при открытии формы он не был указан. Пример: `"timeoff_request_form"`
+    - `private_metadata: string` (required, nullable) — Приватные метаданные, указанные при открытии представления. `null`, если при открытии формы они не были указаны. Пример: `"{\"timeoff_id\":4378}"`
     - `chat_id: integer, int32` (required, nullable) — Идентификатор чата, в котором была нажата кнопка, открывшая форму. Поле может быть `null` для форм, открытых до выкатки этого поля. Пример: `9012`
     - `user_id: integer, int32` (required) — Идентификатор пользователя, который отправил форму. Пример: `1235523`
-    - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные
+    - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные.
       **Структура значений Record:**
       - Тип значения: `any`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1755075544`
@@ -502,7 +502,7 @@
     - `event: string` (required) — Тип события
       Значения: `add` — Добавление, `remove` — Удаление
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором изменился состав участников. Пример: `9012`
-    - `thread_id: integer, int32` (nullable) — Идентификатор треда. Пример: `5678`
+    - `thread_id: integer, int32` (nullable) — Идентификатор треда. `null`, если участники добавлены в обычный чат или канал, а не в тред. Пример: `5678`
     - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие. Пример: `[2345,6789]`
     - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
@@ -570,10 +570,10 @@
 - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
 - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
 - `actor_type: string` (required) — Тип актора. Пример: `"User"`
-- `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
+- `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект.
   **Возможные варианты:**
 
-  - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted
+  - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted.
   - **AuditDetailsUserUpdated**: При: user_updated
     - `changed_attrs: array of string` (required) — Список изменённых полей
   - **AuditDetailsRoleChanged**: При: user_role_changed
@@ -615,14 +615,14 @@
     - `query_present: boolean` (required) — Указан ли поисковый запрос
     - `cursor_present: boolean` (required) — Использован ли курсор
     - `limit: integer, int32` (required) — Количество возвращённых результатов
-    - `filters: Record<string, object>` (required) — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)
+    - `filters: Record<string, object>` (required) — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages).
       **Структура значений Record:**
       - Тип значения: `any`
   - **AuditDetailsBotScopes**: При: bot_scopes_updated
     - `added_scopes: array of string` (required) — Скоупы, добавленные токену бота
     - `removed_scopes: array of string` (required) — Скоупы, отозванные у токена бота
   - **AuditDetailsBotWebhookSettings**: При: bot_webhook_settings_updated
-    - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение)
+    - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
       **Структура значений Record:**
       - Тип значения: `any`
   - **AuditDetailsVideoCall**: При: video_call_started, video_call_finished

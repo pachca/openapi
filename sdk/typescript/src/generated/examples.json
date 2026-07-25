@@ -6,7 +6,7 @@
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "const response = client.security.getAuditEvents({\n  startTime: \"2025-05-01T09:11:00Z\",\n  endTime: \"2025-05-02T09:11:00Z\",\n  eventKey: AuditEventKey.UserLogin,\n  actorId: \"98765\",\n  actorType: \"User\",\n  entityId: \"98765\",\n  entityType: \"User\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = client.security.getAuditEvents({\n  startTime: \"2025-05-01T09:11:00.000Z\",\n  endTime: \"2025-05-02T09:11:00.000Z\",\n  eventKey: AuditEventKey.UserLogin,\n  actorId: \"98765\",\n  actorType: \"User\",\n  entityId: \"98765\",\n  entityType: \"User\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "GetAuditEventsResponse({ data: AuditEvent[], meta: PaginationMeta })",
     "imports": [
       "AuditEventKey"

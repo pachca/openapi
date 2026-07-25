@@ -1586,7 +1586,7 @@
             "name": "link-previews",
             "type": "option",
             "required": true,
-            "description": "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении."
+            "description": "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении"
           }
         ]
       },
@@ -2192,7 +2192,7 @@
             "name": "end-time",
             "type": "option",
             "required": false,
-            "description": "Конечная метка времени (исключительно)"
+            "description": "Конечная метка времени (включительно)"
           },
           {
             "name": "event-key",
@@ -2323,7 +2323,7 @@
             "name": "priority",
             "type": "option",
             "required": false,
-            "description": "Приоритет: 1, 2 (важно) или 3 (очень важно)."
+            "description": "Приоритет: 1, 2 (важно) или 3 (очень важно)"
           },
           {
             "name": "performer-ids",
@@ -2455,7 +2455,7 @@
             "name": "priority",
             "type": "option",
             "required": false,
-            "description": "Приоритет: 1, 2 (важно) или 3 (очень важно)."
+            "description": "Приоритет: 1, 2 (важно) или 3 (очень важно)"
           },
           {
             "name": "performer-ids",

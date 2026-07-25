@@ -27,7 +27,7 @@ export default class SecurityList extends BaseCommand {
       description: "Начальная метка времени (включительно)",
     }),
     'end-time': Flags.string({
-      description: "Конечная метка времени (исключительно)",
+      description: "Конечная метка времени (включительно)",
     }),
     'event-key': Flags.string({
       description: "Фильтр по конкретному типу события",

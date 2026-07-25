@@ -6,7 +6,7 @@
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "val startTime = OffsetDateTime.parse(\"2025-05-01T09:11:00Z\")\nval endTime = OffsetDateTime.parse(\"2025-05-02T09:11:00Z\")\nval response = client.security.getAuditEvents(startTime = startTime, endTime = endTime, eventKey = AuditEventKey.USER_LOGIN, actorId = \"98765\", actorType = \"User\", entityId = \"98765\", entityType = \"User\", limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "usage": "val startTime = OffsetDateTime.parse(\"2025-05-01T09:11:00.000Z\")\nval endTime = OffsetDateTime.parse(\"2025-05-02T09:11:00.000Z\")\nval response = client.security.getAuditEvents(startTime = startTime, endTime = endTime, eventKey = AuditEventKey.USER_LOGIN, actorId = \"98765\", actorType = \"User\", entityId = \"98765\", entityType = \"User\", limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "GetAuditEventsResponse(data: List<AuditEvent>, meta: PaginationMeta)",
     "imports": [
       "AuditEventKey"

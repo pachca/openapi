@@ -34,7 +34,7 @@ export default class TasksUpdate extends BaseCommand {
       description: "Срок выполнения напоминания (ISO-8601) в формате YYYY-MM-DDThh:mm:ss.sssTZD. Если указано время 23:59:59.000, то напоминание будет создано на весь день (без указания времени).",
     }),
     'priority': Flags.integer({
-      description: "Приоритет: 1, 2 (важно) или 3 (очень важно).",
+      description: "Приоритет: 1, 2 (важно) или 3 (очень важно)",
     }),
     'performer-ids': Flags.string({
       description: "Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные»",

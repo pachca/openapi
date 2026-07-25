@@ -6,7 +6,7 @@
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "params = GetAuditEventsParams(\n    start_time=datetime.fromisoformat(\"2025-05-01T09:11:00Z\"),\n    end_time=datetime.fromisoformat(\"2025-05-02T09:11:00Z\"),\n    event_key=AuditEventKey.USER_LOGIN,\n    actor_id=\"98765\",\n    actor_type=\"User\",\n    entity_id=\"98765\",\n    entity_type=\"User\",\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.security.get_audit_events(params=params)",
+    "usage": "params = GetAuditEventsParams(\n    start_time=datetime.fromisoformat(\"2025-05-01T09:11:00.000Z\"),\n    end_time=datetime.fromisoformat(\"2025-05-02T09:11:00.000Z\"),\n    event_key=AuditEventKey.USER_LOGIN,\n    actor_id=\"98765\",\n    actor_type=\"User\",\n    entity_id=\"98765\",\n    entity_type=\"User\",\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.security.get_audit_events(params=params)",
     "output": "GetAuditEventsResponse(data: list[AuditEvent], meta: PaginationMeta)",
     "imports": [
       "AuditEventKey",

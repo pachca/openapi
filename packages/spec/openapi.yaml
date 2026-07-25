@@ -36,18 +36,18 @@ paths:
           schema:
             type: string
             format: date-time
-            example: '2025-05-01T09:11:00Z'
-          example: '2025-05-01T09:11:00Z'
+            example: '2025-05-01T09:11:00.000Z'
+          example: '2025-05-01T09:11:00.000Z'
           explode: false
         - name: end_time
           in: query
           required: false
-          description: Конечная метка времени (исключительно)
+          description: Конечная метка времени (включительно)
           schema:
             type: string
             format: date-time
-            example: '2025-05-02T09:11:00Z'
-          example: '2025-05-02T09:11:00Z'
+            example: '2025-05-02T09:11:00.000Z'
+          example: '2025-05-02T09:11:00.000Z'
           explode: false
         - name: event_key
           in: query
@@ -5450,7 +5450,7 @@ components:
         name:
           type: string
           nullable: true
-          description: Пользовательское имя токена
+          description: Пользовательское имя токена. `null` у токена бота — имя задаётся только при создании токена вручную.
           example: Мой API токен
         user_id:
           type: integer
@@ -5474,19 +5474,19 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Дата отзыва токена
+          description: 'Дата отзыва токена. Всегда `null`: по отозванному токену метод возвращает 401.'
           example: null
         expires_in:
           type: integer
           format: int32
           nullable: true
-          description: Время жизни токена в секундах
+          description: Время жизни токена в секундах. Всегда `null` — токены выдаются бессрочно.
           example: null
         last_used_at:
           type: string
           format: date-time
           nullable: true
-          description: Дата последнего использования токена
+          description: Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать.
           example: '2025-02-24T14:20:00.000Z'
       description: Токен доступа
     AddMembersRequest:
@@ -5551,7 +5551,7 @@ components:
         value:
           type: string
           nullable: true
-          description: Значение поля, которое вызвало ошибку
+          description: Значение поля, которое вызвало ошибку. `null`, если ошибка не относится к конкретному значению.
           example: invalid_value
         message:
           type: string
@@ -5566,7 +5566,7 @@ components:
           type: object
           additionalProperties: {}
           nullable: true
-          description: 'Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`'
+          description: 'Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`.'
           example: null
       description: Детальная информация об ошибке
     AuditDetailsBotScopes:
@@ -5594,7 +5594,7 @@ components:
         changes:
           type: object
           additionalProperties: {}
-          description: Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение)
+          description: Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
       description: 'При: bot_webhook_settings_updated'
     AuditDetailsChatId:
       type: object
@@ -5668,7 +5668,7 @@ components:
       description: 'При: dlp_violation_detected'
     AuditDetailsEmpty:
       type: object
-      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted'
+      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted.'
     AuditDetailsInitiator:
       type: object
       required:
@@ -5751,7 +5751,7 @@ components:
         filters:
           type: object
           additionalProperties: {}
-          description: 'Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)'
+          description: 'Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages).'
       description: 'При: search_users_api, search_chats_api, search_messages_api'
     AuditDetailsTagChat:
       type: object
@@ -5885,7 +5885,7 @@ components:
         details:
           allOf:
             - $ref: '#/components/schemas/AuditEventDetailsUnion'
-          description: Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
+          description: Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект.
         ip_address:
           type: string
           description: IP-адрес, с которого было выполнено действие
@@ -5915,7 +5915,7 @@ components:
         - $ref: '#/components/schemas/AuditDetailsBotWebhookSettings'
         - $ref: '#/components/schemas/AuditDetailsVideoCall'
         - $ref: '#/components/schemas/AuditDetailsVideoCallRecording'
-      description: Дополнительные детали события аудита. Структура зависит от значения event_key
+      description: Дополнительные детали события аудита. Структура зависит от значения event_key.
     AuditEventKey:
       type: string
       enum:
@@ -6350,7 +6350,7 @@ components:
         outgoing_url:
           type: string
           nullable: true
-          description: URL исходящего вебхука
+          description: URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен.
           example: https://www.website.com/tasks/new
         events:
           type: array
@@ -6506,7 +6506,7 @@ components:
           example: 1245817
         trigger_id:
           type: string
-          description: Уникальный идентификатор события. Время жизни — 3 секунды. Может быть использован, например, для открытия представления пользователю
+          description: Уникальный идентификатор события. Время жизни — 3 секунды. Может быть использован, например, для открытия представления пользователю.
           example: a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14
         data:
           type: string
@@ -6715,7 +6715,7 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: Идентификатор треда
+          description: Идентификатор треда. `null`, если участники добавлены в обычный чат или канал, а не в тред.
           example: 5678
         user_ids:
           type: array
@@ -6951,13 +6951,13 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: Ширина изображения в пикселях
+          description: Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке.
           example: 1920
         height:
           type: integer
           format: int32
           nullable: true
-          description: Высота изображения в пикселях
+          description: Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке.
           example: 1080
       description: Файл
     FileType:
@@ -7055,13 +7055,13 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение
+          description: Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению.
           example: null
         original_thread_parent_chat_id:
           type: integer
           format: int32
           nullable: true
-          description: Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение
+          description: Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению.
           example: null
       description: Информация о пересланном сообщении
     GroupTag:
@@ -7160,7 +7160,7 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/LinkPreview'
-          description: '`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении.'
+          description: '`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении'
           x-record-key-example: https://website.com/articles/123
       description: Запрос на разворачивание ссылок
     LinkSharedWebhookPayload:
@@ -7315,7 +7315,7 @@ components:
             items:
               $ref: '#/components/schemas/Button'
           nullable: true
-          description: Массив строк, каждая из которых представлена массивом кнопок
+          description: Массив строк, каждая из которых представлена массивом кнопок. `null`, если сообщение отправлено без кнопок.
         thread:
           type: object
           properties:
@@ -7333,18 +7333,18 @@ components:
             - id
             - chat_id
           nullable: true
-          description: Тред сообщения
+          description: Тред, созданный к этому сообщению. `null`, если тред не создан, а также у сообщений, которые сами находятся внутри треда.
         forwarding:
           type: object
           allOf:
             - $ref: '#/components/schemas/Forwarding'
           nullable: true
-          description: Информация о пересланном сообщении
+          description: Информация о пересланном сообщении. `null`, если сообщение не является пересланным.
         parent_message_id:
           type: integer
           format: int32
           nullable: true
-          description: Идентификатор сообщения, к которому написан ответ
+          description: Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение.
           example: null
         display_avatar_url:
           type: string
@@ -7360,13 +7360,13 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+          description: Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля.
           example: '2021-08-28T16:10:00.000Z'
         deleted_at:
           type: string
           format: date-time
           nullable: true
-          description: Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+          description: Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются.
           example: null
       description: Сообщение
     MessageCreateRequest:
@@ -7662,14 +7662,14 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: Идентификатор сообщения, к которому написан ответ
+          description: Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение.
           example: 3456
         thread:
           type: object
           allOf:
             - $ref: '#/components/schemas/WebhookMessageThread'
           nullable: true
-          description: Объект с параметрами треда
+          description: Тред, в котором отправлено сообщение. `null`, если сообщение отправлено не в треде. В отличие от поля `thread` в объекте сообщения REST API, здесь описывается тред, внутри которого находится сообщение.
         webhook_timestamp:
           type: integer
           format: int32
@@ -8364,7 +8364,7 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+          description: Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан.
           example: '2020-06-05T09:00:00.000Z'
         priority:
           type: integer
@@ -8380,7 +8380,7 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: Идентификатор чата, к которому привязано напоминание
+          description: Идентификатор чата, к которому привязано напоминание. `null`, если напоминание не привязано к чату.
           example: 334
         status:
           allOf:
@@ -8435,7 +8435,7 @@ components:
             priority:
               type: integer
               format: int32
-              description: 'Приоритет: 1, 2 (важно) или 3 (очень важно).'
+              description: 'Приоритет: 1, 2 (важно) или 3 (очень важно)'
               example: 2
               default: 1
             performer_ids:
@@ -8528,7 +8528,7 @@ components:
             priority:
               type: integer
               format: int32
-              description: 'Приоритет: 1, 2 (важно) или 3 (очень важно).'
+              description: 'Приоритет: 1, 2 (важно) или 3 (очень важно)'
               example: 2
             performer_ids:
               type: array
@@ -8709,7 +8709,7 @@ components:
           type: string
           nullable: true
           maxLength: 255
-          description: Фамилия
+          description: Фамилия. `null`, если фамилия не заполнена.
           example: Петров
         nickname:
           type: string
@@ -8732,12 +8732,12 @@ components:
           type: string
           nullable: true
           maxLength: 255
-          description: Департамент
+          description: Департамент. `null`, если департамент не указан.
           example: Продукт
         title:
           type: string
           nullable: true
-          description: Должность
+          description: Должность. `null`, если должность не указана.
           example: CIO
         role:
           allOf:
@@ -8777,7 +8777,7 @@ components:
           allOf:
             - $ref: '#/components/schemas/UserStatus'
           nullable: true
-          description: Статус
+          description: Статус. `null`, если у сотрудника не установлен статус.
         bot:
           type: boolean
           description: Является ботом
@@ -8795,18 +8795,18 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+          description: Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если сотрудник ещё ни разу не заходил в Пачку — в этом случае `invite_status` возвращает `sent`.
           example: '2025-01-20T13:40:07.000Z'
         time_zone:
           type: string
           nullable: true
           maxLength: 32
-          description: Часовой пояс пользователя
+          description: Часовой пояс пользователя. `null`, если сотрудник не задал личный часовой пояс — тогда применяется часовой пояс компании.
           example: Europe/Moscow
         image_url:
           type: string
           nullable: true
-          description: Ссылка на скачивание аватарки пользователя
+          description: Ссылка на скачивание аватарки пользователя. `null`, если аватарка не загружена.
           example: https://app.pachca.com/users/12/photo.jpg
       description: Сотрудник
     UserCreateRequest:
@@ -8980,7 +8980,7 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+          description: Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан — такой статус не сбрасывается автоматически.
           example: '2024-04-08T10:00:00.000Z'
         is_away:
           type: boolean
@@ -8997,7 +8997,7 @@ components:
           required:
             - text
           nullable: true
-          description: Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
+          description: Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. `null`, если текст автоответа не задан.
       description: Статус пользователя
     UserUpdateRequest:
       type: object
@@ -9450,7 +9450,7 @@ components:
           format: int32
           minimum: 1
           maximum: 10
-          description: Максимальное количество файлов, которое может загрузить пользователь в это поле.
+          description: Максимальное количество файлов, которое может загрузить пользователь в это поле
           example: 1
           default: 10
         required:
@@ -9806,12 +9806,12 @@ components:
         callback_id:
           type: string
           nullable: true
-          description: Идентификатор обратного вызова, указанный при открытии представления
+          description: Идентификатор обратного вызова, указанный при открытии представления. `null`, если при открытии формы он не был указан.
           example: timeoff_request_form
         private_metadata:
           type: string
           nullable: true
-          description: Приватные метаданные, указанные при открытии представления
+          description: Приватные метаданные, указанные при открытии представления. `null`, если при открытии формы они не были указаны.
           example: '{"timeoff_id":4378}'
         chat_id:
           type: integer
@@ -9827,7 +9827,7 @@ components:
         data:
           type: object
           additionalProperties: {}
-          description: Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные
+          description: Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные.
         webhook_timestamp:
           type: integer
           format: int32
@@ -9910,7 +9910,7 @@ components:
           example: example.com
         skip:
           type: boolean
-          description: Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью
+          description: Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью.
           example: false
       description: Объект ссылки в вебхуке разворачивания ссылок
     WebhookMessageThread:

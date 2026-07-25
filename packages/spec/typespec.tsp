@@ -807,7 +807,7 @@ model UserStatus {
   @example("Очень занят")
   title: string;
 
-  @doc("Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @doc("Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан — такой статус не сбрасывается автоматически.")
   @example(utcDateTime.fromISO("2024-04-08T10:00:00.000Z"))
   expires_at: utcDateTime | null;
 
@@ -815,7 +815,7 @@ model UserStatus {
   @example(false)
   is_away: boolean;
 
-  @doc("Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.")
+  @doc("Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. `null`, если текст автоответа не задан.")
   away_message: {
     @doc("Текст сообщения")
     @maxLength(1024)
@@ -846,11 +846,11 @@ model File {
   @example("https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8")
   url: string;
   
-  @doc("Ширина изображения в пикселях")
+  @doc("Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке.")
   @example(1920)
   width?: int32 | null;
   
-  @doc("Высота изображения в пикселях")
+  @doc("Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке.")
   @example(1080)
   height?: int32 | null;
 }
@@ -917,11 +917,11 @@ model Forwarding {
   @example(null)
   original_thread_id: int32 | null;
 
-  @doc("Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение")
+  @doc("Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению.")
   @example(null)
   original_thread_message_id: int32 | null;
 
-  @doc("Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение")
+  @doc("Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению.")
   @example(null)
   original_thread_parent_chat_id: int32 | null;
 }
@@ -941,7 +941,7 @@ model User {
   @example("Олег")
   first_name: string;
   
-  @doc("Фамилия")
+  @doc("Фамилия. `null`, если фамилия не заполнена.")
   @maxLength(255)
   @example("Петров")
   last_name: string | null;
@@ -961,12 +961,12 @@ model User {
   @example("+79001234567")
   phone_number: string | null;
 
-  @doc("Департамент")
+  @doc("Департамент. `null`, если департамент не указан.")
   @maxLength(255)
   @example("Продукт")
   department: string | null;
 
-  @doc("Должность")
+  @doc("Должность. `null`, если должность не указана.")
   @example("CIO")
   title: string | null;
   
@@ -993,7 +993,7 @@ model User {
   @doc("Дополнительные поля сотрудника")
   custom_properties: CustomProperty[];
   
-  @doc("Статус")
+  @doc("Статус. `null`, если у сотрудника не установлен статус.")
   user_status: UserStatus | null;
   
   @doc("Является ботом")
@@ -1008,16 +1008,16 @@ model User {
   @example(utcDateTime.fromISO("2020-06-08T09:32:57.000Z"))
   created_at: utcDateTime;
   
-  @doc("Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @doc("Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если сотрудник ещё ни разу не заходил в Пачку — в этом случае `invite_status` возвращает `sent`.")
   @example(utcDateTime.fromISO("2025-01-20T13:40:07.000Z"))
   last_activity_at: utcDateTime | null;
 
-  @doc("Часовой пояс пользователя")
+  @doc("Часовой пояс пользователя. `null`, если сотрудник не задал личный часовой пояс — тогда применяется часовой пояс компании.")
   @maxLength(32)
   @example("Europe/Moscow")
   time_zone: string | null;
   
-  @doc("Ссылка на скачивание аватарки пользователя")
+  @doc("Ссылка на скачивание аватарки пользователя. `null`, если аватарка не загружена.")
   @example("https://app.pachca.com/users/12/photo.jpg")
   image_url: string | null;
 }
@@ -1129,10 +1129,10 @@ model Message {
   @doc("Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.")
   voice_content: VoiceContent | null;
 
-  @doc("Массив строк, каждая из которых представлена массивом кнопок")
+  @doc("Массив строк, каждая из которых представлена массивом кнопок. `null`, если сообщение отправлено без кнопок.")
   buttons: Button[][] | null;
   
-  @doc("Тред сообщения")
+  @doc("Тред, созданный к этому сообщению. `null`, если тред не создан, а также у сообщений, которые сами находятся внутри треда.")
   thread: {
     @doc("Идентификатор треда")
     @example(265142)
@@ -1143,10 +1143,10 @@ model Message {
     chat_id: int64;
   } | null;
   
-  @doc("Информация о пересланном сообщении")
+  @doc("Информация о пересланном сообщении. `null`, если сообщение не является пересланным.")
   forwarding: Forwarding | null;
   
-  @doc("Идентификатор сообщения, к которому написан ответ")
+  @doc("Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение.")
   @example(null)
   parent_message_id: int32 | null;
 
@@ -1158,11 +1158,11 @@ model Message {
   @example(null)
   display_name: string | null;
 
-  @doc("Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @doc("Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля.")
   @example(utcDateTime.fromISO("2021-08-28T16:10:00.000Z"))
   changed_at: utcDateTime | null;
 
-  @doc("Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @doc("Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются.")
   @example(null)
   deleted_at: utcDateTime | null;
 }
@@ -1216,7 +1216,7 @@ model Task {
   @example("Забрать со склада 21 заказ")
   content: string;
 
-  @doc("Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @doc("Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан.")
   @example(utcDateTime.fromISO("2020-06-05T09:00:00.000Z"))
   due_at: utcDateTime | null;
 
@@ -1228,7 +1228,7 @@ model Task {
   @example(12)
   user_id: int32;
 
-  @doc("Идентификатор чата, к которому привязано напоминание")
+  @doc("Идентификатор чата, к которому привязано напоминание. `null`, если напоминание не привязано к чату.")
   @example(334)
   chat_id: int32 | null;
 
@@ -1603,7 +1603,7 @@ model AccessTokenInfo {
   @example("cH5kR9mN...x7Qp")
   token: string;
 
-  @doc("Пользовательское имя токена")
+  @doc("Пользовательское имя токена. `null` у токена бота — имя задаётся только при создании токена вручную.")
   @example("Мой API токен")
   name: string | null;
 
@@ -1619,15 +1619,15 @@ model AccessTokenInfo {
   @example(utcDateTime.fromISO("2025-01-15T10:30:00.000Z"))
   created_at: utcDateTime;
 
-  @doc("Дата отзыва токена")
+  @doc("Дата отзыва токена. Всегда `null`: по отозванному токену метод возвращает 401.")
   @example(null)
   revoked_at: utcDateTime | null;
 
-  @doc("Время жизни токена в секундах")
+  @doc("Время жизни токена в секундах. Всегда `null` — токены выдаются бессрочно.")
   @example(null)
   expires_in: int32 | null;
 
-  @doc("Дата последнего использования токена")
+  @doc("Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать.")
   @example(utcDateTime.fromISO("2025-02-24T14:20:00.000Z"))
   last_used_at: utcDateTime | null;
 }
@@ -1649,7 +1649,7 @@ model ApiErrorItem {
   @example("field.name")
   key: string;
   
-  @doc("Значение поля, которое вызвало ошибку")
+  @doc("Значение поля, которое вызвало ошибку. `null`, если ошибка не относится к конкретному значению.")
   @example("invalid_value")
   value: string | null;
   
@@ -1661,7 +1661,7 @@ model ApiErrorItem {
   @example(ValidationErrorCode.blank)
   code: ValidationErrorCode;
   
-  @doc("Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`")
+  @doc("Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`.")
   @example(null)
   payload: Record<unknown> | null;
 }
@@ -2145,7 +2145,7 @@ model LinkPreview {
 
 @doc("Запрос на разворачивание ссылок")
 model LinkPreviewsRequest {
-  @doc("`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении.")
+  @doc("`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении")
   @extension("x-record-key-example", "https://website.com/articles/123")
   link_previews: Record<LinkPreview>;
 }
@@ -2166,7 +2166,7 @@ model TaskCreateRequest {
     @example(utcDateTime.fromISO("2020-06-05T12:00:00.000+03:00"))
     due_at?: utcDateTime;
 
-    @doc("Приоритет: 1, 2 (важно) или 3 (очень важно).")
+    @doc("Приоритет: 1, 2 (важно) или 3 (очень важно)")
     @example(2)
     priority?: int32 = 1;
 
@@ -2211,7 +2211,7 @@ model TaskUpdateRequest {
     @example(utcDateTime.fromISO("2020-06-05T12:00:00.000+03:00"))
     due_at?: utcDateTime;
 
-    @doc("Приоритет: 1, 2 (важно) или 3 (очень важно).")
+    @doc("Приоритет: 1, 2 (важно) или 3 (очень важно)")
     @example(2)
     priority?: int32;
 
@@ -2602,7 +2602,7 @@ model ViewBlockFileInput {
   @example(#["pdf","jpg","png"])
   filetypes?: string[];
   
-  @doc("Максимальное количество файлов, которое может загрузить пользователь в это поле.")
+  @doc("Максимальное количество файлов, которое может загрузить пользователь в это поле")
   @example(1)
   @minValue(1)
   @maxValue(10)
@@ -2937,7 +2937,7 @@ model BotWebhook {
   @example("tasks_bot")
   nickname: string;
 
-  @doc("URL исходящего вебхука")
+  @doc("URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен.")
   @example("https://www.website.com/tasks/new")
   outgoing_url: string | null;
 
@@ -3023,7 +3023,7 @@ model BotCreateResponse {
   access_token: string;
 }
 
-@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted")
+@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted.")
 model AuditDetailsEmpty {}
 
 @doc("При: user_updated")
@@ -3132,7 +3132,7 @@ model AuditDetailsSearch {
   cursor_present: boolean;
   @doc("Количество возвращённых результатов")
   limit: int32;
-  @doc("Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)")
+  @doc("Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages).")
   filters: Record<unknown>;
 }
 
@@ -3146,7 +3146,7 @@ model AuditDetailsBotScopes {
 
 @doc("При: bot_webhook_settings_updated")
 model AuditDetailsBotWebhookSettings {
-  @doc("Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение)")
+  @doc("Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).")
   changes: Record<unknown>;
 }
 
@@ -3170,7 +3170,7 @@ model AuditDetailsVideoCallRecording {
   size: int64;
 }
 
-@doc("Дополнительные детали события аудита. Структура зависит от значения event_key")
+@doc("Дополнительные детали события аудита. Структура зависит от значения event_key.")
 union AuditEventDetailsUnion {
   AuditDetailsEmpty,
   AuditDetailsUserUpdated,
@@ -3222,7 +3222,7 @@ model AuditEvent {
   @example("User")
   actor_type: string;
 
-  @doc("Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект")
+  @doc("Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект.")
   details: AuditEventDetailsUnion;
   
   @doc("IP-адрес, с которого было выполнено действие")
@@ -3294,11 +3294,11 @@ model MessageWebhookPayload {
   @example(9012)
   chat_id: int32;
   
-  @doc("Идентификатор сообщения, к которому написан ответ")
+  @doc("Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение.")
   @example(3456)
   parent_message_id?: int32 | null;
   
-  @doc("Объект с параметрами треда")
+  @doc("Тред, в котором отправлено сообщение. `null`, если сообщение отправлено не в треде. В отличие от поля `thread` в объекте сообщения REST API, здесь описывается тред, внутри которого находится сообщение.")
   thread?: WebhookMessageThread | null;
   
   @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
@@ -3368,7 +3368,7 @@ model ButtonWebhookPayload {
   @example(1245817)
   message_id: int32;
   
-  @doc("Уникальный идентификатор события. Время жизни — 3 секунды. Может быть использован, например, для открытия представления пользователю")
+  @doc("Уникальный идентификатор события. Время жизни — 3 секунды. Может быть использован, например, для открытия представления пользователю.")
   @example("a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14")
   trigger_id: string;
   
@@ -3405,11 +3405,11 @@ model ViewSubmitWebhookPayload {
   })
   event: "submit";
 
-  @doc("Идентификатор обратного вызова, указанный при открытии представления")
+  @doc("Идентификатор обратного вызова, указанный при открытии представления. `null`, если при открытии формы он не был указан.")
   @example("timeoff_request_form")
   callback_id: string | null;
 
-  @doc("Приватные метаданные, указанные при открытии представления")
+  @doc("Приватные метаданные, указанные при открытии представления. `null`, если при открытии формы они не были указаны.")
   @example("{\"timeoff_id\":4378}")
   private_metadata: string | null;
 
@@ -3421,7 +3421,7 @@ model ViewSubmitWebhookPayload {
   @example(1235523)
   user_id: int32;
 
-  @doc("Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные")
+  @doc("Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные.")
   data: Record<unknown>;
 
   @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
@@ -3446,7 +3446,7 @@ model ChatMemberWebhookPayload {
   @example(9012)
   chat_id: int32;
   
-  @doc("Идентификатор треда")
+  @doc("Идентификатор треда. `null`, если участники добавлены в обычный чат или канал, а не в тред.")
   @example(5678)
   thread_id?: int32 | null;
   
@@ -3499,7 +3499,7 @@ model WebhookLink {
   @example("example.com")
   domain: string;
 
-  @doc("Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью")
+  @doc("Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью.")
   @example(false)
   skip: boolean;
 }
@@ -6725,11 +6725,11 @@ interface SecurityOperations {
   @get
   getAuditEvents(
     @doc("Начальная метка времени (включительно)")
-    @extension("example", "2025-05-01T09:11:00Z")
+    @extension("example", "2025-05-01T09:11:00.000Z")
     @query start_time?: utcDateTime,
 
-    @doc("Конечная метка времени (исключительно)")
-    @extension("example", "2025-05-02T09:11:00Z")
+    @doc("Конечная метка времени (включительно)")
+    @extension("example", "2025-05-02T09:11:00.000Z")
     @query end_time?: utcDateTime,
     
     @doc("Фильтр по конкретному типу события")

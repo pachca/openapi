@@ -86,6 +86,10 @@ function goType(
         nullable: !!opts.nullable,
       });
     case 'enum':
+      // Inline (unnamed) enums have no ref. They are strings on the wire, so
+      // emit `string` — `any` would make the `string(params.X)` conversion the
+      // query builder emits a compile error.
+      return ft.ref ?? 'string';
     case 'model':
     case 'union':
       return ft.ref ?? 'any';
@@ -227,8 +231,96 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
   }
 }
 
+/** Shared helper for unions with no discriminator on the wire. */
+function emitUnionShapeHelper(lines: string[]): void {
+  lines.push('// unionMemberShape lists the JSON keys one member of an undiscriminated union declares.');
+  lines.push('type unionMemberShape struct {');
+  lines.push('\tkeys map[string]struct{}');
+  lines.push('}');
+  lines.push('');
+  lines.push('// pickUnionMember selects the member that best fits the payload: most keys');
+  lines.push('// recognised, then fewest unrecognised, then fewest declared. Returns -1 when');
+  lines.push('// the payload is not a JSON object.');
+  lines.push('func pickUnionMember(data []byte, shapes []unionMemberShape) int {');
+  lines.push('\tvar raw map[string]json.RawMessage');
+  lines.push('\tif err := json.Unmarshal(data, &raw); err != nil {');
+  lines.push('\t\treturn -1');
+  lines.push('\t}');
+  lines.push('\tbest := -1');
+  lines.push('\tbestMatched, bestUnknown, bestDeclared := 0, 0, 0');
+  lines.push('\tfor i, shape := range shapes {');
+  lines.push('\t\tmatched := 0');
+  lines.push('\t\tfor k := range raw {');
+  lines.push('\t\t\tif _, ok := shape.keys[k]; ok {');
+  lines.push('\t\t\t\tmatched++');
+  lines.push('\t\t\t}');
+  lines.push('\t\t}');
+  lines.push('\t\tunknown := len(raw) - matched');
+  lines.push('\t\tdeclared := len(shape.keys)');
+  lines.push('\t\tbetter := best == -1 ||');
+  lines.push('\t\t\tmatched > bestMatched ||');
+  lines.push('\t\t\t(matched == bestMatched && unknown < bestUnknown) ||');
+  lines.push('\t\t\t(matched == bestMatched && unknown == bestUnknown && declared < bestDeclared)');
+  lines.push('\t\tif better {');
+  lines.push('\t\t\tbest, bestMatched, bestUnknown, bestDeclared = i, matched, unknown, declared');
+  lines.push('\t\t}');
+  lines.push('\t}');
+  lines.push('\treturn best');
+  lines.push('}');
+}
+
+/** Union whose members share no discriminator: decode by matching the payload shape. */
+function emitStructuralUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
+  const shapesVar = `${u.name.charAt(0).toLowerCase()}${u.name.slice(1)}Shapes`;
+  lines.push(`type ${u.name} struct {`);
+  const fieldRows = u.memberRefs.map((ref) => [ref, `*${ref}`]);
+  // Raw keeps the original payload so nothing is lost when no member fits.
+  fieldRows.push(['Raw', 'json.RawMessage']);
+  for (const line of goAligned(fieldRows)) lines.push(line);
+  lines.push('}');
+  lines.push('');
+  lines.push(`var ${shapesVar} = []unionMemberShape{`);
+  for (const ref of u.memberRefs) {
+    const model = models.find((m) => m.name === ref);
+    const keys = (model?.fields ?? []).map((f) => `${JSON.stringify(f.name)}: {}`);
+    lines.push(`\t{keys: map[string]struct{}{${keys.join(', ')}}},`);
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push(`// UnmarshalJSON decodes ${u.name}, which carries no discriminator field:`);
+  lines.push('// the member is chosen by which one best matches the payload keys. The raw');
+  lines.push('// payload is always kept in Raw so an unrecognised shape is never a decode error.');
+  lines.push(`func (u *${u.name}) UnmarshalJSON(data []byte) error {`);
+  lines.push('\tu.Raw = append(json.RawMessage(nil), data...)');
+  lines.push(`\tswitch pickUnionMember(data, ${shapesVar}) {`);
+  u.memberRefs.forEach((ref, i) => {
+    lines.push(`\tcase ${i}:`);
+    lines.push(`\t\tu.${ref} = &${ref}{}`);
+    lines.push(`\t\treturn json.Unmarshal(data, u.${ref})`);
+  });
+  lines.push('\t}');
+  lines.push('\treturn nil');
+  lines.push('}');
+  lines.push('');
+  lines.push(`func (u ${u.name}) MarshalJSON() ([]byte, error) {`);
+  for (const ref of u.memberRefs) {
+    lines.push(`\tif u.${ref} != nil {`);
+    lines.push(`\t\treturn json.Marshal(u.${ref})`);
+    lines.push('\t}');
+  }
+  lines.push('\tif len(u.Raw) > 0 {');
+  lines.push('\t\treturn u.Raw, nil');
+  lines.push('\t}');
+  lines.push(`\treturn nil, fmt.Errorf("empty ${u.name}")`);
+  lines.push('}');
+}
+
 function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   const discField = u.discriminatorField;
+  if (!discField) {
+    emitStructuralUnion(lines, u, models);
+    return;
+  }
   const discGoName = goExportName(discField);
   lines.push(`type ${u.name} struct {`);
   const fieldRows = u.memberRefs.map((ref) => [ref, `*${ref}`]);
@@ -368,6 +460,11 @@ function generateTypes(ir: IR): string {
       lines.push('');
     }
     emitModel(lines, m, allModels);
+    lines.push('');
+  }
+
+  if (ir.unions.some((u) => !u.discriminatorField)) {
+    emitUnionShapeHelper(lines);
     lines.push('');
   }
 

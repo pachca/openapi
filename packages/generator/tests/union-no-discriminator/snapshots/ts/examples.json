@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "const client = new PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "getEvents": {
+    "usage": "const response = client.events.getEvents()",
+    "output": "GetEventsResponse({ data: Event[] })"
+  }
+}

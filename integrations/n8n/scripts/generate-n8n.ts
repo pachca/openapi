@@ -124,6 +124,19 @@ const V1_COMPAT_SUBCOLLECTIONS: Record<string, string> = {
   options: 'option',
 };
 
+/**
+ * Name of the inner collection of a fixedCollection field.
+ *
+ * The UI description and the router MUST agree on this string, otherwise the
+ * router looks up a key the UI never wrote and the field's value is sent as the
+ * raw wrapper object (a 422). They used to compute it independently —
+ * `${x}Values` in the description vs `singularize(x)` in the router — so any
+ * new array-of-objects field missing from V1_COMPAT_SUBCOLLECTIONS diverged.
+ */
+function subCollectionName(n8nName: string): string {
+  return V1_COMPAT_SUBCOLLECTIONS[n8nName] ?? `${n8nName}Values`;
+}
+
 /** v1 alias operations: optional query params (not from OpenAPI) */
 const V1_ALIAS_QUERY_PARAMS: Record<string, Record<string, [string, string][]>> = {
   chat: {
@@ -173,6 +186,10 @@ const PREFERRED_DEFAULT_OPS: Record<string, string> = {
   groupTag: 'getAll',
   user: 'getAll',
   member: 'getAll',
+  // Without this, `bot` falls back to operations[0] — which is
+  // POST /bot/recreate_token, an irreversible rotation of the caller's own
+  // token. A landing operation must never be destructive.
+  bot: 'getAll',
 };
 
 /** v1 ID parameter fallback — shared ops where v1 used prefixed names (chatId, messageId, userId) */
@@ -388,7 +405,10 @@ const BODY_FIELD_SEARCH: Record<string, Record<string, string>> = {
 /** Path parameters that use resourceLocator with searchable dropdown */
 const PATH_PARAM_SEARCH: Record<string, Record<string, string>> = {
   chat: { id: 'searchChats' },
-  user: { id: 'searchUsers' },
+  // `/users/{user_id}/status|avatar` name the param user_id, not id — without
+  // this key those five operations rendered a bare number field instead of the
+  // user picker.
+  user: { id: 'searchUsers', user_id: 'searchUsers' },
   member: { id: 'searchChats', user_id: 'searchUsers' },  // member's `id` is chat_id, `user_id` is user
 };
 
@@ -457,8 +477,17 @@ function tagToResource(tag: string): string {
     'Link Previews': 'linkPreview',
     'Search': 'search',
     'Security': 'security',
+    'Custom Properties': 'customProperty',
+    'Files': 'file',
   };
-  return MAP[tag] || tag.toLowerCase().replace(/s$/, '');
+  if (MAP[tag]) return MAP[tag];
+  // Fallback for an unmapped tag. Must produce a valid camelCase identifier:
+  // a naive lowercase+strip-s turned "Custom Properties" into "custom propertie".
+  const words = tag.toLowerCase().split(/\s+/).filter(Boolean);
+  const singular = words
+    .map((w, i) => (i === words.length - 1 ? w.replace(/ies$/, 'y').replace(/s$/, '') : w))
+    .map((w, i) => (i === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)));
+  return singular.join('');
 }
 
 /** Resource value → display name (Title Case, singular) */
@@ -621,6 +650,11 @@ function actionLabel(op: string, resourceName: string, resource?: string): strin
     unfurl: 'Unfurl link preview',
     addTags: 'Add tags to chat',
     removeTag: 'Remove tag from chat',
+    // `/chats/{id}/group_tags` is tagged Members in the spec, so the generic
+    // sub-resource labeller says "to chat member" — but the tag goes on the
+    // chat, not on a member.
+    addGroupTags: 'Add group tags to chat',
+    removeGroupTags: 'Remove group tags from chat',
     recreateToken: 'Recreate bot token',
     recreateTokenSelf: 'Recreate own bot token',
     createStandalone: 'Create a standalone thread',
@@ -666,10 +700,12 @@ function getParamName(resource: string, op: string, fieldName: string): string {
   const v1Resource = V1_COMPAT_RESOURCES[resource] ?? resource;
   const opMap = V1_COMPAT_PARAMS[v1Resource];
   if (opMap) {
-    const wildcard = opMap['*']?.[snakeToCamel(fieldName)];
-    if (wildcard) return wildcard;
+    // Op-specific entry first: checking `*` first made an op-level override
+    // unreachable, which is the opposite of what an override is for.
     const specific = opMap[op]?.[snakeToCamel(fieldName)];
     if (specific) return specific;
+    const wildcard = opMap['*']?.[snakeToCamel(fieldName)];
+    if (wildcard) return wildcard;
   }
   return snakeToCamel(fieldName);
 }
@@ -1547,7 +1583,7 @@ function generateFieldProperty(
   }
 
   if (n8nType === 'fixedCollection' && field.items?.properties) {
-    const subName = V1_COMPAT_SUBCOLLECTIONS[paramName] ?? `${paramName}Values`;
+    const subName = subCollectionName(paramName);
     lines.push(`${tab}\ttypeOptions: { multipleValues: true },`);
     lines.push(`${tab}\toptions: [{`);
     lines.push(`${tab}\t\tname: ${quote(subName)},`);
@@ -1976,6 +2012,9 @@ export class PachcaApi implements ICredentialType {
 \t\t},
 \t};
 
+\t// /oauth/token/info is deliberate and works for bot tokens: it declares no
+\t// required scope, whereas GET /profile requires profile:read and would reject
+\t// a narrowly-scoped token. Checked 2026-07-25 — do not "fix" to /profile.
 \ttest: ICredentialTestRequest = {
 \t\trequest: {
 \t\t\tbaseURL: '={{$credentials.baseUrl}}',
@@ -2614,9 +2653,17 @@ ${optionEntries}
 \t\t\t}
 \t\t}
 
-\t\t// Replay protection — reject events older than 5 minutes
-\t\tconst webhookTs = body.webhook_timestamp as number | undefined;
-\t\tif (webhookTs) {
+\t\t// Replay protection — reject events older than 5 minutes.
+\t\t// A missing/zero timestamp used to skip the window entirely. When a signing
+\t\t// secret is configured the field is required (the spec always sends it), so
+\t\t// treat its absence as a rejection rather than a free pass. Without a secret
+\t\t// there is no authentication anyway, so an absent field stays tolerated.
+\t\tconst webhookTs = Number(body.webhook_timestamp);
+\t\tconst hasWebhookTs = Number.isFinite(webhookTs) && webhookTs > 0;
+\t\tif (signingSecret && !hasWebhookTs) {
+\t\t\treturn { webhookResponse: 'Rejected' };
+\t\t}
+\t\tif (hasWebhookTs) {
 \t\t\tconst ageMs = Date.now() - webhookTs * 1000;
 \t\t\tif (ageMs < -60_000 || ageMs > 5 * 60 * 1000) {
 \t\t\t\treturn { webhookResponse: 'Rejected' };
@@ -2678,7 +2725,7 @@ function buildFieldMapStr(resource: string, op: OperationInfo, f: BodyField): st
 
   // fixedCollection subKey
   if (f.type === 'array' && f.items?.properties) {
-    const subKey = V1_COMPAT_SUBCOLLECTIONS[n8nName] ?? singularize(n8nName);
+    const subKey = subCollectionName(n8nName);
     parts.push(`subKey: '${subKey}'`);
   }
 

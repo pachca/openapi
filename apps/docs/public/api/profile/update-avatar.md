@@ -28,7 +28,7 @@
 ```bash
 curl -X PUT "https://api.pachca.com/api/shared/v1/profile/avatar" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -F "image=@filename.png"
+  -F 'image=@filename.png'
 ```
 
 ## Ответы

@@ -14,9 +14,21 @@ function normalizeEnumDescriptions(
   const keys = Object.keys(descriptions);
   // Fast path: if first key already matches an enum value, no normalization needed
   if (keys.length > 0 && enumValues.includes(keys[0])) return descriptions;
-  // Build a lookup: underscored enum value -> original enum value
+  // Build a lookup: underscored enum value -> original enum value.
+  // The mapping is lossy — `a:b` and `a_b` both normalize to `a_b` — so an
+  // ambiguous key is left alone rather than silently re-attributed to whichever
+  // value happened to be inserted last.
   const normalized: Record<string, string> = {};
-  const valueByUnderscore = new Map(enumValues.map((v) => [v.replace(/:/g, '_'), v]));
+  const valueByUnderscore = new Map<string, string>();
+  for (const v of enumValues) {
+    const key = v.replace(/:/g, '_');
+    if (key === v) continue; // no normalization needed for this value
+    if (valueByUnderscore.has(key) || enumValues.includes(key)) {
+      valueByUnderscore.delete(key);
+      continue;
+    }
+    valueByUnderscore.set(key, v);
+  }
   for (const [key, desc] of Object.entries(descriptions)) {
     const enumValue = valueByUnderscore.get(key);
     normalized[enumValue ?? key] = desc;

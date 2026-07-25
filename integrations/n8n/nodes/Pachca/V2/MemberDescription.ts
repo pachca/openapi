@@ -11,7 +11,7 @@ export const memberOperations: INodeProperties[] = [
 			{
 				name: 'Add Group Tags',
 				value: 'addGroupTags',
-				action: 'Add group tags to chat member',
+				action: 'Add group tags to chat',
 			},
 			{
 				name: 'Create',
@@ -36,7 +36,7 @@ export const memberOperations: INodeProperties[] = [
 			{
 				name: 'Remove Group Tags',
 				value: 'removeGroupTags',
-				action: 'Remove group tags from chat member',
+				action: 'Remove group tags from chat',
 			},
 			{
 				name: 'Update',

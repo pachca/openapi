@@ -6,7 +6,7 @@ export default class MessagesPin extends BaseCommand {
   static override description = "Закрепление сообщения";
 
   static override examples = [
-      "Закрепить/открепить сообщение:\n  $ pachca messages pin"
+      "Закрепить/открепить сообщение — Закрепить сообщение:\n  $ pachca messages pin"
   ];
 
   static scope = "pins:write";

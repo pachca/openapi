@@ -7,9 +7,9 @@ export default class UsersCreate extends BaseCommand {
   static override description = "Новый сотрудник";
 
   static override examples = [
-      "Массовое создание сотрудников с тегами:\n  $ pachca users create",
-      "Создать гостя в чат:\n  $ pachca users create",
-      "Онбординг нового сотрудника:\n  $ pachca users create"
+      "Массовое создание сотрудников с тегами — Для каждого сотрудника: создай аккаунт с тегами:\n  $ pachca users create",
+      "Создать гостя в чат — Создай гостя: роль `guest` и ровно один чат в `--chat-ids`:\n  $ pachca users create",
+      "Онбординг нового сотрудника — Создай аккаунт:\n  $ pachca users create"
   ];
 
   static scope = "users:create";

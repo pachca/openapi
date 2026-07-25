@@ -1040,6 +1040,35 @@ function generateUtils(ir: IR): string {
     '    return None',
     '',
     '',
+    'def _union_members(tp: object) -> list[type]:',
+    '    """Dataclass members of a Union, ignoring None and non-dataclass arms."""',
+    '    if get_origin(tp) is list:',
+    '        return []',
+    '    return [arg for arg in get_args(tp) if _is_dataclass_type(arg)]',
+    '',
+    '',
+    'def _declared_keys(member: type) -> set[str]:',
+    '    return {f.name[:-1] if f.name.endswith("_") else f.name for f in fields(member)}',
+    '',
+    '',
+    'def _match_union_member(members: list[type], data: dict) -> type:',
+    '    """Pick the union member that best fits a payload with no discriminator.',
+    '',
+    '    Ranks by: most payload keys recognised, then fewest unrecognised, then',
+    '    fewest declared fields (so an empty member only wins an empty payload).',
+    '    """',
+    '    keys = {k.replace("-", "_").lower() for k in data}',
+    '    best = members[0]',
+    '    best_score: tuple[int, int, int] | None = None',
+    '    for member in members:',
+    '        declared = _declared_keys(member)',
+    '        matched = len(keys & declared)',
+    '        score = (-matched, len(keys - declared), len(declared))',
+    '        if best_score is None or score < best_score:',
+    '            best, best_score = member, score',
+    '    return best',
+    '',
+    '',
     'def _resolve_list_item_type(tp: object) -> object | None:',
     '    """Extract the item type from list[X]."""',
     '    origin = get_origin(tp)',
@@ -1058,6 +1087,18 @@ function generateUtils(ir: IR): string {
     '    if custom is not None and isinstance(value, dict):',
     '        return custom(value)',
     '    if isinstance(value, dict):',
+    '        members = _union_members(tp)',
+    '        if len(members) > 1:',
+    '            # Multi-member union: pick by discriminator when the spec has one,',
+    '            # otherwise by which member best matches the payload shape. Taking',
+    '            # the first member (the old behaviour) silently dropped the data.',
+    '            disc = _UNION_DISCRIMINATORS.get(tp)',
+    '            if disc is not None:',
+    '                field_name, by_value = disc',
+    '                chosen = by_value.get(value.get(field_name))',
+    '                if chosen is not None:',
+    '                    return _deserialize_dataclass(chosen, value)',
+    '            return _deserialize_dataclass(_match_union_member(members, value), value)',
     '        nested = _resolve_type(tp)',
     '        if nested is not None:',
     '            return _deserialize_dataclass(nested, value)',
@@ -1124,6 +1165,28 @@ function generateUtils(ir: IR): string {
   lines.push('_CUSTOM_UNION_DESERIALIZERS: dict[object, CustomUnionDeserializer] = {');
   for (const u of customUnions) {
     lines.push(`    ${u.name}: _${camelToSnake(u.name)}_deserialize,`);
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push('# Unions the spec discriminates by a literal field: {union: (field, {value: member})}.');
+  lines.push('# Unions absent here have no discriminator and are matched by payload shape.');
+  lines.push('_UNION_DISCRIMINATORS: dict[object, tuple[str, dict[str, type]]] = {');
+  for (const u of ir.unions) {
+    if (u.unionDeserializer || !u.discriminatorField) continue;
+    const entries: string[] = [];
+    for (const ref of u.memberRefs) {
+      const model = ir.models.find((m) => m.name === ref);
+      const litField = model?.fields.find(
+        (f) => f.name === u.discriminatorField && f.type.kind === 'literal',
+      );
+      const litValue = litField?.type.literalValue;
+      if (litValue === undefined) continue;
+      entries.push(`${JSON.stringify(litValue)}: ${ref}`);
+    }
+    if (entries.length === 0) continue;
+    lines.push(
+      `    ${u.name}: (${JSON.stringify(u.discriminatorField)}, {${entries.join(', ')}}),`,
+    );
   }
   lines.push('}');
   lines.push('');

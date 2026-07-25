@@ -45,7 +45,7 @@
     "steps": [
       {
         "description": "Получи или создай тред, возьми `thread.id` из ответа",
-        "command": "pachca thread add <ID>",
+        "command": "pachca threads add <ID>",
         "notes": "Если тред уже существует, вернётся существующий"
       },
       {
@@ -140,7 +140,7 @@
     "steps": [
       {
         "description": "Получи или создай тред, возьми `chat_id` из ответа",
-        "command": "pachca thread add <ID>"
+        "command": "pachca threads add <ID>"
       },
       {
         "description": "Добавь бота в участники чата треда",

@@ -133,7 +133,21 @@ describe('searchChats', () => {
 		expect(result.paginationToken).toBe('cursor-abc');
 
 		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
-		expect(httpMock.mock.calls[0][1].url).toContain('/chats?per=50');
+		// `limit` is the v2 page-size param; `per` is v1 and is ignored by /chats.
+		expect(httpMock.mock.calls[0][1].url).toContain('/chats?limit=50');
+	});
+
+	it('should URL-encode the cursor', async () => {
+		const ctx = createLoadCtx({
+			httpResponses: [{ data: [], meta: { paginate: {} } }],
+		});
+
+		// Cursors are opaque base64 and may contain + and /, which are not safe
+		// to interpolate into a query string raw.
+		await searchChats.call(ctx, undefined, 'a+b/c=');
+
+		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
+		expect(httpMock.mock.calls[0][1].url).toContain('cursor=a%2Bb%2Fc%3D');
 	});
 
 	it('should pass pagination cursor', async () => {

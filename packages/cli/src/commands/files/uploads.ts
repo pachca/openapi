@@ -6,7 +6,7 @@ export default class FilesUploads extends BaseCommand {
   static override description = "Получение подписи, ключа и других параметров";
 
   static override examples = [
-      "Изменить вложения сообщения:\n  $ pachca files uploads"
+      "Изменить вложения сообщения — Если нужно добавить новый файл — загрузи его:\n  $ pachca files uploads"
   ];
 
   static override hiddenAliases = ["common:uploads"];

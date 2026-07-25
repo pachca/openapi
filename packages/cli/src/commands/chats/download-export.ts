@@ -8,7 +8,7 @@ export default class ChatsDownloadExport extends BaseCommand {
   static override description = "Скачать архив экспорта";
 
   static override examples = [
-      "Экспорт истории чата:\n  $ pachca chats download-export"
+      "Экспорт истории чата — Скачай файл экспорта:\n  $ pachca chats download-export"
   ];
 
   static override hiddenAliases = ["common:get-exports"];

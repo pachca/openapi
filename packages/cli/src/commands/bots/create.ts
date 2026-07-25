@@ -7,8 +7,8 @@ export default class BotsCreate extends BaseCommand {
   static override description = "Новый бот";
 
   static override examples = [
-      "Создать бота через API и получить токен:\n  $ pachca bots create",
-      "Настроить бота с исходящим вебхуком:\n  $ pachca bots create"
+      "Создать бота через API и получить токен — Создай бота. Только пользовательским токеном (не токеном бота); `nickname` обязан заканчиваться на `_bot`. Параметры вебхука (Webhook URL, события, команды) можно задать сразу или позже. Скоупы токена бота можно ограничить флагом `--scopes` (если не указать — бот получит набор по умолчанию):\n  $ pachca bots create",
+      "Настроить бота с исходящим вебхуком — Создай бота, сразу указав Webhook URL и события в одном вызове (детали создания и работы с токеном — в сценарии «Создать бота через API и получить токен»):\n  $ pachca bots create"
   ];
 
   static scope = "bots:write";

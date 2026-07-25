@@ -309,32 +309,60 @@ function transformModel(name: string, schema: Schema): IRModel {
   return { name, description: schema.description, fields, isError, inlineObjects };
 }
 
+/** Names of properties that are a single-value string enum (a literal). */
+function literalFieldNames(schema: Schema | undefined): Set<string> {
+  if (!schema) return new Set();
+  // Resolve allOf to get merged properties
+  const resolved = schema.allOf ? resolveAllOf(schema) : schema;
+  const merged = {
+    ...resolved,
+    properties: { ...resolved.properties, ...schema.properties },
+  };
+  const names = new Set<string>();
+  for (const [propName, propSchema] of Object.entries(merged.properties || {})) {
+    if (propSchema.enum && propSchema.enum.length === 1 && typeof propSchema.enum[0] === 'string') {
+      names.add(propName);
+    }
+  }
+  return names;
+}
+
+/**
+ * Name of the field that discriminates the union members, or `undefined` when
+ * the union has none.
+ *
+ * A field only qualifies when EVERY member carries a literal on it — a
+ * discriminator that some members lack cannot select between them. Scanning
+ * just the first member (as this used to do) produced a phantom discriminator
+ * for unions like `AuditEventDetailsUnion`, whose selector is a field on the
+ * PARENT object (`event_key`) and whose members share no common literal. The
+ * emitters then generated switches on a key that never appears on the wire:
+ * decoding either threw or silently returned the first member. Returning
+ * `undefined` routes those unions to each language's structural fallback.
+ */
 function detectDiscriminatorField(
   schema: Schema,
   memberRefs: string[],
   schemas: Record<string, Schema>,
-): string {
+): string | undefined {
   // Prefer explicit OpenAPI discriminator.propertyName
   const disc = (schema as Record<string, unknown>).discriminator as { propertyName?: string } | undefined;
   if (disc?.propertyName) {
     return disc.propertyName;
   }
-  // Fall back to scanning first member for a literal (single-value enum) field
-  if (memberRefs.length === 0) return 'type';
-  const firstSchema = schemas[memberRefs[0]];
-  if (!firstSchema) return 'type';
-  // Resolve allOf to get merged properties
-  const resolved = firstSchema.allOf ? resolveAllOf(firstSchema) : firstSchema;
-  const merged = {
-    ...resolved,
-    properties: { ...resolved.properties, ...firstSchema.properties },
-  };
-  for (const [propName, propSchema] of Object.entries(merged.properties || {})) {
-    if (propSchema.enum && propSchema.enum.length === 1 && typeof propSchema.enum[0] === 'string') {
-      return propName;
-    }
+  if (memberRefs.length === 0) return undefined;
+  // Keep only literals that every member agrees on
+  let common: Set<string> | undefined;
+  for (const ref of memberRefs) {
+    const names = literalFieldNames(schemas[ref]);
+    if (names.size === 0) return undefined;
+    common = common === undefined ? names : new Set([...common].filter((n) => names.has(n)));
+    if (common.size === 0) return undefined;
   }
-  return 'type';
+  if (!common || common.size === 0) return undefined;
+  // Prefer the conventional name, otherwise pick deterministically
+  if (common.has('type')) return 'type';
+  return [...common].sort()[0];
 }
 
 function transformUnion(name: string, schema: Schema, schemas: Record<string, Schema>): IRUnion {

@@ -355,7 +355,9 @@ const UPLOAD_FIELD_EXAMPLES: Record<string, string> = {
   'x-amz-algorithm': 'AWS4-HMAC-SHA256',
   'x-amz-date': '20211122T065734Z',
   'x-amz-signature': '87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475',
-  key: 'attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/$filename',
+  // `${filename}` — the literal placeholder POST /uploads returns, matching
+  // the spec example and the surrounding prose. `$filename` was neither.
+  key: 'attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}',
 };
 
 /**

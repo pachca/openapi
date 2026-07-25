@@ -73,8 +73,12 @@ export interface IRUnion {
   name: string;
   /** Referenced type names */
   memberRefs: string[];
-  /** Discriminator field name detected from literal fields (e.g. "type", "entity_type") */
-  discriminatorField: string;
+  /**
+   * Discriminator field name detected from literal fields (e.g. "type",
+   * "entity_type"). Undefined when the members share no common literal — such
+   * unions are emitted with a structural (shape-matching) decoder instead.
+   */
+  discriminatorField?: string;
   /** Optional named custom deserializer strategy from spec extension */
   unionDeserializer?: string;
 }

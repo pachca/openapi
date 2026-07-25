@@ -59,7 +59,7 @@ export const botOperations: INodeProperties[] = [
 				action: 'Update bot webhook',
 			},
 		],
-		default: 'recreateTokenSelf',
+		default: 'getAll',
 	},
 ];
 

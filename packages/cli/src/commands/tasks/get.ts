@@ -6,7 +6,7 @@ export default class TasksGet extends BaseCommand {
   static override description = "Информация о напоминании";
 
   static override examples = [
-      "Получить задачу по ID:\n  $ pachca tasks get"
+      "Получить задачу по ID — Получи информацию о задаче:\n  $ pachca tasks get"
   ];
 
   static scope = "tasks:read";

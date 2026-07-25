@@ -7,7 +7,7 @@ export default class MessagesUnfurl extends BaseCommand {
   static override description = "Unfurl (разворачивание ссылок)";
 
   static override examples = [
-      "Разворачивание ссылок (unfurling):\n  $ pachca messages unfurl"
+      "Разворачивание ссылок (unfurling) — Отправь превью-данные:\n  $ pachca messages unfurl"
   ];
 
   static override hiddenAliases = ["link-previews:add"];

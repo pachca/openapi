@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "getEvents": {
+    "usage": "var response = await client.Events.GetEventsAsync();",
+    "output": "GetEventsResponse(Data: List<Event>)"
+  }
+}

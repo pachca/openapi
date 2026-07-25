@@ -4,6 +4,18 @@ export { isRecord } from '../utils/type-guards';
 import type { Endpoint, Parameter } from '../openapi/types';
 import { generateParameterExample } from '../openapi/example-generator';
 
+/**
+ * POSIX single-quoting for a shell argument.
+ *
+ * Single quotes are the only quoting that leaves `$`, backtick and `\` inert —
+ * double quotes still expand them, so a value like `.../${filename}` (a real S3
+ * key template) or `{"a":1}` got mangled on paste. An embedded `'` is closed,
+ * escaped and reopened.
+ */
+export function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
 export function resolveUrl(endpoint: Endpoint, baseUrl: string): string {
   let resolvedPath = endpoint.path;
   const pathParams = endpoint.parameters.filter((p) => p.in === 'path');

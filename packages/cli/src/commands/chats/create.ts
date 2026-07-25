@@ -7,8 +7,8 @@ export default class ChatsCreate extends BaseCommand {
   static override description = "Новый чат";
 
   static override examples = [
-      "Создать канал и пригласить участников:\n  $ pachca chats create",
-      "Создать проектную беседу из шаблона:\n  $ pachca chats create"
+      "Создать канал и пригласить участников — Создай канал с участниками:\n  $ pachca chats create",
+      "Создать проектную беседу из шаблона — Создай беседу с участниками из тега:\n  $ pachca chats create"
   ];
 
   static scope = "chats:create";

@@ -133,6 +133,7 @@ function generateModels(ir: IR): string {
   let needSerialName = false;
   let needTransient = false;
   const needWebhookPayloadUnionSerializer = ir.unions.some((u) => u.unionDeserializer === 'webhook-payload');
+  const needStructuralUnionSerializer = ir.unions.some((u) => !u.discriminatorField);
 
   if (ir.enums.length > 0) needSerialName = true;
   if (ir.unions.length > 0) needSerialName = true;
@@ -159,20 +160,23 @@ function generateModels(ir: IR): string {
   const imports: string[] = [];
   if (needDateTime) imports.push('import java.time.OffsetDateTime');
   if (needDateTime) imports.push('import java.time.format.DateTimeFormatter');
-  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.KSerializer');
+  const needCustomUnionSerializer = needWebhookPayloadUnionSerializer || needStructuralUnionSerializer;
+  if (needDateTime || needCustomUnionSerializer) imports.push('import kotlinx.serialization.KSerializer');
   if (needSerialName) imports.push('import kotlinx.serialization.SerialName');
   imports.push('import kotlinx.serialization.Serializable');
   if (needTransient) imports.push('import kotlinx.serialization.Transient');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveKind');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor');
-  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.descriptors.buildClassSerialDescriptor');
-  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.encoding.Decoder');
-  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.encoding.Encoder');
-  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.JsonDecoder');
-  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.JsonEncoder');
+  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.descriptors.buildClassSerialDescriptor');
+  if (needDateTime || needCustomUnionSerializer) imports.push('import kotlinx.serialization.encoding.Decoder');
+  if (needDateTime || needCustomUnionSerializer) imports.push('import kotlinx.serialization.encoding.Encoder');
+  if (needStructuralUnionSerializer) imports.push('import kotlinx.serialization.json.Json');
+  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.JsonDecoder');
+  if (needStructuralUnionSerializer) imports.push('import kotlinx.serialization.json.JsonElement');
+  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.JsonEncoder');
   if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.contentOrNull');
-  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.decodeFromJsonElement');
-  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.jsonObject');
+  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.decodeFromJsonElement');
+  if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.jsonObject');
   if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.jsonPrimitive');
   lines.push(imports.join('\n'));
 
@@ -254,15 +258,83 @@ function emitUnion(
 
   const discriminatorField = u.discriminatorField;
   const useWebhookPayloadDeserializer = u.unionDeserializer === 'webhook-payload';
+  // No common literal across members: kotlinx cannot key a sealed hierarchy on a
+  // field that isn't on the wire (every member would need the same @SerialName),
+  // so decode structurally instead.
+  const structural = !discriminatorField;
 
   if (useWebhookPayloadDeserializer) {
     lines.push('@Serializable(with = WebhookPayloadUnionSerializer::class)');
+  } else if (structural) {
+    lines.push(`@Serializable(with = ${u.name}Serializer::class)`);
   } else {
     lines.push('@Serializable');
   }
-  lines.push(`sealed interface ${u.name} {`);
-  lines.push(`    val ${snakeToCamel(discriminatorField)}: String`);
-  lines.push('}');
+  if (structural) {
+    lines.push(`sealed interface ${u.name}`);
+  } else {
+    lines.push(`sealed interface ${u.name} {`);
+    lines.push(`    val ${snakeToCamel(discriminatorField!)}: String`);
+    lines.push('}');
+  }
+
+  if (structural) {
+    lines.push('');
+    lines.push(`// ${u.name} carries no discriminator field: the member is chosen by which one`);
+    lines.push('// best matches the payload keys (most recognised, then fewest unrecognised,');
+    lines.push('// then fewest declared).');
+    lines.push(`object ${u.name}Serializer : KSerializer<${u.name}> {`);
+    lines.push(`    override val descriptor = buildClassSerialDescriptor("${u.name}")`);
+    lines.push('');
+    lines.push(`    private val shapes: List<Pair<Set<String>, (Json, JsonElement) -> ${u.name}>> = listOf(`);
+    for (const memberModel of memberModels) {
+      const keys = memberModel.fields.map((f) => JSON.stringify(f.name)).join(', ');
+      const set = keys ? `setOf(${keys})` : 'setOf<String>()';
+      lines.push(
+        `        ${set} to { json, element -> json.decodeFromJsonElement(${memberModel.name}.serializer(), element) },`,
+      );
+    }
+    lines.push('    )');
+    lines.push('');
+    lines.push(`    override fun serialize(encoder: Encoder, value: ${u.name}) {`);
+    lines.push(`        val jsonEncoder = encoder as? JsonEncoder ?: error("${u.name}Serializer only supports JSON")`);
+    lines.push('        when (value) {');
+    for (const memberModel of memberModels) {
+      lines.push(
+        `            is ${memberModel.name} -> jsonEncoder.encodeSerializableValue(${memberModel.name}.serializer(), value)`,
+      );
+    }
+    lines.push('        }');
+    lines.push('    }');
+    lines.push('');
+    lines.push(`    override fun deserialize(decoder: Decoder): ${u.name} {`);
+    lines.push(`        val jsonDecoder = decoder as? JsonDecoder ?: error("${u.name}Serializer only supports JSON")`);
+    lines.push('        val element = jsonDecoder.decodeJsonElement()');
+    lines.push('        val keys = element.jsonObject.keys');
+    lines.push(`        var best: Pair<Set<String>, (Json, JsonElement) -> ${u.name}>? = null`);
+    lines.push('        var bestMatched = 0');
+    lines.push('        var bestUnknown = 0');
+    lines.push('        var bestDeclared = 0');
+    lines.push('        for (shape in shapes) {');
+    lines.push('            val matched = keys.count { it in shape.first }');
+    lines.push('            val unknown = keys.size - matched');
+    lines.push('            val declared = shape.first.size');
+    lines.push('            val better = best == null ||');
+    lines.push('                matched > bestMatched ||');
+    lines.push('                (matched == bestMatched && unknown < bestUnknown) ||');
+    lines.push('                (matched == bestMatched && unknown == bestUnknown && declared < bestDeclared)');
+    lines.push('            if (better) {');
+    lines.push('                best = shape');
+    lines.push('                bestMatched = matched');
+    lines.push('                bestUnknown = unknown');
+    lines.push('                bestDeclared = declared');
+    lines.push('            }');
+    lines.push('        }');
+    lines.push(`        val chosen = best ?: error("No ${u.name} member matched the payload")`);
+    lines.push('        return chosen.second(jsonDecoder.json, element)');
+    lines.push('    }');
+    lines.push('}');
+  }
 
   if (useWebhookPayloadDeserializer) {
     // Member-driven: the serialize/deserialize branches iterate the union's
@@ -312,11 +384,16 @@ function emitUnion(
 
     lines.push('');
     lines.push('@Serializable');
-    lines.push(`@SerialName("${litValue}")`);
+    if (!structural) lines.push(`@SerialName("${litValue}")`);
+    if (memberModel.fields.length === 0) {
+      // A member with no fields cannot be a `data class` (needs ≥1 parameter).
+      lines.push(`class ${memberModel.name} : ${u.name}`);
+      continue;
+    }
     lines.push(`data class ${memberModel.name}(`);
-    if (!memberModel.fields.some((f) => f.name === discriminatorField)) {
+    if (!structural && !memberModel.fields.some((f) => f.name === discriminatorField)) {
       lines.push(
-        `    override val ${snakeToCamel(discriminatorField)}: String = "${litValue}",`,
+        `    override val ${snakeToCamel(discriminatorField!)}: String = "${litValue}",`,
       );
     }
     const bodyLiteralFields: IRField[] = [];

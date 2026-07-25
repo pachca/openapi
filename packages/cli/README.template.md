@@ -209,7 +209,7 @@ pachca autocomplete powershell  # PowerShell completion
 
 | Переменная | Описание |
 |-----------|---------|
-| `PACHCA_TOKEN` | Bearer-токен (высший приоритет, удобно для CI) |
+| `PACHCA_TOKEN` | Bearer-токен, удобно для CI. Приоритетнее профиля, но флаги `--token` и `--profile` его перебивают |
 | `PACHCA_PROFILE` | Активный профиль для команды |
 | `PACHCA_TIMEOUT` | Таймаут запроса в секундах (по умолчанию 30) |
 | `PACHCA_PROMPT_DISABLED` | Отключить интерактивные промпты |

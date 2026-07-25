@@ -6,8 +6,8 @@ export default class ProfileGet extends BaseCommand {
   static override description = "Свой профиль";
 
   static override examples = [
-      "Получить свой профиль:\n  $ pachca profile get",
-      "Получить кастомные поля профиля:\n  $ pachca profile get"
+      "Получить свой профиль — Получи информацию о текущем пользователе:\n  $ pachca profile get",
+      "Получить кастомные поля профиля — Получи профиль — в `custom_properties` содержатся значения полей:\n  $ pachca profile get"
   ];
 
   static scope = "profile:read";

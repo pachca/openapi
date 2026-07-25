@@ -11,7 +11,7 @@ description: >
   собрать форму, модальное окно, модалка, отправка формы, обработать форму,
   валидация формы, валидация поля, view_submission, опрос, анкета, заявка, форма
   заявки, form, modal, interactive form. NOT for: кнопки в сообщении, настроить
-  бота, вебхук.
+  бота, вебхук, → pachca-messages, → pachca-bots.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 

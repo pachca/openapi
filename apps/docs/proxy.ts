@@ -10,7 +10,9 @@ function markdownTwin(pathname: string): string | null {
     return `${pathname.replace(/\/+$/, '')}.md`;
   }
   if (pathname.startsWith('/guides/') || pathname.startsWith('/api/')) {
-    if (pathname.startsWith('/api/search') || pathname.startsWith('/api/og')) return null;
+    // No /api/search or /api/og exclusion here: those route handlers moved to
+    // /internal/* (already excluded by the matcher below), while /api/search/*
+    // are real documentation pages with real .md twins in public/api/search/.
     if (pathname.endsWith('.md')) return null;
     return `${pathname.replace(/\/+$/, '')}.md`;
   }

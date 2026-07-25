@@ -6,7 +6,7 @@ export default class BotsUpdate extends BaseCommand {
   static override description = "Редактирование бота";
 
   static override examples = [
-      "Обновить Webhook URL бота:\n  $ pachca bots update"
+      "Обновить Webhook URL бота — Пользовательским токеном (с правом редактировать бота) — обнови URL по `id` бота. Пустая строка отключает вебхук:\n  $ pachca bots update"
   ];
 
   static scope = "bots:write";

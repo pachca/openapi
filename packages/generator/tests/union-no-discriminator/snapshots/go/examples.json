@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "getEvents": {
+    "usage": "response, err := client.Events.GetEvents(ctx)",
+    "output": "GetEventsResponse{Data: []Event}"
+  }
+}

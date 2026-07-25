@@ -728,23 +728,23 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 		updateAvatar: {
 			method: 'PUT' as IHttpRequestMethods,
 			path: '/users/{user_id}/avatar',
-			pathParams: [{ api: 'user_id', n8n: 'userId' }],
+			pathParams: [{ api: 'user_id', n8n: 'userId', locator: true }],
 			special: 'avatarUpload',
 		},
 		deleteAvatar: {
 			method: 'DELETE' as IHttpRequestMethods,
 			path: '/users/{user_id}/avatar',
-			pathParams: [{ api: 'user_id', n8n: 'userId' }],
+			pathParams: [{ api: 'user_id', n8n: 'userId', locator: true }],
 		},
 		getStatus: {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/users/{user_id}/status',
-			pathParams: [{ api: 'user_id', n8n: 'userId' }],
+			pathParams: [{ api: 'user_id', n8n: 'userId', locator: true }],
 		},
 		updateStatus: {
 			method: 'PUT' as IHttpRequestMethods,
 			path: '/users/{user_id}/status',
-			pathParams: [{ api: 'user_id', n8n: 'userId' }],
+			pathParams: [{ api: 'user_id', n8n: 'userId', locator: true }],
 			wrapperKey: 'status',
 			bodyMap: [
 				{ api: 'emoji', n8n: 'emoji' },
@@ -759,7 +759,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 		deleteStatus: {
 			method: 'DELETE' as IHttpRequestMethods,
 			path: '/users/{user_id}/status',
-			pathParams: [{ api: 'user_id', n8n: 'userId' }],
+			pathParams: [{ api: 'user_id', n8n: 'userId', locator: true }],
 		},
 	},
 	form: {

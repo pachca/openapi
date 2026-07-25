@@ -55,6 +55,9 @@ export class PachcaApi implements ICredentialType {
 		},
 	};
 
+	// /oauth/token/info is deliberate and works for bot tokens: it declares no
+	// required scope, whereas GET /profile requires profile:read and would reject
+	// a narrowly-scoped token. Checked 2026-07-25 — do not "fix" to /profile.
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{$credentials.baseUrl}}',

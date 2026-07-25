@@ -7,7 +7,7 @@ export default class ProfileUpdateStatus extends BaseCommand {
   static override description = "Новый свой статус";
 
   static override examples = [
-      "Установить статус:\n  $ pachca profile update-status"
+      "Установить статус — Установи статус:\n  $ pachca profile update-status"
   ];
 
   static scope = "profile_status:write";

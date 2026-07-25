@@ -6,9 +6,9 @@ export default class ChatsList extends BaseCommand {
   static override description = "Список чатов";
 
   static override examples = [
-      "Найти активные чаты за период:\n  $ pachca chats list",
-      "Найти и заархивировать неактивные чаты:\n  $ pachca chats list",
-      "Создать гостя в чат:\n  $ pachca chats list"
+      "Найти активные чаты за период — Получи чаты с активностью после указанной даты:\n  $ pachca chats list",
+      "Найти и заархивировать неактивные чаты — Получи чаты без активности с нужной даты:\n  $ pachca chats list",
+      "Создать гостя в чат — Выбери активный чат, в который добавить гостя — узнай его ID:\n  $ pachca chats list"
   ];
 
   static scope = "chats:read";

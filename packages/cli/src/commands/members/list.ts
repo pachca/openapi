@@ -6,7 +6,8 @@ export default class MembersList extends BaseCommand {
   static override description = "Список участников чата";
 
   static override examples = [
-      "Упомянуть пользователя:\n  $ pachca members list"
+      "Упомянуть пользователя — Ищи среди участников целевого чата:\n  $ pachca members list",
+      "Упомянуть пользователя — Если пишешь в тред: также проверь участников родительского чата:\n  $ pachca members list"
   ];
 
   static scope = "chat_members:read";

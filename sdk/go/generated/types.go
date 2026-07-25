@@ -1620,6 +1620,41 @@ type UpdateUserAvatarRequest struct {
 	Image io.Reader `json:"image"`
 }
 
+// unionMemberShape lists the JSON keys one member of an undiscriminated union declares.
+type unionMemberShape struct {
+	keys map[string]struct{}
+}
+
+// pickUnionMember selects the member that best fits the payload: most keys
+// recognised, then fewest unrecognised, then fewest declared. Returns -1 when
+// the payload is not a JSON object.
+func pickUnionMember(data []byte, shapes []unionMemberShape) int {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return -1
+	}
+	best := -1
+	bestMatched, bestUnknown, bestDeclared := 0, 0, 0
+	for i, shape := range shapes {
+		matched := 0
+		for k := range raw {
+			if _, ok := shape.keys[k]; ok {
+				matched++
+			}
+		}
+		unknown := len(raw) - matched
+		declared := len(shape.keys)
+		better := best == -1 ||
+			matched > bestMatched ||
+			(matched == bestMatched && unknown < bestUnknown) ||
+			(matched == bestMatched && unknown == bestUnknown && declared < bestDeclared)
+		if better {
+			best, bestMatched, bestUnknown, bestDeclared = i, matched, unknown, declared
+		}
+	}
+	return best
+}
+
 type AuditEventDetailsUnion struct {
 	AuditDetailsEmpty              *AuditDetailsEmpty
 	AuditDetailsUserUpdated        *AuditDetailsUserUpdated
@@ -1639,73 +1674,92 @@ type AuditEventDetailsUnion struct {
 	AuditDetailsBotWebhookSettings *AuditDetailsBotWebhookSettings
 	AuditDetailsVideoCall          *AuditDetailsVideoCall
 	AuditDetailsVideoCallRecording *AuditDetailsVideoCallRecording
+	Raw                            json.RawMessage
 }
 
+var auditEventDetailsUnionShapes = []unionMemberShape{
+	{keys: map[string]struct{}{}},
+	{keys: map[string]struct{}{"changed_attrs": {}}},
+	{keys: map[string]struct{}{"new_company_role": {}, "previous_company_role": {}, "initiator_id": {}}},
+	{keys: map[string]struct{}{"name": {}}},
+	{keys: map[string]struct{}{"initiator_id": {}}},
+	{keys: map[string]struct{}{"inviter_id": {}}},
+	{keys: map[string]struct{}{"old_name": {}, "new_name": {}}},
+	{keys: map[string]struct{}{"public_access": {}}},
+	{keys: map[string]struct{}{"chat_id": {}, "tag_name": {}}},
+	{keys: map[string]struct{}{"chat_id": {}}},
+	{keys: map[string]struct{}{"scopes": {}}},
+	{keys: map[string]struct{}{"chat_id": {}, "message_id": {}, "reason": {}}},
+	{keys: map[string]struct{}{"dlp_rule_id": {}, "dlp_rule_name": {}, "message_id": {}, "chat_id": {}, "user_id": {}, "action_message": {}, "conditions_matched": {}}},
+	{keys: map[string]struct{}{"search_type": {}, "query_present": {}, "cursor_present": {}, "limit": {}, "filters": {}}},
+	{keys: map[string]struct{}{"added_scopes": {}, "removed_scopes": {}}},
+	{keys: map[string]struct{}{"changes": {}}},
+	{keys: map[string]struct{}{"chat_id": {}, "duration": {}, "max_members_count": {}}},
+	{keys: map[string]struct{}{"chat_id": {}, "duration": {}, "size": {}}},
+}
+
+// UnmarshalJSON decodes AuditEventDetailsUnion, which carries no discriminator field:
+// the member is chosen by which one best matches the payload keys. The raw
+// payload is always kept in Raw so an unrecognised shape is never a decode error.
 func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
-	var disc struct {
-		Type string `json:"type"`
-	}
-	if err := json.Unmarshal(data, &disc); err != nil {
-		return err
-	}
-	switch disc.Type {
-	case "AuditDetailsEmpty":
+	u.Raw = append(json.RawMessage(nil), data...)
+	switch pickUnionMember(data, auditEventDetailsUnionShapes) {
+	case 0:
 		u.AuditDetailsEmpty = &AuditDetailsEmpty{}
 		return json.Unmarshal(data, u.AuditDetailsEmpty)
-	case "AuditDetailsUserUpdated":
+	case 1:
 		u.AuditDetailsUserUpdated = &AuditDetailsUserUpdated{}
 		return json.Unmarshal(data, u.AuditDetailsUserUpdated)
-	case "AuditDetailsRoleChanged":
+	case 2:
 		u.AuditDetailsRoleChanged = &AuditDetailsRoleChanged{}
 		return json.Unmarshal(data, u.AuditDetailsRoleChanged)
-	case "AuditDetailsTagName":
+	case 3:
 		u.AuditDetailsTagName = &AuditDetailsTagName{}
 		return json.Unmarshal(data, u.AuditDetailsTagName)
-	case "AuditDetailsInitiator":
+	case 4:
 		u.AuditDetailsInitiator = &AuditDetailsInitiator{}
 		return json.Unmarshal(data, u.AuditDetailsInitiator)
-	case "AuditDetailsInviter":
+	case 5:
 		u.AuditDetailsInviter = &AuditDetailsInviter{}
 		return json.Unmarshal(data, u.AuditDetailsInviter)
-	case "AuditDetailsChatRenamed":
+	case 6:
 		u.AuditDetailsChatRenamed = &AuditDetailsChatRenamed{}
 		return json.Unmarshal(data, u.AuditDetailsChatRenamed)
-	case "AuditDetailsChatPermission":
+	case 7:
 		u.AuditDetailsChatPermission = &AuditDetailsChatPermission{}
 		return json.Unmarshal(data, u.AuditDetailsChatPermission)
-	case "AuditDetailsTagChat":
+	case 8:
 		u.AuditDetailsTagChat = &AuditDetailsTagChat{}
 		return json.Unmarshal(data, u.AuditDetailsTagChat)
-	case "AuditDetailsChatId":
+	case 9:
 		u.AuditDetailsChatId = &AuditDetailsChatId{}
 		return json.Unmarshal(data, u.AuditDetailsChatId)
-	case "AuditDetailsTokenScopes":
+	case 10:
 		u.AuditDetailsTokenScopes = &AuditDetailsTokenScopes{}
 		return json.Unmarshal(data, u.AuditDetailsTokenScopes)
-	case "AuditDetailsKms":
+	case 11:
 		u.AuditDetailsKms = &AuditDetailsKms{}
 		return json.Unmarshal(data, u.AuditDetailsKms)
-	case "AuditDetailsDlp":
+	case 12:
 		u.AuditDetailsDlp = &AuditDetailsDlp{}
 		return json.Unmarshal(data, u.AuditDetailsDlp)
-	case "AuditDetailsSearch":
+	case 13:
 		u.AuditDetailsSearch = &AuditDetailsSearch{}
 		return json.Unmarshal(data, u.AuditDetailsSearch)
-	case "AuditDetailsBotScopes":
+	case 14:
 		u.AuditDetailsBotScopes = &AuditDetailsBotScopes{}
 		return json.Unmarshal(data, u.AuditDetailsBotScopes)
-	case "AuditDetailsBotWebhookSettings":
+	case 15:
 		u.AuditDetailsBotWebhookSettings = &AuditDetailsBotWebhookSettings{}
 		return json.Unmarshal(data, u.AuditDetailsBotWebhookSettings)
-	case "AuditDetailsVideoCall":
+	case 16:
 		u.AuditDetailsVideoCall = &AuditDetailsVideoCall{}
 		return json.Unmarshal(data, u.AuditDetailsVideoCall)
-	case "AuditDetailsVideoCallRecording":
+	case 17:
 		u.AuditDetailsVideoCallRecording = &AuditDetailsVideoCallRecording{}
 		return json.Unmarshal(data, u.AuditDetailsVideoCallRecording)
-	default:
-		return fmt.Errorf("unknown AuditEventDetailsUnion type: %s", disc.Type)
 	}
+	return nil
 }
 
 func (u AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {
@@ -1762,6 +1816,9 @@ func (u AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {
 	}
 	if u.AuditDetailsVideoCallRecording != nil {
 		return json.Marshal(u.AuditDetailsVideoCallRecording)
+	}
+	if len(u.Raw) > 0 {
+		return u.Raw, nil
 	}
 	return nil, fmt.Errorf("empty AuditEventDetailsUnion")
 }

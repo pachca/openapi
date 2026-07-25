@@ -6,9 +6,9 @@ export default class SecurityList extends BaseCommand {
   static override description = "Журнал аудита событий";
 
   static override examples = [
-      "Получить журнал аудита событий:\n  $ pachca security list",
-      "Мониторинг подозрительных входов:\n  $ pachca security list",
-      "Экспорт логов за период:\n  $ pachca security list"
+      "Получить журнал аудита событий — Получи журнал аудита:\n  $ pachca security list",
+      "Мониторинг подозрительных входов — Получи события неудачных 2FA за период:\n  $ pachca security list",
+      "Экспорт логов за период — Получи все события за период с пагинацией:\n  $ pachca security list"
   ];
 
   static scope = "audit_events:read";

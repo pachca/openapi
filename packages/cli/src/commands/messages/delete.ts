@@ -7,7 +7,7 @@ export default class MessagesDelete extends BaseCommand {
   static override description = "Удаление сообщения";
 
   static override examples = [
-      "Удалить сообщение:\n  $ pachca messages delete"
+      "Удалить сообщение — Удали сообщение:\n  $ pachca messages delete"
   ];
 
   static scope = "messages:delete";

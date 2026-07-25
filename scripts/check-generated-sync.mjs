@@ -46,6 +46,10 @@ const GENERATED_PATHS = [
   'packages/cli/oclif.manifest.json',
   // Docs — root + agent indices
   'AGENTS.md',
+  'SKILL.md',
+  'skill.json',
+  'skills/**',
+  'apps/docs/public/.well-known/agent-card.json',
   'apps/docs/public/index.md',
   'apps/docs/public/llms.txt',
   'apps/docs/public/llms-full.txt',
@@ -74,7 +78,12 @@ const BUILD_FILTERS = ['@pachca/spec', '@pachca/cli', '@pachca/docs'];
 
 console.error('[check-generated-sync] regenerating artefacts via `bun turbo build`…');
 try {
-  execSync(`bun turbo build ${BUILD_FILTERS.map((f) => `--filter=${f}`).join(' ')}`, {
+  // --force: several outputs (root AGENTS.md / SKILL.md / skill.json / skills/,
+  // packages/cli/CHANGELOG.md) live outside any task's declared `outputs`, so a
+  // warm turbo cache would skip regenerating them and this gate would compare a
+  // file nothing had rebuilt. This is the one caller that needs a guaranteed
+  // fresh build, so pay for it here rather than restructuring the task graph.
+  execSync(`bun turbo build --force ${BUILD_FILTERS.map((f) => `--filter=${f}`).join(' ')}`, {
     stdio: ['ignore', 'inherit', 'inherit'],
   });
 } catch {

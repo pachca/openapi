@@ -7,7 +7,7 @@ export default class CustomPropertiesList extends BaseCommand {
   static override description = "Список дополнительных полей";
 
   static override examples = [
-      "Получить кастомные поля профиля:\n  $ pachca custom-properties list"
+      "Получить кастомные поля профиля — Получи список дополнительных полей для сотрудников:\n  $ pachca custom-properties list"
   ];
 
   static override hiddenAliases = ["common:custom-properties"];

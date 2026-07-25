@@ -7,7 +7,7 @@ export default class GroupTagsCreate extends BaseCommand {
   static override description = "Новый тег";
 
   static override examples = [
-      "Массовое создание сотрудников с тегами:\n  $ pachca group-tags create"
+      "Массовое создание сотрудников с тегами — Создай тег (если нужен):\n  $ pachca group-tags create"
   ];
 
   static scope = "group_tags:write";

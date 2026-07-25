@@ -3125,55 +3125,84 @@ public enum AuditEventDetailsUnion: Codable {
     case auditDetailsVideoCall(AuditDetailsVideoCall)
     case auditDetailsVideoCallRecording(AuditDetailsVideoCallRecording)
 
-    private enum CodingKeys: String, CodingKey {
-        case type
-    }
-
     public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let type = try container.decode(String.self, forKey: .type)
-        switch type {
-        case "auditDetailsEmpty":
-            self = .auditDetailsEmpty(try AuditDetailsEmpty(from: decoder))
-        case "auditDetailsUserUpdated":
-            self = .auditDetailsUserUpdated(try AuditDetailsUserUpdated(from: decoder))
-        case "auditDetailsRoleChanged":
-            self = .auditDetailsRoleChanged(try AuditDetailsRoleChanged(from: decoder))
-        case "auditDetailsTagName":
-            self = .auditDetailsTagName(try AuditDetailsTagName(from: decoder))
-        case "auditDetailsInitiator":
-            self = .auditDetailsInitiator(try AuditDetailsInitiator(from: decoder))
-        case "auditDetailsInviter":
-            self = .auditDetailsInviter(try AuditDetailsInviter(from: decoder))
-        case "auditDetailsChatRenamed":
-            self = .auditDetailsChatRenamed(try AuditDetailsChatRenamed(from: decoder))
-        case "auditDetailsChatPermission":
-            self = .auditDetailsChatPermission(try AuditDetailsChatPermission(from: decoder))
-        case "auditDetailsTagChat":
-            self = .auditDetailsTagChat(try AuditDetailsTagChat(from: decoder))
-        case "auditDetailsChatId":
-            self = .auditDetailsChatId(try AuditDetailsChatId(from: decoder))
-        case "auditDetailsTokenScopes":
-            self = .auditDetailsTokenScopes(try AuditDetailsTokenScopes(from: decoder))
-        case "auditDetailsKms":
-            self = .auditDetailsKms(try AuditDetailsKms(from: decoder))
-        case "auditDetailsDlp":
-            self = .auditDetailsDlp(try AuditDetailsDlp(from: decoder))
-        case "auditDetailsSearch":
-            self = .auditDetailsSearch(try AuditDetailsSearch(from: decoder))
-        case "auditDetailsBotScopes":
-            self = .auditDetailsBotScopes(try AuditDetailsBotScopes(from: decoder))
-        case "auditDetailsBotWebhookSettings":
-            self = .auditDetailsBotWebhookSettings(try AuditDetailsBotWebhookSettings(from: decoder))
-        case "auditDetailsVideoCall":
-            self = .auditDetailsVideoCall(try AuditDetailsVideoCall(from: decoder))
-        case "auditDetailsVideoCallRecording":
-            self = .auditDetailsVideoCallRecording(try AuditDetailsVideoCallRecording(from: decoder))
-        default:
-            throw DecodingError.dataCorrupted(
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unknown type: \(type)")
-            )
+        // AuditEventDetailsUnion carries no discriminator field: members are tried from most
+        // to least demanding, so the loosest one only wins when nothing else fits.
+        if let value = try? AuditDetailsDlp(from: decoder) {
+            self = .auditDetailsDlp(value)
+            return
         }
+        if let value = try? AuditDetailsSearch(from: decoder) {
+            self = .auditDetailsSearch(value)
+            return
+        }
+        if let value = try? AuditDetailsKms(from: decoder) {
+            self = .auditDetailsKms(value)
+            return
+        }
+        if let value = try? AuditDetailsRoleChanged(from: decoder) {
+            self = .auditDetailsRoleChanged(value)
+            return
+        }
+        if let value = try? AuditDetailsVideoCall(from: decoder) {
+            self = .auditDetailsVideoCall(value)
+            return
+        }
+        if let value = try? AuditDetailsVideoCallRecording(from: decoder) {
+            self = .auditDetailsVideoCallRecording(value)
+            return
+        }
+        if let value = try? AuditDetailsBotScopes(from: decoder) {
+            self = .auditDetailsBotScopes(value)
+            return
+        }
+        if let value = try? AuditDetailsChatRenamed(from: decoder) {
+            self = .auditDetailsChatRenamed(value)
+            return
+        }
+        if let value = try? AuditDetailsTagChat(from: decoder) {
+            self = .auditDetailsTagChat(value)
+            return
+        }
+        if let value = try? AuditDetailsBotWebhookSettings(from: decoder) {
+            self = .auditDetailsBotWebhookSettings(value)
+            return
+        }
+        if let value = try? AuditDetailsChatId(from: decoder) {
+            self = .auditDetailsChatId(value)
+            return
+        }
+        if let value = try? AuditDetailsChatPermission(from: decoder) {
+            self = .auditDetailsChatPermission(value)
+            return
+        }
+        if let value = try? AuditDetailsInitiator(from: decoder) {
+            self = .auditDetailsInitiator(value)
+            return
+        }
+        if let value = try? AuditDetailsInviter(from: decoder) {
+            self = .auditDetailsInviter(value)
+            return
+        }
+        if let value = try? AuditDetailsTagName(from: decoder) {
+            self = .auditDetailsTagName(value)
+            return
+        }
+        if let value = try? AuditDetailsTokenScopes(from: decoder) {
+            self = .auditDetailsTokenScopes(value)
+            return
+        }
+        if let value = try? AuditDetailsUserUpdated(from: decoder) {
+            self = .auditDetailsUserUpdated(value)
+            return
+        }
+        if let value = try? AuditDetailsEmpty(from: decoder) {
+            self = .auditDetailsEmpty(value)
+            return
+        }
+        throw DecodingError.dataCorrupted(
+            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "No AuditEventDetailsUnion member matched the payload")
+        )
     }
 
     public func encode(to encoder: Encoder) throws {

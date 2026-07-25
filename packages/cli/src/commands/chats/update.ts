@@ -6,7 +6,7 @@ export default class ChatsUpdate extends BaseCommand {
   static override description = "Редактирование чата";
 
   static override examples = [
-      "Переименовать или обновить чат:\n  $ pachca chats update"
+      "Переименовать или обновить чат — Обнови чат:\n  $ pachca chats update"
   ];
 
   static scope = "chats:update";

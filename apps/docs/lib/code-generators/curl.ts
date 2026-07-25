@@ -10,6 +10,7 @@ import {
   hasMultipartContent,
   resolveUrl,
   buildQueryString,
+  shellQuote,
 } from './utils';
 
 export function generateCurl(
@@ -51,11 +52,11 @@ export function generateCurl(
     const fields = generateMultipartExample(endpoint.requestBody);
     if (fields) {
       for (const field of fields) {
-        if (field.isFile) {
-          curl += ` \\\n  -F "${field.name}=@${field.value}"`;
-        } else {
-          curl += ` \\\n  -F "${field.name}=${field.value}"`;
-        }
+        // Single quotes, not double: an S3 `key` legitimately contains the
+        // literal `${filename}` placeholder, which bash would expand to nothing
+        // inside double quotes — silently truncating the upload path.
+        const prefix = field.isFile ? '@' : '';
+        curl += ` \\\n  -F ${shellQuote(`${field.name}=${prefix}${field.value}`)}`;
       }
     }
   } else {
@@ -69,7 +70,7 @@ export function generateCurl(
       const requestExample = generateRequestExample(endpoint.requestBody, options);
 
       if (requestExample) {
-        curl += ` \\\n  -d '${JSON.stringify(requestExample, null, 2)}'`;
+        curl += ` \\\n  -d ${shellQuote(JSON.stringify(requestExample, null, 2))}`;
       }
     }
   }

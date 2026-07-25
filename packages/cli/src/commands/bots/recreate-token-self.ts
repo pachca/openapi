@@ -6,7 +6,7 @@ export default class BotsRecreateTokenSelf extends BaseCommand {
   static override description = "Ротация собственного токена бота";
 
   static override examples = [
-      "Ротация токена бота:\n  $ pachca bots recreate-token-self"
+      "Ротация токена бота — Или: бот перевыпускает собственный токен своим же токеном (скоуп `bot_self:write`). Токен, которым выполнен запрос, инвалидируется сразу — обязательно сохрани новый `access_token` из ответа, иначе бот потеряет доступ к API:\n  $ pachca bots recreate-token-self"
   ];
 
   static scope = "bot_self:write";

@@ -6,7 +6,7 @@ export default class BotsListEvents extends BaseCommand {
   static override description = "История событий";
 
   static override examples = [
-      "Обработка событий через историю (polling):\n  $ pachca bots list-events"
+      "Обработка событий через историю (polling) — Получи накопленные события:\n  $ pachca bots list-events"
   ];
 
   static scope = "webhooks:events:read";

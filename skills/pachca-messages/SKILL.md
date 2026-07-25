@@ -11,7 +11,9 @@ description: >
   в тред, тред, прикрепить файл, загрузить файл, поставить реакцию, история
   сообщений, закрепить сообщение, изменить сообщение, удалить сообщение,
   упомянуть, кнопки в сообщении, кто прочитал, ответь в тред. NOT for: создать
-  канал, управление участниками, настроить бота, вебхук, форма.
+  канал, управление участниками, настроить бота, вебхук, форма, → pachca-chats, →
+  pachca-bots, → pachca-forms, найти сообщение по тексту, полнотекстовый поиск →
+  pachca-search.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -96,7 +98,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 1. Получи или создай тред, возьми `thread.id` из ответа:
    ```bash
-   pachca thread add <ID>
+   pachca threads add <ID>
    ```
    > Если тред уже существует, вернётся существующий
 
@@ -164,7 +166,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 1. Получи или создай тред, возьми `chat_id` из ответа:
    ```bash
-   pachca thread add <ID>
+   pachca threads add <ID>
    ```
 
 2. Добавь бота в участники чата треда:
@@ -275,6 +277,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 | Method | Path | Description |
 |--------|------|-------------|
+| POST | /direct_url | Загрузка файла |
 | POST | /messages | Новое сообщение |
 | GET | /messages | Список сообщений чата |
 | GET | /messages/{id} | Информация о сообщении |
@@ -291,6 +294,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | POST | /threads | Новый самостоятельный тред |
 | GET | /threads | Список тредов |
 | GET | /threads/{id} | Информация о треде |
+| POST | /uploads | Получение подписи, ключа и других параметров |
 
 ## Advanced workflows
 

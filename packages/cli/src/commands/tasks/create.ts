@@ -7,9 +7,9 @@ export default class TasksCreate extends BaseCommand {
   static override description = "Новое напоминание";
 
   static override examples = [
-      "Форма заявки/запроса:\n  $ pachca tasks create",
-      "Создать напоминание:\n  $ pachca tasks create",
-      "Создать серию напоминаний:\n  $ pachca tasks create"
+      "Форма заявки/запроса — При submit: создай задачу или отправь уведомление ответственному:\n  $ pachca tasks create",
+      "Создать напоминание — Создай задачу:\n  $ pachca tasks create",
+      "Создать серию напоминаний — Для каждой даты: создай задачу:\n  $ pachca tasks create"
   ];
 
   static scope = "tasks:create";

@@ -6,9 +6,9 @@ export default class SearchListUsers extends BaseCommand {
   static override description = "Поиск сотрудников";
 
   static override examples = [
-      "Отправить личное сообщение пользователю:\n  $ pachca search list-users",
-      "Упомянуть пользователя:\n  $ pachca search list-users",
-      "Найти сотрудника по имени:\n  $ pachca search list-users"
+      "Отправить личное сообщение пользователю — Определи `user_id` получателя:\n  $ pachca search list-users",
+      "Упомянуть пользователя — Не нашёл — ищи по всей компании:\n  $ pachca search list-users",
+      "Найти сотрудника по имени — Полнотекстовый поиск по сотрудникам:\n  $ pachca search list-users"
   ];
 
   static scope = "search:users";

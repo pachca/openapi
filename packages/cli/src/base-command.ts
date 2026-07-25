@@ -61,6 +61,8 @@ export abstract class BaseCommand extends Command {
     }),
     timeout: Flags.integer({
       description: 'Request timeout in seconds',
+      // 0 or negative would abort on the next tick; fail loudly instead.
+      min: 1,
     }),
     'no-retry': Flags.boolean({
       description: 'Disable auto-retry on 429/503',

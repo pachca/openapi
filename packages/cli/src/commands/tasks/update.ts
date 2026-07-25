@@ -6,8 +6,8 @@ export default class TasksUpdate extends BaseCommand {
   static override description = "Редактирование напоминания";
 
   static override examples = [
-      "Отметить задачу выполненной:\n  $ pachca tasks update",
-      "Обновить задачу (перенести срок, сменить ответственных):\n  $ pachca tasks update"
+      "Отметить задачу выполненной — Обнови статус задачи:\n  $ pachca tasks update",
+      "Обновить задачу (перенести срок, сменить ответственных) — Обнови нужные поля задачи:\n  $ pachca tasks update"
   ];
 
   static scope = "tasks:update";

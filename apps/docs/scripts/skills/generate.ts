@@ -63,6 +63,9 @@ function buildFullDescription(config: SkillConfig): string {
     desc += ` Use when: ${config.triggers.join(', ')}.`;
   }
   if (config.negativeTriggers.length > 0) {
+    // `parts` adds "→ neighbouring-skill" routing hints on top of the plain
+    // negative triggers. It was built and then dropped, so eight skills told
+    // agents what they are NOT for without saying where to go instead.
     const parts: string[] = [...config.negativeTriggers];
     if (config.nearestAlternatives) {
       for (const alt of config.nearestAlternatives) {
@@ -73,7 +76,7 @@ function buildFullDescription(config: SkillConfig): string {
         }
       }
     }
-    desc += ` NOT for: ${config.negativeTriggers.join(', ')}.`;
+    desc += ` NOT for: ${parts.join(', ')}.`;
   }
   return desc;
 }
@@ -234,17 +237,22 @@ function groupEndpointsBySkill(endpoints: Endpoint[]) {
     const tag = ep.tags[0] || 'Common';
     let assigned = false;
 
+    // Route by PATH first, regardless of tag. This map used to be consulted
+    // only for a `Common` tag, which no endpoint has — so /custom_properties,
+    // /uploads and /direct_url fell through to placeholder skills that no
+    // index, router or agent-card references, and the three endpoints became
+    // undiscoverable.
+    for (const [pathPrefix, skillName] of Object.entries(COMMON_ENDPOINT_MAP)) {
+      if (ep.path === pathPrefix || ep.path.startsWith(pathPrefix + '/')) {
+        result.get(skillName)?.push(ep);
+        assigned = true;
+        break;
+      }
+    }
+    if (assigned) continue;
+
     if (tag === 'Common') {
-      for (const [pathPrefix, skillName] of Object.entries(COMMON_ENDPOINT_MAP)) {
-        if (ep.path === pathPrefix || ep.path.startsWith(pathPrefix + '/')) {
-          result.get(skillName)?.push(ep);
-          assigned = true;
-          break;
-        }
-      }
-      if (!assigned) {
-        result.get('pachca-profile')?.push(ep);
-      }
+      result.get('pachca-profile')?.push(ep);
       continue;
     }
 

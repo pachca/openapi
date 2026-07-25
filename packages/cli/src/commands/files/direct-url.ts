@@ -87,6 +87,14 @@ export default class FilesDirectUrl extends BaseCommand {
     let formData: FormData | undefined;
     if (flags.file) {
       formData = new FormData();
+      if (flags['content-disposition']) formData.append('Content-Disposition', String(flags['content-disposition']));
+      if (flags['acl']) formData.append('acl', String(flags['acl']));
+      if (flags['policy']) formData.append('policy', String(flags['policy']));
+      if (flags['x-amz-credential']) formData.append('x-amz-credential', String(flags['x-amz-credential']));
+      if (flags['x-amz-algorithm']) formData.append('x-amz-algorithm', String(flags['x-amz-algorithm']));
+      if (flags['x-amz-date']) formData.append('x-amz-date', String(flags['x-amz-date']));
+      if (flags['x-amz-signature']) formData.append('x-amz-signature', String(flags['x-amz-signature']));
+      if (flags['key']) formData.append('key', String(flags['key']));
       if (flags.file === '-') {
         const chunks: Buffer[] = [];
         for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
@@ -96,14 +104,6 @@ export default class FilesDirectUrl extends BaseCommand {
         const blob = new Blob([fs.readFileSync(flags.file)]);
         formData.append('file', blob, path.basename(flags.file));
       }
-      if (flags['content-disposition']) formData.append('Content-Disposition', String(flags['content-disposition']));
-      if (flags['acl']) formData.append('acl', String(flags['acl']));
-      if (flags['policy']) formData.append('policy', String(flags['policy']));
-      if (flags['x-amz-credential']) formData.append('x-amz-credential', String(flags['x-amz-credential']));
-      if (flags['x-amz-algorithm']) formData.append('x-amz-algorithm', String(flags['x-amz-algorithm']));
-      if (flags['x-amz-date']) formData.append('x-amz-date', String(flags['x-amz-date']));
-      if (flags['x-amz-signature']) formData.append('x-amz-signature', String(flags['x-amz-signature']));
-      if (flags['key']) formData.append('key', String(flags['key']));
     }
 
     const { data } = await this.apiRequest({

@@ -6,7 +6,7 @@ export default class TasksList extends BaseCommand {
   static override description = "Список напоминаний";
 
   static override examples = [
-      "Получить список предстоящих задач:\n  $ pachca tasks list"
+      "Получить список предстоящих задач — Получи все задачи, фильтруй по `status` на клиенте:\n  $ pachca tasks list"
   ];
 
   static scope = "tasks:read";

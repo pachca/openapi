@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "val client = PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "getEvents": {
+    "usage": "val response = client.events.getEvents()",
+    "output": "GetEventsResponse(data: List<Event>)"
+  }
+}

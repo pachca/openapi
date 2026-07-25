@@ -18,8 +18,9 @@
  * changelog the users will see.
  *
  * Override the baseline with CHANGELOG_SYNC_BASE (default: origin/main).
- * Skips silently when the baseline ref is unavailable (e.g. shallow clone
- * with no origin/main) — CI must fetch origin/main for the check to run.
+ * Fails when the baseline ref is unavailable (e.g. shallow clone with no
+ * origin/main) — CI must fetch origin/main for the check to run. Set
+ * CHANGELOG_SYNC_SKIP=1 to bypass deliberately.
  */
 
 import { execSync } from 'node:child_process';
@@ -131,10 +132,18 @@ function releasesForProduct(ref, product) {
 
 const base = resolveBase();
 if (!base) {
+  // Fail closed. Skipping here turned the whole gate into a no-op whenever the
+  // baseline could not be resolved, which is precisely when it is unverifiable.
+  if (process.env.CHANGELOG_SYNC_SKIP === '1') {
+    console.error(`[changelog-sync] baseline ${BASE_REF} unavailable — skipped (opt-in)`);
+    process.exit(0);
+  }
   console.error(
-    `[changelog-sync] baseline ${BASE_REF} unavailable — skipping (fetch origin/main in CI to enable)`
+    `[changelog-sync] baseline ${BASE_REF} unavailable — cannot verify.\n` +
+      `      Run \`git fetch --no-tags origin main\`, point CHANGELOG_SYNC_BASE at a\n` +
+      `      reachable ref, or set CHANGELOG_SYNC_SKIP=1 to bypass deliberately.`
   );
-  process.exit(0);
+  process.exit(1);
 }
 
 const errors = [];

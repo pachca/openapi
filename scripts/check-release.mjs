@@ -41,7 +41,9 @@ const versionRule = arg('version-rule') || 'semver';
 
 /** Validate version string against the library's format rule. */
 function validFormat(v) {
-  if (versionRule === 'calver') return /^\d{4}\.\d{1,2}\.\d+$/.test(v);
+  // CalVer month must be a real month — `\d{1,2}` accepted 2026.13.0, which is
+  // exactly what the (previously broken) new-month hint used to suggest.
+  if (versionRule === 'calver') return /^\d{4}\.(1[0-2]|[1-9])\.\d+$/.test(v);
   return /^\d+\.\d+\.\d+$/.test(v);
 }
 
@@ -64,7 +66,9 @@ function allowedNext(max) {
   if (!max) return null;
   if (versionRule === 'calver') {
     const [my, mm, mp] = max.split('.').map(Number);
-    return { 'patch (this month)': `${my}.${mm}.${mp + 1}`, 'new month': `${my}.${mm + 1}.0` };
+    // December rolls over to January of the next year, not to month 13.
+    const [ny, nm] = mm >= 12 ? [my + 1, 1] : [my, mm + 1];
+    return { 'patch (this month)': `${my}.${mm}.${mp + 1}`, 'new month': `${ny}.${nm}.0` };
   }
   const [M, m, p] = max.split('.').map(Number);
   return { patch: `${M}.${m}.${p + 1}`, minor: `${M}.${m + 1}.0`, major: `${M + 1}.0.0` };
@@ -89,6 +93,21 @@ function validIncrement(version, max) {
  * are not `latest` (e.g. @pachca/sdk has abandoned 2.0.0/3.0.0 while latest is
  * 1.0.19). Stepping from semver-max would force a jump onto the stray line.
  */
+/**
+ * "Package is genuinely unpublished" vs "npm did not answer".
+ *
+ * Both used to be swallowed into `null`, and `null` means "first release —
+ * any version allowed". So during an npm outage a version that skips a step
+ * sailed through the gate. Fail closed instead: only a real E404 counts as
+ * unpublished.
+ */
+function npmUnreachable(error) {
+  const stderr = String(error?.stderr ?? error?.message ?? error);
+  if (/E404|code E404|404 Not Found/.test(stderr)) return false;
+  console.error(`[check-release] npm unreachable for ${npmPkg}: ${stderr.slice(0, 300)}`);
+  return true;
+}
+
 function latestPublished() {
   try {
     const v = execSync(`npm view ${npmPkg} version`, {
@@ -97,7 +116,8 @@ function latestPublished() {
       .toString()
       .trim();
     return v || null;
-  } catch {
+  } catch (error) {
+    if (npmUnreachable(error)) process.exit(1);
     return null;
   }
 }
@@ -110,7 +130,8 @@ function allPublishedVersions() {
     }).toString();
     const parsed = JSON.parse(raw);
     return (Array.isArray(parsed) ? parsed : [parsed]).map(String);
-  } catch {
+  } catch (error) {
+    if (npmUnreachable(error)) process.exit(1);
     return [];
   }
 }

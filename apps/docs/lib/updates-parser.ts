@@ -52,7 +52,14 @@ export function loadUpdates(): ParsedUpdate[] {
     for (const file of files) {
       const fileContent = fs.readFileSync(path.join(updatesDir, file), 'utf-8');
       const { data, content } = matter(fileContent);
-      const date = String(data.date || file.replace(/\.md$/, ''));
+      // An unquoted `date: 2026-07-24` is parsed by js-yaml as a Date, and
+      // String() would turn it into "Fri Jul 24 2026 03:00:00 GMT+0300 (…)" —
+      // which then leaks into sorting, grouping keys and URL segments.
+      const rawDate = data.date;
+      const date =
+        rawDate instanceof Date
+          ? rawDate.toISOString().slice(0, 10)
+          : String(rawDate || file.replace(/\.md$/, ''));
       const title = String(data.title || 'Обновление');
 
       updates.push({
@@ -139,9 +146,11 @@ export function groupTimelineByDate(entries: TimelineEntry[]): DateGroup[] {
  * Check if update is "new" (within last 7 days)
  */
 export function isNewUpdate(dateStr: string): boolean {
-  const updateDate = new Date(dateStr);
-  const now = new Date();
-  const oneWeekAgo = new Date();
-  oneWeekAgo.setDate(now.getDate() - 7);
-  return updateDate >= oneWeekAgo;
+  // Both sides in UTC at day granularity. `new Date("2026-07-24")` is UTC
+  // midnight while a plain `new Date()` carries the local wall clock, so
+  // comparing them made the badge flip on and off around the boundary.
+  const cutoff = new Date();
+  cutoff.setUTCHours(0, 0, 0, 0);
+  cutoff.setUTCDate(cutoff.getUTCDate() - 7);
+  return new Date(`${dateStr}T00:00:00Z`) >= cutoff;
 }

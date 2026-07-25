@@ -95,6 +95,22 @@ describe('output', () => {
       const calls = stdoutWrite.mock.calls.map((c: unknown[]) => c[0]);
       expect(calls[1]).toBe('"Line 1\nLine 2"\n');
     });
+
+    it('should neutralize formula-injection cells', () => {
+      // Message text is user-authored: a leading =/+/-/@ must not reach Excel
+      // or Sheets as a live formula.
+      const data = [{ content: '=HYPERLINK("http://evil","click")' }];
+      outputData(data, { format: 'csv', quiet: false });
+      const calls = stdoutWrite.mock.calls.map((c: unknown[]) => c[0]);
+      expect(calls[1]).toBe('"\'=HYPERLINK(""http://evil"",""click"")"\n');
+    });
+
+    it('should render object and array values as JSON', () => {
+      const data = [{ tags: [1, 2], meta: { a: 1 } }];
+      outputData(data, { format: 'csv', quiet: false });
+      const calls = stdoutWrite.mock.calls.map((c: unknown[]) => c[0]);
+      expect(calls[1]).toBe('"[1,2]","{""a"":1}"\n');
+    });
   });
 
   describe('table', () => {

@@ -8064,7 +8064,7 @@ components:
           type: string
           maxLength: 255
           description: Необязательный идентификатор для распознавания этого представления, который будет отправлен в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для понимания, какую форму должен был заполнить пользователь.
-          example: timeoff_reguest_form
+          example: timeoff_request_form
         view:
           type: object
           properties:
@@ -9812,7 +9812,7 @@ components:
           type: string
           nullable: true
           description: Приватные метаданные, указанные при открытии представления
-          example: "{'timeoff_id':4378}"
+          example: '{"timeoff_id":4378}'
         chat_id:
           type: integer
           format: int32

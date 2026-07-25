@@ -14,6 +14,7 @@
 - Chat/user search: results past the first page are reachable, and the on-prem base URL is normalised (no more `//search/...` with a trailing slash)
 - Pagination: a `has_next: true` page with a missing or repeated cursor stops instead of truncating silently or refetching
 - Trigger: a webhook with a missing or zero `webhook_timestamp` is rejected when a signing secret is configured, instead of skipping the replay window
+- Form: the `Callback ID` placeholder read `timeoff_reguest_form` — a typo that did not match the value echoed back in the view-submit webhook
 
 ## 2.0.15 (2026-07-24)
 

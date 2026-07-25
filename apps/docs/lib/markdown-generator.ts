@@ -130,6 +130,10 @@ export function schemaToMarkdown(
       const description = prop.description || rawProp.description || '';
       const meta: string[] = [];
       if (isRequired) meta.push('required');
+      // `nullable` was never surfaced, so a field that the API returns as null
+      // read as a plain non-null type. Only descriptions that happened to
+      // mention it told the reader — 38 of the 53 nullable fields did not.
+      if (prop.nullable) meta.push('nullable');
       if (prop.default !== undefined) {
         const defaultStr =
           typeof prop.default === 'string' ? prop.default : JSON.stringify(prop.default);
@@ -148,9 +152,12 @@ export function schemaToMarkdown(
         content += ` — ${description}`;
       }
       if (includeExamples && prop.example !== undefined) {
-        const ex =
-          typeof prop.example === 'string' ? `"${prop.example}"` : JSON.stringify(prop.example);
-        content += `. Пример: \`${ex}\``;
+        // JSON.stringify for strings too — the raw `"${...}"` branch produced
+        // unescaped nested quotes for values that are themselves JSON.
+        const ex = JSON.stringify(prop.example);
+        // Don't add a period when the description already ends a sentence.
+        const sep = /[.!?…]$/.test(description) ? '' : '.';
+        content += `${sep} Пример: \`${ex}\``;
       }
       content += '\n';
 

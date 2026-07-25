@@ -28,9 +28,9 @@ curl "https://api.pachca.com/api/shared/v1/profile/status" \
 - `data: object` (required) — Статус пользователя
   - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
   - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
-  - `expires_at: date-time` (required) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-04-08T10:00:00.000Z"`
+  - `expires_at: date-time` (required, nullable) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-04-08T10:00:00.000Z"`
   - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
-  - `away_message: object` (required) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
+  - `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
     - `text: string` (required, max length: 1024) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
 
 **Пример ответа:**

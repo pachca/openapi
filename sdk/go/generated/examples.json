@@ -467,7 +467,7 @@
     "usage": "client.Users.DeleteUserStatus(ctx, int32(12))"
   },
   "FormOperations_openView": {
-    "usage": "request := OpenViewRequest{\n\tType: \"modal\",\n\tTriggerID: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n\tPrivateMetadata: Ptr(\"{\\\"timeoff_id\\\":4378}\"),\n\tCallbackID: Ptr(\"timeoff_reguest_form\"),\n\tView: OpenViewRequestView{\n\t\tTitle: \"Уведомление об отпуске\",\n\t\tCloseText: Ptr(\"Закрыть\"),\n\t\tSubmitText: Ptr(\"Отправить заявку\"),\n\t\tBlocks: []ViewBlockUnion{ViewBlockHeader{\n\t\t\tType: \"header\",\n\t\t\tText: \"Основная информация\",\n\t\t}},\n\t},\n}\nclient.Views.OpenView(ctx, request)",
+    "usage": "request := OpenViewRequest{\n\tType: \"modal\",\n\tTriggerID: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n\tPrivateMetadata: Ptr(\"{\\\"timeoff_id\\\":4378}\"),\n\tCallbackID: Ptr(\"timeoff_request_form\"),\n\tView: OpenViewRequestView{\n\t\tTitle: \"Уведомление об отпуске\",\n\t\tCloseText: Ptr(\"Закрыть\"),\n\t\tSubmitText: Ptr(\"Отправить заявку\"),\n\t\tBlocks: []ViewBlockUnion{ViewBlockHeader{\n\t\t\tType: \"header\",\n\t\t\tText: \"Основная информация\",\n\t\t}},\n\t},\n}\nclient.Views.OpenView(ctx, request)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

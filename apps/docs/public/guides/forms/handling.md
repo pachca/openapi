@@ -33,9 +33,9 @@
   Значения: `view` — Для формы всегда view
 - `event: string` (required) — Тип события. Пример: `"submit"`
   Значения: `submit` — Отправка формы
-- `callback_id: string` (required) — Идентификатор обратного вызова, указанный при открытии представления. Пример: `"timeoff_request_form"`
-- `private_metadata: string` (required) — Приватные метаданные, указанные при открытии представления. Пример: `"{'timeoff_id':4378}"`
-- `chat_id: integer, int32` (required) — Идентификатор чата, в котором была нажата кнопка, открывшая форму. Поле может быть `null` для форм, открытых до выкатки этого поля.. Пример: `9012`
+- `callback_id: string` (required, nullable) — Идентификатор обратного вызова, указанный при открытии представления. Пример: `"timeoff_request_form"`
+- `private_metadata: string` (required, nullable) — Приватные метаданные, указанные при открытии представления. Пример: `"{\"timeoff_id\":4378}"`
+- `chat_id: integer, int32` (required, nullable) — Идентификатор чата, в котором была нажата кнопка, открывшая форму. Поле может быть `null` для форм, открытых до выкатки этого поля. Пример: `9012`
 - `user_id: integer, int32` (required) — Идентификатор пользователя, который отправил форму. Пример: `1235523`
 - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные
   **Структура значений Record:**
@@ -47,8 +47,8 @@
 {
     "type": "view",
     "event": "submit",
-    "private_metadata": "{'timeoff_id':4378}",
-    "callback_id": "timeoff_reguest_form",
+    "private_metadata": "{\"timeoff_id\":4378}",
+    "callback_id": "timeoff_request_form",
     "user_id": 1235523,
     "data": {
         "date_start": "2025-07-01",

@@ -429,7 +429,7 @@
     "usage": "try await client.users.deleteUserStatus(userId: 12)"
   },
   "FormOperations_openView": {
-    "usage": "let body = OpenViewRequest(\n    type: \"modal\",\n    triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n    callbackId: \"timeoff_reguest_form\",\n    view: OpenViewRequestView(\n        title: \"Уведомление об отпуске\",\n        closeText: \"Закрыть\",\n        submitText: \"Отправить заявку\",\n        blocks: [ViewBlockHeader(type: \"header\", text: \"Основная информация\")]\n    )\n)\ntry await client.views.openView(body: body)",
+    "usage": "let body = OpenViewRequest(\n    type: \"modal\",\n    triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n    callbackId: \"timeoff_request_form\",\n    view: OpenViewRequestView(\n        title: \"Уведомление об отпуске\",\n        closeText: \"Закрыть\",\n        submitText: \"Отправить заявку\",\n        blocks: [ViewBlockHeader(type: \"header\", text: \"Основная информация\")]\n    )\n)\ntry await client.views.openView(body: body)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

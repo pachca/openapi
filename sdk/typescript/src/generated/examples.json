@@ -429,7 +429,7 @@
     "usage": "client.users.deleteUserStatus(12)"
   },
   "FormOperations_openView": {
-    "usage": "const request: OpenViewRequest = {\n  type: \"modal\",\n  triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n  callbackId: \"timeoff_reguest_form\",\n  view: {\n    title: \"Уведомление об отпуске\",\n    closeText: \"Закрыть\",\n    submitText: \"Отправить заявку\",\n    blocks: [{ type: \"header\", text: \"Основная информация\" }]\n  }\n}\nclient.views.openView(request)",
+    "usage": "const request: OpenViewRequest = {\n  type: \"modal\",\n  triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n  callbackId: \"timeoff_request_form\",\n  view: {\n    title: \"Уведомление об отпуске\",\n    closeText: \"Закрыть\",\n    submitText: \"Отправить заявку\",\n    blocks: [{ type: \"header\", text: \"Основная информация\" }]\n  }\n}\nclient.views.openView(request)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

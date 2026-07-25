@@ -49,7 +49,7 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболк�
     Значения: `discussion` — Беседа или канал, `thread` — Тред, `user` — Пользователь
   - `entity_id: integer, int32` (required) — Идентификатор сущности, к которой относится сообщение (беседы/канала, треда или пользователя). Пример: `334`
   - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Пример: `334`
-  - `root_chat_id: integer, int32` (required) — Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был создан тред. Для обычных сообщений совпадает с `chat_id`.. Пример: `334`
+  - `root_chat_id: integer, int32` (required) — Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был создан тред. Для обычных сообщений совпадает с `chat_id`. Пример: `334`
   - `content: string` (required) — Текст сообщения. Пример: `"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"`
   - `user_id: integer, int32` (required) — Идентификатор пользователя, создавшего сообщение. Пример: `12`
   - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:57:23.000Z"`
@@ -61,14 +61,14 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболк�
     - `file_type: string` (required) — Тип файла
       Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение
     - `url: string` (required) — Прямая ссылка на скачивание файла. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
-    - `width: integer, int32` — Ширина изображения в пикселях. Пример: `1920`
-    - `height: integer, int32` — Высота изображения в пикселях. Пример: `1080`
+    - `width: integer, int32` (nullable) — Ширина изображения в пикселях. Пример: `1920`
+    - `height: integer, int32` (nullable) — Высота изображения в пикселях. Пример: `1080`
   - `voice_content: object` (required) — Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.
     - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
     - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
-    - `transcript: string` (required) — Расшифровка голосового сообщения в текст. `null`, пока расшифровка не готова или недоступна.. Пример: `"Привет, посмотри пожалуйста последний отчёт"`
-  - `buttons: array of array` (required) — Массив строк, каждая из которых представлена массивом кнопок
-  - `thread: object` (required) — Тред сообщения
+    - `transcript: string` (required, nullable) — Расшифровка голосового сообщения в текст. `null`, пока расшифровка не готова или недоступна. Пример: `"Привет, посмотри пожалуйста последний отчёт"`
+  - `buttons: array of array` (required, nullable) — Массив строк, каждая из которых представлена массивом кнопок
+  - `thread: object` (required, nullable) — Тред сообщения
     - `id: integer, int64` (required) — Идентификатор треда. Пример: `265142`
     - `chat_id: integer, int64` (required) — Идентификатор чата треда. Пример: `2637266155`
   - `forwarding: object` (required) — Информация о пересланном сообщении
@@ -76,14 +76,14 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболк�
     - `original_chat_id: integer, int32` (required) — Идентификатор чата, в котором находится оригинальное сообщение. Пример: `334`
     - `author_id: integer, int32` (required) — Идентификатор пользователя, создавшего оригинальное сообщение. Пример: `12`
     - `original_created_at: date-time` (required) — Дата и время создания оригинального сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-01-15T10:30:00.000Z"`
-    - `original_thread_id: integer, int32` (required) — Идентификатор треда, в котором находится оригинальное сообщение. Пример: `null`
-    - `original_thread_message_id: integer, int32` (required) — Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. Пример: `null`
-    - `original_thread_parent_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. Пример: `null`
-  - `parent_message_id: integer, int32` (required) — Идентификатор сообщения, к которому написан ответ. Пример: `null`
-  - `display_avatar_url: string` (required) — Ссылка на аватарку отправителя сообщения. Пример: `null`
-  - `display_name: string` (required) — Полное имя отправителя сообщения. Пример: `null`
-  - `changed_at: date-time` (required) — Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T16:10:00.000Z"`
-  - `deleted_at: date-time` (required) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `null`
+    - `original_thread_id: integer, int32` (required, nullable) — Идентификатор треда, в котором находится оригинальное сообщение. Пример: `null`
+    - `original_thread_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. Пример: `null`
+    - `original_thread_parent_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. Пример: `null`
+  - `parent_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому написан ответ. Пример: `null`
+  - `display_avatar_url: string` (required, nullable) — Ссылка на аватарку отправителя сообщения. Пример: `null`
+  - `display_name: string` (required, nullable) — Полное имя отправителя сообщения. Пример: `null`
+  - `changed_at: date-time` (required, nullable) — Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T16:10:00.000Z"`
+  - `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `null`
 - `meta: object` (required) — Мета-информация для пагинации поисковых результатов
   - `total: integer, int32` (required) — Общее количество найденных результатов. Пример: `42`
   - `paginate: object` (required) — Вспомогательная информация
@@ -162,11 +162,11 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболк�
 
 - `errors: array of object` (required) — Массив ошибок
   - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
-  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `value: string` (required, nullable) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
   - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
   - `code: string` (required) — Код ошибки
     Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде
-  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
+  - `payload: Record<string, object>` (required, nullable) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
     **Структура значений Record:**
     - Тип значения: `any`
 
@@ -208,11 +208,11 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболк�
 
 - `errors: array of object` (required) — Массив ошибок
   - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
-  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `value: string` (required, nullable) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
   - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
   - `code: string` (required) — Код ошибки
     Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде
-  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
+  - `payload: Record<string, object>` (required, nullable) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
     **Структура значений Record:**
     - Тип значения: `any`
 

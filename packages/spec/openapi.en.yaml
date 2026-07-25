@@ -8260,7 +8260,7 @@ components:
           description: >-
             Optional identifier for recognizing this view, which will be sent to your application when the user submits
             the form. Use this field, for example, to determine which form the user was supposed to fill out.
-          example: timeoff_reguest_form
+          example: timeoff_request_form
         view:
           type: object
           properties:
@@ -10045,7 +10045,7 @@ components:
           type: string
           nullable: true
           description: Private metadata specified when opening the view
-          example: '{''timeoff_id'':4378}'
+          example: '{"timeoff_id":4378}'
         chat_id:
           type: integer
           format: int32

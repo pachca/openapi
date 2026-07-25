@@ -1,4 +1,4 @@
-import type { Schema, RequestBody, Response, Parameter } from './types';
+import type { Schema, RequestBody, Response, Parameter, MediaType } from './types';
 
 /**
  * Options for controlling example generation.
@@ -264,6 +264,30 @@ export function generateExample(
 /**
  * Generate request body example from schema
  */
+/**
+ * A media type's hand-authored example, if the spec carries one.
+ *
+ * An operation-level `example` is the response/request the API actually
+ * produces for THAT operation, which a schema-derived example cannot know:
+ * `POST /threads` returns `message_id: null` (a standalone thread has no
+ * message), while the `Thread` schema's own property example is a real id.
+ * Both generators used to jump straight to the schema, so all nine authored
+ * examples in the spec were silently discarded and the docs showed values the
+ * API never returns.
+ */
+function authoredExample(content: MediaType | undefined): unknown {
+  if (!content) return undefined;
+  if (content.example !== undefined) return content.example;
+  // `examples` (the plural map) — take the first entry's value.
+  const first = content.examples && Object.values(content.examples)[0];
+  return first && typeof first === 'object' && 'value' in first
+    ? (first as { value: unknown }).value
+    : undefined;
+}
+
+/**
+ * Generate request body example from schema
+ */
 export function generateRequestExample(
   requestBody: RequestBody | undefined,
   options?: ExampleOptions
@@ -277,6 +301,9 @@ export function generateRequestExample(
   if (!content?.schema) {
     return undefined;
   }
+
+  const authored = authoredExample(content);
+  if (authored !== undefined) return authored;
 
   return generateExample(content.schema, 0, options);
 }
@@ -296,6 +323,11 @@ export function generateResponseExample(
   if (!jsonContent?.schema) {
     return undefined;
   }
+
+  // The authored example wins over the `minimal` toggle: it is the real
+  // response, not a rendering preference.
+  const authored = authoredExample(jsonContent);
+  if (authored !== undefined) return authored;
 
   return generateExample(jsonContent.schema, 0, options);
 }

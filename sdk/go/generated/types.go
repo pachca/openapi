@@ -1067,7 +1067,7 @@ type Reaction struct {
 	UserID    int32     `json:"user_id"`
 	CreatedAt time.Time `json:"created_at"`
 	Code      string    `json:"code"`
-	Name      *string   `json:"name"`
+	Name      string    `json:"name"`
 }
 
 type ReactionRequest struct {

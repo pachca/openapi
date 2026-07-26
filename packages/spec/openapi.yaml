@@ -3438,6 +3438,8 @@ paths:
         Свой статус
 
         Метод для получения информации о своем статусе.
+
+        Если статус не установлен, метод возвращает `200` и `null` в теле ответа — без объекта-обёртки. Статус с истёкшим `expires_at` какое-то время ещё возвращается, пока не будет очищен, поэтому проверяйте `expires_at` на стороне клиента.
       parameters: []
       responses:
         '200':
@@ -3450,11 +3452,9 @@ paths:
                   - data
                 properties:
                   data:
-                    type: object
-                    allOf:
-                      - $ref: '#/components/schemas/UserStatus'
-                    nullable: true
+                    $ref: '#/components/schemas/UserStatus'
                 description: Обертка ответа с данными
+                nullable: true
         '401':
           description: Access is unauthorized.
           content:
@@ -5066,6 +5066,8 @@ paths:
         Статус сотрудника
 
         Метод для получения информации о статусе сотрудника.
+
+        Если статус не установлен, метод возвращает `200` и `null` в теле ответа — без объекта-обёртки. Статус с истёкшим `expires_at` какое-то время ещё возвращается, пока не будет очищен, поэтому проверяйте `expires_at` на стороне клиента.
       parameters:
         - name: user_id
           in: path
@@ -5087,11 +5089,9 @@ paths:
                   - data
                 properties:
                   data:
-                    type: object
-                    allOf:
-                      - $ref: '#/components/schemas/UserStatus'
-                    nullable: true
+                    $ref: '#/components/schemas/UserStatus'
                 description: Обертка ответа с данными
+                nullable: true
         '401':
           description: Access is unauthorized.
           content:
@@ -6071,7 +6071,7 @@ components:
               type: array
               items:
                 type: string
-              description: Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.
+              description: 'Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию. Боту доступны не все скоупы: часть из них разрешена только пользовательским ролям, и попытка назначить такой скоуп возвращает `400`. Служебные значения `bot` и `all` назначать нельзя.'
               example:
                 - messages:create
             template:
@@ -6270,7 +6270,7 @@ components:
               type: array
               items:
                 type: string
-              description: Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.
+              description: 'Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию. Боту доступны не все скоупы: часть из них разрешена только пользовательским ролям, и попытка назначить такой скоуп возвращает `400`. Служебные значения `bot` и `all` назначать нельзя.'
               example:
                 - messages:create
             template:
@@ -6375,7 +6375,7 @@ components:
           type: array
           items:
             type: string
-          description: Скоупы (права доступа) токена бота
+          description: Скоупы (права доступа) токена бота. Набор по умолчанию шире того, что можно назначить явно, поэтому здесь могут встречаться значения, недоступные для явной установки.
           example:
             - messages:create
         template:
@@ -7249,8 +7249,6 @@ components:
         - thread
         - forwarding
         - parent_message_id
-        - display_avatar_url
-        - display_name
         - changed_at
         - deleted_at
       properties:
@@ -7349,12 +7347,12 @@ components:
         display_avatar_url:
           type: string
           nullable: true
-          description: Ссылка на аватарку отправителя сообщения
+          description: Ссылка на аватарку отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке.
           example: null
         display_name:
           type: string
           nullable: true
-          description: Полное имя отправителя сообщения
+          description: Полное имя отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке.
           example: null
         changed_at:
           type: string
@@ -8148,7 +8146,6 @@ components:
           example: 👍
         name:
           type: string
-          nullable: true
           description: Название emoji реакции
           example: ':+1::skin-tone-1:'
       description: Реакция на сообщение
@@ -8709,7 +8706,7 @@ components:
           type: string
           nullable: true
           maxLength: 255
-          description: Фамилия. `null`, если фамилия не заполнена.
+          description: Фамилия. Если не заполнена, возвращается `null` или пустая строка.
           example: Петров
         nickname:
           type: string
@@ -8732,12 +8729,12 @@ components:
           type: string
           nullable: true
           maxLength: 255
-          description: Департамент. `null`, если департамент не указан.
+          description: Департамент. Если не указан, возвращается `null` или пустая строка.
           example: Продукт
         title:
           type: string
           nullable: true
-          description: Должность. `null`, если должность не указана.
+          description: Должность. Если не указана, возвращается `null` или пустая строка.
           example: CIO
         role:
           allOf:

@@ -280,7 +280,7 @@
   },
   "ReactionOperations_addReaction": {
     "usage": "request = ReactionRequest(code=\"👍\", name=\":+1:\")\nresponse = await client.reactions.add_reaction(id=7231942, request=request)",
-    "output": "Reaction(user_id: int, created_at: datetime, code: str, name: str | None)",
+    "output": "Reaction(user_id: int, created_at: datetime, code: str, name: str)",
     "imports": [
       "ReactionRequest"
     ]
@@ -327,7 +327,7 @@
   },
   "ProfileOperations_getStatus": {
     "usage": "response = await client.profile.get_status()",
-    "output": "object"
+    "output": "UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)"
   },
   "ProfileAvatarOperations_updateProfileAvatar": {
     "usage": "response = await client.profile.update_profile_avatar(image=b\"\")",
@@ -423,7 +423,7 @@
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "response = await client.users.get_user_status(user_id=12)",
-    "output": "object"
+    "output": "UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)"
   },
   "UserOperations_createUser": {
     "usage": "request = UserCreateRequest(\n    user=UserCreateRequestUser(\n        first_name=\"Олег\",\n        last_name=\"Петров\",\n        email=\"olegp@example.com\",\n        phone_number=\"+79001234567\",\n        nickname=\"olegpetrov\",\n        department=\"Продукт\",\n        title=\"CIO\",\n        role=UserCreateRole.USER,\n        suspended=False,\n        list_tags=[\"example\"],\n        chat_ids=[123],\n        custom_properties=[UserCreateRequestCustomProperty(id=1678, value=\"Санкт-Петербург\")]\n    ),\n    skip_email_notify=False\n)\nresponse = await client.users.create_user(request=request)",

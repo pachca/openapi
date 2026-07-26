@@ -42,7 +42,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275/reactions?limit=1" \
   - `user_id: integer, int32` (required) — Идентификатор пользователя, который добавил реакцию. Пример: `12`
   - `created_at: date-time` (required) — Дата и время добавления реакции (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-01-20T10:30:00.000Z"`
   - `code: string` (required) — Emoji символ реакции. Пример: `"👍"`
-  - `name: string` (required, nullable) — Название emoji реакции. Пример: `":+1::skin-tone-1:"`
+  - `name: string` (required) — Название emoji реакции. Пример: `":+1::skin-tone-1:"`
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`

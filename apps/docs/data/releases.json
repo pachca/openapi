@@ -27,6 +27,18 @@
       {
         "type": "-",
         "description": "`GET /audit_events`: параметр `end_time` включает верхнюю границу, а не исключает — описание исправлено"
+      },
+      {
+        "type": "-",
+        "description": "`GET /profile/status` и `GET /users/{user_id}/status`: тело ответа описано верно — при отсутствующем статусе приходит `null`, а не обёртка с `data: null`"
+      },
+      {
+        "type": "-",
+        "description": "`display_avatar_url` и `display_name` у сообщения больше не обязательные: их нет в ответе для сообщений от сотрудников"
+      },
+      {
+        "type": "-",
+        "description": "`Reaction.name` больше не nullable — `null` в этом поле не приходит"
       }
     ]
   },
@@ -814,8 +826,14 @@
     "version": "1.0.13",
     "date": "2026-04-10",
     "changes": [
-      { "type": "~", "description": "Сервисы как интерфейсы для dependency injection" },
-      { "type": "~", "description": "HTTP-клиент с конструкторами для кастомной конфигурации" }
+      {
+        "type": "~",
+        "description": "Сервисы как интерфейсы для dependency injection"
+      },
+      {
+        "type": "~",
+        "description": "HTTP-клиент с конструкторами для кастомной конфигурации"
+      }
     ]
   },
   {
@@ -845,10 +863,22 @@
     "version": "2.0.1–2.0.4",
     "date": "2026-04-08",
     "changes": [
-      { "type": "-", "description": "Исправлена ошибка 403 при загрузке файлов" },
-      { "type": "-", "description": "Исправлен краш в JSON-режиме форм" },
-      { "type": "-", "description": "Исправлена ошибка визуального редактора форм" },
-      { "type": "~", "description": "Миграция v1→v2: авто-заполнение параметра type для форм" }
+      {
+        "type": "-",
+        "description": "Исправлена ошибка 403 при загрузке файлов"
+      },
+      {
+        "type": "-",
+        "description": "Исправлен краш в JSON-режиме форм"
+      },
+      {
+        "type": "-",
+        "description": "Исправлена ошибка визуального редактора форм"
+      },
+      {
+        "type": "~",
+        "description": "Миграция v1→v2: авто-заполнение параметра type для форм"
+      }
     ]
   },
   {
@@ -856,7 +886,10 @@
     "version": "2026.4.0",
     "date": "2026-04-07",
     "changes": [
-      { "type": "+", "description": "Загрузка и удаление аватара профиля и сотрудника" },
+      {
+        "type": "+",
+        "description": "Загрузка и удаление аватара профиля и сотрудника"
+      },
       {
         "type": "-",
         "description": "Исправлена сортировка: `--order` без `--sort` теперь корректно работает"
@@ -872,8 +905,14 @@
     "version": "1.0.12",
     "date": "2026-04-07",
     "changes": [
-      { "type": "+", "description": "Автоповтор при 5xx с exponential backoff" },
-      { "type": "~", "description": "Обновление API: аватары, сортировка, упоминания" }
+      {
+        "type": "+",
+        "description": "Автоповтор при 5xx с exponential backoff"
+      },
+      {
+        "type": "~",
+        "description": "Обновление API: аватары, сортировка, упоминания"
+      }
     ]
   },
   {
@@ -881,8 +920,14 @@
     "version": "1.1.1",
     "date": "2026-04-07",
     "changes": [
-      { "type": "+", "description": "Генерация C# SDK для .NET 8+" },
-      { "type": "+", "description": "Автоповтор при 5xx с exponential backoff и jitter" }
+      {
+        "type": "+",
+        "description": "Генерация C# SDK для .NET 8+"
+      },
+      {
+        "type": "+",
+        "description": "Автоповтор при 5xx с exponential backoff и jitter"
+      }
     ]
   },
   {
@@ -894,13 +939,22 @@
         "type": "+",
         "description": "Полная версия 2.0: автогенерация из OpenAPI с обратной совместимостью v1"
       },
-      { "type": "+", "description": "18 ресурсов и 60+ операций — полное покрытие API" },
+      {
+        "type": "+",
+        "description": "18 ресурсов и 60+ операций — полное покрытие API"
+      },
       {
         "type": "+",
         "description": "Pachca Trigger с авторегистрацией вебхука и 16 типами событий"
       },
-      { "type": "+", "description": "Курсорная автопагинация: Return All / Limit" },
-      { "type": "+", "description": "AI Tool Use — использование узлов как инструментов AI Agent" },
+      {
+        "type": "+",
+        "description": "Курсорная автопагинация: Return All / Limit"
+      },
+      {
+        "type": "+",
+        "description": "AI Tool Use — использование узлов как инструментов AI Agent"
+      },
       {
         "type": "+",
         "description": "Верификация подписи вебхука HMAC-SHA256, IP-фильтр, защита от повторов"
@@ -912,8 +966,14 @@
     "version": "1.0.9",
     "date": "2026-03-27",
     "changes": [
-      { "type": "+", "description": "Добавлен C# SDK для .NET 8+" },
-      { "type": "~", "description": "Регенерация SDK, улучшения примеров C#" }
+      {
+        "type": "+",
+        "description": "Добавлен C# SDK для .NET 8+"
+      },
+      {
+        "type": "~",
+        "description": "Регенерация SDK, улучшения примеров C#"
+      }
     ]
   },
   {
@@ -921,12 +981,18 @@
     "version": "2026.3.10",
     "date": "2026-03-21",
     "changes": [
-      { "type": "~", "description": "`link_preview` перемещено на верхний уровень тела запроса" },
+      {
+        "type": "~",
+        "description": "`link_preview` перемещено на верхний уровень тела запроса"
+      },
       {
         "type": "~",
         "description": "Параметры `start-time` и `end-time` в security стали необязательными"
       },
-      { "type": "~", "description": "Сортировка через `--sort` и `--order` вместо `--sort-id`" }
+      {
+        "type": "~",
+        "description": "Сортировка через `--sort` и `--order` вместо `--sort-id`"
+      }
     ]
   },
   {
@@ -934,7 +1000,10 @@
     "version": "1.0.3",
     "date": "2026-03-21",
     "changes": [
-      { "type": "-", "description": "Исправления по аудиту API: модели, параметры, примеры" }
+      {
+        "type": "-",
+        "description": "Исправления по аудиту API: модели, параметры, примеры"
+      }
     ]
   },
   {
@@ -942,7 +1011,10 @@
     "version": "1.0.2",
     "date": "2026-03-20",
     "changes": [
-      { "type": "-", "description": "Исправлена модель тредов, имя пакета Python, импорты Kotlin" }
+      {
+        "type": "-",
+        "description": "Исправлена модель тредов, имя пакета Python, импорты Kotlin"
+      }
     ]
   },
   {
@@ -969,7 +1041,10 @@
         "type": "+",
         "description": "Первый релиз: генерация SDK из OpenAPI для TypeScript, Python, Go, Kotlin, Swift"
       },
-      { "type": "+", "description": "Загрузка спецификации по URL с дефолтным адресом Пачки" }
+      {
+        "type": "+",
+        "description": "Загрузка спецификации по URL с дефолтным адресом Пачки"
+      }
     ]
   },
   {
@@ -1006,14 +1081,22 @@
     "product": "cli",
     "version": "2026.3.6",
     "date": "2026-03-15",
-    "changes": [{ "type": "~", "description": "Топик `thread` переименован в `threads`" }]
+    "changes": [
+      {
+        "type": "~",
+        "description": "Топик `thread` переименован в `threads`"
+      }
+    ]
   },
   {
     "product": "sdk",
     "version": "1.0.1",
     "date": "2026-03-14",
     "changes": [
-      { "type": "~", "description": "Регенерация SDK после реструктуризации документации" }
+      {
+        "type": "~",
+        "description": "Регенерация SDK после реструктуризации документации"
+      }
     ]
   },
   {
@@ -1021,8 +1104,14 @@
     "version": "2026.3.5",
     "date": "2026-03-07",
     "changes": [
-      { "type": "~", "description": "Сценарии переписаны на CLI-примеры с подсказками" },
-      { "type": "+", "description": "Пример «Форма заявки/запроса»" }
+      {
+        "type": "~",
+        "description": "Сценарии переписаны на CLI-примеры с подсказками"
+      },
+      {
+        "type": "+",
+        "description": "Пример «Форма заявки/запроса»"
+      }
     ]
   },
   {
@@ -1030,8 +1119,14 @@
     "version": "2026.3.4",
     "date": "2026-03-05",
     "changes": [
-      { "type": "+", "description": "Переменная `PACHCA_API_URL` для кастомного base URL" },
-      { "type": "-", "description": "Исправлено выравнивание в уведомлении о доступном обновлении" }
+      {
+        "type": "+",
+        "description": "Переменная `PACHCA_API_URL` для кастомного base URL"
+      },
+      {
+        "type": "-",
+        "description": "Исправлено выравнивание в уведомлении о доступном обновлении"
+      }
     ]
   },
   {
@@ -1039,9 +1134,18 @@
     "version": "2026.3.1–2026.3.3",
     "date": "2026-03-04",
     "changes": [
-      { "type": "+", "description": "Все флаги в kebab-case, boolean-флаги с `--no-` префиксом" },
-      { "type": "+", "description": "Структурированные ошибки валидации с hint-подсказками" },
-      { "type": "+", "description": "Команда `doctor` — диагностика окружения" },
+      {
+        "type": "+",
+        "description": "Все флаги в kebab-case, boolean-флаги с `--no-` префиксом"
+      },
+      {
+        "type": "+",
+        "description": "Структурированные ошибки валидации с hint-подсказками"
+      },
+      {
+        "type": "+",
+        "description": "Команда `doctor` — диагностика окружения"
+      },
       {
         "type": "+",
         "description": "Команда `introspect` — метаинформация о командах для агентов"
@@ -1050,8 +1154,14 @@
         "type": "+",
         "description": "Команда `api` — прямые HTTP-запросы с `-f/-F`, `--input`, `--query`"
       },
-      { "type": "+", "description": "Команда `guide` — поиск по сценариям использования API" },
-      { "type": "~", "description": "Описания команд и топиков переведены на русский язык" }
+      {
+        "type": "+",
+        "description": "Команда `guide` — поиск по сценариям использования API"
+      },
+      {
+        "type": "~",
+        "description": "Описания команд и топиков переведены на русский язык"
+      }
     ]
   },
   {
@@ -1059,8 +1169,14 @@
     "version": "1.0.0",
     "date": "2026-03-04",
     "changes": [
-      { "type": "+", "description": "Первый релиз SDK: TypeScript, Python, Go, Kotlin, Swift" },
-      { "type": "+", "description": "Типизированные клиенты с автопагинацией для каждого языка" }
+      {
+        "type": "+",
+        "description": "Первый релиз SDK: TypeScript, Python, Go, Kotlin, Swift"
+      },
+      {
+        "type": "+",
+        "description": "Типизированные клиенты с автопагинацией для каждого языка"
+      }
     ]
   }
 ]

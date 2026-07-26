@@ -3077,7 +3077,7 @@ public class Reaction
     [JsonPropertyName("code")]
     public string Code { get; set; } = default!;
     [JsonPropertyName("name")]
-    public string? Name { get; set; }
+    public string Name { get; set; } = default!;
 }
 
 public class ReactionRequest
@@ -3708,16 +3708,16 @@ public class UserDataWrapper
     public User Data { get; set; } = default!;
 }
 
-public class AvatarDataDataWrapper
-{
-    [JsonPropertyName("data")]
-    public AvatarData Data { get; set; } = default!;
-}
-
 public class UserStatusDataWrapper
 {
     [JsonPropertyName("data")]
     public UserStatus Data { get; set; } = default!;
+}
+
+public class AvatarDataDataWrapper
+{
+    [JsonPropertyName("data")]
+    public AvatarData Data { get; set; } = default!;
 }
 
 public class TaskDataWrapper

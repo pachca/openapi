@@ -633,10 +633,7 @@ actions:
         Retrieve information about your own profile.
   - target: $.paths['/profile/status'].get
     update:
-      description: |-
-        Own status
-
-        Retrieve information about your current status.
+      description: "Own status\n\nMethod for retrieving information about your own status.\n\nIf no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side."
   - target: $.paths['/profile/status'].put
     update:
       description: |-
@@ -959,10 +956,7 @@ actions:
       description: User ID
   - target: $.paths['/users/{user_id}/status'].get
     update:
-      description: |-
-        Employee status
-
-        Retrieve information about an employee's status.
+      description: "Employee status\n\nMethod for retrieving information about an employee's status.\n\nIf no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side."
   - target: $.paths['/users/{user_id}/status'].get.parameters[?(@.name=='user_id')]
     update:
       description: User ID
@@ -1389,7 +1383,7 @@ actions:
       description: Outgoing webhook URL
   - target: $.components.schemas.BotResponse.properties.webhook.properties.scopes
     update:
-      description: Bot token scopes (permissions)
+      description: "Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values that cannot be set explicitly may appear here."
   - target: $.components.schemas.BotResponse.properties.webhook.properties.template
     update:
       description: Template for formatting the incoming webhook. `null` if not set.
@@ -1419,7 +1413,7 @@ actions:
       description: Who can add the bot to chats
   - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.scopes
     update:
-      description: Bot token scopes (permissions)
+      description: "Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values that cannot be set explicitly may appear here."
   - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.template
     update:
       description: Template for formatting the incoming webhook. `null` if not set.
@@ -1473,7 +1467,7 @@ actions:
       description: Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.scopes
     update:
-      description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+      description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.template
     update:
       description: Template for formatting the incoming webhook
@@ -1594,7 +1588,7 @@ actions:
       description: Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.scopes
     update:
-      description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+      description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.template
     update:
       description: Template for formatting the incoming webhook
@@ -1645,7 +1639,7 @@ actions:
       description: Bot commands (trigger words)
   - target: $.components.schemas.BotWebhook.properties.scopes
     update:
-      description: Bot token scopes (permissions)
+      description: "Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values that cannot be set explicitly may appear here."
   - target: $.components.schemas.BotWebhook.properties.template
     update:
       description: Template for formatting the incoming webhook. `null` if not set.
@@ -2437,10 +2431,10 @@ actions:
       description: "ID of the message being replied to. `null` if the message is not a reply to another message."
   - target: $.components.schemas.Message.properties.display_avatar_url
     update:
-      description: Message sender avatar URL
+      description: "Message sender avatar URL. The field is present only on messages from bots; it is absent from the response for messages from employees. `null` if the bot did not override the value when sending."
   - target: $.components.schemas.Message.properties.display_name
     update:
-      description: Message sender full name
+      description: "Message sender full name. The field is present only on messages from bots; it is absent from the response for messages from employees. `null` if the bot did not override the value when sending."
   - target: $.components.schemas.Message.properties.changed_at
     update:
       description: "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced."
@@ -3055,7 +3049,7 @@ actions:
       description: First name
   - target: $.components.schemas.User.properties.last_name
     update:
-      description: "Last name. `null` if the last name is not filled in."
+      description: "Last name. If not filled in, `null` or an empty string is returned."
   - target: $.components.schemas.User.properties.nickname
     update:
       description: Username
@@ -3067,10 +3061,10 @@ actions:
       description: Phone number. Returns `null` for bots without permission to view personal data, and when a bot for which personal data of employees is hidden requests another user's data.
   - target: $.components.schemas.User.properties.department
     update:
-      description: "Department. `null` if the department is not specified."
+      description: "Department. If not specified, `null` or an empty string is returned."
   - target: $.components.schemas.User.properties.title
     update:
-      description: "Job title. `null` if the job title is not specified."
+      description: "Job title. If not specified, `null` or an empty string is returned."
   - target: $.components.schemas.User.properties.role
     update:
       description: Access level

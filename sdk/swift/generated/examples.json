@@ -260,7 +260,7 @@
   },
   "ReactionOperations_addReaction": {
     "usage": "let body = ReactionRequest(code: \"👍\", name: \":+1:\")\nlet response = try await client.reactions.addReaction(id: 7231942, body: body)",
-    "output": "Reaction(userId: Int, createdAt: String, code: String, name: String?)",
+    "output": "Reaction(userId: Int, createdAt: String, code: String, name: String)",
     "imports": [
       "ReactionRequest"
     ]
@@ -298,7 +298,7 @@
   },
   "ProfileOperations_getStatus": {
     "usage": "let response = try await client.profile.getStatus()",
-    "output": "String"
+    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)"
   },
   "ProfileAvatarOperations_updateProfileAvatar": {
     "usage": "let image = Data()\nlet response = try await client.profile.updateProfileAvatar(image: image)",
@@ -385,7 +385,7 @@
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "let response = try await client.users.getUserStatus(userId: 12)",
-    "output": "String"
+    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)"
   },
   "UserOperations_createUser": {
     "usage": "let body = UserCreateRequest(\n    user: UserCreateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegp@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Продукт\",\n        title: \"CIO\",\n        role: .user,\n        suspended: false,\n        listTags: [\"example\"],\n        chatIds: [123],\n        customProperties: [UserCreateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    ),\n    skipEmailNotify: false\n)\nlet response = try await client.users.createUser(body: body)",

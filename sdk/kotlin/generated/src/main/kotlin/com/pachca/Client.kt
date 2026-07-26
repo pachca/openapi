@@ -1362,7 +1362,7 @@ interface ProfileService {
         throw NotImplementedError("Profile.getProfile is not implemented")
     }
 
-    suspend fun getStatus(): Any {
+    suspend fun getStatus(): UserStatus {
         throw NotImplementedError("Profile.getStatus is not implemented")
     }
 
@@ -1400,10 +1400,10 @@ class ProfileServiceImpl internal constructor(
         }
     }
 
-    override suspend fun getStatus(): Any {
+    override suspend fun getStatus(): UserStatus {
         val response = client.get("$baseUrl/profile/status")
         return when (response.status.value) {
-            200 -> response.body()
+            200 -> response.body<UserStatusDataWrapper>().data
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -1849,7 +1849,7 @@ interface UsersService {
         throw NotImplementedError("Users.getUser is not implemented")
     }
 
-    suspend fun getUserStatus(userId: Int): Any {
+    suspend fun getUserStatus(userId: Int): UserStatus {
         throw NotImplementedError("Users.getUserStatus is not implemented")
     }
 
@@ -1926,10 +1926,10 @@ class UsersServiceImpl internal constructor(
         }
     }
 
-    override suspend fun getUserStatus(userId: Int): Any {
+    override suspend fun getUserStatus(userId: Int): UserStatus {
         val response = client.get("$baseUrl/users/$userId/status")
         return when (response.status.value) {
-            200 -> response.body()
+            200 -> response.body<UserStatusDataWrapper>().data
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }

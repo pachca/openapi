@@ -1012,8 +1012,8 @@ export interface Message {
   } | null;
   forwarding: Forwarding | null;
   parentMessageId: number | null;
-  displayAvatarUrl: string | null;
-  displayName: string | null;
+  displayAvatarUrl?: string | null;
+  displayName?: string | null;
   changedAt: string | null;
   deletedAt: string | null;
 }
@@ -1121,7 +1121,7 @@ export interface Reaction {
   userId: number;
   createdAt: string;
   code: string;
-  name: string | null;
+  name: string;
 }
 
 export interface ReactionRequest {

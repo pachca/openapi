@@ -854,7 +854,7 @@ Body: { image* }
 Delete your profile avatar.
 
 ### GET /api/shared/v1/profile/status
-Retrieve information about your current status.
+Method for retrieving information about your own status. If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side.
 
 ### PUT /api/shared/v1/profile/status
 Set a new status for yourself.
@@ -896,7 +896,7 @@ Delete an employee's avatar.
 Parameters: user_id
 
 ### GET /api/shared/v1/users/{user_id}/status
-Retrieve information about an employee's status.
+Method for retrieving information about an employee's status. If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side.
 Parameters: user_id
 
 ### PUT /api/shared/v1/users/{user_id}/status

@@ -3531,10 +3531,16 @@ paths:
   /profile/status:
     get:
       operationId: ProfileOperations_getStatus
-      description: |-
+      description: >-
         Own status
 
-        Retrieve information about your current status.
+
+        Method for retrieving information about your own status.
+
+
+        If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status
+        whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at`
+        on the client side.
       parameters: []
       responses:
         '200':
@@ -3547,11 +3553,9 @@ paths:
                   - data
                 properties:
                   data:
-                    type: object
-                    allOf:
-                      - $ref: '#/components/schemas/UserStatus'
-                    nullable: true
+                    $ref: '#/components/schemas/UserStatus'
                 description: Response wrapper with data
+                nullable: true
         '401':
           description: Access is unauthorized.
           content:
@@ -5195,10 +5199,16 @@ paths:
   /users/{user_id}/status:
     get:
       operationId: UserStatusOperations_getUserStatus
-      description: |-
+      description: >-
         Employee status
 
-        Retrieve information about an employee's status.
+
+        Method for retrieving information about an employee's status.
+
+
+        If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status
+        whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at`
+        on the client side.
       parameters:
         - name: user_id
           in: path
@@ -5220,11 +5230,9 @@ paths:
                   - data
                 properties:
                   data:
-                    type: object
-                    allOf:
-                      - $ref: '#/components/schemas/UserStatus'
-                    nullable: true
+                    $ref: '#/components/schemas/UserStatus'
                 description: Response wrapper with data
+                nullable: true
         '401':
           description: Access is unauthorized.
           content:
@@ -6226,7 +6234,10 @@ components:
               type: array
               items:
                 type: string
-              description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+              description: >-
+                Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is
+                available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns
+                `400`. The service values `bot` and `all` cannot be assigned.
               example:
                 - messages:create
             template:
@@ -6434,7 +6445,10 @@ components:
               type: array
               items:
                 type: string
-              description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+              description: >-
+                Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is
+                available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns
+                `400`. The service values `bot` and `all` cannot be assigned.
               example:
                 - messages:create
             template:
@@ -6541,7 +6555,9 @@ components:
           type: array
           items:
             type: string
-          description: Bot token scopes (permissions)
+          description: >-
+            Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values
+            that cannot be set explicitly may appear here.
           example:
             - messages:create
         template:
@@ -7436,8 +7452,6 @@ components:
         - thread
         - forwarding
         - parent_message_id
-        - display_avatar_url
-        - display_name
         - changed_at
         - deleted_at
       properties:
@@ -7540,12 +7554,16 @@ components:
         display_avatar_url:
           type: string
           nullable: true
-          description: Message sender avatar URL
+          description: >-
+            Message sender avatar URL. The field is present only on messages from bots; it is absent from the response
+            for messages from employees. `null` if the bot did not override the value when sending.
           example: null
         display_name:
           type: string
           nullable: true
-          description: Message sender full name
+          description: >-
+            Message sender full name. The field is present only on messages from bots; it is absent from the response
+            for messages from employees. `null` if the bot did not override the value when sending.
           example: null
         changed_at:
           type: string
@@ -8363,7 +8381,6 @@ components:
           example: 👍
         name:
           type: string
-          nullable: true
           description: Reaction emoji name
           example: ':+1::skin-tone-1:'
       description: Message reaction
@@ -8935,7 +8952,7 @@ components:
           type: string
           nullable: true
           maxLength: 255
-          description: Last name. `null` if the last name is not filled in.
+          description: Last name. If not filled in, `null` or an empty string is returned.
           example: Petrov
         nickname:
           type: string
@@ -8962,12 +8979,12 @@ components:
           type: string
           nullable: true
           maxLength: 255
-          description: Department. `null` if the department is not specified.
+          description: Department. If not specified, `null` or an empty string is returned.
           example: Product
         title:
           type: string
           nullable: true
-          description: Job title. `null` if the job title is not specified.
+          description: Job title. If not specified, `null` or an empty string is returned.
           example: CIO
         role:
           allOf:

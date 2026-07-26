@@ -267,7 +267,7 @@
   },
   "ReactionOperations_addReaction": {
     "usage": "val request = ReactionRequest(code = \"👍\", name = \":+1:\")\nval response = client.reactions.addReaction(id = 7231942, request = request)",
-    "output": "Reaction(userId: Int, createdAt: OffsetDateTime, code: String, name: String?)",
+    "output": "Reaction(userId: Int, createdAt: OffsetDateTime, code: String, name: String)",
     "imports": [
       "ReactionRequest"
     ]
@@ -305,7 +305,7 @@
   },
   "ProfileOperations_getStatus": {
     "usage": "val response = client.profile.getStatus()",
-    "output": "Any"
+    "output": "UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)"
   },
   "ProfileAvatarOperations_updateProfileAvatar": {
     "usage": "val image = ByteArray(0)\nval response = client.profile.updateProfileAvatar(image = image)",
@@ -392,7 +392,7 @@
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "val response = client.users.getUserStatus(userId = 12)",
-    "output": "Any"
+    "output": "UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)"
   },
   "UserOperations_createUser": {
     "usage": "val request = UserCreateRequest(\n    user = UserCreateRequestUser(\n        firstName = \"Олег\",\n        lastName = \"Петров\",\n        email = \"olegp@example.com\",\n        phoneNumber = \"+79001234567\",\n        nickname = \"olegpetrov\",\n        department = \"Продукт\",\n        title = \"CIO\",\n        role = UserCreateRole.USER,\n        suspended = false,\n        listTags = listOf(\"example\"),\n        chatIds = listOf(123),\n        customProperties = listOf(UserCreateRequestCustomProperty(id = 1678, value = \"Санкт-Петербург\"))\n    ),\n    skipEmailNotify = false\n)\nval response = client.users.createUser(request = request)",

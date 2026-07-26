@@ -2053,7 +2053,7 @@ public class ProfileService
         throw new NotImplementedException("Profile.getProfile is not implemented");
     }
 
-    public virtual async System.Threading.Tasks.Task<object> GetStatusAsync(CancellationToken cancellationToken = default)
+    public virtual async System.Threading.Tasks.Task<UserStatus> GetStatusAsync(CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Profile.getStatus is not implemented");
     }
@@ -2112,7 +2112,7 @@ public sealed class ProfileServiceImpl : ProfileService
         }
     }
 
-    public override async System.Threading.Tasks.Task<object> GetStatusAsync(CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<UserStatus> GetStatusAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/profile/status";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -2121,7 +2121,7 @@ public sealed class ProfileServiceImpl : ProfileService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<object>(json);
+                return PachcaUtils.Deserialize<UserStatusDataWrapper>(json).Data;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -2727,7 +2727,7 @@ public class UsersService
         throw new NotImplementedException("Users.getUser is not implemented");
     }
 
-    public virtual async System.Threading.Tasks.Task<object> GetUserStatusAsync(int userId, CancellationToken cancellationToken = default)
+    public virtual async System.Threading.Tasks.Task<UserStatus> GetUserStatusAsync(int userId, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Users.getUserStatus is not implemented");
     }
@@ -2852,7 +2852,7 @@ public sealed class UsersServiceImpl : UsersService
         }
     }
 
-    public override async System.Threading.Tasks.Task<object> GetUserStatusAsync(int userId, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<UserStatus> GetUserStatusAsync(int userId, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users/{userId}/status";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -2861,7 +2861,7 @@ public sealed class UsersServiceImpl : UsersService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<object>(json);
+                return PachcaUtils.Deserialize<UserStatusDataWrapper>(json).Data;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:

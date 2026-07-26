@@ -45,12 +45,12 @@ curl "https://api.pachca.com/api/shared/v1/search/users?query=Олег&limit=10&
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
   - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-  - `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
+  - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
   - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-  - `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
-  - `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
+  - `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
+  - `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
   - `role: string` (required) — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
   - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`

@@ -1000,7 +1000,7 @@ class Reaction:
     user_id: int
     created_at: datetime
     code: str
-    name: str | None = None
+    name: str
 
 
 @dataclass

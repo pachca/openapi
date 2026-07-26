@@ -263,7 +263,7 @@
   },
   "ReactionOperations_addReaction": {
     "usage": "var request = new ReactionRequest { Code = \"👍\", Name = \":+1:\" };\nvar response = await client.Reactions.AddReactionAsync(7231942, request);",
-    "output": "Reaction(UserId: int, CreatedAt: DateTimeOffset, Code: string, Name: string?)",
+    "output": "Reaction(UserId: int, CreatedAt: DateTimeOffset, Code: string, Name: string)",
     "imports": [
       "ReactionRequest"
     ]
@@ -301,7 +301,7 @@
   },
   "ProfileOperations_getStatus": {
     "usage": "var response = await client.Profile.GetStatusAsync();",
-    "output": "object"
+    "output": "UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)"
   },
   "ProfileAvatarOperations_updateProfileAvatar": {
     "usage": "var response = await client.Profile.UpdateProfileAvatarAsync(Array.Empty<byte>());",
@@ -388,7 +388,7 @@
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "var response = await client.Users.GetUserStatusAsync(12);",
-    "output": "object"
+    "output": "UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)"
   },
   "UserOperations_createUser": {
     "usage": "var request = new UserCreateRequest\n{\n    User = new UserCreateRequestUser\n    {\n        FirstName = \"Олег\",\n        LastName = \"Петров\",\n        Email = \"olegp@example.com\",\n        PhoneNumber = \"+79001234567\",\n        Nickname = \"olegpetrov\",\n        Department = \"Продукт\",\n        Title = \"CIO\",\n        Role = UserCreateRole.User,\n        Suspended = false,\n        ListTags = new List<string> { \"example\" },\n        ChatIds = new List<int> { 123 },\n        CustomProperties = new List<UserCreateRequestCustomProperty> { new UserCreateRequestCustomProperty { Id = 1678, Value = \"Санкт-Петербург\" } }\n    },\n    SkipEmailNotify = false\n};\nvar response = await client.Users.CreateUserAsync(request);",

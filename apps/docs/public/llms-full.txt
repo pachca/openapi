@@ -76,24 +76,24 @@
 | · Ошибки | 10852–10925 |
 | · Лимиты | 10926–11043 |
 | · Модели | 11044–11679 |
-| API-методы — все эндпоинты со схемами и примерами | 11680–29003 |
+| API-методы — все эндпоинты со схемами и примерами | 11680–29007 |
 | · OAuth | 11682–11781 |
 | · Chats | 11782–13389 |
-| · Profile | 13390–14293 |
-| · Users | 14294–16673 |
-| · Group tags | 16674–18021 |
-| · Members | 18022–19366 |
-| · Threads | 19367–20061 |
-| · Messages | 20062–22196 |
-| · Read members | 22197–22443 |
-| · Reactions | 22444–23090 |
-| · Search | 23091–23903 |
-| · Tasks | 23904–25193 |
-| · Views | 25194–25756 |
-| · Bots | 25757–28223 |
-| · Security | 28224–28550 |
-| · Custom Properties | 28551–28760 |
-| · Files | 28761–29003 |
+| · Profile | 13390–14295 |
+| · Users | 14296–16677 |
+| · Group tags | 16678–18025 |
+| · Members | 18026–19370 |
+| · Threads | 19371–20065 |
+| · Messages | 20066–22200 |
+| · Read members | 22201–22447 |
+| · Reactions | 22448–23094 |
+| · Search | 23095–23907 |
+| · Tasks | 23908–25197 |
+| · Views | 25198–25760 |
+| · Bots | 25761–28227 |
+| · Security | 28228–28554 |
+| · Custom Properties | 28555–28764 |
+| · Files | 28765–29007 |
 
 # LIBRARY RULES
 
@@ -5733,7 +5733,7 @@ const request: MessageCreateRequest = {
   linkPreview: false
 }
 const response = client.messages.createMessage(request)
-// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })
+// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })
 
 // Список сотрудников
 const response = client.users.listUsers({
@@ -11124,12 +11124,12 @@ users = await with_retry(lambda: client.users.list_users())
 
 - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
 - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-- `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
+- `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
 - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
 - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
 - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-- `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
-- `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
+- `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
+- `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
 - `role: string` (required) — Уровень доступа
   Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
 - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -11273,8 +11273,8 @@ users = await with_retry(lambda: client.users.list_users())
   - `original_thread_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
   - `original_thread_parent_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
 - `parent_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `null`
-- `display_avatar_url: string` (required, nullable) — Ссылка на аватарку отправителя сообщения. Пример: `null`
-- `display_name: string` (required, nullable) — Полное имя отправителя сообщения. Пример: `null`
+- `display_avatar_url: string` (nullable) — Ссылка на аватарку отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
+- `display_name: string` (nullable) — Полное имя отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
 - `changed_at: date-time` (required, nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2021-08-28T16:10:00.000Z"`
 - `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются. Пример: `null`
 
@@ -11290,7 +11290,7 @@ users = await with_retry(lambda: client.users.list_users())
 - `user_id: integer, int32` (required) — Идентификатор пользователя, который добавил реакцию. Пример: `12`
 - `created_at: date-time` (required) — Дата и время добавления реакции (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-01-20T10:30:00.000Z"`
 - `code: string` (required) — Emoji символ реакции. Пример: `"👍"`
-- `name: string` (required, nullable) — Название emoji реакции. Пример: `":+1::skin-tone-1:"`
+- `name: string` (required) — Название emoji реакции. Пример: `":+1::skin-tone-1:"`
 
 
 ## Напоминание
@@ -11453,7 +11453,7 @@ users = await with_retry(lambda: client.users.list_users())
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
   - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
-  - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+  - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Набор по умолчанию шире того, что можно назначить явно, поэтому здесь могут встречаться значения, недоступные для явной установки. Пример: `["messages:create"]`
   - `template: string` (required, nullable) — Шаблон форматирования входящего вебхука. `null`, если не задан. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
   - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
     Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
@@ -13417,12 +13417,12 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 - `data: object` (required) — Сотрудник
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
   - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-  - `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
+  - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
   - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-  - `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
-  - `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
+  - `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
+  - `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
   - `role: string` (required) — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
   - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -13889,6 +13889,8 @@ await client.profile.delete_profile_avatar()
 
 Метод для получения информации о своем статусе.
 
+Если статус не установлен, метод возвращает `200` и `null` в теле ответа — без объекта-обёртки. Статус с истёкшим `expires_at` какое-то время ещё возвращается, пока не будет очищен, поэтому проверяйте `expires_at` на стороне клиента.
+
 ## Пример запроса
 
 ```bash
@@ -13969,7 +13971,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.profile.getStatus()
-// → unknown
+// → UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })
 ```
 
 ### Python
@@ -13980,7 +13982,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.profile.get_status()
-# → object
+# → UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)
 ```
 
 ---
@@ -14407,12 +14409,12 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 - `data: object` (required) — Сотрудник
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
   - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-  - `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
+  - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
   - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-  - `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
-  - `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
+  - `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
+  - `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
   - `role: string` (required) — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
   - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -14710,12 +14712,12 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Олег&limit=1" \
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
   - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-  - `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
+  - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
   - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-  - `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
-  - `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
+  - `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
+  - `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
   - `role: string` (required) — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
   - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -15003,12 +15005,12 @@ curl "https://api.pachca.com/api/shared/v1/users/12" \
 - `data: object` (required) — Сотрудник
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
   - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-  - `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
+  - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
   - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-  - `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
-  - `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
+  - `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
+  - `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
   - `role: string` (required) — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
   - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -15312,12 +15314,12 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/12" \
 - `data: object` (required) — Сотрудник
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
   - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-  - `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
+  - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
   - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-  - `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
-  - `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
+  - `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
+  - `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
   - `role: string` (required) — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
   - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -16158,6 +16160,8 @@ await client.users.delete_user_avatar(user_id=12)
 
 Метод для получения информации о статусе сотрудника.
 
+Если статус не установлен, метод возвращает `200` и `null` в теле ответа — без объекта-обёртки. Статус с истёкшим `expires_at` какое-то время ещё возвращается, пока не будет очищен, поэтому проверяйте `expires_at` на стороне клиента.
+
 ## Параметры
 
 ### Path параметры
@@ -16275,7 +16279,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.users.getUserStatus(12)
-// → unknown
+// → UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })
 ```
 
 ### Python
@@ -16286,7 +16290,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.users.get_user_status(user_id=12)
-# → object
+# → UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)
 ```
 
 ---
@@ -17741,12 +17745,12 @@ curl "https://api.pachca.com/api/shared/v1/group_tags/9111/users?limit=1" \
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
   - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-  - `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
+  - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
   - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-  - `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
-  - `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
+  - `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
+  - `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
   - `role: string` (required) — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
   - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -18571,12 +18575,12 @@ curl "https://api.pachca.com/api/shared/v1/chats/334/members?role=all&limit=1" \
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
   - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-  - `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
+  - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
   - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-  - `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
-  - `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
+  - `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
+  - `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
   - `role: string` (required) — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
   - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -20229,8 +20233,8 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
     - `original_thread_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
     - `original_thread_parent_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
   - `parent_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `null`
-  - `display_avatar_url: string` (required, nullable) — Ссылка на аватарку отправителя сообщения. Пример: `null`
-  - `display_name: string` (required, nullable) — Полное имя отправителя сообщения. Пример: `null`
+  - `display_avatar_url: string` (nullable) — Ссылка на аватарку отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
+  - `display_name: string` (nullable) — Полное имя отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
   - `changed_at: date-time` (required, nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2021-08-28T16:10:00.000Z"`
   - `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются. Пример: `null`
 
@@ -20455,7 +20459,7 @@ const request: MessageCreateRequest = {
   linkPreview: false
 }
 const response = client.messages.createMessage(request)
-// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })
+// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })
 ```
 
 ### Python
@@ -20575,8 +20579,8 @@ curl "https://api.pachca.com/api/shared/v1/messages?chat_id=198&sort=id&order=de
     - `original_thread_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
     - `original_thread_parent_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
   - `parent_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `null`
-  - `display_avatar_url: string` (required, nullable) — Ссылка на аватарку отправителя сообщения. Пример: `null`
-  - `display_name: string` (required, nullable) — Полное имя отправителя сообщения. Пример: `null`
+  - `display_avatar_url: string` (nullable) — Ссылка на аватарку отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
+  - `display_name: string` (nullable) — Полное имя отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
   - `changed_at: date-time` (required, nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2021-08-28T16:10:00.000Z"`
   - `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются. Пример: `null`
 - `meta: object` (required) — Метаданные пагинации
@@ -20919,8 +20923,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275" \
     - `original_thread_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
     - `original_thread_parent_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
   - `parent_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `null`
-  - `display_avatar_url: string` (required, nullable) — Ссылка на аватарку отправителя сообщения. Пример: `null`
-  - `display_name: string` (required, nullable) — Полное имя отправителя сообщения. Пример: `null`
+  - `display_avatar_url: string` (nullable) — Ссылка на аватарку отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
+  - `display_name: string` (nullable) — Полное имя отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
   - `changed_at: date-time` (required, nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2021-08-28T16:10:00.000Z"`
   - `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются. Пример: `null`
 
@@ -21088,7 +21092,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.messages.getMessage(194275)
-// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })
+// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })
 ```
 
 ### Python
@@ -21259,8 +21263,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/194275" \
     - `original_thread_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
     - `original_thread_parent_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
   - `parent_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `null`
-  - `display_avatar_url: string` (required, nullable) — Ссылка на аватарку отправителя сообщения. Пример: `null`
-  - `display_name: string` (required, nullable) — Полное имя отправителя сообщения. Пример: `null`
+  - `display_avatar_url: string` (nullable) — Ссылка на аватарку отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
+  - `display_name: string` (nullable) — Полное имя отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
   - `changed_at: date-time` (required, nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2021-08-28T16:10:00.000Z"`
   - `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются. Пример: `null`
 
@@ -21510,7 +21514,7 @@ const request: MessageUpdateRequest = {
   }
 }
 const response = client.messages.updateMessage(194275, request)
-// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })
+// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })
 ```
 
 ### Python
@@ -22511,7 +22515,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/7231942/reactions" \
 - `user_id: integer, int32` (required) — Идентификатор пользователя, который добавил реакцию. Пример: `12`
 - `created_at: date-time` (required) — Дата и время добавления реакции (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-01-20T10:30:00.000Z"`
 - `code: string` (required) — Emoji символ реакции. Пример: `"👍"`
-- `name: string` (required, nullable) — Название emoji реакции. Пример: `":+1::skin-tone-1:"`
+- `name: string` (required) — Название emoji реакции. Пример: `":+1::skin-tone-1:"`
 
 **Пример ответа:**
 
@@ -22658,7 +22662,7 @@ const client = new PachcaClient("YOUR_TOKEN")
 
 const request: ReactionRequest = { code: "👍", name: ":+1:" }
 const response = client.reactions.addReaction(7231942, request)
-// → Reaction({ userId: number, createdAt: string, code: string, name: string | null })
+// → Reaction({ userId: number, createdAt: string, code: string, name: string })
 ```
 
 ### Python
@@ -22671,7 +22675,7 @@ client = PachcaClient("YOUR_TOKEN")
 
 request = ReactionRequest(code="👍", name=":+1:")
 response = await client.reactions.add_reaction(id=7231942, request=request)
-# → Reaction(user_id: int, created_at: datetime, code: str, name: str | None)
+# → Reaction(user_id: int, created_at: datetime, code: str, name: str)
 ```
 
 ---
@@ -22906,7 +22910,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275/reactions?limit=1" \
   - `user_id: integer, int32` (required) — Идентификатор пользователя, который добавил реакцию. Пример: `12`
   - `created_at: date-time` (required) — Дата и время добавления реакции (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-01-20T10:30:00.000Z"`
   - `code: string` (required) — Emoji символ реакции. Пример: `"👍"`
-  - `name: string` (required, nullable) — Название emoji реакции. Пример: `":+1::skin-tone-1:"`
+  - `name: string` (required) — Название emoji реакции. Пример: `":+1::skin-tone-1:"`
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`
@@ -23405,8 +23409,8 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболк�
     - `original_thread_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
     - `original_thread_parent_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. `null`, если оригинальное сообщение было не в треде или тред создан без привязки к сообщению. Пример: `null`
   - `parent_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `null`
-  - `display_avatar_url: string` (required, nullable) — Ссылка на аватарку отправителя сообщения. Пример: `null`
-  - `display_name: string` (required, nullable) — Полное имя отправителя сообщения. Пример: `null`
+  - `display_avatar_url: string` (nullable) — Ссылка на аватарку отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
+  - `display_name: string` (nullable) — Полное имя отправителя сообщения. Поле присутствует только у сообщений от ботов; у сообщений от сотрудников его в ответе нет. `null`, если бот не переопределял значение при отправке. Пример: `null`
   - `changed_at: date-time` (required, nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2021-08-28T16:10:00.000Z"`
   - `deleted_at: date-time` (required, nullable) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у неудалённых сообщений. В списке сообщений удалённые не возвращаются. Пример: `null`
 - `meta: object` (required) — Мета-информация для пагинации поисковых результатов
@@ -23669,12 +23673,12 @@ curl "https://api.pachca.com/api/shared/v1/search/users?query=Олег&limit=10&
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
   - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
-  - `last_name: string` (required, nullable, max length: 255) — Фамилия. `null`, если фамилия не заполнена. Пример: `"Петров"`
+  - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
   - `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
-  - `department: string` (required, nullable, max length: 255) — Департамент. `null`, если департамент не указан. Пример: `"Продукт"`
-  - `title: string` (required, nullable) — Должность. `null`, если должность не указана. Пример: `"CIO"`
+  - `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
+  - `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
   - `role: string` (required) — Уровень доступа
     Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
   - `suspended: boolean` (required) — Деактивация пользователя. Пример: `false`
@@ -25793,7 +25797,7 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bot/recreate_token" \
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
     - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
-    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Набор по умолчанию шире того, что можно назначить явно, поэтому здесь могут встречаться значения, недоступные для явной установки. Пример: `["messages:create"]`
     - `template: string` (required, nullable) — Шаблон форматирования входящего вебхука. `null`, если не задан. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
     - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
       Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
@@ -26025,7 +26029,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
     - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
-    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Набор по умолчанию шире того, что можно назначить явно, поэтому здесь могут встречаться значения, недоступные для явной установки. Пример: `["messages:create"]`
     - `template: string` (required, nullable) — Шаблон форматирования входящего вебхука. `null`, если не задан. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
     - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
       Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
@@ -26271,7 +26275,7 @@ curl "https://api.pachca.com/api/shared/v1/bots?query=задач&limit=1" \
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
     - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
-    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Набор по умолчанию шире того, что можно назначить явно, поэтому здесь могут встречаться значения, недоступные для явной установки. Пример: `["messages:create"]`
     - `template: string` (required, nullable) — Шаблон форматирования входящего вебхука. `null`, если не задан. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
     - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
       Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
@@ -26462,7 +26466,7 @@ response = await client.bots.list_bots(params=params)
   - `trigger_on: string` — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
   - `commands: array of string` — Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов. Пример: `["/task","/help"]`
-  - `scopes: array of string` — Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию. Пример: `["messages:create"]`
+  - `scopes: array of string` — Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию. Боту доступны не все скоупы: часть из них разрешена только пользовательским ролям, и попытка назначить такой скоуп возвращает `400`. Служебные значения `bot` и `all` назначать нельзя. Пример: `["messages:create"]`
   - `template: string` — Шаблон форматирования входящего вебхука. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
   - `template_engine: string` — Шаблонизатор для обработки шаблона входящего вебхука
     Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
@@ -26538,7 +26542,7 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
     - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
-    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Набор по умолчанию шире того, что можно назначить явно, поэтому здесь могут встречаться значения, недоступные для явной установки. Пример: `["messages:create"]`
     - `template: string` (required, nullable) — Шаблон форматирования входящего вебхука. `null`, если не задан. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
     - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
       Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
@@ -26791,7 +26795,7 @@ curl "https://api.pachca.com/api/shared/v1/bots/1738816" \
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
     - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
-    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Набор по умолчанию шире того, что можно назначить явно, поэтому здесь могут встречаться значения, недоступные для явной установки. Пример: `["messages:create"]`
     - `template: string` (required, nullable) — Шаблон форматирования входящего вебхука. `null`, если не задан. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
     - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
       Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
@@ -26998,7 +27002,7 @@ response = await client.bots.get_bot(id=1738816)
   - `trigger_on: string` — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
   - `commands: array of string` — Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов. Пример: `["/task","/help"]`
-  - `scopes: array of string` — Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию. Пример: `["messages:create"]`
+  - `scopes: array of string` — Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию. Боту доступны не все скоупы: часть из них разрешена только пользовательским ролям, и попытка назначить такой скоуп возвращает `400`. Служебные значения `bot` и `all` назначать нельзя. Пример: `["messages:create"]`
   - `template: string` — Шаблон форматирования входящего вебхука. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
   - `template_engine: string` — Шаблонизатор для обработки шаблона входящего вебхука
     Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
@@ -27083,7 +27087,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
     - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
-    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Набор по умолчанию шире того, что можно назначить явно, поэтому здесь могут встречаться значения, недоступные для явной установки. Пример: `["messages:create"]`
     - `template: string` (required, nullable) — Шаблон форматирования входящего вебхука. `null`, если не задан. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
     - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
       Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
@@ -27545,7 +27549,7 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bots/1738816/recreate_token" 
     - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
       Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
     - `commands: array of string` (required) — Команды бота (триггер-слова). Пример: `["/task"]`
-    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+    - `scopes: array of string` (required) — Скоупы (права доступа) токена бота. Набор по умолчанию шире того, что можно назначить явно, поэтому здесь могут встречаться значения, недоступные для явной установки. Пример: `["messages:create"]`
     - `template: string` (required, nullable) — Шаблон форматирования входящего вебхука. `null`, если не задан. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
     - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
       Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики

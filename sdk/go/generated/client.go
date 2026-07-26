@@ -2758,7 +2758,7 @@ func (s *OAuthServiceImpl) GetTokenInfo(ctx context.Context) (*AccessTokenInfo, 
 
 type ProfileService interface {
 	GetProfile(ctx context.Context) (*User, error)
-	GetStatus(ctx context.Context) (*any, error)
+	GetStatus(ctx context.Context) (*UserStatus, error)
 	UpdateProfileAvatar(ctx context.Context, image io.Reader) (*AvatarData, error)
 	UpdateStatus(ctx context.Context, request StatusUpdateRequest) (*UserStatus, error)
 	DeleteProfileAvatar(ctx context.Context) error
@@ -2772,7 +2772,7 @@ func (s *ProfileServiceStub) GetProfile(ctx context.Context) (*User, error) {
 	return nil, NotImplementedError{Method: "Profile.getProfile"}
 }
 
-func (s *ProfileServiceStub) GetStatus(ctx context.Context) (*any, error) {
+func (s *ProfileServiceStub) GetStatus(ctx context.Context) (*UserStatus, error) {
 	return nil, NotImplementedError{Method: "Profile.getStatus"}
 }
 
@@ -2835,7 +2835,7 @@ func (s *ProfileServiceImpl) GetProfile(ctx context.Context) (*User, error) {
 	}
 }
 
-func (s *ProfileServiceImpl) GetStatus(ctx context.Context) (*any, error) {
+func (s *ProfileServiceImpl) GetStatus(ctx context.Context) (*UserStatus, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/profile/status", s.baseURL), nil)
 	if err != nil {
 		return nil, err
@@ -2847,11 +2847,13 @@ func (s *ProfileServiceImpl) GetStatus(ctx context.Context) (*any, error) {
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK:
-		var result any
+		var result struct {
+			Data UserStatus `json:"data"`
+		}
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err
 		}
-		return &result, nil
+		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
@@ -3604,7 +3606,7 @@ type UsersService interface {
 	ListUsers(ctx context.Context, params *ListUsersParams) (*ListUsersResponse, error)
 	ListUsersAll(ctx context.Context, params *ListUsersParams) ([]User, error)
 	GetUser(ctx context.Context, id int32) (*User, error)
-	GetUserStatus(ctx context.Context, userId int32) (*any, error)
+	GetUserStatus(ctx context.Context, userId int32) (*UserStatus, error)
 	CreateUser(ctx context.Context, request UserCreateRequest) (*User, error)
 	UpdateUser(ctx context.Context, id int32, request UserUpdateRequest) (*User, error)
 	UpdateUserAvatar(ctx context.Context, userId int32, image io.Reader) (*AvatarData, error)
@@ -3628,7 +3630,7 @@ func (s *UsersServiceStub) GetUser(ctx context.Context, id int32) (*User, error)
 	return nil, NotImplementedError{Method: "Users.getUser"}
 }
 
-func (s *UsersServiceStub) GetUserStatus(ctx context.Context, userId int32) (*any, error) {
+func (s *UsersServiceStub) GetUserStatus(ctx context.Context, userId int32) (*UserStatus, error) {
 	return nil, NotImplementedError{Method: "Users.getUserStatus"}
 }
 
@@ -3772,7 +3774,7 @@ func (s *UsersServiceImpl) GetUser(ctx context.Context, id int32) (*User, error)
 	}
 }
 
-func (s *UsersServiceImpl) GetUserStatus(ctx context.Context, userId int32) (*any, error) {
+func (s *UsersServiceImpl) GetUserStatus(ctx context.Context, userId int32) (*UserStatus, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/users/%v/status", s.baseURL, userId), nil)
 	if err != nil {
 		return nil, err
@@ -3784,11 +3786,13 @@ func (s *UsersServiceImpl) GetUserStatus(ctx context.Context, userId int32) (*an
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK:
-		var result any
+		var result struct {
+			Data UserStatus `json:"data"`
+		}
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err
 		}
-		return &result, nil
+		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {

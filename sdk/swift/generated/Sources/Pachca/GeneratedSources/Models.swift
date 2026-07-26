@@ -2049,9 +2049,9 @@ public struct Reaction: Codable {
     public let userId: Int
     public let createdAt: String
     public let code: String
-    public let name: String?
+    public let name: String
 
-    public init(userId: Int, createdAt: String, code: String, name: String? = nil) {
+    public init(userId: Int, createdAt: String, code: String, name: String) {
         self.userId = userId
         self.createdAt = createdAt
         self.code = code
@@ -3501,12 +3501,12 @@ struct UserDataWrapper: Codable {
     let data: User
 }
 
-struct AvatarDataDataWrapper: Codable {
-    let data: AvatarData
-}
-
 struct UserStatusDataWrapper: Codable {
     let data: UserStatus
+}
+
+struct AvatarDataDataWrapper: Codable {
+    let data: AvatarData
 }
 
 struct TaskDataWrapper: Codable {

@@ -1549,7 +1549,7 @@ data class Reaction(
     @SerialName("user_id") val userId: Int,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     val code: String,
-    val name: String? = null,
+    val name: String,
 )
 
 @Serializable
@@ -1971,10 +1971,10 @@ data class AccessTokenInfoDataWrapper(val data: AccessTokenInfo)
 data class UserDataWrapper(val data: User)
 
 @Serializable
-data class AvatarDataDataWrapper(val data: AvatarData)
+data class UserStatusDataWrapper(val data: UserStatus)
 
 @Serializable
-data class UserStatusDataWrapper(val data: UserStatus)
+data class AvatarDataDataWrapper(val data: AvatarData)
 
 @Serializable
 data class TaskDataWrapper(val data: Task)

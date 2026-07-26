@@ -52,9 +52,9 @@ import {
   ListThreadsResponse,
   Thread,
   AccessTokenInfo,
+  UserStatus,
   AvatarData,
   StatusUpdateRequest,
-  UserStatus,
   SearchChatsParams,
   SearchChatsResponse,
   SearchMessagesParams,
@@ -1558,7 +1558,7 @@ export class ProfileService {
     throw new Error("Profile.getProfile is not implemented");
   }
 
-  async getStatus(): Promise<unknown> {
+  async getStatus(): Promise<UserStatus> {
     throw new Error("Profile.getStatus is not implemented");
   }
 
@@ -1606,14 +1606,14 @@ export class ProfileServiceImpl extends ProfileService {
     }
   }
 
-  async getStatus(): Promise<unknown> {
+  async getStatus(): Promise<UserStatus> {
     const response = await fetchWithRetry(`${this.baseUrl}/profile/status`, {
       headers: this.headers,
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserializeType("unknown", body) as unknown;
+        return deserializeType("UserStatus", body.data) as UserStatus;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -2003,7 +2003,7 @@ export class UsersService {
     throw new Error("Users.getUser is not implemented");
   }
 
-  async getUserStatus(userId: number): Promise<unknown> {
+  async getUserStatus(userId: number): Promise<UserStatus> {
     throw new Error("Users.getUserStatus is not implemented");
   }
 
@@ -2093,14 +2093,14 @@ export class UsersServiceImpl extends UsersService {
     }
   }
 
-  async getUserStatus(userId: number): Promise<unknown> {
+  async getUserStatus(userId: number): Promise<UserStatus> {
     const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/status`, {
       headers: this.headers,
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserializeType("unknown", body) as unknown;
+        return deserializeType("UserStatus", body.data) as UserStatus;
       case 401:
         throw new OAuthError(body.error);
       default:

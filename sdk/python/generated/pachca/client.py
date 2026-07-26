@@ -68,9 +68,9 @@ from .models import (
     ListThreadsResponse,
     Thread,
     AccessTokenInfo,
+    UserStatus,
     AvatarData,
     StatusUpdateRequest,
-    UserStatus,
     SearchChatsParams,
     SearchChatsResponse,
     ChatSubtype,
@@ -1804,7 +1804,7 @@ class ProfileService:
         raise NotImplementedError("Profile.getProfile is not implemented")
 
     async def get_status(
-        self) -> object:
+        self) -> UserStatus:
         raise NotImplementedError("Profile.getStatus is not implemented")
 
     async def update_profile_avatar(
@@ -1851,14 +1851,14 @@ class ProfileServiceImpl(ProfileService):
                 raise deserialize(ApiError, body)
 
     async def get_status(
-        self) -> object:
+        self) -> UserStatus:
         response = await self._client.get(
             "/profile/status",
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(object, body)
+                return deserialize(UserStatus, body["data"])
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -2320,7 +2320,7 @@ class UsersService:
     async def get_user_status(
         self,
         user_id: int,
-    ) -> object:
+    ) -> UserStatus:
         raise NotImplementedError("Users.getUserStatus is not implemented")
 
     async def create_user(
@@ -2436,14 +2436,14 @@ class UsersServiceImpl(UsersService):
     async def get_user_status(
         self,
         user_id: int,
-    ) -> object:
+    ) -> UserStatus:
         response = await self._client.get(
             f"/users/{user_id}/status",
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(object, body)
+                return deserialize(UserStatus, body["data"])
             case 401:
                 raise deserialize(OAuthError, body)
             case _:

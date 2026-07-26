@@ -197,7 +197,7 @@
 - `conditions_matched: boolean` (required) — Результат проверки условий правила (true — условия сработали)
 
 
-Получить такие события можно методом [Журнал аудита событий](GET /audit_events) с фильтром `event_key=dlp_violation_detected`. Подробнее — в [гайде по журналу аудита](/guides/audit-events).
+Получить такие события можно методом [Журнал аудита событий](/api/security/list) с фильтром `event_key=dlp_violation_detected`. Подробнее — в [гайде по журналу аудита](/guides/audit-events).
 
 
 ## Связанные разделы

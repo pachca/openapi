@@ -102,7 +102,7 @@ Pachca Trigger поддерживает два режима настройки: 
     <ImageCard src="/images/n8n/trigger-webhook-urls.avif" alt="Test URL и Production URL в панели узла n8n" caption="Test URL и Production URL в верхней части панели узла" maxWidth={960} />
   </Step>
   <Step title="Вставьте URL в настройки бота в Пачке">
-    Откройте настройки вашего бота в Пачке, перейдите на вкладку **Исходящий Webhook** и вставьте скопированный Production URL в поле **Webhook URL**. Подробнее — в разделе [Настройка и типы событий](/guides/webhook/events#obschie-nastroiki).
+    Откройте настройки вашего бота в Пачке, перейдите на вкладку **Исходящий Webhook** и вставьте скопированный Production URL в поле **Webhook URL**. Подробнее — в разделе [Настройка и типы событий](/guides/webhook/events#obschie-nastroyki).
   </Step>
   <Step title="Вернитесь в n8n и активируйте">
     Нажмите **Activate** в n8n. С этого момента бот отправляет события в ваш workflow.
@@ -184,7 +184,7 @@ Pachca Trigger поддерживает два режима настройки: 
 
 ### Проверка подписи
 
-Для защиты от поддельных запросов добавьте **Signing Secret** бота в [Credentials](/guides/n8n/setup#sozdanie-credentials). Trigger автоматически проверяет HMAC-SHA256 подпись каждого входящего запроса через заголовок `pachca-signature` и отклоняет невалидные.
+Для защиты от поддельных запросов добавьте **Signing Secret** бота в [Credentials](/guides/n8n/setup#nastroyka-credentials). Trigger автоматически проверяет HMAC-SHA256 подпись каждого входящего запроса через заголовок `pachca-signature` и отклоняет невалидные.
 
 Подробнее о механизме подписи — в разделе [Безопасность и обработчик](/guides/webhook/handler#bezopasnost).
 
@@ -192,7 +192,7 @@ Pachca Trigger поддерживает два режима настройки: 
 
 ### Ограничение по IP
 
-Укажите **Webhook Allowed IPs** в [Credentials](/guides/n8n/setup#sozdanie-credentials) — через запятую список IP-адресов, с которых принимаются вебхуки. Пачка отправляет вебхуки с IP `37.200.70.177`.
+Укажите **Webhook Allowed IPs** в [Credentials](/guides/n8n/setup#nastroyka-credentials) — через запятую список IP-адресов, с которых принимаются вебхуки. Пачка отправляет вебхуки с IP `37.200.70.177`.
 
 Если поле пустое — проверка IP отключена и запросы принимаются с любого адреса.
 

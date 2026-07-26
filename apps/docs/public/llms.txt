@@ -127,7 +127,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 Каталог API (RFC 9727): `https://dev.pachca.com/.well-known/api-catalog` — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.
 
 ## Руководства
-- [Обзор](https://dev.pachca.com/.md): Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n и Agent Skills для AI-агентов
+- [Обзор](https://dev.pachca.com/index.md): Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n и Agent Skills для AI-агентов
 - [Быстрый старт](https://dev.pachca.com/guides/quickstart.md): Первый запрос к API Пачки за 5 минут: получение персонального токена, проверка авторизации и отправка сообщения через cURL, Postman или официальный CLI
 - [AI агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview.md): Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — llms.txt, CLI как основной путь, Agent Skills, OpenAPI, Arazzo, Context7
 - [AI агенты, Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction.md): Как агент в Пачке получает события через вебхук, собирает контекст треда, выполняет действия и отвечает. Реакция-индикатор и таймер agent-thinking

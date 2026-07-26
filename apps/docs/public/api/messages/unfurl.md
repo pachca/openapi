@@ -33,7 +33,7 @@
   - `description: string` (required) — Описание. Пример: `"Пример отправки файлов на удаленный сервер"`
   - `image_url: string` — Публичная ссылка на изображение (если вы хотите загрузить файл изображения в Пачку, то используйте параметр image). Пример: `"https://website.com/img/landing.png"`
   - `image: object` — Изображение
-    - `key: string` (required) — Путь к изображению, полученный в результате [загрузки файла](POST /direct_url). Пример: `"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}"`
+    - `key: string` (required) — Путь к изображению, полученный в результате [загрузки файла](/api/files/direct-url). Пример: `"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}"`
     - `name: string` (required) — Название изображения (рекомендуется писать вместе с расширением). Пример: `"files-to-server.jpg"`
     - `size: integer, int32` — Размер изображения в байтах. Пример: `695604`
 

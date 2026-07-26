@@ -76,7 +76,7 @@ related:
 
 <ImageCard src="/images/n8n/credentials-test.avif" alt="Успешная проверка Credentials" caption="Connection tested successfully" maxWidth={960} />
 
-При ошибке 401 — токен неверный или просрочен. Симптомы и решения — в разделе [401 Unauthorized](/guides/n8n/troubleshooting#nevernyi-token-401-unauthorized).
+При ошибке 401 — токен неверный или просрочен. Симптомы и решения — в разделе [401 Unauthorized](/guides/n8n/troubleshooting#nevernyy-token-401-unauthorized).
 
 ## Тестирование триггера
 
@@ -133,7 +133,7 @@ related:
     После этого запустите **Listen for Test Event**, проведите тест, снова активируйте workflow. На время теста продакшен будет выключен — учитывайте это, если на workflow приходит критичный трафик.
   </Step>
   <Step title="Подмена URL в ручном режиме">
-    Оставьте **Webhook Setup** = **Manual** (значение по умолчанию) — в [ручном режиме](/guides/n8n/trigger#ruchnoi-rezhim) узел не управляет `outgoing_url`, и вы сами решаете, какой URL прописан в настройках бота в Пачке. Можно временно вручную заменить Production URL на Test URL в настройках бота, провести тест, затем вернуть Production URL обратно.
+    Оставьте **Webhook Setup** = **Manual** (значение по умолчанию) — в [ручном режиме](/guides/n8n/trigger#ruchnoy-rezhim) узел не управляет `outgoing_url`, и вы сами решаете, какой URL прописан в настройках бота в Пачке. Можно временно вручную заменить Production URL на Test URL в настройках бота, провести тест, затем вернуть Production URL обратно.
 
     Этот способ даёт максимальный контроль, но требует аккуратности — легко забыть вернуть Production URL.
   </Step>
@@ -226,9 +226,9 @@ related:
 
 ## Если что-то пошло не так
 
-- **Вебхук не приходит** — проверьте, что бот в чате и workflow активен. Симптомы и решения: [Вебхук не приходит](/guides/n8n/troubleshooting#vebkhuk-ne-prikhodit)
+- **Вебхук не приходит** — проверьте, что бот в чате и workflow активен. Симптомы и решения: [Вебхук не приходит](/guides/n8n/troubleshooting#vebhuk-ne-prihodit)
 - **403 при активации Pachca Trigger** — токену не хватает прав: для токена бота `bot_self:webhook:write`, для персонального `bots:write` плюс доступ редактора к боту. Решение: [403 Forbidden при активации Pachca Trigger](/guides/n8n/troubleshooting#403-forbidden-pri-aktivatsii-pachca-trigger)
 - **Signature Mismatch** — Signing Secret в Credentials не совпадает с секретом бота. Решение: [Ошибка подписи](/guides/n8n/troubleshooting#oshibka-podpisi-signature-mismatch)
-- **401 Unauthorized** — неверный или просроченный токен. Решение: [401 Unauthorized](/guides/n8n/troubleshooting#nevernyi-token-401-unauthorized)
+- **401 Unauthorized** — неверный или просроченный токен. Решение: [401 Unauthorized](/guides/n8n/troubleshooting#nevernyy-token-401-unauthorized)
 
 Полный список типовых ошибок — в разделе [Устранение ошибок](/guides/n8n/troubleshooting).

@@ -10,7 +10,7 @@
 
 > Авторизация не требуется
 
-Загрузка файла на сервер с форматом `multipart/form-data`. Параметры для загрузки получаются через метод [Получение подписи, ключа и других параметров](POST /uploads).
+Загрузка файла на сервер с форматом `multipart/form-data`. Параметры для загрузки получаются через метод [Получение подписи, ключа и других параметров](/api/files/uploads).
 
 ## Тело запроса
 
@@ -20,14 +20,14 @@
 
 ### Схема
 
-- `Content-Disposition: string` (required) — Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-- `acl: string` (required) — Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-- `policy: string` (required) — Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-- `x-amz-credential: string` (required) — Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-- `x-amz-algorithm: string` (required) — Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-- `x-amz-date: string` (required) — Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-- `x-amz-signature: string` (required) — Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-- `key: string` (required) — Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `Content-Disposition: string` (required) — Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
+- `acl: string` (required) — Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
+- `policy: string` (required) — Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
+- `x-amz-credential: string` (required) — Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
+- `x-amz-algorithm: string` (required) — Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
+- `x-amz-date: string` (required) — Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
+- `x-amz-signature: string` (required) — Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
+- `key: string` (required) — Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
 - `file: binary` (required) — Файл для загрузки
 
 

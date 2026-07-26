@@ -5,6 +5,10 @@
 
 # Начало работы
 
+- [Pachca](https://n8n.io/integrations/pachca/) витрина · verified
+- [Pachca Trigger](https://n8n.io/integrations/pachca-trigger/) витрина · verified
+- [n8n-nodes-pachca](https://www.npmjs.com/package/n8n-nodes-pachca) npm
+
 
 ## Где запустить n8n
 
@@ -152,7 +156,7 @@ Credentials — данные для авторизации. Перейдите �
 
 Доступные операции зависят от [скоупов](/api/authorization#skoupy) токена, а не от его типа. Подробнее — в разделе [Авторизация](/api/authorization).
 
-После заполнения полей нажмите **Test** — n8n проверит подключение вызовом [Информация о токене](GET /oauth/token/info). При успехе вы увидите подтверждение.
+После заполнения полей нажмите **Test** — n8n проверит подключение вызовом [Информация о токене](/api/oauth/token-info). При успехе вы увидите подтверждение.
 
 ![Успешная проверка Credentials](/images/n8n/credentials-test.avif)
 

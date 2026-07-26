@@ -15,6 +15,7 @@
     "check-urls": "node scripts/check-url-conflicts.mjs",
     "check-models": "node scripts/check-models-coverage.mjs",
     "check-examples": "node scripts/check-examples.mjs",
+    "check-anchors": "node scripts/check-anchors.mjs",
     "check-n8n-resources": "node scripts/check-n8n-resources.mjs"
   },
   "dependencies": {

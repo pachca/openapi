@@ -19,7 +19,11 @@ const rules: Rule[] = [
   // Allowed: enables Gemini / Google AI grounding & citation of these
   // docs; does NOT affect Google Search ranking.
   { userAgent: 'Google-Extended', allow: ['/'] },
-  { userAgent: '*', allow: ['/'], disallow: ['/internal/search', '/internal/og'] },
+  // `/internal/og` must stay crawlable: it is the og:image / twitter:image for
+  // every page, and Twitterbot, Slackbot, LinkedInBot and facebookexternalhit
+  // all honour robots.txt — disallowing it stripped the preview from every
+  // shared dev.pachca.com link. Only the search endpoint is worth hiding.
+  { userAgent: '*', allow: ['/'], disallow: ['/internal/search'] },
 ];
 
 // Cloudflare Content Signals Policy (2026): a machine-readable statement of

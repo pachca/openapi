@@ -30,7 +30,7 @@
   - `entity_id: integer, int32` (required) — Идентификатор сущности. Пример: `334`
   - `content: string` (required) — Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). Пример: `"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"`
   - `files: array of object` — Прикрепляемые файлы
-    - `key: string` (required) — Путь к файлу, полученный в результате [загрузки файла](POST /direct_url). Пример: `"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"`
+    - `key: string` (required) — Путь к файлу, полученный в результате [загрузки файла](/api/files/direct-url). Пример: `"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"`
     - `name: string` (required) — Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением). Пример: `"logo.png"`
     - `file_type: string` (required) — Тип файла
       Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение

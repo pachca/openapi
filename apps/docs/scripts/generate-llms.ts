@@ -203,7 +203,9 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
 
   content += '## Руководства\n';
   for (const guide of guidePages) {
-    const mdPath = guide.path === '/' ? '/.md' : `${guide.path}.md`;
+    // Homepage twin is /index.md. `/.md` only resolved thanks to a rewrite in
+    // next.config.ts — point at the real file instead of leaning on it.
+    const mdPath = guide.path === '/' ? '/index.md' : `${guide.path}.md`;
     const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}, ${guide.title}` : guide.title;
     content += `- [${displayTitle}](${SITE_URL}${mdPath}): ${guide.description}\n`;
   }
@@ -2172,17 +2174,49 @@ const REPO_ROOT = path.join(process.cwd(), '..', '..');
 
 const UTF8_BOM = '\uFEFF';
 
+/** Endpoints used to resolve `METHOD /path` link shorthand; set once in main(). */
+let endpointsForLinks: { method: string; path: string; tags: string[] }[] = [];
+
+/**
+ * `[Текст](POST /messages)` is this repo's authoring shorthand for an endpoint
+ * link. The React renderer resolves it into a badge, but the generated .md and
+ * .txt artifacts never did — and per CommonMark a destination containing a
+ * space is not a link at all, so every one of them rendered as literal,
+ * non-clickable text for the agents these files exist to serve.
+ *
+ * Resolve at the single write chokepoint so every artifact is covered.
+ */
+function resolveMethodLinksForText(content: string): string {
+  return content.replace(
+    /\[([^\]]+)\]\((GET|POST|PUT|DELETE|PATCH)\s+(\/[^)\s]+)\)/g,
+    (match, label: string, method: string, apiPath: string) => {
+      const text = label.trim();
+      // Guide paths are already real URLs behind the shorthand.
+      if (apiPath.startsWith('/guides/')) return `[${text}](${apiPath})`;
+      const endpoint = endpointsForLinks.find(
+        (e) => e.method.toUpperCase() === method.toUpperCase() && e.path === apiPath
+      );
+      if (!endpoint) return `${text} (${method} ${apiPath})`;
+      return `[${text}](${generateUrlFromOperation(endpoint as never)})`;
+    }
+  );
+}
+
+const RESOLVE_LINKS_IN = /\.(md|txt)$/;
+
 function writeFile(filePath: string, content: string) {
   const fullPath = path.join(process.cwd(), filePath);
   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  const data = filePath.endsWith('.txt') ? UTF8_BOM + content : content;
+  const resolved = RESOLVE_LINKS_IN.test(filePath) ? resolveMethodLinksForText(content) : content;
+  const data = filePath.endsWith('.txt') ? UTF8_BOM + resolved : resolved;
   fs.writeFileSync(fullPath, data, 'utf-8');
 }
 
 function writeFileFromRoot(filePath: string, content: string) {
   const fullPath = path.join(REPO_ROOT, filePath);
   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  fs.writeFileSync(fullPath, content, 'utf-8');
+  const resolved = RESOLVE_LINKS_IN.test(filePath) ? resolveMethodLinksForText(content) : content;
+  fs.writeFileSync(fullPath, resolved, 'utf-8');
 }
 
 /** Agent preamble at the top of every page `.md` (one blockquote, up to three
@@ -2279,6 +2313,7 @@ function generateGuidesSectionLlmsTxt(): string {
 async function main() {
   clearCache();
   const api = await parseOpenAPI();
+  endpointsForLinks = api.endpoints;
 
   // Build the bulk variants first so llms.txt can quote their actual
   // approximate token counts in the preamble (helps agents decide
@@ -2459,7 +2494,7 @@ function assertGeneratedMarkdownIntegrity(llmsTxt: string) {
   }
 
   for (const m of llmsTxt.matchAll(/\]\((https:\/\/dev\.pachca\.com(\/[^)]+\.md))\)/g)) {
-    const filePath = path.join(publicDir, m[2] === '/.md' ? 'index.md' : m[2]);
+    const filePath = path.join(publicDir, m[2]);
     if (!fs.existsSync(filePath)) errors.push(`stale llms.txt link (no file): ${m[1]}`);
   }
 

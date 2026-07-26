@@ -7,12 +7,12 @@
 
 Все модели данных, возвращаемые в ответах API. Каждая модель содержит связанные методы и таблицу свойств.
 
-> Методы [Получение подписи](POST /uploads) и [Загрузка файла](POST /direct_url) не возвращают модели данных.
+> Методы [Получение подписи](/api/files/uploads) и [Загрузка файла](/api/files/direct-url) не возвращают модели данных.
 
 
 ## Дополнительное поле
 
-- [Список дополнительных полей](GET /custom_properties)
+- [Список дополнительных полей](/api/custom-properties/list)
 
 Дополнительное поле
 
@@ -24,7 +24,7 @@
 
 ## Токен доступа
 
-- [Информация о токене](GET /oauth/token/info)
+- [Информация о токене](/api/oauth/token-info)
 
 Токен доступа
 
@@ -41,12 +41,12 @@
 
 ## Статус пользователя
 
-- [Статус сотрудника](GET /users/{user_id}/status)
-- [Свой статус](GET /profile/status)
-- [Новый свой статус](PUT /profile/status)
-- [Новый статус сотрудника](PUT /users/{user_id}/status)
-- [Удаление своего статуса](DELETE /profile/status)
-- [Удаление статуса сотрудника](DELETE /users/{user_id}/status)
+- [Статус сотрудника](/api/users/get-status)
+- [Свой статус](/api/profile/get-status)
+- [Новый свой статус](/api/profile/update-status)
+- [Новый статус сотрудника](/api/users/update-status)
+- [Удаление своего статуса](/api/profile/delete-status)
+- [Удаление статуса сотрудника](/api/users/remove-status)
 
 Статус пользователя
 
@@ -60,10 +60,10 @@
 
 ## Аватар
 
-- [Загрузка своего аватара](PUT /profile/avatar)
-- [Удаление своего аватара](DELETE /profile/avatar)
-- [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar)
-- [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar)
+- [Загрузка своего аватара](/api/profile/update-avatar)
+- [Удаление своего аватара](/api/profile/delete-avatar)
+- [Загрузка аватара сотрудника](/api/users/update-avatar)
+- [Удаление аватара сотрудника](/api/users/remove-avatar)
 
 Данные аватара
 
@@ -72,15 +72,15 @@
 
 ## Сотрудник
 
-- [Новый сотрудник](POST /users)
-- [Свой профиль](GET /profile)
-- [Информация о сотруднике](GET /users/{id})
-- [Список сотрудников](GET /users)
-- [Список сотрудников тега](GET /group_tags/{id}/users)
-- [Список участников чата](GET /chats/{id}/members)
-- [Поиск сотрудников](GET /search/users)
-- [Редактирование сотрудника](PUT /users/{id})
-- [Удаление сотрудника](DELETE /users/{id})
+- [Новый сотрудник](/api/users/create)
+- [Свой профиль](/api/profile/get)
+- [Информация о сотруднике](/api/users/get)
+- [Список сотрудников](/api/users/list)
+- [Список сотрудников тега](/api/group-tags/list-users)
+- [Список участников чата](/api/members/list)
+- [Поиск сотрудников](/api/search/list-users)
+- [Редактирование сотрудника](/api/users/update)
+- [Удаление сотрудника](/api/users/delete)
 
 Сотрудник
 
@@ -122,13 +122,13 @@
 
 ## Тег
 
-- [Новый тег](POST /group_tags)
-- [Добавление тегов](POST /chats/{id}/group_tags)
-- [Информация о теге](GET /group_tags/{id})
-- [Список тегов сотрудников](GET /group_tags)
-- [Редактирование тега](PUT /group_tags/{id})
-- [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id})
-- [Удаление тега](DELETE /group_tags/{id})
+- [Новый тег](/api/group-tags/create)
+- [Добавление тегов](/api/members/add-group-tags)
+- [Информация о теге](/api/group-tags/get)
+- [Список тегов сотрудников](/api/group-tags/list)
+- [Редактирование тега](/api/group-tags/update)
+- [Исключение тега](/api/members/remove-group-tag)
+- [Удаление тега](/api/group-tags/delete)
 
 Тег
 
@@ -139,19 +139,19 @@
 
 ## Чат
 
-- [Новый чат](POST /chats)
-- [Добавление пользователей](POST /chats/{id}/members)
-- [Экспорт сообщений](POST /chats/exports)
-- [Информация о чате](GET /chats/{id})
-- [Список чатов](GET /chats)
-- [Поиск чатов](GET /search/chats)
-- [Скачать архив экспорта](GET /chats/exports/{id})
-- [Редактирование чата](PUT /chats/{id})
-- [Архивация чата](PUT /chats/{id}/archive)
-- [Разархивация чата](PUT /chats/{id}/unarchive)
-- [Редактирование роли](PUT /chats/{id}/members/{user_id})
-- [Выход из беседы или канала](DELETE /chats/{id}/leave)
-- [Исключение пользователя](DELETE /chats/{id}/members/{user_id})
+- [Новый чат](/api/chats/create)
+- [Добавление пользователей](/api/members/add)
+- [Экспорт сообщений](/api/chats/request-export)
+- [Информация о чате](/api/chats/get)
+- [Список чатов](/api/chats/list)
+- [Поиск чатов](/api/search/list-chats)
+- [Скачать архив экспорта](/api/chats/download-export)
+- [Редактирование чата](/api/chats/update)
+- [Архивация чата](/api/chats/archive)
+- [Разархивация чата](/api/chats/unarchive)
+- [Редактирование роли](/api/members/update)
+- [Выход из беседы или канала](/api/members/leave)
+- [Исключение пользователя](/api/members/remove)
 
 Чат
 
@@ -170,15 +170,15 @@
 
 ## Тред
 
-- [Новый тред](POST /messages/{id}/thread)
-- [Новый самостоятельный тред](POST /threads)
-- [Информация о треде](GET /threads/{id})
-- [Список тредов](GET /threads)
+- [Новый тред](/api/threads/add)
+- [Новый самостоятельный тред](/api/threads/create)
+- [Информация о треде](/api/threads/get)
+- [Список тредов](/api/threads/list)
 
 Тред
 
-- `id: integer, int64` (required) — Идентификатор созданного треда (используется для отправки [новых комментариев](POST /messages) в тред). Пример: `265142`
-- `chat_id: integer, int64` (required) — Идентификатор чата треда (используется для отправки [новых комментариев](POST /messages) в тред и получения [списка комментариев](GET /messages)). Пример: `2637266155`
+- `id: integer, int64` (required) — Идентификатор созданного треда (используется для отправки [новых комментариев](/api/messages/create) в тред). Пример: `265142`
+- `chat_id: integer, int64` (required) — Идентификатор чата треда (используется для отправки [новых комментариев](/api/messages/create) в тред и получения [списка комментариев](/api/messages/list)). Пример: `2637266155`
 - `message_id: integer, int64` (required, nullable) — Идентификатор сообщения, к которому был создан тред. `null` для самостоятельного треда, созданного без привязки к сообщению. Пример: `154332686`
 - `message_chat_id: integer, int64` (required, nullable) — Идентификатор чата сообщения. `null` для самостоятельного треда, созданного без привязки к сообщению. Пример: `2637266154`
 - `updated_at: date-time` (required) — Дата и время обновления треда (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2023-02-01T19:20:47.204Z"`
@@ -186,16 +186,16 @@
 
 ## Сообщение
 
-- [Новое сообщение](POST /messages)
-- [Закрепление сообщения](POST /messages/{id}/pin)
-- [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews)
-- [Информация о сообщении](GET /messages/{id})
-- [Список сообщений чата](GET /messages)
-- [Поиск сообщений](GET /search/messages)
-- [Список прочитавших сообщение](GET /messages/{id}/read_member_ids)
-- [Редактирование сообщения](PUT /messages/{id})
-- [Открепление сообщения](DELETE /messages/{id}/pin)
-- [Удаление сообщения](DELETE /messages/{id})
+- [Новое сообщение](/api/messages/create)
+- [Закрепление сообщения](/api/messages/pin)
+- [Unfurl (разворачивание ссылок)](/api/messages/unfurl)
+- [Информация о сообщении](/api/messages/get)
+- [Список сообщений чата](/api/messages/list)
+- [Поиск сообщений](/api/search/list-messages)
+- [Список прочитавших сообщение](/api/read-member/list-readers)
+- [Редактирование сообщения](/api/messages/update)
+- [Открепление сообщения](/api/messages/unpin)
+- [Удаление сообщения](/api/messages/delete)
 
 Сообщение
 
@@ -243,9 +243,9 @@
 
 ## Реакция на сообщение
 
-- [Добавление реакции](POST /messages/{id}/reactions)
-- [Список реакций](GET /messages/{id}/reactions)
-- [Удаление реакции](DELETE /messages/{id}/reactions)
+- [Добавление реакции](/api/reactions/add)
+- [Список реакций](/api/reactions/list)
+- [Удаление реакции](/api/reactions/remove)
 
 Реакция на сообщение
 
@@ -257,11 +257,11 @@
 
 ## Напоминание
 
-- [Новое напоминание](POST /tasks)
-- [Информация о напоминании](GET /tasks/{id})
-- [Список напоминаний](GET /tasks)
-- [Редактирование напоминания](PUT /tasks/{id})
-- [Удаление напоминания](DELETE /tasks/{id})
+- [Новое напоминание](/api/tasks/create)
+- [Информация о напоминании](/api/tasks/get)
+- [Список напоминаний](/api/tasks/list)
+- [Редактирование напоминания](/api/tasks/update)
+- [Удаление напоминания](/api/tasks/delete)
 
 Напоминание
 
@@ -288,7 +288,7 @@
 
 ## Представление
 
-- [Открытие представления](POST /views/open)
+- [Открытие представления](/api/views/open)
 
 Представление
 
@@ -395,14 +395,14 @@
 
 ## Параметры бота
 
-- [Новый бот](POST /bots)
-- [Список ботов](GET /bots)
-- [Информация о боте](GET /bots/{id})
-- [Редактирование бота](PUT /bots/{id})
-- [Удаление бота](DELETE /bots/{id})
-- [Саморегистрация вебхука бота](PUT /bot/webhook)
-- [Ротация токена бота](POST /bots/{id}/recreate_token)
-- [Ротация собственного токена бота](POST /bot/recreate_token)
+- [Новый бот](/api/bots/create)
+- [Список ботов](/api/bots/list)
+- [Информация о боте](/api/bots/get)
+- [Редактирование бота](/api/bots/update)
+- [Удаление бота](/api/bots/delete)
+- [Саморегистрация вебхука бота](/api/bots/update-webhook)
+- [Ротация токена бота](/api/bots/recreate-token)
+- [Ротация собственного токена бота](/api/bots/recreate-token-self)
 
 Параметры бота
 
@@ -431,8 +431,8 @@
 
 ## Событие исходящего вебхука
 
-- [История событий](GET /webhooks/events)
-- [Удаление события](DELETE /webhooks/events/{id})
+- [История событий](/api/bots/list-events)
+- [Удаление события](/api/bots/remove-event)
 
 Событие исходящего вебхука
 
@@ -558,7 +558,7 @@
 
 ## Событие аудита
 
-- [Журнал аудита событий](GET /audit_events)
+- [Журнал аудита событий](/api/security/list)
 
 Событие аудита
 

@@ -83,14 +83,14 @@
 
 ### Проверка Credentials
 
-Перед первым запуском нажмите **Test** в форме Credentials. n8n вызовет [Информация о токене](GET /oauth/token/info) и покажет результат:
+Перед первым запуском нажмите **Test** в форме Credentials. n8n вызовет [Информация о токене](/api/oauth/token-info) и покажет результат:
 
 ![Успешная проверка Credentials](/images/n8n/credentials-test.avif)
 
 *Connection tested successfully*
 
 
-При ошибке 401 — токен неверный или просрочен. Симптомы и решения — в разделе [401 Unauthorized](/guides/n8n/troubleshooting#nevernyi-token-401-unauthorized).
+При ошибке 401 — токен неверный или просрочен. Симптомы и решения — в разделе [401 Unauthorized](/guides/n8n/troubleshooting#nevernyy-token-401-unauthorized).
 
 ## Тестирование триггера
 
@@ -119,7 +119,7 @@
 
 Когда вы нажимаете **Listen for Test Event** на узле **Pachca Trigger** в автоматическом режиме:
 
-1. n8n вызывает [Редактирование бота](PUT /bots/{id}) с `webhook_url = Test URL`
+1. n8n вызывает [Редактирование бота](/api/bots/update) с `webhook_url = Test URL`
 2. Пачка записывает Test URL в настройки бота (в слот `outgoing_url`)
 3. В течение 120 секунд бот отправляет события не на Production URL, а на Test URL
 4. n8n перехватывает событие и показывает его в редакторе
@@ -150,14 +150,14 @@
 
   ### Шаг 2. Временная деактивация продакшен-workflow
 
-Если второго бота нет, деактивируйте продакшн-workflow перед тестом: нажмите **Active** в правом верхнем углу (переключатель станет серым). Узел **Pachca Trigger** вызовет [Редактирование бота](PUT /bots/{id}) с пустым `webhook_url` и освободит слот.
+Если второго бота нет, деактивируйте продакшн-workflow перед тестом: нажмите **Active** в правом верхнем углу (переключатель станет серым). Узел **Pachca Trigger** вызовет [Редактирование бота](/api/bots/update) с пустым `webhook_url` и освободит слот.
 
 После этого запустите **Listen for Test Event**, проведите тест, снова активируйте workflow. На время теста продакшен будет выключен — учитывайте это, если на workflow приходит критичный трафик.
 
 
   ### Шаг 3. Подмена URL в ручном режиме
 
-Оставьте **Webhook Setup** = **Manual** (значение по умолчанию) — в [ручном режиме](/guides/n8n/trigger#ruchnoi-rezhim) узел не управляет `outgoing_url`, и вы сами решаете, какой URL прописан в настройках бота в Пачке. Можно временно вручную заменить Production URL на Test URL в настройках бота, провести тест, затем вернуть Production URL обратно.
+Оставьте **Webhook Setup** = **Manual** (значение по умолчанию) — в [ручном режиме](/guides/n8n/trigger#ruchnoy-rezhim) узел не управляет `outgoing_url`, и вы сами решаете, какой URL прописан в настройках бота в Пачке. Можно временно вручную заменить Production URL на Test URL в настройках бота, провести тест, затем вернуть Production URL обратно.
 
 Этот способ даёт максимальный контроль, но требует аккуратности — легко забыть вернуть Production URL.
 
@@ -258,10 +258,10 @@ sequenceDiagram
 
 ## Если что-то пошло не так
 
-- **Вебхук не приходит** — проверьте, что бот в чате и workflow активен. Симптомы и решения: [Вебхук не приходит](/guides/n8n/troubleshooting#vebkhuk-ne-prikhodit)
+- **Вебхук не приходит** — проверьте, что бот в чате и workflow активен. Симптомы и решения: [Вебхук не приходит](/guides/n8n/troubleshooting#vebhuk-ne-prihodit)
 - **403 при активации Pachca Trigger** — токену не хватает прав: для токена бота `bot_self:webhook:write`, для персонального `bots:write` плюс доступ редактора к боту. Решение: [403 Forbidden при активации Pachca Trigger](/guides/n8n/troubleshooting#403-forbidden-pri-aktivatsii-pachca-trigger)
 - **Signature Mismatch** — Signing Secret в Credentials не совпадает с секретом бота. Решение: [Ошибка подписи](/guides/n8n/troubleshooting#oshibka-podpisi-signature-mismatch)
-- **401 Unauthorized** — неверный или просроченный токен. Решение: [401 Unauthorized](/guides/n8n/troubleshooting#nevernyi-token-401-unauthorized)
+- **401 Unauthorized** — неверный или просроченный токен. Решение: [401 Unauthorized](/guides/n8n/troubleshooting#nevernyy-token-401-unauthorized)
 
 Полный список типовых ошибок — в разделе [Устранение ошибок](/guides/n8n/troubleshooting).
 

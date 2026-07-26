@@ -109,7 +109,7 @@
       "cache": true
     },
     "check": {
-      "dependsOn": ["lint", "typecheck", "knip", "format:check", "test", "@pachca/spec#overlay:validate", "check-models", "check-n8n-resources", "check-examples"],
+      "dependsOn": ["lint", "typecheck", "knip", "format:check", "test", "@pachca/spec#overlay:validate", "check-models", "check-n8n-resources", "check-examples", "check-anchors"],
       "cache": false
     },
     "check-urls": {
@@ -127,6 +127,11 @@
     "check-examples": {
       "dependsOn": ["generate-llms"],
       "inputs": ["scripts/check-examples.mjs", "public/api/**"],
+      "cache": true
+    },
+    "check-anchors": {
+      "dependsOn": ["@pachca/spec#generate"],
+      "inputs": ["scripts/check-anchors.mjs", "content/**", "lib/utils/transliterate.ts"],
       "cache": true
     },
     "update-snapshots": {

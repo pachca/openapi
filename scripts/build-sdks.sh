@@ -28,9 +28,19 @@ step "TypeScript: build + smoke + attw verify"
 step "Go: go build ./..."
 if have go; then ( cd sdk/go/generated && run go build ./... ); else echo "  SKIP (go not installed)"; fi
 
-step "Python: py_compile"
+step "Python: py_compile + import"
 if have python3; then
   ( cd sdk/python/generated && run sh -c 'python3 -m py_compile $(find pachca -name "*.py")' )
+  # py_compile only parses: a module-level NameError (e.g. a registry naming a
+  # type that was never imported) compiles fine and blows up on import. Import
+  # the package for real, with httpx stubbed so the check needs no dependencies.
+  ( cd sdk/python/generated && run python3 -c '
+import sys, types
+stub = types.ModuleType("httpx")
+stub.__getattr__ = lambda name: type(name, (), {})
+sys.modules["httpx"] = stub
+import pachca.models, pachca.utils
+' )
 else echo "  SKIP (python3 not installed)"; fi
 
 step "Kotlin: gradlew compileKotlin"

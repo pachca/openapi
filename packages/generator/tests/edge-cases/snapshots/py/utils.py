@@ -8,6 +8,12 @@ from typing import Callable, Type, TypeVar, get_args, get_origin, get_type_hints
 
 import httpx
 
+from .models import (
+    MessageNotification,
+    NotificationUnion,
+    ReactionNotification,
+)
+
 T = TypeVar("T")
 
 

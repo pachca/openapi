@@ -1003,9 +1003,15 @@ function generateUtils(ir: IR): string {
   ];
 
   const customUnions = ir.unions.filter((u) => u.unionDeserializer === 'webhook-payload');
-  if (customUnions.length > 0) {
+  // Import every union this module names at module level, not just the ones with
+  // a custom deserializer: `_UNION_DISCRIMINATORS` below references the plain
+  // discriminated unions too, and a missing name is a NameError on import — which
+  // `py_compile` does not catch because it only parses.
+  const discriminatedUnions = ir.unions.filter((u) => !u.unionDeserializer && u.discriminatorField);
+  const referencedUnions = [...customUnions, ...discriminatedUnions];
+  if (referencedUnions.length > 0) {
     const importNames = new Set<string>();
-    for (const u of customUnions) {
+    for (const u of referencedUnions) {
       importNames.add(u.name);
       for (const ref of u.memberRefs) importNames.add(ref);
     }

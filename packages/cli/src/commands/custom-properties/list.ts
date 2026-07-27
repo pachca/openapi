@@ -62,7 +62,7 @@ export default class CustomPropertiesList extends BaseCommand {
       },
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

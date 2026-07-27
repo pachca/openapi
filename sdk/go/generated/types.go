@@ -448,7 +448,7 @@ type ApiErrorItem struct {
 	Message string              `json:"message"`
 	Code    ValidationErrorCode `json:"code"`
 	Value   *string             `json:"value"`
-	Payload map[string]string   `json:"payload"`
+	Payload map[string]any      `json:"payload"`
 }
 
 type AuditDetailsBotScopes struct {
@@ -457,7 +457,7 @@ type AuditDetailsBotScopes struct {
 }
 
 type AuditDetailsBotWebhookSettings struct {
-	Changes map[string]string `json:"changes"`
+	Changes map[string]any `json:"changes"`
 }
 
 type AuditDetailsChatId struct {
@@ -507,11 +507,11 @@ type AuditDetailsRoleChanged struct {
 }
 
 type AuditDetailsSearch struct {
-	SearchType    string            `json:"search_type"`
-	QueryPresent  bool              `json:"query_present"`
-	CursorPresent bool              `json:"cursor_present"`
-	Limit         int32             `json:"limit"`
-	Filters       map[string]string `json:"filters"`
+	SearchType    string         `json:"search_type"`
+	QueryPresent  bool           `json:"query_present"`
+	CursorPresent bool           `json:"cursor_present"`
+	Limit         int32          `json:"limit"`
+	Filters       map[string]any `json:"filters"`
 }
 
 type AuditDetailsTagChat struct {
@@ -1565,14 +1565,14 @@ type ViewBlockTime struct {
 }
 
 type ViewSubmitWebhookPayload struct {
-	Type             string            `json:"type"` // always "view"
-	Event            string            `json:"event"` // always "submit"
-	UserID           int32             `json:"user_id"`
-	Data             map[string]string `json:"data"`
-	WebhookTimestamp int32             `json:"webhook_timestamp"`
-	CallbackID       *string           `json:"callback_id"`
-	PrivateMetadata  *string           `json:"private_metadata"`
-	ChatID           *int32            `json:"chat_id"`
+	Type             string         `json:"type"` // always "view"
+	Event            string         `json:"event"` // always "submit"
+	UserID           int32          `json:"user_id"`
+	Data             map[string]any `json:"data"`
+	WebhookTimestamp int32          `json:"webhook_timestamp"`
+	CallbackID       *string        `json:"callback_id"`
+	PrivateMetadata  *string        `json:"private_metadata"`
+	ChatID           *int32         `json:"chat_id"`
 }
 
 type VoiceContent struct {

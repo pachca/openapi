@@ -34,7 +34,7 @@ export default class ChatsUnarchive extends BaseCommand {
       path: `/chats/${args.id}/unarchive`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

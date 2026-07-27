@@ -31,7 +31,7 @@ export default class ThreadsGet extends BaseCommand {
       path: `/threads/${args.id}`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

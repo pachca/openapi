@@ -34,7 +34,7 @@ export default class MessagesPin extends BaseCommand {
       path: `/messages/${args.id}/pin`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

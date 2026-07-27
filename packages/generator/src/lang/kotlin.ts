@@ -36,7 +36,9 @@ function ktType(ft: IRFieldType): string {
         return ft.format === 'int64' ? 'Long' : 'Int';
       if (ft.primitive === 'number') return 'Double';
       if (ft.primitive === 'boolean') return 'Boolean';
-      if (ft.primitive === 'any') return 'Any';
+      // kotlinx has no serializer for `Any`; JsonElement is the idiomatic type
+      // for an open-ended JSON value and serializes out of the box.
+      if (ft.primitive === 'any') return 'JsonElement';
       if (ft.primitive === 'string' && ft.format === 'date-time') return 'OffsetDateTime';
       return 'String';
     case 'enum':
@@ -134,6 +136,14 @@ function generateModels(ir: IR): string {
   let needTransient = false;
   const needWebhookPayloadUnionSerializer = ir.unions.some((u) => u.unionDeserializer === 'webhook-payload');
   const needStructuralUnionSerializer = ir.unions.some((u) => !u.discriminatorField);
+  const usesAny = (ft: IRFieldType): boolean =>
+    (ft.kind === 'primitive' && ft.primitive === 'any') ||
+    (!!ft.items && usesAny(ft.items)) ||
+    (!!ft.valueType && usesAny(ft.valueType));
+  const needJsonElement = needStructuralUnionSerializer ||
+    ir.models.some((m) => m.fields.some((f) => usesAny(f.type)) ||
+      m.inlineObjects.some((i) => i.fields.some((f) => usesAny(f.type)))) ||
+    ir.params.some((p) => p.params.some((q) => usesAny(q.type)));
 
   if (ir.enums.length > 0) needSerialName = true;
   if (ir.unions.length > 0) needSerialName = true;
@@ -172,7 +182,7 @@ function generateModels(ir: IR): string {
   if (needDateTime || needCustomUnionSerializer) imports.push('import kotlinx.serialization.encoding.Encoder');
   if (needStructuralUnionSerializer) imports.push('import kotlinx.serialization.json.Json');
   if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.JsonDecoder');
-  if (needStructuralUnionSerializer) imports.push('import kotlinx.serialization.json.JsonElement');
+  if (needJsonElement) imports.push('import kotlinx.serialization.json.JsonElement');
   if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.JsonEncoder');
   if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.contentOrNull');
   if (needCustomUnionSerializer) imports.push('import kotlinx.serialization.json.decodeFromJsonElement');

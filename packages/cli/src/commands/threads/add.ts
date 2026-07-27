@@ -36,7 +36,7 @@ export default class ThreadsAdd extends BaseCommand {
       path: `/messages/${args.id}/thread`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

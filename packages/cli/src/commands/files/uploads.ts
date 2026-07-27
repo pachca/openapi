@@ -33,7 +33,7 @@ export default class FilesUploads extends BaseCommand {
       path: '/uploads',
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

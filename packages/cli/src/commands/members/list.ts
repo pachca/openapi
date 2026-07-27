@@ -106,7 +106,7 @@ export default class MembersList extends BaseCommand {
       },
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const items = responseBody.data ?? responseBody;
     this.output(items);
   }

@@ -631,7 +631,7 @@ export interface ApiErrorItem {
   value: string | null;
   message: string;
   code: ValidationErrorCode;
-  payload: Record<string, string> | null;
+  payload: Record<string, unknown> | null;
 }
 
 export interface AuditDetailsBotScopes {
@@ -640,7 +640,7 @@ export interface AuditDetailsBotScopes {
 }
 
 export interface AuditDetailsBotWebhookSettings {
-  changes: Record<string, string>;
+  changes: Record<string, unknown>;
 }
 
 export interface AuditDetailsChatId {
@@ -694,7 +694,7 @@ export interface AuditDetailsSearch {
   queryPresent: boolean;
   cursorPresent: boolean;
   limit: number;
-  filters: Record<string, string>;
+  filters: Record<string, unknown>;
 }
 
 export interface AuditDetailsTagChat {
@@ -1466,7 +1466,7 @@ export interface ViewSubmitWebhookPayload {
   privateMetadata: string | null;
   chatId: number | null;
   userId: number;
-  data: Record<string, string>;
+  data: Record<string, unknown>;
   webhookTimestamp: number;
 }
 

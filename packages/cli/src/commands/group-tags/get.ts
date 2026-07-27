@@ -31,7 +31,7 @@ export default class GroupTagsGet extends BaseCommand {
       path: `/group_tags/${args.id}`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

@@ -106,9 +106,20 @@ function resolveFieldType(schema: Schema): IRFieldType {
     schema.additionalProperties &&
     typeof schema.additionalProperties === 'object'
   ) {
+    // An EMPTY additionalProperties schema means "any value", not "string".
+    // getSchemaType() falls back to 'string' for a schema with no type, which
+    // turned `Record<unknown>` into map[string]string — so an error payload
+    // like `{record: {type, id}, query}` failed to deserialize and the typed
+    // ApiError was lost.
+    const ap = schema.additionalProperties as Schema;
+    const isOpen =
+      !ap.type && !ap.$ref && !ap.properties && !ap.enum && !ap.items &&
+      !ap.allOf && !ap.anyOf && !ap.oneOf && !ap.additionalProperties;
     return {
       kind: 'record',
-      valueType: resolveFieldType(schema.additionalProperties),
+      valueType: isOpen
+        ? { kind: 'primitive', primitive: 'any' }
+        : resolveFieldType(ap),
     };
   }
 

@@ -844,14 +844,17 @@ function generateCommandCode(p: CommandGenParams): string {
 
   // Unwrap response data
   runBodyLines.push('');
+  // `data` is null for 204 / empty-body responses (see client.ts). Guard the
+  // cast: an S3 direct upload answers 204, and reading `.data` off null threw
+  // a TypeError on every successful upload.
   if (p.isList) {
-    runBodyLines.push(`    const responseBody = data as Record<string, unknown>;`);
+    runBodyLines.push(`    const responseBody = (data ?? {}) as Record<string, unknown>;`);
     runBodyLines.push(`    const items = responseBody.data ?? responseBody;`);
     runBodyLines.push(`    this.output(items);`);
   } else if (p.endpoint.method === 'DELETE') {
     runBodyLines.push(`    this.success('Удалено');`);
   } else {
-    runBodyLines.push(`    const responseBody = data as Record<string, unknown>;`);
+    runBodyLines.push(`    const responseBody = (data ?? {}) as Record<string, unknown>;`);
     runBodyLines.push(`    const result = responseBody.data ?? responseBody;`);
     runBodyLines.push(`    this.output(result);`);
   }

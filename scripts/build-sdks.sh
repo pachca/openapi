@@ -17,6 +17,10 @@ fail=0
 have() { command -v "$1" >/dev/null 2>&1; }
 step() { printf '\n=== %s ===\n' "$1"; }
 run() { if "$@"; then echo "  OK"; else echo "  FAIL"; fail=1; fi; }
+# `run` inside a subshell — ( cd dir && run cmd ) — sets fail=1 in the SUBSHELL,
+# so the parent never sees it and the script exits 0 after printing FAIL. Use
+# run_in: the cd stays isolated, the exit status is evaluated in the parent.
+run_in() { local dir="$1"; shift; if ( cd "$dir" && "$@" ); then echo "  OK"; else echo "  FAIL"; fail=1; fi; }
 
 step "Generate SDKs from openapi.yaml"
 run bunx turbo run generate
@@ -26,33 +30,33 @@ step "TypeScript: build + smoke + attw verify"
   && echo "  OK" || { echo "  FAIL"; fail=1; }
 
 step "Go: go build ./..."
-if have go; then ( cd sdk/go/generated && run go build ./... ); else echo "  SKIP (go not installed)"; fi
+if have go; then run_in sdk/go/generated go build ./...; else echo "  SKIP (go not installed)"; fi
 
 step "Python: py_compile + import"
 if have python3; then
-  ( cd sdk/python/generated && run sh -c 'python3 -m py_compile $(find pachca -name "*.py")' )
+  run_in sdk/python/generated sh -c 'python3 -m py_compile $(find pachca -name "*.py")'
   # py_compile only parses: a module-level NameError (e.g. a registry naming a
   # type that was never imported) compiles fine and blows up on import. Import
   # the package for real, with httpx stubbed so the check needs no dependencies.
-  ( cd sdk/python/generated && run python3 -c '
+  run_in sdk/python/generated python3 -c '
 import sys, types
 stub = types.ModuleType("httpx")
 stub.__getattr__ = lambda name: type(name, (), {})
 sys.modules["httpx"] = stub
 import pachca.models, pachca.utils
-' )
+'
 else echo "  SKIP (python3 not installed)"; fi
 
 step "Kotlin: gradlew compileKotlin"
 if [ -x sdk/kotlin/generated/gradlew ]; then
-  ( cd sdk/kotlin/generated && run ./gradlew -q compileKotlin -Pversion=0.0.0 )
+  run_in sdk/kotlin/generated ./gradlew -q compileKotlin -Pversion=0.0.0
 else echo "  SKIP (kotlin gradlew not available)"; fi
 
 step "C#: dotnet build"
-if have dotnet; then ( cd sdk/csharp/generated && run dotnet build -v q ); else echo "  SKIP (dotnet not installed)"; fi
+if have dotnet; then run_in sdk/csharp/generated dotnet build -v q; else echo "  SKIP (dotnet not installed)"; fi
 
 step "Swift: swift build"
-if have swift; then ( cd sdk/swift/generated && run swift build ); else echo "  SKIP (swift not installed)"; fi
+if have swift; then run_in sdk/swift/generated swift build; else echo "  SKIP (swift not installed)"; fi
 
 echo
 if [ "$fail" -ne 0 ]; then echo "SDK build: FAILED (see above)"; exit 1; fi

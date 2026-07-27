@@ -32,7 +32,7 @@ export default class OauthTokenInfo extends BaseCommand {
       path: '/oauth/token/info',
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

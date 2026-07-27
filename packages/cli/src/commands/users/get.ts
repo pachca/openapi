@@ -35,7 +35,7 @@ export default class UsersGet extends BaseCommand {
       path: `/users/${args.id}`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

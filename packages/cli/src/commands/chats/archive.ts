@@ -35,7 +35,7 @@ export default class ChatsArchive extends BaseCommand {
       path: `/chats/${args.id}/archive`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

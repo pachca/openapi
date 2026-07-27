@@ -653,9 +653,9 @@ public struct ApiErrorItem: Codable {
     public let value: String?
     public let message: String
     public let code: ValidationErrorCode
-    public let payload: [String: String]?
+    public let payload: [String: AnyCodable]?
 
-    public init(key: String, value: String? = nil, message: String, code: ValidationErrorCode, payload: [String: String]? = nil) {
+    public init(key: String, value: String? = nil, message: String, code: ValidationErrorCode, payload: [String: AnyCodable]? = nil) {
         self.key = key
         self.value = value
         self.message = message
@@ -680,9 +680,9 @@ public struct AuditDetailsBotScopes: Codable {
 }
 
 public struct AuditDetailsBotWebhookSettings: Codable {
-    public let changes: [String: String]
+    public let changes: [String: AnyCodable]
 
-    public init(changes: [String: String]) {
+    public init(changes: [String: AnyCodable]) {
         self.changes = changes
     }
 }
@@ -824,9 +824,9 @@ public struct AuditDetailsSearch: Codable {
     public let queryPresent: Bool
     public let cursorPresent: Bool
     public let limit: Int
-    public let filters: [String: String]
+    public let filters: [String: AnyCodable]
 
-    public init(searchType: String, queryPresent: Bool, cursorPresent: Bool, limit: Int, filters: [String: String]) {
+    public init(searchType: String, queryPresent: Bool, cursorPresent: Bool, limit: Int, filters: [String: AnyCodable]) {
         self.searchType = searchType
         self.queryPresent = queryPresent
         self.cursorPresent = cursorPresent
@@ -2958,10 +2958,10 @@ public struct ViewSubmitWebhookPayload: Codable {
     public let privateMetadata: String?
     public let chatId: Int?
     public let userId: Int
-    public let data: [String: String]
+    public let data: [String: AnyCodable]
     public let webhookTimestamp: Int
 
-    public init(type: String, event: String, callbackId: String? = nil, privateMetadata: String? = nil, chatId: Int? = nil, userId: Int, data: [String: String], webhookTimestamp: Int) {
+    public init(type: String, event: String, callbackId: String? = nil, privateMetadata: String? = nil, chatId: Int? = nil, userId: Int, data: [String: AnyCodable], webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.callbackId = callbackId

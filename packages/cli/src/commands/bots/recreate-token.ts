@@ -35,7 +35,7 @@ export default class BotsRecreateToken extends BaseCommand {
       path: `/bots/${args.id}/recreate_token`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

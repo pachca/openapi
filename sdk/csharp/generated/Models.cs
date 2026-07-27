@@ -2000,7 +2000,7 @@ public class AuditDetailsSearch : AuditEventDetailsUnion
     [JsonPropertyName("limit")]
     public int Limit { get; set; } = default!;
     [JsonPropertyName("filters")]
-    public Dictionary<string, string> Filters { get; set; } = default!;
+    public Dictionary<string, object> Filters { get; set; } = default!;
 }
 
 public class AuditDetailsBotScopes : AuditEventDetailsUnion
@@ -2014,7 +2014,7 @@ public class AuditDetailsBotScopes : AuditEventDetailsUnion
 public class AuditDetailsBotWebhookSettings : AuditEventDetailsUnion
 {
     [JsonPropertyName("changes")]
-    public Dictionary<string, string> Changes { get; set; } = default!;
+    public Dictionary<string, object> Changes { get; set; } = default!;
 }
 
 public class AuditDetailsVideoCall : AuditEventDetailsUnion
@@ -2330,7 +2330,7 @@ public class ViewSubmitWebhookPayload : WebhookPayloadUnion
     [JsonPropertyName("user_id")]
     public int UserId { get; set; } = default!;
     [JsonPropertyName("data")]
-    public Dictionary<string, string> Data { get; set; } = default!;
+    public Dictionary<string, object> Data { get; set; } = default!;
     [JsonPropertyName("webhook_timestamp")]
     public int WebhookTimestamp { get; set; } = default!;
 }
@@ -2479,7 +2479,7 @@ public class ApiErrorItem
     [JsonPropertyName("code")]
     public ValidationErrorCode Code { get; set; } = default!;
     [JsonPropertyName("payload")]
-    public Dictionary<string, string>? Payload { get; set; }
+    public Dictionary<string, object>? Payload { get; set; }
 }
 
 public class AuditEvent

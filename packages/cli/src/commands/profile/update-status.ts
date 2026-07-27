@@ -101,7 +101,7 @@ export default class ProfileUpdateStatus extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

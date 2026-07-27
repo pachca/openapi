@@ -124,7 +124,7 @@ export default class ViewsOpen extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

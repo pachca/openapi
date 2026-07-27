@@ -820,7 +820,7 @@ data class AuditDetailsSearch(
     @SerialName("query_present") val queryPresent: Boolean,
     @SerialName("cursor_present") val cursorPresent: Boolean,
     val limit: Int,
-    val filters: Map<String, String>,
+    val filters: Map<String, JsonElement>,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -831,7 +831,7 @@ data class AuditDetailsBotScopes(
 
 @Serializable
 data class AuditDetailsBotWebhookSettings(
-    val changes: Map<String, String>,
+    val changes: Map<String, JsonElement>,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1057,7 +1057,7 @@ data class ViewSubmitWebhookPayload(
     @SerialName("private_metadata") val privateMetadata: String,
     @SerialName("chat_id") val chatId: Int,
     @SerialName("user_id") val userId: Int,
-    val data: Map<String, String>,
+    val data: Map<String, JsonElement>,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion {
     val event: String = "submit"
@@ -1162,7 +1162,7 @@ data class ApiErrorItem(
     val value: String? = null,
     val message: String,
     val code: ValidationErrorCode,
-    val payload: Map<String, String>? = null,
+    val payload: Map<String, JsonElement>? = null,
 )
 
 @Serializable

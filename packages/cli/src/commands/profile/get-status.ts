@@ -28,7 +28,7 @@ export default class ProfileGetStatus extends BaseCommand {
       path: '/profile/status',
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

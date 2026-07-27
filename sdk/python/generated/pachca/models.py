@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Union
+from typing import Any, Union
 
 class AuditEventKey(StrEnum):
     """Тип аудит-события"""
@@ -441,7 +441,7 @@ class ApiErrorItem:
     message: str
     code: ValidationErrorCode
     value: str | None = None
-    payload: dict[str, str] | None = None
+    payload: dict[str, Any] | None = None
 
 
 @dataclass
@@ -452,7 +452,7 @@ class AuditDetailsBotScopes:
 
 @dataclass
 class AuditDetailsBotWebhookSettings:
-    changes: dict[str, str]
+    changes: dict[str, Any]
 
 
 @dataclass
@@ -517,7 +517,7 @@ class AuditDetailsSearch:
     query_present: bool
     cursor_present: bool
     limit: int
-    filters: dict[str, str]
+    filters: dict[str, Any]
 
 
 @dataclass
@@ -1384,7 +1384,7 @@ class ViewSubmitWebhookPayload:
     type: str  # literal "view"
     event: str  # literal "submit"
     user_id: int
-    data: dict[str, str]
+    data: dict[str, Any]
     webhook_timestamp: int
     callback_id: str | None = None
     private_metadata: str | None = None

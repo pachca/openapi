@@ -113,7 +113,7 @@ export default class FilesDirectUrl extends BaseCommand {
       noAuth: true,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

@@ -63,7 +63,7 @@ if have swift; then run_in sdk/swift/generated swift build; else echo "  SKIP (s
 # so a spec change that renames a type or adds a union member breaks the shipped
 # examples silently — they are linked from the READMEs, so users hit it first.
 step "Examples: TypeScript tsc --noEmit"
-run_in sdk/typescript npx tsc --noEmit -p tsconfig.examples.json
+run_in sdk/typescript bun run typecheck:examples
 
 step "Examples: Go go build (per file)"
 # Every Go example is its own `package main` in one directory, so `go build ./...`

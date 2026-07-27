@@ -105,7 +105,7 @@ jobs:
       # READMEs, so users hit it first — compile them here too.
       - name: Typecheck TypeScript examples
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.ts_changed == 'true'
-        run: npx tsc --noEmit -p tsconfig.examples.json
+        run: bun run typecheck:examples
         working-directory: sdk/typescript
 
       - name: Compile Go SDK

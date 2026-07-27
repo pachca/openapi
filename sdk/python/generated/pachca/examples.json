@@ -323,7 +323,7 @@
   },
   "ProfileOperations_getProfile": {
     "usage": "response = await client.profile.get_profile()",
-    "output": "User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)"
+    "output": "User(id: int, first_name: str | None, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)"
   },
   "ProfileOperations_getStatus": {
     "usage": "response = await client.profile.get_status()",
@@ -384,11 +384,11 @@
   },
   "TaskOperations_getTask": {
     "usage": "response = await client.tasks.get_task(id=22283)",
-    "output": "Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])"
+    "output": "Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)])"
   },
   "TaskOperations_createTask": {
     "usage": "request = TaskCreateRequest(\n    task=TaskCreateRequestTask(\n        kind=TaskKind.REMINDER,\n        content=\"Забрать со склада 21 заказ\",\n        due_at=datetime.fromisoformat(\"2020-06-05T12:00:00.000+03:00\"),\n        priority=2,\n        performer_ids=[123],\n        chat_id=456,\n        all_day=False,\n        custom_properties=[TaskCreateRequestCustomProperty(id=78, value=\"Синий склад\")]\n    )\n)\nresponse = await client.tasks.create_task(request=request)",
-    "output": "Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])",
+    "output": "Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)])",
     "imports": [
       "TaskCreateRequest",
       "TaskCreateRequestCustomProperty",
@@ -398,7 +398,7 @@
   },
   "TaskOperations_updateTask": {
     "usage": "request = TaskUpdateRequest(\n    task=TaskUpdateRequestTask(\n        kind=TaskKind.REMINDER,\n        content=\"Забрать со склада 21 заказ\",\n        due_at=datetime.fromisoformat(\"2020-06-05T12:00:00.000+03:00\"),\n        priority=2,\n        performer_ids=[123],\n        status=TaskStatus.DONE,\n        all_day=False,\n        done_at=datetime.fromisoformat(\"2020-06-05T12:00:00.000Z\"),\n        custom_properties=[TaskUpdateRequestCustomProperty(id=78, value=\"Синий склад\")]\n    )\n)\nresponse = await client.tasks.update_task(id=22283, request=request)",
-    "output": "Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])",
+    "output": "Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)])",
     "imports": [
       "TaskKind",
       "TaskStatus",
@@ -419,7 +419,7 @@
   },
   "UserOperations_getUser": {
     "usage": "response = await client.users.get_user(id=12)",
-    "output": "User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)"
+    "output": "User(id: int, first_name: str | None, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)"
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "response = await client.users.get_user_status(user_id=12)",
@@ -427,7 +427,7 @@
   },
   "UserOperations_createUser": {
     "usage": "request = UserCreateRequest(\n    user=UserCreateRequestUser(\n        first_name=\"Олег\",\n        last_name=\"Петров\",\n        email=\"olegp@example.com\",\n        phone_number=\"+79001234567\",\n        nickname=\"olegpetrov\",\n        department=\"Продукт\",\n        title=\"CIO\",\n        role=UserCreateRole.USER,\n        suspended=False,\n        list_tags=[\"example\"],\n        chat_ids=[123],\n        custom_properties=[UserCreateRequestCustomProperty(id=1678, value=\"Санкт-Петербург\")]\n    ),\n    skip_email_notify=False\n)\nresponse = await client.users.create_user(request=request)",
-    "output": "User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)",
+    "output": "User(id: int, first_name: str | None, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
@@ -437,7 +437,7 @@
   },
   "UserOperations_updateUser": {
     "usage": "request = UserUpdateRequest(\n    user=UserUpdateRequestUser(\n        first_name=\"Олег\",\n        last_name=\"Петров\",\n        email=\"olegpetrov@example.com\",\n        phone_number=\"+79001234567\",\n        nickname=\"olegpetrov\",\n        department=\"Отдел разработки\",\n        title=\"Старший разработчик\",\n        role=UserRoleInput.USER,\n        suspended=False,\n        list_tags=[\"example\"],\n        custom_properties=[UserUpdateRequestCustomProperty(id=1678, value=\"Санкт-Петербург\")]\n    )\n)\nresponse = await client.users.update_user(id=12, request=request)",
-    "output": "User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)",
+    "output": "User(id: int, first_name: str | None, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)",
     "imports": [
       "UserRoleInput",
       "UserUpdateRequest",

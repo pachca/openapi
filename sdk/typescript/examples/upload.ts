@@ -10,7 +10,7 @@
 
 import { readFileSync, statSync } from "node:fs";
 import { basename } from "node:path";
-import { PachcaClient } from "../src/index.js";
+import { FileType, PachcaClient } from "../src/index.js";
 
 const token = process.env.PACHCA_TOKEN;
 const chatIdStr = process.env.PACHCA_CHAT_ID;
@@ -65,7 +65,7 @@ const msg = await client.messages.createMessage({
       {
         key,
         name: filename,
-        fileType: "file",
+        fileType: FileType.File,
         size: fileSize,
       },
     ],

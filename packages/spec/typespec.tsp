@@ -774,10 +774,10 @@ model CustomProperty {
   @example(CustomPropertyDataType.string)
   data_type: CustomPropertyDataType;
 
-  @doc("Значение")
+  @doc("Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601.")
   @maxLength(768)
   @example("Санкт-Петербург")
-  value: string;
+  value: string | null;
 }
 
 @doc("Дополнительное поле")
@@ -936,10 +936,10 @@ model User {
   @example(12)
   id: int32;
   
-  @doc("Имя")
+  @doc("Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`).")
   @maxLength(255)
   @example("Олег")
-  first_name: string;
+  first_name: string | null;
   
   @doc("Фамилия. Если не заполнена, возвращается `null` или пустая строка.")
   @maxLength(255)

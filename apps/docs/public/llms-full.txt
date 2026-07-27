@@ -5386,7 +5386,7 @@ const client = new PachcaClient("YOUR_TOKEN")
 ```typescript
 // Получение профиля
 const response = client.profile.getProfile()
-// → User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
+// → User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
 ```
 
 
@@ -5759,7 +5759,7 @@ const request: TaskCreateRequest = {
   }
 }
 const response = client.tasks.createTask(request)
-// → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })
+// → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[] })
 ```
 
 
@@ -5809,7 +5809,7 @@ client = PachcaClient("YOUR_TOKEN")
 ```python
 # Получение профиля
 response = await client.profile.get_profile()
-# → User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
+# → User(id: int, first_name: str | None, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
 ```
 
 
@@ -6176,7 +6176,7 @@ request = TaskCreateRequest(
     )
 )
 response = await client.tasks.create_task(request=request)
-# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
+# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)])
 ```
 
 
@@ -6228,7 +6228,7 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Получение профиля
 response, err := client.Profile.GetProfile(ctx)
-// → User{ID: int32, FirstName: string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}
+// → User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}
 ```
 
 
@@ -6618,7 +6618,7 @@ request := TaskCreateRequest{
 	},
 }
 response, err := client.Tasks.CreateTask(ctx, request)
-// → Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}}
+// → Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}
 ```
 
 
@@ -6672,7 +6672,7 @@ val client = PachcaClient("YOUR_TOKEN")
 ```kotlin
 // Получение профиля
 val response = client.profile.getProfile()
-// → User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)
+// → User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)
 ```
 
 
@@ -7052,7 +7052,7 @@ val request = TaskCreateRequest(
     )
 )
 val response = client.tasks.createTask(request = request)
-// → Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)
+// → Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)>)
 ```
 
 
@@ -7110,7 +7110,7 @@ import PachcaSDK
 
 // Получение профиля
 let response = try await client.profile.getProfile()
-// → User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)
+// → User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)
 ```
 
 
@@ -7455,7 +7455,7 @@ let body = TaskCreateRequest(
     )
 )
 let response = try await client.tasks.createTask(body: body)
-// → Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)])
+// → Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)])
 ```
 
 
@@ -7507,7 +7507,7 @@ using Pachca.Sdk;
 
 // Получение профиля
 var response = await client.Profile.GetProfileAsync();
-// → User(Id: int, FirstName: string, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)
+// → User(Id: int, FirstName: string?, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)
 ```
 
 
@@ -7919,7 +7919,7 @@ var request = new TaskCreateRequest
     }
 };
 var response = await client.Tasks.CreateTaskAsync(request);
-// → Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>)
+// → Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>)
 ```
 
 
@@ -11125,7 +11125,7 @@ users = await with_retry(lambda: client.users.list_users())
 Сотрудник
 
 - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-- `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+- `first_name: string` (required, nullable, max length: 255) — Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`). Пример: `"Олег"`
 - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
 - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
 - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
@@ -11144,7 +11144,7 @@ users = await with_retry(lambda: client.users.list_users())
   - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
   - `data_type: string` (required) — Тип поля
     Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-  - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+  - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
 - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
   - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
   - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
@@ -11323,7 +11323,7 @@ users = await with_retry(lambda: client.users.list_users())
   - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
   - `data_type: string` (required) — Тип поля
     Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-  - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+  - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
 
 
 ## Представление
@@ -13418,7 +13418,7 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 
 - `data: object` (required) — Сотрудник
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-  - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+  - `first_name: string` (required, nullable, max length: 255) — Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`). Пример: `"Олег"`
   - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
@@ -13437,7 +13437,7 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
   - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
     - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
     - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
@@ -13543,7 +13543,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.profile.getProfile()
-// → User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
+// → User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
 ```
 
 ### Python
@@ -13554,7 +13554,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.profile.get_profile()
-# → User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
+# → User(id: int, first_name: str | None, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
 ```
 
 ---
@@ -14410,7 +14410,7 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 
 - `data: object` (required) — Сотрудник
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-  - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+  - `first_name: string` (required, nullable, max length: 255) — Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`). Пример: `"Олег"`
   - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
@@ -14429,7 +14429,7 @@ curl "https://api.pachca.com/api/shared/v1/users" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
   - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
     - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
     - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
@@ -14642,7 +14642,7 @@ const request: UserCreateRequest = {
   skipEmailNotify: false
 }
 const response = client.users.createUser(request)
-// → User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
+// → User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
 ```
 
 ### Python
@@ -14671,7 +14671,7 @@ request = UserCreateRequest(
     skip_email_notify=False
 )
 response = await client.users.create_user(request=request)
-# → User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
+# → User(id: int, first_name: str | None, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
 ```
 
 ---
@@ -14713,7 +14713,7 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Олег&limit=1" \
 
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-  - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+  - `first_name: string` (required, nullable, max length: 255) — Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`). Пример: `"Олег"`
   - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
@@ -14732,7 +14732,7 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Олег&limit=1" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
   - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
     - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
     - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
@@ -15006,7 +15006,7 @@ curl "https://api.pachca.com/api/shared/v1/users/12" \
 
 - `data: object` (required) — Сотрудник
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-  - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+  - `first_name: string` (required, nullable, max length: 255) — Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`). Пример: `"Олег"`
   - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
@@ -15025,7 +15025,7 @@ curl "https://api.pachca.com/api/shared/v1/users/12" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
   - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
     - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
     - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
@@ -15191,7 +15191,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.users.getUser(12)
-// → User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
+// → User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
 ```
 
 ### Python
@@ -15202,7 +15202,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.users.get_user(id=12)
-# → User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
+# → User(id: int, first_name: str | None, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
 ```
 
 ---
@@ -15315,7 +15315,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/12" \
 
 - `data: object` (required) — Сотрудник
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-  - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+  - `first_name: string` (required, nullable, max length: 255) — Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`). Пример: `"Олег"`
   - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
@@ -15334,7 +15334,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/12" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
   - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
     - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
     - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
@@ -15575,7 +15575,7 @@ const request: UserUpdateRequest = {
   }
 }
 const response = client.users.updateUser(12, request)
-// → User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
+// → User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
 ```
 
 ### Python
@@ -15602,7 +15602,7 @@ request = UserUpdateRequest(
     )
 )
 response = await client.users.update_user(id=12, request=request)
-# → User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
+# → User(id: int, first_name: str | None, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
 ```
 
 ---
@@ -17746,7 +17746,7 @@ curl "https://api.pachca.com/api/shared/v1/group_tags/9111/users?limit=1" \
 
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-  - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+  - `first_name: string` (required, nullable, max length: 255) — Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`). Пример: `"Олег"`
   - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
@@ -17765,7 +17765,7 @@ curl "https://api.pachca.com/api/shared/v1/group_tags/9111/users?limit=1" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
   - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
     - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
     - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
@@ -18576,7 +18576,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/334/members?role=all&limit=1" \
 
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-  - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+  - `first_name: string` (required, nullable, max length: 255) — Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`). Пример: `"Олег"`
   - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
@@ -18595,7 +18595,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/334/members?role=all&limit=1" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
   - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
     - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
     - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
@@ -23674,7 +23674,7 @@ curl "https://api.pachca.com/api/shared/v1/search/users?query=Олег&limit=10&
 
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-  - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+  - `first_name: string` (required, nullable, max length: 255) — Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`). Пример: `"Олег"`
   - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
@@ -23693,7 +23693,7 @@ curl "https://api.pachca.com/api/shared/v1/search/users?query=Олег&limit=10&
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
   - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
     - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
     - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
@@ -24028,7 +24028,7 @@ curl "https://api.pachca.com/api/shared/v1/tasks" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
 
 **Пример ответа:**
 
@@ -24235,7 +24235,7 @@ const request: TaskCreateRequest = {
   }
 }
 const response = client.tasks.createTask(request)
-// → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })
+// → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[] })
 ```
 
 ### Python
@@ -24259,7 +24259,7 @@ request = TaskCreateRequest(
     )
 )
 response = await client.tasks.create_task(request=request)
-# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
+# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)])
 ```
 
 ---
@@ -24317,7 +24317,7 @@ curl "https://api.pachca.com/api/shared/v1/tasks?limit=1" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`
@@ -24539,7 +24539,7 @@ curl "https://api.pachca.com/api/shared/v1/tasks/22283" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
 
 **Пример ответа:**
 
@@ -24674,7 +24674,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.tasks.getTask(22283)
-// → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })
+// → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[] })
 ```
 
 ### Python
@@ -24685,7 +24685,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.tasks.get_task(id=22283)
-# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
+# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)])
 ```
 
 ---
@@ -24810,7 +24810,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/22283" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
 
 **Пример ответа:**
 
@@ -25018,7 +25018,7 @@ const request: TaskUpdateRequest = {
   }
 }
 const response = client.tasks.updateTask(22283, request)
-// → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })
+// → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[] })
 ```
 
 ### Python
@@ -25043,7 +25043,7 @@ request = TaskUpdateRequest(
     )
 )
 response = await client.tasks.update_task(id=22283, request=request)
-# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
+# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str | None)])
 ```
 
 ---

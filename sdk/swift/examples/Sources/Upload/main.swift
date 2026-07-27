@@ -36,7 +36,7 @@ print("  Got direct_url: \(params.directUrl)")
 
 print("Step 3: Uploading file...")
 var uploadRequest = FileUploadRequest(
-    Content_Disposition: params.Content_Disposition,
+    ContentDisposition: params.ContentDisposition,
     acl: params.acl,
     policy: params.policy,
     xAmzCredential: params.xAmzCredential,

@@ -38,7 +38,7 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Получение профиля
 response, err := client.Profile.GetProfile(ctx)
-// → User{ID: int32, FirstName: string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}
+// → User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}
 ```
 
 
@@ -428,7 +428,7 @@ request := TaskCreateRequest{
 	},
 }
 response, err := client.Tasks.CreateTask(ctx, request)
-// → Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}}
+// → Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}
 ```
 
 

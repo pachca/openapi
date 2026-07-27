@@ -905,7 +905,7 @@ export interface CustomProperty {
   id: number;
   name: string;
   dataType: CustomPropertyDataType;
-  value: string;
+  value: string | null;
 }
 
 export interface CustomPropertyDefinition {
@@ -1238,7 +1238,7 @@ export interface UploadParams {
 
 export interface User {
   id: number;
-  firstName: string;
+  firstName: string | null;
   lastName: string | null;
   nickname: string;
   email: string | null;

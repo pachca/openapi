@@ -20,10 +20,7 @@ class FakeMessages extends MessagesService {
   }
 }
 
-const client = PachcaClient.stub(
-  undefined, undefined, undefined, undefined, undefined, undefined,
-  new FakeMessages(),
-);
+const client = PachcaClient.stub({ messages: new FakeMessages() });
 
 const msg = await client.messages.getMessage(1);
 console.log(`Got: "${msg.content}" (id=${msg.id})`);

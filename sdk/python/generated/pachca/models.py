@@ -750,7 +750,7 @@ class CustomProperty:
     id: int
     name: str
     data_type: CustomPropertyDataType
-    value: str
+    value: str | None = None
 
 
 @dataclass
@@ -1140,7 +1140,6 @@ class UploadParams:
 @dataclass
 class User:
     id: int
-    first_name: str
     nickname: str
     role: UserRole
     suspended: bool
@@ -1150,6 +1149,7 @@ class User:
     bot: bool
     sso: bool
     created_at: datetime
+    first_name: str | None = None
     last_name: str | None = None
     email: str | None = None
     phone_number: str | None = None

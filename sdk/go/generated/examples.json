@@ -323,7 +323,7 @@
   },
   "ProfileOperations_getProfile": {
     "usage": "response, err := client.Profile.GetProfile(ctx)",
-    "output": "User{ID: int32, FirstName: string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}"
+    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}"
   },
   "ProfileOperations_getStatus": {
     "usage": "response, err := client.Profile.GetStatus(ctx)",
@@ -384,11 +384,11 @@
   },
   "TaskOperations_getTask": {
     "usage": "response, err := client.Tasks.GetTask(ctx, int32(22283))",
-    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}}"
+    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}"
   },
   "TaskOperations_createTask": {
     "usage": "request := TaskCreateRequest{\n\tTask: TaskCreateRequestTask{\n\t\tKind: TaskKindReminder,\n\t\tContent: Ptr(\"Забрать со склада 21 заказ\"),\n\t\tDueAt: Ptr(\"2020-06-05T12:00:00.000+03:00\"),\n\t\tPriority: Ptr(int32(2)),\n\t\tPerformerIDs: []int32{int32(123)},\n\t\tChatID: Ptr(int32(456)),\n\t\tAllDay: Ptr(false),\n\t\tCustomProperties: []TaskCreateRequestCustomProperty{TaskCreateRequestCustomProperty{\n\t\t\tID: int32(78),\n\t\t\tValue: \"Синий склад\",\n\t\t}},\n\t},\n}\nresponse, err := client.Tasks.CreateTask(ctx, request)",
-    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}}",
+    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}",
     "imports": [
       "TaskCreateRequest",
       "TaskCreateRequestCustomProperty",
@@ -398,7 +398,7 @@
   },
   "TaskOperations_updateTask": {
     "usage": "request := TaskUpdateRequest{\n\tTask: TaskUpdateRequestTask{\n\t\tKind: Ptr(TaskKindReminder),\n\t\tContent: Ptr(\"Забрать со склада 21 заказ\"),\n\t\tDueAt: Ptr(\"2020-06-05T12:00:00.000+03:00\"),\n\t\tPriority: Ptr(int32(2)),\n\t\tPerformerIDs: []int32{int32(123)},\n\t\tStatus: Ptr(TaskStatusDone),\n\t\tAllDay: Ptr(false),\n\t\tDoneAt: Ptr(\"2020-06-05T12:00:00.000Z\"),\n\t\tCustomProperties: []TaskUpdateRequestCustomProperty{TaskUpdateRequestCustomProperty{\n\t\t\tID: int32(78),\n\t\t\tValue: \"Синий склад\",\n\t\t}},\n\t},\n}\nresponse, err := client.Tasks.UpdateTask(ctx, int32(22283), request)",
-    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}}",
+    "output": "Task{ID: int32, Kind: TaskKind, Content: string, DueAt: *string, Priority: int32, UserID: int32, ChatID: *int32, Status: TaskStatus, CreatedAt: string, PerformerIDs: []int32, AllDay: bool, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}}",
     "imports": [
       "TaskKind",
       "TaskStatus",
@@ -419,7 +419,7 @@
   },
   "UserOperations_getUser": {
     "usage": "response, err := client.Users.GetUser(ctx, int32(12))",
-    "output": "User{ID: int32, FirstName: string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}"
+    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}"
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "response, err := client.Users.GetUserStatus(ctx, int32(12))",
@@ -427,7 +427,7 @@
   },
   "UserOperations_createUser": {
     "usage": "request := UserCreateRequest{\n\tUser: UserCreateRequestUser{\n\t\tFirstName: Ptr(\"Олег\"),\n\t\tLastName: Ptr(\"Петров\"),\n\t\tEmail: \"olegp@example.com\",\n\t\tPhoneNumber: Ptr(\"+79001234567\"),\n\t\tNickname: Ptr(\"olegpetrov\"),\n\t\tDepartment: Ptr(\"Продукт\"),\n\t\tTitle: Ptr(\"CIO\"),\n\t\tRole: Ptr(UserCreateRoleUser),\n\t\tSuspended: Ptr(false),\n\t\tListTags: []string{\"example\"},\n\t\tChatIDs: []int32{int32(123)},\n\t\tCustomProperties: []UserCreateRequestCustomProperty{UserCreateRequestCustomProperty{\n\t\t\tID: int32(1678),\n\t\t\tValue: \"Санкт-Петербург\",\n\t\t}},\n\t},\n\tSkipEmailNotify: Ptr(false),\n}\nresponse, err := client.Users.CreateUser(ctx, request)",
-    "output": "User{ID: int32, FirstName: string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}",
+    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
@@ -437,7 +437,7 @@
   },
   "UserOperations_updateUser": {
     "usage": "request := UserUpdateRequest{\n\tUser: UserUpdateRequestUser{\n\t\tFirstName: Ptr(\"Олег\"),\n\t\tLastName: Ptr(\"Петров\"),\n\t\tEmail: Ptr(\"olegpetrov@example.com\"),\n\t\tPhoneNumber: Ptr(\"+79001234567\"),\n\t\tNickname: Ptr(\"olegpetrov\"),\n\t\tDepartment: Ptr(\"Отдел разработки\"),\n\t\tTitle: Ptr(\"Старший разработчик\"),\n\t\tRole: Ptr(UserRoleInputUser),\n\t\tSuspended: Ptr(false),\n\t\tListTags: []string{\"example\"},\n\t\tCustomProperties: []UserUpdateRequestCustomProperty{UserUpdateRequestCustomProperty{\n\t\t\tID: int32(1678),\n\t\t\tValue: \"Санкт-Петербург\",\n\t\t}},\n\t},\n}\nresponse, err := client.Users.UpdateUser(ctx, int32(12), request)",
-    "output": "User{ID: int32, FirstName: string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}",
+    "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}",
     "imports": [
       "UserRoleInput",
       "UserUpdateRequest",

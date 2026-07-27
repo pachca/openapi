@@ -60,7 +60,7 @@ func main() {
 	// ── Step 3: Upload the file via SDK ─────────────────────────────
 	fmt.Println("3. Uploading file...")
 	err = client.Common.UploadFile(ctx, params.DirectURL, pachca.FileUploadRequest{
-		Content_Disposition: params.Content_Disposition,
+		ContentDisposition: params.ContentDisposition,
 		ACL:                params.ACL,
 		Policy:             params.Policy,
 		XAMZCredential:     params.XAMZCredential,

@@ -37,7 +37,7 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Олег&limit=1" \
 
 - `data: array of object` (required)
   - `id: integer, int32` (required) — Идентификатор пользователя. Пример: `12`
-  - `first_name: string` (required, max length: 255) — Имя. Пример: `"Олег"`
+  - `first_name: string` (required, nullable, max length: 255) — Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`). Пример: `"Олег"`
   - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
   - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
   - `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
@@ -56,7 +56,7 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Олег&limit=1" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
   - `user_status: object` (required) — Статус. `null`, если у сотрудника не установлен статус.
     - `emoji: string` (required) — Emoji символ статуса. Пример: `"🎮"`
     - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`

@@ -53,7 +53,7 @@ curl "https://api.pachca.com/api/shared/v1/tasks/22283" \
     - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, max length: 768) — Значение. Пример: `"Санкт-Петербург"`
+    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
 
 **Пример ответа:**
 

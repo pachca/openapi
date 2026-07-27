@@ -7027,6 +7027,7 @@ components:
           example: string
         value:
           type: string
+          nullable: true
           maxLength: 768
           description: Custom property value
           example: Saint Petersburg
@@ -8945,8 +8946,9 @@ components:
           example: 12
         first_name:
           type: string
+          nullable: true
           maxLength: 255
-          description: First name
+          description: First name. Returns `null` until an invited employee completes registration (`invite_status` of `sent`).
           example: Oleg
         last_name:
           type: string

@@ -38,6 +38,7 @@ public static class WebhookHistoryExample
         ViewSubmitWebhookPayload view => $"view user_id={view.UserId} fields={view.Data.Count}",
         ChatMemberWebhookPayload member => $"chat_member event={member.Event} chat_id={member.ChatId} users={member.UserIds.Count}",
         CompanyMemberWebhookPayload member => $"company_member event={member.Event} users={member.UserIds.Count}",
+        VideoCallWebhookPayload call => $"video_call event={call.Event} chat_id={call.ChatId} room_id={call.VideoRoomId}",
         _ => $"unknown type={payload.GetType().Name}",
     };
 }

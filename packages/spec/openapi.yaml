@@ -6841,8 +6841,9 @@ components:
           example: string
         value:
           type: string
+          nullable: true
           maxLength: 768
-          description: Значение
+          description: Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601.
           example: Санкт-Петербург
       description: Дополнительное поле
     CustomPropertyDataType:
@@ -8699,8 +8700,9 @@ components:
           example: 12
         first_name:
           type: string
+          nullable: true
           maxLength: 255
-          description: Имя
+          description: Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`).
           example: Олег
         last_name:
           type: string

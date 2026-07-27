@@ -76,7 +76,6 @@ bin/
 obj/
 *.user
 *.suo
-sdk/csharp/examples/Examples.csproj
 
 # Рабочие планы/черновики — не в репозитории
 *_PLAN.md

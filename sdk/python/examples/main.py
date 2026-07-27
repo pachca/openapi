@@ -20,11 +20,10 @@ from pachca.models import (
     ReactionRequest,
 )
 
-token = os.environ["PACHCA_TOKEN"]
-chat_id = int(os.environ["PACHCA_CHAT_ID"])
-
-
 async def main():
+    token = os.environ["PACHCA_TOKEN"]
+    chat_id = int(os.environ["PACHCA_CHAT_ID"])
+
     client = PachcaClient(token)
 
     # 0. Get chat (verifies datetime deserialization)
@@ -86,4 +85,5 @@ async def main():
     print("\nAll 8 steps completed!")
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

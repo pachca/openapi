@@ -13,6 +13,7 @@ import type {
   LinkSharedWebhookPayload,
   MessageWebhookPayload,
   ReactionWebhookPayload,
+  VideoCallWebhookPayload,
   ViewSubmitWebhookPayload,
   WebhookPayloadUnion,
 } from "../src/generated/types.js";
@@ -66,6 +67,10 @@ function summarizePayload(payload: WebhookPayloadUnion): string {
     case "company_member": {
       const member = payload as CompanyMemberWebhookPayload;
       return `company_member event=${member.event} users=${member.userIds.length}`;
+    }
+    case "video_call": {
+      const call = payload as VideoCallWebhookPayload;
+      return `video_call event=${call.event} chat_id=${call.chatId} room_id=${call.videoRoomId}`;
     }
     default:
       return "unknown";

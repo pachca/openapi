@@ -58,6 +58,47 @@ if have dotnet; then run_in sdk/csharp/generated dotnet build -v q; else echo " 
 step "Swift: swift build"
 if have swift; then run_in sdk/swift/generated swift build; else echo "  SKIP (swift not installed)"; fi
 
+# The steps above build each SDK's own source root only. Every language keeps its
+# examples in a sibling directory (sdk/<lang>/examples) that no SDK build touches,
+# so a spec change that renames a type or adds a union member breaks the shipped
+# examples silently — they are linked from the READMEs, so users hit it first.
+step "Examples: TypeScript tsc --noEmit"
+run_in sdk/typescript npx tsc --noEmit -p tsconfig.examples.json
+
+step "Examples: Go go build (per file)"
+# Every Go example is its own `package main` in one directory, so `go build ./...`
+# only reports "main redeclared". Build them one at a time, the way a reader runs
+# them (`go run <file>.go`).
+if have go; then
+  run_in sdk/go/examples sh -c 'for f in *.go; do go build -o /dev/null "$f" || exit 1; done'
+else echo "  SKIP (go not installed)"; fi
+
+step "Examples: Python import"
+if have python3; then
+  # Import each example for real: py_compile would not catch a name the module
+  # imports from pachca.models but the spec no longer generates.
+  run_in sdk/python/examples python3 -c '
+import sys, types, pathlib, importlib
+stub = types.ModuleType("httpx")
+stub.__getattr__ = lambda name: type(name, (), {})
+sys.modules["httpx"] = stub
+sys.path.insert(0, ".")
+for path in sorted(pathlib.Path(".").glob("*.py")):
+    importlib.import_module(path.stem)
+'
+else echo "  SKIP (python3 not installed)"; fi
+
+step "Examples: Kotlin gradlew compileExamplesKotlin"
+if [ -x sdk/kotlin/generated/gradlew ]; then
+  run_in sdk/kotlin/generated ./gradlew -q compileExamplesKotlin -Pversion=0.0.0
+else echo "  SKIP (kotlin gradlew not available)"; fi
+
+step "Examples: C# dotnet build"
+if have dotnet; then run_in sdk/csharp/examples dotnet build -v q; else echo "  SKIP (dotnet not installed)"; fi
+
+step "Examples: Swift swift build"
+if have swift; then run_in sdk/swift/examples swift build; else echo "  SKIP (swift not installed)"; fi
+
 echo
 if [ "$fail" -ne 0 ]; then echo "SDK build: FAILED (see above)"; exit 1; fi
 echo "SDK build: all available toolchains OK"

@@ -786,7 +786,7 @@ type CustomProperty struct {
 	ID       int32                  `json:"id"`
 	Name     string                 `json:"name"`
 	DataType CustomPropertyDataType `json:"data_type"`
-	Value    string                 `json:"value"`
+	Value    *string                `json:"value"`
 }
 
 type CustomPropertyDefinition struct {
@@ -1228,7 +1228,6 @@ type UploadParams struct {
 
 type User struct {
 	ID               int32            `json:"id"`
-	FirstName        string           `json:"first_name"`
 	Nickname         string           `json:"nickname"`
 	Role             UserRole         `json:"role"`
 	Suspended        bool             `json:"suspended"`
@@ -1238,6 +1237,7 @@ type User struct {
 	Bot              bool             `json:"bot"`
 	Sso              bool             `json:"sso"`
 	CreatedAt        time.Time        `json:"created_at"`
+	FirstName        *string          `json:"first_name"`
 	LastName         *string          `json:"last_name"`
 	Email            *string          `json:"email"`
 	PhoneNumber      *string          `json:"phone_number"`

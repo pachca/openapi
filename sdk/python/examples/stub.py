@@ -41,4 +41,5 @@ async def main():
     print(f'Got: "{msg.content}" (id={msg.id})')
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

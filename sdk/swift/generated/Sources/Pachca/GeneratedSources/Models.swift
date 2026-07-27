@@ -1405,9 +1405,9 @@ public struct CustomProperty: Codable {
     public let id: Int
     public let name: String
     public let dataType: CustomPropertyDataType
-    public let value: String
+    public let value: String?
 
-    public init(id: Int, name: String, dataType: CustomPropertyDataType, value: String) {
+    public init(id: Int, name: String, dataType: CustomPropertyDataType, value: String? = nil) {
         self.id = id
         self.name = name
         self.dataType = dataType
@@ -2386,7 +2386,7 @@ public struct UploadParams: Codable {
 
 public struct User: Codable {
     public let id: Int
-    public let firstName: String
+    public let firstName: String?
     public let lastName: String?
     public let nickname: String
     public let email: String?
@@ -2407,7 +2407,7 @@ public struct User: Codable {
     public let timeZone: String?
     public let imageUrl: String?
 
-    public init(id: Int, firstName: String, lastName: String? = nil, nickname: String, email: String? = nil, phoneNumber: String? = nil, department: String? = nil, title: String? = nil, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int? = nil, listTags: [String], customProperties: [CustomProperty], userStatus: UserStatus? = nil, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String? = nil, timeZone: String? = nil, imageUrl: String? = nil) {
+    public init(id: Int, firstName: String? = nil, lastName: String? = nil, nickname: String, email: String? = nil, phoneNumber: String? = nil, department: String? = nil, title: String? = nil, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int? = nil, listTags: [String], customProperties: [CustomProperty], userStatus: UserStatus? = nil, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String? = nil, timeZone: String? = nil, imageUrl: String? = nil) {
         self.id = id
         self.firstName = firstName
         self.lastName = lastName

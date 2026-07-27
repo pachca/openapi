@@ -2035,7 +2035,9 @@ actions:
       description: Property type
   - target: $.components.schemas.CustomProperty.properties.value
     update:
-      description: Value
+      description: >-
+        Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601
+        format.
   - target: $.components.schemas.CustomPropertyDataType
     update:
       description: Custom property data type
@@ -3046,7 +3048,8 @@ actions:
       description: User ID
   - target: $.components.schemas.User.properties.first_name
     update:
-      description: First name
+      description: >-
+        First name. Returns `null` until an invited employee completes registration (`invite_status` of `sent`).
   - target: $.components.schemas.User.properties.last_name
     update:
       description: "Last name. If not filled in, `null` or an empty string is returned."

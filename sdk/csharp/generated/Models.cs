@@ -2739,7 +2739,7 @@ public class CustomProperty
     [JsonPropertyName("data_type")]
     public CustomPropertyDataType DataType { get; set; } = default!;
     [JsonPropertyName("value")]
-    public string Value { get; set; } = default!;
+    public string? Value { get; set; }
 }
 
 public class CustomPropertyDefinition
@@ -3267,7 +3267,7 @@ public class User
     [JsonPropertyName("id")]
     public int Id { get; set; } = default!;
     [JsonPropertyName("first_name")]
-    public string FirstName { get; set; } = default!;
+    public string? FirstName { get; set; }
     [JsonPropertyName("last_name")]
     public string? LastName { get; set; }
     [JsonPropertyName("nickname")]

@@ -294,7 +294,7 @@
   },
   "ProfileOperations_getProfile": {
     "usage": "let response = try await client.profile.getProfile()",
-    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)"
+    "output": "User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)"
   },
   "ProfileOperations_getStatus": {
     "usage": "let response = try await client.profile.getStatus()",
@@ -349,11 +349,11 @@
   },
   "TaskOperations_getTask": {
     "usage": "let response = try await client.tasks.getTask(id: 22283)",
-    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)])"
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)])"
   },
   "TaskOperations_createTask": {
     "usage": "let body = TaskCreateRequest(\n    task: TaskCreateRequestTask(\n        kind: .reminder,\n        content: \"Забрать со склада 21 заказ\",\n        dueAt: \"2020-06-05T12:00:00.000+03:00\",\n        priority: 2,\n        performerIds: [123],\n        chatId: 456,\n        allDay: false,\n        customProperties: [TaskCreateRequestCustomProperty(id: 78, value: \"Синий склад\")]\n    )\n)\nlet response = try await client.tasks.createTask(body: body)",
-    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)])",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)])",
     "imports": [
       "TaskCreateRequest",
       "TaskCreateRequestCustomProperty",
@@ -363,7 +363,7 @@
   },
   "TaskOperations_updateTask": {
     "usage": "let body = TaskUpdateRequest(\n    task: TaskUpdateRequestTask(\n        kind: .reminder,\n        content: \"Забрать со склада 21 заказ\",\n        dueAt: \"2020-06-05T12:00:00.000+03:00\",\n        priority: 2,\n        performerIds: [123],\n        status: .done,\n        allDay: false,\n        doneAt: \"2020-06-05T12:00:00.000Z\",\n        customProperties: [TaskUpdateRequestCustomProperty(id: 78, value: \"Синий склад\")]\n    )\n)\nlet response = try await client.tasks.updateTask(id: 22283, body: body)",
-    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)])",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)])",
     "imports": [
       "TaskKind",
       "TaskStatus",
@@ -381,7 +381,7 @@
   },
   "UserOperations_getUser": {
     "usage": "let response = try await client.users.getUser(id: 12)",
-    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)"
+    "output": "User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)"
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "let response = try await client.users.getUserStatus(userId: 12)",
@@ -389,7 +389,7 @@
   },
   "UserOperations_createUser": {
     "usage": "let body = UserCreateRequest(\n    user: UserCreateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegp@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Продукт\",\n        title: \"CIO\",\n        role: .user,\n        suspended: false,\n        listTags: [\"example\"],\n        chatIds: [123],\n        customProperties: [UserCreateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    ),\n    skipEmailNotify: false\n)\nlet response = try await client.users.createUser(body: body)",
-    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)",
+    "output": "User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
@@ -399,7 +399,7 @@
   },
   "UserOperations_updateUser": {
     "usage": "let body = UserUpdateRequest(\n    user: UserUpdateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegpetrov@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Отдел разработки\",\n        title: \"Старший разработчик\",\n        role: .user,\n        suspended: false,\n        listTags: [\"example\"],\n        customProperties: [UserUpdateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    )\n)\nlet response = try await client.users.updateUser(id: 12, body: body)",
-    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)",
+    "output": "User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)",
     "imports": [
       "UserRoleInput",
       "UserUpdateRequest",

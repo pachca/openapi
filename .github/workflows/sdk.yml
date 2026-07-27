@@ -99,20 +99,62 @@ jobs:
         run: bun run verify
         working-directory: sdk/typescript
 
+      # Each SDK keeps its examples in a sibling directory that the SDK build
+      # never touches, so a spec change that renames a type or adds a union
+      # member breaks the shipped examples silently. They are linked from the
+      # READMEs, so users hit it first — compile them here too.
+      - name: Typecheck TypeScript examples
+        if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.ts_changed == 'true'
+        run: npx tsc --noEmit -p tsconfig.examples.json
+        working-directory: sdk/typescript
+
       - name: Compile Go SDK
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.go_changed == 'true'
         working-directory: sdk/go/generated
         run: go build ./...
+
+      - name: Compile Go examples
+        if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.go_changed == 'true'
+        working-directory: sdk/go/examples
+        # Every example is its own `package main` in one directory, so
+        # `go build ./...` only reports "main redeclared". Build them one at a
+        # time, the way a reader runs them.
+        run: for f in *.go; do go build -o /dev/null "$f" || exit 1; done
 
       - name: Compile Kotlin SDK
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.kotlin_changed == 'true'
         working-directory: sdk/kotlin/generated
         run: ./gradlew compileKotlin -Pversion=0.0.0
 
+      - name: Compile Kotlin examples
+        if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.kotlin_changed == 'true'
+        working-directory: sdk/kotlin/generated
+        run: ./gradlew compileExamplesKotlin -Pversion=0.0.0
+
       - name: Check Python SDK
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.python_changed == 'true'
         working-directory: sdk/python/generated
         run: python3 -m py_compile $(find pachca -name '*.py')
+
+      - name: Import Python SDK and examples
+        if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.python_changed == 'true'
+        working-directory: sdk/python
+        # py_compile only parses: a module-level NameError (a registry naming a
+        # type that was never imported, an example importing a model the spec no
+        # longer generates) compiles fine and blows up on import. Import for
+        # real, with httpx stubbed so the check needs no dependencies.
+        run: |
+          python3 -c '
+          import sys, types, pathlib, importlib
+          stub = types.ModuleType("httpx")
+          stub.__getattr__ = lambda name: type(name, (), {})
+          sys.modules["httpx"] = stub
+          sys.path.insert(0, "generated")
+          import pachca.models, pachca.utils
+          sys.path.insert(0, "examples")
+          for path in sorted(pathlib.Path("examples").glob("*.py")):
+              importlib.import_module(path.stem)
+          '
 
       - name: Setup .NET
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.csharp_changed == 'true'
@@ -124,12 +166,22 @@ jobs:
         working-directory: sdk/csharp/generated
         run: dotnet build
 
+      - name: Compile C# examples
+        if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.csharp_changed == 'true'
+        working-directory: sdk/csharp/examples
+        run: dotnet build
+
       - name: Setup Swift
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.swift_changed == 'true'
         uses: swift-actions/setup-swift@v2
       - name: Compile Swift SDK
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.swift_changed == 'true'
         working-directory: sdk/swift
+        run: swift build
+
+      - name: Compile Swift examples
+        if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.swift_changed == 'true'
+        working-directory: sdk/swift/examples
         run: swift build
 
       - name: Copy Swift Package.swift to root

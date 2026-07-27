@@ -1328,7 +1328,7 @@ data class CustomProperty(
     val id: Int,
     val name: String,
     @SerialName("data_type") val dataType: CustomPropertyDataType,
-    val value: String,
+    val value: String? = null,
 )
 
 @Serializable
@@ -1676,7 +1676,7 @@ data class UploadParams(
 @Serializable
 data class User(
     val id: Int,
-    @SerialName("first_name") val firstName: String,
+    @SerialName("first_name") val firstName: String? = null,
     @SerialName("last_name") val lastName: String? = null,
     val nickname: String,
     val email: String? = null,

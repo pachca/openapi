@@ -901,11 +901,15 @@ export async function searchUsers(
 ): Promise<INodeListSearchResult> {
   const credentials = await this.getCredentials('pachcaApi');
   const baseUrl = sanitizeBaseUrl(credentials.baseUrl as string);
-  if (!filter) return { results: [] };
   const cursorParam = paginationToken
     ? `&cursor=${encodeURIComponent(String(paginationToken))}`
     : '';
-  const url = `${baseUrl}/search/users?query=${encodeURIComponent(filter)}&limit=200${cursorParam}`;
+  // No filter — paginated listing, same as searchChats. Returning an empty array
+  // here made the picker look broken: opening it showed nothing until the user
+  // guessed that typing was required.
+  const url = filter
+    ? `${baseUrl}/search/users?query=${encodeURIComponent(filter)}&limit=200${cursorParam}`
+    : `${baseUrl}/users?limit=50${cursorParam}`;
   const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
     method: 'GET',
     url,

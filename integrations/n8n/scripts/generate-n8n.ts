@@ -3150,7 +3150,8 @@ async function executeRoute(
 \t\treturn [{ json: inputData }];
 \t}
 \tif (route.special === 'exportDownload') {
-\t\tconst exportId = this.getNodeParameter('id', i) as number;
+\t\t// 'id' is a resourceLocator: read raw it stringifies to "[object Object]".
+\t\tconst exportId = resolveResourceLocator(this, 'id', i);
 \t\tconst credentials = await this.getCredentials('pachcaApi');
 \t\tconst base = sanitizeBaseUrl(credentials.baseUrl as string);
 \t\tconst resp = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
@@ -3172,7 +3173,11 @@ async function executeRoute(
 \tif (route.special === 'avatarUpload') {
 \t\tlet avatarUrl = route.path;
 \t\tfor (const pp of route.pathParams ?? []) {
-\t\t\tconst value = this.getNodeParameter(pp.n8n, i) as number;
+\t\t\t// Must honour pp.locator like the main URL builder below: a
+\t\t\t// resourceLocator parameter read raw stringifies to "[object Object]".
+\t\t\tconst value = pp.locator
+\t\t\t\t? resolveResourceLocator(this, pp.n8n, i, pp.v1Fallback)
+\t\t\t\t: (this.getNodeParameter(pp.n8n, i) as number);
 \t\t\tavatarUrl = avatarUrl.replace(\`{\${pp.api}}\`, String(value));
 \t\t}
 \t\tconst result = await uploadAvatar(this, i, avatarUrl);

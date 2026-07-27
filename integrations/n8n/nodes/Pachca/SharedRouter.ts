@@ -867,7 +867,8 @@ async function executeRoute(
 		return [{ json: inputData }];
 	}
 	if (route.special === 'exportDownload') {
-		const exportId = this.getNodeParameter('id', i) as number;
+		// 'id' is a resourceLocator: read raw it stringifies to "[object Object]".
+		const exportId = resolveResourceLocator(this, 'id', i);
 		const credentials = await this.getCredentials('pachcaApi');
 		const base = sanitizeBaseUrl(credentials.baseUrl as string);
 		const resp = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
@@ -889,7 +890,11 @@ async function executeRoute(
 	if (route.special === 'avatarUpload') {
 		let avatarUrl = route.path;
 		for (const pp of route.pathParams ?? []) {
-			const value = this.getNodeParameter(pp.n8n, i) as number;
+			// Must honour pp.locator like the main URL builder below: a
+			// resourceLocator parameter read raw stringifies to "[object Object]".
+			const value = pp.locator
+				? resolveResourceLocator(this, pp.n8n, i, pp.v1Fallback)
+				: (this.getNodeParameter(pp.n8n, i) as number);
 			avatarUrl = avatarUrl.replace(`{${pp.api}}`, String(value));
 		}
 		const result = await uploadAvatar(this, i, avatarUrl);

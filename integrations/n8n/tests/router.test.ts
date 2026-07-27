@@ -530,6 +530,26 @@ describe('Special: avatarUpload', () => {
 		spy.mockRestore();
 	});
 
+	// userId is a resourceLocator: read raw it stringifies to "[object Object]"
+	// and the request goes to /users/[object Object]/avatar. The plain-number
+	// case above is what a workflow saved before the switch still stores.
+	it('user.updateAvatar resolves a resourceLocator userId', async () => {
+		const spy = vi.spyOn(GenericFunctions, 'uploadAvatar').mockResolvedValue({
+			id: 42,
+			image_url: 'https://example.com/user-avatar.jpg',
+		});
+
+		const ctx = createMockContext({
+			resource: 'user',
+			operation: 'updateAvatar',
+			params: { image: 'data', userId: { __rl: true, mode: 'list', value: 42 } },
+		});
+		await runRouter(ctx);
+		expect(spy.mock.calls[0][2]).toBe('/users/42/avatar');
+
+		spy.mockRestore();
+	});
+
 	it('profile.deleteAvatar sends DELETE /profile/avatar', async () => {
 		const ctx = createMockContext({
 			resource: 'profile',
@@ -1517,5 +1537,61 @@ describe('Pagination: has_next-driven termination + dual-shape fallback', () => 
 		const result = await runRouter(ctx);
 		expect(result[0]).toHaveLength(2);
 		expect(ctx._calls.length).toBe(2);
+	});
+});
+
+// ============================================================================
+// resourceLocator: сплошной прогон по всем операциям с локаторным параметром
+// ============================================================================
+
+// Ловит целый класс дефектов: ветка роутера, которая читает параметр напрямую
+// вместо resolveResourceLocator, подставляет в URL "[object Object]". Так были
+// сломаны user.updateAvatar и chat.downloadExport — обе через special-ветки,
+// минующие общий сборщик URL.
+describe('resourceLocator во всех операциях с локатором', () => {
+	const LOCATOR_OPS: { resource: string; operation: string; param: string; expect: RegExp }[] = [
+		{ resource: 'chat', operation: 'get', param: 'id', expect: /\/chats\/77(\?|$)/ },
+		{ resource: 'chat', operation: 'update', param: 'id', expect: /\/chats\/77(\?|$)/ },
+		{ resource: 'chat', operation: 'archive', param: 'id', expect: /\/chats\/77\/archive/ },
+		{ resource: 'chat', operation: 'unarchive', param: 'id', expect: /\/chats\/77\/unarchive/ },
+		{ resource: 'chat', operation: 'downloadExport', param: 'id', expect: /\/chats\/exports\/77/ },
+		{ resource: 'member', operation: 'getAll', param: 'id', expect: /\/chats\/77\/members/ },
+		{ resource: 'member', operation: 'leave', param: 'id', expect: /\/chats\/77\/leave/ },
+		{ resource: 'user', operation: 'get', param: 'id', expect: /\/users\/77(\?|$)/ },
+		{ resource: 'user', operation: 'update', param: 'id', expect: /\/users\/77(\?|$)/ },
+		{ resource: 'user', operation: 'delete', param: 'id', expect: /\/users\/77(\?|$)/ },
+		{ resource: 'user', operation: 'getStatus', param: 'userId', expect: /\/users\/77\/status/ },
+		{ resource: 'user', operation: 'updateStatus', param: 'userId', expect: /\/users\/77\/status/ },
+		{ resource: 'user', operation: 'deleteStatus', param: 'userId', expect: /\/users\/77\/status/ },
+		{ resource: 'user', operation: 'deleteAvatar', param: 'userId', expect: /\/users\/77\/avatar/ },
+	];
+
+	for (const c of LOCATOR_OPS) {
+		it(`${c.resource}.${c.operation}: локатор ${c.param} подставляется в URL`, async () => {
+			const ctx = createMockContext({
+				resource: c.resource,
+				operation: c.operation,
+				params: {
+					[c.param]: { __rl: true, mode: 'list', value: 77 },
+					// значения для прочих обязательных полей операций записи
+					chatName: 'x', content: 'x', emoji: 'x', comment: 'x',
+					memberIds: '1', groupTagIds: '1', role: 'member', title: 'x',
+				},
+			});
+			// Списочные операции разворачивают data — мок по умолчанию отдаёт объект.
+			if (c.operation === 'getAll') mockPaginatedResponse(ctx, [{ data: [] }]);
+			await runRouter(ctx);
+			const urls = ctx._calls.map((call) => call.url);
+			expect(urls.length).toBeGreaterThan(0);
+			expect(urls.some((u) => c.expect.test(u))).toBe(true);
+			expect(urls.some((u) => u.includes('[object'))).toBe(false);
+		});
+	}
+
+	// Форма, сохранённая до перехода на локатор: голое число обязано работать.
+	it('старое числовое значение параметра остаётся рабочим', async () => {
+		const ctx = createMockContext({ resource: 'user', operation: 'getStatus', params: { userId: 77 } });
+		await runRouter(ctx);
+		expect(ctx._calls[0].url).toMatch(/\/users\/77\/status/);
 	});
 });

@@ -2,7 +2,10 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "generate": {
-      "dependsOn": ["setup", "^generate"],
+      "dependsOn": [
+        "setup",
+        "^generate"
+      ],
       "inputs": [
         "typespec.tsp",
         "tspconfig.yaml",
@@ -10,14 +13,20 @@
         "../../packages/generator/src/**",
         "../../packages/generator/bin/**"
       ],
-      "outputs": ["openapi.yaml", "generated/**", "src/generated/**"],
+      "outputs": [
+        "openapi.yaml",
+        "generated/**",
+        "src/generated/**"
+      ],
       "cache": true
     },
     "setup": {
       "cache": false
     },
     "generate-llms": {
-      "dependsOn": ["@pachca/spec#generate"],
+      "dependsOn": [
+        "@pachca/spec#generate"
+      ],
       "inputs": [
         "scripts/generate-llms.ts",
         "scripts/skills/**",
@@ -27,11 +36,25 @@
         "../../packages/cli/src/data/*.json",
         "../../packages/spec/workflows.ts"
       ],
-      "outputs": ["public/llms.txt", "public/llms-full.txt", "public/llms-en.txt", "public/skill.md", "public/index.md", "public/guides/**", "public/**/*.md", "public/.well-known/**", "public/pachca.postman_collection.json", "public/workflows.arazzo.yaml"],
+      "outputs": [
+        "public/llms.txt",
+        "public/llms-full.txt",
+        "public/llms-en.txt",
+        "public/skill.md",
+        "public/index.md",
+        "public/guides/**",
+        "public/**/*.md",
+        "public/.well-known/**",
+        "public/pachca.postman_collection.json",
+        "public/workflows.arazzo.yaml"
+      ],
       "cache": true
     },
     "@pachca/docs#generate-llms": {
-      "dependsOn": ["@pachca/spec#generate", "@pachca/cli#build"],
+      "dependsOn": [
+        "@pachca/spec#generate",
+        "@pachca/cli#build"
+      ],
       "inputs": [
         "scripts/generate-llms.ts",
         "scripts/skills/**",
@@ -41,11 +64,24 @@
         "../../packages/cli/src/data/*.json",
         "../../packages/spec/workflows.ts"
       ],
-      "outputs": ["public/llms.txt", "public/llms-full.txt", "public/llms-en.txt", "public/skill.md", "public/index.md", "public/guides/**", "public/**/*.md", "public/.well-known/**", "public/pachca.postman_collection.json", "public/workflows.arazzo.yaml"],
+      "outputs": [
+        "public/llms.txt",
+        "public/llms-full.txt",
+        "public/llms-en.txt",
+        "public/skill.md",
+        "public/index.md",
+        "public/guides/**",
+        "public/**/*.md",
+        "public/.well-known/**",
+        "public/pachca.postman_collection.json",
+        "public/workflows.arazzo.yaml"
+      ],
       "cache": true
     },
     "generate-cli": {
-      "dependsOn": ["@pachca/spec#generate"],
+      "dependsOn": [
+        "@pachca/spec#generate"
+      ],
       "inputs": [
         "../../packages/spec/openapi.yaml",
         "scripts/generate-cli.ts",
@@ -54,22 +90,49 @@
         "../../packages/spec/workflows.ts",
         "../../apps/docs/scripts/skills/config.ts"
       ],
-      "outputs": ["src/commands/*/*.ts", "!src/commands/auth/*.ts", "!src/commands/config/*.ts", "src/data/*.json", "!src/data/changelog.json", "!src/data/commands.json", "README.md"],
+      "outputs": [
+        "src/commands/*/*.ts",
+        "!src/commands/auth/*.ts",
+        "!src/commands/config/*.ts",
+        "src/data/*.json",
+        "!src/data/changelog.json",
+        "!src/data/commands.json",
+        "README.md"
+      ],
       "cache": true
     },
     "overlay:apply": {
-      "dependsOn": ["@pachca/spec#generate"],
-      "inputs": ["overlay.en.yaml", "openapi.yaml", "scripts/apply-overlay.ts"],
-      "outputs": ["openapi.en.yaml"],
+      "dependsOn": [
+        "@pachca/spec#generate"
+      ],
+      "inputs": [
+        "overlay.en.yaml",
+        "openapi.yaml",
+        "scripts/apply-overlay.ts"
+      ],
+      "outputs": [
+        "openapi.en.yaml"
+      ],
       "cache": true
     },
     "overlay:validate": {
-      "dependsOn": ["@pachca/spec#generate", "@pachca/spec#overlay:apply"],
-      "inputs": ["overlay.en.yaml", "openapi.yaml", "scripts/validate-overlay.ts"],
+      "dependsOn": [
+        "@pachca/spec#generate",
+        "@pachca/spec#overlay:apply"
+      ],
+      "inputs": [
+        "overlay.en.yaml",
+        "openapi.yaml",
+        "scripts/validate-overlay.ts"
+      ],
       "cache": true
     },
     "generate-n8n": {
-      "dependsOn": ["^build", "@pachca/spec#generate", "@pachca/spec#overlay:apply"],
+      "dependsOn": [
+        "^build",
+        "@pachca/spec#generate",
+        "@pachca/spec#overlay:apply"
+      ],
       "inputs": [
         "../../packages/spec/openapi.yaml",
         "../../packages/spec/openapi.en.yaml",
@@ -82,16 +145,39 @@
         "../../apps/docs/scripts/skills/config.ts",
         "scripts/**"
       ],
-      "outputs": ["nodes/**/*.ts", "credentials/**/*.ts"],
+      "outputs": [
+        "nodes/**/*.ts",
+        "credentials/**/*.ts"
+      ],
       "cache": true
     },
     "build": {
-      "dependsOn": ["^build", "generate", "overlay:apply", "generate-llms", "generate-cli", "generate-n8n"],
-      "outputs": [".next/**", "!.next/cache/**", ".build/**", "dist/**", "oclif.manifest.json", "src/data/commands.json", "CHANGELOG.md", "generated/bin/**", "generated/obj/**"],
+      "dependsOn": [
+        "^build",
+        "generate",
+        "overlay:apply",
+        "generate-llms",
+        "generate-cli",
+        "generate-n8n"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        ".build/**",
+        "dist/**",
+        "oclif.manifest.json",
+        "src/data/commands.json",
+        "CHANGELOG.md",
+        "generated/bin/**",
+        "generated/obj/**"
+      ],
       "cache": true
     },
     "dev": {
-      "dependsOn": ["@pachca/spec#generate", "generate-llms"],
+      "dependsOn": [
+        "@pachca/spec#generate",
+        "generate-llms"
+      ],
       "cache": false,
       "persistent": true
     },
@@ -99,7 +185,9 @@
       "cache": true
     },
     "typecheck": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "cache": true
     },
     "knip": {
@@ -109,45 +197,101 @@
       "cache": true
     },
     "check": {
-      "dependsOn": ["lint", "typecheck", "knip", "format:check", "test", "@pachca/spec#overlay:validate", "check-models", "check-n8n-resources", "check-examples", "check-anchors"],
+      "dependsOn": [
+        "lint",
+        "typecheck",
+        "knip",
+        "format:check",
+        "test",
+        "@pachca/spec#overlay:validate",
+        "check-models",
+        "check-n8n-resources",
+        "check-examples",
+        "check-anchors",
+        "@pachca/spec#enum:check"
+      ],
       "cache": false
     },
     "check-urls": {
-      "dependsOn": ["@pachca/spec#generate"],
+      "dependsOn": [
+        "@pachca/spec#generate"
+      ],
       "cache": true
     },
     "check-n8n-resources": {
       "cache": false
     },
     "check-models": {
-      "dependsOn": ["@pachca/spec#generate"],
-      "inputs": ["scripts/check-models-coverage.mjs", "content/api/models.mdx"],
+      "dependsOn": [
+        "@pachca/spec#generate"
+      ],
+      "inputs": [
+        "scripts/check-models-coverage.mjs",
+        "content/api/models.mdx"
+      ],
       "cache": true
     },
     "check-examples": {
-      "dependsOn": ["generate-llms"],
-      "inputs": ["scripts/check-examples.mjs", "public/api/**"],
+      "dependsOn": [
+        "generate-llms"
+      ],
+      "inputs": [
+        "scripts/check-examples.mjs",
+        "public/api/**"
+      ],
       "cache": true
     },
     "check-anchors": {
-      "dependsOn": ["@pachca/spec#generate"],
-      "inputs": ["scripts/check-anchors.mjs", "content/**", "lib/utils/transliterate.ts"],
+      "dependsOn": [
+        "@pachca/spec#generate"
+      ],
+      "inputs": [
+        "scripts/check-anchors.mjs",
+        "content/**",
+        "lib/utils/transliterate.ts"
+      ],
       "cache": true
     },
     "update-snapshots": {
-      "inputs": ["src/**", "tests/**/fixture.yaml"],
-      "outputs": ["tests/**/snapshots/**"],
+      "inputs": [
+        "src/**",
+        "tests/**/fixture.yaml"
+      ],
+      "outputs": [
+        "tests/**/snapshots/**"
+      ],
       "cache": false
     },
     "test": {
-      "dependsOn": ["^build", "generate-cli", "generate-n8n"],
-      "inputs": ["src/**", "tests/**"],
+      "dependsOn": [
+        "^build",
+        "generate-cli",
+        "generate-n8n"
+      ],
+      "inputs": [
+        "src/**",
+        "tests/**"
+      ],
       "cache": true
     },
     "start": {
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "cache": false,
       "persistent": true
+    },
+    "enum:check": {
+      "dependsOn": [
+        "@pachca/spec#generate",
+        "@pachca/spec#overlay:apply"
+      ],
+      "inputs": [
+        "openapi.yaml",
+        "openapi.en.yaml",
+        "scripts/check-enum-descriptions.ts"
+      ],
+      "cache": true
     }
   }
 }

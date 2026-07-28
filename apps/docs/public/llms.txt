@@ -299,7 +299,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 
 ## Обновления
-- [27 июля 2026 — Уточнения в описании API](https://dev.pachca.com/updates/2026-07-27.md)
+- [28 июля 2026 — Уточнения в описании API](https://dev.pachca.com/updates/2026-07-28.md)
 - [24 июля 2026 — Самостоятельные треды и аудит видеозвонков](https://dev.pachca.com/updates/2026-07-24.md)
 - [07 июля 2026 — Список и удаление ботов, права доступа бота, вебхуки видеозвонков](https://dev.pachca.com/updates/2026-07-07.md)
 - [24 июня 2026 — Ротация токена бота и новые настройки вебхука](https://dev.pachca.com/updates/2026-06-24.md)

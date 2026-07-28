@@ -8,7 +8,7 @@ export default class ProfileUpdateAvatar extends BaseCommand {
   static override description = "Загрузка своего аватара";
 
   static override examples = [
-      "Загрузить аватар профиля:\n  $ pachca profile update-avatar"
+      "Загрузить аватар профиля — Загрузи аватар из файла:\n  $ pachca profile update-avatar"
   ];
 
   static scope = "profile_avatar:write";
@@ -51,7 +51,7 @@ export default class ProfileUpdateAvatar extends BaseCommand {
       formData,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

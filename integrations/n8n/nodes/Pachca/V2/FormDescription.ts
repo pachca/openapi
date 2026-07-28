@@ -64,7 +64,7 @@ export const formFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				description: 'Optional identifier for recognizing this view, which will be sent to your application when the user submits the form. Use this field, for example, to determine which form the user was supposed to fill out.',
-				placeholder: 'timeoff_reguest_form',
+				placeholder: 'timeoff_request_form',
 			},
 			{
 				displayName: 'Close Text',

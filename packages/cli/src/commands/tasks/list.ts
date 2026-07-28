@@ -6,7 +6,7 @@ export default class TasksList extends BaseCommand {
   static override description = "Список напоминаний";
 
   static override examples = [
-      "Получить список предстоящих задач:\n  $ pachca tasks list"
+      "Получить список предстоящих задач — Получи все задачи, фильтруй по `status` на клиенте:\n  $ pachca tasks list"
   ];
 
   static scope = "tasks:read";
@@ -95,7 +95,7 @@ export default class TasksList extends BaseCommand {
       },
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const items = responseBody.data ?? responseBody;
     this.output(items);
   }

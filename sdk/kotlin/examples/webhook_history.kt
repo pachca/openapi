@@ -34,4 +34,5 @@ private fun summarizePayload(payload: WebhookPayloadUnion): String = when (paylo
     is ViewSubmitWebhookPayload -> "view user_id=${payload.userId} fields=${payload.data.size}"
     is ChatMemberWebhookPayload -> "chat_member event=${payload.event} chat_id=${payload.chatId} users=${payload.userIds.size}"
     is CompanyMemberWebhookPayload -> "company_member event=${payload.event} users=${payload.userIds.size}"
+    is VideoCallWebhookPayload -> "video_call event=${payload.event} chat_id=${payload.chatId} room_id=${payload.videoRoomId}"
 }

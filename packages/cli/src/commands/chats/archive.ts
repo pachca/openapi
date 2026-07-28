@@ -6,8 +6,8 @@ export default class ChatsArchive extends BaseCommand {
   static override description = "Архивация чата";
 
   static override examples = [
-      "Архивация и управление чатом:\n  $ pachca chats archive",
-      "Найти и заархивировать неактивные чаты:\n  $ pachca chats archive"
+      "Архивация и управление чатом — Архивировать чат:\n  $ pachca chats archive",
+      "Найти и заархивировать неактивные чаты — Для каждого чата: архивируй:\n  $ pachca chats archive"
   ];
 
   static scope = "chats:archive";
@@ -35,7 +35,7 @@ export default class ChatsArchive extends BaseCommand {
       path: `/chats/${args.id}/archive`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

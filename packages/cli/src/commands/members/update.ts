@@ -7,7 +7,7 @@ export default class MembersUpdate extends BaseCommand {
   static override description = "Редактирование роли";
 
   static override examples = [
-      "Архивация и управление чатом:\n  $ pachca members update"
+      "Архивация и управление чатом — Изменить роль участника:\n  $ pachca members update"
   ];
 
   static scope = "chat_members:write";
@@ -77,7 +77,7 @@ export default class MembersUpdate extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

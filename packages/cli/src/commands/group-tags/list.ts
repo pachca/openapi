@@ -6,7 +6,7 @@ export default class GroupTagsList extends BaseCommand {
   static override description = "Список тегов сотрудников";
 
   static override examples = [
-      "Получить всех сотрудников тега/департамента:\n  $ pachca group-tags list"
+      "Получить всех сотрудников тега/департамента — Найди тег по названию, возьми `id`:\n  $ pachca group-tags list"
   ];
 
   static scope = "group_tags:read";
@@ -100,7 +100,7 @@ export default class GroupTagsList extends BaseCommand {
       },
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const items = responseBody.data ?? responseBody;
     this.output(items);
   }

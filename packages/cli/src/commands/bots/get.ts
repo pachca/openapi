@@ -31,7 +31,7 @@ export default class BotsGet extends BaseCommand {
       path: `/bots/${args.id}`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

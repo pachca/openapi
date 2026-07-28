@@ -131,7 +131,7 @@ describe('profiles', () => {
     expect(result.profileName).toBeUndefined();
   });
 
-  it('should prioritize PACHCA_TOKEN env over profile', async () => {
+  it('should prioritize PACHCA_TOKEN env over the active profile', async () => {
     const { setProfile, setActiveProfile, resolveToken } = await import('../src/profiles.js');
     process.env.PACHCA_TOKEN = 'from-env';
     setProfile('default', { type: 'user', token: 'from-profile', user: 'U', scopes: [] });
@@ -140,6 +140,19 @@ describe('profiles', () => {
     const result = resolveToken({});
     expect(result.token).toBe('from-env');
     expect(result.profileName).toBeUndefined();
+  });
+
+  it('should prioritize an explicit --profile over PACHCA_TOKEN env', async () => {
+    const { setProfile, setActiveProfile, resolveToken } = await import('../src/profiles.js');
+    // An exported PACHCA_TOKEN must not hijack a command that names its profile —
+    // that silently wrote to the wrong workspace in CI and agent shells.
+    process.env.PACHCA_TOKEN = 'prod-token-from-env';
+    setProfile('staging', { type: 'user', token: 'staging-token', user: 'S', scopes: [] });
+    setActiveProfile('staging');
+
+    const result = resolveToken({ profile: 'staging' });
+    expect(result.token).toBe('staging-token');
+    expect(result.profileName).toBe('staging');
   });
 
   it('should use PACHCA_PROFILE env to select profile', async () => {

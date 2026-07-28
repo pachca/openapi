@@ -7,7 +7,7 @@ export default class BotsUpdateWebhook extends BaseCommand {
   static override description = "Саморегистрация вебхука бота";
 
   static override examples = [
-      "Обновить Webhook URL бота:\n  $ pachca bots update-webhook"
+      "Обновить Webhook URL бота — Или: бот сам обновляет свой webhook своим же токеном — без `id` и без участия администратора (нужен скоуп `bot_self:webhook:write`):\n  $ pachca bots update-webhook"
   ];
 
   static scope = "bot_self:webhook:write";
@@ -72,7 +72,7 @@ export default class BotsUpdateWebhook extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

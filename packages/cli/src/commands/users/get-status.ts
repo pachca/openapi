@@ -6,7 +6,7 @@ export default class UsersGetStatus extends BaseCommand {
   static override description = "Статус сотрудника";
 
   static override examples = [
-      "Управление статусом сотрудника:\n  $ pachca users get-status"
+      "Управление статусом сотрудника — Получить текущий статус:\n  $ pachca users get-status"
   ];
 
   static scope = "user_status:read";
@@ -35,7 +35,7 @@ export default class UsersGetStatus extends BaseCommand {
       path: `/users/${args.user_id}/status`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

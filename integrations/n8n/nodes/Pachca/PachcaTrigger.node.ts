@@ -360,9 +360,17 @@ export class PachcaTrigger implements INodeType {
 			}
 		}
 
-		// Replay protection — reject events older than 5 minutes
-		const webhookTs = body.webhook_timestamp as number | undefined;
-		if (webhookTs) {
+		// Replay protection — reject events older than 5 minutes.
+		// A missing/zero timestamp used to skip the window entirely. When a signing
+		// secret is configured the field is required (the spec always sends it), so
+		// treat its absence as a rejection rather than a free pass. Without a secret
+		// there is no authentication anyway, so an absent field stays tolerated.
+		const webhookTs = Number(body.webhook_timestamp);
+		const hasWebhookTs = Number.isFinite(webhookTs) && webhookTs > 0;
+		if (signingSecret && !hasWebhookTs) {
+			return { webhookResponse: 'Rejected' };
+		}
+		if (hasWebhookTs) {
 			const ageMs = Date.now() - webhookTs * 1000;
 			if (ageMs < -60_000 || ageMs > 5 * 60 * 1000) {
 				return { webhookResponse: 'Rejected' };

@@ -1649,7 +1649,7 @@ open class ProfileService {
         throw pachcaNotImplemented("Profile.getProfile")
     }
 
-    open func getStatus() async throws -> String {
+    open func getStatus() async throws -> UserStatus {
         throw pachcaNotImplemented("Profile.getStatus")
     }
 
@@ -1701,14 +1701,14 @@ public final class ProfileServiceImpl: ProfileService {
         }
     }
 
-    public override func getStatus() async throws -> String {
+    public override func getStatus() async throws -> UserStatus {
         var request = URLRequest(url: URL(string: "\(baseURL)/profile/status")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try deserialize(String.self, from: data)
+            return try deserialize(UserStatusDataWrapper.self, from: data).data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -2128,7 +2128,7 @@ open class UsersService {
         throw pachcaNotImplemented("Users.getUser")
     }
 
-    open func getUserStatus(userId: Int) async throws -> String {
+    open func getUserStatus(userId: Int) async throws -> UserStatus {
         throw pachcaNotImplemented("Users.getUserStatus")
     }
 
@@ -2223,14 +2223,14 @@ public final class UsersServiceImpl: UsersService {
         }
     }
 
-    public override func getUserStatus(userId: Int) async throws -> String {
+    public override func getUserStatus(userId: Int) async throws -> UserStatus {
         var request = URLRequest(url: URL(string: "\(baseURL)/users/\(userId)/status")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try deserialize(String.self, from: data)
+            return try deserialize(UserStatusDataWrapper.self, from: data).data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:

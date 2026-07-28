@@ -6,7 +6,7 @@
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "var response = await client.Security.GetAuditEventsAsync(DateTimeOffset.Parse(\"2025-05-01T09:11:00Z\"), DateTimeOffset.Parse(\"2025-05-02T09:11:00Z\"), AuditEventKey.UserLogin, \"98765\", \"User\", \"98765\", \"User\", 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "usage": "var response = await client.Security.GetAuditEventsAsync(DateTimeOffset.Parse(\"2025-05-01T09:11:00.000Z\"), DateTimeOffset.Parse(\"2025-05-02T09:11:00.000Z\"), AuditEventKey.UserLogin, \"98765\", \"User\", \"98765\", \"User\", 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
     "output": "GetAuditEventsResponse(Data: List<AuditEvent>, Meta: PaginationMeta)",
     "imports": [
       "AuditEventKey"
@@ -263,7 +263,7 @@
   },
   "ReactionOperations_addReaction": {
     "usage": "var request = new ReactionRequest { Code = \"👍\", Name = \":+1:\" };\nvar response = await client.Reactions.AddReactionAsync(7231942, request);",
-    "output": "Reaction(UserId: int, CreatedAt: DateTimeOffset, Code: string, Name: string?)",
+    "output": "Reaction(UserId: int, CreatedAt: DateTimeOffset, Code: string, Name: string)",
     "imports": [
       "ReactionRequest"
     ]
@@ -297,11 +297,11 @@
   },
   "ProfileOperations_getProfile": {
     "usage": "var response = await client.Profile.GetProfileAsync();",
-    "output": "User(Id: int, FirstName: string, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)"
+    "output": "User(Id: int, FirstName: string?, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)"
   },
   "ProfileOperations_getStatus": {
     "usage": "var response = await client.Profile.GetStatusAsync();",
-    "output": "object"
+    "output": "UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)"
   },
   "ProfileAvatarOperations_updateProfileAvatar": {
     "usage": "var response = await client.Profile.UpdateProfileAvatarAsync(Array.Empty<byte>());",
@@ -352,11 +352,11 @@
   },
   "TaskOperations_getTask": {
     "usage": "var response = await client.Tasks.GetTaskAsync(22283);",
-    "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>)"
+    "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>)"
   },
   "TaskOperations_createTask": {
     "usage": "var request = new TaskCreateRequest\n{\n    Task = new TaskCreateRequestTask\n    {\n        Kind = TaskKind.Reminder,\n        Content = \"Забрать со склада 21 заказ\",\n        DueAt = DateTimeOffset.Parse(\"2020-06-05T12:00:00.000+03:00\"),\n        Priority = 2,\n        PerformerIds = new List<int> { 123 },\n        ChatId = 456,\n        AllDay = false,\n        CustomProperties = new List<TaskCreateRequestCustomProperty> { new TaskCreateRequestCustomProperty { Id = 78, Value = \"Синий склад\" } }\n    }\n};\nvar response = await client.Tasks.CreateTaskAsync(request);",
-    "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>)",
+    "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>)",
     "imports": [
       "TaskCreateRequest",
       "TaskCreateRequestCustomProperty",
@@ -366,7 +366,7 @@
   },
   "TaskOperations_updateTask": {
     "usage": "var request = new TaskUpdateRequest\n{\n    Task = new TaskUpdateRequestTask\n    {\n        Kind = TaskKind.Reminder,\n        Content = \"Забрать со склада 21 заказ\",\n        DueAt = DateTimeOffset.Parse(\"2020-06-05T12:00:00.000+03:00\"),\n        Priority = 2,\n        PerformerIds = new List<int> { 123 },\n        Status = TaskStatus.Done,\n        AllDay = false,\n        DoneAt = DateTimeOffset.Parse(\"2020-06-05T12:00:00.000Z\"),\n        CustomProperties = new List<TaskUpdateRequestCustomProperty> { new TaskUpdateRequestCustomProperty { Id = 78, Value = \"Синий склад\" } }\n    }\n};\nvar response = await client.Tasks.UpdateTaskAsync(22283, request);",
-    "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>)",
+    "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>)",
     "imports": [
       "TaskKind",
       "TaskStatus",
@@ -384,15 +384,15 @@
   },
   "UserOperations_getUser": {
     "usage": "var response = await client.Users.GetUserAsync(12);",
-    "output": "User(Id: int, FirstName: string, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)"
+    "output": "User(Id: int, FirstName: string?, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)"
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "var response = await client.Users.GetUserStatusAsync(12);",
-    "output": "object"
+    "output": "UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)"
   },
   "UserOperations_createUser": {
     "usage": "var request = new UserCreateRequest\n{\n    User = new UserCreateRequestUser\n    {\n        FirstName = \"Олег\",\n        LastName = \"Петров\",\n        Email = \"olegp@example.com\",\n        PhoneNumber = \"+79001234567\",\n        Nickname = \"olegpetrov\",\n        Department = \"Продукт\",\n        Title = \"CIO\",\n        Role = UserCreateRole.User,\n        Suspended = false,\n        ListTags = new List<string> { \"example\" },\n        ChatIds = new List<int> { 123 },\n        CustomProperties = new List<UserCreateRequestCustomProperty> { new UserCreateRequestCustomProperty { Id = 1678, Value = \"Санкт-Петербург\" } }\n    },\n    SkipEmailNotify = false\n};\nvar response = await client.Users.CreateUserAsync(request);",
-    "output": "User(Id: int, FirstName: string, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)",
+    "output": "User(Id: int, FirstName: string?, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
@@ -402,7 +402,7 @@
   },
   "UserOperations_updateUser": {
     "usage": "var request = new UserUpdateRequest\n{\n    User = new UserUpdateRequestUser\n    {\n        FirstName = \"Олег\",\n        LastName = \"Петров\",\n        Email = \"olegpetrov@example.com\",\n        PhoneNumber = \"+79001234567\",\n        Nickname = \"olegpetrov\",\n        Department = \"Отдел разработки\",\n        Title = \"Старший разработчик\",\n        Role = UserRoleInput.User,\n        Suspended = false,\n        ListTags = new List<string> { \"example\" },\n        CustomProperties = new List<UserUpdateRequestCustomProperty> { new UserUpdateRequestCustomProperty { Id = 1678, Value = \"Санкт-Петербург\" } }\n    }\n};\nvar response = await client.Users.UpdateUserAsync(12, request);",
-    "output": "User(Id: int, FirstName: string, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)",
+    "output": "User(Id: int, FirstName: string?, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string?)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)",
     "imports": [
       "UserRoleInput",
       "UserUpdateRequest",
@@ -432,7 +432,7 @@
     "usage": "await client.Users.DeleteUserStatusAsync(12);"
   },
   "FormOperations_openView": {
-    "usage": "var request = new OpenViewRequest\n{\n    TriggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    PrivateMetadata = \"{\\\"timeoff_id\\\":4378}\",\n    CallbackId = \"timeoff_reguest_form\",\n    View = new OpenViewRequestView\n    {\n        Title = \"Уведомление об отпуске\",\n        CloseText = \"Закрыть\",\n        SubmitText = \"Отправить заявку\",\n        Blocks = new List<ViewBlockUnion> { new ViewBlockHeader { Text = \"Основная информация\" } }\n    }\n};\nawait client.Views.OpenViewAsync(request);",
+    "usage": "var request = new OpenViewRequest\n{\n    TriggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    PrivateMetadata = \"{\\\"timeoff_id\\\":4378}\",\n    CallbackId = \"timeoff_request_form\",\n    View = new OpenViewRequestView\n    {\n        Title = \"Уведомление об отпуске\",\n        CloseText = \"Закрыть\",\n        SubmitText = \"Отправить заявку\",\n        Blocks = new List<ViewBlockUnion> { new ViewBlockHeader { Text = \"Основная информация\" } }\n    }\n};\nawait client.Views.OpenViewAsync(request);",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

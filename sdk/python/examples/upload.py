@@ -21,14 +21,12 @@ from pachca.models import (
     MessageCreateRequestFile,
 )
 
-token = os.environ["PACHCA_TOKEN"]
-chat_id = int(os.environ["PACHCA_CHAT_ID"])
-file_path = os.environ["PACHCA_FILE_PATH"]
-
-filename = os.path.basename(file_path)
-
-
 async def main():
+    token = os.environ["PACHCA_TOKEN"]
+    chat_id = int(os.environ["PACHCA_CHAT_ID"])
+    file_path = os.environ["PACHCA_FILE_PATH"]
+    filename = os.path.basename(file_path)
+
     client = PachcaClient(token)
 
     # 1. Read file
@@ -85,4 +83,5 @@ async def main():
     print("\nDone! File uploaded and sent.")
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -277,6 +277,91 @@ function emitEnumConverter(lines: string[], e: IREnum): void {
   lines.push('}');
 }
 
+/** Union whose members share no discriminator: decode by matching the payload shape. */
+function emitStructuralUnion(lines: string[], u: IRUnion, memberModels: IRModel[]): void {
+  lines.push(`[JsonConverter(typeof(${u.name}Converter))]`);
+  lines.push(`public abstract class ${u.name}`);
+  lines.push('{');
+  lines.push('}');
+  lines.push('');
+  lines.push(`// ${u.name} carries no discriminator field: the member is chosen by which`);
+  lines.push('// one best matches the payload keys (most recognised, then fewest unrecognised,');
+  lines.push('// then fewest declared).');
+  lines.push(`internal sealed class ${u.name}Converter : JsonConverter<${u.name}>`);
+  lines.push('{');
+  lines.push('    private static readonly (Type Type, HashSet<string> Keys)[] Shapes =');
+  lines.push('    {');
+  for (const memberModel of memberModels) {
+    const keys = memberModel.fields.map((f) => JSON.stringify(f.name)).join(', ');
+    const set = keys ? `new HashSet<string> { ${keys} }` : 'new HashSet<string>()';
+    lines.push(`        (typeof(${memberModel.name}), ${set}),`);
+  }
+  lines.push('    };');
+  lines.push('');
+  lines.push(`    public override ${u.name} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)`);
+  lines.push('    {');
+  lines.push('        using var document = JsonDocument.ParseValue(ref reader);');
+  lines.push('        var root = document.RootElement;');
+  lines.push('        var keys = new HashSet<string>();');
+  lines.push('        if (root.ValueKind == JsonValueKind.Object)');
+  lines.push('        {');
+  lines.push('            foreach (var property in root.EnumerateObject()) keys.Add(property.Name);');
+  lines.push('        }');
+  lines.push('        Type? best = null;');
+  lines.push('        int bestMatched = 0, bestUnknown = 0, bestDeclared = 0;');
+  lines.push('        foreach (var (type, shapeKeys) in Shapes)');
+  lines.push('        {');
+  lines.push('            var matched = 0;');
+  lines.push('            foreach (var key in keys)');
+  lines.push('            {');
+  lines.push('                if (shapeKeys.Contains(key)) matched++;');
+  lines.push('            }');
+  lines.push('            var unknown = keys.Count - matched;');
+  lines.push('            var declared = shapeKeys.Count;');
+  lines.push('            var better = best is null');
+  lines.push('                || matched > bestMatched');
+  lines.push('                || (matched == bestMatched && unknown < bestUnknown)');
+  lines.push('                || (matched == bestMatched && unknown == bestUnknown && declared < bestDeclared);');
+  lines.push('            if (better)');
+  lines.push('            {');
+  lines.push('                best = type;');
+  lines.push('                bestMatched = matched;');
+  lines.push('                bestUnknown = unknown;');
+  lines.push('                bestDeclared = declared;');
+  lines.push('            }');
+  lines.push('        }');
+  lines.push(`        if (best is null) throw new JsonException("No ${u.name} member matched the payload");`);
+  lines.push(`        return (${u.name})JsonSerializer.Deserialize(root.GetRawText(), best, options)!;`);
+  lines.push('    }');
+  lines.push('');
+  lines.push(`    public override void Write(Utf8JsonWriter writer, ${u.name} value, JsonSerializerOptions options)`);
+  lines.push('    {');
+  lines.push('        JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);');
+  lines.push('    }');
+  lines.push('}');
+
+  for (const memberModel of memberModels) {
+    lines.push('');
+    lines.push(`public class ${memberModel.name} : ${u.name}`);
+    lines.push('{');
+    for (const f of memberModel.fields) {
+      const sdkName = fieldSdkName(f);
+      const typeName = csType(f.type);
+      const isOpt = !f.required || f.nullable;
+      const nullSuffix = isOpt ? '?' : '';
+      lines.push(`    [JsonPropertyName("${f.name}")]`);
+      if (f.type.kind === 'literal') {
+        lines.push(`    public ${typeName} ${sdkName} => ${JSON.stringify(f.type.literalValue ?? '')};`);
+      } else if (isOpt) {
+        lines.push(`    public ${typeName}${nullSuffix} ${sdkName} { get; set; }`);
+      } else {
+        lines.push(`    public ${typeName} ${sdkName} { get; set; } = default!;`);
+      }
+    }
+    lines.push('}');
+  }
+}
+
 function emitUnion(
   lines: string[],
   u: IRUnion,
@@ -285,6 +370,11 @@ function emitUnion(
   const memberModels = u.memberRefs
     .map((ref) => ir.models.find((m) => m.name === ref))
     .filter(Boolean) as IRModel[];
+
+  if (!u.discriminatorField) {
+    emitStructuralUnion(lines, u, memberModels);
+    return;
+  }
 
   const discriminatorField = u.discriminatorField;
   const useWebhookPayloadDeserializer = u.unionDeserializer === 'webhook-payload';

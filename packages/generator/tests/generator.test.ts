@@ -69,6 +69,24 @@ describe('generator', () => {
           ).toBe(true);
         }
       }
+
+      // Semantic guard: no union may be emitted with an EMPTY discriminator
+      // value. That is the signature of a union whose members share no literal
+      // being forced down the discriminated path — it compiles, then throws
+      // (duplicate discriminators in C#/Kotlin) or silently mis-decodes at
+      // runtime, which a snapshot alone cannot catch.
+      for (const [file, content] of generated) {
+        const emptyDiscriminators = [
+          /\[JsonDerivedType\(typeof\([A-Za-z0-9_]+\), ""\)\]/, // C#
+          /@SerialName\(""\)/, // Kotlin
+        ];
+        for (const pattern of emptyDiscriminators) {
+          expect(
+            pattern.test(content),
+            `${suite}/${file}: union emitted with an empty discriminator value`,
+          ).toBe(false);
+        }
+      }
     });
   }
 });

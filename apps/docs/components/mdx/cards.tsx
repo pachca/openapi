@@ -63,6 +63,7 @@ import {
   Gauge,
   ListOrdered,
   Upload,
+  ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -119,6 +120,7 @@ const iconMap: Record<string, LucideIcon> = {
   Gauge,
   ListOrdered,
   Upload,
+  ExternalLink,
 };
 
 /** Icon mapping for guide pages by path */

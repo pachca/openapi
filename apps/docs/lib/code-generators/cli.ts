@@ -5,7 +5,7 @@ import {
   generateExample,
   type ExampleOptions,
 } from '../openapi/example-generator';
-import { requiresAuth, getQueryParams, resolveParamName } from './utils';
+import { requiresAuth, getQueryParams, resolveParamName, shellQuote } from './utils';
 
 export function generateCLI(endpoint: Endpoint, options?: ExampleOptions): string {
   const url = generateUrlFromOperation(endpoint);
@@ -31,7 +31,7 @@ export function generateCLI(endpoint: Endpoint, options?: ExampleOptions): strin
         parts.push(`--file=./${name}.jpg`);
         continue;
       }
-      valueToFlag(name, example, schemaType, parts);
+      valueToFlag(name, example, schemaType, parts, true);
     }
   }
 
@@ -98,12 +98,20 @@ function toKebabCase(s: string): string {
     .toLowerCase();
 }
 
-/** Convert a value to CLI flag(s) and push to parts */
+/**
+ * Convert a value to CLI flag(s) and push to parts.
+ *
+ * `jsonArrays` distinguishes the two array conventions the real CLI uses:
+ * body arrays go through `JSON.parse` (28 call sites), query arrays through
+ * `.split(',')`. Emitting a comma-joined list for a body flag produced an
+ * example that dies with «Invalid JSON in --member-ids» when pasted.
+ */
 function valueToFlag(
   name: string,
   value: unknown,
   schemaType: string | string[] | undefined,
-  parts: string[]
+  parts: string[],
+  jsonArrays = false
 ): void {
   const flag = toKebabCase(name);
   if (value === undefined || value === null) return;
@@ -116,23 +124,22 @@ function valueToFlag(
 
   if (Array.isArray(value)) {
     if (value.length === 0) return;
-    if (typeof value[0] !== 'object') {
+    if (typeof value[0] !== 'object' && !jsonArrays) {
       parts.push(`--${flag}=${value.join(',')}`);
     } else {
-      parts.push(`--${flag}='${JSON.stringify(value)}'`);
+      parts.push(`--${flag}=${shellQuote(JSON.stringify(value))}`);
     }
   } else if (typeof value === 'object') {
-    parts.push(`--${flag}='${JSON.stringify(value)}'`);
+    parts.push(`--${flag}=${shellQuote(JSON.stringify(value))}`);
   } else if (typeof value === 'number' || typeof value === 'bigint') {
     parts.push(`--${flag}=${value}`);
   } else {
     const strValue = String(value);
     // Квотируем только если в значении есть пробел или shell-метасимвол.
     // Простые URL, идентификаторы, enum-значения и slug-и остаются без кавычек
-    // (по соглашению gh / Vercel / Heroku / AWS). Реальные URL с `?...&...`
-    // пользователь сам должен взять в кавычки при копировании.
+    // (по соглашению gh / Vercel / Heroku / AWS).
     if (/[\s&|;()<>*?$`\\'"#]/.test(strValue)) {
-      parts.push(`--${flag}="${strValue}"`);
+      parts.push(`--${flag}=${shellQuote(strValue)}`);
     } else {
       parts.push(`--${flag}=${strValue}`);
     }
@@ -151,6 +158,28 @@ interface BodyField {
   format?: string;
 }
 
+/**
+ * Flatten one level of `allOf` into the schema's own properties. The docs
+ * parser keeps `allOf` unmerged, so a composed schema has no `properties` of
+ * its own until this runs.
+ */
+function mergeAllOf(schema: Schema): Schema {
+  if (!schema?.allOf || schema.allOf.length === 0) return schema ?? {};
+  const merged: Schema = { ...schema };
+  const properties: Record<string, Schema> = { ...(schema.properties ?? {}) };
+  const required: string[] = [...(schema.required ?? [])];
+  for (const sub of schema.allOf) {
+    const inner = mergeAllOf(sub as Schema);
+    Object.assign(properties, inner.properties ?? {});
+    required.push(...(inner.required ?? []));
+    if (!merged.type && inner.type) merged.type = inner.type;
+  }
+  merged.properties = properties;
+  merged.required = required;
+  delete merged.allOf;
+  return merged;
+}
+
 function extractUnwrappedBodyFields(
   requestBody: Endpoint['requestBody'],
   options?: ExampleOptions
@@ -161,7 +190,7 @@ function extractUnwrappedBodyFields(
     requestBody.content['application/json'] || requestBody.content['multipart/form-data'];
   if (!content?.schema) return [];
 
-  const schema = content.schema;
+  const schema = mergeAllOf(content.schema);
   const properties = schema.properties;
   if (!properties || schema.type !== 'object') {
     // Not an object schema — generate example as-is
@@ -177,10 +206,13 @@ function extractUnwrappedBodyFields(
 
   const topKeys = Object.keys(properties);
 
-  // Detect wrapper: exactly one top-level property that is an object with its own properties
+  // Detect wrapper: exactly one top-level property that is an object with its
+  // own properties. Resolve allOf and don't require a literal `type: 'object'`
+  // — an allOf-composed wrapper usually declares neither, and the real CLI
+  // generator resolves before asking, so the two would disagree.
   const objectKeys = topKeys.filter((k) => {
-    const propSchema = properties[k] as Schema;
-    return propSchema.type === 'object' && propSchema.properties;
+    const inner = mergeAllOf(properties[k] as Schema);
+    return !!inner.properties && Object.keys(inner.properties).length > 0;
   });
 
   if (objectKeys.length === 1) {

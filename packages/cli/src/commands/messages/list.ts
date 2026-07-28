@@ -7,7 +7,7 @@ export default class MessagesList extends BaseCommand {
   static override description = "Список сообщений чата";
 
   static override examples = [
-      "Получить историю сообщений чата:\n  $ pachca messages list"
+      "Получить историю сообщений чата — Получи сообщения чата с пагинацией:\n  $ pachca messages list"
   ];
 
   static scope = "messages:read";
@@ -144,7 +144,7 @@ export default class MessagesList extends BaseCommand {
       },
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const items = responseBody.data ?? responseBody;
     this.output(items);
   }

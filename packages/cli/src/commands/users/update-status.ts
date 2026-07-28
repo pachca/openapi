@@ -7,7 +7,7 @@ export default class UsersUpdateStatus extends BaseCommand {
   static override description = "Новый статус сотрудника";
 
   static override examples = [
-      "Управление статусом сотрудника:\n  $ pachca users update-status"
+      "Управление статусом сотрудника — Установить статус:\n  $ pachca users update-status"
   ];
 
   static scope = "user_status:write";
@@ -104,7 +104,7 @@ export default class UsersUpdateStatus extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

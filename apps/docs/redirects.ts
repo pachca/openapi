@@ -5,6 +5,16 @@ type Redirect = {
 };
 
 const redirects: Redirect[] = [
+  // Гайд по Albato уехал в help-центр. Сам `/guides/albato` редиректит proxy.ts,
+  // но `.md`-двойник туда не доходит: matcher исключает всё, что кончается на
+  // `.md`. А llms.txt и skill.md обещают агентам, что `.md` можно дописать
+  // к любому адресу — поэтому вариант с расширением нужен здесь.
+  {
+    source: '/guides/albato.md',
+    destination: 'https://pachca.com/help-center/integrations/albato',
+    permanent: true,
+  },
+
   // ===== Корни разделов → стартовые страницы (иначе 404) =====
   { source: '/api', destination: '/api/authorization', permanent: false },
   { source: '/guides', destination: '/guides/quickstart', permanent: false },

@@ -8,7 +8,8 @@ description: >
   модальных окон. Разворачивание ссылок (unfurl) — в pachca-messages. Use when:
   настроить бота, создать бота, вебхук, обработать вебхук, подпись вебхука,
   callback, обработать callback, нажатие кнопки, дайджест, оповещение. NOT for:
-  отправить сообщение, показать форму, модальное окно.
+  отправить сообщение, показать форму, модальное окно, → pachca-messages, →
+  pachca-forms.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 

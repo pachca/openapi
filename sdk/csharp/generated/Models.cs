@@ -1815,46 +1815,92 @@ internal class WebhookEventTypeConverter : JsonConverter<WebhookEventType>
     }
 }
 
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[JsonDerivedType(typeof(AuditDetailsEmpty), "")]
-[JsonDerivedType(typeof(AuditDetailsUserUpdated), "")]
-[JsonDerivedType(typeof(AuditDetailsRoleChanged), "")]
-[JsonDerivedType(typeof(AuditDetailsTagName), "")]
-[JsonDerivedType(typeof(AuditDetailsInitiator), "")]
-[JsonDerivedType(typeof(AuditDetailsInviter), "")]
-[JsonDerivedType(typeof(AuditDetailsChatRenamed), "")]
-[JsonDerivedType(typeof(AuditDetailsChatPermission), "")]
-[JsonDerivedType(typeof(AuditDetailsTagChat), "")]
-[JsonDerivedType(typeof(AuditDetailsChatId), "")]
-[JsonDerivedType(typeof(AuditDetailsTokenScopes), "")]
-[JsonDerivedType(typeof(AuditDetailsKms), "")]
-[JsonDerivedType(typeof(AuditDetailsDlp), "")]
-[JsonDerivedType(typeof(AuditDetailsSearch), "")]
-[JsonDerivedType(typeof(AuditDetailsBotScopes), "")]
-[JsonDerivedType(typeof(AuditDetailsBotWebhookSettings), "")]
-[JsonDerivedType(typeof(AuditDetailsVideoCall), "")]
-[JsonDerivedType(typeof(AuditDetailsVideoCallRecording), "")]
+[JsonConverter(typeof(AuditEventDetailsUnionConverter))]
 public abstract class AuditEventDetailsUnion
 {
-    [JsonPropertyName("type")]
-    public abstract string Type { get; }
+}
+
+// AuditEventDetailsUnion carries no discriminator field: the member is chosen by which
+// one best matches the payload keys (most recognised, then fewest unrecognised,
+// then fewest declared).
+internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEventDetailsUnion>
+{
+    private static readonly (Type Type, HashSet<string> Keys)[] Shapes =
+    {
+        (typeof(AuditDetailsEmpty), new HashSet<string>()),
+        (typeof(AuditDetailsUserUpdated), new HashSet<string> { "changed_attrs" }),
+        (typeof(AuditDetailsRoleChanged), new HashSet<string> { "new_company_role", "previous_company_role", "initiator_id" }),
+        (typeof(AuditDetailsTagName), new HashSet<string> { "name" }),
+        (typeof(AuditDetailsInitiator), new HashSet<string> { "initiator_id" }),
+        (typeof(AuditDetailsInviter), new HashSet<string> { "inviter_id" }),
+        (typeof(AuditDetailsChatRenamed), new HashSet<string> { "old_name", "new_name" }),
+        (typeof(AuditDetailsChatPermission), new HashSet<string> { "public_access" }),
+        (typeof(AuditDetailsTagChat), new HashSet<string> { "chat_id", "tag_name" }),
+        (typeof(AuditDetailsChatId), new HashSet<string> { "chat_id" }),
+        (typeof(AuditDetailsTokenScopes), new HashSet<string> { "scopes" }),
+        (typeof(AuditDetailsKms), new HashSet<string> { "chat_id", "message_id", "reason" }),
+        (typeof(AuditDetailsDlp), new HashSet<string> { "dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched" }),
+        (typeof(AuditDetailsSearch), new HashSet<string> { "search_type", "query_present", "cursor_present", "limit", "filters" }),
+        (typeof(AuditDetailsBotScopes), new HashSet<string> { "added_scopes", "removed_scopes" }),
+        (typeof(AuditDetailsBotWebhookSettings), new HashSet<string> { "changes" }),
+        (typeof(AuditDetailsVideoCall), new HashSet<string> { "chat_id", "duration", "max_members_count" }),
+        (typeof(AuditDetailsVideoCallRecording), new HashSet<string> { "chat_id", "duration", "size" }),
+    };
+
+    public override AuditEventDetailsUnion Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var document = JsonDocument.ParseValue(ref reader);
+        var root = document.RootElement;
+        var keys = new HashSet<string>();
+        if (root.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in root.EnumerateObject()) keys.Add(property.Name);
+        }
+        Type? best = null;
+        int bestMatched = 0, bestUnknown = 0, bestDeclared = 0;
+        foreach (var (type, shapeKeys) in Shapes)
+        {
+            var matched = 0;
+            foreach (var key in keys)
+            {
+                if (shapeKeys.Contains(key)) matched++;
+            }
+            var unknown = keys.Count - matched;
+            var declared = shapeKeys.Count;
+            var better = best is null
+                || matched > bestMatched
+                || (matched == bestMatched && unknown < bestUnknown)
+                || (matched == bestMatched && unknown == bestUnknown && declared < bestDeclared);
+            if (better)
+            {
+                best = type;
+                bestMatched = matched;
+                bestUnknown = unknown;
+                bestDeclared = declared;
+            }
+        }
+        if (best is null) throw new JsonException("No AuditEventDetailsUnion member matched the payload");
+        return (AuditEventDetailsUnion)JsonSerializer.Deserialize(root.GetRawText(), best, options)!;
+    }
+
+    public override void Write(Utf8JsonWriter writer, AuditEventDetailsUnion value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
+    }
 }
 
 public class AuditDetailsEmpty : AuditEventDetailsUnion
 {
-    public override string Type => "";
 }
 
 public class AuditDetailsUserUpdated : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("changed_attrs")]
     public List<string> ChangedAttrs { get; set; } = default!;
 }
 
 public class AuditDetailsRoleChanged : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("new_company_role")]
     public string NewCompanyRole { get; set; } = default!;
     [JsonPropertyName("previous_company_role")]
@@ -1865,28 +1911,24 @@ public class AuditDetailsRoleChanged : AuditEventDetailsUnion
 
 public class AuditDetailsTagName : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;
 }
 
 public class AuditDetailsInitiator : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("initiator_id")]
     public int InitiatorId { get; set; } = default!;
 }
 
 public class AuditDetailsInviter : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("inviter_id")]
     public int InviterId { get; set; } = default!;
 }
 
 public class AuditDetailsChatRenamed : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("old_name")]
     public string OldName { get; set; } = default!;
     [JsonPropertyName("new_name")]
@@ -1895,14 +1937,12 @@ public class AuditDetailsChatRenamed : AuditEventDetailsUnion
 
 public class AuditDetailsChatPermission : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("public_access")]
     public bool PublicAccess { get; set; } = default!;
 }
 
 public class AuditDetailsTagChat : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
     [JsonPropertyName("tag_name")]
@@ -1911,21 +1951,18 @@ public class AuditDetailsTagChat : AuditEventDetailsUnion
 
 public class AuditDetailsChatId : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
 }
 
 public class AuditDetailsTokenScopes : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("scopes")]
     public List<string> Scopes { get; set; } = default!;
 }
 
 public class AuditDetailsKms : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
     [JsonPropertyName("message_id")]
@@ -1936,7 +1973,6 @@ public class AuditDetailsKms : AuditEventDetailsUnion
 
 public class AuditDetailsDlp : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("dlp_rule_id")]
     public int DlpRuleId { get; set; } = default!;
     [JsonPropertyName("dlp_rule_name")]
@@ -1955,7 +1991,6 @@ public class AuditDetailsDlp : AuditEventDetailsUnion
 
 public class AuditDetailsSearch : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("search_type")]
     public string SearchType { get; set; } = default!;
     [JsonPropertyName("query_present")]
@@ -1965,12 +2000,11 @@ public class AuditDetailsSearch : AuditEventDetailsUnion
     [JsonPropertyName("limit")]
     public int Limit { get; set; } = default!;
     [JsonPropertyName("filters")]
-    public Dictionary<string, string> Filters { get; set; } = default!;
+    public Dictionary<string, object> Filters { get; set; } = default!;
 }
 
 public class AuditDetailsBotScopes : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("added_scopes")]
     public List<string> AddedScopes { get; set; } = default!;
     [JsonPropertyName("removed_scopes")]
@@ -1979,14 +2013,12 @@ public class AuditDetailsBotScopes : AuditEventDetailsUnion
 
 public class AuditDetailsBotWebhookSettings : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("changes")]
-    public Dictionary<string, string> Changes { get; set; } = default!;
+    public Dictionary<string, object> Changes { get; set; } = default!;
 }
 
 public class AuditDetailsVideoCall : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
     [JsonPropertyName("duration")]
@@ -1997,7 +2029,6 @@ public class AuditDetailsVideoCall : AuditEventDetailsUnion
 
 public class AuditDetailsVideoCallRecording : AuditEventDetailsUnion
 {
-    public override string Type => "";
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
     [JsonPropertyName("duration")]
@@ -2299,7 +2330,7 @@ public class ViewSubmitWebhookPayload : WebhookPayloadUnion
     [JsonPropertyName("user_id")]
     public int UserId { get; set; } = default!;
     [JsonPropertyName("data")]
-    public Dictionary<string, string> Data { get; set; } = default!;
+    public Dictionary<string, object> Data { get; set; } = default!;
     [JsonPropertyName("webhook_timestamp")]
     public int WebhookTimestamp { get; set; } = default!;
 }
@@ -2448,7 +2479,7 @@ public class ApiErrorItem
     [JsonPropertyName("code")]
     public ValidationErrorCode Code { get; set; } = default!;
     [JsonPropertyName("payload")]
-    public Dictionary<string, string>? Payload { get; set; }
+    public Dictionary<string, object>? Payload { get; set; }
 }
 
 public class AuditEvent
@@ -2708,7 +2739,7 @@ public class CustomProperty
     [JsonPropertyName("data_type")]
     public CustomPropertyDataType DataType { get; set; } = default!;
     [JsonPropertyName("value")]
-    public string Value { get; set; } = default!;
+    public string? Value { get; set; }
 }
 
 public class CustomPropertyDefinition
@@ -3046,7 +3077,7 @@ public class Reaction
     [JsonPropertyName("code")]
     public string Code { get; set; } = default!;
     [JsonPropertyName("name")]
-    public string? Name { get; set; }
+    public string Name { get; set; } = default!;
 }
 
 public class ReactionRequest
@@ -3236,7 +3267,7 @@ public class User
     [JsonPropertyName("id")]
     public int Id { get; set; } = default!;
     [JsonPropertyName("first_name")]
-    public string FirstName { get; set; } = default!;
+    public string? FirstName { get; set; }
     [JsonPropertyName("last_name")]
     public string? LastName { get; set; }
     [JsonPropertyName("nickname")]
@@ -3677,16 +3708,16 @@ public class UserDataWrapper
     public User Data { get; set; } = default!;
 }
 
-public class AvatarDataDataWrapper
-{
-    [JsonPropertyName("data")]
-    public AvatarData Data { get; set; } = default!;
-}
-
 public class UserStatusDataWrapper
 {
     [JsonPropertyName("data")]
     public UserStatus Data { get; set; } = default!;
+}
+
+public class AvatarDataDataWrapper
+{
+    [JsonPropertyName("data")]
+    public AvatarData Data { get; set; } = default!;
 }
 
 public class TaskDataWrapper

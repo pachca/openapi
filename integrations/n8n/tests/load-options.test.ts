@@ -133,7 +133,21 @@ describe('searchChats', () => {
 		expect(result.paginationToken).toBe('cursor-abc');
 
 		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
-		expect(httpMock.mock.calls[0][1].url).toContain('/chats?per=50');
+		// `limit` is the v2 page-size param; `per` is v1 and is ignored by /chats.
+		expect(httpMock.mock.calls[0][1].url).toContain('/chats?limit=50');
+	});
+
+	it('should URL-encode the cursor', async () => {
+		const ctx = createLoadCtx({
+			httpResponses: [{ data: [], meta: { paginate: {} } }],
+		});
+
+		// Cursors are opaque base64 and may contain + and /, which are not safe
+		// to interpolate into a query string raw.
+		await searchChats.call(ctx, undefined, 'a+b/c=');
+
+		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
+		expect(httpMock.mock.calls[0][1].url).toContain('cursor=a%2Bb%2Fc%3D');
 	});
 
 	it('should pass pagination cursor', async () => {
@@ -180,16 +194,25 @@ describe('searchUsers', () => {
 		]);
 	});
 
-	it('should return empty results without filter', async () => {
-		const ctx = createLoadCtx();
+	// Без фильтра список берётся из /users, как и у searchChats: пустой ответ
+	// выглядел в редакторе как сломанный выбор сотрудника.
+	it('should list users without filter', async () => {
+		const ctx = createLoadCtx({
+			httpResponses: [{ data: [{ id: 10, first_name: 'Alice', last_name: 'Smith', nickname: 'alice' }] }],
+		});
 		const result = await searchUsers.call(ctx, undefined);
-		expect(result.results).toEqual([]);
+		expect(result.results).toEqual([{ name: 'Alice Smith (@alice)', value: 10 }]);
+		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
+		expect(httpMock.mock.calls[0][1].url).toContain('/users?limit=');
+		expect(httpMock.mock.calls[0][1].url).not.toContain('/search/users');
 	});
 
-	it('should return empty results for empty filter', async () => {
-		const ctx = createLoadCtx();
+	it('should list users for empty filter', async () => {
+		const ctx = createLoadCtx({ httpResponses: [{ data: [] }] });
 		const result = await searchUsers.call(ctx, '');
 		expect(result.results).toEqual([]);
+		const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
+		expect(httpMock.mock.calls[0][1].url).toContain('/users?limit=');
 	});
 
 	it('should call search endpoint with encoded query', async () => {

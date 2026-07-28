@@ -6,7 +6,8 @@ export default class ThreadsList extends BaseCommand {
   static override description = "Список тредов";
 
   static override examples = [
-      "Получить список активных тредов за период:\n  $ pachca threads list"
+      "Получить список активных тредов за период — Запроси список тредов с фильтром по времени последнего сообщения и нужным `--limit`:\n  $ pachca threads list",
+      "Получить список активных тредов за период — Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`:\n  $ pachca threads list"
   ];
 
   static scope = "threads:read";
@@ -105,7 +106,7 @@ export default class ThreadsList extends BaseCommand {
       },
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const items = responseBody.data ?? responseBody;
     this.output(items);
   }

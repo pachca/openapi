@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { generateUrlFromOperation } from '@/lib/openapi/mapper';
 import { getOrderedPages } from '@/lib/ordered-pages';
-import { loadUpdates, loadTimeline, groupTimelineByDate } from '@/lib/updates-parser';
+import { loadTimeline, groupTimelineByDate } from '@/lib/updates-parser';
 import { groupBySeason } from '@/lib/seasons';
 
 const BASE_URL = 'https://dev.pachca.com';
@@ -56,17 +56,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // Per-update pages
-  const updates = loadUpdates();
-  for (const update of updates) {
+  // Per-update pages. Must match generateStaticParams in
+  // app/updates/[date]/page.tsx, which pre-renders updates ∪ releases — using
+  // loadUpdates() alone left every release-only date (a dozen of them) out of
+  // the sitemap even though the page and its .md twin both exist.
+  const timelineByDate = groupTimelineByDate(loadTimeline());
+  for (const group of timelineByDate) {
     entries.push({
-      url: `${BASE_URL}/updates/${update.date}`,
-      lastModified: new Date(update.date),
+      url: `${BASE_URL}/updates/${group.date}`,
+      lastModified: new Date(group.date),
     });
   }
 
   // Per-season pages (newest date in the season drives lastModified)
-  const seasons = groupBySeason(groupTimelineByDate(loadTimeline()));
+  const seasons = groupBySeason(timelineByDate);
   for (const sg of seasons) {
     entries.push({
       url: `${BASE_URL}/updates/season/${sg.season.slug}`,

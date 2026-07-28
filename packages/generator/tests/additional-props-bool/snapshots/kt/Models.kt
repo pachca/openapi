@@ -1,6 +1,7 @@
 package com.pachca.sdk
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
 class Metadata
@@ -9,5 +10,5 @@ class Metadata
 data class Event(
     val id: Int,
     val type: String,
-    val metadata: Map<String, Any>? = null,
+    val metadata: Map<String, JsonElement>? = null,
 )

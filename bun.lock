@@ -180,6 +180,7 @@
       "version": "0.0.0",
       "devDependencies": {
         "@pachca/spec": "workspace:*",
+        "@types/node": "^22.14.0",
         "typescript": "^5.0.0",
       },
     },

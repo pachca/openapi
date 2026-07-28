@@ -110,7 +110,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         {
           description: 'Получи или создай тред, возьми `thread.id` из ответа',
           descriptionEn: 'Get or create thread, take `thread.id` from response',
-          command: 'pachca thread add <ID>',
+          command: 'pachca threads add <ID>',
           apiMethod: 'POST',
           apiPath: '/messages/{id}/thread',
           notes: 'Если тред уже существует, вернётся существующий',
@@ -315,7 +315,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         {
           description: 'Получи или создай тред, возьми `chat_id` из ответа',
           descriptionEn: 'Get or create thread, take `chat_id` from response',
-          command: 'pachca thread add <ID>',
+          command: 'pachca threads add <ID>',
           apiMethod: 'POST',
           apiPath: '/messages/{id}/thread',
         },

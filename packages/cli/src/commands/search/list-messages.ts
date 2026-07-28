@@ -6,7 +6,7 @@ export default class SearchListMessages extends BaseCommand {
   static override description = "Поиск сообщений";
 
   static override examples = [
-      "Найти сообщение по тексту:\n  $ pachca search list-messages"
+      "Найти сообщение по тексту — Полнотекстовый поиск по сообщениям:\n  $ pachca search list-messages"
   ];
 
   static scope = "search:messages";
@@ -139,7 +139,7 @@ export default class SearchListMessages extends BaseCommand {
       },
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const items = responseBody.data ?? responseBody;
     this.output(items);
   }

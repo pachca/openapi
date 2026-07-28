@@ -274,7 +274,15 @@ function parseResponse(response: Record<string, unknown>, openapi: OpenAPIData):
 
 /** Normalize x-enum-descriptions keys to match actual enum values.
  *  TypeSpec generates member-name keys (e.g. `chats_read`) but enum values
- *  may use colons (e.g. `chats:read`). Re-key descriptions to match values. */
+ *  may use colons (e.g. `chats:read`). Re-key descriptions to match values.
+ *
+ *  This is NOT removable dead code, and the mismatch is not fixable upstream:
+ *  TypeSpec rejects quoted keys in object literals — `#{ "chats:read": ... }`
+ *  fails with `Property expected`, and so does `#{ "simple": ... }`, so it is
+ *  the quoting itself, not the colon. An enum member name cannot contain `:`
+ *  either, so the emitted keys can never equal the values. Verified 2026-07-27
+ *  against TypeSpec 1.10. Affects only `OAuthScope` — the sole enum whose
+ *  values are not valid identifiers. */
 function normalizeEnumDescriptions(
   descriptions: Record<string, string> | undefined,
   enumValues: string[] | undefined

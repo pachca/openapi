@@ -6,8 +6,8 @@ export default class SearchListChats extends BaseCommand {
   static override description = "Поиск чатов";
 
   static override examples = [
-      "Найти чат по имени и отправить сообщение:\n  $ pachca search list-chats",
-      "Найти чат по названию:\n  $ pachca search list-chats"
+      "Найти чат по имени и отправить сообщение — Найди чат по названию через поиск:\n  $ pachca search list-chats",
+      "Найти чат по названию — Полнотекстовый поиск по чатам:\n  $ pachca search list-chats"
   ];
 
   static scope = "search:chats";
@@ -135,7 +135,7 @@ export default class SearchListChats extends BaseCommand {
       },
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const items = responseBody.data ?? responseBody;
     this.output(items);
   }

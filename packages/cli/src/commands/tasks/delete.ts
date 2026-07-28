@@ -7,7 +7,7 @@ export default class TasksDelete extends BaseCommand {
   static override description = "Удаление напоминания";
 
   static override examples = [
-      "Удалить задачу:\n  $ pachca tasks delete"
+      "Удалить задачу — Удали задачу:\n  $ pachca tasks delete"
   ];
 
   static scope = "tasks:delete";

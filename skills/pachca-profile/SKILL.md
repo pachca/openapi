@@ -10,7 +10,8 @@ description: >
   сотрудника, НЕ для информации о токене и его скоупах (используй pachca-oauth).
   Use when: мой профиль, покажи профиль, мой статус, установить статус, убрать
   статус, кто я, мой email, мои данные, дополнительные поля, кастомные поля. NOT
-  for: сотрудники, список сотрудников, создать сотрудника, статус сотрудника.
+  for: сотрудники, список сотрудников, создать сотрудника, статус сотрудника, →
+  pachca-users, → pachca-oauth.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -130,6 +131,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 | Method | Path | Description |
 |--------|------|-------------|
+| GET | /custom_properties | Список дополнительных полей |
 | GET | /profile | Свой профиль |
 | PUT | /profile/avatar | Загрузка своего аватара |
 | DELETE | /profile/avatar | Удаление своего аватара |

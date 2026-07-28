@@ -30,6 +30,22 @@ import { SKILL_TAG_MAP } from '../scripts/skills/config';
  * Format a schema to markdown with title
  * Uses schemaToMarkdown from markdown-generator for consistency
  */
+/**
+ * Markdown equivalents for components handed to a prop as JSX, e.g.
+ * `lead={<ApiIntroNotes />}`. Such a component is not a tag in the document, so
+ * no tag-based handler ever sees it.
+ *
+ * The prose is duplicated from the component on purpose: the React version
+ * renders <Link>, this one needs markdown links. Keep both in step —
+ * components/mdx/api-intro-notes.tsx.
+ */
+const JSX_PROP_MARKDOWN: Record<string, string> = {
+  ApiIntroNotes:
+    'Если только начинаете, загляните в [руководства](/) с пошаговыми примерами. ' +
+    'Можно обойтись и без написания кода: соберите интеграции из визуальных блоков ' +
+    'в no-code инструменте [n8n](/guides/n8n/overview).',
+};
+
 function formatSchemaWithTitle(schema: Schema, title?: string): string {
   let md = '';
 
@@ -307,6 +323,14 @@ export async function expandMdxComponents(content: string): Promise<string> {
       if (title) md += `# ${title}\n\n`;
       if (description) md += `${description}\n\n`;
 
+      // `lead={<Component />}` renders extra prose in the left column. Only
+      // title/description were read here, so that prose was silently dropped
+      // from every generated artifact — no raw tag leaked, it just vanished.
+      // Matched against `inner`, not `attrs`: the `>` inside `/>` terminates
+      // the attribute capture early, so the prop never appears in `attrs`.
+      const lead = inner.match(/lead=\{<(\w+)\s*\/>\}/)?.[1];
+      if (lead && JSX_PROP_MARKDOWN[lead]) md += `${JSX_PROP_MARKDOWN[lead]}\n\n`;
+
       // Extract compact Card links
       const compactCards: string[] = [];
       const compactCardRegex = /<Card\s+compact\s+([\s\S]*?)\/>/g;
@@ -365,7 +389,17 @@ export async function expandMdxComponents(content: string): Promise<string> {
       const titlePart = href ? `[${title}](${href})` : `**${title}**`;
       items.push(`- ${titlePart} — ${content}`);
     }
-    return items.length > 0 ? items.join('\n') + '\n' : '';
+    // `<Card compact>` inside a group was already turned into a markdown list
+    // item by the handler above, so by now `inner` may hold no <Card> tags at
+    // all. Returning '' in that case silently deleted the whole group — six SDK
+    // links and the n8n install links vanished from every generated artifact.
+    // Keep the pre-expanded text and append anything still tag-shaped.
+    const preExpanded = inner
+      .replace(/<Card\s+([\s\S]*?)(?:>([\s\S]*?)<\/Card>|\/>)/g, '')
+      .replace(/\n{2,}(?=- )/g, '\n') // keep the list tight
+      .trim();
+    const parts = [preExpanded, items.join('\n')].filter(Boolean);
+    return parts.length > 0 ? parts.join('\n') + '\n' : '';
   });
 
   // Standalone non-compact <Card ...>children</Card> or <Card ... /> left

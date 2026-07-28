@@ -160,6 +160,57 @@ describe('client', () => {
     expect(callCount).toBe(3);
   });
 
+  it('should NOT retry a POST on 503 (the write may already be committed)', async () => {
+    let callCount = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      return Promise.resolve({
+        ok: false,
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({ errors: [{ message: 'Unavailable' }] }),
+      });
+    });
+
+    await expect(
+      request(
+        { method: 'POST', path: '/messages', token: 'test', body: { content: 'hi' } },
+        { quiet: true },
+      ),
+    ).rejects.toThrow();
+    expect(callCount).toBe(1);
+  });
+
+  it('should still retry a POST on 429 (request was rejected, not committed)', async () => {
+    let callCount = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return Promise.resolve({
+          ok: false,
+          status: 429,
+          statusText: 'Too Many Requests',
+          headers: new Headers({ 'content-type': 'application/json', 'retry-after': '0' }),
+          json: () => Promise.resolve({ errors: [{ message: 'Rate limited' }] }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({ data: 'created' }),
+      });
+    });
+
+    const result = await request(
+      { method: 'POST', path: '/messages', token: 'test', body: { content: 'hi' } },
+      { quiet: true },
+    );
+    expect(result.data).toEqual({ data: 'created' });
+    expect(callCount).toBe(2);
+  });
+
   it('should not retry on 400 errors', async () => {
     let callCount = 0;
     globalThis.fetch = vi.fn().mockImplementation(() => {
@@ -861,6 +912,22 @@ describe('client', () => {
 
       await downloadFile('https://example.com/download', tmpDir + '/');
       expect(fs.existsSync(path.join(tmpDir, 'export.csv'))).toBe(true);
+    });
+
+    it('should not escape the target directory via Content-Disposition', async () => {
+      const content = Buffer.from('data');
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({
+          'content-disposition': 'attachment; filename="../../escaped.txt"',
+        }),
+        body: mockStream(content),
+      });
+
+      await downloadFile('https://example.com/download', tmpDir + '/');
+      expect(fs.existsSync(path.join(tmpDir, 'escaped.txt'))).toBe(true);
+      expect(fs.existsSync(path.resolve(tmpDir, '../../escaped.txt'))).toBe(false);
     });
 
     it('should throw on failed download', async () => {

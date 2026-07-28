@@ -7,7 +7,7 @@ export default class BotsRemoveEvent extends BaseCommand {
   static override description = "Удаление события";
 
   static override examples = [
-      "Обработка событий через историю (polling):\n  $ pachca bots remove-event"
+      "Обработка событий через историю (polling) — Удали обработанное событие:\n  $ pachca bots remove-event"
   ];
 
   static scope = "webhooks:events:delete";

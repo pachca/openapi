@@ -6,9 +6,9 @@ export default class SecurityList extends BaseCommand {
   static override description = "Журнал аудита событий";
 
   static override examples = [
-      "Получить журнал аудита событий:\n  $ pachca security list",
-      "Мониторинг подозрительных входов:\n  $ pachca security list",
-      "Экспорт логов за период:\n  $ pachca security list"
+      "Получить журнал аудита событий — Получи журнал аудита:\n  $ pachca security list",
+      "Мониторинг подозрительных входов — Получи события неудачных 2FA за период:\n  $ pachca security list",
+      "Экспорт логов за период — Получи все события за период с пагинацией:\n  $ pachca security list"
   ];
 
   static scope = "audit_events:read";
@@ -27,7 +27,7 @@ export default class SecurityList extends BaseCommand {
       description: "Начальная метка времени (включительно)",
     }),
     'end-time': Flags.string({
-      description: "Конечная метка времени (исключительно)",
+      description: "Конечная метка времени (включительно)",
     }),
     'event-key': Flags.string({
       description: "Фильтр по конкретному типу события",
@@ -134,7 +134,7 @@ export default class SecurityList extends BaseCommand {
       },
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const items = responseBody.data ?? responseBody;
     this.output(items);
   }

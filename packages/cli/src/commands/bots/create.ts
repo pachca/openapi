@@ -7,8 +7,8 @@ export default class BotsCreate extends BaseCommand {
   static override description = "Новый бот";
 
   static override examples = [
-      "Создать бота через API и получить токен:\n  $ pachca bots create",
-      "Настроить бота с исходящим вебхуком:\n  $ pachca bots create"
+      "Создать бота через API и получить токен — Создай бота. Только пользовательским токеном (не токеном бота); `nickname` обязан заканчиваться на `_bot`. Параметры вебхука (Webhook URL, события, команды) можно задать сразу или позже. Скоупы токена бота можно ограничить флагом `--scopes` (если не указать — бот получит набор по умолчанию):\n  $ pachca bots create",
+      "Настроить бота с исходящим вебхуком — Создай бота, сразу указав Webhook URL и события в одном вызове (детали создания и работы с токеном — в сценарии «Создать бота через API и получить токен»):\n  $ pachca bots create"
   ];
 
   static scope = "bots:write";
@@ -42,7 +42,7 @@ export default class BotsCreate extends BaseCommand {
       description: "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.",
     }),
     'scopes': Flags.string({
-      description: "Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.",
+      description: "Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию. Боту доступны не все скоупы: часть из них разрешена только пользовательским ролям, и попытка назначить такой скоуп возвращает `400`. Служебные значения `bot` и `all` назначать нельзя.",
     }),
     'template': Flags.string({
       description: "Шаблон форматирования входящего вебхука",
@@ -141,7 +141,7 @@ export default class BotsCreate extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

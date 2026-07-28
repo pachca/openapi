@@ -6,7 +6,7 @@
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "const response = client.security.getAuditEvents({\n  startTime: \"2025-05-01T09:11:00Z\",\n  endTime: \"2025-05-02T09:11:00Z\",\n  eventKey: AuditEventKey.UserLogin,\n  actorId: \"98765\",\n  actorType: \"User\",\n  entityId: \"98765\",\n  entityType: \"User\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = client.security.getAuditEvents({\n  startTime: \"2025-05-01T09:11:00.000Z\",\n  endTime: \"2025-05-02T09:11:00.000Z\",\n  eventKey: AuditEventKey.UserLogin,\n  actorId: \"98765\",\n  actorType: \"User\",\n  entityId: \"98765\",\n  entityType: \"User\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "GetAuditEventsResponse({ data: AuditEvent[], meta: PaginationMeta })",
     "imports": [
       "AuditEventKey"
@@ -212,11 +212,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "const response = client.messages.getMessage(194275)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })"
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })"
   },
   "MessageOperations_createMessage": {
     "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    files: [{\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    buttons: [[{\n      text: \"Подробнее\",\n      url: \"https://example.com/details\",\n      data: \"awesome\"\n    }]],\n    parentMessageId: 194270,\n    displayAvatarUrl: \"https://example.com/avatar.png\",\n    displayName: \"Бот Поддержки\",\n    skipInviteMentions: false\n  },\n  linkPreview: false\n}\nconst response = client.messages.createMessage(request)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })",
     "imports": [
       "Button",
       "FileType",
@@ -239,7 +239,7 @@
   },
   "MessageOperations_updateMessage": {
     "usage": "const request: MessageUpdateRequest = {\n  message: {\n    content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n    files: [{\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    buttons: [[{\n      text: \"Подробнее\",\n      url: \"https://example.com/details\",\n      data: \"awesome\"\n    }]],\n    displayAvatarUrl: \"https://example.com/avatar.png\",\n    displayName: \"Бот Поддержки\"\n  }\n}\nconst response = client.messages.updateMessage(194275, request)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })",
     "imports": [
       "Button",
       "FileType",
@@ -260,7 +260,7 @@
   },
   "ReactionOperations_addReaction": {
     "usage": "const request: ReactionRequest = { code: \"👍\", name: \":+1:\" }\nconst response = client.reactions.addReaction(7231942, request)",
-    "output": "Reaction({ userId: number, createdAt: string, code: string, name: string | null })",
+    "output": "Reaction({ userId: number, createdAt: string, code: string, name: string })",
     "imports": [
       "ReactionRequest"
     ]
@@ -294,11 +294,11 @@
   },
   "ProfileOperations_getProfile": {
     "usage": "const response = client.profile.getProfile()",
-    "output": "User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })"
+    "output": "User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })"
   },
   "ProfileOperations_getStatus": {
     "usage": "const response = client.profile.getStatus()",
-    "output": "unknown"
+    "output": "UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })"
   },
   "ProfileAvatarOperations_updateProfileAvatar": {
     "usage": "const image = new Blob([])\nconst response = client.profile.updateProfileAvatar(image)",
@@ -349,11 +349,11 @@
   },
   "TaskOperations_getTask": {
     "usage": "const response = client.tasks.getTask(22283)",
-    "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })"
+    "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[] })"
   },
   "TaskOperations_createTask": {
     "usage": "const request: TaskCreateRequest = {\n  task: {\n    kind: TaskKind.Reminder,\n    content: \"Забрать со склада 21 заказ\",\n    dueAt: \"2020-06-05T12:00:00.000+03:00\",\n    priority: 2,\n    performerIds: [123],\n    chatId: 456,\n    allDay: false,\n    customProperties: [{ id: 78, value: \"Синий склад\" }]\n  }\n}\nconst response = client.tasks.createTask(request)",
-    "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })",
+    "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[] })",
     "imports": [
       "TaskCreateRequest",
       "TaskCreateRequestCustomProperty",
@@ -363,7 +363,7 @@
   },
   "TaskOperations_updateTask": {
     "usage": "const request: TaskUpdateRequest = {\n  task: {\n    kind: TaskKind.Reminder,\n    content: \"Забрать со склада 21 заказ\",\n    dueAt: \"2020-06-05T12:00:00.000+03:00\",\n    priority: 2,\n    performerIds: [123],\n    status: TaskStatus.Done,\n    allDay: false,\n    doneAt: \"2020-06-05T12:00:00.000Z\",\n    customProperties: [{ id: 78, value: \"Синий склад\" }]\n  }\n}\nconst response = client.tasks.updateTask(22283, request)",
-    "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })",
+    "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[] })",
     "imports": [
       "TaskKind",
       "TaskStatus",
@@ -381,15 +381,15 @@
   },
   "UserOperations_getUser": {
     "usage": "const response = client.users.getUser(12)",
-    "output": "User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })"
+    "output": "User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })"
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "const response = client.users.getUserStatus(12)",
-    "output": "unknown"
+    "output": "UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })"
   },
   "UserOperations_createUser": {
     "usage": "const request: UserCreateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegp@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Продукт\",\n    title: \"CIO\",\n    role: UserCreateRole.User,\n    suspended: false,\n    listTags: [\"example\"],\n    chatIds: [123],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  },\n  skipEmailNotify: false\n}\nconst response = client.users.createUser(request)",
-    "output": "User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })",
+    "output": "User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
@@ -399,7 +399,7 @@
   },
   "UserOperations_updateUser": {
     "usage": "const request: UserUpdateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegpetrov@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Отдел разработки\",\n    title: \"Старший разработчик\",\n    role: UserRoleInput.User,\n    suspended: false,\n    listTags: [\"example\"],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  }\n}\nconst response = client.users.updateUser(12, request)",
-    "output": "User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })",
+    "output": "User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })",
     "imports": [
       "UserRoleInput",
       "UserUpdateRequest",
@@ -429,7 +429,7 @@
     "usage": "client.users.deleteUserStatus(12)"
   },
   "FormOperations_openView": {
-    "usage": "const request: OpenViewRequest = {\n  type: \"modal\",\n  triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n  callbackId: \"timeoff_reguest_form\",\n  view: {\n    title: \"Уведомление об отпуске\",\n    closeText: \"Закрыть\",\n    submitText: \"Отправить заявку\",\n    blocks: [{ type: \"header\", text: \"Основная информация\" }]\n  }\n}\nclient.views.openView(request)",
+    "usage": "const request: OpenViewRequest = {\n  type: \"modal\",\n  triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n  callbackId: \"timeoff_request_form\",\n  view: {\n    title: \"Уведомление об отпуске\",\n    closeText: \"Закрыть\",\n    submitText: \"Отправить заявку\",\n    blocks: [{ type: \"header\", text: \"Основная информация\" }]\n  }\n}\nclient.views.openView(request)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

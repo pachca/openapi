@@ -6,9 +6,9 @@ export default class MessagesUpdate extends BaseCommand {
   static override description = "Редактирование сообщения";
 
   static override examples = [
-      "Отредактировать сообщение:\n  $ pachca messages update",
-      "Изменить вложения сообщения:\n  $ pachca messages update",
-      "Обработать нажатие кнопки (callback):\n  $ pachca messages update"
+      "Отредактировать сообщение — Обнови сообщение:\n  $ pachca messages update",
+      "Изменить вложения сообщения — Обнови сообщение с новым массивом `files`:\n  $ pachca messages update",
+      "Обработать нажатие кнопки (callback) — Опционально: обнови исходное сообщение:\n  $ pachca messages update"
   ];
 
   static scope = "messages:update";
@@ -79,7 +79,7 @@ export default class MessagesUpdate extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

@@ -7,7 +7,7 @@ export default class BotsDelete extends BaseCommand {
   static override description = "Удаление бота";
 
   static override examples = [
-      "Найти и удалить бота:\n  $ pachca bots delete"
+      "Найти и удалить бота — Возьми `id` нужного бота из списка и удали его (скоуп `bots:write`). Доступно администратору, владельцу компании или создателю бота — владельцы чатов удалять бота не могут. Прежний токен инвалидируется сразу, бот исключается из всех чатов, его исходящий вебхук удаляется:\n  $ pachca bots delete"
   ];
 
   static scope = "bots:write";

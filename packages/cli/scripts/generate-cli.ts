@@ -628,7 +628,10 @@ function generateCommandCode(p: CommandGenParams): string {
       continue;
     }
     const flagName = toKebabCase(param.name);
-    const isArrayParam = param.schema.type === 'array';
+    // Resolve before asking — an array behind `allOf` or a `['array','null']`
+    // tuple has no literal `type: 'array'`, and would silently be sent as the
+    // raw comma string. This matches how the flag's help text is derived above.
+    const isArrayParam = getSchemaType(resolveAllOf(param.schema)) === 'array';
     const flagRef = flagName !== param.name ? `flags['${flagName}']` : `flags['${param.name}']`;
     const value = isArrayParam ? `${flagRef}?.split(',')` : flagRef;
     const key = flagName !== param.name ? `'${param.name}'` : param.name;
@@ -728,6 +731,16 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`    let formData: FormData | undefined;`);
     runBodyLines.push(`    if (flags.file) {`);
     runBodyLines.push(`      formData = new FormData();`);
+    // Text fields FIRST, binary LAST. An S3 POST policy ignores every field
+    // that follows the file part, so putting the file first drops `policy`,
+    // `x-amz-*` and `key` and the upload 403s. Mirrors the hand-written
+    // `upload.ts`, which has always had this order.
+    for (const field of p.bodyFields) {
+      if (field.format === 'binary') continue;
+      const flagName = toKebabCase(field.name);
+      const wireName = MULTIPART_WIRE_NAMES[field.name] || field.name;
+      runBodyLines.push(`      if (flags['${flagName}']) formData.append('${wireName}', String(flags['${flagName}']));`);
+    }
     runBodyLines.push(`      if (flags.file === '-') {`);
     runBodyLines.push(`        const chunks: Buffer[] = [];`);
     runBodyLines.push(`        for await (const chunk of process.stdin) chunks.push(chunk as Buffer);`);
@@ -737,13 +750,6 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`        const blob = new Blob([fs.readFileSync(flags.file)]);`);
     runBodyLines.push(`        formData.append('${binaryField?.name || 'file'}', blob, path.basename(flags.file));`);
     runBodyLines.push(`      }`);
-    // Add other fields to FormData
-    for (const field of p.bodyFields) {
-      if (field.format === 'binary') continue;
-      const flagName = toKebabCase(field.name);
-      const wireName = MULTIPART_WIRE_NAMES[field.name] || field.name;
-      runBodyLines.push(`      if (flags['${flagName}']) formData.append('${wireName}', String(flags['${flagName}']));`);
-    }
     runBodyLines.push(`    }`);
     runBodyLines.push('');
     runBodyLines.push(`    const { data } = await this.apiRequest({`);
@@ -838,14 +844,17 @@ function generateCommandCode(p: CommandGenParams): string {
 
   // Unwrap response data
   runBodyLines.push('');
+  // `data` is null for 204 / empty-body responses (see client.ts). Guard the
+  // cast: an S3 direct upload answers 204, and reading `.data` off null threw
+  // a TypeError on every successful upload.
   if (p.isList) {
-    runBodyLines.push(`    const responseBody = data as Record<string, unknown>;`);
+    runBodyLines.push(`    const responseBody = (data ?? {}) as Record<string, unknown>;`);
     runBodyLines.push(`    const items = responseBody.data ?? responseBody;`);
     runBodyLines.push(`    this.output(items);`);
   } else if (p.endpoint.method === 'DELETE') {
     runBodyLines.push(`    this.success('Удалено');`);
   } else {
-    runBodyLines.push(`    const responseBody = data as Record<string, unknown>;`);
+    runBodyLines.push(`    const responseBody = (data ?? {}) as Record<string, unknown>;`);
     runBodyLines.push(`    const result = responseBody.data ?? responseBody;`);
     runBodyLines.push(`    this.output(result);`);
   }
@@ -1259,25 +1268,20 @@ async function loadWorkflowExamples(endpoints: Endpoint[]): Promise<Map<string, 
         for (const step of w.steps) {
           // Key examples by "METHOD /path", not path alone — otherwise operations
           // sharing a path (e.g. GET and POST /threads) inherit each other's examples.
+          // Only steps that name their endpoint produce an example. Scraping a
+          // "METHOD /path" out of the prose description used to be the fallback,
+          // but a path mentioned illustratively would attach the example to a
+          // different command — and no step relies on it.
           if (step.command && step.apiPath && step.apiMethod) {
-            // Use explicit method + apiPath from step
             const cmdBase = step.command.split(/\s+/).slice(0, 3).join(' ');
             const key = `${step.apiMethod} ${step.apiPath}`;
             if (!map.has(key)) map.set(key, []);
             const existing = map.get(key)!;
-            const example = `${w.title}:\n  $ ${cmdBase}`;
+            // Label with the STEP, not just the workflow title: one workflow's
+            // steps map to different commands, so the bare title claimed e.g.
+            // «Добавить реакцию» on `reactions remove`.
+            const example = `${w.title} — ${step.description}:\n  $ ${cmdBase}`;
             if (!existing.includes(example)) existing.push(example);
-          } else if (step.command) {
-            // Fallback: try to match method + path from description
-            const match = step.description.match(/(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s?,—.()]+)/);
-            if (match) {
-              const key = `${match[1]} ${match[2]}`;
-              if (!map.has(key)) map.set(key, []);
-              const existing = map.get(key)!;
-              const cmdBase = step.command.split(/\s+/).slice(0, 3).join(' ');
-              const example = `${w.title}:\n  $ ${cmdBase}`;
-              if (!existing.includes(example)) existing.push(example);
-            }
           }
         }
       }

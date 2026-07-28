@@ -59,7 +59,7 @@ export const botOperations: INodeProperties[] = [
 				action: 'Update bot webhook',
 			},
 		],
-		default: 'recreateTokenSelf',
+		default: 'getAll',
 	},
 ];
 
@@ -228,7 +228,7 @@ export const botFields: INodeProperties[] = [
 				name: 'scopes',
 				type: 'string',
 				default: "",
-				description: 'Bot token scopes (permissions). If omitted, the bot receives the default set.',
+				description: 'Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned.',
 				placeholder: 'messages:create',
 			},
 			{
@@ -418,7 +418,7 @@ export const botFields: INodeProperties[] = [
 				name: 'scopes',
 				type: 'string',
 				default: "",
-				description: 'Bot token scopes (permissions). If omitted, the bot receives the default set.',
+				description: 'Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned.',
 				placeholder: 'messages:create',
 			},
 			{

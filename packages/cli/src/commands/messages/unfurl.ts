@@ -7,7 +7,7 @@ export default class MessagesUnfurl extends BaseCommand {
   static override description = "Unfurl (разворачивание ссылок)";
 
   static override examples = [
-      "Разворачивание ссылок (unfurling):\n  $ pachca messages unfurl"
+      "Разворачивание ссылок (unfurling) — Отправь превью-данные:\n  $ pachca messages unfurl"
   ];
 
   static override hiddenAliases = ["link-previews:add"];
@@ -26,7 +26,7 @@ export default class MessagesUnfurl extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'link-previews': Flags.string({
-      description: "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении.",
+      description: "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении",
     }),
   };
 
@@ -35,7 +35,7 @@ export default class MessagesUnfurl extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'link-previews', label: "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении.", type: 'string' },
+      { flag: 'link-previews', label: "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {
@@ -67,7 +67,7 @@ export default class MessagesUnfurl extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

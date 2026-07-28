@@ -813,7 +813,7 @@ Retrieve a list of chats based on the specified parameters.
 Parameters: sort?, order?, availability?, last_message_at_after?, last_message_at_before?, personal?, limit?, cursor?
 
 ### POST /api/shared/v1/chats
-Create a new chat. To create a one-on-one direct message with a user, use the [New message](POST /messages) method. When creating a chat, you automatically become a member.
+Create a new chat. To create a one-on-one direct message with a user, use the [New message](/api/messages/create) method. When creating a chat, you automatically become a member.
 Body: { chat: { name*, member_ids, group_tag_ids, channel, public } }
 
 ### POST /api/shared/v1/chats/exports
@@ -854,7 +854,7 @@ Body: { image* }
 Delete your profile avatar.
 
 ### GET /api/shared/v1/profile/status
-Retrieve information about your current status.
+Method for retrieving information about your own status. If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side.
 
 ### PUT /api/shared/v1/profile/status
 Set a new status for yourself.
@@ -870,7 +870,7 @@ Retrieve the current list of employees in your workspace.
 Parameters: query?, limit?, cursor?
 
 ### POST /api/shared/v1/users
-Create a new employee in your workspace. You can fill in custom properties for the employee that have been created in your workspace. You can get the current list of employee custom property IDs using the [List custom properties](GET /custom_properties) method. Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a guest, pass `role: "guest"` — for this role `chat_ids` is required and must contain exactly one active chat the token has permission to add members to. Violating the guest access rules returns `400` with an error on the `chat_ids` field.
+Create a new employee in your workspace. You can fill in custom properties for the employee that have been created in your workspace. You can get the current list of employee custom property IDs using the [List custom properties](/api/custom-properties/list) method. Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a guest, pass `role: "guest"` — for this role `chat_ids` is required and must contain exactly one active chat the token has permission to add members to. Violating the guest access rules returns `400` with an error on the `chat_ids` field.
 Body: { user*, skip_email_notify }
 
 ### GET /api/shared/v1/users/{id}
@@ -878,7 +878,7 @@ Retrieve information about an employee. To get an employee you need to know thei
 Parameters: id
 
 ### PUT /api/shared/v1/users/{id}
-Edit an employee. To edit an employee you need to know their `id` and specify it in the request `URL`. All editable employee parameters are specified in the request body. You can get the current list of employee custom property IDs using the [List custom properties](GET /custom_properties) method.
+Edit an employee. To edit an employee you need to know their `id` and specify it in the request `URL`. All editable employee parameters are specified in the request body. You can get the current list of employee custom property IDs using the [List custom properties](/api/custom-properties/list) method.
 Parameters: id
 Body: { user: { first_name, last_name, email, phone_number, nickname, department, title, role, suspended, list_tags, custom_properties } }
 
@@ -896,7 +896,7 @@ Delete an employee's avatar.
 Parameters: user_id
 
 ### GET /api/shared/v1/users/{user_id}/status
-Retrieve information about an employee's status.
+Method for retrieving information about an employee's status. If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side.
 Parameters: user_id
 
 ### PUT /api/shared/v1/users/{user_id}/status
@@ -965,7 +965,7 @@ Parameters: id, user_id
 Body: { role* }
 
 ### DELETE /api/shared/v1/chats/{id}/members/{user_id}
-Remove a user from the member list of a conversation or channel. If the user is the chat owner, they cannot be removed. They can only leave the chat on their own using the [Leave conversation or channel](DELETE /chats/{id}/leave) method.
+Remove a user from the member list of a conversation or channel. If the user is the chat owner, they cannot be removed. They can only leave the chat on their own using the [Leave conversation or channel](/api/members/leave) method.
 Parameters: id, user_id
 
 ## Threads
@@ -1034,7 +1034,7 @@ Retrieve the current list of reactions on a message.
 Parameters: id, limit?, cursor?
 
 ### POST /api/shared/v1/messages/{id}/reactions
-Add a reaction to a message. To add a reaction you need to know the message `id` and specify it in the request `URL`. Message reactions are sent as `Emoji` characters. If the user has already added the same reaction, it will not be duplicated. To remove a reaction, use the [Delete reaction](DELETE /messages/{id}/reactions) method. **Reaction limits:** - Each user can add no more than **20 unique** reactions - A message can have no more than **30 unique** reactions - The total number of reactions on a message cannot exceed **1000**
+Add a reaction to a message. To add a reaction you need to know the message `id` and specify it in the request `URL`. Message reactions are sent as `Emoji` characters. If the user has already added the same reaction, it will not be duplicated. To remove a reaction, use the [Delete reaction](/api/reactions/remove) method. **Reaction limits:** - Each user can add no more than **20 unique** reactions - A message can have no more than **30 unique** reactions - The total number of reactions on a message cannot exceed **1000**
 Parameters: id
 Body: { code*, name }
 
@@ -1063,7 +1063,7 @@ Retrieve a list of tasks.
 Parameters: limit?, cursor?
 
 ### POST /api/shared/v1/tasks
-Create a new task. When creating a task, specifying the task type is required: call, meeting, simple reminder, event, or email. No additional description is needed — you simply create a task with the corresponding text. If you specify a task description, it will become the task's text. A task must have assignees; if none are specified, you are assigned as the responsible person. Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the [List employees](GET /users) method. A task can be linked to a chat by specifying `chat_id`. To link to a chat, you must be a member of that chat.
+Create a new task. When creating a task, specifying the task type is required: call, meeting, simple reminder, event, or email. No additional description is needed — you simply create a task with the corresponding text. If you specify a task description, it will become the task's text. A task must have assignees; if none are specified, you are assigned as the responsible person. Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the [List employees](/api/users/list) method. A task can be linked to a chat by specifying `chat_id`. To link to a chat, you must be a member of that chat.
 Body: { task: { kind*, content, due_at, priority, performer_ids, chat_id, all_day, custom_properties } }
 
 ### GET /api/shared/v1/tasks/{id}
@@ -1142,7 +1142,7 @@ Parameters: entity_type
 ## Files
 
 ### POST /api/shared/v1/direct_url
-Upload a file to the server using `multipart/form-data` format. Upload parameters are obtained via the [Get signature, key and other parameters](POST /uploads) method.
+Upload a file to the server using `multipart/form-data` format. Upload parameters are obtained via the [Get signature, key and other parameters](/api/files/uploads) method.
 Body: { Content-Disposition*, acl*, policy*, x-amz-credential*, x-amz-algorithm*, x-amz-date*, x-amz-signature*, key*, file* }
 
 ### POST /api/shared/v1/uploads

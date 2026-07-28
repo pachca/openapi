@@ -6,8 +6,8 @@ export default class TasksUpdate extends BaseCommand {
   static override description = "Редактирование напоминания";
 
   static override examples = [
-      "Отметить задачу выполненной:\n  $ pachca tasks update",
-      "Обновить задачу (перенести срок, сменить ответственных):\n  $ pachca tasks update"
+      "Отметить задачу выполненной — Обнови статус задачи:\n  $ pachca tasks update",
+      "Обновить задачу (перенести срок, сменить ответственных) — Обнови нужные поля задачи:\n  $ pachca tasks update"
   ];
 
   static scope = "tasks:update";
@@ -34,7 +34,7 @@ export default class TasksUpdate extends BaseCommand {
       description: "Срок выполнения напоминания (ISO-8601) в формате YYYY-MM-DDThh:mm:ss.sssTZD. Если указано время 23:59:59.000, то напоминание будет создано на весь день (без указания времени).",
     }),
     'priority': Flags.integer({
-      description: "Приоритет: 1, 2 (важно) или 3 (очень важно).",
+      description: "Приоритет: 1, 2 (важно) или 3 (очень важно)",
     }),
     'performer-ids': Flags.string({
       description: "Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные»",
@@ -95,7 +95,7 @@ export default class TasksUpdate extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

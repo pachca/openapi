@@ -12,7 +12,7 @@
 
   ### Шаг 1. Получение параметров загрузки
 
-Сделайте запрос к методу [Получение подписи, ключа и других параметров](POST /uploads) без тела для получения подписи и параметров. Данный метод необходимо использовать для загрузки каждого файла.
+Сделайте запрос к методу [Получение подписи, ключа и других параметров](/api/files/uploads) без тела для получения подписи и параметров. Данный метод необходимо использовать для загрузки каждого файла.
 
 **Получение параметров загрузки**
 
@@ -27,22 +27,22 @@ curl -X POST "https://api.pachca.com/api/shared/v1/uploads" \
 
   ### Шаг 2. Загрузка файла
 
-Отправьте запрос к методу [Загрузка файла](POST /direct_url) с форматом `multipart/form-data` на адрес `direct_url`. Включите все полученные параметры и сам файл. При успешной загрузке сервер вернёт `HTTP 201 Created`.
+Отправьте запрос к методу [Загрузка файла](/api/files/direct-url) с форматом `multipart/form-data` на адрес `direct_url`. Включите все полученные параметры и сам файл. При успешной загрузке сервер вернёт `HTTP 201 Created`.
 
 **Загрузка файла**
 
 ```bash
 # URL получается из ответа POST /uploads (поле direct_url)
 curl "$DIRECT_URL" \
-  -F "Content-Disposition=attachment" \
-  -F "acl=private" \
-  -F "policy=eyJloNBpcmF0aW9u..." \
-  -F "x-amz-credential=286471_server/20211122/kz-6x/s3/aws4_request" \
-  -F "x-amz-algorithm=AWS4-HMAC-SHA256" \
-  -F "x-amz-date=20211122T065734Z" \
-  -F "x-amz-signature=87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475" \
-  -F "key=attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/$filename" \
-  -F "file=@filename.png"
+  -F 'Content-Disposition=attachment' \
+  -F 'acl=private' \
+  -F 'policy=eyJloNBpcmF0aW9u...' \
+  -F 'x-amz-credential=286471_server/20211122/kz-6x/s3/aws4_request' \
+  -F 'x-amz-algorithm=AWS4-HMAC-SHA256' \
+  -F 'x-amz-date=20211122T065734Z' \
+  -F 'x-amz-signature=87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475' \
+  -F 'key=attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}' \
+  -F 'file=@filename.png'
 ```
 
 
@@ -185,7 +185,7 @@ await client.messages.create_message(MessageCreateRequest(
 
 ## Поля multipart-формы для S3
 
-Все поля из ответа [Получение подписи](POST /uploads) передаются на S3 **как есть** в multipart-форме:
+Все поля из ответа [Получение подписи](/api/files/uploads) передаются на S3 **как есть** в multipart-форме:
 
 | Поле | Описание |
 |------|----------|
@@ -206,7 +206,7 @@ await client.messages.create_message(MessageCreateRequest(
 
 | Ошибка | Причина | Решение |
 |--------|---------|---------|
-| `403 Forbidden` при загрузке | Истекла подпись | Параметры загрузки действительны ограниченное время. Запросите новые через [Получение подписи](POST /uploads) |
+| `403 Forbidden` при загрузке | Истекла подпись | Параметры загрузки действительны ограниченное время. Запросите новые через [Получение подписи](/api/files/uploads) |
 | `400 Bad Request` | Неправильный Content-Type | Убедитесь, что запрос отправляется как `multipart/form-data`, а не `application/json` |
 | Файл не отображается | Неверный `key` | Проверьте, что `${filename}` в ключе заменён на реальное имя файла |
 

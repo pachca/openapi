@@ -6,8 +6,8 @@ export default class UsersUpdate extends BaseCommand {
   static override description = "Редактирование сотрудника";
 
   static override examples = [
-      "Массовое создание сотрудников с тегами:\n  $ pachca users update",
-      "Offboarding сотрудника:\n  $ pachca users update"
+      "Массовое создание сотрудников с тегами — Или обнови существующего:\n  $ pachca users update",
+      "Offboarding сотрудника — Заблокировать доступ:\n  $ pachca users update"
   ];
 
   static scope = "users:update";
@@ -117,7 +117,7 @@ export default class UsersUpdate extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

@@ -7,7 +7,7 @@ export default class ChatsRequestExport extends BaseCommand {
   static override description = "Экспорт сообщений";
 
   static override examples = [
-      "Экспорт истории чата:\n  $ pachca chats request-export"
+      "Экспорт истории чата — Запроси экспорт:\n  $ pachca chats request-export"
   ];
 
   static override hiddenAliases = ["common:request-export"];
@@ -84,7 +84,7 @@ export default class ChatsRequestExport extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

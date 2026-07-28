@@ -653,9 +653,9 @@ public struct ApiErrorItem: Codable {
     public let value: String?
     public let message: String
     public let code: ValidationErrorCode
-    public let payload: [String: String]?
+    public let payload: [String: AnyCodable]?
 
-    public init(key: String, value: String? = nil, message: String, code: ValidationErrorCode, payload: [String: String]? = nil) {
+    public init(key: String, value: String? = nil, message: String, code: ValidationErrorCode, payload: [String: AnyCodable]? = nil) {
         self.key = key
         self.value = value
         self.message = message
@@ -680,9 +680,9 @@ public struct AuditDetailsBotScopes: Codable {
 }
 
 public struct AuditDetailsBotWebhookSettings: Codable {
-    public let changes: [String: String]
+    public let changes: [String: AnyCodable]
 
-    public init(changes: [String: String]) {
+    public init(changes: [String: AnyCodable]) {
         self.changes = changes
     }
 }
@@ -824,9 +824,9 @@ public struct AuditDetailsSearch: Codable {
     public let queryPresent: Bool
     public let cursorPresent: Bool
     public let limit: Int
-    public let filters: [String: String]
+    public let filters: [String: AnyCodable]
 
-    public init(searchType: String, queryPresent: Bool, cursorPresent: Bool, limit: Int, filters: [String: String]) {
+    public init(searchType: String, queryPresent: Bool, cursorPresent: Bool, limit: Int, filters: [String: AnyCodable]) {
         self.searchType = searchType
         self.queryPresent = queryPresent
         self.cursorPresent = cursorPresent
@@ -1405,9 +1405,9 @@ public struct CustomProperty: Codable {
     public let id: Int
     public let name: String
     public let dataType: CustomPropertyDataType
-    public let value: String
+    public let value: String?
 
-    public init(id: Int, name: String, dataType: CustomPropertyDataType, value: String) {
+    public init(id: Int, name: String, dataType: CustomPropertyDataType, value: String? = nil) {
         self.id = id
         self.name = name
         self.dataType = dataType
@@ -2049,9 +2049,9 @@ public struct Reaction: Codable {
     public let userId: Int
     public let createdAt: String
     public let code: String
-    public let name: String?
+    public let name: String
 
-    public init(userId: Int, createdAt: String, code: String, name: String? = nil) {
+    public init(userId: Int, createdAt: String, code: String, name: String) {
         self.userId = userId
         self.createdAt = createdAt
         self.code = code
@@ -2386,7 +2386,7 @@ public struct UploadParams: Codable {
 
 public struct User: Codable {
     public let id: Int
-    public let firstName: String
+    public let firstName: String?
     public let lastName: String?
     public let nickname: String
     public let email: String?
@@ -2407,7 +2407,7 @@ public struct User: Codable {
     public let timeZone: String?
     public let imageUrl: String?
 
-    public init(id: Int, firstName: String, lastName: String? = nil, nickname: String, email: String? = nil, phoneNumber: String? = nil, department: String? = nil, title: String? = nil, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int? = nil, listTags: [String], customProperties: [CustomProperty], userStatus: UserStatus? = nil, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String? = nil, timeZone: String? = nil, imageUrl: String? = nil) {
+    public init(id: Int, firstName: String? = nil, lastName: String? = nil, nickname: String, email: String? = nil, phoneNumber: String? = nil, department: String? = nil, title: String? = nil, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int? = nil, listTags: [String], customProperties: [CustomProperty], userStatus: UserStatus? = nil, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String? = nil, timeZone: String? = nil, imageUrl: String? = nil) {
         self.id = id
         self.firstName = firstName
         self.lastName = lastName
@@ -2958,10 +2958,10 @@ public struct ViewSubmitWebhookPayload: Codable {
     public let privateMetadata: String?
     public let chatId: Int?
     public let userId: Int
-    public let data: [String: String]
+    public let data: [String: AnyCodable]
     public let webhookTimestamp: Int
 
-    public init(type: String, event: String, callbackId: String? = nil, privateMetadata: String? = nil, chatId: Int? = nil, userId: Int, data: [String: String], webhookTimestamp: Int) {
+    public init(type: String, event: String, callbackId: String? = nil, privateMetadata: String? = nil, chatId: Int? = nil, userId: Int, data: [String: AnyCodable], webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.callbackId = callbackId
@@ -3125,55 +3125,84 @@ public enum AuditEventDetailsUnion: Codable {
     case auditDetailsVideoCall(AuditDetailsVideoCall)
     case auditDetailsVideoCallRecording(AuditDetailsVideoCallRecording)
 
-    private enum CodingKeys: String, CodingKey {
-        case type
-    }
-
     public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let type = try container.decode(String.self, forKey: .type)
-        switch type {
-        case "auditDetailsEmpty":
-            self = .auditDetailsEmpty(try AuditDetailsEmpty(from: decoder))
-        case "auditDetailsUserUpdated":
-            self = .auditDetailsUserUpdated(try AuditDetailsUserUpdated(from: decoder))
-        case "auditDetailsRoleChanged":
-            self = .auditDetailsRoleChanged(try AuditDetailsRoleChanged(from: decoder))
-        case "auditDetailsTagName":
-            self = .auditDetailsTagName(try AuditDetailsTagName(from: decoder))
-        case "auditDetailsInitiator":
-            self = .auditDetailsInitiator(try AuditDetailsInitiator(from: decoder))
-        case "auditDetailsInviter":
-            self = .auditDetailsInviter(try AuditDetailsInviter(from: decoder))
-        case "auditDetailsChatRenamed":
-            self = .auditDetailsChatRenamed(try AuditDetailsChatRenamed(from: decoder))
-        case "auditDetailsChatPermission":
-            self = .auditDetailsChatPermission(try AuditDetailsChatPermission(from: decoder))
-        case "auditDetailsTagChat":
-            self = .auditDetailsTagChat(try AuditDetailsTagChat(from: decoder))
-        case "auditDetailsChatId":
-            self = .auditDetailsChatId(try AuditDetailsChatId(from: decoder))
-        case "auditDetailsTokenScopes":
-            self = .auditDetailsTokenScopes(try AuditDetailsTokenScopes(from: decoder))
-        case "auditDetailsKms":
-            self = .auditDetailsKms(try AuditDetailsKms(from: decoder))
-        case "auditDetailsDlp":
-            self = .auditDetailsDlp(try AuditDetailsDlp(from: decoder))
-        case "auditDetailsSearch":
-            self = .auditDetailsSearch(try AuditDetailsSearch(from: decoder))
-        case "auditDetailsBotScopes":
-            self = .auditDetailsBotScopes(try AuditDetailsBotScopes(from: decoder))
-        case "auditDetailsBotWebhookSettings":
-            self = .auditDetailsBotWebhookSettings(try AuditDetailsBotWebhookSettings(from: decoder))
-        case "auditDetailsVideoCall":
-            self = .auditDetailsVideoCall(try AuditDetailsVideoCall(from: decoder))
-        case "auditDetailsVideoCallRecording":
-            self = .auditDetailsVideoCallRecording(try AuditDetailsVideoCallRecording(from: decoder))
-        default:
-            throw DecodingError.dataCorrupted(
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unknown type: \(type)")
-            )
+        // AuditEventDetailsUnion carries no discriminator field: members are tried from most
+        // to least demanding, so the loosest one only wins when nothing else fits.
+        if let value = try? AuditDetailsDlp(from: decoder) {
+            self = .auditDetailsDlp(value)
+            return
         }
+        if let value = try? AuditDetailsSearch(from: decoder) {
+            self = .auditDetailsSearch(value)
+            return
+        }
+        if let value = try? AuditDetailsKms(from: decoder) {
+            self = .auditDetailsKms(value)
+            return
+        }
+        if let value = try? AuditDetailsRoleChanged(from: decoder) {
+            self = .auditDetailsRoleChanged(value)
+            return
+        }
+        if let value = try? AuditDetailsVideoCall(from: decoder) {
+            self = .auditDetailsVideoCall(value)
+            return
+        }
+        if let value = try? AuditDetailsVideoCallRecording(from: decoder) {
+            self = .auditDetailsVideoCallRecording(value)
+            return
+        }
+        if let value = try? AuditDetailsBotScopes(from: decoder) {
+            self = .auditDetailsBotScopes(value)
+            return
+        }
+        if let value = try? AuditDetailsChatRenamed(from: decoder) {
+            self = .auditDetailsChatRenamed(value)
+            return
+        }
+        if let value = try? AuditDetailsTagChat(from: decoder) {
+            self = .auditDetailsTagChat(value)
+            return
+        }
+        if let value = try? AuditDetailsBotWebhookSettings(from: decoder) {
+            self = .auditDetailsBotWebhookSettings(value)
+            return
+        }
+        if let value = try? AuditDetailsChatId(from: decoder) {
+            self = .auditDetailsChatId(value)
+            return
+        }
+        if let value = try? AuditDetailsChatPermission(from: decoder) {
+            self = .auditDetailsChatPermission(value)
+            return
+        }
+        if let value = try? AuditDetailsInitiator(from: decoder) {
+            self = .auditDetailsInitiator(value)
+            return
+        }
+        if let value = try? AuditDetailsInviter(from: decoder) {
+            self = .auditDetailsInviter(value)
+            return
+        }
+        if let value = try? AuditDetailsTagName(from: decoder) {
+            self = .auditDetailsTagName(value)
+            return
+        }
+        if let value = try? AuditDetailsTokenScopes(from: decoder) {
+            self = .auditDetailsTokenScopes(value)
+            return
+        }
+        if let value = try? AuditDetailsUserUpdated(from: decoder) {
+            self = .auditDetailsUserUpdated(value)
+            return
+        }
+        if let value = try? AuditDetailsEmpty(from: decoder) {
+            self = .auditDetailsEmpty(value)
+            return
+        }
+        throw DecodingError.dataCorrupted(
+            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "No AuditEventDetailsUnion member matched the payload")
+        )
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -3472,12 +3501,12 @@ struct UserDataWrapper: Codable {
     let data: User
 }
 
-struct AvatarDataDataWrapper: Codable {
-    let data: AvatarData
-}
-
 struct UserStatusDataWrapper: Codable {
     let data: UserStatus
+}
+
+struct AvatarDataDataWrapper: Codable {
+    let data: AvatarData
 }
 
 struct TaskDataWrapper: Codable {

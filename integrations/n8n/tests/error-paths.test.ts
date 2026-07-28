@@ -197,6 +197,42 @@ describe('makeApiRequest error paths', () => {
     }
   });
 
+  it('should NOT retry a POST on 5xx (the write may already be committed)', async () => {
+    const ctx = createExecCtx({
+      httpResponse: {
+        statusCode: 502,
+        body: {},
+        headers: {},
+      },
+    });
+
+    try {
+      await makeApiRequest.call(ctx, 'POST', '/messages', { content: 'hi' }, undefined, 0);
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(NodeApiError);
+      // Exactly one attempt: retrying would post the message up to 4 times.
+      expect(ctx.helpers.httpRequestWithAuthentication).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it('should still retry a POST on 429 (request was rejected, not committed)', async () => {
+    const ctx = createExecCtx({
+      httpResponse: {
+        statusCode: 429,
+        body: { error: 'Rate limited' },
+        headers: { 'retry-after': '0' },
+      },
+    });
+
+    try {
+      await makeApiRequest.call(ctx, 'POST', '/messages', { content: 'hi' }, undefined, 0);
+      expect.unreachable('Should have thrown');
+    } catch {
+      expect(ctx.helpers.httpRequestWithAuthentication).toHaveBeenCalledTimes(4);
+    }
+  });
+
   it('should not send Content-Type or body for GET requests', async () => {
     const ctx = createExecCtx({
       httpResponse: { statusCode: 200, body: { data: [] }, headers: {} },

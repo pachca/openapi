@@ -7,7 +7,7 @@ export default class UsersRemoveStatus extends BaseCommand {
   static override description = "Удаление статуса сотрудника";
 
   static override examples = [
-      "Управление статусом сотрудника:\n  $ pachca users remove-status"
+      "Управление статусом сотрудника — Удалить статус:\n  $ pachca users remove-status"
   ];
 
   static scope = "user_status:write";

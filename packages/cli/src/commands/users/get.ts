@@ -6,7 +6,7 @@ export default class UsersGet extends BaseCommand {
   static override description = "Информация о сотруднике";
 
   static override examples = [
-      "Получить сотрудника по ID:\n  $ pachca users get"
+      "Получить сотрудника по ID — Получи информацию о сотруднике:\n  $ pachca users get"
   ];
 
   static scope = "users:read";
@@ -35,7 +35,7 @@ export default class UsersGet extends BaseCommand {
       path: `/users/${args.id}`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

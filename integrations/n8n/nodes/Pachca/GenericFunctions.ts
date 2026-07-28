@@ -309,8 +309,14 @@ export async function makeApiRequest(
       }
     }
 
-    // Auto-retry on 429 (rate limit) and 5xx (server errors)
-    if ((response.statusCode === 429 || response.statusCode >= 500) && attempt < MAX_RETRIES) {
+    // Auto-retry on 429 (rate limit) and, for idempotent methods only, 5xx.
+    // A 5xx from a proxy or a draining load balancer says nothing about whether
+    // the backend already committed the write, so replaying POST /messages
+    // there posts the message up to four times. 429 is safe for any method:
+    // the request was rejected before it was processed.
+    const idempotent = method === 'GET' || method === 'HEAD' || method === 'PUT' || method === 'DELETE';
+    const retryable = response.statusCode === 429 || (response.statusCode >= 500 && idempotent);
+    if (retryable && attempt < MAX_RETRIES) {
       const respHeaders = response.headers as Record<string, string> | undefined;
       const retryAfter = parseInt(respHeaders?.['retry-after'] ?? '', 10);
       const delaySec = retryAfter || Math.pow(2, attempt) * (0.5 + Math.random());
@@ -430,9 +436,13 @@ export async function makeApiRequestAllPages(
     // Termination: списочные методы — has_next === false; legacy meta без has_next (например, /users?query=) — пустой data
     const hasNext = paginate?.has_next as boolean | undefined;
     if (typeof hasNext === 'boolean') {
+      if (!hasNext) break;
+      // Same stuck-cursor guard the legacy branch has: `has_next: true` with a
+      // missing or unchanged next_page would otherwise silently truncate (cursor
+      // undefined ends the loop) or re-fetch the same page up to MAX_PAGES times.
+      if (!nextCursor || nextCursor === cursor) break;
       cursor = nextCursor;
       pageCount++;
-      if (!hasNext) break;
     } else {
       if (items.length === 0) break;
       // Guard against infinite loops: server returned the same cursor we just sent
@@ -839,9 +849,15 @@ export async function searchChats(
   paginationToken?: unknown,
 ): Promise<INodeListSearchResult> {
   const credentials = await this.getCredentials('pachcaApi');
+  const baseUrl = sanitizeBaseUrl(credentials.baseUrl as string);
 
   if (filter) {
-    const url = `${credentials.baseUrl}/search/chats?query=${encodeURIComponent(filter)}`;
+    // /search/chats is paginated too — pass the cursor through and hand the
+    // next one back, otherwise matches past the first page are unreachable.
+    const cursorParam = paginationToken
+      ? `&cursor=${encodeURIComponent(String(paginationToken))}`
+      : '';
+    const url = `${baseUrl}/search/chats?query=${encodeURIComponent(filter)}&limit=100${cursorParam}`;
     const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
       method: 'GET',
       url,
@@ -852,13 +868,16 @@ export async function searchChats(
         name: c.name,
         value: c.id,
       })),
+      paginationToken: response.meta?.paginate?.next_page as string | undefined,
     };
   }
 
-  // No filter — paginated listing
+  // No filter — paginated listing. `limit` is the v2 param (`per` is v1 and is
+  // ignored); the cursor is an opaque token that may contain +, / or = and must
+  // be encoded before it goes into the query string.
   const cursor = paginationToken as string | undefined;
-  const qs = cursor ? `per=50&cursor=${cursor}` : 'per=50';
-  const url = `${credentials.baseUrl}/chats?${qs}`;
+  const qs = cursor ? `limit=50&cursor=${encodeURIComponent(cursor)}` : 'limit=50';
+  const url = `${baseUrl}/chats?${qs}`;
   const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
     method: 'GET',
     url,
@@ -878,10 +897,19 @@ export async function searchChats(
 export async function searchUsers(
   this: ILoadOptionsFunctions,
   filter?: string,
+  paginationToken?: unknown,
 ): Promise<INodeListSearchResult> {
   const credentials = await this.getCredentials('pachcaApi');
-  if (!filter) return { results: [] };
-  const url = `${credentials.baseUrl}/search/users?query=${encodeURIComponent(filter)}`;
+  const baseUrl = sanitizeBaseUrl(credentials.baseUrl as string);
+  const cursorParam = paginationToken
+    ? `&cursor=${encodeURIComponent(String(paginationToken))}`
+    : '';
+  // No filter — paginated listing, same as searchChats. Returning an empty array
+  // here made the picker look broken: opening it showed nothing until the user
+  // guessed that typing was required.
+  const url = filter
+    ? `${baseUrl}/search/users?query=${encodeURIComponent(filter)}&limit=200${cursorParam}`
+    : `${baseUrl}/users?limit=50${cursorParam}`;
   const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
     method: 'GET',
     url,
@@ -892,6 +920,7 @@ export async function searchUsers(
       name: formatUserName(u),
       value: u.id,
     })),
+    paginationToken: response.meta?.paginate?.next_page as string | undefined,
   };
 }
 
@@ -911,7 +940,7 @@ export async function searchEntities(
   }
 
   if (entityType === 'user') {
-    return searchUsers.call(this, filter);
+    return searchUsers.call(this, filter, paginationToken);
   }
   if (entityType === 'thread') {
     return { results: [] };
@@ -924,11 +953,12 @@ export async function getCustomProperties(
   this: ILoadOptionsFunctions,
 ): Promise<INodePropertyOptions[]> {
   const credentials = await this.getCredentials('pachcaApi');
+  const baseUrl = sanitizeBaseUrl(credentials.baseUrl as string);
   const resource = this.getNodeParameter('resource') as string;
   const entityType = resource === 'task' ? 'Task' : 'User';
   const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
     method: 'GET',
-    url: `${credentials.baseUrl}/custom_properties?entity_type=${entityType}`,
+    url: `${baseUrl}/custom_properties?entity_type=${entityType}`,
   });
   const items = response.data ?? [];
   return items.map((p: { id: number; name: string }) => ({

@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 import PachcaSDK
 
 // HTTP client example — using pre-configured headers and URLSession with optional proxy.
@@ -17,6 +20,9 @@ guard let chatIdStr = ProcessInfo.processInfo.environment["PACHCA_CHAT_ID"],
 }
 
 let config = URLSessionConfiguration.default
+// The kCFNetworkProxies* keys come from CFNetwork and exist only on Apple
+// platforms. On Linux URLSession picks the proxy up from HTTP_PROXY itself.
+#if canImport(Darwin)
 if let proxy = ProcessInfo.processInfo.environment["HTTP_PROXY"],
    let proxyURL = URL(string: proxy) {
     config.connectionProxyDictionary = [
@@ -25,6 +31,7 @@ if let proxy = ProcessInfo.processInfo.environment["HTTP_PROXY"],
         kCFNetworkProxiesHTTPPort: proxyURL.port ?? 8080,
     ]
 }
+#endif
 let session = URLSession(configuration: config)
 
 let headers = ["Authorization": "Bearer \(token)"]

@@ -52,14 +52,14 @@
 
 | Операция | API |
 |----------|-----|
-| Create | [Новое сообщение](POST /messages) |
-| Get Many | [Список сообщений чата](GET /messages) |
-| Get | [Информация о сообщении](GET /messages/{id}) |
-| Update | [Редактирование сообщения](PUT /messages/{id}) |
-| Delete | [Удаление сообщения](DELETE /messages/{id}) |
-| Pin | [Закрепление сообщения](POST /messages/{id}/pin) |
-| Unpin | [Открепление сообщения](DELETE /messages/{id}/pin) |
-| Unfurl | [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews) |
+| Create | [Новое сообщение](/api/messages/create) |
+| Get Many | [Список сообщений чата](/api/messages/list) |
+| Get | [Информация о сообщении](/api/messages/get) |
+| Update | [Редактирование сообщения](/api/messages/update) |
+| Delete | [Удаление сообщения](/api/messages/delete) |
+| Pin | [Закрепление сообщения](/api/messages/pin) |
+| Unpin | [Открепление сообщения](/api/messages/unpin) |
+| Unfurl | [Unfurl (разворачивание ссылок)](/api/messages/unfurl) |
 
 **Ключевые параметры Create:** `entityId` (ID чата или пользователя), `content` (текст, Markdown), `entityType` (discussion, user, thread), `files`, `buttons`, `parentMessageId`.
 
@@ -78,14 +78,14 @@
 
 | Операция | API |
 |----------|-----|
-| Create | [Новый чат](POST /chats) |
-| Get Many | [Список чатов](GET /chats) |
-| Get | [Информация о чате](GET /chats/{id}) |
-| Update | [Редактирование чата](PUT /chats/{id}) |
-| Archive | [Архивация чата](PUT /chats/{id}/archive) |
-| Unarchive | [Разархивация чата](PUT /chats/{id}/unarchive) |
-| Request Export | [Экспорт сообщений](POST /chats/exports) |
-| Download Export | [Скачивание экспорта](GET /chats/exports/{id}) |
+| Create | [Новый чат](/api/chats/create) |
+| Get Many | [Список чатов](/api/chats/list) |
+| Get | [Информация о чате](/api/chats/get) |
+| Update | [Редактирование чата](/api/chats/update) |
+| Archive | [Архивация чата](/api/chats/archive) |
+| Unarchive | [Разархивация чата](/api/chats/unarchive) |
+| Request Export | [Экспорт сообщений](/api/chats/request-export) |
+| Download Export | [Скачивание экспорта](/api/chats/download-export) |
 
 **Сортировка в Get Many:** параметры `sort` (`id` или `last_message_at`) и `order` (`asc` / `desc`). Также доступны фильтры `availability`, `lastMessageAtAfter`, `lastMessageAtBefore`.
 
@@ -102,13 +102,13 @@
 
 | Операция | API |
 |----------|-----|
-| Get Many | [Список участников чата](GET /chats/{id}/members) |
-| Create | [Добавление пользователей](POST /chats/{id}/members) |
-| Delete | [Исключение пользователя](DELETE /chats/{id}/members/{user_id}) |
-| Update | [Редактирование роли](PUT /chats/{id}/members/{user_id}) |
-| Leave | [Выход из беседы или канала](DELETE /chats/{id}/leave) |
-| Add Group Tags | [Добавление тегов](POST /chats/{id}/group_tags) |
-| Remove Group Tags | [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id}) |
+| Get Many | [Список участников чата](/api/members/list) |
+| Create | [Добавление пользователей](/api/members/add) |
+| Delete | [Исключение пользователя](/api/members/remove) |
+| Update | [Редактирование роли](/api/members/update) |
+| Leave | [Выход из беседы или канала](/api/members/leave) |
+| Add Group Tags | [Добавление тегов](/api/members/add-group-tags) |
+| Remove Group Tags | [Исключение тега](/api/members/remove-group-tag) |
 
 ---
 
@@ -118,16 +118,16 @@
 
 | Операция | API |
 |----------|-----|
-| Create | [Новый сотрудник](POST /users) |
-| Get Many | [Список сотрудников](GET /users) |
-| Get | [Информация о сотруднике](GET /users/{id}) |
-| Update | [Редактирование сотрудника](PUT /users/{id}) |
-| Delete | [Удаление сотрудника](DELETE /users/{id}) |
-| Update Avatar | [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar) |
-| Delete Avatar | [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar) |
-| Get Status | [Статус сотрудника](GET /users/{user_id}/status) |
-| Update Status | [Новый статус сотрудника](PUT /users/{user_id}/status) |
-| Delete Status | [Удаление статуса сотрудника](DELETE /users/{user_id}/status) |
+| Create | [Новый сотрудник](/api/users/create) |
+| Get Many | [Список сотрудников](/api/users/list) |
+| Get | [Информация о сотруднике](/api/users/get) |
+| Update | [Редактирование сотрудника](/api/users/update) |
+| Delete | [Удаление сотрудника](/api/users/delete) |
+| Update Avatar | [Загрузка аватара сотрудника](/api/users/update-avatar) |
+| Delete Avatar | [Удаление аватара сотрудника](/api/users/remove-avatar) |
+| Get Status | [Статус сотрудника](/api/users/get-status) |
+| Update Status | [Новый статус сотрудника](/api/users/update-status) |
+| Delete Status | [Удаление статуса сотрудника](/api/users/remove-status) |
 
 ---
 
@@ -137,12 +137,12 @@
 
 | Операция | API |
 |----------|-----|
-| Create | [Новый тег](POST /group_tags) |
-| Get Many | [Список тегов сотрудников](GET /group_tags) |
-| Get | [Информация о теге](GET /group_tags/{id}) |
-| Update | [Редактирование тега](PUT /group_tags/{id}) |
-| Delete | [Удаление тега](DELETE /group_tags/{id}) |
-| Get Many Users | [Список сотрудников тега](GET /group_tags/{id}/users) |
+| Create | [Новый тег](/api/group-tags/create) |
+| Get Many | [Список тегов сотрудников](/api/group-tags/list) |
+| Get | [Информация о теге](/api/group-tags/get) |
+| Update | [Редактирование тега](/api/group-tags/update) |
+| Delete | [Удаление тега](/api/group-tags/delete) |
+| Get Many Users | [Список сотрудников тега](/api/group-tags/list-users) |
 
 ---
 
@@ -152,10 +152,10 @@
 
 | Операция | API |
 |----------|-----|
-| Create | [Новый тред](POST /messages/{id}/thread) |
-| Create Standalone | [Новый самостоятельный тред](POST /threads) |
-| Get | [Информация о треде](GET /threads/{id}) |
-| Get Many | [Список тредов](GET /threads) |
+| Create | [Новый тред](/api/threads/add) |
+| Create Standalone | [Новый самостоятельный тред](/api/threads/create) |
+| Get | [Информация о треде](/api/threads/get) |
+| Get Many | [Список тредов](/api/threads/list) |
 
 ---
 
@@ -165,9 +165,9 @@
 
 | Операция | API |
 |----------|-----|
-| Create | [Добавление реакции](POST /messages/{id}/reactions) |
-| Delete | [Удаление реакции](DELETE /messages/{id}/reactions) |
-| Get Many | [Список реакций](GET /messages/{id}/reactions) |
+| Create | [Добавление реакции](/api/reactions/add) |
+| Delete | [Удаление реакции](/api/reactions/remove) |
+| Get Many | [Список реакций](/api/reactions/list) |
 
 ---
 
@@ -177,12 +177,12 @@
 
 | Операция | API |
 |----------|-----|
-| Get | [Свой профиль](GET /profile) |
-| Update Avatar | [Загрузка своего аватара](PUT /profile/avatar) |
-| Delete Avatar | [Удаление своего аватара](DELETE /profile/avatar) |
-| Get Status | [Свой статус](GET /profile/status) |
-| Update Status | [Новый свой статус](PUT /profile/status) |
-| Delete Status | [Удаление своего статуса](DELETE /profile/status) |
+| Get | [Свой профиль](/api/profile/get) |
+| Update Avatar | [Загрузка своего аватара](/api/profile/update-avatar) |
+| Delete Avatar | [Удаление своего аватара](/api/profile/delete-avatar) |
+| Get Status | [Свой статус](/api/profile/get-status) |
+| Update Status | [Новый свой статус](/api/profile/update-status) |
+| Delete Status | [Удаление своего статуса](/api/profile/delete-status) |
 
 **Загрузка аватара:** операция Update Avatar принимает бинарные данные из предыдущего узла (например, HTTP Request или Read Binary File). В поле **Input Binary Field** укажите имя бинарного свойства (по умолчанию `data`).
 
@@ -194,7 +194,7 @@
 
 | Операция | API |
 |----------|-----|
-| Get Info | [Информация о токене](GET /oauth/token/info) |
+| Get Info | [Информация о токене](/api/oauth/token-info) |
 
 ---
 
@@ -204,11 +204,11 @@
 
 | Операция | API |
 |----------|-----|
-| Create | [Новое напоминание](POST /tasks) |
-| Get Many | [Список напоминаний](GET /tasks) |
-| Get | [Информация о напоминании](GET /tasks/{id}) |
-| Update | [Редактирование напоминания](PUT /tasks/{id}) |
-| Delete | [Удаление напоминания](DELETE /tasks/{id}) |
+| Create | [Новое напоминание](/api/tasks/create) |
+| Get Many | [Список напоминаний](/api/tasks/list) |
+| Get | [Информация о напоминании](/api/tasks/get) |
+| Update | [Редактирование напоминания](/api/tasks/update) |
+| Delete | [Удаление напоминания](/api/tasks/delete) |
 
 **Типы задач:** `call`, `email`, `event`, `meeting`, `reminder`.
 
@@ -220,16 +220,16 @@
 
 | Операция | API |
 |----------|-----|
-| Create | [Новый бот](POST /bots) |
-| Get | [Информация о боте](GET /bots/{id}) |
-| Get Many | [Список ботов](GET /bots) |
-| Update | [Редактирование бота](PUT /bots/{id}) |
-| Delete | [Удаление бота](DELETE /bots/{id}) |
-| Update Webhook | [Саморегистрация вебхука бота](PUT /bot/webhook) |
-| Recreate Token | [Ротация токена бота](POST /bots/{id}/recreate_token) |
-| Recreate Token Self | [Ротация собственного токена бота](POST /bot/recreate_token) |
-| Get Many Events | [История событий](GET /webhooks/events) |
-| Remove Events | [Удаление события](DELETE /webhooks/events/{id}) |
+| Create | [Новый бот](/api/bots/create) |
+| Get | [Информация о боте](/api/bots/get) |
+| Get Many | [Список ботов](/api/bots/list) |
+| Update | [Редактирование бота](/api/bots/update) |
+| Delete | [Удаление бота](/api/bots/delete) |
+| Update Webhook | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
+| Recreate Token | [Ротация токена бота](/api/bots/recreate-token) |
+| Recreate Token Self | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
+| Get Many Events | [История событий](/api/bots/list-events) |
+| Remove Events | [Удаление события](/api/bots/remove-event) |
 
 ---
 
@@ -239,9 +239,9 @@
 
 | Операция | API |
 |----------|-----|
-| Create | [Загрузка файла](POST /uploads) |
+| Create | [Загрузка файла](/api/files/uploads) |
 
-Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#zagruzka-fajlov).
+Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#zagruzka-faylov).
 
 ---
 
@@ -251,7 +251,7 @@
 
 | Операция | API |
 |----------|-----|
-| Create | [Открытие представления](POST /views/open) |
+| Create | [Открытие представления](/api/views/open) |
 
 Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#formy) и в [документации форм](/guides/forms/overview).
 
@@ -263,7 +263,7 @@
 
 | Операция | API |
 |----------|-----|
-| Get | [Список дополнительных полей](GET /custom_properties) |
+| Get | [Список дополнительных полей](/api/custom-properties/list) |
 
 ---
 
@@ -273,7 +273,7 @@
 
 | Операция | API |
 |----------|-----|
-| Get Many Read Member IDs | [Список прочитавших сообщение](GET /messages/{id}/read_member_ids) |
+| Get Many Read Member IDs | [Список прочитавших сообщение](/api/read-member/list-readers) |
 
 ---
 
@@ -283,9 +283,9 @@
 
 | Операция | API |
 |----------|-----|
-| Get Many Chats | [Поиск чатов](GET /search/chats) |
-| Get Many Messages | [Поиск сообщений](GET /search/messages) |
-| Get Many Users | [Поиск сотрудников](GET /search/users) |
+| Get Many Chats | [Поиск чатов](/api/search/list-chats) |
+| Get Many Messages | [Поиск сообщений](/api/search/list-messages) |
+| Get Many Users | [Поиск сотрудников](/api/search/list-users) |
 
 **Обязательный параметр:** `query` — строка поиска.
 
@@ -297,7 +297,7 @@
 
 | Операция | API |
 |----------|-----|
-| Get Many | [Журнал аудита событий](GET /audit_events) |
+| Get Many | [Журнал аудита событий](/api/security/list) |
 
 **Фильтры:** `eventKey`, `actorId`, `actorType`, `entityId`, `entityType`, `startTime`, `endTime`.
 
@@ -354,7 +354,7 @@ n8n автоматически отправляет повторные запр�
 
 Для поля **Chat ID** доступен поиск по имени: начните вводить текст, и n8n покажет подходящие результаты из вашего пространства Пачки.
 
-Поиск вызывает API-эндпоинт [Поиск чатов](GET /search/chats) и работает только с валидным `Access Token` в Credentials.
+Поиск вызывает API-эндпоинт [Поиск чатов](/api/search/list-chats) и работает только с валидным `Access Token` в Credentials.
 
 
 ## Связанные разделы

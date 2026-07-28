@@ -11,7 +11,9 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -655,104 +657,154 @@ enum class WebhookEventType(val value: String) {
     @SerialName("delete") DELETE("delete"),
 }
 
-@Serializable
-sealed interface AuditEventDetailsUnion {
-    val type: String
+@Serializable(with = AuditEventDetailsUnionSerializer::class)
+sealed interface AuditEventDetailsUnion
+
+// AuditEventDetailsUnion carries no discriminator field: the member is chosen by which one
+// best matches the payload keys (most recognised, then fewest unrecognised,
+// then fewest declared).
+object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
+    override val descriptor = buildClassSerialDescriptor("AuditEventDetailsUnion")
+
+    private val shapes: List<Pair<Set<String>, (Json, JsonElement) -> AuditEventDetailsUnion>> = listOf(
+        setOf<String>() to { json, element -> json.decodeFromJsonElement(AuditDetailsEmpty.serializer(), element) },
+        setOf("changed_attrs") to { json, element -> json.decodeFromJsonElement(AuditDetailsUserUpdated.serializer(), element) },
+        setOf("new_company_role", "previous_company_role", "initiator_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsRoleChanged.serializer(), element) },
+        setOf("name") to { json, element -> json.decodeFromJsonElement(AuditDetailsTagName.serializer(), element) },
+        setOf("initiator_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsInitiator.serializer(), element) },
+        setOf("inviter_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsInviter.serializer(), element) },
+        setOf("old_name", "new_name") to { json, element -> json.decodeFromJsonElement(AuditDetailsChatRenamed.serializer(), element) },
+        setOf("public_access") to { json, element -> json.decodeFromJsonElement(AuditDetailsChatPermission.serializer(), element) },
+        setOf("chat_id", "tag_name") to { json, element -> json.decodeFromJsonElement(AuditDetailsTagChat.serializer(), element) },
+        setOf("chat_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsChatId.serializer(), element) },
+        setOf("scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsTokenScopes.serializer(), element) },
+        setOf("chat_id", "message_id", "reason") to { json, element -> json.decodeFromJsonElement(AuditDetailsKms.serializer(), element) },
+        setOf("dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched") to { json, element -> json.decodeFromJsonElement(AuditDetailsDlp.serializer(), element) },
+        setOf("search_type", "query_present", "cursor_present", "limit", "filters") to { json, element -> json.decodeFromJsonElement(AuditDetailsSearch.serializer(), element) },
+        setOf("added_scopes", "removed_scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotScopes.serializer(), element) },
+        setOf("changes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotWebhookSettings.serializer(), element) },
+        setOf("chat_id", "duration", "max_members_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCall.serializer(), element) },
+        setOf("chat_id", "duration", "size") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallRecording.serializer(), element) },
+    )
+
+    override fun serialize(encoder: Encoder, value: AuditEventDetailsUnion) {
+        val jsonEncoder = encoder as? JsonEncoder ?: error("AuditEventDetailsUnionSerializer only supports JSON")
+        when (value) {
+            is AuditDetailsEmpty -> jsonEncoder.encodeSerializableValue(AuditDetailsEmpty.serializer(), value)
+            is AuditDetailsUserUpdated -> jsonEncoder.encodeSerializableValue(AuditDetailsUserUpdated.serializer(), value)
+            is AuditDetailsRoleChanged -> jsonEncoder.encodeSerializableValue(AuditDetailsRoleChanged.serializer(), value)
+            is AuditDetailsTagName -> jsonEncoder.encodeSerializableValue(AuditDetailsTagName.serializer(), value)
+            is AuditDetailsInitiator -> jsonEncoder.encodeSerializableValue(AuditDetailsInitiator.serializer(), value)
+            is AuditDetailsInviter -> jsonEncoder.encodeSerializableValue(AuditDetailsInviter.serializer(), value)
+            is AuditDetailsChatRenamed -> jsonEncoder.encodeSerializableValue(AuditDetailsChatRenamed.serializer(), value)
+            is AuditDetailsChatPermission -> jsonEncoder.encodeSerializableValue(AuditDetailsChatPermission.serializer(), value)
+            is AuditDetailsTagChat -> jsonEncoder.encodeSerializableValue(AuditDetailsTagChat.serializer(), value)
+            is AuditDetailsChatId -> jsonEncoder.encodeSerializableValue(AuditDetailsChatId.serializer(), value)
+            is AuditDetailsTokenScopes -> jsonEncoder.encodeSerializableValue(AuditDetailsTokenScopes.serializer(), value)
+            is AuditDetailsKms -> jsonEncoder.encodeSerializableValue(AuditDetailsKms.serializer(), value)
+            is AuditDetailsDlp -> jsonEncoder.encodeSerializableValue(AuditDetailsDlp.serializer(), value)
+            is AuditDetailsSearch -> jsonEncoder.encodeSerializableValue(AuditDetailsSearch.serializer(), value)
+            is AuditDetailsBotScopes -> jsonEncoder.encodeSerializableValue(AuditDetailsBotScopes.serializer(), value)
+            is AuditDetailsBotWebhookSettings -> jsonEncoder.encodeSerializableValue(AuditDetailsBotWebhookSettings.serializer(), value)
+            is AuditDetailsVideoCall -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCall.serializer(), value)
+            is AuditDetailsVideoCallRecording -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallRecording.serializer(), value)
+        }
+    }
+
+    override fun deserialize(decoder: Decoder): AuditEventDetailsUnion {
+        val jsonDecoder = decoder as? JsonDecoder ?: error("AuditEventDetailsUnionSerializer only supports JSON")
+        val element = jsonDecoder.decodeJsonElement()
+        val keys = element.jsonObject.keys
+        var best: Pair<Set<String>, (Json, JsonElement) -> AuditEventDetailsUnion>? = null
+        var bestMatched = 0
+        var bestUnknown = 0
+        var bestDeclared = 0
+        for (shape in shapes) {
+            val matched = keys.count { it in shape.first }
+            val unknown = keys.size - matched
+            val declared = shape.first.size
+            val better = best == null ||
+                matched > bestMatched ||
+                (matched == bestMatched && unknown < bestUnknown) ||
+                (matched == bestMatched && unknown == bestUnknown && declared < bestDeclared)
+            if (better) {
+                best = shape
+                bestMatched = matched
+                bestUnknown = unknown
+                bestDeclared = declared
+            }
+        }
+        val chosen = best ?: error("No AuditEventDetailsUnion member matched the payload")
+        return chosen.second(jsonDecoder.json, element)
+    }
 }
 
 @Serializable
-@SerialName("")
-data class AuditDetailsEmpty(
-    override val type: String = "",
-) : AuditEventDetailsUnion
+class AuditDetailsEmpty : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsUserUpdated(
-    override val type: String = "",
     @SerialName("changed_attrs") val changedAttrs: List<String>,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsRoleChanged(
-    override val type: String = "",
     @SerialName("new_company_role") val newCompanyRole: String,
     @SerialName("previous_company_role") val previousCompanyRole: String,
     @SerialName("initiator_id") val initiatorId: Int,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsTagName(
-    override val type: String = "",
     val name: String,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsInitiator(
-    override val type: String = "",
     @SerialName("initiator_id") val initiatorId: Int,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsInviter(
-    override val type: String = "",
     @SerialName("inviter_id") val inviterId: Int,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsChatRenamed(
-    override val type: String = "",
     @SerialName("old_name") val oldName: String,
     @SerialName("new_name") val newName: String,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsChatPermission(
-    override val type: String = "",
     @SerialName("public_access") val publicAccess: Boolean,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsTagChat(
-    override val type: String = "",
     @SerialName("chat_id") val chatId: Int,
     @SerialName("tag_name") val tagName: String,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsChatId(
-    override val type: String = "",
     @SerialName("chat_id") val chatId: Int,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsTokenScopes(
-    override val type: String = "",
     val scopes: List<String>,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsKms(
-    override val type: String = "",
     @SerialName("chat_id") val chatId: Int,
     @SerialName("message_id") val messageId: Int,
     val reason: String,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsDlp(
-    override val type: String = "",
     @SerialName("dlp_rule_id") val dlpRuleId: Int,
     @SerialName("dlp_rule_name") val dlpRuleName: String,
     @SerialName("message_id") val messageId: Int,
@@ -763,44 +815,34 @@ data class AuditDetailsDlp(
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsSearch(
-    override val type: String = "",
     @SerialName("search_type") val searchType: String,
     @SerialName("query_present") val queryPresent: Boolean,
     @SerialName("cursor_present") val cursorPresent: Boolean,
     val limit: Int,
-    val filters: Map<String, String>,
+    val filters: Map<String, JsonElement>,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsBotScopes(
-    override val type: String = "",
     @SerialName("added_scopes") val addedScopes: List<String>,
     @SerialName("removed_scopes") val removedScopes: List<String>,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsBotWebhookSettings(
-    override val type: String = "",
-    val changes: Map<String, String>,
+    val changes: Map<String, JsonElement>,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsVideoCall(
-    override val type: String = "",
     @SerialName("chat_id") val chatId: Int,
     val duration: Int,
     @SerialName("max_members_count") val maxMembersCount: Int,
 ) : AuditEventDetailsUnion
 
 @Serializable
-@SerialName("")
 data class AuditDetailsVideoCallRecording(
-    override val type: String = "",
     @SerialName("chat_id") val chatId: Int,
     val duration: Int,
     val size: Long,
@@ -1015,7 +1057,7 @@ data class ViewSubmitWebhookPayload(
     @SerialName("private_metadata") val privateMetadata: String,
     @SerialName("chat_id") val chatId: Int,
     @SerialName("user_id") val userId: Int,
-    val data: Map<String, String>,
+    val data: Map<String, JsonElement>,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion {
     val event: String = "submit"
@@ -1120,7 +1162,7 @@ data class ApiErrorItem(
     val value: String? = null,
     val message: String,
     val code: ValidationErrorCode,
-    val payload: Map<String, String>? = null,
+    val payload: Map<String, JsonElement>? = null,
 )
 
 @Serializable
@@ -1286,7 +1328,7 @@ data class CustomProperty(
     val id: Int,
     val name: String,
     @SerialName("data_type") val dataType: CustomPropertyDataType,
-    val value: String,
+    val value: String? = null,
 )
 
 @Serializable
@@ -1507,7 +1549,7 @@ data class Reaction(
     @SerialName("user_id") val userId: Int,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     val code: String,
-    val name: String? = null,
+    val name: String,
 )
 
 @Serializable
@@ -1634,7 +1676,7 @@ data class UploadParams(
 @Serializable
 data class User(
     val id: Int,
-    @SerialName("first_name") val firstName: String,
+    @SerialName("first_name") val firstName: String? = null,
     @SerialName("last_name") val lastName: String? = null,
     val nickname: String,
     val email: String? = null,
@@ -1929,10 +1971,10 @@ data class AccessTokenInfoDataWrapper(val data: AccessTokenInfo)
 data class UserDataWrapper(val data: User)
 
 @Serializable
-data class AvatarDataDataWrapper(val data: AvatarData)
+data class UserStatusDataWrapper(val data: UserStatus)
 
 @Serializable
-data class UserStatusDataWrapper(val data: UserStatus)
+data class AvatarDataDataWrapper(val data: AvatarData)
 
 @Serializable
 data class TaskDataWrapper(val data: Task)

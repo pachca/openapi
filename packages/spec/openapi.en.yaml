@@ -36,18 +36,18 @@ paths:
           schema:
             type: string
             format: date-time
-            example: '2025-05-01T09:11:00Z'
-          example: '2025-05-01T09:11:00Z'
+            example: '2025-05-01T09:11:00.000Z'
+          example: '2025-05-01T09:11:00.000Z'
           explode: false
         - name: end_time
           in: query
           required: false
-          description: End timestamp (exclusive)
+          description: End timestamp (inclusive)
           schema:
             type: string
             format: date-time
-            example: '2025-05-02T09:11:00Z'
-          example: '2025-05-02T09:11:00Z'
+            example: '2025-05-02T09:11:00.000Z'
+          example: '2025-05-02T09:11:00.000Z'
           explode: false
         - name: event_key
           in: query
@@ -3531,10 +3531,16 @@ paths:
   /profile/status:
     get:
       operationId: ProfileOperations_getStatus
-      description: |-
+      description: >-
         Own status
 
-        Retrieve information about your current status.
+
+        Method for retrieving information about your own status.
+
+
+        If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status
+        whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at`
+        on the client side.
       parameters: []
       responses:
         '200':
@@ -3547,11 +3553,9 @@ paths:
                   - data
                 properties:
                   data:
-                    type: object
-                    allOf:
-                      - $ref: '#/components/schemas/UserStatus'
-                    nullable: true
+                    $ref: '#/components/schemas/UserStatus'
                 description: Response wrapper with data
+                nullable: true
         '401':
           description: Access is unauthorized.
           content:
@@ -5195,10 +5199,16 @@ paths:
   /users/{user_id}/status:
     get:
       operationId: UserStatusOperations_getUserStatus
-      description: |-
+      description: >-
         Employee status
 
-        Retrieve information about an employee's status.
+
+        Method for retrieving information about an employee's status.
+
+
+        If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status
+        whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at`
+        on the client side.
       parameters:
         - name: user_id
           in: path
@@ -5220,11 +5230,9 @@ paths:
                   - data
                 properties:
                   data:
-                    type: object
-                    allOf:
-                      - $ref: '#/components/schemas/UserStatus'
-                    nullable: true
+                    $ref: '#/components/schemas/UserStatus'
                 description: Response wrapper with data
+                nullable: true
         '401':
           description: Access is unauthorized.
           content:
@@ -5589,7 +5597,7 @@ components:
         name:
           type: string
           nullable: true
-          description: User-defined token name
+          description: User-defined token name. `null` for a bot token — a name is only set when a token is created manually.
           example: My API Token
         user_id:
           type: integer
@@ -5613,19 +5621,21 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Token revocation date
+          description: 'Token revocation date. Always `null`: the method returns 401 for a revoked token.'
           example: null
         expires_in:
           type: integer
           format: int32
           nullable: true
-          description: Token lifetime in seconds
+          description: Token lifetime in seconds. Always `null` — tokens are issued without expiry.
           example: null
         last_used_at:
           type: string
           format: date-time
           nullable: true
-          description: Token last used date
+          description: >-
+            Token last used date. `null` until the token has been used at least once. Updated at most once per hour, so
+            it may lag behind.
           example: '2025-02-24T14:20:00.000Z'
       description: Access token
     AddMembersRequest:
@@ -5690,7 +5700,7 @@ components:
         value:
           type: string
           nullable: true
-          description: Field value that caused the error
+          description: Field value that caused the error. `null` if the error does not relate to a specific value.
           example: invalid_value
         message:
           type: string
@@ -5706,8 +5716,9 @@ components:
           additionalProperties: {}
           nullable: true
           description: >-
-            Additional error data. Content depends on the error code: `{id: number}` for custom property errors, `{type:
-            string}` for type mismatch errors
+            Additional error data. Content depends on the error code: `{id: number}` — for custom property errors
+            (property ID), `{record: {type: string, id: number}, query: string}` — for authorization errors. In most
+            cases `null`.
           example: null
       description: Detailed error information
     AuditDetailsBotScopes:
@@ -5737,7 +5748,7 @@ components:
           additionalProperties: {}
           description: >-
             Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages,
-            events_history_enabled), the value is an object with previous and new fields
+            events_history_enabled), the value is an object with previous and new fields.
       description: 'For: bot_webhook_settings_updated'
     AuditDetailsChatId:
       type: object
@@ -5814,7 +5825,7 @@ components:
       description: >-
         Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted,
         chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted,
-        thread_created, audit_events_accessed
+        thread_created, audit_events_accessed.
     AuditDetailsInitiator:
       type: object
       required:
@@ -5899,7 +5910,7 @@ components:
           additionalProperties: {}
           description: >-
             Applied filters. Possible keys depend on the search type: order, sort, created_from, created_to,
-            company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)
+            company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages).
       description: 'For: search_users_api, search_chats_api, search_messages_api'
     AuditDetailsTagChat:
       type: object
@@ -6035,7 +6046,7 @@ components:
             - $ref: '#/components/schemas/AuditEventDetailsUnion'
           description: >-
             Additional event details. Structure depends on the event_key value — see event_key field value descriptions.
-            For events without details, an empty object is returned
+            For events without details, an empty object is returned.
         ip_address:
           type: string
           description: IP address from which the action was performed
@@ -6065,7 +6076,7 @@ components:
         - $ref: '#/components/schemas/AuditDetailsBotWebhookSettings'
         - $ref: '#/components/schemas/AuditDetailsVideoCall'
         - $ref: '#/components/schemas/AuditDetailsVideoCallRecording'
-      description: Additional audit event details. Structure depends on the event_key value
+      description: Additional audit event details. Structure depends on the event_key value.
     AuditEventKey:
       type: string
       enum:
@@ -6223,7 +6234,10 @@ components:
               type: array
               items:
                 type: string
-              description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+              description: >-
+                Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is
+                available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns
+                `400`. The service values `bot` and `all` cannot be assigned.
               example:
                 - messages:create
             template:
@@ -6431,7 +6445,10 @@ components:
               type: array
               items:
                 type: string
-              description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+              description: >-
+                Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is
+                available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns
+                `400`. The service values `bot` and `all` cannot be assigned.
               example:
                 - messages:create
             template:
@@ -6513,7 +6530,7 @@ components:
         outgoing_url:
           type: string
           nullable: true
-          description: Outgoing webhook URL
+          description: Outgoing webhook URL. `null` if the bot has no outgoing webhook configured.
           example: https://www.website.com/tasks/new
         events:
           type: array
@@ -6538,7 +6555,9 @@ components:
           type: array
           items:
             type: string
-          description: Bot token scopes (permissions)
+          description: >-
+            Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values
+            that cannot be set explicitly may appear here.
           example:
             - messages:create
         template:
@@ -6673,7 +6692,7 @@ components:
           example: 1245817
         trigger_id:
           type: string
-          description: Unique event identifier. Lifetime — 3 seconds. Can be used, for example, to open a view for the user
+          description: Unique event identifier. Lifetime — 3 seconds. Can be used, for example, to open a view for the user.
           example: a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14
         data:
           type: string
@@ -6882,7 +6901,7 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: Thread ID
+          description: Thread ID. `null` if the members were added to a regular chat or channel rather than a thread.
           example: 5678
         user_ids:
           type: array
@@ -7008,6 +7027,7 @@ components:
           example: string
         value:
           type: string
+          nullable: true
           maxLength: 768
           description: Custom property value
           example: Saint Petersburg
@@ -7119,13 +7139,17 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: Image width in pixels
+          description: >-
+            Image width in pixels. `null` for files that are not images, and if the size was not supplied at upload
+            time.
           example: 1920
         height:
           type: integer
           format: int32
           nullable: true
-          description: Image height in pixels
+          description: >-
+            Image height in pixels. `null` for files that are not images, and if the size was not supplied at upload
+            time.
           example: 1080
       description: File
     FileType:
@@ -7231,13 +7255,17 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: ID of the message that the thread containing the original message was created for
+          description: >-
+            ID of the message that the thread containing the original message was created for. `null` if the original
+            message was not in a thread, or the thread was created without being linked to a message.
           example: null
         original_thread_parent_chat_id:
           type: integer
           format: int32
           nullable: true
-          description: ID of the chat of the message that the thread containing the original message was created for
+          description: >-
+            ID of the chat of the message that the thread containing the original message was created for. `null` if the
+            original message was not in a thread, or the thread was created without being linked to a message.
           example: null
       description: Forwarded message information
     GroupTag:
@@ -7336,7 +7364,7 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/LinkPreview'
-          description: '`JSON` map of link previews, where each key is a `URL` received in the outgoing webhook about a new message.'
+          description: '`JSON` map of link previews, where each key is a `URL` received in the outgoing webhook about a new message'
           x-record-key-example: https://website.com/articles/123
       description: Link unfurling request
     LinkSharedWebhookPayload:
@@ -7425,8 +7453,6 @@ components:
         - thread
         - forwarding
         - parent_message_id
-        - display_avatar_url
-        - display_name
         - changed_at
         - deleted_at
       properties:
@@ -7493,7 +7519,7 @@ components:
             items:
               $ref: '#/components/schemas/Button'
           nullable: true
-          description: Array of rows, each represented as an array of buttons
+          description: Array of rows, each represented as an array of buttons. `null` if the message was sent without buttons.
         thread:
           type: object
           properties:
@@ -7511,40 +7537,50 @@ components:
             - id
             - chat_id
           nullable: true
-          description: Message thread
+          description: >-
+            Thread created for this message. `null` if no thread was created, and for messages that are themselves
+            inside a thread.
         forwarding:
           type: object
           allOf:
             - $ref: '#/components/schemas/Forwarding'
           nullable: true
-          description: Forwarded message information
+          description: Forwarded message information. `null` if the message is not a forwarded one.
         parent_message_id:
           type: integer
           format: int32
           nullable: true
-          description: ID of the message being replied to
+          description: ID of the message being replied to. `null` if the message is not a reply to another message.
           example: null
         display_avatar_url:
           type: string
           nullable: true
-          description: Message sender avatar URL
+          description: >-
+            Message sender avatar URL. The field is present only on messages from bots; it is absent from the response
+            for messages from employees. `null` if the bot did not override the value when sending.
           example: null
         display_name:
           type: string
           nullable: true
-          description: Message sender full name
+          description: >-
+            Message sender full name. The field is present only on messages from bots; it is absent from the response
+            for messages from employees. `null` if the bot did not override the value when sending.
           example: null
         changed_at:
           type: string
           format: date-time
           nullable: true
-          description: Message last edit date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          description: >-
+            Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that
+            was never edited it equals the creation date. `null` for messages sent before this field was introduced.
           example: '2021-08-28T16:10:00.000Z'
         deleted_at:
           type: string
           format: date-time
           nullable: true
-          description: Message deletion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          description: >-
+            Message deletion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` for messages
+            that are not deleted. Deleted messages are not returned in the message list.
           example: null
       description: Message
     MessageCreateRequest:
@@ -7854,14 +7890,16 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: ID of the message being replied to
+          description: ID of the message being replied to. `null` if the message is not a reply to another message.
           example: 3456
         thread:
           type: object
           allOf:
             - $ref: '#/components/schemas/WebhookMessageThread'
           nullable: true
-          description: Thread parameters object
+          description: >-
+            The thread the message was sent in. `null` if the message was not sent in a thread. Unlike the `thread`
+            field on the REST API message object, this describes the thread the message is inside of.
         webhook_timestamp:
           type: integer
           format: int32
@@ -8260,7 +8298,7 @@ components:
           description: >-
             Optional identifier for recognizing this view, which will be sent to your application when the user submits
             the form. Use this field, for example, to determine which form the user was supposed to fill out.
-          example: timeoff_reguest_form
+          example: timeoff_request_form
         view:
           type: object
           properties:
@@ -8344,7 +8382,6 @@ components:
           example: 👍
         name:
           type: string
-          nullable: true
           description: Reaction emoji name
           example: ':+1::skin-tone-1:'
       description: Message reaction
@@ -8564,7 +8601,7 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Task due date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          description: Task due date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if no due date is set.
           example: '2020-06-05T09:00:00.000Z'
         priority:
           type: integer
@@ -8580,7 +8617,7 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: ID of the chat the task is linked to
+          description: ID of the chat the task is linked to. `null` if the task is not linked to a chat.
           example: 334
         status:
           allOf:
@@ -8637,7 +8674,7 @@ components:
             priority:
               type: integer
               format: int32
-              description: 'Priority: 1, 2 (important), or 3 (very important).'
+              description: 'Priority: 1, 2 (important), or 3 (very important)'
               example: 2
               default: 1
             performer_ids:
@@ -8732,7 +8769,7 @@ components:
             priority:
               type: integer
               format: int32
-              description: 'Priority: 1, 2 (important), or 3 (very important).'
+              description: 'Priority: 1, 2 (important), or 3 (very important)'
               example: 2
             performer_ids:
               type: array
@@ -8909,14 +8946,15 @@ components:
           example: 12
         first_name:
           type: string
+          nullable: true
           maxLength: 255
-          description: First name
+          description: First name. Returns `null` until an invited employee completes registration (`invite_status` of `sent`).
           example: Oleg
         last_name:
           type: string
           nullable: true
           maxLength: 255
-          description: Last name
+          description: Last name. If not filled in, `null` or an empty string is returned.
           example: Petrov
         nickname:
           type: string
@@ -8943,12 +8981,12 @@ components:
           type: string
           nullable: true
           maxLength: 255
-          description: Department
+          description: Department. If not specified, `null` or an empty string is returned.
           example: Product
         title:
           type: string
           nullable: true
-          description: Job title
+          description: Job title. If not specified, `null` or an empty string is returned.
           example: CIO
         role:
           allOf:
@@ -8990,7 +9028,7 @@ components:
           allOf:
             - $ref: '#/components/schemas/UserStatus'
           nullable: true
-          description: Status
+          description: Status. `null` if the employee has no status set.
         bot:
           type: boolean
           description: Whether this is a bot
@@ -9008,18 +9046,22 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          description: >-
+            User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has
+            never signed in to Pachca — in that case `invite_status` returns `sent`.
           example: '2025-01-20T13:40:07.000Z'
         time_zone:
           type: string
           nullable: true
           maxLength: 32
-          description: User time zone
+          description: >-
+            User time zone. `null` if the employee has not set a personal time zone — the company time zone applies
+            then.
           example: Europe/Moscow
         image_url:
           type: string
           nullable: true
-          description: User avatar download URL
+          description: User avatar download URL. `null` if no avatar is uploaded.
           example: https://app.pachca.com/users/12/photo.jpg
       description: Employee
     UserCreateRequest:
@@ -9201,7 +9243,9 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          description: >-
+            Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if no
+            expiration is set — such a status is not cleared automatically.
           example: '2024-04-08T10:00:00.000Z'
         is_away:
           type: boolean
@@ -9220,7 +9264,7 @@ components:
           nullable: true
           description: >-
             "Away" mode message. Displayed in the user profile, as well as when sending a direct message or mentioning
-            them in a chat.
+            them in a chat. `null` if the auto-reply text is not set.
       description: User status
     UserUpdateRequest:
       type: object
@@ -9679,7 +9723,7 @@ components:
           format: int32
           minimum: 1
           maximum: 10
-          description: Maximum number of files the user can upload to this field.
+          description: Maximum number of files the user can upload to this field
           example: 1
           default: 10
         required:
@@ -10039,13 +10083,13 @@ components:
         callback_id:
           type: string
           nullable: true
-          description: Callback ID specified when opening the view
+          description: Callback ID specified when opening the view. `null` if it was not specified when the form was opened.
           example: timeoff_request_form
         private_metadata:
           type: string
           nullable: true
-          description: Private metadata specified when opening the view
-          example: '{''timeoff_id'':4378}'
+          description: Private metadata specified when opening the view. `null` if it was not specified when the form was opened.
+          example: '{"timeoff_id":4378}'
         chat_id:
           type: integer
           format: int32
@@ -10065,7 +10109,7 @@ components:
         data:
           type: object
           additionalProperties: {}
-          description: Submitted view field data. Key — field `action_id`, value — entered data
+          description: Submitted view field data. Key — field `action_id`, value — entered data.
         webhook_timestamp:
           type: integer
           format: int32

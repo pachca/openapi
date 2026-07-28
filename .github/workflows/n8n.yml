@@ -116,6 +116,14 @@ jobs:
       - name: Generate n8n node
         run: bun run integrations/n8n/scripts/generate-n8n.ts
 
+      # The node files are committed, but nothing else verifies they match the
+      # spec: check-generated-sync.mjs deliberately excludes integrations/**.
+      # Without this, a spec change that regenerates the node leaves the commit
+      # stale, and check-release (which diffs HEAD~1) then reports no code
+      # change and silently skips the publish.
+      - name: n8n node is in sync with the spec
+        run: git diff --exit-code -- integrations/n8n/nodes integrations/n8n/credentials
+
       - name: Check n8n release (changelog-driven)
         id: changes
         run: |

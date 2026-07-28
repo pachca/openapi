@@ -6,7 +6,7 @@ export default class OauthTokenInfo extends BaseCommand {
   static override description = "Информация о токене";
 
   static override examples = [
-      "Проверить свой токен:\n  $ pachca oauth token-info"
+      "Проверить свой токен — Получи информацию о токене: скоупы, дату создания, срок жизни:\n  $ pachca oauth token-info"
   ];
 
   static override hiddenAliases = ["profile:get-info"];
@@ -32,7 +32,7 @@ export default class OauthTokenInfo extends BaseCommand {
       path: '/oauth/token/info',
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

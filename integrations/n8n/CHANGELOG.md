@@ -2,6 +2,20 @@
 
 # Changelog
 
+## 2.0.16 (2026-07-27)
+
+### Fixes
+
+- Requests: `POST`/`PATCH` are no longer auto-retried on 5xx — a committed write could be sent up to four times, creating duplicate messages. 429 still retries for every method
+- Bot: the resource no longer defaults to `Recreate own bot token`, an irreversible rotation that ran on a bare Execute. It now defaults to `Get Many`
+- User: `Update Avatar`, `Delete Avatar`, `Get Status`, `Update Status` and `Delete Status` show the user picker instead of a bare numeric field
+- Member: `Add Group Tags` / `Remove Group Tags` are labelled "to chat" — the tag is attached to the chat, not to a member
+- Chat picker: page size uses the v2 `limit` parameter and the cursor is URL-encoded, so pagination no longer breaks on base64 cursors containing `+` or `/`
+- Chat/user search: results past the first page are reachable, and the on-prem base URL is normalised (no more `//search/...` with a trailing slash)
+- Pagination: a `has_next: true` page with a missing or repeated cursor stops instead of truncating silently or refetching
+- Trigger: a webhook with a missing or zero `webhook_timestamp` is rejected when a signing secret is configured, instead of skipping the replay window
+- Form: the `Callback ID` placeholder read `timeoff_reguest_form` — a typo that did not match the value echoed back in the view-submit webhook
+
 ## 2.0.15 (2026-07-24)
 
 ### Improvements

@@ -7,7 +7,7 @@ export default class ProfileUpdateStatus extends BaseCommand {
   static override description = "Новый свой статус";
 
   static override examples = [
-      "Установить статус:\n  $ pachca profile update-status"
+      "Установить статус — Установи статус:\n  $ pachca profile update-status"
   ];
 
   static scope = "profile_status:write";
@@ -101,7 +101,7 @@ export default class ProfileUpdateStatus extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

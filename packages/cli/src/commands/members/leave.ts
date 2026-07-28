@@ -7,7 +7,7 @@ export default class MembersLeave extends BaseCommand {
   static override description = "Выход из беседы или канала";
 
   static override examples = [
-      "Архивация и управление чатом:\n  $ pachca members leave"
+      "Архивация и управление чатом — Покинуть чат:\n  $ pachca members leave"
   ];
 
   static scope = "chats:leave";

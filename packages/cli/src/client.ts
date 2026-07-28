@@ -126,6 +126,23 @@ export function formatDryRun(opts: RequestOptions, isJson: boolean): string | ob
   return lines.join('\n');
 }
 
+/** Longest we honour a server-supplied `Retry-After` before falling back. */
+const MAX_RETRY_AFTER_MS = 60_000;
+
+/**
+ * `Retry-After` in milliseconds. RFC 9110 allows both delta-seconds and an
+ * HTTP-date; parsing only the former turned a date into NaN and silently
+ * discarded the server's backoff. Negative and absurd values are clamped so a
+ * hostile or buggy header can neither hot-loop nor park the CLI for a day.
+ */
+function parseRetryAfter(header: string | null): number {
+  if (!header) return 1000;
+  const seconds = Number.parseInt(header, 10);
+  const ms = Number.isNaN(seconds) ? Date.parse(header) - Date.now() : seconds * 1000;
+  if (Number.isNaN(ms)) return 1000;
+  return Math.min(Math.max(ms, 0), MAX_RETRY_AFTER_MS);
+}
+
 export async function request(
   opts: RequestOptions,
   clientFlags?: ClientFlags,
@@ -133,8 +150,14 @@ export async function request(
   const url = buildUrl(opts.path, opts.query);
   const rawEnvTimeout = process.env.PACHCA_TIMEOUT ? Number(process.env.PACHCA_TIMEOUT) : undefined;
   const envTimeout = rawEnvTimeout && !Number.isNaN(rawEnvTimeout) ? rawEnvTimeout : undefined;
-  const timeoutSeconds = opts.timeout ?? clientFlags?.timeout ?? envTimeout ?? DEFAULT_TIMEOUT;
+  const requestedTimeout = opts.timeout ?? clientFlags?.timeout ?? envTimeout ?? DEFAULT_TIMEOUT;
+  // A non-positive timeout aborts on the next tick, which is never what anyone
+  // means by `--timeout 0`. The env var already ignored 0; make the flag agree.
+  const timeoutSeconds = requestedTimeout > 0 ? requestedTimeout : DEFAULT_TIMEOUT;
   const noRetry = opts.noRetry ?? clientFlags?.['no-retry'] ?? false;
+  // Retrying a request the server may already have committed duplicates it.
+  // Only these methods are safe to repeat blindly.
+  const safeMethod = ['GET', 'HEAD', 'OPTIONS', 'PUT'].includes(opts.method);
 
   const fetchHeaders: Record<string, string> = {
     ...(opts.noAuth ? {} : { Authorization: `Bearer ${opts.token}` }),
@@ -167,15 +190,20 @@ export async function request(
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutSeconds * 1000);
 
-      const response = await fetch(url, {
-        method: opts.method,
-        headers: fetchHeaders,
-        body: fetchBody,
-        signal: controller.signal,
-        redirect: opts.isRedirect ? 'manual' : 'follow',
-      });
-
-      clearTimeout(timer);
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          method: opts.method,
+          headers: fetchHeaders,
+          body: fetchBody,
+          signal: controller.signal,
+          redirect: opts.isRedirect ? 'manual' : 'follow',
+        });
+      } finally {
+        // Must run on reject too: a leaked timer keeps the event loop alive and
+        // the CLI hangs for the full timeout after an otherwise successful retry.
+        clearTimeout(timer);
+      }
 
       if (clientFlags?.verbose) {
         process.stderr.write(`${ansis.dim(`← ${response.status} ${response.statusText}`)}\n`);
@@ -192,11 +220,10 @@ export async function request(
         };
       }
 
-      // Handle rate limiting (429)
+      // Handle rate limiting (429). Safe for any method: a throttled request
+      // was rejected before it was processed, so it cannot have been committed.
       if (response.status === 429 && !noRetry && attempt < MAX_RETRIES) {
-        const retryAfter = response.headers.get('retry-after');
-        const parsed = retryAfter ? Number.parseInt(retryAfter, 10) : NaN;
-        const waitMs = Number.isNaN(parsed) ? 1000 : parsed * 1000;
+        const waitMs = parseRetryAfter(response.headers.get('retry-after'));
         if (clientFlags?.verbose) {
           process.stderr.write(`${ansis.dim(`⏳ Rate limited, retrying in ${waitMs}ms...`)}\n`);
         }
@@ -204,8 +231,10 @@ export async function request(
         continue;
       }
 
-      // Handle 503 with backoff
-      if (response.status === 503 && !noRetry && attempt < MAX_RETRIES) {
+      // Handle 503 with backoff. Unlike 429, a 503 from a proxy or a draining
+      // load balancer says nothing about whether the backend already committed
+      // the write — retrying a POST there duplicates the message.
+      if (response.status === 503 && safeMethod && !noRetry && attempt < MAX_RETRIES) {
         const baseMs = 1000;
         const waitMs = baseMs * Math.pow(2, attempt) + Math.random() * baseMs;
         if (clientFlags?.verbose) {
@@ -253,7 +282,6 @@ export async function request(
 
       lastError = error as Error;
       // Only retry network errors for idempotent methods (not POST/DELETE)
-      const safeMethod = ['GET', 'HEAD', 'OPTIONS', 'PUT'].includes(opts.method);
       if (!safeMethod || noRetry || attempt >= MAX_RETRIES) {
         break;
       }
@@ -367,7 +395,11 @@ export async function downloadFile(url: string, savePath: string): Promise<{ siz
         const urlPath = new URL(url).pathname;
         filename = path.basename(urlPath.split('?')[0]);
       }
-      if (!filename) filename = 'download';
+      // Strip any directory part: the name comes from a Content-Disposition on
+      // a redirect target outside our trust boundary, and `../../..` in it would
+      // otherwise let the response choose where on disk to write.
+      filename = path.basename(filename);
+      if (!filename || filename === '.' || filename === '..') filename = 'download';
 
       if (!fs.existsSync(savePath)) {
         throw new Error(`Directory does not exist: ${savePath}`);

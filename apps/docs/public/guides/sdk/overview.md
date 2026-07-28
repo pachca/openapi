@@ -14,6 +14,13 @@
 
 ## Готовые SDK
 
+- [TypeScript](/guides/sdk/typescript) npm · async/await · fetch
+- [Python](/guides/sdk/python) PyPI · async/await · httpx
+- [Go](/guides/sdk/go) go get · sync · net/http
+- [Kotlin](/guides/sdk/kotlin) JitPack · coroutines · Ktor
+- [Swift](/guides/sdk/swift) SPM · async throws · URLSession
+- [C#](/guides/sdk/csharp) NuGet · async/await · HttpClient
+
 
 Автоматически обновляются при каждом обновлении спецификации. [Исходный код на GitHub](https://github.com/pachca/openapi/tree/main/sdk).
 

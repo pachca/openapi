@@ -6,7 +6,7 @@
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "val startTime = OffsetDateTime.parse(\"2025-05-01T09:11:00Z\")\nval endTime = OffsetDateTime.parse(\"2025-05-02T09:11:00Z\")\nval response = client.security.getAuditEvents(startTime = startTime, endTime = endTime, eventKey = AuditEventKey.USER_LOGIN, actorId = \"98765\", actorType = \"User\", entityId = \"98765\", entityType = \"User\", limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "usage": "val startTime = OffsetDateTime.parse(\"2025-05-01T09:11:00.000Z\")\nval endTime = OffsetDateTime.parse(\"2025-05-02T09:11:00.000Z\")\nval response = client.security.getAuditEvents(startTime = startTime, endTime = endTime, eventKey = AuditEventKey.USER_LOGIN, actorId = \"98765\", actorType = \"User\", entityId = \"98765\", entityType = \"User\", limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "GetAuditEventsResponse(data: List<AuditEvent>, meta: PaginationMeta)",
     "imports": [
       "AuditEventKey"
@@ -267,7 +267,7 @@
   },
   "ReactionOperations_addReaction": {
     "usage": "val request = ReactionRequest(code = \"👍\", name = \":+1:\")\nval response = client.reactions.addReaction(id = 7231942, request = request)",
-    "output": "Reaction(userId: Int, createdAt: OffsetDateTime, code: String, name: String?)",
+    "output": "Reaction(userId: Int, createdAt: OffsetDateTime, code: String, name: String)",
     "imports": [
       "ReactionRequest"
     ]
@@ -301,11 +301,11 @@
   },
   "ProfileOperations_getProfile": {
     "usage": "val response = client.profile.getProfile()",
-    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)"
+    "output": "User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)"
   },
   "ProfileOperations_getStatus": {
     "usage": "val response = client.profile.getStatus()",
-    "output": "Any"
+    "output": "UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)"
   },
   "ProfileAvatarOperations_updateProfileAvatar": {
     "usage": "val image = ByteArray(0)\nval response = client.profile.updateProfileAvatar(image = image)",
@@ -356,11 +356,11 @@
   },
   "TaskOperations_getTask": {
     "usage": "val response = client.tasks.getTask(id = 22283)",
-    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)"
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)>)"
   },
   "TaskOperations_createTask": {
     "usage": "val request = TaskCreateRequest(\n    task = TaskCreateRequestTask(\n        kind = TaskKind.REMINDER,\n        content = \"Забрать со склада 21 заказ\",\n        dueAt = OffsetDateTime.parse(\"2020-06-05T12:00:00.000+03:00\"),\n        priority = 2,\n        performerIds = listOf(123),\n        chatId = 456,\n        allDay = false,\n        customProperties = listOf(TaskCreateRequestCustomProperty(id = 78, value = \"Синий склад\"))\n    )\n)\nval response = client.tasks.createTask(request = request)",
-    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)>)",
     "imports": [
       "TaskCreateRequest",
       "TaskCreateRequestCustomProperty",
@@ -370,7 +370,7 @@
   },
   "TaskOperations_updateTask": {
     "usage": "val request = TaskUpdateRequest(\n    task = TaskUpdateRequestTask(\n        kind = TaskKind.REMINDER,\n        content = \"Забрать со склада 21 заказ\",\n        dueAt = OffsetDateTime.parse(\"2020-06-05T12:00:00.000+03:00\"),\n        priority = 2,\n        performerIds = listOf(123),\n        status = TaskStatus.DONE,\n        allDay = false,\n        doneAt = OffsetDateTime.parse(\"2020-06-05T12:00:00.000Z\"),\n        customProperties = listOf(TaskUpdateRequestCustomProperty(id = 78, value = \"Синий склад\"))\n    )\n)\nval response = client.tasks.updateTask(id = 22283, request = request)",
-    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)>)",
     "imports": [
       "TaskKind",
       "TaskStatus",
@@ -388,15 +388,15 @@
   },
   "UserOperations_getUser": {
     "usage": "val response = client.users.getUser(id = 12)",
-    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)"
+    "output": "User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)"
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "val response = client.users.getUserStatus(userId = 12)",
-    "output": "Any"
+    "output": "UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)"
   },
   "UserOperations_createUser": {
     "usage": "val request = UserCreateRequest(\n    user = UserCreateRequestUser(\n        firstName = \"Олег\",\n        lastName = \"Петров\",\n        email = \"olegp@example.com\",\n        phoneNumber = \"+79001234567\",\n        nickname = \"olegpetrov\",\n        department = \"Продукт\",\n        title = \"CIO\",\n        role = UserCreateRole.USER,\n        suspended = false,\n        listTags = listOf(\"example\"),\n        chatIds = listOf(123),\n        customProperties = listOf(UserCreateRequestCustomProperty(id = 1678, value = \"Санкт-Петербург\"))\n    ),\n    skipEmailNotify = false\n)\nval response = client.users.createUser(request = request)",
-    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)",
+    "output": "User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
@@ -406,7 +406,7 @@
   },
   "UserOperations_updateUser": {
     "usage": "val request = UserUpdateRequest(\n    user = UserUpdateRequestUser(\n        firstName = \"Олег\",\n        lastName = \"Петров\",\n        email = \"olegpetrov@example.com\",\n        phoneNumber = \"+79001234567\",\n        nickname = \"olegpetrov\",\n        department = \"Отдел разработки\",\n        title = \"Старший разработчик\",\n        role = UserRoleInput.USER,\n        suspended = false,\n        listTags = listOf(\"example\"),\n        customProperties = listOf(UserUpdateRequestCustomProperty(id = 1678, value = \"Санкт-Петербург\"))\n    )\n)\nval response = client.users.updateUser(id = 12, request = request)",
-    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)",
+    "output": "User(id: Int, firstName: String?, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)",
     "imports": [
       "UserRoleInput",
       "UserUpdateRequest",
@@ -436,7 +436,7 @@
     "usage": "client.users.deleteUserStatus(userId = 12)"
   },
   "FormOperations_openView": {
-    "usage": "val request = OpenViewRequest(\n    type = \"modal\",\n    triggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    privateMetadata = \"{\\\"timeoff_id\\\":4378}\",\n    callbackId = \"timeoff_reguest_form\",\n    view = OpenViewRequestView(\n        title = \"Уведомление об отпуске\",\n        closeText = \"Закрыть\",\n        submitText = \"Отправить заявку\",\n        blocks = listOf(ViewBlockHeader(type = \"header\", text = \"Основная информация\"))\n    )\n)\nclient.views.openView(request = request)",
+    "usage": "val request = OpenViewRequest(\n    type = \"modal\",\n    triggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    privateMetadata = \"{\\\"timeoff_id\\\":4378}\",\n    callbackId = \"timeoff_request_form\",\n    view = OpenViewRequestView(\n        title = \"Уведомление об отпуске\",\n        closeText = \"Закрыть\",\n        submitText = \"Отправить заявку\",\n        blocks = listOf(ViewBlockHeader(type = \"header\", text = \"Основная информация\"))\n    )\n)\nclient.views.openView(request = request)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

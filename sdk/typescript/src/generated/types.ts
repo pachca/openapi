@@ -631,7 +631,7 @@ export interface ApiErrorItem {
   value: string | null;
   message: string;
   code: ValidationErrorCode;
-  payload: Record<string, string> | null;
+  payload: Record<string, unknown> | null;
 }
 
 export interface AuditDetailsBotScopes {
@@ -640,7 +640,7 @@ export interface AuditDetailsBotScopes {
 }
 
 export interface AuditDetailsBotWebhookSettings {
-  changes: Record<string, string>;
+  changes: Record<string, unknown>;
 }
 
 export interface AuditDetailsChatId {
@@ -694,7 +694,7 @@ export interface AuditDetailsSearch {
   queryPresent: boolean;
   cursorPresent: boolean;
   limit: number;
-  filters: Record<string, string>;
+  filters: Record<string, unknown>;
 }
 
 export interface AuditDetailsTagChat {
@@ -905,7 +905,7 @@ export interface CustomProperty {
   id: number;
   name: string;
   dataType: CustomPropertyDataType;
-  value: string;
+  value: string | null;
 }
 
 export interface CustomPropertyDefinition {
@@ -1012,8 +1012,8 @@ export interface Message {
   } | null;
   forwarding: Forwarding | null;
   parentMessageId: number | null;
-  displayAvatarUrl: string | null;
-  displayName: string | null;
+  displayAvatarUrl?: string | null;
+  displayName?: string | null;
   changedAt: string | null;
   deletedAt: string | null;
 }
@@ -1121,7 +1121,7 @@ export interface Reaction {
   userId: number;
   createdAt: string;
   code: string;
-  name: string | null;
+  name: string;
 }
 
 export interface ReactionRequest {
@@ -1238,7 +1238,7 @@ export interface UploadParams {
 
 export interface User {
   id: number;
-  firstName: string;
+  firstName: string | null;
   lastName: string | null;
   nickname: string;
   email: string | null;
@@ -1466,7 +1466,7 @@ export interface ViewSubmitWebhookPayload {
   privateMetadata: string | null;
   chatId: number | null;
   userId: number;
-  data: Record<string, string>;
+  data: Record<string, unknown>;
   webhookTimestamp: number;
 }
 

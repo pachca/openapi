@@ -7,9 +7,9 @@ export default class MessagesCreate extends BaseCommand {
   static override description = "Новое сообщение";
 
   static override examples = [
-      "Найти чат по имени и отправить сообщение:\n  $ pachca messages create",
-      "Отправить сообщение в канал или беседу (если chat_id известен):\n  $ pachca messages create",
-      "Отправить личное сообщение пользователю:\n  $ pachca messages create"
+      "Найти чат по имени и отправить сообщение — Отправь сообщение в найденный чат:\n  $ pachca messages create",
+      "Отправить сообщение в канал или беседу (если chat_id известен) — Отправь сообщение в чат:\n  $ pachca messages create",
+      "Отправить личное сообщение пользователю — Отправь личное сообщение:\n  $ pachca messages create"
   ];
 
   static scope = "messages:create";
@@ -129,7 +129,7 @@ export default class MessagesCreate extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

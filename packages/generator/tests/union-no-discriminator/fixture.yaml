@@ -1,0 +1,108 @@
+openapi: 3.0.0
+info:
+  title: Test API — Union without a discriminator
+  version: 1.0.0
+# Union whose members share no literal field: the selector lives on the PARENT
+# object (`event_key`), exactly like AuditEventDetailsUnion in the real spec.
+# Emitters must fall back to structural decoding instead of inventing a `type`
+# key that never appears on the wire.
+paths:
+  /events:
+    get:
+      operationId: getEvents
+      summary: Список событий
+      tags:
+        - Events
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+components:
+  schemas:
+    DetailsEmpty:
+      type: object
+      description: Пустые детали — у события нет дополнительных полей.
+
+    DetailsChat:
+      type: object
+      required:
+        - chat_id
+      properties:
+        chat_id:
+          type: integer
+          description: Идентификатор чата.
+      description: Детали с одним чатом.
+
+    DetailsCall:
+      type: object
+      required:
+        - chat_id
+        - duration
+      properties:
+        chat_id:
+          type: integer
+          description: Идентификатор чата.
+        duration:
+          type: integer
+          description: Длительность звонка в секундах.
+        recording_size:
+          type: integer
+          format: int64
+          nullable: true
+          description: Размер записи в байтах.
+      description: Детали звонка — расширяет чат длительностью.
+
+    DetailsRename:
+      type: object
+      required:
+        - old_name
+        - new_name
+      properties:
+        old_name:
+          type: string
+          description: Прежнее название.
+        new_name:
+          type: string
+          description: Новое название.
+      description: Детали переименования.
+
+    EventDetailsUnion:
+      anyOf:
+        - $ref: '#/components/schemas/DetailsEmpty'
+        - $ref: '#/components/schemas/DetailsChat'
+        - $ref: '#/components/schemas/DetailsCall'
+        - $ref: '#/components/schemas/DetailsRename'
+      description: Детали события. Структура зависит от значения event_key.
+
+    Event:
+      type: object
+      required:
+        - id
+        - event_key
+        - details
+      properties:
+        id:
+          type: integer
+          description: Идентификатор события.
+        event_key:
+          type: string
+          enum:
+            - chat_created
+            - chat_renamed
+            - call_finished
+          description: Тип события — он же селектор для details.
+        details:
+          allOf:
+            - $ref: '#/components/schemas/EventDetailsUnion'
+          description: Дополнительные детали события.
+      description: Событие журнала аудита.

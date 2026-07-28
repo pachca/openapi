@@ -181,7 +181,11 @@ export function setConfigValue(key: string, value: string): void {
 
 /**
  * Resolve the token to use, respecting priority:
- * --token > PACHCA_TOKEN env > --profile/PACHCA_PROFILE > active profile > error
+ * --token > --profile > PACHCA_TOKEN env > PACHCA_PROFILE env > active profile > error
+ *
+ * Explicit flags beat ambient environment. An exported PACHCA_TOKEN (common in
+ * CI and agent shells) used to win over an explicit `--profile staging`, so the
+ * command silently wrote to the wrong workspace with the wrong token.
  */
 export function resolveToken(flags: {
   token?: string;
@@ -192,8 +196,8 @@ export function resolveToken(flags: {
     return { token: flags.token };
   }
 
-  // 2. PACHCA_TOKEN env
-  if (process.env.PACHCA_TOKEN) {
+  // 2. PACHCA_TOKEN env — unless a profile was named explicitly
+  if (!flags.profile && process.env.PACHCA_TOKEN) {
     return { token: process.env.PACHCA_TOKEN };
   }
 

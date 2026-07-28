@@ -6,7 +6,7 @@ export default class TasksGet extends BaseCommand {
   static override description = "Информация о напоминании";
 
   static override examples = [
-      "Получить задачу по ID:\n  $ pachca tasks get"
+      "Получить задачу по ID — Получи информацию о задаче:\n  $ pachca tasks get"
   ];
 
   static scope = "tasks:read";
@@ -35,7 +35,7 @@ export default class TasksGet extends BaseCommand {
       path: `/tasks/${args.id}`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

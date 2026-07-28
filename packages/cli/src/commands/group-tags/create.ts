@@ -7,7 +7,7 @@ export default class GroupTagsCreate extends BaseCommand {
   static override description = "Новый тег";
 
   static override examples = [
-      "Массовое создание сотрудников с тегами:\n  $ pachca group-tags create"
+      "Массовое создание сотрудников с тегами — Создай тег (если нужен):\n  $ pachca group-tags create"
   ];
 
   static scope = "group_tags:write";
@@ -73,7 +73,7 @@ export default class GroupTagsCreate extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

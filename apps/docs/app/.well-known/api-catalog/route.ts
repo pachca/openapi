@@ -38,7 +38,7 @@ export async function GET(): Promise<Response> {
           {
             href: `${SITE_URL}/openapi.yaml`,
             type: 'application/yaml',
-            title: 'Pachca API — OpenAPI 3.1 specification',
+            title: 'Pachca API — OpenAPI 3.0 specification',
           },
           {
             href: `${SITE_URL}/pachca.postman_collection.json`,

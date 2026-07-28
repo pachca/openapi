@@ -20,6 +20,7 @@ from pachca.models import (
     LinkSharedWebhookPayload,
     MessageWebhookPayload,
     ReactionWebhookPayload,
+    VideoCallWebhookPayload,
     ViewSubmitWebhookPayload,
     WebhookPayloadUnion,
 )
@@ -41,6 +42,8 @@ def summarize_payload(payload: WebhookPayloadUnion) -> str:
             return f"chat_member event={payload.event} chat_id={payload.chat_id} users={len(payload.user_ids)}"
         case CompanyMemberWebhookPayload():
             return f"company_member event={payload.event} users={len(payload.user_ids)}"
+        case VideoCallWebhookPayload():
+            return f"video_call event={payload.event} chat_id={payload.chat_id} room_id={payload.video_room_id}"
         case _:
             return f"unknown type={type(payload).__name__}"
 
@@ -64,4 +67,5 @@ async def main():
     await client.close()
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

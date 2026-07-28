@@ -6,9 +6,9 @@ export default class UsersList extends BaseCommand {
   static override description = "Список сотрудников";
 
   static override examples = [
-      "Проверить, кто прочитал сообщение:\n  $ pachca users list",
-      "Разослать уведомление нескольким пользователям:\n  $ pachca users list",
-      "Найти сотрудника по имени или email:\n  $ pachca users list"
+      "Проверить, кто прочитал сообщение — При необходимости сопоставь с именами сотрудников:\n  $ pachca users list",
+      "Разослать уведомление нескольким пользователям — Определи список `user_id` получателей:\n  $ pachca users list",
+      "Найти сотрудника по имени или email — Поиск по имени/email (частичное совпадение):\n  $ pachca users list"
   ];
 
   static scope = "users:read";
@@ -102,7 +102,7 @@ export default class UsersList extends BaseCommand {
       },
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const items = responseBody.data ?? responseBody;
     this.output(items);
   }

@@ -166,8 +166,56 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
   lines.push('}');
 }
 
+/** Union whose members share no discriminator: try each member, most specific first. */
+function emitStructuralUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
+  lines.push(`public enum ${u.name}: Codable {`);
+  for (const ref of u.memberRefs) {
+    const c = ref.charAt(0).toLowerCase() + ref.slice(1);
+    lines.push(`    case ${c}(${ref})`);
+  }
+  lines.push('');
+  // Synthesized decoders only fail on a missing required key, so ordering by
+  // required-field count descending makes the most demanding member win and
+  // leaves the loosest one (typically an empty object) as the fallback.
+  const ordered = [...u.memberRefs].sort((a, b) => {
+    const req = (ref: string) =>
+      (models.find((m) => m.name === ref)?.fields ?? []).filter((f) => !isOptionalField(f)).length;
+    const all = (ref: string) => (models.find((m) => m.name === ref)?.fields ?? []).length;
+    return req(b) - req(a) || all(b) - all(a) || a.localeCompare(b);
+  });
+  lines.push('    public init(from decoder: Decoder) throws {');
+  lines.push(`        // ${u.name} carries no discriminator field: members are tried from most`);
+  lines.push('        // to least demanding, so the loosest one only wins when nothing else fits.');
+  for (const ref of ordered) {
+    const c = ref.charAt(0).toLowerCase() + ref.slice(1);
+    lines.push(`        if let value = try? ${ref}(from: decoder) {`);
+    lines.push(`            self = .${c}(value)`);
+    lines.push('            return');
+    lines.push('        }');
+  }
+  lines.push('        throw DecodingError.dataCorrupted(');
+  lines.push(`            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "No ${u.name} member matched the payload")`);
+  lines.push('        )');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    public func encode(to encoder: Encoder) throws {');
+  lines.push('        switch self {');
+  for (const ref of u.memberRefs) {
+    const c = ref.charAt(0).toLowerCase() + ref.slice(1);
+    lines.push(`        case .${c}(let value):`);
+    lines.push('            try value.encode(to: encoder)');
+  }
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('}');
+}
+
 function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   const discField = u.discriminatorField;
+  if (!discField) {
+    emitStructuralUnion(lines, u, models);
+    return;
+  }
   const discSwiftName = snakeToCamel(discField.replace(/[-:]/g, '_'));
   lines.push(`public enum ${u.name}: Codable {`);
   for (const ref of u.memberRefs) {

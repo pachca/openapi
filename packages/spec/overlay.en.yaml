@@ -14,7 +14,7 @@ actions:
       description: Start timestamp (inclusive)
   - target: $.paths['/audit_events'].get.parameters[?(@.name=='end_time')]
     update:
-      description: End timestamp (exclusive)
+      description: End timestamp (inclusive)
   - target: $.paths['/audit_events'].get.parameters[?(@.name=='event_key')]
     update:
       description: Filter by specific event type
@@ -633,10 +633,7 @@ actions:
         Retrieve information about your own profile.
   - target: $.paths['/profile/status'].get
     update:
-      description: |-
-        Own status
-
-        Retrieve information about your current status.
+      description: "Own status\n\nMethod for retrieving information about your own status.\n\nIf no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side."
   - target: $.paths['/profile/status'].put
     update:
       description: |-
@@ -959,10 +956,7 @@ actions:
       description: User ID
   - target: $.paths['/users/{user_id}/status'].get
     update:
-      description: |-
-        Employee status
-
-        Retrieve information about an employee's status.
+      description: "Employee status\n\nMethod for retrieving information about an employee's status.\n\nIf no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side."
   - target: $.paths['/users/{user_id}/status'].get.parameters[?(@.name=='user_id')]
     update:
       description: User ID
@@ -1059,7 +1053,7 @@ actions:
       description: Masked token (first 8 and last 4 characters visible)
   - target: $.components.schemas.AccessTokenInfo.properties.name
     update:
-      description: User-defined token name
+      description: "User-defined token name. `null` for a bot token — a name is only set when a token is created manually."
   - target: $.components.schemas.AccessTokenInfo.properties.user_id
     update:
       description: Token owner ID
@@ -1071,13 +1065,13 @@ actions:
       description: Token creation date
   - target: $.components.schemas.AccessTokenInfo.properties.revoked_at
     update:
-      description: Token revocation date
+      description: "Token revocation date. Always `null`: the method returns 401 for a revoked token."
   - target: $.components.schemas.AccessTokenInfo.properties.expires_in
     update:
-      description: Token lifetime in seconds
+      description: "Token lifetime in seconds. Always `null` — tokens are issued without expiry."
   - target: $.components.schemas.AccessTokenInfo.properties.last_used_at
     update:
-      description: Token last used date
+      description: "Token last used date. `null` until the token has been used at least once. Updated at most once per hour, so it may lag behind."
   - target: $.components.schemas.AddMembersRequest
     update:
       description: Request to add members to a chat
@@ -1107,7 +1101,7 @@ actions:
       description: Error field key
   - target: $.components.schemas.ApiErrorItem.properties.value
     update:
-      description: Field value that caused the error
+      description: "Field value that caused the error. `null` if the error does not relate to a specific value."
   - target: $.components.schemas.ApiErrorItem.properties.message
     update:
       description: Error message
@@ -1116,9 +1110,7 @@ actions:
       description: Error code
   - target: $.components.schemas.ApiErrorItem.properties.payload
     update:
-      description: >-
-        Additional error data. Content depends on the error code: `{id: number}` — for custom property errors (property
-        ID), `{record: {type: string, id: number}, query: string}` — for authorization errors. In most cases `null`
+      description: "Additional error data. Content depends on the error code: `{id: number}` — for custom property errors (property ID), `{record: {type: string, id: number}, query: string}` — for authorization errors. In most cases `null`."
   - target: $.components.schemas.AuditDetailsChatId
     update:
       description: 'For: tag_removed_from_chat'
@@ -1166,10 +1158,7 @@ actions:
       description: Rule conditions check result (true — conditions matched)
   - target: $.components.schemas.AuditDetailsEmpty
     update:
-      description: >-
-        Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted,
-        chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted,
-        thread_created, audit_events_accessed
+      description: "Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed."
   - target: $.components.schemas.AuditDetailsInitiator
     update:
       description: 'For: user_added_to_tag, user_removed_from_tag, user_chat_leave'
@@ -1223,9 +1212,7 @@ actions:
       description: Number of returned results
   - target: $.components.schemas.AuditDetailsSearch.properties.filters
     update:
-      description: >-
-        Applied filters. Possible keys depend on the search type: order, sort, created_from, created_to, company_roles
-        (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)
+      description: "Applied filters. Possible keys depend on the search type: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)."
   - target: $.components.schemas.AuditDetailsBotScopes
     update:
       description: 'For: bot_scopes_updated'
@@ -1240,9 +1227,7 @@ actions:
       description: 'For: bot_webhook_settings_updated'
   - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.changes
     update:
-      description: >-
-        Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages,
-        events_history_enabled), the value is an object with previous and new fields
+      description: "Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages, events_history_enabled), the value is an object with previous and new fields."
   - target: $.components.schemas.AuditDetailsVideoCall
     update:
       description: 'For: video_call_started, video_call_finished'
@@ -1320,9 +1305,7 @@ actions:
       description: Actor type
   - target: $.components.schemas.AuditEvent.properties.details
     update:
-      description: >-
-        Additional event details. Structure depends on the event_key value — see event_key field value descriptions. For
-        events without details, an empty object is returned
+      description: "Additional event details. Structure depends on the event_key value — see event_key field value descriptions. For events without details, an empty object is returned."
   - target: $.components.schemas.AuditEvent.properties.ip_address
     update:
       description: IP address from which the action was performed
@@ -1331,7 +1314,7 @@ actions:
       description: Client user agent
   - target: $.components.schemas.AuditEventDetailsUnion
     update:
-      description: Additional audit event details. Structure depends on the event_key value
+      description: "Additional audit event details. Structure depends on the event_key value."
   - target: $.components.schemas.AuditEventKey
     update:
       description: Audit event type
@@ -1400,7 +1383,7 @@ actions:
       description: Outgoing webhook URL
   - target: $.components.schemas.BotResponse.properties.webhook.properties.scopes
     update:
-      description: Bot token scopes (permissions)
+      description: "Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values that cannot be set explicitly may appear here."
   - target: $.components.schemas.BotResponse.properties.webhook.properties.template
     update:
       description: Template for formatting the incoming webhook. `null` if not set.
@@ -1430,7 +1413,7 @@ actions:
       description: Who can add the bot to chats
   - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.scopes
     update:
-      description: Bot token scopes (permissions)
+      description: "Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values that cannot be set explicitly may appear here."
   - target: $.components.schemas.BotCreateResponse.properties.webhook.properties.template
     update:
       description: Template for formatting the incoming webhook. `null` if not set.
@@ -1484,7 +1467,7 @@ actions:
       description: Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.scopes
     update:
-      description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+      description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
   - target: $.components.schemas.BotUpdateRequest.properties.webhook.properties.template
     update:
       description: Template for formatting the incoming webhook
@@ -1605,7 +1588,7 @@ actions:
       description: Bot commands (trigger words) it reacts to when trigger_on = commands. The combined length of the comma-joined commands must not exceed 255 characters.
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.scopes
     update:
-      description: Bot token scopes (permissions). If omitted, the bot receives the default set.
+      description: "Bot token scopes (permissions). If omitted, the bot receives the default set. Not every scope is available to a bot: some are allowed only for user roles, and attempting to assign such a scope returns `400`. The service values `bot` and `all` cannot be assigned."
   - target: $.components.schemas.BotCreateRequest.properties.webhook.properties.template
     update:
       description: Template for formatting the incoming webhook
@@ -1644,7 +1627,7 @@ actions:
       description: Bot nickname
   - target: $.components.schemas.BotWebhook.properties.outgoing_url
     update:
-      description: Outgoing webhook URL
+      description: "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
   - target: $.components.schemas.BotWebhook.properties.events
     update:
       description: Events the bot is subscribed to
@@ -1656,7 +1639,7 @@ actions:
       description: Bot commands (trigger words)
   - target: $.components.schemas.BotWebhook.properties.scopes
     update:
-      description: Bot token scopes (permissions)
+      description: "Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values that cannot be set explicitly may appear here."
   - target: $.components.schemas.BotWebhook.properties.template
     update:
       description: Template for formatting the incoming webhook. `null` if not set.
@@ -1862,7 +1845,7 @@ actions:
       description: ID of the message the button belongs to
   - target: $.components.schemas.ButtonWebhookPayload.properties.trigger_id
     update:
-      description: Unique event identifier. Lifetime — 3 seconds. Can be used, for example, to open a view for the user
+      description: "Unique event identifier. Lifetime — 3 seconds. Can be used, for example, to open a view for the user."
   - target: $.components.schemas.ButtonWebhookPayload.properties.data
     update:
       description: Clicked button data
@@ -1978,7 +1961,7 @@ actions:
       description: ID of the chat where membership changed
   - target: $.components.schemas.ChatMemberWebhookPayload.properties.thread_id
     update:
-      description: Thread ID
+      description: "Thread ID. `null` if the members were added to a regular chat or channel rather than a thread."
   - target: $.components.schemas.ChatMemberWebhookPayload.properties.user_ids
     update:
       description: Array of user IDs affected by the event
@@ -2052,7 +2035,9 @@ actions:
       description: Property type
   - target: $.components.schemas.CustomProperty.properties.value
     update:
-      description: Value
+      description: >-
+        Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601
+        format.
   - target: $.components.schemas.CustomPropertyDataType
     update:
       description: Custom property data type
@@ -2113,10 +2098,10 @@ actions:
       description: Direct file download URL
   - target: $.components.schemas.File.properties.width
     update:
-      description: Image width in pixels
+      description: "Image width in pixels. `null` for files that are not images, and if the size was not supplied at upload time."
   - target: $.components.schemas.File.properties.height
     update:
-      description: Image height in pixels
+      description: "Image height in pixels. `null` for files that are not images, and if the size was not supplied at upload time."
   - target: $.components.schemas.FileType
     update:
       description: File type
@@ -2176,10 +2161,10 @@ actions:
       description: ID of the thread containing the original message
   - target: $.components.schemas.Forwarding.properties.original_thread_message_id
     update:
-      description: ID of the message that the thread containing the original message was created for
+      description: "ID of the message that the thread containing the original message was created for. `null` if the original message was not in a thread, or the thread was created without being linked to a message."
   - target: $.components.schemas.Forwarding.properties.original_thread_parent_chat_id
     update:
-      description: ID of the chat of the message that the thread containing the original message was created for
+      description: "ID of the chat of the message that the thread containing the original message was created for. `null` if the original message was not in a thread, or the thread was created without being linked to a message."
   - target: $.components.schemas.GroupTag
     update:
       description: Group tag
@@ -2235,7 +2220,7 @@ actions:
       description: Link unfurling request
   - target: $.components.schemas.LinkPreviewsRequest.properties.link_previews
     update:
-      description: '`JSON` map of link previews, where each key is a `URL` received in the outgoing webhook about a new message.'
+      description: "`JSON` map of link previews, where each key is a `URL` received in the outgoing webhook about a new message"
   - target: $.components.schemas.LinkSharedWebhookPayload
     update:
       description: Outgoing webhook payload for link unfurling
@@ -2430,10 +2415,10 @@ actions:
       description: Attached files
   - target: $.components.schemas.Message.properties.buttons
     update:
-      description: Array of rows, each represented as an array of buttons
+      description: "Array of rows, each represented as an array of buttons. `null` if the message was sent without buttons."
   - target: $.components.schemas.Message.properties.thread
     update:
-      description: Message thread
+      description: "Thread created for this message. `null` if no thread was created, and for messages that are themselves inside a thread."
   - target: $.components.schemas.Message.properties.thread.properties.id
     update:
       description: Thread ID
@@ -2442,22 +2427,22 @@ actions:
       description: Thread chat ID
   - target: $.components.schemas.Message.properties.forwarding
     update:
-      description: Forwarded message information
+      description: "Forwarded message information. `null` if the message is not a forwarded one."
   - target: $.components.schemas.Message.properties.parent_message_id
     update:
-      description: ID of the message being replied to
+      description: "ID of the message being replied to. `null` if the message is not a reply to another message."
   - target: $.components.schemas.Message.properties.display_avatar_url
     update:
-      description: Message sender avatar URL
+      description: "Message sender avatar URL. The field is present only on messages from bots; it is absent from the response for messages from employees. `null` if the bot did not override the value when sending."
   - target: $.components.schemas.Message.properties.display_name
     update:
-      description: Message sender full name
+      description: "Message sender full name. The field is present only on messages from bots; it is absent from the response for messages from employees. `null` if the bot did not override the value when sending."
   - target: $.components.schemas.Message.properties.changed_at
     update:
-      description: Message last edit date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+      description: "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced."
   - target: $.components.schemas.Message.properties.deleted_at
     update:
-      description: Message deletion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+      description: "Message deletion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` for messages that are not deleted. Deleted messages are not returned in the message list."
   - target: $.components.schemas.MessageCreateRequest
     update:
       description: Message creation request
@@ -2603,10 +2588,10 @@ actions:
       description: ID of the chat containing the message
   - target: $.components.schemas.MessageWebhookPayload.properties.parent_message_id
     update:
-      description: ID of the message being replied to
+      description: "ID of the message being replied to. `null` if the message is not a reply to another message."
   - target: $.components.schemas.MessageWebhookPayload.properties.thread
     update:
-      description: Thread parameters object
+      description: "The thread the message was sent in. `null` if the message was not sent in a thread. Unlike the `thread` field on the REST API message object, this describes the thread the message is inside of."
   - target: $.components.schemas.MessageWebhookPayload.properties.webhook_timestamp
     update:
       description: Webhook send date and time (UTC+0) in UNIX format
@@ -2876,7 +2861,7 @@ actions:
       description: Description
   - target: $.components.schemas.Task.properties.due_at
     update:
-      description: Task due date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+      description: "Task due date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if no due date is set."
   - target: $.components.schemas.Task.properties.priority
     update:
       description: Priority
@@ -2885,7 +2870,7 @@ actions:
       description: ID of the user who created the task
   - target: $.components.schemas.Task.properties.chat_id
     update:
-      description: ID of the chat the task is linked to
+      description: "ID of the chat the task is linked to. `null` if the task is not linked to a chat."
   - target: $.components.schemas.Task.properties.status
     update:
       description: Task status
@@ -2920,7 +2905,7 @@ actions:
         be created as an all-day task (without specific time).
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.priority
     update:
-      description: 'Priority: 1, 2 (important), or 3 (very important).'
+      description: 'Priority: 1, 2 (important), or 3 (very important)'
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.performer_ids
     update:
       description: Array of user IDs to assign as task performers (defaults to you)
@@ -2977,7 +2962,7 @@ actions:
         be created as an all-day task (without specific time).
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.priority
     update:
-      description: 'Priority: 1, 2 (important), or 3 (very important).'
+      description: 'Priority: 1, 2 (important), or 3 (very important)'
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.performer_ids
     update:
       description: Array of user IDs to assign as task performers
@@ -3063,10 +3048,11 @@ actions:
       description: User ID
   - target: $.components.schemas.User.properties.first_name
     update:
-      description: First name
+      description: >-
+        First name. Returns `null` until an invited employee completes registration (`invite_status` of `sent`).
   - target: $.components.schemas.User.properties.last_name
     update:
-      description: Last name
+      description: "Last name. If not filled in, `null` or an empty string is returned."
   - target: $.components.schemas.User.properties.nickname
     update:
       description: Username
@@ -3078,10 +3064,10 @@ actions:
       description: Phone number. Returns `null` for bots without permission to view personal data, and when a bot for which personal data of employees is hidden requests another user's data.
   - target: $.components.schemas.User.properties.department
     update:
-      description: Department
+      description: "Department. If not specified, `null` or an empty string is returned."
   - target: $.components.schemas.User.properties.title
     update:
-      description: Job title
+      description: "Job title. If not specified, `null` or an empty string is returned."
   - target: $.components.schemas.User.properties.role
     update:
       description: Access level
@@ -3102,7 +3088,7 @@ actions:
       description: Employee custom properties
   - target: $.components.schemas.User.properties.user_status
     update:
-      description: Status
+      description: "Status. `null` if the employee has no status set."
   - target: $.components.schemas.User.properties.bot
     update:
       description: Whether this is a bot
@@ -3114,13 +3100,13 @@ actions:
       description: Creation date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
   - target: $.components.schemas.User.properties.last_activity_at
     update:
-      description: User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+      description: "User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if the employee has never signed in to Pachca — in that case `invite_status` returns `sent`."
   - target: $.components.schemas.User.properties.time_zone
     update:
-      description: User time zone
+      description: "User time zone. `null` if the employee has not set a personal time zone — the company time zone applies then."
   - target: $.components.schemas.User.properties.image_url
     update:
-      description: User avatar download URL
+      description: "User avatar download URL. `null` if no avatar is uploaded."
   - target: $.components.schemas.UserCreateRequest
     update:
       description: Employee creation request
@@ -3229,15 +3215,13 @@ actions:
       description: Status text
   - target: $.components.schemas.UserStatus.properties.expires_at
     update:
-      description: Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+      description: "Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if no expiration is set — such a status is not cleared automatically."
   - target: $.components.schemas.UserStatus.properties.is_away
     update:
       description: Whether to enable "Away" mode
   - target: $.components.schemas.UserStatus.properties.away_message
     update:
-      description: >-
-        "Away" mode message. Displayed in the user profile, as well as when sending a direct message or mentioning them
-        in a chat.
+      description: "\"Away\" mode message. Displayed in the user profile, as well as when sending a direct message or mentioning them in a chat. `null` if the auto-reply text is not set."
   - target: $.components.schemas.UserStatus.properties.away_message.properties.text
     update:
       description: Message text
@@ -3446,7 +3430,7 @@ actions:
         file extensions will be accepted.
   - target: $.components.schemas.ViewBlockFileInput.properties.max_files
     update:
-      description: Maximum number of files the user can upload to this field.
+      description: "Maximum number of files the user can upload to this field"
   - target: $.components.schemas.ViewBlockFileInput.properties.required
     update:
       description: Required
@@ -3641,10 +3625,10 @@ actions:
         submit: Form submission
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.callback_id
     update:
-      description: Callback ID specified when opening the view
+      description: "Callback ID specified when opening the view. `null` if it was not specified when the form was opened."
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.private_metadata
     update:
-      description: Private metadata specified when opening the view
+      description: "Private metadata specified when opening the view. `null` if it was not specified when the form was opened."
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.chat_id
     update:
       description: ID of the chat in which the button that opened the form was clicked. The value is captured at the moment the form was **opened**, not submitted — if the form stayed open for a long time, `chat_id` still points to the chat where the button was clicked. The field is always present in the payload; for forms opened before this change was rolled out, `chat_id` will be `null` — such forms will gradually phase out by the saved view TTL (30 days).
@@ -3653,7 +3637,7 @@ actions:
       description: ID of the user who submitted the form
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.data
     update:
-      description: Submitted view field data. Key — field `action_id`, value — entered data
+      description: "Submitted view field data. Key — field `action_id`, value — entered data."
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.webhook_timestamp
     update:
       description: Webhook send date and time (UTC+0) in UNIX format
@@ -3692,7 +3676,7 @@ actions:
       description: Link domain
   - target: $.components.schemas.WebhookLink.properties.skip
     update:
-      description: Whether the message author hid the preview for this link. If `true`, the bot must not create a preview
+      description: "Whether the message author hid the preview for this link. If `true`, the bot must not create a preview."
   - target: $.components.schemas.LinkSharedWebhookPayload.properties.links.items.properties.skip
     update:
       description: Whether the message author hid the preview for this link. If `true`, the bot must not create a preview
@@ -3714,7 +3698,7 @@ actions:
       description: Field key that caused the error
   - target: $.components.schemas.ApiError.properties.errors.items.properties.value
     update:
-      description: Field value that caused the error
+      description: "Field value that caused the error. `null` if the error does not relate to a specific value."
   - target: $.components.schemas.ApiError.properties.errors.items.properties.message
     update:
       description: Error message
@@ -3723,9 +3707,7 @@ actions:
       description: Error code
   - target: $.components.schemas.ApiError.properties.errors.items.properties.payload
     update:
-      description: >-
-        Additional error data. Content depends on the error code:
-        `{id: number}` for custom property errors, `{type: string}` for type mismatch errors
+      description: "Additional error data. Content depends on the error code: `{id: number}` — for custom property errors (property ID), `{record: {type: string, id: number}, query: string}` — for authorization errors. In most cases `null`."
 
   # LinkSharedWebhookPayload nested items
   - target: $.components.schemas.LinkSharedWebhookPayload.properties.links.items.properties.url
@@ -3753,10 +3735,10 @@ actions:
       description: Direct file download URL
   - target: $.components.schemas.Message.properties.files.items.properties.width
     update:
-      description: Image width in pixels
+      description: "Image width in pixels. `null` for files that are not images, and if the size was not supplied at upload time."
   - target: $.components.schemas.Message.properties.files.items.properties.height
     update:
-      description: Image height in pixels
+      description: "Image height in pixels. `null` for files that are not images, and if the size was not supplied at upload time."
 
   # Message.forwarding nested properties
   - target: $.components.schemas.Message.properties.forwarding.properties.original_message_id

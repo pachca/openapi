@@ -17,7 +17,10 @@
       }
     }
   },
-  "files": ["dist", "src/generated"],
+  "files": [
+    "dist",
+    "src/generated"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pachca/openapi.git",
@@ -33,11 +36,13 @@
     "build": "tsc && tsc -p tsconfig.cjs.json && node -e \"require('fs').writeFileSync('dist/cjs/package.json','{\\\"type\\\":\\\"commonjs\\\"}')\"",
     "typecheck": "tsc --noEmit",
     "test:node": "node test/smoke.mjs && node test/smoke.cjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "typecheck:examples": "tsc --noEmit -p tsconfig.examples.json"
   },
   "dependencies": {},
   "devDependencies": {
     "@pachca/spec": "workspace:*",
+    "@types/node": "^22.14.0",
     "typescript": "^5.0.0"
   }
 }

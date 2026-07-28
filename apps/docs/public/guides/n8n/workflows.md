@@ -111,7 +111,7 @@
 ]
 ```
 
-Подробнее о кнопках — в разделе [Продвинутые функции](/guides/n8n/advanced#knopki-v-soobshheniyax).
+Подробнее о кнопках — в разделе [Продвинутые функции](/guides/n8n/advanced#knopki-v-soobscheniyah).
 
 - [approval.json](/workflows/n8n/approval.json) — Отправка запроса с кнопками
 - [approval-handler.json](/workflows/n8n/approval-handler.json) — Обработка нажатий кнопок
@@ -176,7 +176,7 @@
 
 **Что задействовано:** триггер, кнопки, формы, треды, условная логика.
 
-> Подробнее о кнопках — в разделе [Кнопки в сообщениях](/guides/n8n/advanced#knopki-v-soobshheniyax), о формах — в разделе [Формы](/guides/n8n/advanced#formy).
+> Подробнее о кнопках — в разделе [Кнопки в сообщениях](/guides/n8n/advanced#knopki-v-soobscheniyah), о формах — в разделе [Формы](/guides/n8n/advanced#formy).
 
 
 - [vacation.json](/workflows/n8n/vacation.json) — Приём команды и кнопка заявки

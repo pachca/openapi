@@ -8,7 +8,7 @@ export default class UsersUpdateAvatar extends BaseCommand {
   static override description = "Загрузка аватара сотрудника";
 
   static override examples = [
-      "Загрузить аватар сотрудника:\n  $ pachca users update-avatar"
+      "Загрузить аватар сотрудника — Загрузи аватар сотруднику:\n  $ pachca users update-avatar"
   ];
 
   static scope = "user_avatar:write";
@@ -54,7 +54,7 @@ export default class UsersUpdateAvatar extends BaseCommand {
       formData,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

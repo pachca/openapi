@@ -64,6 +64,9 @@ func summarizePayload(payload pachca.WebhookPayloadUnion) string {
 	case payload.CompanyMemberWebhookPayload != nil:
 		p := payload.CompanyMemberWebhookPayload
 		return fmt.Sprintf("company_member event=%s users=%d", p.Event, len(p.UserIDs))
+	case payload.VideoCallWebhookPayload != nil:
+		p := payload.VideoCallWebhookPayload
+		return fmt.Sprintf("video_call event=%s chat_id=%d room_id=%d", p.Event, p.ChatID, p.VideoRoomID)
 	default:
 		return "unknown"
 	}

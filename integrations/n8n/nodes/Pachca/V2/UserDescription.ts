@@ -471,9 +471,31 @@ export const userFields: INodeProperties[] = [
 	{
 		displayName: 'User ID',
 		name: 'userId',
-		type: 'number',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		required: true,
-		default: 0,
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: { searchListMethod: 'searchUsers', searchable: true },
+			},
+			{
+				displayName: 'By ID',
+				name: 'id',
+				type: 'string',
+				placeholder: 'e.g. 12',
+			},
+			{
+				displayName: 'By URL',
+				name: 'url',
+				type: 'string',
+				placeholder: 'https://app.pachca.com/users/12345',
+				extractValue: { type: 'regex', regex: 'https?://[^/]+/users/(\\d+)' },
+				validation: [{ type: 'regex', properties: { regex: 'https?://[^/]+/users/(\\d+)', errorMessage: 'Not a valid Pachca user URL' } }],
+			},
+		],
 		displayOptions: { show: { resource: ['user'], operation: ['updateAvatar'] } },
 	},
 	{
@@ -495,9 +517,31 @@ export const userFields: INodeProperties[] = [
 	{
 		displayName: 'User ID',
 		name: 'userId',
-		type: 'number',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		required: true,
-		default: 0,
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: { searchListMethod: 'searchUsers', searchable: true },
+			},
+			{
+				displayName: 'By ID',
+				name: 'id',
+				type: 'string',
+				placeholder: 'e.g. 12',
+			},
+			{
+				displayName: 'By URL',
+				name: 'url',
+				type: 'string',
+				placeholder: 'https://app.pachca.com/users/12345',
+				extractValue: { type: 'regex', regex: 'https?://[^/]+/users/(\\d+)' },
+				validation: [{ type: 'regex', properties: { regex: 'https?://[^/]+/users/(\\d+)', errorMessage: 'Not a valid Pachca user URL' } }],
+			},
+		],
 		displayOptions: { show: { resource: ['user'], operation: ['deleteAvatar'] } },
 	},
 	{
@@ -510,9 +554,31 @@ export const userFields: INodeProperties[] = [
 	{
 		displayName: 'User ID',
 		name: 'userId',
-		type: 'number',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		required: true,
-		default: 0,
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: { searchListMethod: 'searchUsers', searchable: true },
+			},
+			{
+				displayName: 'By ID',
+				name: 'id',
+				type: 'string',
+				placeholder: 'e.g. 12',
+			},
+			{
+				displayName: 'By URL',
+				name: 'url',
+				type: 'string',
+				placeholder: 'https://app.pachca.com/users/12345',
+				extractValue: { type: 'regex', regex: 'https?://[^/]+/users/(\\d+)' },
+				validation: [{ type: 'regex', properties: { regex: 'https?://[^/]+/users/(\\d+)', errorMessage: 'Not a valid Pachca user URL' } }],
+			},
+		],
 		displayOptions: { show: { resource: ['user'], operation: ['getStatus'] } },
 	},
 	{
@@ -533,9 +599,31 @@ export const userFields: INodeProperties[] = [
 	{
 		displayName: 'User ID',
 		name: 'userId',
-		type: 'number',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		required: true,
-		default: 0,
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: { searchListMethod: 'searchUsers', searchable: true },
+			},
+			{
+				displayName: 'By ID',
+				name: 'id',
+				type: 'string',
+				placeholder: 'e.g. 12',
+			},
+			{
+				displayName: 'By URL',
+				name: 'url',
+				type: 'string',
+				placeholder: 'https://app.pachca.com/users/12345',
+				extractValue: { type: 'regex', regex: 'https?://[^/]+/users/(\\d+)' },
+				validation: [{ type: 'regex', properties: { regex: 'https?://[^/]+/users/(\\d+)', errorMessage: 'Not a valid Pachca user URL' } }],
+			},
+		],
 		displayOptions: { show: { resource: ['user'], operation: ['updateStatus'] } },
 	},
 	{
@@ -601,9 +689,31 @@ export const userFields: INodeProperties[] = [
 	{
 		displayName: 'User ID',
 		name: 'userId',
-		type: 'number',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		required: true,
-		default: 0,
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: { searchListMethod: 'searchUsers', searchable: true },
+			},
+			{
+				displayName: 'By ID',
+				name: 'id',
+				type: 'string',
+				placeholder: 'e.g. 12',
+			},
+			{
+				displayName: 'By URL',
+				name: 'url',
+				type: 'string',
+				placeholder: 'https://app.pachca.com/users/12345',
+				extractValue: { type: 'regex', regex: 'https?://[^/]+/users/(\\d+)' },
+				validation: [{ type: 'regex', properties: { regex: 'https?://[^/]+/users/(\\d+)', errorMessage: 'Not a valid Pachca user URL' } }],
+			},
+		],
 		displayOptions: { show: { resource: ['user'], operation: ['deleteStatus'] } },
 	},
 	{

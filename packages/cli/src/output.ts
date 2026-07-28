@@ -64,8 +64,16 @@ function outputCsv(data: unknown, opts: OutputOptions): void {
     const row = columns.map((col) => {
       const val = (item as Record<string, unknown>)[col];
       if (val == null) return '';
-      const str = String(val);
-      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      // Objects/arrays as JSON, matching outputPlain and outputTable —
+      // String() rendered them as "[object Object]" and lost the structure.
+      const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
+      // A cell starting with =, +, - or @ is executed as a formula by Excel,
+      // Sheets and LibreOffice. Values here are user-authored (message text,
+      // names), so prefix a quote to neutralise it.
+      if (/^[=+\-@\t\r]/.test(str)) {
+        return `"'${str.replace(/"/g, '""')}"`;
+      }
+      if (/[",\n\r]/.test(str)) {
         return `"${str.replace(/"/g, '""')}"`;
       }
       return str;

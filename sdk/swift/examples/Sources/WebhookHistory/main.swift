@@ -36,5 +36,7 @@ func summarizePayload(_ payload: WebhookPayloadUnion) -> String {
         return "chat_member event=\(member.event) chat_id=\(String(describing: member.chatId)) users=\(member.userIds.count)"
     case .companyMemberWebhookPayload(let member):
         return "company_member event=\(member.event) users=\(member.userIds.count)"
+    case .videoCallWebhookPayload(let call):
+        return "video_call event=\(call.event) chat_id=\(call.chatId) room_id=\(call.videoRoomId)"
     }
 }

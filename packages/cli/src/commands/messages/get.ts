@@ -6,9 +6,9 @@ export default class MessagesGet extends BaseCommand {
   static override description = "Информация о сообщении";
 
   static override examples = [
-      "Получить вложения из сообщения:\n  $ pachca messages get",
-      "Изменить вложения сообщения:\n  $ pachca messages get",
-      "Обработать входящий вебхук-событие:\n  $ pachca messages get"
+      "Получить вложения из сообщения — Получи сообщение — в `files[]` каждый объект содержит `url`, `name`, `file_type`, `size`:\n  $ pachca messages get",
+      "Изменить вложения сообщения — Получи текущие вложения из `files[]`:\n  $ pachca messages get",
+      "Обработать входящий вебхук-событие — Для полной информации запроси сообщение — особенно для вложений (`files[]`):\n  $ pachca messages get"
   ];
 
   static scope = "messages:read";
@@ -37,7 +37,7 @@ export default class MessagesGet extends BaseCommand {
       path: `/messages/${args.id}`,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

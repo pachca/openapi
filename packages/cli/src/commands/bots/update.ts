@@ -6,7 +6,7 @@ export default class BotsUpdate extends BaseCommand {
   static override description = "Редактирование бота";
 
   static override examples = [
-      "Обновить Webhook URL бота:\n  $ pachca bots update"
+      "Обновить Webhook URL бота — Пользовательским токеном (с правом редактировать бота) — обнови URL по `id` бота. Пустая строка отключает вебхук:\n  $ pachca bots update"
   ];
 
   static scope = "bots:write";
@@ -42,7 +42,7 @@ export default class BotsUpdate extends BaseCommand {
       description: "Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.",
     }),
     'scopes': Flags.string({
-      description: "Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию.",
+      description: "Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию. Боту доступны не все скоупы: часть из них разрешена только пользовательским ролям, и попытка назначить такой скоуп возвращает `400`. Служебные значения `bot` и `all` назначать нельзя.",
     }),
     'template': Flags.string({
       description: "Шаблон форматирования входящего вебхука",
@@ -122,7 +122,7 @@ export default class BotsUpdate extends BaseCommand {
       body,
     });
 
-    const responseBody = data as Record<string, unknown>;
+    const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
   }

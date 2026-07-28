@@ -9,7 +9,8 @@
     "setup": "true",
     "generate": "tsp compile typespec.tsp --config tspconfig.yaml",
     "overlay:apply": "bun scripts/apply-overlay.ts",
-    "overlay:validate": "bun scripts/validate-overlay.ts"
+    "overlay:validate": "bun scripts/validate-overlay.ts",
+    "enum:check": "bun scripts/check-enum-descriptions.ts"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

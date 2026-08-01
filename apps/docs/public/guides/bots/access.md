@@ -67,6 +67,7 @@
 
 ## Связанные разделы
 
+- [Права и роли](/guides/permissions)
 - [Создание и настройка](/guides/bots/setup)
 - [Треды](/guides/threads)
 - [Готовые примеры реализации](/guides/bots/examples)

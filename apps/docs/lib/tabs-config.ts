@@ -154,6 +154,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
   {
     title: 'Справочники',
     items: [
+      { title: 'Права и роли', path: '/guides/permissions' },
       { title: 'Форматирование текста', path: '/guides/markdown' },
       { title: 'Сценарии', path: '/guides/workflows' },
     ],

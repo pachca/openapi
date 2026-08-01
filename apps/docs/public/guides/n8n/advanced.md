@@ -18,8 +18,8 @@
 
 | Источник | Описание |
 |----------|----------|
-| **URL** | Файл загружается по ссылке. Укажите `fileUrl`, `fileName` и `contentType` |
-| **Binary Data** | Файл из предыдущего узла workflow (например, из HTTP Request). Укажите `binaryProperty` |
+| **URL** | Файл загружается по ссылке. Укажите `fileUrl`, `fileName` и `contentType`. |
+| **Binary Data** | Файл из предыдущего узла workflow (например, из HTTP Request). Укажите `binaryProperty`. |
 
 **Пример workflow: загрузка PDF и отправка в чат**
 

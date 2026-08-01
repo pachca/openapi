@@ -258,10 +258,10 @@ sequenceDiagram
 
 ## Если что-то пошло не так
 
-- **Вебхук не приходит** — проверьте, что бот в чате и workflow активен. Симптомы и решения: [Вебхук не приходит](/guides/n8n/troubleshooting#vebhuk-ne-prihodit)
-- **403 при активации Pachca Trigger** — токену не хватает прав: для токена бота `bot_self:webhook:write`, для персонального `bots:write` плюс доступ редактора к боту. Решение: [403 Forbidden при активации Pachca Trigger](/guides/n8n/troubleshooting#403-forbidden-pri-aktivatsii-pachca-trigger)
-- **Signature Mismatch** — Signing Secret в Credentials не совпадает с секретом бота. Решение: [Ошибка подписи](/guides/n8n/troubleshooting#oshibka-podpisi-signature-mismatch)
-- **401 Unauthorized** — неверный или просроченный токен. Решение: [401 Unauthorized](/guides/n8n/troubleshooting#nevernyy-token-401-unauthorized)
+- **Вебхук не приходит** — проверьте, что бот в чате и workflow активен. Симптомы и решения: [Вебхук не приходит](/guides/n8n/troubleshooting#vebhuk-ne-prihodit).
+- **403 при активации Pachca Trigger** — токену не хватает прав: для токена бота `bot_self:webhook:write`, для персонального `bots:write` плюс доступ редактора к боту. Решение: [403 Forbidden при активации Pachca Trigger](/guides/n8n/troubleshooting#403-forbidden-pri-aktivatsii-pachca-trigger).
+- **Signature Mismatch** — Signing Secret в Credentials не совпадает с секретом бота. Решение: [Ошибка подписи](/guides/n8n/troubleshooting#oshibka-podpisi-signature-mismatch).
+- **401 Unauthorized** — неверный или просроченный токен. Решение: [401 Unauthorized](/guides/n8n/troubleshooting#nevernyy-token-401-unauthorized).
 
 Полный список типовых ошибок — в разделе [Устранение ошибок](/guides/n8n/troubleshooting).
 

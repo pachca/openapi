@@ -167,7 +167,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'name',
 							type: 'string',
 							default: "",
-							description: 'File name to display to the user (recommended to include the file extension)',
+							description: 'File name to display to the user. The extension must match the extension of the file in `key`, otherwise the response is 422 with the `wrong_params` code.',
 						},
 						{
 							displayName: 'Size',
@@ -475,7 +475,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'name',
 							type: 'string',
 							default: "",
-							description: 'File name to display to the user (recommended to include the file extension)',
+							description: 'File name to display to the user. The extension must match the extension of the file in `key`, otherwise the response is 422 with the `wrong_params` code.',
 						},
 						{
 							displayName: 'Size',

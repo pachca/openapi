@@ -135,6 +135,7 @@
 
 ## Связанные разделы
 
+- [Права и роли](/guides/permissions)
 - [Журнал аудита событий](/guides/audit-events)
 - [DLP-система](/guides/dlp)
 - [Пагинация](/api/pagination)

@@ -634,6 +634,11 @@ export interface ApiErrorItem {
   payload: Record<string, unknown> | null;
 }
 
+export interface AuditDetailsBot {
+  botId: number;
+  actorId: number | null;
+}
+
 export interface AuditDetailsBotScopes {
   addedScopes: string[];
   removedScopes: string[];
@@ -712,18 +717,28 @@ export interface AuditDetailsTokenScopes {
 
 export interface AuditDetailsUserUpdated {
   changedAttrs: string[];
+  context?: string;
 }
 
-export interface AuditDetailsVideoCall {
+export interface AuditDetailsVideoCallFinished {
   chatId: number;
+  startedMessageId: number | null;
   duration: number;
   maxMembersCount: number;
 }
 
 export interface AuditDetailsVideoCallRecording {
   chatId: number;
+  startedMessageId: number | null;
+  recordingId: number;
+  fileId: number;
   duration: number;
   size: number;
+}
+
+export interface AuditDetailsVideoCallStarted {
+  chatId: number;
+  startedMessageId: number | null;
 }
 
 export interface AuditEvent {
@@ -735,8 +750,8 @@ export interface AuditEvent {
   actorId: string;
   actorType: string;
   details: AuditEventDetailsUnion;
-  ipAddress: string;
-  userAgent: string;
+  ipAddress: string | null;
+  userAgent: string | null;
 }
 
 export interface AvatarData {
@@ -1078,6 +1093,7 @@ export interface MessageWebhookPayload {
   content: string;
   userId: number;
   createdAt: string;
+  changedAt?: string | null;
   url: string;
   chatId: number;
   parentMessageId?: number | null;
@@ -1515,7 +1531,7 @@ export interface UpdateUserAvatarRequest {
   image: Blob;
 }
 
-export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsVideoCall | AuditDetailsVideoCallRecording;
+export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording;
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 

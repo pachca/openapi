@@ -1,6 +1,67 @@
 [
   {
     "product": "sdk",
+    "version": "1.1.0",
+    "date": "2026-08-01",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Поля `ip_address` и `user_agent` в записи журнала аудита стали nullable"
+      },
+      {
+        "type": "~",
+        "description": "Детали аудит-события видеозвонка разделены на три модели: `AuditDetailsVideoCallStarted`, `AuditDetailsVideoCallFinished` и `AuditDetailsVideoCallRecording` (была одна `AuditDetailsVideoCall` на начало и завершение)"
+      },
+      {
+        "type": "+",
+        "description": "Поле `started_message_id` в деталях всех трёх событий видеозвонка, `recording_id` и `file_id` — в деталях готовой записи"
+      },
+      {
+        "type": "+",
+        "description": "Поле `context` в деталях события `user_updated` и модель `AuditDetailsBot` для событий `bot_deleted` и `bot_token_recreated`"
+      },
+      {
+        "type": "+",
+        "description": "Поле `changed_at` в payload исходящего вебхука о сообщении (`MessageWebhookPayload`)"
+      },
+      {
+        "type": "~",
+        "description": "Поле `files[].name` в методах `POST /messages` и `PUT /messages/{id}`: расширение должно совпадать с расширением файла в `key`"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.8.0",
+    "date": "2026-08-01",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`pachca api POST /messages --spec` и `--docs`: у поля `files[].name` описано требование к расширению"
+      },
+      {
+        "type": "~",
+        "description": "`pachca api GET /audit_events --spec`: уточнён состав деталей событий видеозвонков, `user_updated`, `bot_deleted` и `bot_token_recreated`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca messages list`: в примерах появился шаг сценария «Получить список активных тредов за период»"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.0.17",
+    "date": "2026-08-01",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`Message`: в описании поля `Files` сказано, что расширение в `name` должно совпадать с расширением файла в `key`"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
     "version": "1.0.28",
     "date": "2026-07-28",
     "changes": [

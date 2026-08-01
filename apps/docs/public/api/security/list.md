@@ -56,9 +56,10 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
   - `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект.
     **Возможные варианты:**
 
-    - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted.
+    - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed.
     - **AuditDetailsUserUpdated**: При: user_updated
       - `changed_attrs: array of string` (required) — Список изменённых полей
+      - `context: string` — Как было выполнено изменение. Значение `sso_login` — профиль обновился автоматически при входе через SSO. Поле отсутствует, если профиль изменили обычным способом.
     - **AuditDetailsRoleChanged**: При: user_role_changed
       - `new_company_role: string` (required) — Новая роль
       - `previous_company_role: string` (required) — Предыдущая роль
@@ -101,6 +102,9 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `filters: Record<string, object>` (required) — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages).
         **Структура значений Record:**
         - Тип значения: `any`
+    - **AuditDetailsBot**: При: bot_deleted, bot_token_recreated
+      - `bot_id: integer, int32` (required) — Идентификатор бота
+      - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
     - **AuditDetailsBotScopes**: При: bot_scopes_updated
       - `added_scopes: array of string` (required) — Скоупы, добавленные токену бота
       - `removed_scopes: array of string` (required) — Скоупы, отозванные у токена бота
@@ -108,16 +112,23 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
         **Структура значений Record:**
         - Тип значения: `any`
-    - **AuditDetailsVideoCall**: При: video_call_started, video_call_finished
+    - **AuditDetailsVideoCallStarted**: При: video_call_started
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
-      - `duration: integer, int32` (required) — Длительность звонка в секундах на момент события. Для video_call_started равна 0.
+      - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+    - **AuditDetailsVideoCallFinished**: При: video_call_finished
+      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходил видеозвонок
+      - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+      - `duration: integer, int32` (required) — Длительность звонка в секундах
       - `max_members_count: integer, int32` (required) — Максимальное число одновременных участников за время звонка
     - **AuditDetailsVideoCallRecording**: При: video_call_recording_ready
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходил видеозвонок
+      - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+      - `recording_id: integer, int32` (required) — Идентификатор записи
+      - `file_id: integer, int32` (required) — Идентификатор файла записи
       - `duration: integer, int32` (required) — Длительность записи в секундах
       - `size: integer, int64` (required) — Размер файла записи в байтах
-  - `ip_address: string` (required) — IP-адрес, с которого было выполнено действие. Пример: `"192.168.1.100"`
-  - `user_agent: string` (required) — User agent клиента. Пример: `"Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0"`
+  - `ip_address: string` (required, nullable) — IP-адрес, с которого было выполнено действие. `null` у событий, записанных без запроса пользователя. Пример: `"192.168.1.100"`
+  - `user_agent: string` (required, nullable) — User agent клиента, обрезается до 255 символов. `null` у событий, записанных без запроса пользователя. Пример: `"Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0"`
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`

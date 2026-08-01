@@ -664,6 +664,21 @@ public struct ApiErrorItem: Codable {
     }
 }
 
+public struct AuditDetailsBot: Codable {
+    public let botId: Int
+    public let actorId: Int?
+
+    public init(botId: Int, actorId: Int? = nil) {
+        self.botId = botId
+        self.actorId = actorId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case botId = "bot_id"
+        case actorId = "actor_id"
+    }
+}
+
 public struct AuditDetailsBotScopes: Codable {
     public let addedScopes: [String]
     public let removedScopes: [String]
@@ -876,29 +891,35 @@ public struct AuditDetailsTokenScopes: Codable {
 
 public struct AuditDetailsUserUpdated: Codable {
     public let changedAttrs: [String]
+    public let context: String?
 
-    public init(changedAttrs: [String]) {
+    public init(changedAttrs: [String], context: String? = nil) {
         self.changedAttrs = changedAttrs
+        self.context = context
     }
 
     enum CodingKeys: String, CodingKey {
         case changedAttrs = "changed_attrs"
+        case context
     }
 }
 
-public struct AuditDetailsVideoCall: Codable {
+public struct AuditDetailsVideoCallFinished: Codable {
     public let chatId: Int
+    public let startedMessageId: Int?
     public let duration: Int
     public let maxMembersCount: Int
 
-    public init(chatId: Int, duration: Int, maxMembersCount: Int) {
+    public init(chatId: Int, startedMessageId: Int? = nil, duration: Int, maxMembersCount: Int) {
         self.chatId = chatId
+        self.startedMessageId = startedMessageId
         self.duration = duration
         self.maxMembersCount = maxMembersCount
     }
 
     enum CodingKeys: String, CodingKey {
         case chatId = "chat_id"
+        case startedMessageId = "started_message_id"
         case duration
         case maxMembersCount = "max_members_count"
     }
@@ -906,19 +927,43 @@ public struct AuditDetailsVideoCall: Codable {
 
 public struct AuditDetailsVideoCallRecording: Codable {
     public let chatId: Int
+    public let startedMessageId: Int?
+    public let recordingId: Int
+    public let fileId: Int
     public let duration: Int
     public let size: Int64
 
-    public init(chatId: Int, duration: Int, size: Int64) {
+    public init(chatId: Int, startedMessageId: Int? = nil, recordingId: Int, fileId: Int, duration: Int, size: Int64) {
         self.chatId = chatId
+        self.startedMessageId = startedMessageId
+        self.recordingId = recordingId
+        self.fileId = fileId
         self.duration = duration
         self.size = size
     }
 
     enum CodingKeys: String, CodingKey {
         case chatId = "chat_id"
+        case startedMessageId = "started_message_id"
+        case recordingId = "recording_id"
+        case fileId = "file_id"
         case duration
         case size
+    }
+}
+
+public struct AuditDetailsVideoCallStarted: Codable {
+    public let chatId: Int
+    public let startedMessageId: Int?
+
+    public init(chatId: Int, startedMessageId: Int? = nil) {
+        self.chatId = chatId
+        self.startedMessageId = startedMessageId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case chatId = "chat_id"
+        case startedMessageId = "started_message_id"
     }
 }
 
@@ -931,10 +976,10 @@ public struct AuditEvent: Codable {
     public let actorId: String
     public let actorType: String
     public let details: AuditEventDetailsUnion
-    public let ipAddress: String
-    public let userAgent: String
+    public let ipAddress: String?
+    public let userAgent: String?
 
-    public init(id: String, createdAt: String, eventKey: AuditEventKey, entityId: String, entityType: String, actorId: String, actorType: String, details: AuditEventDetailsUnion, ipAddress: String, userAgent: String) {
+    public init(id: String, createdAt: String, eventKey: AuditEventKey, entityId: String, entityType: String, actorId: String, actorType: String, details: AuditEventDetailsUnion, ipAddress: String? = nil, userAgent: String? = nil) {
         self.id = id
         self.createdAt = createdAt
         self.eventKey = eventKey
@@ -1915,13 +1960,14 @@ public struct MessageWebhookPayload: Codable {
     public let content: String
     public let userId: Int
     public let createdAt: String
+    public let changedAt: String?
     public let url: String
     public let chatId: Int
     public let parentMessageId: Int?
     public let thread: WebhookMessageThread?
     public let webhookTimestamp: Int
 
-    public init(type: String, id: Int, event: WebhookEventType, entityType: MessageEntityType, entityId: Int, content: String, userId: Int, createdAt: String, url: String, chatId: Int, parentMessageId: Int? = nil, thread: WebhookMessageThread? = nil, webhookTimestamp: Int) {
+    public init(type: String, id: Int, event: WebhookEventType, entityType: MessageEntityType, entityId: Int, content: String, userId: Int, createdAt: String, changedAt: String? = nil, url: String, chatId: Int, parentMessageId: Int? = nil, thread: WebhookMessageThread? = nil, webhookTimestamp: Int) {
         self.type = type
         self.id = id
         self.event = event
@@ -1930,6 +1976,7 @@ public struct MessageWebhookPayload: Codable {
         self.content = content
         self.userId = userId
         self.createdAt = createdAt
+        self.changedAt = changedAt
         self.url = url
         self.chatId = chatId
         self.parentMessageId = parentMessageId
@@ -1946,6 +1993,7 @@ public struct MessageWebhookPayload: Codable {
         case content
         case userId = "user_id"
         case createdAt = "created_at"
+        case changedAt = "changed_at"
         case url
         case chatId = "chat_id"
         case parentMessageId = "parent_message_id"
@@ -3120,9 +3168,11 @@ public enum AuditEventDetailsUnion: Codable {
     case auditDetailsKms(AuditDetailsKms)
     case auditDetailsDlp(AuditDetailsDlp)
     case auditDetailsSearch(AuditDetailsSearch)
+    case auditDetailsBot(AuditDetailsBot)
     case auditDetailsBotScopes(AuditDetailsBotScopes)
     case auditDetailsBotWebhookSettings(AuditDetailsBotWebhookSettings)
-    case auditDetailsVideoCall(AuditDetailsVideoCall)
+    case auditDetailsVideoCallStarted(AuditDetailsVideoCallStarted)
+    case auditDetailsVideoCallFinished(AuditDetailsVideoCallFinished)
     case auditDetailsVideoCallRecording(AuditDetailsVideoCallRecording)
 
     public init(from decoder: Decoder) throws {
@@ -3132,8 +3182,16 @@ public enum AuditEventDetailsUnion: Codable {
             self = .auditDetailsDlp(value)
             return
         }
+        if let value = try? AuditDetailsVideoCallRecording(from: decoder) {
+            self = .auditDetailsVideoCallRecording(value)
+            return
+        }
         if let value = try? AuditDetailsSearch(from: decoder) {
             self = .auditDetailsSearch(value)
+            return
+        }
+        if let value = try? AuditDetailsVideoCallFinished(from: decoder) {
+            self = .auditDetailsVideoCallFinished(value)
             return
         }
         if let value = try? AuditDetailsKms(from: decoder) {
@@ -3142,14 +3200,6 @@ public enum AuditEventDetailsUnion: Codable {
         }
         if let value = try? AuditDetailsRoleChanged(from: decoder) {
             self = .auditDetailsRoleChanged(value)
-            return
-        }
-        if let value = try? AuditDetailsVideoCall(from: decoder) {
-            self = .auditDetailsVideoCall(value)
-            return
-        }
-        if let value = try? AuditDetailsVideoCallRecording(from: decoder) {
-            self = .auditDetailsVideoCallRecording(value)
             return
         }
         if let value = try? AuditDetailsBotScopes(from: decoder) {
@@ -3162,6 +3212,18 @@ public enum AuditEventDetailsUnion: Codable {
         }
         if let value = try? AuditDetailsTagChat(from: decoder) {
             self = .auditDetailsTagChat(value)
+            return
+        }
+        if let value = try? AuditDetailsBot(from: decoder) {
+            self = .auditDetailsBot(value)
+            return
+        }
+        if let value = try? AuditDetailsUserUpdated(from: decoder) {
+            self = .auditDetailsUserUpdated(value)
+            return
+        }
+        if let value = try? AuditDetailsVideoCallStarted(from: decoder) {
+            self = .auditDetailsVideoCallStarted(value)
             return
         }
         if let value = try? AuditDetailsBotWebhookSettings(from: decoder) {
@@ -3190,10 +3252,6 @@ public enum AuditEventDetailsUnion: Codable {
         }
         if let value = try? AuditDetailsTokenScopes(from: decoder) {
             self = .auditDetailsTokenScopes(value)
-            return
-        }
-        if let value = try? AuditDetailsUserUpdated(from: decoder) {
-            self = .auditDetailsUserUpdated(value)
             return
         }
         if let value = try? AuditDetailsEmpty(from: decoder) {
@@ -3235,11 +3293,15 @@ public enum AuditEventDetailsUnion: Codable {
             try value.encode(to: encoder)
         case .auditDetailsSearch(let value):
             try value.encode(to: encoder)
+        case .auditDetailsBot(let value):
+            try value.encode(to: encoder)
         case .auditDetailsBotScopes(let value):
             try value.encode(to: encoder)
         case .auditDetailsBotWebhookSettings(let value):
             try value.encode(to: encoder)
-        case .auditDetailsVideoCall(let value):
+        case .auditDetailsVideoCallStarted(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsVideoCallFinished(let value):
             try value.encode(to: encoder)
         case .auditDetailsVideoCallRecording(let value):
             try value.encode(to: encoder)

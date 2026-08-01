@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 import redirectsList from './redirects';
 
@@ -21,7 +22,8 @@ const nextConfig: NextConfig = {
   // Keep flexsearch as external to avoid Turbopack worker_threads bundling issues
   serverExternalPackages: ['flexsearch'],
   turbopack: {
-    root: '../../',
+    // Absolute: Turbopack warns on a relative root and falls back to cwd.
+    root: path.resolve(import.meta.dirname, '../..'),
   },
   async headers() {
     return [

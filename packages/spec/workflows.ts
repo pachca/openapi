@@ -363,10 +363,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           apiPath: '/threads',
         },
         {
-          description:
-            'Для каждого треда возьми `chat_id` и подтяни сообщения: `pachca messages list --chat-id=<thread.chat_id>`',
-          descriptionEn:
-            'For each thread take `chat_id` and fetch messages: `pachca messages list --chat-id=<thread.chat_id>`',
+          description: 'Для каждого треда возьми `chat_id` и подтяни сообщения',
+          descriptionEn: 'For each thread take `chat_id` and fetch messages',
+          command: 'pachca messages list --chat-id=<thread.chat_id>',
           apiMethod: 'GET',
           apiPath: '/messages',
         },

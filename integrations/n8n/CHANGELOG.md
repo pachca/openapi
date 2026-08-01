@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 2.0.17 (2026-08-01)
+
+### Changes
+
+- Message: the `Files` field now states that the extension in `name` must match the extension of the file in `key`, otherwise the API answers 422
+
 ## 2.0.16 (2026-07-27)
 
 ### Fixes

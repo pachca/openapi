@@ -445,6 +445,12 @@ class ApiErrorItem:
 
 
 @dataclass
+class AuditDetailsBot:
+    bot_id: int
+    actor_id: int | None = None
+
+
+@dataclass
 class AuditDetailsBotScopes:
     added_scopes: list[str]
     removed_scopes: list[str]
@@ -539,20 +545,31 @@ class AuditDetailsTokenScopes:
 @dataclass
 class AuditDetailsUserUpdated:
     changed_attrs: list[str]
+    context: str | None = None
 
 
 @dataclass
-class AuditDetailsVideoCall:
+class AuditDetailsVideoCallFinished:
     chat_id: int
     duration: int
     max_members_count: int
+    started_message_id: int | None = None
 
 
 @dataclass
 class AuditDetailsVideoCallRecording:
     chat_id: int
+    recording_id: int
+    file_id: int
     duration: int
     size: int
+    started_message_id: int | None = None
+
+
+@dataclass
+class AuditDetailsVideoCallStarted:
+    chat_id: int
+    started_message_id: int | None = None
 
 
 @dataclass
@@ -565,8 +582,8 @@ class AuditEvent:
     actor_id: str
     actor_type: str
     details: AuditEventDetailsUnion
-    ip_address: str
-    user_agent: str
+    ip_address: str | None = None
+    user_agent: str | None = None
 
 
 @dataclass
@@ -952,6 +969,7 @@ class MessageWebhookPayload:
     url: str
     chat_id: int
     webhook_timestamp: int
+    changed_at: datetime | None = None
     parent_message_id: int | None = None
     thread: WebhookMessageThread | None = None
 
@@ -1444,7 +1462,7 @@ class UpdateUserAvatarRequest:
     image: bytes
 
 
-AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsVideoCall, AuditDetailsVideoCallRecording]
+AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording]
 
 
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]

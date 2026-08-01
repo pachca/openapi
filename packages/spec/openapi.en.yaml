@@ -6108,11 +6108,13 @@ components:
             For events without details, an empty object is returned.
         ip_address:
           type: string
-          description: IP address from which the action was performed
+          nullable: true
+          description: IP address from which the action was performed. `null` for events recorded without a user request.
           example: 192.168.1.100
         user_agent:
           type: string
-          description: Client user agent
+          nullable: true
+          description: Client user agent, truncated to 255 characters. `null` for events recorded without a user request.
           example: Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0
       description: Audit event
     AuditEventDetailsUnion:

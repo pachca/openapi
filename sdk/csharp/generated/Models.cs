@@ -2531,9 +2531,9 @@ public class AuditEvent
     [JsonPropertyName("details")]
     public AuditEventDetailsUnion Details { get; set; } = default!;
     [JsonPropertyName("ip_address")]
-    public string IpAddress { get; set; } = default!;
+    public string? IpAddress { get; set; }
     [JsonPropertyName("user_agent")]
-    public string UserAgent { get; set; } = default!;
+    public string? UserAgent { get; set; }
 }
 
 public class AvatarData

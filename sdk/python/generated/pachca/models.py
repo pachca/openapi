@@ -582,8 +582,8 @@ class AuditEvent:
     actor_id: str
     actor_type: str
     details: AuditEventDetailsUnion
-    ip_address: str
-    user_agent: str
+    ip_address: str | None = None
+    user_agent: str | None = None
 
 
 @dataclass

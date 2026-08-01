@@ -567,8 +567,8 @@ type AuditEvent struct {
 	ActorID    string                 `json:"actor_id"`
 	ActorType  string                 `json:"actor_type"`
 	Details    AuditEventDetailsUnion `json:"details"`
-	IpAddress  string                 `json:"ip_address"`
-	UserAgent  string                 `json:"user_agent"`
+	IpAddress  *string                `json:"ip_address"`
+	UserAgent  *string                `json:"user_agent"`
 }
 
 type AvatarData struct {

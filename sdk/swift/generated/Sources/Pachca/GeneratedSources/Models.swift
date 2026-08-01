@@ -976,10 +976,10 @@ public struct AuditEvent: Codable {
     public let actorId: String
     public let actorType: String
     public let details: AuditEventDetailsUnion
-    public let ipAddress: String
-    public let userAgent: String
+    public let ipAddress: String?
+    public let userAgent: String?
 
-    public init(id: String, createdAt: String, eventKey: AuditEventKey, entityId: String, entityType: String, actorId: String, actorType: String, details: AuditEventDetailsUnion, ipAddress: String, userAgent: String) {
+    public init(id: String, createdAt: String, eventKey: AuditEventKey, entityId: String, entityType: String, actorId: String, actorType: String, details: AuditEventDetailsUnion, ipAddress: String? = nil, userAgent: String? = nil) {
         self.id = id
         self.createdAt = createdAt
         self.eventKey = eventKey

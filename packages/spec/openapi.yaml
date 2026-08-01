@@ -5945,11 +5945,13 @@ components:
           description: Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект.
         ip_address:
           type: string
-          description: IP-адрес, с которого было выполнено действие
+          nullable: true
+          description: IP-адрес, с которого было выполнено действие. `null` у событий, записанных без запроса пользователя.
           example: 192.168.1.100
         user_agent:
           type: string
-          description: User agent клиента
+          nullable: true
+          description: User agent клиента, обрезается до 255 символов. `null` у событий, записанных без запроса пользователя.
           example: Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0
       description: Событие аудита
     AuditEventDetailsUnion:

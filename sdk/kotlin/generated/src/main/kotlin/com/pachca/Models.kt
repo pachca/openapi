@@ -1197,8 +1197,8 @@ data class AuditEvent(
     @SerialName("actor_id") val actorId: String,
     @SerialName("actor_type") val actorType: String,
     val details: AuditEventDetailsUnion,
-    @SerialName("ip_address") val ipAddress: String,
-    @SerialName("user_agent") val userAgent: String,
+    @SerialName("ip_address") val ipAddress: String? = null,
+    @SerialName("user_agent") val userAgent: String? = null,
 )
 
 @Serializable

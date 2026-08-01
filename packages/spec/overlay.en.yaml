@@ -1341,10 +1341,10 @@ actions:
       description: "Additional event details. Structure depends on the event_key value — see event_key field value descriptions. For events without details, an empty object is returned."
   - target: $.components.schemas.AuditEvent.properties.ip_address
     update:
-      description: IP address from which the action was performed
+      description: "IP address from which the action was performed. `null` for events recorded without a user request."
   - target: $.components.schemas.AuditEvent.properties.user_agent
     update:
-      description: Client user agent
+      description: "Client user agent, truncated to 255 characters. `null` for events recorded without a user request."
   - target: $.components.schemas.AuditEventDetailsUnion
     update:
       description: "Additional audit event details. Structure depends on the event_key value."

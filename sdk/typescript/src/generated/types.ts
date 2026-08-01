@@ -750,8 +750,8 @@ export interface AuditEvent {
   actorId: string;
   actorType: string;
   details: AuditEventDetailsUnion;
-  ipAddress: string;
-  userAgent: string;
+  ipAddress: string | null;
+  userAgent: string | null;
 }
 
 export interface AvatarData {

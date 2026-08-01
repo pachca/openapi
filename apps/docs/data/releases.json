@@ -1,9 +1,13 @@
 [
   {
     "product": "sdk",
-    "version": "1.0.29",
+    "version": "1.1.0",
     "date": "2026-08-01",
     "changes": [
+      {
+        "type": "~",
+        "description": "Ломающее для тех, кто читает журнал аудита: поля `ip_address` и `user_agent` стали nullable, а модель `AuditDetailsVideoCall` разделена на две. Код, который присваивал эти поля в необнуляемый тип или ссылался на прежнюю модель, перестанет собираться"
+      },
       {
         "type": "~",
         "description": "Детали аудит-события видеозвонка разделены на три модели: `AuditDetailsVideoCallStarted`, `AuditDetailsVideoCallFinished` и `AuditDetailsVideoCallRecording` (была одна `AuditDetailsVideoCall` на начало и завершение)"
@@ -23,10 +27,6 @@
       {
         "type": "~",
         "description": "Поле `files[].name` в методах `POST /messages` и `PUT /messages/{id}`: расширение должно совпадать с расширением файла в `key`"
-      },
-      {
-        "type": "~",
-        "description": "Поля `ip_address` и `user_agent` в записи журнала аудита стали nullable — у событий, записанных без запроса пользователя, они приходят пустыми"
       }
     ]
   },

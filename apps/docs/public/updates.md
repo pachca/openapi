@@ -39,14 +39,14 @@ _01 августа 2026_
 появились структура записи, состав деталей для каждого типа события, разбор
 фильтров и приём для регулярной выгрузки в SIEM.
 
-### SDK v1.0.29
+### SDK v1.1.0
 
+- Ломающее для тех, кто читает журнал аудита: поля `ip_address` и `user_agent` стали nullable, а модель `AuditDetailsVideoCall` разделена на две. Код, который присваивал эти поля в необнуляемый тип или ссылался на прежнюю модель, перестанет собираться
 - Детали аудит-события видеозвонка разделены на три модели: `AuditDetailsVideoCallStarted`, `AuditDetailsVideoCallFinished` и `AuditDetailsVideoCallRecording` (была одна `AuditDetailsVideoCall` на начало и завершение)
 - Поле `started_message_id` в деталях всех трёх событий видеозвонка, `recording_id` и `file_id` — в деталях готовой записи
 - Поле `context` в деталях события `user_updated` и модель `AuditDetailsBot` для событий `bot_deleted` и `bot_token_recreated`
 - Поле `changed_at` в payload исходящего вебхука о сообщении (`MessageWebhookPayload`)
 - Поле `files[].name` в методах `POST /messages` и `PUT /messages/{id}`: расширение должно совпадать с расширением файла в `key`
-- Поля `ip_address` и `user_agent` в записи журнала аудита стали nullable — у событий, записанных без запроса пользователя, они приходят пустыми
 
 ### CLI v2026.8.0
 

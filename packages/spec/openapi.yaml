@@ -5569,6 +5569,22 @@ components:
           description: 'Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`.'
           example: null
       description: Детальная информация об ошибке
+    AuditDetailsBot:
+      type: object
+      required:
+        - bot_id
+        - actor_id
+      properties:
+        bot_id:
+          type: integer
+          format: int32
+          description: Идентификатор бота
+        actor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
+      description: 'При: bot_deleted, bot_token_recreated'
     AuditDetailsBotScopes:
       type: object
       required:
@@ -5668,7 +5684,7 @@ components:
       description: 'При: dlp_violation_detected'
     AuditDetailsEmpty:
       type: object
-      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted.'
+      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed.'
     AuditDetailsInitiator:
       type: object
       required:
@@ -5797,31 +5813,43 @@ components:
           items:
             type: string
           description: Список изменённых полей
+        context:
+          type: string
+          description: Как было выполнено изменение. Значение `sso_login` — профиль обновился автоматически при входе через SSO. Поле отсутствует, если профиль изменили обычным способом.
       description: 'При: user_updated'
-    AuditDetailsVideoCall:
+    AuditDetailsVideoCallFinished:
       type: object
       required:
         - chat_id
+        - started_message_id
         - duration
         - max_members_count
       properties:
         chat_id:
           type: integer
           format: int32
-          description: Идентификатор чата, в котором проходит видеозвонок
+          description: Идентификатор чата, в котором проходил видеозвонок
+        started_message_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
         duration:
           type: integer
           format: int32
-          description: Длительность звонка в секундах на момент события. Для video_call_started равна 0.
+          description: Длительность звонка в секундах
         max_members_count:
           type: integer
           format: int32
           description: Максимальное число одновременных участников за время звонка
-      description: 'При: video_call_started, video_call_finished'
+      description: 'При: video_call_finished'
     AuditDetailsVideoCallRecording:
       type: object
       required:
         - chat_id
+        - started_message_id
+        - recording_id
+        - file_id
         - duration
         - size
       properties:
@@ -5829,6 +5857,19 @@ components:
           type: integer
           format: int32
           description: Идентификатор чата, в котором проходил видеозвонок
+        started_message_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+        recording_id:
+          type: integer
+          format: int32
+          description: Идентификатор записи
+        file_id:
+          type: integer
+          format: int32
+          description: Идентификатор файла записи
         duration:
           type: integer
           format: int32
@@ -5838,6 +5879,22 @@ components:
           format: int64
           description: Размер файла записи в байтах
       description: 'При: video_call_recording_ready'
+    AuditDetailsVideoCallStarted:
+      type: object
+      required:
+        - chat_id
+        - started_message_id
+      properties:
+        chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор чата, в котором проходит видеозвонок
+        started_message_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+      description: 'При: video_call_started'
     AuditEvent:
       type: object
       required:
@@ -5911,9 +5968,11 @@ components:
         - $ref: '#/components/schemas/AuditDetailsKms'
         - $ref: '#/components/schemas/AuditDetailsDlp'
         - $ref: '#/components/schemas/AuditDetailsSearch'
+        - $ref: '#/components/schemas/AuditDetailsBot'
         - $ref: '#/components/schemas/AuditDetailsBotScopes'
         - $ref: '#/components/schemas/AuditDetailsBotWebhookSettings'
-        - $ref: '#/components/schemas/AuditDetailsVideoCall'
+        - $ref: '#/components/schemas/AuditDetailsVideoCallStarted'
+        - $ref: '#/components/schemas/AuditDetailsVideoCallFinished'
         - $ref: '#/components/schemas/AuditDetailsVideoCallRecording'
       description: Дополнительные детали события аудита. Структура зависит от значения event_key.
     AuditEventKey:
@@ -7402,7 +7461,7 @@ components:
                     example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png
                   name:
                     type: string
-                    description: Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением)
+                    description: Название файла, которое вы хотите отображать пользователю. Расширение должно совпадать с расширением файла в `key`, иначе ответ будет 422 с кодом `wrong_params`.
                     example: logo.png
                   file_type:
                     allOf:
@@ -7533,7 +7592,7 @@ components:
                     example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png
                   name:
                     type: string
-                    description: Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением)
+                    description: Название файла, которое вы хотите отображать пользователю. Расширение должно совпадать с расширением файла в `key`, иначе ответ будет 422 с кодом `wrong_params`.
                     example: logo.png
                   file_type:
                     allOf:
@@ -7648,6 +7707,12 @@ components:
           format: date-time
           description: Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
           example: '2025-05-15T14:30:00.000Z'
+        changed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля.
+          example: '2025-05-15T14:35:00.000Z'
         url:
           type: string
           description: Прямая ссылка на сообщение

@@ -1984,10 +1984,10 @@ model MessageCreateRequest {
       @example("attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png")
       key: string;
       
-      @doc("Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением)")
+      @doc("Название файла, которое вы хотите отображать пользователю. Расширение должно совпадать с расширением файла в `key`, иначе ответ будет 422 с кодом `wrong_params`.")
       @example("logo.png")
       name: string;
-      
+
       @doc("Тип файла")
       @example(FileType.image)
       file_type: FileType;
@@ -2057,10 +2057,10 @@ model MessageUpdateRequest {
       @example("attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png")
       key: string;
       
-      @doc("Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением)")
+      @doc("Название файла, которое вы хотите отображать пользователю. Расширение должно совпадать с расширением файла в `key`, иначе ответ будет 422 с кодом `wrong_params`.")
       @example("logo.png")
       name: string;
-      
+
       @doc("Тип файла")
       @example(FileType.image)
       file_type?: FileType = FileType.file;
@@ -3023,13 +3023,15 @@ model BotCreateResponse {
   access_token: string;
 }
 
-@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted.")
+@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed.")
 model AuditDetailsEmpty {}
 
 @doc("При: user_updated")
 model AuditDetailsUserUpdated {
   @doc("Список изменённых полей")
   changed_attrs: string[];
+  @doc("Как было выполнено изменение. Значение `sso_login` — профиль обновился автоматически при входе через SSO. Поле отсутствует, если профиль изменили обычным способом.")
+  context?: string;
 }
 
 @doc("При: user_role_changed")
@@ -3136,6 +3138,14 @@ model AuditDetailsSearch {
   filters: Record<unknown>;
 }
 
+@doc("При: bot_deleted, bot_token_recreated")
+model AuditDetailsBot {
+  @doc("Идентификатор бота")
+  bot_id: int32;
+  @doc("Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.")
+  actor_id: int32 | null;
+}
+
 @doc("При: bot_scopes_updated")
 model AuditDetailsBotScopes {
   @doc("Скоупы, добавленные токену бота")
@@ -3150,11 +3160,21 @@ model AuditDetailsBotWebhookSettings {
   changes: Record<unknown>;
 }
 
-@doc("При: video_call_started, video_call_finished")
-model AuditDetailsVideoCall {
+@doc("При: video_call_started")
+model AuditDetailsVideoCallStarted {
   @doc("Идентификатор чата, в котором проходит видеозвонок")
   chat_id: int32;
-  @doc("Длительность звонка в секундах на момент события. Для video_call_started равна 0.")
+  @doc("Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.")
+  started_message_id: int32 | null;
+}
+
+@doc("При: video_call_finished")
+model AuditDetailsVideoCallFinished {
+  @doc("Идентификатор чата, в котором проходил видеозвонок")
+  chat_id: int32;
+  @doc("Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.")
+  started_message_id: int32 | null;
+  @doc("Длительность звонка в секундах")
   duration: int32;
   @doc("Максимальное число одновременных участников за время звонка")
   max_members_count: int32;
@@ -3164,6 +3184,12 @@ model AuditDetailsVideoCall {
 model AuditDetailsVideoCallRecording {
   @doc("Идентификатор чата, в котором проходил видеозвонок")
   chat_id: int32;
+  @doc("Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.")
+  started_message_id: int32 | null;
+  @doc("Идентификатор записи")
+  recording_id: int32;
+  @doc("Идентификатор файла записи")
+  file_id: int32;
   @doc("Длительность записи в секундах")
   duration: int32;
   @doc("Размер файла записи в байтах")
@@ -3186,9 +3212,11 @@ union AuditEventDetailsUnion {
   AuditDetailsKms,
   AuditDetailsDlp,
   AuditDetailsSearch,
+  AuditDetailsBot,
   AuditDetailsBotScopes,
   AuditDetailsBotWebhookSettings,
-  AuditDetailsVideoCall,
+  AuditDetailsVideoCallStarted,
+  AuditDetailsVideoCallFinished,
   AuditDetailsVideoCallRecording,
 }
 
@@ -3285,7 +3313,11 @@ model MessageWebhookPayload {
   @doc("Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
   @example(utcDateTime.fromISO("2025-05-15T14:30:00.000Z"))
   created_at: utcDateTime;
-  
+
+  @doc("Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля.")
+  @example(utcDateTime.fromISO("2025-05-15T14:35:00.000Z"))
+  changed_at?: utcDateTime | null;
+
   @doc("Прямая ссылка на сообщение")
   @example("https://pachca.com/chats/1245817/messages/5678")
   url: string;

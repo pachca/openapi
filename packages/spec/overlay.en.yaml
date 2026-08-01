@@ -1213,6 +1213,15 @@ actions:
   - target: $.components.schemas.AuditDetailsSearch.properties.filters
     update:
       description: "Applied filters. Possible keys depend on the search type: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)."
+  - target: $.components.schemas.AuditDetailsBot
+    update:
+      description: 'For: bot_deleted, bot_token_recreated'
+  - target: $.components.schemas.AuditDetailsBot.properties.bot_id
+    update:
+      description: Bot ID
+  - target: $.components.schemas.AuditDetailsBot.properties.actor_id
+    update:
+      description: ID of the user who performed the action. `null` if the action was performed without an initiator.
   - target: $.components.schemas.AuditDetailsBotScopes
     update:
       description: 'For: bot_scopes_updated'
@@ -1228,16 +1237,28 @@ actions:
   - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.changes
     update:
       description: "Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages, events_history_enabled), the value is an object with previous and new fields."
-  - target: $.components.schemas.AuditDetailsVideoCall
+  - target: $.components.schemas.AuditDetailsVideoCallStarted
     update:
-      description: 'For: video_call_started, video_call_finished'
-  - target: $.components.schemas.AuditDetailsVideoCall.properties.chat_id
+      description: 'For: video_call_started'
+  - target: $.components.schemas.AuditDetailsVideoCallStarted.properties.chat_id
     update:
       description: ID of the chat where the video call takes place
-  - target: $.components.schemas.AuditDetailsVideoCall.properties.duration
+  - target: $.components.schemas.AuditDetailsVideoCallStarted.properties.started_message_id
     update:
-      description: Call duration in seconds at the moment of the event. Equals 0 for video_call_started.
-  - target: $.components.schemas.AuditDetailsVideoCall.properties.max_members_count
+      description: ID of the call start message. `null` if there is no such message.
+  - target: $.components.schemas.AuditDetailsVideoCallFinished
+    update:
+      description: 'For: video_call_finished'
+  - target: $.components.schemas.AuditDetailsVideoCallFinished.properties.chat_id
+    update:
+      description: ID of the chat where the video call took place
+  - target: $.components.schemas.AuditDetailsVideoCallFinished.properties.started_message_id
+    update:
+      description: ID of the call start message. `null` if there is no such message.
+  - target: $.components.schemas.AuditDetailsVideoCallFinished.properties.duration
+    update:
+      description: Call duration in seconds
+  - target: $.components.schemas.AuditDetailsVideoCallFinished.properties.max_members_count
     update:
       description: Maximum number of simultaneous participants during the call
   - target: $.components.schemas.AuditDetailsVideoCallRecording
@@ -1246,6 +1267,15 @@ actions:
   - target: $.components.schemas.AuditDetailsVideoCallRecording.properties.chat_id
     update:
       description: ID of the chat where the video call took place
+  - target: $.components.schemas.AuditDetailsVideoCallRecording.properties.started_message_id
+    update:
+      description: ID of the call start message. `null` if there is no such message.
+  - target: $.components.schemas.AuditDetailsVideoCallRecording.properties.recording_id
+    update:
+      description: Recording ID
+  - target: $.components.schemas.AuditDetailsVideoCallRecording.properties.file_id
+    update:
+      description: Recording file ID
   - target: $.components.schemas.AuditDetailsVideoCallRecording.properties.duration
     update:
       description: Recording duration in seconds
@@ -1279,6 +1309,9 @@ actions:
   - target: $.components.schemas.AuditDetailsUserUpdated.properties.changed_attrs
     update:
       description: List of changed fields
+  - target: $.components.schemas.AuditDetailsUserUpdated.properties.context
+    update:
+      description: How the change was made. The `sso_login` value means the profile was updated automatically during SSO sign-in. The field is absent when the profile was changed the regular way.
   - target: $.components.schemas.AuditEvent
     update:
       description: Audit event
@@ -2466,7 +2499,7 @@ actions:
       description: File path obtained from [file upload](POST /direct_url)
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.name
     update:
-      description: File name to display to the user (recommended to include the file extension)
+      description: "File name to display to the user. The extension must match the extension of the file in `key`, otherwise the response is 422 with the `wrong_params` code."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.file_type
     update:
       description: File type
@@ -2525,7 +2558,7 @@ actions:
       description: File path obtained from [file upload](POST /direct_url)
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.name
     update:
-      description: File name to display to the user (recommended to include the file extension)
+      description: "File name to display to the user. The extension must match the extension of the file in `key`, otherwise the response is 422 with the `wrong_params` code."
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.file_type
     update:
       description: 'File type: file (file), image (image)'
@@ -2580,6 +2613,9 @@ actions:
   - target: $.components.schemas.MessageWebhookPayload.properties.created_at
     update:
       description: Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.MessageWebhookPayload.properties.changed_at
+    update:
+      description: "Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that was never edited it equals the creation date. `null` for messages sent before this field was introduced."
   - target: $.components.schemas.MessageWebhookPayload.properties.url
     update:
       description: Direct link to the message

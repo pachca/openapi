@@ -16,7 +16,7 @@
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 98–200 |
 | How-to Guides — рецепты задач с кодом TS/Python | 201–884 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 885–11681 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 885–11696 |
 | · Обзор | 890–992 |
 | · Быстрый старт | 993–1082 |
 | · AI агенты | 1083–1221 |
@@ -29,41 +29,41 @@
 | · Готовые примеры реализации | 1762–1796 |
 | · Входящие вебхуки | 1797–1948 |
 | · Исходящие вебхуки | 1949–2003 |
-| · Настройка и типы событий | 2004–2244 |
-| · Безопасность и обработчик | 2245–2435 |
-| · Поллинг | 2436–2619 |
-| · Кнопки в сообщениях | 2620–2777 |
-| · Формы | 2778–2847 |
-| · Блоки представления | 2848–3061 |
-| · Обработка форм | 3062–3201 |
-| · Разворачивание ссылок | 3202–3314 |
-| · Экспорт сообщений | 3315–3456 |
-| · DLP-система | 3457–3664 |
-| · Пачка Audit Events API | 3665–3739 |
-| · Форматирование текста | 3740–3820 |
-| · Сценарии | 3821–4333 |
-| · CLI | 4334–4427 |
-| · Установка | 4428–4520 |
-| · Авторизация | 4521–4594 |
-| · Вывод | 4595–4698 |
-| · Флаги и скрипты | 4699–4925 |
-| · Сценарии | 4926–4973 |
-| · Файлы | 4974–5008 |
-| · Прямые запросы | 5009–5119 |
-| · Команды | 5120–5262 |
-| · SDK и генератор | 5263–5355 |
-| · TypeScript | 5356–5778 |
-| · Python | 5779–6195 |
-| · Go | 6196–6637 |
-| · Kotlin | 6638–7071 |
-| · Swift | 7072–7474 |
-| · C# | 7475–7938 |
-| · n8n | 7939–8014 |
-| · Начало работы | 8015–8246 |
-| · Ресурсы и операции | 8247–8611 |
-| · Триггер | 8612–8863 |
-| · Тестирование | 8864–9137 |
-| · Примеры workflow | 9138–9353 |
+| · Настройка и типы событий | 2004–2245 |
+| · Безопасность и обработчик | 2246–2436 |
+| · Поллинг | 2437–2620 |
+| · Кнопки в сообщениях | 2621–2778 |
+| · Формы | 2779–2848 |
+| · Блоки представления | 2849–3062 |
+| · Обработка форм | 3063–3202 |
+| · Разворачивание ссылок | 3203–3315 |
+| · Экспорт сообщений | 3316–3457 |
+| · DLP-система | 3458–3665 |
+| · Пачка Audit Events API | 3666–3740 |
+| · Форматирование текста | 3741–3821 |
+| · Сценарии | 3822–4334 |
+| · CLI | 4335–4428 |
+| · Установка | 4429–4521 |
+| · Авторизация | 4522–4595 |
+| · Вывод | 4596–4699 |
+| · Флаги и скрипты | 4700–4926 |
+| · Сценарии | 4927–4974 |
+| · Файлы | 4975–5009 |
+| · Прямые запросы | 5010–5120 |
+| · Команды | 5121–5263 |
+| · SDK и генератор | 5264–5356 |
+| · TypeScript | 5357–5779 |
+| · Python | 5780–6196 |
+| · Go | 6197–6638 |
+| · Kotlin | 6639–7072 |
+| · Swift | 7073–7475 |
+| · C# | 7476–7939 |
+| · n8n | 7940–8015 |
+| · Начало работы | 8016–8247 |
+| · Ресурсы и операции | 8248–8612 |
+| · Триггер | 8613–8864 |
+| · Тестирование | 8865–9138 |
+| · Примеры workflow | 9139–9353 |
 | · Продвинутые функции | 9354–9590 |
 | · Устранение ошибок | 9591–9770 |
 | · Миграция с v1 | 9771–9891 |
@@ -72,28 +72,28 @@
 | · Авторизация | 10004–10207 |
 | · Запросы и ответы | 10208–10398 |
 | · Пагинация | 10399–10635 |
-| · Загрузка файлов | 10636–10853 |
-| · Ошибки | 10854–10927 |
-| · Лимиты | 10928–11045 |
-| · Модели | 11046–11681 |
-| API-методы — все эндпоинты со схемами и примерами | 11682–29009 |
-| · OAuth | 11684–11783 |
-| · Chats | 11784–13391 |
-| · Profile | 13392–14297 |
-| · Users | 14298–16679 |
-| · Group tags | 16680–18027 |
-| · Members | 18028–19372 |
-| · Threads | 19373–20067 |
-| · Messages | 20068–22202 |
-| · Read members | 22203–22449 |
-| · Reactions | 22450–23096 |
-| · Search | 23097–23909 |
-| · Tasks | 23910–25199 |
-| · Views | 25200–25762 |
-| · Bots | 25763–28229 |
-| · Security | 28230–28556 |
-| · Custom Properties | 28557–28766 |
-| · Files | 28767–29009 |
+| · Загрузка файлов | 10636–10856 |
+| · Ошибки | 10857–10930 |
+| · Лимиты | 10931–11048 |
+| · Модели | 11049–11696 |
+| API-методы — все эндпоинты со схемами и примерами | 11697–29037 |
+| · OAuth | 11699–11798 |
+| · Chats | 11799–13406 |
+| · Profile | 13407–14312 |
+| · Users | 14313–16694 |
+| · Group tags | 16695–18042 |
+| · Members | 18043–19387 |
+| · Threads | 19388–20082 |
+| · Messages | 20083–22217 |
+| · Read members | 22218–22464 |
+| · Reactions | 22465–23111 |
+| · Search | 23112–23924 |
+| · Tasks | 23925–25214 |
+| · Views | 25215–25777 |
+| · Bots | 25778–28246 |
+| · Security | 28247–28584 |
+| · Custom Properties | 28585–28794 |
+| · Files | 28795–29037 |
 
 # LIBRARY RULES
 
@@ -2052,6 +2052,7 @@ Liquid также поддерживает:
 - `content: string` (required) — Текст сообщения. Пример: `"Текст сообщения"`
 - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
 - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+- `changed_at: date-time` (nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2025-05-15T14:35:00.000Z"`
 - `url: string` (required) — Прямая ссылка на сообщение. Пример: `"https://pachca.com/chats/1245817/messages/5678"`
 - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Пример: `9012`
 - `parent_message_id: integer, int32` (nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `3456`
@@ -4058,7 +4059,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 
 1. Запроси список тредов с фильтром по времени последнего сообщения и нужным `--limit`
 2. Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`
-3. Для каждого треда возьми `chat_id` и подтяни сообщения: `pachca messages list --chat-id=<thread.chat_id>`
+3. Для каждого треда возьми `chat_id` и подтяни сообщения
 
 > Выдача уже, чем `GET /threads/{id}`: возвращаются только треды, в чате треда или в чате с родительским сообщением которых вы состоите. Публичные чаты, в которых вас нет, в список не попадают — даже если `GET /threads/{id}` по конкретному id отдаст такой тред. Для дайджеста по публичному чату нужно быть участником чата с родительским сообщением или чата треда.
 
@@ -4486,7 +4487,7 @@ pachca doctor
 # ✔ Конфиг         ~/.config/pachca/config.toml (права: 600)
 # ✔ Профиль        personal (user: Иван Иванов)
 # ✔ Токен          действителен (11 скоупов)
-# ✔ CLI            v2026.7.1 (актуальная версия)
+# ✔ CLI            v2026.8.0 (актуальная версия)
 ```
 
 ## Обновление
@@ -9150,9 +9151,8 @@ sequenceDiagram
 
 **Как работает:**
 
-1. **Pachca Trigger** — событие `New Message`
-2. **IF** — проверка: сообщение системное (тип `user_joined`)
-3. **Pachca** (Message > Create) — отправка приветствия в тот же чат
+1. **Pachca Trigger** — событие `Chat Member Added`
+2. **Pachca** (Message > Create) — отправка приветствия в тот же чат: `entityId` берётся из `chat_id` события
 
 **Что можно добавить:** отправка личного сообщения с полезными ссылками, добавление сотрудника в рабочие каналы.
 
@@ -10703,6 +10703,8 @@ curl "$DIRECT_URL" \
 }
 ```
 
+Поле `name` — это отображаемое имя файла, его базовую часть можно менять. А вот расширение в `name` должно совпадать с расширением файла в `key`: иначе запрос вернёт `422` с кодом `wrong_params`. Проверка не даёт замаскировать один тип файла под другой, когда в интерфейсе показано `photo.jpg`, а скачивается `photo.exe`.
+
 
 ## Через CLI
 
@@ -10839,6 +10841,7 @@ await client.messages.create_message(MessageCreateRequest(
 | `403 Forbidden` при загрузке | Истекла подпись | Параметры загрузки действительны ограниченное время. Запросите новые через [Получение подписи](/api/files/uploads) |
 | `400 Bad Request` | Неправильный Content-Type | Убедитесь, что запрос отправляется как `multipart/form-data`, а не `application/json` |
 | Файл не отображается | Неверный `key` | Проверьте, что `${filename}` в ключе заменён на реальное имя файла |
+| `422` с кодом `wrong_params` | Расширение в `name` не совпадает с расширением файла в `key` | Приведите расширения к одному виду. Менять базовую часть имени можно, расширение — нет |
 
 
 ## Связанные разделы
@@ -11493,6 +11496,7 @@ users = await with_retry(lambda: client.users.list_users())
     - `content: string` (required) — Текст сообщения. Пример: `"Текст сообщения"`
     - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
     - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+    - `changed_at: date-time` (nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2025-05-15T14:35:00.000Z"`
     - `url: string` (required) — Прямая ссылка на сообщение. Пример: `"https://pachca.com/chats/1245817/messages/5678"`
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Пример: `9012`
     - `parent_message_id: integer, int32` (nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `3456`
@@ -11613,9 +11617,10 @@ users = await with_retry(lambda: client.users.list_users())
 - `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект.
   **Возможные варианты:**
 
-  - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted.
+  - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed.
   - **AuditDetailsUserUpdated**: При: user_updated
     - `changed_attrs: array of string` (required) — Список изменённых полей
+    - `context: string` — Как было выполнено изменение. Значение `sso_login` — профиль обновился автоматически при входе через SSO. Поле отсутствует, если профиль изменили обычным способом.
   - **AuditDetailsRoleChanged**: При: user_role_changed
     - `new_company_role: string` (required) — Новая роль
     - `previous_company_role: string` (required) — Предыдущая роль
@@ -11658,6 +11663,9 @@ users = await with_retry(lambda: client.users.list_users())
     - `filters: Record<string, object>` (required) — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages).
       **Структура значений Record:**
       - Тип значения: `any`
+  - **AuditDetailsBot**: При: bot_deleted, bot_token_recreated
+    - `bot_id: integer, int32` (required) — Идентификатор бота
+    - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
   - **AuditDetailsBotScopes**: При: bot_scopes_updated
     - `added_scopes: array of string` (required) — Скоупы, добавленные токену бота
     - `removed_scopes: array of string` (required) — Скоупы, отозванные у токена бота
@@ -11665,12 +11673,19 @@ users = await with_retry(lambda: client.users.list_users())
     - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
       **Структура значений Record:**
       - Тип значения: `any`
-  - **AuditDetailsVideoCall**: При: video_call_started, video_call_finished
+  - **AuditDetailsVideoCallStarted**: При: video_call_started
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
-    - `duration: integer, int32` (required) — Длительность звонка в секундах на момент события. Для video_call_started равна 0.
+    - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+  - **AuditDetailsVideoCallFinished**: При: video_call_finished
+    - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходил видеозвонок
+    - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+    - `duration: integer, int32` (required) — Длительность звонка в секундах
     - `max_members_count: integer, int32` (required) — Максимальное число одновременных участников за время звонка
   - **AuditDetailsVideoCallRecording**: При: video_call_recording_ready
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходил видеозвонок
+    - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+    - `recording_id: integer, int32` (required) — Идентификатор записи
+    - `file_id: integer, int32` (required) — Идентификатор файла записи
     - `duration: integer, int32` (required) — Длительность записи в секундах
     - `size: integer, int64` (required) — Размер файла записи в байтах
 - `ip_address: string` (required) — IP-адрес, с которого было выполнено действие. Пример: `"192.168.1.100"`
@@ -20098,7 +20113,7 @@ response = await client.threads.get_thread(id=265142)
   - `content: string` (required) — Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). Пример: `"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"`
   - `files: array of object` — Прикрепляемые файлы
     - `key: string` (required) — Путь к файлу, полученный в результате [загрузки файла](/api/files/direct-url). Пример: `"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"`
-    - `name: string` (required) — Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением). Пример: `"logo.png"`
+    - `name: string` (required) — Название файла, которое вы хотите отображать пользователю. Расширение должно совпадать с расширением файла в `key`, иначе ответ будет 422 с кодом `wrong_params`. Пример: `"logo.png"`
     - `file_type: string` (required) — Тип файла
       Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение
     - `size: integer, int32` (required) — Размер файла в байтах, отображаемый пользователю. Пример: `12345`
@@ -21143,7 +21158,7 @@ response = await client.messages.get_message(id=194275)
   - `content: string` — Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). Пример: `"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет."`
   - `files: array of object` — Прикрепляемые файлы
     - `key: string` (required) — Путь к файлу, полученный в результате [загрузки файла](/api/files/direct-url). Пример: `"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"`
-    - `name: string` (required) — Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением). Пример: `"logo.png"`
+    - `name: string` (required) — Название файла, которое вы хотите отображать пользователю. Расширение должно совпадать с расширением файла в `key`, иначе ответ будет 422 с кодом `wrong_params`. Пример: `"logo.png"`
     - `file_type: string` — Тип файла
       Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение
     - `size: integer, int32` — Размер файла в байтах, отображаемый пользователю. Пример: `12345`
@@ -27777,6 +27792,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
       - `content: string` (required) — Текст сообщения. Пример: `"Текст сообщения"`
       - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
       - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+      - `changed_at: date-time` (nullable) — Дата и время последнего изменения сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. У неотредактированного сообщения совпадает с датой создания. `null` у сообщений, отправленных до появления этого поля. Пример: `"2025-05-15T14:35:00.000Z"`
       - `url: string` (required) — Прямая ссылка на сообщение. Пример: `"https://pachca.com/chats/1245817/messages/5678"`
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Пример: `9012`
       - `parent_message_id: integer, int32` (nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `3456`
@@ -27902,6 +27918,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
         "content": "Текст сообщения",
         "user_id": 2345,
         "created_at": "2025-05-15T14:30:00.000Z",
+        "changed_at": "2025-05-15T14:35:00.000Z",
         "url": "https://pachca.com/chats/1245817/messages/5678",
         "chat_id": 9012,
         "parent_message_id": 3456,
@@ -28285,9 +28302,10 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
   - `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект.
     **Возможные варианты:**
 
-    - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, bot_token_recreated, bot_deleted.
+    - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed.
     - **AuditDetailsUserUpdated**: При: user_updated
       - `changed_attrs: array of string` (required) — Список изменённых полей
+      - `context: string` — Как было выполнено изменение. Значение `sso_login` — профиль обновился автоматически при входе через SSO. Поле отсутствует, если профиль изменили обычным способом.
     - **AuditDetailsRoleChanged**: При: user_role_changed
       - `new_company_role: string` (required) — Новая роль
       - `previous_company_role: string` (required) — Предыдущая роль
@@ -28330,6 +28348,9 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `filters: Record<string, object>` (required) — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages).
         **Структура значений Record:**
         - Тип значения: `any`
+    - **AuditDetailsBot**: При: bot_deleted, bot_token_recreated
+      - `bot_id: integer, int32` (required) — Идентификатор бота
+      - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
     - **AuditDetailsBotScopes**: При: bot_scopes_updated
       - `added_scopes: array of string` (required) — Скоупы, добавленные токену бота
       - `removed_scopes: array of string` (required) — Скоупы, отозванные у токена бота
@@ -28337,12 +28358,19 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
         **Структура значений Record:**
         - Тип значения: `any`
-    - **AuditDetailsVideoCall**: При: video_call_started, video_call_finished
+    - **AuditDetailsVideoCallStarted**: При: video_call_started
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
-      - `duration: integer, int32` (required) — Длительность звонка в секундах на момент события. Для video_call_started равна 0.
+      - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+    - **AuditDetailsVideoCallFinished**: При: video_call_finished
+      - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходил видеозвонок
+      - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+      - `duration: integer, int32` (required) — Длительность звонка в секундах
       - `max_members_count: integer, int32` (required) — Максимальное число одновременных участников за время звонка
     - **AuditDetailsVideoCallRecording**: При: video_call_recording_ready
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходил видеозвонок
+      - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
+      - `recording_id: integer, int32` (required) — Идентификатор записи
+      - `file_id: integer, int32` (required) — Идентификатор файла записи
       - `duration: integer, int32` (required) — Длительность записи в секундах
       - `size: integer, int64` (required) — Размер файла записи в байтах
   - `ip_address: string` (required) — IP-адрес, с которого было выполнено действие. Пример: `"192.168.1.100"`

@@ -1828,7 +1828,7 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
     private static readonly (Type Type, HashSet<string> Keys)[] Shapes =
     {
         (typeof(AuditDetailsEmpty), new HashSet<string>()),
-        (typeof(AuditDetailsUserUpdated), new HashSet<string> { "changed_attrs" }),
+        (typeof(AuditDetailsUserUpdated), new HashSet<string> { "changed_attrs", "context" }),
         (typeof(AuditDetailsRoleChanged), new HashSet<string> { "new_company_role", "previous_company_role", "initiator_id" }),
         (typeof(AuditDetailsTagName), new HashSet<string> { "name" }),
         (typeof(AuditDetailsInitiator), new HashSet<string> { "initiator_id" }),
@@ -1841,10 +1841,12 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         (typeof(AuditDetailsKms), new HashSet<string> { "chat_id", "message_id", "reason" }),
         (typeof(AuditDetailsDlp), new HashSet<string> { "dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched" }),
         (typeof(AuditDetailsSearch), new HashSet<string> { "search_type", "query_present", "cursor_present", "limit", "filters" }),
+        (typeof(AuditDetailsBot), new HashSet<string> { "bot_id", "actor_id" }),
         (typeof(AuditDetailsBotScopes), new HashSet<string> { "added_scopes", "removed_scopes" }),
         (typeof(AuditDetailsBotWebhookSettings), new HashSet<string> { "changes" }),
-        (typeof(AuditDetailsVideoCall), new HashSet<string> { "chat_id", "duration", "max_members_count" }),
-        (typeof(AuditDetailsVideoCallRecording), new HashSet<string> { "chat_id", "duration", "size" }),
+        (typeof(AuditDetailsVideoCallStarted), new HashSet<string> { "chat_id", "started_message_id" }),
+        (typeof(AuditDetailsVideoCallFinished), new HashSet<string> { "chat_id", "started_message_id", "duration", "max_members_count" }),
+        (typeof(AuditDetailsVideoCallRecording), new HashSet<string> { "chat_id", "started_message_id", "recording_id", "file_id", "duration", "size" }),
     };
 
     public override AuditEventDetailsUnion Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -1897,6 +1899,8 @@ public class AuditDetailsUserUpdated : AuditEventDetailsUnion
 {
     [JsonPropertyName("changed_attrs")]
     public List<string> ChangedAttrs { get; set; } = default!;
+    [JsonPropertyName("context")]
+    public string? Context { get; set; }
 }
 
 public class AuditDetailsRoleChanged : AuditEventDetailsUnion
@@ -2003,6 +2007,14 @@ public class AuditDetailsSearch : AuditEventDetailsUnion
     public Dictionary<string, object> Filters { get; set; } = default!;
 }
 
+public class AuditDetailsBot : AuditEventDetailsUnion
+{
+    [JsonPropertyName("bot_id")]
+    public int BotId { get; set; } = default!;
+    [JsonPropertyName("actor_id")]
+    public int? ActorId { get; set; }
+}
+
 public class AuditDetailsBotScopes : AuditEventDetailsUnion
 {
     [JsonPropertyName("added_scopes")]
@@ -2017,10 +2029,20 @@ public class AuditDetailsBotWebhookSettings : AuditEventDetailsUnion
     public Dictionary<string, object> Changes { get; set; } = default!;
 }
 
-public class AuditDetailsVideoCall : AuditEventDetailsUnion
+public class AuditDetailsVideoCallStarted : AuditEventDetailsUnion
 {
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
+    [JsonPropertyName("started_message_id")]
+    public int? StartedMessageId { get; set; }
+}
+
+public class AuditDetailsVideoCallFinished : AuditEventDetailsUnion
+{
+    [JsonPropertyName("chat_id")]
+    public int ChatId { get; set; } = default!;
+    [JsonPropertyName("started_message_id")]
+    public int? StartedMessageId { get; set; }
     [JsonPropertyName("duration")]
     public int Duration { get; set; } = default!;
     [JsonPropertyName("max_members_count")]
@@ -2031,6 +2053,12 @@ public class AuditDetailsVideoCallRecording : AuditEventDetailsUnion
 {
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
+    [JsonPropertyName("started_message_id")]
+    public int? StartedMessageId { get; set; }
+    [JsonPropertyName("recording_id")]
+    public int RecordingId { get; set; } = default!;
+    [JsonPropertyName("file_id")]
+    public int FileId { get; set; } = default!;
     [JsonPropertyName("duration")]
     public int Duration { get; set; } = default!;
     [JsonPropertyName("size")]
@@ -2261,6 +2289,8 @@ public class MessageWebhookPayload : WebhookPayloadUnion
     public int UserId { get; set; } = default!;
     [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; } = default!;
+    [JsonPropertyName("changed_at")]
+    public DateTimeOffset? ChangedAt { get; set; }
     [JsonPropertyName("url")]
     public string Url { get; set; } = default!;
     [JsonPropertyName("chat_id")]

@@ -148,9 +148,7 @@ workflows:
         description: If `meta.paginate.next_page` is set — iterate pages via `--cursor`
         operationId: ThreadOperations_listThreads
       - stepId: list-active-threads-in-a-time-window-3
-        description: >-
-          For each thread take `chat_id` and fetch messages: `pachca messages list
-          --chat-id=<thread.chat_id>`
+        description: For each thread take `chat_id` and fetch messages
         operationId: ChatMessageOperations_listChatMessages
   - workflowId: mention-user
     summary: Mention user

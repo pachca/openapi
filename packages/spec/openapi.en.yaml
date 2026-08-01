@@ -5721,6 +5721,22 @@ components:
             cases `null`.
           example: null
       description: Detailed error information
+    AuditDetailsBot:
+      type: object
+      required:
+        - bot_id
+        - actor_id
+      properties:
+        bot_id:
+          type: integer
+          format: int32
+          description: Bot ID
+        actor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+      description: 'For: bot_deleted, bot_token_recreated'
     AuditDetailsBotScopes:
       type: object
       required:
@@ -5956,31 +5972,45 @@ components:
           items:
             type: string
           description: List of changed fields
+        context:
+          type: string
+          description: >-
+            How the change was made. The `sso_login` value means the profile was updated automatically during SSO
+            sign-in. The field is absent when the profile was changed the regular way.
       description: 'For: user_updated'
-    AuditDetailsVideoCall:
+    AuditDetailsVideoCallFinished:
       type: object
       required:
         - chat_id
+        - started_message_id
         - duration
         - max_members_count
       properties:
         chat_id:
           type: integer
           format: int32
-          description: ID of the chat where the video call takes place
+          description: ID of the chat where the video call took place
+        started_message_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the call start message. `null` if there is no such message.
         duration:
           type: integer
           format: int32
-          description: Call duration in seconds at the moment of the event. Equals 0 for video_call_started.
+          description: Call duration in seconds
         max_members_count:
           type: integer
           format: int32
           description: Maximum number of simultaneous participants during the call
-      description: 'For: video_call_started, video_call_finished'
+      description: 'For: video_call_finished'
     AuditDetailsVideoCallRecording:
       type: object
       required:
         - chat_id
+        - started_message_id
+        - recording_id
+        - file_id
         - duration
         - size
       properties:
@@ -5988,6 +6018,19 @@ components:
           type: integer
           format: int32
           description: ID of the chat where the video call took place
+        started_message_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the call start message. `null` if there is no such message.
+        recording_id:
+          type: integer
+          format: int32
+          description: Recording ID
+        file_id:
+          type: integer
+          format: int32
+          description: Recording file ID
         duration:
           type: integer
           format: int32
@@ -5997,6 +6040,22 @@ components:
           format: int64
           description: Recording file size in bytes
       description: 'For: video_call_recording_ready'
+    AuditDetailsVideoCallStarted:
+      type: object
+      required:
+        - chat_id
+        - started_message_id
+      properties:
+        chat_id:
+          type: integer
+          format: int32
+          description: ID of the chat where the video call takes place
+        started_message_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the call start message. `null` if there is no such message.
+      description: 'For: video_call_started'
     AuditEvent:
       type: object
       required:
@@ -6072,9 +6131,11 @@ components:
         - $ref: '#/components/schemas/AuditDetailsKms'
         - $ref: '#/components/schemas/AuditDetailsDlp'
         - $ref: '#/components/schemas/AuditDetailsSearch'
+        - $ref: '#/components/schemas/AuditDetailsBot'
         - $ref: '#/components/schemas/AuditDetailsBotScopes'
         - $ref: '#/components/schemas/AuditDetailsBotWebhookSettings'
-        - $ref: '#/components/schemas/AuditDetailsVideoCall'
+        - $ref: '#/components/schemas/AuditDetailsVideoCallStarted'
+        - $ref: '#/components/schemas/AuditDetailsVideoCallFinished'
         - $ref: '#/components/schemas/AuditDetailsVideoCallRecording'
       description: Additional audit event details. Structure depends on the event_key value.
     AuditEventKey:
@@ -7617,7 +7678,9 @@ components:
                     example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png
                   name:
                     type: string
-                    description: File name to display to the user (recommended to include the file extension)
+                    description: >-
+                      File name to display to the user. The extension must match the extension of the file in `key`,
+                      otherwise the response is 422 with the `wrong_params` code.
                     example: logo.png
                   file_type:
                     allOf:
@@ -7756,7 +7819,9 @@ components:
                     example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png
                   name:
                     type: string
-                    description: File name to display to the user (recommended to include the file extension)
+                    description: >-
+                      File name to display to the user. The extension must match the extension of the file in `key`,
+                      otherwise the response is 422 with the `wrong_params` code.
                     example: logo.png
                   file_type:
                     allOf:
@@ -7877,6 +7942,14 @@ components:
           format: date-time
           description: Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
           example: '2025-05-15T14:30:00.000Z'
+        changed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Message last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. For a message that
+            was never edited it equals the creation date. `null` for messages sent before this field was introduced.
+          example: '2025-05-15T14:35:00.000Z'
         url:
           type: string
           description: Direct link to the message

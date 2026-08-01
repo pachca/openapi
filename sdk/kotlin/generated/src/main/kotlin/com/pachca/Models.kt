@@ -668,7 +668,7 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
 
     private val shapes: List<Pair<Set<String>, (Json, JsonElement) -> AuditEventDetailsUnion>> = listOf(
         setOf<String>() to { json, element -> json.decodeFromJsonElement(AuditDetailsEmpty.serializer(), element) },
-        setOf("changed_attrs") to { json, element -> json.decodeFromJsonElement(AuditDetailsUserUpdated.serializer(), element) },
+        setOf("changed_attrs", "context") to { json, element -> json.decodeFromJsonElement(AuditDetailsUserUpdated.serializer(), element) },
         setOf("new_company_role", "previous_company_role", "initiator_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsRoleChanged.serializer(), element) },
         setOf("name") to { json, element -> json.decodeFromJsonElement(AuditDetailsTagName.serializer(), element) },
         setOf("initiator_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsInitiator.serializer(), element) },
@@ -681,10 +681,12 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
         setOf("chat_id", "message_id", "reason") to { json, element -> json.decodeFromJsonElement(AuditDetailsKms.serializer(), element) },
         setOf("dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched") to { json, element -> json.decodeFromJsonElement(AuditDetailsDlp.serializer(), element) },
         setOf("search_type", "query_present", "cursor_present", "limit", "filters") to { json, element -> json.decodeFromJsonElement(AuditDetailsSearch.serializer(), element) },
+        setOf("bot_id", "actor_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBot.serializer(), element) },
         setOf("added_scopes", "removed_scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotScopes.serializer(), element) },
         setOf("changes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotWebhookSettings.serializer(), element) },
-        setOf("chat_id", "duration", "max_members_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCall.serializer(), element) },
-        setOf("chat_id", "duration", "size") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallRecording.serializer(), element) },
+        setOf("chat_id", "started_message_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallStarted.serializer(), element) },
+        setOf("chat_id", "started_message_id", "duration", "max_members_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallFinished.serializer(), element) },
+        setOf("chat_id", "started_message_id", "recording_id", "file_id", "duration", "size") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallRecording.serializer(), element) },
     )
 
     override fun serialize(encoder: Encoder, value: AuditEventDetailsUnion) {
@@ -704,9 +706,11 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
             is AuditDetailsKms -> jsonEncoder.encodeSerializableValue(AuditDetailsKms.serializer(), value)
             is AuditDetailsDlp -> jsonEncoder.encodeSerializableValue(AuditDetailsDlp.serializer(), value)
             is AuditDetailsSearch -> jsonEncoder.encodeSerializableValue(AuditDetailsSearch.serializer(), value)
+            is AuditDetailsBot -> jsonEncoder.encodeSerializableValue(AuditDetailsBot.serializer(), value)
             is AuditDetailsBotScopes -> jsonEncoder.encodeSerializableValue(AuditDetailsBotScopes.serializer(), value)
             is AuditDetailsBotWebhookSettings -> jsonEncoder.encodeSerializableValue(AuditDetailsBotWebhookSettings.serializer(), value)
-            is AuditDetailsVideoCall -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCall.serializer(), value)
+            is AuditDetailsVideoCallStarted -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallStarted.serializer(), value)
+            is AuditDetailsVideoCallFinished -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallFinished.serializer(), value)
             is AuditDetailsVideoCallRecording -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallRecording.serializer(), value)
         }
     }
@@ -745,6 +749,7 @@ class AuditDetailsEmpty : AuditEventDetailsUnion
 @Serializable
 data class AuditDetailsUserUpdated(
     @SerialName("changed_attrs") val changedAttrs: List<String>,
+    val context: String? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -824,6 +829,12 @@ data class AuditDetailsSearch(
 ) : AuditEventDetailsUnion
 
 @Serializable
+data class AuditDetailsBot(
+    @SerialName("bot_id") val botId: Int,
+    @SerialName("actor_id") val actorId: Int,
+) : AuditEventDetailsUnion
+
+@Serializable
 data class AuditDetailsBotScopes(
     @SerialName("added_scopes") val addedScopes: List<String>,
     @SerialName("removed_scopes") val removedScopes: List<String>,
@@ -835,8 +846,15 @@ data class AuditDetailsBotWebhookSettings(
 ) : AuditEventDetailsUnion
 
 @Serializable
-data class AuditDetailsVideoCall(
+data class AuditDetailsVideoCallStarted(
     @SerialName("chat_id") val chatId: Int,
+    @SerialName("started_message_id") val startedMessageId: Int,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsVideoCallFinished(
+    @SerialName("chat_id") val chatId: Int,
+    @SerialName("started_message_id") val startedMessageId: Int,
     val duration: Int,
     @SerialName("max_members_count") val maxMembersCount: Int,
 ) : AuditEventDetailsUnion
@@ -844,6 +862,9 @@ data class AuditDetailsVideoCall(
 @Serializable
 data class AuditDetailsVideoCallRecording(
     @SerialName("chat_id") val chatId: Int,
+    @SerialName("started_message_id") val startedMessageId: Int,
+    @SerialName("recording_id") val recordingId: Int,
+    @SerialName("file_id") val fileId: Int,
     val duration: Int,
     val size: Long,
 ) : AuditEventDetailsUnion
@@ -1014,6 +1035,7 @@ data class MessageWebhookPayload(
     val content: String,
     @SerialName("user_id") val userId: Int,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("changed_at") val changedAt: OffsetDateTime? = null,
     val url: String,
     @SerialName("chat_id") val chatId: Int,
     @SerialName("parent_message_id") val parentMessageId: Int? = null,

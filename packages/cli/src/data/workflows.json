@@ -160,6 +160,10 @@
       {
         "description": "Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`",
         "command": "pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --cursor=<next_page>"
+      },
+      {
+        "description": "Для каждого треда возьми `chat_id` и подтяни сообщения",
+        "command": "pachca messages list --chat-id=<thread.chat_id>"
       }
     ]
   },

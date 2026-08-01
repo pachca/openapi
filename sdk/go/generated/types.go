@@ -451,6 +451,11 @@ type ApiErrorItem struct {
 	Payload map[string]any      `json:"payload"`
 }
 
+type AuditDetailsBot struct {
+	BotID   int32  `json:"bot_id"`
+	ActorID *int32 `json:"actor_id"`
+}
+
 type AuditDetailsBotScopes struct {
 	AddedScopes   []string `json:"added_scopes"`
 	RemovedScopes []string `json:"removed_scopes"`
@@ -529,18 +534,28 @@ type AuditDetailsTokenScopes struct {
 
 type AuditDetailsUserUpdated struct {
 	ChangedAttrs []string `json:"changed_attrs"`
+	Context      *string  `json:"context,omitempty"`
 }
 
-type AuditDetailsVideoCall struct {
-	ChatID          int32 `json:"chat_id"`
-	Duration        int32 `json:"duration"`
-	MaxMembersCount int32 `json:"max_members_count"`
+type AuditDetailsVideoCallFinished struct {
+	ChatID           int32  `json:"chat_id"`
+	Duration         int32  `json:"duration"`
+	MaxMembersCount  int32  `json:"max_members_count"`
+	StartedMessageID *int32 `json:"started_message_id"`
 }
 
 type AuditDetailsVideoCallRecording struct {
-	ChatID   int32 `json:"chat_id"`
-	Duration int32 `json:"duration"`
-	Size     int64 `json:"size"`
+	ChatID           int32  `json:"chat_id"`
+	RecordingID      int32  `json:"recording_id"`
+	FileID           int32  `json:"file_id"`
+	Duration         int32  `json:"duration"`
+	Size             int64  `json:"size"`
+	StartedMessageID *int32 `json:"started_message_id"`
+}
+
+type AuditDetailsVideoCallStarted struct {
+	ChatID           int32  `json:"chat_id"`
+	StartedMessageID *int32 `json:"started_message_id"`
 }
 
 type AuditEvent struct {
@@ -1021,6 +1036,7 @@ type MessageWebhookPayload struct {
 	URL              string                `json:"url"`
 	ChatID           int32                 `json:"chat_id"`
 	WebhookTimestamp int32                 `json:"webhook_timestamp"`
+	ChangedAt        *string               `json:"changed_at"`
 	ParentMessageID  *int32                `json:"parent_message_id"`
 	Thread           *WebhookMessageThread `json:"thread"`
 }
@@ -1670,16 +1686,18 @@ type AuditEventDetailsUnion struct {
 	AuditDetailsKms                *AuditDetailsKms
 	AuditDetailsDlp                *AuditDetailsDlp
 	AuditDetailsSearch             *AuditDetailsSearch
+	AuditDetailsBot                *AuditDetailsBot
 	AuditDetailsBotScopes          *AuditDetailsBotScopes
 	AuditDetailsBotWebhookSettings *AuditDetailsBotWebhookSettings
-	AuditDetailsVideoCall          *AuditDetailsVideoCall
+	AuditDetailsVideoCallStarted   *AuditDetailsVideoCallStarted
+	AuditDetailsVideoCallFinished  *AuditDetailsVideoCallFinished
 	AuditDetailsVideoCallRecording *AuditDetailsVideoCallRecording
 	Raw                            json.RawMessage
 }
 
 var auditEventDetailsUnionShapes = []unionMemberShape{
 	{keys: map[string]struct{}{}},
-	{keys: map[string]struct{}{"changed_attrs": {}}},
+	{keys: map[string]struct{}{"changed_attrs": {}, "context": {}}},
 	{keys: map[string]struct{}{"new_company_role": {}, "previous_company_role": {}, "initiator_id": {}}},
 	{keys: map[string]struct{}{"name": {}}},
 	{keys: map[string]struct{}{"initiator_id": {}}},
@@ -1692,10 +1710,12 @@ var auditEventDetailsUnionShapes = []unionMemberShape{
 	{keys: map[string]struct{}{"chat_id": {}, "message_id": {}, "reason": {}}},
 	{keys: map[string]struct{}{"dlp_rule_id": {}, "dlp_rule_name": {}, "message_id": {}, "chat_id": {}, "user_id": {}, "action_message": {}, "conditions_matched": {}}},
 	{keys: map[string]struct{}{"search_type": {}, "query_present": {}, "cursor_present": {}, "limit": {}, "filters": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}}},
 	{keys: map[string]struct{}{"added_scopes": {}, "removed_scopes": {}}},
 	{keys: map[string]struct{}{"changes": {}}},
-	{keys: map[string]struct{}{"chat_id": {}, "duration": {}, "max_members_count": {}}},
-	{keys: map[string]struct{}{"chat_id": {}, "duration": {}, "size": {}}},
+	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}}},
+	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "duration": {}, "max_members_count": {}}},
+	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "recording_id": {}, "file_id": {}, "duration": {}, "size": {}}},
 }
 
 // UnmarshalJSON decodes AuditEventDetailsUnion, which carries no discriminator field:
@@ -1747,15 +1767,21 @@ func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
 		u.AuditDetailsSearch = &AuditDetailsSearch{}
 		return json.Unmarshal(data, u.AuditDetailsSearch)
 	case 14:
+		u.AuditDetailsBot = &AuditDetailsBot{}
+		return json.Unmarshal(data, u.AuditDetailsBot)
+	case 15:
 		u.AuditDetailsBotScopes = &AuditDetailsBotScopes{}
 		return json.Unmarshal(data, u.AuditDetailsBotScopes)
-	case 15:
+	case 16:
 		u.AuditDetailsBotWebhookSettings = &AuditDetailsBotWebhookSettings{}
 		return json.Unmarshal(data, u.AuditDetailsBotWebhookSettings)
-	case 16:
-		u.AuditDetailsVideoCall = &AuditDetailsVideoCall{}
-		return json.Unmarshal(data, u.AuditDetailsVideoCall)
 	case 17:
+		u.AuditDetailsVideoCallStarted = &AuditDetailsVideoCallStarted{}
+		return json.Unmarshal(data, u.AuditDetailsVideoCallStarted)
+	case 18:
+		u.AuditDetailsVideoCallFinished = &AuditDetailsVideoCallFinished{}
+		return json.Unmarshal(data, u.AuditDetailsVideoCallFinished)
+	case 19:
 		u.AuditDetailsVideoCallRecording = &AuditDetailsVideoCallRecording{}
 		return json.Unmarshal(data, u.AuditDetailsVideoCallRecording)
 	}
@@ -1805,14 +1831,20 @@ func (u AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {
 	if u.AuditDetailsSearch != nil {
 		return json.Marshal(u.AuditDetailsSearch)
 	}
+	if u.AuditDetailsBot != nil {
+		return json.Marshal(u.AuditDetailsBot)
+	}
 	if u.AuditDetailsBotScopes != nil {
 		return json.Marshal(u.AuditDetailsBotScopes)
 	}
 	if u.AuditDetailsBotWebhookSettings != nil {
 		return json.Marshal(u.AuditDetailsBotWebhookSettings)
 	}
-	if u.AuditDetailsVideoCall != nil {
-		return json.Marshal(u.AuditDetailsVideoCall)
+	if u.AuditDetailsVideoCallStarted != nil {
+		return json.Marshal(u.AuditDetailsVideoCallStarted)
+	}
+	if u.AuditDetailsVideoCallFinished != nil {
+		return json.Marshal(u.AuditDetailsVideoCallFinished)
 	}
 	if u.AuditDetailsVideoCallRecording != nil {
 		return json.Marshal(u.AuditDetailsVideoCallRecording)

@@ -31,7 +31,7 @@
 
 ### Схема
 
-- `webhook: object` (required) — Объект параметров вебхука редактируемого бота
+- `webhook: object` — Объект параметров вебхука редактируемого бота
   - `name: string` (max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (max length: 255) — Никнейм бота. Должен заканчиваться на `_bot`. Пример: `"tasks_bot"`
   - `outgoing_url: string` — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
@@ -50,6 +50,10 @@
   - `who_can_add: string` — Кто может добавлять бота в чаты
     Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
   - `can_edit: array of string` — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
+- `oauth_client: object` — Объект параметров OAuth-клиента бота. Переданные поля заменяют текущие значения, непереданные остаются прежними.
+  - `confidential: boolean` — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+  - `redirect_uris: array of string` — Адреса возврата, разрешённые для этого клиента. Пустой список возвращает `400` с кодом `blank`. Пример: `["https://www.website.com/oauth/callback"]`
+  - `scopes: array of string` — Скоупы, которые клиент может запросить при авторизации. Ограничения те же, что и для скоупов токена бота: недоступный роли бота скоуп возвращает `400` с кодом `forbidden`. Пример: `["messages:create"]`
 
 ### Пример
 
@@ -73,6 +77,15 @@
     "challenge_key": "challenge",
     "can_edit": [
       "admin"
+    ]
+  },
+  "oauth_client": {
+    "confidential": true,
+    "redirect_uris": [
+      "https://www.website.com/oauth/callback"
+    ],
+    "scopes": [
+      "messages:create"
     ]
   }
 }
@@ -103,6 +116,15 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
     "challenge_key": "challenge",
     "can_edit": [
       "admin"
+    ]
+  },
+  "oauth_client": {
+    "confidential": true,
+    "redirect_uris": [
+      "https://www.website.com/oauth/callback"
+    ],
+    "scopes": [
+      "messages:create"
     ]
   }
 }'
@@ -136,6 +158,12 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
     - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
     - `who_can_add: string` (required) — Кто может добавлять бота в чаты
       Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+  - `oauth_client: object` — Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
+    - `client_id: string` (required) — Идентификатор OAuth-клиента. Пример: `"6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4"`
+    - `client_secret_preview: string` (required) — Секрет клиента в сокращённом виде: первые 8 и последние 4 символа, между ними `...`. Пример: `"9f2b7c14...d5b8"`
+    - `confidential: boolean` (required) — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+    - `redirect_uris: array of string` (required) — Адреса возврата, разрешённые для этого клиента. Пример: `["https://www.website.com/oauth/callback"]`
+    - `scopes: array of string` (required) — Скоупы, которые клиент может запросить при авторизации. Пример: `["messages:create"]`
 
 **Пример ответа:**
 
@@ -168,6 +196,17 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
         "admin"
       ],
       "who_can_add": "creator"
+    },
+    "oauth_client": {
+      "client_id": "6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4",
+      "client_secret_preview": "9f2b7c14...d5b8",
+      "confidential": true,
+      "redirect_uris": [
+        "https://www.website.com/oauth/callback"
+      ],
+      "scopes": [
+        "messages:create"
+      ]
     }
   }
 }

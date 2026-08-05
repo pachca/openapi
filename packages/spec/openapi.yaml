@@ -216,6 +216,14 @@ paths:
                     can_edit:
                       - admin
                     who_can_add: creator
+                  oauth_client:
+                    client_id: 6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4
+                    client_secret_preview: 9f2b7c14...d5b8
+                    confidential: true
+                    redirect_uris:
+                      - https://www.website.com/oauth/callback
+                    scopes:
+                      - messages:create
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '401':
           description: Access is unauthorized.
@@ -290,6 +298,14 @@ paths:
                     can_edit:
                       - admin
                     who_can_add: creator
+                  oauth_client:
+                    client_id: 6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4
+                    client_secret_preview: 9f2b7c14...d5b8
+                    confidential: true
+                    redirect_uris:
+                      - https://www.website.com/oauth/callback
+                    scopes:
+                      - messages:create
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -414,6 +430,14 @@ paths:
                       can_edit:
                         - admin
                       who_can_add: creator
+                    oauth_client:
+                      client_id: 6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4
+                      client_secret_preview: 9f2b7c14...d5b8
+                      confidential: true
+                      redirect_uris:
+                        - https://www.website.com/oauth/callback
+                      scopes:
+                        - messages:create
                 meta:
                   paginate:
                     next_page: eyJpZCI6MTczODgxNn0
@@ -486,6 +510,14 @@ paths:
                     can_edit:
                       - admin
                     who_can_add: creator
+                  oauth_client:
+                    client_id: 6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4
+                    client_secret_preview: 9f2b7c14...d5b8
+                    confidential: true
+                    redirect_uris:
+                      - https://www.website.com/oauth/callback
+                    scopes:
+                      - messages:create
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '400':
           description: The server could not understand the request due to invalid syntax.
@@ -587,6 +619,14 @@ paths:
                     can_edit:
                       - admin
                     who_can_add: creator
+                  oauth_client:
+                    client_id: 6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4
+                    client_secret_preview: 9f2b7c14...d5b8
+                    confidential: true
+                    redirect_uris:
+                      - https://www.website.com/oauth/callback
+                    scopes:
+                      - messages:create
         '401':
           description: Access is unauthorized.
           content:
@@ -801,6 +841,14 @@ paths:
                     can_edit:
                       - admin
                     who_can_add: creator
+                  oauth_client:
+                    client_id: 6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4
+                    client_secret_preview: 9f2b7c14...d5b8
+                    confidential: true
+                    redirect_uris:
+                      - https://www.website.com/oauth/callback
+                    scopes:
+                      - messages:create
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '401':
           description: Access is unauthorized.
@@ -931,6 +979,16 @@ paths:
               - $ref: '#/components/schemas/ChatAvailability'
             default: is_member
           example: is_member
+          explode: false
+        - name: archived
+          in: query
+          required: false
+          description: Добавляет к выдаче архивные чаты. По умолчанию возвращаются только активные. Работает при любом значении `availability`. Значение, отличное от `true`, `false`, `1` и `0`, фильтр не применяет.
+          schema:
+            type: boolean
+            example: true
+            default: false
+          example: true
           explode: false
         - name: last_message_at_after
           in: query
@@ -5585,6 +5643,20 @@ components:
           nullable: true
           description: Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
       description: 'При: bot_deleted, bot_token_recreated'
+    AuditDetailsBotOAuthClient:
+      type: object
+      required:
+        - client_id
+        - changes
+      properties:
+        client_id:
+          type: string
+          description: Идентификатор OAuth-клиента бота
+        changes:
+          type: object
+          additionalProperties: {}
+          description: Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).
+      description: 'При: bot_oauth_client_updated'
     AuditDetailsBotScopes:
       type: object
       required:
@@ -5724,6 +5796,35 @@ components:
           type: string
           description: Причина операции
       description: 'При: kms_encrypt, kms_decrypt'
+    AuditDetailsOAuthAuthorizationGranted:
+      type: object
+      required:
+        - client_id
+        - scopes
+      properties:
+        client_id:
+          type: string
+          description: Идентификатор OAuth-клиента, которому выдан доступ
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Скоупы, на которые выдан доступ
+      description: 'При: oauth_authorization_granted'
+    AuditDetailsOAuthAuthorizationRevoked:
+      type: object
+      required:
+        - client_id
+        - revoked_tokens_count
+      properties:
+        client_id:
+          type: string
+          description: Идентификатор OAuth-клиента, у которого отозван доступ
+        revoked_tokens_count:
+          type: integer
+          format: int32
+          description: Количество отозванных токенов
+      description: 'При: oauth_authorization_revoked'
     AuditDetailsRoleChanged:
       type: object
       required:
@@ -5973,6 +6074,9 @@ components:
         - $ref: '#/components/schemas/AuditDetailsBot'
         - $ref: '#/components/schemas/AuditDetailsBotScopes'
         - $ref: '#/components/schemas/AuditDetailsBotWebhookSettings'
+        - $ref: '#/components/schemas/AuditDetailsBotOAuthClient'
+        - $ref: '#/components/schemas/AuditDetailsOAuthAuthorizationGranted'
+        - $ref: '#/components/schemas/AuditDetailsOAuthAuthorizationRevoked'
         - $ref: '#/components/schemas/AuditDetailsVideoCallStarted'
         - $ref: '#/components/schemas/AuditDetailsVideoCallFinished'
         - $ref: '#/components/schemas/AuditDetailsVideoCallRecording'
@@ -6019,6 +6123,9 @@ components:
         - bot_webhook_settings_updated
         - bot_token_recreated
         - bot_deleted
+        - bot_oauth_client_updated
+        - oauth_authorization_granted
+        - oauth_authorization_revoked
         - video_call_started
         - video_call_finished
         - video_call_recording_ready
@@ -6063,6 +6170,9 @@ components:
         bot_webhook_settings_updated: Изменены настройки исходящего вебхука бота
         bot_token_recreated: Токен бота перевыпущен (ротация)
         bot_deleted: Бот удалён
+        bot_oauth_client_updated: Изменены параметры OAuth-клиента бота
+        oauth_authorization_granted: Пользователь выдал OAuth-клиенту доступ к своим данным
+        oauth_authorization_revoked: Доступ OAuth-клиента к данным пользователя отозван
         video_call_started: Видеозвонок начат
         video_call_finished: Видеозвонок завершён
         video_call_recording_ready: Запись видеозвонка готова
@@ -6087,8 +6197,6 @@ components:
         chat_owners: Владельцы чатов, в которые добавлен бот
     BotCreateRequest:
       type: object
-      required:
-        - webhook
       properties:
         webhook:
           type: object
@@ -6185,6 +6293,10 @@ components:
           required:
             - name
           description: Объект параметров вебхука создаваемого бота
+        oauth_client:
+          allOf:
+            - $ref: '#/components/schemas/BotOAuthClientRequest'
+          description: Объект параметров OAuth-клиента бота
       description: Запрос на создание бота
     BotCreateResponse:
       type: object
@@ -6202,10 +6314,20 @@ components:
           allOf:
             - $ref: '#/components/schemas/BotWebhook'
           description: Объект параметров вебхука
+        oauth_client:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/BotOAuthClient'
+          nullable: true
+          description: Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
         access_token:
           type: string
           description: Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота.
           example: bm90X2FfcmVhbF90b2tlbg
+        client_secret:
+          type: string
+          description: Секрет OAuth-клиента целиком. Возвращается один раз, только при создании конфиденциального клиента через параметр `oauth_client`. Повторно получить его нельзя.
+          example: 9f2b7c14e0a6d385b1c7f4092e6a8d53074bc1f9a2e56d8b3c07f419ae62d5b8
       description: Параметры созданного бота
     BotEventName:
       type: string
@@ -6248,6 +6370,64 @@ components:
         video_call_started: Видеозвонок начался
         video_call_finished: Видеозвонок завершился
         video_call_recording_ready: Запись видеозвонка готова
+    BotOAuthClient:
+      type: object
+      required:
+        - client_id
+        - client_secret_preview
+        - confidential
+        - redirect_uris
+        - scopes
+      properties:
+        client_id:
+          type: string
+          description: Идентификатор OAuth-клиента
+          example: 6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4
+        client_secret_preview:
+          type: string
+          description: 'Секрет клиента в сокращённом виде: первые 8 и последние 4 символа, между ними `...`'
+          example: 9f2b7c14...d5b8
+        confidential:
+          type: boolean
+          description: 'Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета.'
+          example: true
+        redirect_uris:
+          type: array
+          items:
+            type: string
+          description: Адреса возврата, разрешённые для этого клиента
+          example:
+            - https://www.website.com/oauth/callback
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Скоупы, которые клиент может запросить при авторизации
+          example:
+            - messages:create
+      description: Параметры OAuth-клиента бота
+    BotOAuthClientRequest:
+      type: object
+      properties:
+        confidential:
+          type: boolean
+          description: 'Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета.'
+          example: true
+        redirect_uris:
+          type: array
+          items:
+            type: string
+          description: Адреса возврата, разрешённые для этого клиента. Пустой список возвращает `400` с кодом `blank`.
+          example:
+            - https://www.website.com/oauth/callback
+        scopes:
+          type: array
+          items:
+            type: string
+          description: 'Скоупы, которые клиент может запросить при авторизации. Ограничения те же, что и для скоупов токена бота: недоступный роли бота скоуп возвращает `400` с кодом `forbidden`.'
+          example:
+            - messages:create
+      description: Запрос на изменение OAuth-клиента бота
     BotResponse:
       type: object
       required:
@@ -6263,6 +6443,12 @@ components:
           allOf:
             - $ref: '#/components/schemas/BotWebhook'
           description: Объект параметров вебхука
+        oauth_client:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/BotOAuthClient'
+          nullable: true
+          description: Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
       description: Параметры бота
     BotTemplateEngine:
       type: string
@@ -6286,8 +6472,6 @@ components:
         unfurl: На развёртывание ссылок (link previews)
     BotUpdateRequest:
       type: object
-      required:
-        - webhook
       properties:
         webhook:
           type: object
@@ -6377,6 +6561,10 @@ components:
               example:
                 - admin
           description: Объект параметров вебхука редактируемого бота
+        oauth_client:
+          allOf:
+            - $ref: '#/components/schemas/BotOAuthClientRequest'
+          description: Объект параметров OAuth-клиента бота. Переданные поля заменяют текущие значения, непереданные остаются прежними.
       description: Запрос на обновление бота
     BotWebhook:
       type: object
@@ -6599,6 +6787,7 @@ components:
         - member_ids
         - group_tag_ids
         - channel
+        - archived
         - personal
         - public
         - last_message_at
@@ -6646,6 +6835,10 @@ components:
           type: boolean
           description: Является каналом
           example: true
+        archived:
+          type: boolean
+          description: Находится в архиве
+          example: false
         personal:
           type: boolean
           description: Является личным чатом
@@ -7440,7 +7633,7 @@ components:
             entity_type:
               allOf:
                 - $ref: '#/components/schemas/MessageEntityType'
-              description: Тип сущности
+              description: Тип сущности. Регистр значения не учитывается. Значение вне списка возвращает `400` с кодом `invalid`.
               example: discussion
               default: discussion
             entity_id:
@@ -7927,6 +8120,8 @@ components:
         group_tags_read:
           - owner
           - admin
+          - user
+          - bot
         group_tags_write:
           - owner
           - admin

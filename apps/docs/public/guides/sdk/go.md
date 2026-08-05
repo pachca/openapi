@@ -165,6 +165,7 @@ params := &ListChatsParams{
 	Sort: Ptr(ChatSortFieldID),
 	Order: Ptr(SortOrderDesc),
 	Availability: Ptr(ChatAvailabilityIsMember),
+	Archived: Ptr(true),
 	LastMessageAtAfter: Ptr("2025-01-01T00:00:00.000Z"),
 	LastMessageAtBefore: Ptr("2025-02-01T00:00:00.000Z"),
 	Personal: Ptr(false),
@@ -192,7 +193,7 @@ request := ChatCreateRequest{
 	},
 }
 response, err := client.Chats.CreateChat(ctx, request)
-// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
+// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
 ```
 
 
@@ -203,7 +204,7 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Получение чата
 response, err := client.Chats.GetChat(ctx, int32(334))
-// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
+// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
 ```
 
 

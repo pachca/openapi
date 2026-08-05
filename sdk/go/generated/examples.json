@@ -22,7 +22,7 @@
   },
   "BotOperations_getBot": {
     "usage": "response, err := client.Bots.GetBot(ctx, int32(1738816))",
-    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}}"
+    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}}"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "params := &GetWebhookEventsParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Bots.GetWebhookEvents(ctx, params)",
@@ -39,16 +39,17 @@
   },
   "BotOperations_selfRecreateBotToken": {
     "usage": "response, err := client.Bots.SelfRecreateBotToken(ctx)",
-    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}, AccessToken: string}"
+    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, AccessToken: string, ClientSecret: *string}"
   },
   "BotOperations_createBot": {
-    "usage": "request := BotCreateRequest{\n\tWebhook: BotCreateRequestWebhook{\n\t\tName: \"Бот задач\",\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t\tWhoCanAdd: Ptr(BotWhoCanAddCreator),\n\t\tCanEdit: []BotCanEdit{BotCanEditAdmin},\n\t\tSingleChat: Ptr(false),\n\t},\n}\nresponse, err := client.Bots.CreateBot(ctx, request)",
-    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}, AccessToken: string}",
+    "usage": "request := BotCreateRequest{\n\tWebhook: Ptr(BotCreateRequestWebhook{\n\t\tName: \"Бот задач\",\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t\tWhoCanAdd: Ptr(BotWhoCanAddCreator),\n\t\tCanEdit: []BotCanEdit{BotCanEditAdmin},\n\t\tSingleChat: Ptr(false),\n\t}),\n\tOAuthClient: Ptr(BotOAuthClientRequest{\n\t\tConfidential: Ptr(true),\n\t\tRedirectUris: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t}),\n}\nresponse, err := client.Bots.CreateBot(ctx, request)",
+    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, AccessToken: string, ClientSecret: *string}",
     "imports": [
       "BotCanEdit",
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
+      "BotOAuthClientRequest",
       "BotTemplateEngine",
       "BotTriggerOn",
       "BotWhoCanAdd"
@@ -56,22 +57,23 @@
   },
   "BotOperations_recreateBotToken": {
     "usage": "response, err := client.Bots.RecreateBotToken(ctx, int32(1738816))",
-    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}, AccessToken: string}"
+    "output": "BotCreateResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, AccessToken: string, ClientSecret: *string}"
   },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "request := BotWebhookSelfUpdateRequest{\n\tWebhook: BotWebhookSelfUpdateRequestWebhook{\n\t\tOutgoingURL: \"https://www.website.com/tasks/new\",\n\t},\n}\nresponse, err := client.Bots.SelfUpdateBotWebhook(ctx, request)",
-    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}}",
+    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}}",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "request := BotUpdateRequest{\n\tWebhook: BotUpdateRequestWebhook{\n\t\tName: Ptr(\"Бот задач\"),\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t\tWhoCanAdd: Ptr(BotWhoCanAddCreator),\n\t\tCanEdit: []BotCanEdit{BotCanEditAdmin},\n\t},\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
-    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}}",
+    "usage": "request := BotUpdateRequest{\n\tWebhook: Ptr(BotUpdateRequestWebhook{\n\t\tName: Ptr(\"Бот задач\"),\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t\tWhoCanAdd: Ptr(BotWhoCanAddCreator),\n\t\tCanEdit: []BotCanEdit{BotCanEditAdmin},\n\t}),\n\tOAuthClient: Ptr(BotOAuthClientRequest{\n\t\tConfidential: Ptr(true),\n\t\tRedirectUris: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t}),\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
+    "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}}",
     "imports": [
       "BotCanEdit",
       "BotEventName",
+      "BotOAuthClientRequest",
       "BotTemplateEngine",
       "BotTriggerOn",
       "BotUpdateRequest",
@@ -86,7 +88,7 @@
     "usage": "client.Bots.DeleteWebhookEvent(ctx, \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "params := &ListChatsParams{\n\tSort: Ptr(ChatSortFieldID),\n\tOrder: Ptr(SortOrderDesc),\n\tAvailability: Ptr(ChatAvailabilityIsMember),\n\tLastMessageAtAfter: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tLastMessageAtBefore: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tPersonal: Ptr(false),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
+    "usage": "params := &ListChatsParams{\n\tSort: Ptr(ChatSortFieldID),\n\tOrder: Ptr(SortOrderDesc),\n\tAvailability: Ptr(ChatAvailabilityIsMember),\n\tArchived: Ptr(true),\n\tLastMessageAtAfter: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tLastMessageAtBefore: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tPersonal: Ptr(false),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
     "output": "ListChatsResponse{Data: []Chat, Meta: PaginationMeta}",
     "imports": [
       "ChatAvailability",
@@ -97,7 +99,7 @@
   },
   "ChatOperations_getChat": {
     "usage": "response, err := client.Chats.GetChat(ctx, int32(334))",
-    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}"
+    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}"
   },
   "ExportOperations_downloadExport": {
     "usage": "response, err := client.Chats.DownloadExport(ctx, int32(22322))",
@@ -105,7 +107,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"🤿 aqua\",\n\t\tMemberIDs: []int32{int32(123)},\n\t\tGroupTagIDs: []int32{int32(123)},\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(false),\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
-    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}",
+    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -119,7 +121,7 @@
   },
   "ChatOperations_updateChat": {
     "usage": "request := ChatUpdateRequest{\n\tChat: ChatUpdateRequestChat{\n\t\tName: Ptr(\"Бассейн\"),\n\t\tPublic: Ptr(true),\n\t},\n}\nresponse, err := client.Chats.UpdateChat(ctx, int32(334), request)",
-    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}",
+    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

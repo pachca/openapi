@@ -18,7 +18,7 @@
   },
   "BotOperations_getBot": {
     "usage": "let response = try await client.bots.getBot(id: 1738816)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd))"
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd), oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Bool, redirectUris: [String], scopes: [String])?)"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "let response = try await client.bots.getWebhookEvents(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -32,16 +32,17 @@
   },
   "BotOperations_selfRecreateBotToken": {
     "usage": "let response = try await client.bots.selfRecreateBotToken()",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd), accessToken: String)"
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd), oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Bool, redirectUris: [String], scopes: [String])?, accessToken: String, clientSecret: String?)"
   },
   "BotOperations_createBot": {
-    "usage": "let body = BotCreateRequest(\n    webhook: BotCreateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"],\n        template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine: .liquid,\n        challengeKey: \"challenge\",\n        linkPreviewEnabled: true,\n        ignoreSelfMessages: false,\n        eventsHistoryEnabled: false,\n        whoCanAdd: .creator,\n        canEdit: [.admin],\n        singleChat: false\n    )\n)\nlet response = try await client.bots.createBot(body: body)",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd), accessToken: String)",
+    "usage": "let body = BotCreateRequest(\n    webhook: BotCreateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"],\n        template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine: .liquid,\n        challengeKey: \"challenge\",\n        linkPreviewEnabled: true,\n        ignoreSelfMessages: false,\n        eventsHistoryEnabled: false,\n        whoCanAdd: .creator,\n        canEdit: [.admin],\n        singleChat: false\n    ),\n    oauthClient: BotOAuthClientRequest(\n        confidential: true,\n        redirectUris: [\"example\"],\n        scopes: [\"example\"]\n    )\n)\nlet response = try await client.bots.createBot(body: body)",
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd), oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Bool, redirectUris: [String], scopes: [String])?, accessToken: String, clientSecret: String?)",
     "imports": [
       "BotCanEdit",
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
+      "BotOAuthClientRequest",
       "BotTemplateEngine",
       "BotTriggerOn",
       "BotWhoCanAdd"
@@ -49,22 +50,23 @@
   },
   "BotOperations_recreateBotToken": {
     "usage": "let response = try await client.bots.recreateBotToken(id: 1738816)",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd), accessToken: String)"
+    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd), oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Bool, redirectUris: [String], scopes: [String])?, accessToken: String, clientSecret: String?)"
   },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "let body = BotWebhookSelfUpdateRequest(webhook: BotWebhookSelfUpdateRequestWebhook(outgoingUrl: \"https://www.website.com/tasks/new\"))\nlet response = try await client.bots.selfUpdateBotWebhook(body: body)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd))",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd), oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Bool, redirectUris: [String], scopes: [String])?)",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "let body = BotUpdateRequest(\n    webhook: BotUpdateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"],\n        template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine: .liquid,\n        challengeKey: \"challenge\",\n        linkPreviewEnabled: true,\n        ignoreSelfMessages: false,\n        eventsHistoryEnabled: false,\n        whoCanAdd: .creator,\n        canEdit: [.admin]\n    )\n)\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd))",
+    "usage": "let body = BotUpdateRequest(\n    webhook: BotUpdateRequestWebhook(\n        name: \"Бот задач\",\n        nickname: \"tasks_bot\",\n        outgoingUrl: \"https://www.website.com/tasks/new\",\n        events: [.messageNew],\n        triggerOn: .commands,\n        commands: [\"example\"],\n        scopes: [\"example\"],\n        template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine: .liquid,\n        challengeKey: \"challenge\",\n        linkPreviewEnabled: true,\n        ignoreSelfMessages: false,\n        eventsHistoryEnabled: false,\n        whoCanAdd: .creator,\n        canEdit: [.admin]\n    ),\n    oauthClient: BotOAuthClientRequest(\n        confidential: true,\n        redirectUris: [\"example\"],\n        scopes: [\"example\"]\n    )\n)\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
+    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd), oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Bool, redirectUris: [String], scopes: [String])?)",
     "imports": [
       "BotCanEdit",
       "BotEventName",
+      "BotOAuthClientRequest",
       "BotTemplateEngine",
       "BotTriggerOn",
       "BotUpdateRequest",
@@ -79,7 +81,7 @@
     "usage": "try await client.bots.deleteWebhookEvent(id: \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\", personal: false, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "usage": "let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, archived: true, lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\", personal: false, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "ListChatsResponse(data: [Chat], meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
@@ -89,7 +91,7 @@
   },
   "ChatOperations_getChat": {
     "usage": "let response = try await client.chats.getChat(id: 334)",
-    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)"
+    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)"
   },
   "ExportOperations_downloadExport": {
     "usage": "let response = try await client.chats.downloadExport(id: 22322)",
@@ -97,7 +99,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"🤿 aqua\",\n        memberIds: [123],\n        groupTagIds: [123],\n        channel: true,\n        `public`: false\n    )\n)\nlet response = try await client.chats.createChat(body: body)",
-    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)",
+    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -111,7 +113,7 @@
   },
   "ChatOperations_updateChat": {
     "usage": "let body = ChatUpdateRequest(chat: ChatUpdateRequestChat(name: \"Бассейн\", `public`: true))\nlet response = try await client.chats.updateChat(id: 334, body: body)",
-    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)",
+    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

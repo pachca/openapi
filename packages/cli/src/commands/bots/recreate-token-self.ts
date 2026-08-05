@@ -12,7 +12,7 @@ export default class BotsRecreateTokenSelf extends BaseCommand {
   static scope = "bot_self:write";
   static apiMethod = "POST";
   static apiPath = "/bot/recreate_token";
-  static defaultColumns = ["id","webhook","access_token"];
+  static defaultColumns = ["id","webhook","access_token","client_secret"];
 
   static override args = {
 

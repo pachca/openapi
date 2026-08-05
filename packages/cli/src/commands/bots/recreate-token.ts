@@ -12,7 +12,7 @@ export default class BotsRecreateToken extends BaseCommand {
   static scope = "bots:write";
   static apiMethod = "POST";
   static apiPath = "/bots/{id}/recreate_token";
-  static defaultColumns = ["id","webhook","access_token"];
+  static defaultColumns = ["id","webhook","access_token","client_secret"];
 
   static override args = {
     id: Args.integer({

@@ -49,7 +49,14 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bot/recreate_token" \
     - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
     - `who_can_add: string` (required) — Кто может добавлять бота в чаты
       Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+  - `oauth_client: object` — Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
+    - `client_id: string` (required) — Идентификатор OAuth-клиента. Пример: `"6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4"`
+    - `client_secret_preview: string` (required) — Секрет клиента в сокращённом виде: первые 8 и последние 4 символа, между ними `...`. Пример: `"9f2b7c14...d5b8"`
+    - `confidential: boolean` (required) — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+    - `redirect_uris: array of string` (required) — Адреса возврата, разрешённые для этого клиента. Пример: `["https://www.website.com/oauth/callback"]`
+    - `scopes: array of string` (required) — Скоупы, которые клиент может запросить при авторизации. Пример: `["messages:create"]`
   - `access_token: string` (required) — Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота. Пример: `"bm90X2FfcmVhbF90b2tlbg"`
+  - `client_secret: string` — Секрет OAuth-клиента целиком. Возвращается один раз, только при создании конфиденциального клиента через параметр `oauth_client`. Повторно получить его нельзя. Пример: `"9f2b7c14e0a6d385b1c7f4092e6a8d53074bc1f9a2e56d8b3c07f419ae62d5b8"`
 
 **Пример ответа:**
 
@@ -82,6 +89,17 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bot/recreate_token" \
         "admin"
       ],
       "who_can_add": "creator"
+    },
+    "oauth_client": {
+      "client_id": "6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4",
+      "client_secret_preview": "9f2b7c14...d5b8",
+      "confidential": true,
+      "redirect_uris": [
+        "https://www.website.com/oauth/callback"
+      ],
+      "scopes": [
+        "messages:create"
+      ]
     },
     "access_token": "bm90X2FfcmVhbF90b2tlbg"
   }

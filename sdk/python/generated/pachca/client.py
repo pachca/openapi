@@ -595,6 +595,8 @@ class ChatsServiceImpl(ChatsService):
             query["order"] = params.order
         if params is not None and params.availability is not None:
             query["availability"] = params.availability
+        if params is not None and params.archived is not None:
+            query["archived"] = str(params.archived).lower()
         if params is not None and params.last_message_at_after is not None:
             query["last_message_at_after"] = params.last_message_at_after.isoformat()
         if params is not None and params.last_message_at_before is not None:

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026.8.1  (5 августа 2026)
+
+- **Добавлено** (chats list): Флаг `--archived` — вернуть архивные чаты вместе с активными. Отличить их можно по полю `archived` в выдаче
+- **Добавлено** (bots create): Флаг `--oauth-client` — параметры OAuth-клиента бота (`confidential`, `redirect_uris`, `scopes`) в виде JSON
+- **Добавлено** (bots update): Флаг `--oauth-client` — параметры OAuth-клиента бота (`confidential`, `redirect_uris`, `scopes`) в виде JSON
+- **Добавлено** (security list): Фильтр `--event-key` принимает `bot_oauth_client_updated`, `oauth_authorization_granted` и `oauth_authorization_revoked`
+
 ## 2026.8.0  (1 августа 2026)
 
 - **Изменено** (api): `api POST /messages --spec` и `--docs`: у поля `files[].name` описано требование к расширению — оно должно совпадать с расширением файла в `key`

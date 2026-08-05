@@ -825,6 +825,29 @@ export function splitAndValidateCommaList(
   return arr;
 }
 
+/**
+ * Parse an object-valued node field. `json` fields hand the value over as a string,
+ * so it has to be parsed before it goes into the request body.
+ * Throws NodeOperationError when the value is not a JSON object.
+ */
+export function parseJsonObjectField(
+  ctx: IExecuteFunctions,
+  value: string,
+  fieldName: string,
+  itemIndex: number,
+): IDataObject {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new NodeOperationError(ctx.getNode(), `${fieldName} must be valid JSON`, { itemIndex });
+  }
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new NodeOperationError(ctx.getNode(), `${fieldName} must be a JSON object`, { itemIndex });
+  }
+  return parsed as IDataObject;
+}
+
 // ============================================================================
 // SHARED LIST-SEARCH & LOAD-OPTIONS METHODS (used by V2 node)
 // ============================================================================

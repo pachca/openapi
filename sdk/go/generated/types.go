@@ -50,6 +50,9 @@ const (
 	AuditEventKeyBotWebhookSettingsUpdated AuditEventKey = "bot_webhook_settings_updated" // Изменены настройки исходящего вебхука бота
 	AuditEventKeyBotTokenRecreated         AuditEventKey = "bot_token_recreated" // Токен бота перевыпущен (ротация)
 	AuditEventKeyBotDeleted                AuditEventKey = "bot_deleted" // Бот удалён
+	AuditEventKeyBotOAuthClientUpdated     AuditEventKey = "bot_oauth_client_updated" // Изменены параметры OAuth-клиента бота
+	AuditEventKeyOAuthAuthorizationGranted AuditEventKey = "oauth_authorization_granted" // Пользователь выдал OAuth-клиенту доступ к своим данным
+	AuditEventKeyOAuthAuthorizationRevoked AuditEventKey = "oauth_authorization_revoked" // Доступ OAuth-клиента к данным пользователя отозван
 	AuditEventKeyVideoCallStarted          AuditEventKey = "video_call_started" // Видеозвонок начат
 	AuditEventKeyVideoCallFinished         AuditEventKey = "video_call_finished" // Видеозвонок завершён
 	AuditEventKeyVideoCallRecordingReady   AuditEventKey = "video_call_recording_ready" // Запись видеозвонка готова
@@ -456,6 +459,11 @@ type AuditDetailsBot struct {
 	ActorID *int32 `json:"actor_id"`
 }
 
+type AuditDetailsBotOAuthClient struct {
+	ClientID string         `json:"client_id"`
+	Changes  map[string]any `json:"changes"`
+}
+
 type AuditDetailsBotScopes struct {
 	AddedScopes   []string `json:"added_scopes"`
 	RemovedScopes []string `json:"removed_scopes"`
@@ -503,6 +511,16 @@ type AuditDetailsKms struct {
 	ChatID    int32  `json:"chat_id"`
 	MessageID int32  `json:"message_id"`
 	Reason    string `json:"reason"`
+}
+
+type AuditDetailsOAuthAuthorizationGranted struct {
+	ClientID string   `json:"client_id"`
+	Scopes   []string `json:"scopes"`
+}
+
+type AuditDetailsOAuthAuthorizationRevoked struct {
+	ClientID           string `json:"client_id"`
+	RevokedTokensCount int32  `json:"revoked_tokens_count"`
 }
 
 type AuditDetailsRoleChanged struct {
@@ -620,18 +638,55 @@ func (m BotCreateRequestWebhook) MarshalJSON() ([]byte, error) {
 }
 
 type BotCreateRequest struct {
-	Webhook BotCreateRequestWebhook `json:"webhook"`
+	Webhook     *BotCreateRequestWebhook `json:"webhook,omitempty"`
+	OAuthClient *BotOAuthClientRequest   `json:"oauth_client,omitempty"`
 }
 
 type BotCreateResponse struct {
-	ID          int32      `json:"id"`
-	Webhook     BotWebhook `json:"webhook"`
-	AccessToken string     `json:"access_token"`
+	ID           int32           `json:"id"`
+	Webhook      BotWebhook      `json:"webhook"`
+	AccessToken  string          `json:"access_token"`
+	OAuthClient  *BotOAuthClient `json:"oauth_client"`
+	ClientSecret *string         `json:"client_secret,omitempty"`
+}
+
+type BotOAuthClient struct {
+	ClientID            string   `json:"client_id"`
+	ClientSecretPreview string   `json:"client_secret_preview"`
+	Confidential        bool     `json:"confidential"`
+	RedirectUris        []string `json:"redirect_uris"`
+	Scopes              []string `json:"scopes"`
+}
+
+type BotOAuthClientRequest struct {
+	Confidential *bool    `json:"confidential,omitempty"`
+	RedirectUris []string `json:"redirect_uris,omitempty"`
+	Scopes       []string `json:"scopes,omitempty"`
+}
+
+func (m BotOAuthClientRequest) MarshalJSON() ([]byte, error) {
+	type Alias BotOAuthClientRequest
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.RedirectUris != nil {
+		raw["redirect_uris"] = m.RedirectUris
+	}
+	if m.Scopes != nil {
+		raw["scopes"] = m.Scopes
+	}
+	return json.Marshal(raw)
 }
 
 type BotResponse struct {
-	ID      int32      `json:"id"`
-	Webhook BotWebhook `json:"webhook"`
+	ID          int32           `json:"id"`
+	Webhook     BotWebhook      `json:"webhook"`
+	OAuthClient *BotOAuthClient `json:"oauth_client"`
 }
 
 type BotUpdateRequestWebhook struct {
@@ -678,7 +733,8 @@ func (m BotUpdateRequestWebhook) MarshalJSON() ([]byte, error) {
 }
 
 type BotUpdateRequest struct {
-	Webhook BotUpdateRequestWebhook `json:"webhook"`
+	Webhook     *BotUpdateRequestWebhook `json:"webhook,omitempty"`
+	OAuthClient *BotOAuthClientRequest   `json:"oauth_client,omitempty"`
 }
 
 type BotWebhook struct {
@@ -733,6 +789,7 @@ type Chat struct {
 	MemberIDs     []int32   `json:"member_ids"`
 	GroupTagIDs   []int32   `json:"group_tag_ids"`
 	Channel       bool      `json:"channel"`
+	Archived      bool      `json:"archived"`
 	Personal      bool      `json:"personal"`
 	Public        bool      `json:"public"`
 	LastMessageAt time.Time `json:"last_message_at"`
@@ -1672,27 +1729,30 @@ func pickUnionMember(data []byte, shapes []unionMemberShape) int {
 }
 
 type AuditEventDetailsUnion struct {
-	AuditDetailsEmpty              *AuditDetailsEmpty
-	AuditDetailsUserUpdated        *AuditDetailsUserUpdated
-	AuditDetailsRoleChanged        *AuditDetailsRoleChanged
-	AuditDetailsTagName            *AuditDetailsTagName
-	AuditDetailsInitiator          *AuditDetailsInitiator
-	AuditDetailsInviter            *AuditDetailsInviter
-	AuditDetailsChatRenamed        *AuditDetailsChatRenamed
-	AuditDetailsChatPermission     *AuditDetailsChatPermission
-	AuditDetailsTagChat            *AuditDetailsTagChat
-	AuditDetailsChatId             *AuditDetailsChatId
-	AuditDetailsTokenScopes        *AuditDetailsTokenScopes
-	AuditDetailsKms                *AuditDetailsKms
-	AuditDetailsDlp                *AuditDetailsDlp
-	AuditDetailsSearch             *AuditDetailsSearch
-	AuditDetailsBot                *AuditDetailsBot
-	AuditDetailsBotScopes          *AuditDetailsBotScopes
-	AuditDetailsBotWebhookSettings *AuditDetailsBotWebhookSettings
-	AuditDetailsVideoCallStarted   *AuditDetailsVideoCallStarted
-	AuditDetailsVideoCallFinished  *AuditDetailsVideoCallFinished
-	AuditDetailsVideoCallRecording *AuditDetailsVideoCallRecording
-	Raw                            json.RawMessage
+	AuditDetailsEmpty                     *AuditDetailsEmpty
+	AuditDetailsUserUpdated               *AuditDetailsUserUpdated
+	AuditDetailsRoleChanged               *AuditDetailsRoleChanged
+	AuditDetailsTagName                   *AuditDetailsTagName
+	AuditDetailsInitiator                 *AuditDetailsInitiator
+	AuditDetailsInviter                   *AuditDetailsInviter
+	AuditDetailsChatRenamed               *AuditDetailsChatRenamed
+	AuditDetailsChatPermission            *AuditDetailsChatPermission
+	AuditDetailsTagChat                   *AuditDetailsTagChat
+	AuditDetailsChatId                    *AuditDetailsChatId
+	AuditDetailsTokenScopes               *AuditDetailsTokenScopes
+	AuditDetailsKms                       *AuditDetailsKms
+	AuditDetailsDlp                       *AuditDetailsDlp
+	AuditDetailsSearch                    *AuditDetailsSearch
+	AuditDetailsBot                       *AuditDetailsBot
+	AuditDetailsBotScopes                 *AuditDetailsBotScopes
+	AuditDetailsBotWebhookSettings        *AuditDetailsBotWebhookSettings
+	AuditDetailsBotOAuthClient            *AuditDetailsBotOAuthClient
+	AuditDetailsOAuthAuthorizationGranted *AuditDetailsOAuthAuthorizationGranted
+	AuditDetailsOAuthAuthorizationRevoked *AuditDetailsOAuthAuthorizationRevoked
+	AuditDetailsVideoCallStarted          *AuditDetailsVideoCallStarted
+	AuditDetailsVideoCallFinished         *AuditDetailsVideoCallFinished
+	AuditDetailsVideoCallRecording        *AuditDetailsVideoCallRecording
+	Raw                                   json.RawMessage
 }
 
 var auditEventDetailsUnionShapes = []unionMemberShape{
@@ -1713,6 +1773,9 @@ var auditEventDetailsUnionShapes = []unionMemberShape{
 	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}}},
 	{keys: map[string]struct{}{"added_scopes": {}, "removed_scopes": {}}},
 	{keys: map[string]struct{}{"changes": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "changes": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "scopes": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "revoked_tokens_count": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "duration": {}, "max_members_count": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "recording_id": {}, "file_id": {}, "duration": {}, "size": {}}},
@@ -1776,12 +1839,21 @@ func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
 		u.AuditDetailsBotWebhookSettings = &AuditDetailsBotWebhookSettings{}
 		return json.Unmarshal(data, u.AuditDetailsBotWebhookSettings)
 	case 17:
+		u.AuditDetailsBotOAuthClient = &AuditDetailsBotOAuthClient{}
+		return json.Unmarshal(data, u.AuditDetailsBotOAuthClient)
+	case 18:
+		u.AuditDetailsOAuthAuthorizationGranted = &AuditDetailsOAuthAuthorizationGranted{}
+		return json.Unmarshal(data, u.AuditDetailsOAuthAuthorizationGranted)
+	case 19:
+		u.AuditDetailsOAuthAuthorizationRevoked = &AuditDetailsOAuthAuthorizationRevoked{}
+		return json.Unmarshal(data, u.AuditDetailsOAuthAuthorizationRevoked)
+	case 20:
 		u.AuditDetailsVideoCallStarted = &AuditDetailsVideoCallStarted{}
 		return json.Unmarshal(data, u.AuditDetailsVideoCallStarted)
-	case 18:
+	case 21:
 		u.AuditDetailsVideoCallFinished = &AuditDetailsVideoCallFinished{}
 		return json.Unmarshal(data, u.AuditDetailsVideoCallFinished)
-	case 19:
+	case 22:
 		u.AuditDetailsVideoCallRecording = &AuditDetailsVideoCallRecording{}
 		return json.Unmarshal(data, u.AuditDetailsVideoCallRecording)
 	}
@@ -1839,6 +1911,15 @@ func (u AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {
 	}
 	if u.AuditDetailsBotWebhookSettings != nil {
 		return json.Marshal(u.AuditDetailsBotWebhookSettings)
+	}
+	if u.AuditDetailsBotOAuthClient != nil {
+		return json.Marshal(u.AuditDetailsBotOAuthClient)
+	}
+	if u.AuditDetailsOAuthAuthorizationGranted != nil {
+		return json.Marshal(u.AuditDetailsOAuthAuthorizationGranted)
+	}
+	if u.AuditDetailsOAuthAuthorizationRevoked != nil {
+		return json.Marshal(u.AuditDetailsOAuthAuthorizationRevoked)
 	}
 	if u.AuditDetailsVideoCallStarted != nil {
 		return json.Marshal(u.AuditDetailsVideoCallStarted)
@@ -2051,6 +2132,7 @@ type ListChatsParams struct {
 	Sort                *ChatSortField
 	Order               *SortOrder
 	Availability        *ChatAvailability
+	Archived            *bool
 	LastMessageAtAfter  *time.Time
 	LastMessageAtBefore *time.Time
 	Personal            *bool

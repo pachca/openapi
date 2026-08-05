@@ -14,7 +14,7 @@ export default class BotsCreate extends BaseCommand {
   static scope = "bots:write";
   static apiMethod = "POST";
   static apiPath = "/bots";
-  static defaultColumns = ["id","webhook","access_token"];
+  static defaultColumns = ["id","webhook","access_token","client_secret"];
   static requiredFlags = ["name"];
 
   static override args = {
@@ -75,6 +75,9 @@ export default class BotsCreate extends BaseCommand {
       description: "Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Задаётся только при создании, при редактировании не меняется.",
       allowNo: true,
     }),
+    'oauth-client': Flags.string({
+      description: "Объект параметров OAuth-клиента бота",
+    }),
   };
 
   async run(): Promise<void> {
@@ -113,7 +116,8 @@ export default class BotsCreate extends BaseCommand {
       this.validationError(validationErrors);
     }
 
-    const body: Record<string, unknown> = { webhook: {
+    const body: Record<string, unknown> = {
+      webhook: {
       name: flags['name'],
       nickname: flags['nickname'],
       outgoing_url: flags['outgoing-url'],
@@ -130,10 +134,13 @@ export default class BotsCreate extends BaseCommand {
       who_can_add: flags['who-can-add'],
       can_edit: flags['can-edit'] ? this.parseJSON(flags['can-edit'], 'can-edit') : undefined,
       single_chat: flags['single-chat'],
-    } };
+      },
+      oauth_client: flags['oauth-client'] ? this.parseJSON(flags['oauth-client'], 'oauth-client') : undefined,
+    };
     // Clean undefined fields
     const inner = body['webhook'] as Record<string, unknown>;
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
+    for (const [k, v] of Object.entries(body)) { if (k !== 'webhook' && v === undefined) delete body[k]; }
 
     const { data } = await this.apiRequest({
       method: 'POST',

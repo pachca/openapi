@@ -1815,7 +1815,8 @@ function formatDisplayName(name: string): string {
     .replace(/_/g, ' ')
     .replace(/\b\w/g, c => c.toUpperCase())
     .replace(/\bIds?\b/g, m => m === 'Id' ? 'ID' : 'IDs')
-    .replace(/\bUrl\b/g, 'URL');
+    .replace(/\bUrl\b/g, 'URL')
+    .replace(/\bOauth\b/g, 'OAuth');
 }
 
 /** Sanitize description for n8n lint compliance:
@@ -2729,6 +2730,11 @@ function buildFieldMapStr(resource: string, op: OperationInfo, f: BodyField): st
     parts.push(`subKey: '${subKey}'`);
   }
 
+  // Object fields are rendered as a `json` node field, so the value arrives as a string
+  if (f.type === 'object') {
+    parts.push('isJson: true');
+  }
+
   // v1 compat: form fields that may be missing in v1 JSON mode or v1 workflows
   if (resource === 'form' && f.name === 'type') {
     parts.push(`default: 'modal'`);
@@ -3000,6 +3006,7 @@ import {
 \tuploadFileToS3,
 \tuploadAvatar,
 \tsplitAndValidateCommaList,
+\tparseJsonObjectField,
 \tsimplifyItem,
 \tsanitizeBaseUrl,
 } from './GenericFunctions';
@@ -3022,6 +3029,7 @@ interface FieldMap {
 \tarrayType?: 'int' | 'string';
 \tlocator?: boolean;
 \tsubKey?: string;
+\tisJson?: boolean;
 \tdefault?: unknown;
 }
 
@@ -3219,6 +3227,8 @@ async function executeRoute(
 \t\t}
 \t\tif (fm.isArray && typeof raw === 'string') {
 \t\t\tbody[fm.api] = splitAndValidateCommaList(this, raw, fm.n8n, fm.arrayType!, i);
+\t\t} else if (fm.isJson && typeof raw === 'string') {
+\t\t\tbody[fm.api] = parseJsonObjectField(this, raw, fm.n8n, i);
 \t\t} else {
 \t\t\tbody[fm.api] = raw as IDataObject;
 \t\t}
@@ -3245,6 +3255,8 @@ async function executeRoute(
 \t\t}
 \t\tif (fm.isArray && typeof val === 'string') {
 \t\t\tbody[fm.api] = splitAndValidateCommaList(this, val, fm.n8n, fm.arrayType!, i);
+\t\t} else if (fm.isJson && typeof val === 'string') {
+\t\t\tbody[fm.api] = parseJsonObjectField(this, val, fm.n8n, i);
 \t\t} else if (fm.locator && typeof val === 'object' && val !== null && (val as IDataObject).__rl) {
 \t\t\tbody[fm.api] = (val as IDataObject).value;
 \t\t} else {

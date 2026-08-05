@@ -19,6 +19,7 @@
 - `sort: string` (default: id) — Поле сортировки
 - `order: string` (default: desc) — Направление сортировки
 - `availability: string` (default: is_member) — Параметр, который отвечает за доступность и выборку чатов для пользователя
+- `archived: boolean` (default: false) — Добавляет к выдаче архивные чаты. По умолчанию возвращаются только активные. Работает при любом значении `availability`. Значение, отличное от `true`, `false`, `1` и `0`, фильтр не применяет.
 - `last_message_at_after: date-time` — Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
 - `last_message_at_before: date-time` — Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
 - `personal: boolean` — Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.
@@ -30,7 +31,7 @@
 
 ```bash
 # Для получения следующей страницы используйте cursor из meta.paginate.next_page
-curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability=is_member&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1" \
+curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability=is_member&archived=true&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -48,6 +49,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -78,6 +80,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability
         9111
       ],
       "channel": true,
+      "archived": false,
       "personal": false,
       "public": false,
       "last_message_at": "2021-08-28T15:56:53.000Z",

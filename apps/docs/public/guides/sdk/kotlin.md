@@ -173,7 +173,7 @@ import com.pachca.sdk.SortOrder
 // Список чатов
 val lastMessageAtAfter = OffsetDateTime.parse("2025-01-01T00:00:00.000Z")
 val lastMessageAtBefore = OffsetDateTime.parse("2025-02-01T00:00:00.000Z")
-val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, archived = true, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
 // → ListChatsResponse(data: List<Chat>, meta: PaginationMeta)
 ```
 
@@ -195,7 +195,7 @@ val request = ChatCreateRequest(
     )
 )
 val response = client.chats.createChat(request = request)
-// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 
@@ -204,7 +204,7 @@ val response = client.chats.createChat(request = request)
 ```kotlin
 // Получение чата
 val response = client.chats.getChat(id = 334)
-// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 

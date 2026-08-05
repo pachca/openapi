@@ -308,7 +308,10 @@ workflows:
     summary: Find and archive inactive chats
     steps:
       - stepId: find-and-archive-inactive-chats-1
-        description: Get chats with no activity since specified date
+        description: >-
+          Get chats with no activity since specified date (Archived chats are not returned, so there
+          is no need to filter out already archived ones. To get them together with active ones, add
+          `--archived` and check the `archived` field of each chat)
         operationId: ChatOperations_listChats
       - stepId: find-and-archive-inactive-chats-2
         description: 'For each chat: archive (Check `"channel": false` — archiving channels may be undesirable)'

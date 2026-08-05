@@ -18,7 +18,7 @@
   },
   "BotOperations_getBot": {
     "usage": "var response = await client.Bots.GetBotAsync(1738816);",
-    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd))"
+    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd), OauthClient: BotOAuthClient(ClientId: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: List<string>, Scopes: List<string>)?)"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "var response = await client.Bots.GetWebhookEventsAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
@@ -35,16 +35,17 @@
   },
   "BotOperations_selfRecreateBotToken": {
     "usage": "var response = await client.Bots.SelfRecreateBotTokenAsync();",
-    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd), AccessToken: string)"
+    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd), OauthClient: BotOAuthClient(ClientId: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: List<string>, Scopes: List<string>)?, AccessToken: string, ClientSecret: string?)"
   },
   "BotOperations_createBot": {
-    "usage": "var request = new BotCreateRequest\n{\n    Webhook = new BotCreateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://www.website.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" },\n        Template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        TemplateEngine = BotTemplateEngine.Liquid,\n        ChallengeKey = \"challenge\",\n        LinkPreviewEnabled = true,\n        IgnoreSelfMessages = false,\n        EventsHistoryEnabled = false,\n        WhoCanAdd = BotWhoCanAdd.Creator,\n        CanEdit = new List<BotCanEdit> { BotCanEdit.Admin },\n        SingleChat = false\n    }\n};\nvar response = await client.Bots.CreateBotAsync(request);",
-    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd), AccessToken: string)",
+    "usage": "var request = new BotCreateRequest\n{\n    Webhook = new BotCreateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://www.website.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" },\n        Template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        TemplateEngine = BotTemplateEngine.Liquid,\n        ChallengeKey = \"challenge\",\n        LinkPreviewEnabled = true,\n        IgnoreSelfMessages = false,\n        EventsHistoryEnabled = false,\n        WhoCanAdd = BotWhoCanAdd.Creator,\n        CanEdit = new List<BotCanEdit> { BotCanEdit.Admin },\n        SingleChat = false\n    },\n    OauthClient = new BotOAuthClientRequest\n    {\n        Confidential = true,\n        RedirectUris = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" }\n    }\n};\nvar response = await client.Bots.CreateBotAsync(request);",
+    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd), OauthClient: BotOAuthClient(ClientId: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: List<string>, Scopes: List<string>)?, AccessToken: string, ClientSecret: string?)",
     "imports": [
       "BotCanEdit",
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
+      "BotOAuthClientRequest",
       "BotTemplateEngine",
       "BotTriggerOn",
       "BotWhoCanAdd"
@@ -52,22 +53,23 @@
   },
   "BotOperations_recreateBotToken": {
     "usage": "var response = await client.Bots.RecreateBotTokenAsync(1738816);",
-    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd), AccessToken: string)"
+    "output": "BotCreateResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd), OauthClient: BotOAuthClient(ClientId: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: List<string>, Scopes: List<string>)?, AccessToken: string, ClientSecret: string?)"
   },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "var request = new BotWebhookSelfUpdateRequest { Webhook = new BotWebhookSelfUpdateRequestWebhook { OutgoingUrl = \"https://www.website.com/tasks/new\" } };\nvar response = await client.Bots.SelfUpdateBotWebhookAsync(request);",
-    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd))",
+    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd), OauthClient: BotOAuthClient(ClientId: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: List<string>, Scopes: List<string>)?)",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "var request = new BotUpdateRequest\n{\n    Webhook = new BotUpdateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://www.website.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" },\n        Template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        TemplateEngine = BotTemplateEngine.Liquid,\n        ChallengeKey = \"challenge\",\n        LinkPreviewEnabled = true,\n        IgnoreSelfMessages = false,\n        EventsHistoryEnabled = false,\n        WhoCanAdd = BotWhoCanAdd.Creator,\n        CanEdit = new List<BotCanEdit> { BotCanEdit.Admin }\n    }\n};\nvar response = await client.Bots.UpdateBotAsync(1738816, request);",
-    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd))",
+    "usage": "var request = new BotUpdateRequest\n{\n    Webhook = new BotUpdateRequestWebhook\n    {\n        Name = \"Бот задач\",\n        Nickname = \"tasks_bot\",\n        OutgoingUrl = \"https://www.website.com/tasks/new\",\n        Events = new List<BotEventName> { BotEventName.MessageNew },\n        TriggerOn = BotTriggerOn.Commands,\n        Commands = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" },\n        Template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        TemplateEngine = BotTemplateEngine.Liquid,\n        ChallengeKey = \"challenge\",\n        LinkPreviewEnabled = true,\n        IgnoreSelfMessages = false,\n        EventsHistoryEnabled = false,\n        WhoCanAdd = BotWhoCanAdd.Creator,\n        CanEdit = new List<BotCanEdit> { BotCanEdit.Admin }\n    },\n    OauthClient = new BotOAuthClientRequest\n    {\n        Confidential = true,\n        RedirectUris = new List<string> { \"example\" },\n        Scopes = new List<string> { \"example\" }\n    }\n};\nvar response = await client.Bots.UpdateBotAsync(1738816, request);",
+    "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd), OauthClient: BotOAuthClient(ClientId: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: List<string>, Scopes: List<string>)?)",
     "imports": [
       "BotCanEdit",
       "BotEventName",
+      "BotOAuthClientRequest",
       "BotTemplateEngine",
       "BotTriggerOn",
       "BotUpdateRequest",
@@ -82,7 +84,7 @@
     "usage": "await client.Bots.DeleteWebhookEventAsync(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\");"
   },
   "ChatOperations_listChats": {
-    "usage": "var response = await client.Chats.ListChatsAsync(ChatSortField.Id, SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse(\"2025-01-01T00:00:00.000Z\"), DateTimeOffset.Parse(\"2025-02-01T00:00:00.000Z\"), false, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "usage": "var response = await client.Chats.ListChatsAsync(ChatSortField.Id, SortOrder.Desc, ChatAvailability.IsMember, true, DateTimeOffset.Parse(\"2025-01-01T00:00:00.000Z\"), DateTimeOffset.Parse(\"2025-02-01T00:00:00.000Z\"), false, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
     "output": "ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
@@ -92,7 +94,7 @@
   },
   "ChatOperations_getChat": {
     "usage": "var response = await client.Chats.GetChatAsync(334);",
-    "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)"
+    "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)"
   },
   "ExportOperations_downloadExport": {
     "usage": "var response = await client.Chats.DownloadExportAsync(22322);",
@@ -100,7 +102,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "var request = new ChatCreateRequest\n{\n    Chat = new ChatCreateRequestChat\n    {\n        Name = \"🤿 aqua\",\n        MemberIds = new List<int> { 123 },\n        GroupTagIds = new List<int> { 123 },\n        Channel = true,\n        @Public = false\n    }\n};\nvar response = await client.Chats.CreateChatAsync(request);",
-    "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)",
+    "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -114,7 +116,7 @@
   },
   "ChatOperations_updateChat": {
     "usage": "var request = new ChatUpdateRequest { Chat = new ChatUpdateRequestChat { Name = \"Бассейн\", @Public = true } };\nvar response = await client.Chats.UpdateChatAsync(334, request);",
-    "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)",
+    "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

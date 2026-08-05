@@ -18,7 +18,7 @@
   },
   "BotOperations_getBot": {
     "usage": "const response = client.bots.getBot(1738816)",
-    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })"
+    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null })"
   },
   "BotOperations_getWebhookEvents": {
     "usage": "const response = client.bots.getWebhookEvents({ limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
@@ -32,16 +32,17 @@
   },
   "BotOperations_selfRecreateBotToken": {
     "usage": "const response = client.bots.selfRecreateBotToken()",
-    "output": "BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })"
+    "output": "BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, accessToken: string, clientSecret?: string })"
   },
   "BotOperations_createBot": {
-    "usage": "const request: BotCreateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true,\n    ignoreSelfMessages: false,\n    eventsHistoryEnabled: false,\n    whoCanAdd: BotWhoCanAdd.Creator,\n    canEdit: [BotCanEdit.Admin],\n    singleChat: false\n  }\n}\nconst response = client.bots.createBot(request)",
-    "output": "BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })",
+    "usage": "const request: BotCreateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true,\n    ignoreSelfMessages: false,\n    eventsHistoryEnabled: false,\n    whoCanAdd: BotWhoCanAdd.Creator,\n    canEdit: [BotCanEdit.Admin],\n    singleChat: false\n  },\n  oauthClient: {\n    confidential: true,\n    redirectUris: [\"example\"],\n    scopes: [\"example\"]\n  }\n}\nconst response = client.bots.createBot(request)",
+    "output": "BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, accessToken: string, clientSecret?: string })",
     "imports": [
       "BotCanEdit",
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
+      "BotOAuthClientRequest",
       "BotTemplateEngine",
       "BotTriggerOn",
       "BotWhoCanAdd"
@@ -49,22 +50,23 @@
   },
   "BotOperations_recreateBotToken": {
     "usage": "const response = client.bots.recreateBotToken(1738816)",
-    "output": "BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })"
+    "output": "BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, accessToken: string, clientSecret?: string })"
   },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "const request: BotWebhookSelfUpdateRequest = { webhook: { outgoingUrl: \"https://www.website.com/tasks/new\" } }\nconst response = client.bots.selfUpdateBotWebhook(request)",
-    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })",
+    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null })",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "const request: BotUpdateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true,\n    ignoreSelfMessages: false,\n    eventsHistoryEnabled: false,\n    whoCanAdd: BotWhoCanAdd.Creator,\n    canEdit: [BotCanEdit.Admin]\n  }\n}\nconst response = client.bots.updateBot(1738816, request)",
-    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })",
+    "usage": "const request: BotUpdateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true,\n    ignoreSelfMessages: false,\n    eventsHistoryEnabled: false,\n    whoCanAdd: BotWhoCanAdd.Creator,\n    canEdit: [BotCanEdit.Admin]\n  },\n  oauthClient: {\n    confidential: true,\n    redirectUris: [\"example\"],\n    scopes: [\"example\"]\n  }\n}\nconst response = client.bots.updateBot(1738816, request)",
+    "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null })",
     "imports": [
       "BotCanEdit",
       "BotEventName",
+      "BotOAuthClientRequest",
       "BotTemplateEngine",
       "BotTriggerOn",
       "BotUpdateRequest",
@@ -79,7 +81,7 @@
     "usage": "client.bots.deleteWebhookEvent(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "const response = client.chats.listChats({\n  sort: ChatSortField.Id,\n  order: SortOrder.Desc,\n  availability: ChatAvailability.IsMember,\n  lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\",\n  lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\",\n  personal: false,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = client.chats.listChats({\n  sort: ChatSortField.Id,\n  order: SortOrder.Desc,\n  availability: ChatAvailability.IsMember,\n  archived: true,\n  lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\",\n  lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\",\n  personal: false,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListChatsResponse({ data: Chat[], meta: PaginationMeta })",
     "imports": [
       "ChatAvailability",
@@ -89,7 +91,7 @@
   },
   "ChatOperations_getChat": {
     "usage": "const response = client.chats.getChat(334)",
-    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })"
+    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })"
   },
   "ExportOperations_downloadExport": {
     "usage": "const response = client.chats.downloadExport(22322)",
@@ -97,7 +99,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"🤿 aqua\",\n    memberIds: [123],\n    groupTagIds: [123],\n    channel: true,\n    public: false\n  }\n}\nconst response = client.chats.createChat(request)",
-    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })",
+    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -111,7 +113,7 @@
   },
   "ChatOperations_updateChat": {
     "usage": "const request: ChatUpdateRequest = { chat: { name: \"Бассейн\", public: true } }\nconst response = client.chats.updateChat(334, request)",
-    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })",
+    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

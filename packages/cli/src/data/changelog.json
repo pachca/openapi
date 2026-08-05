@@ -1,5 +1,31 @@
 [
   {
+    "version": "2026.8.1",
+    "date": "5 августа 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "chats list",
+        "description": "Флаг `--archived` — вернуть архивные чаты вместе с активными. Отличить их можно по полю `archived` в выдаче"
+      },
+      {
+        "type": "+",
+        "command": "bots create",
+        "description": "Флаг `--oauth-client` — параметры OAuth-клиента бота (`confidential`, `redirect_uris`, `scopes`) в виде JSON"
+      },
+      {
+        "type": "+",
+        "command": "bots update",
+        "description": "Флаг `--oauth-client` — параметры OAuth-клиента бота (`confidential`, `redirect_uris`, `scopes`) в виде JSON"
+      },
+      {
+        "type": "+",
+        "command": "security list",
+        "description": "Фильтр `--event-key` принимает `bot_oauth_client_updated`, `oauth_authorization_granted` и `oauth_authorization_revoked`"
+      }
+    ]
+  },
+  {
     "version": "2026.8.0",
     "date": "1 августа 2026",
     "changes": [

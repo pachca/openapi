@@ -78,6 +78,12 @@ export enum AuditEventKey {
   BotTokenRecreated = "bot_token_recreated",
   /** Бот удалён */
   BotDeleted = "bot_deleted",
+  /** Изменены параметры OAuth-клиента бота */
+  BotOauthClientUpdated = "bot_oauth_client_updated",
+  /** Пользователь выдал OAuth-клиенту доступ к своим данным */
+  OauthAuthorizationGranted = "oauth_authorization_granted",
+  /** Доступ OAuth-клиента к данным пользователя отозван */
+  OauthAuthorizationRevoked = "oauth_authorization_revoked",
   /** Видеозвонок начат */
   VideoCallStarted = "video_call_started",
   /** Видеозвонок завершён */
@@ -639,6 +645,11 @@ export interface AuditDetailsBot {
   actorId: number | null;
 }
 
+export interface AuditDetailsBotOAuthClient {
+  clientId: string;
+  changes: Record<string, unknown>;
+}
+
 export interface AuditDetailsBotScopes {
   addedScopes: string[];
   removedScopes: string[];
@@ -686,6 +697,16 @@ export interface AuditDetailsKms {
   chatId: number;
   messageId: number;
   reason: string;
+}
+
+export interface AuditDetailsOAuthAuthorizationGranted {
+  clientId: string;
+  scopes: string[];
+}
+
+export interface AuditDetailsOAuthAuthorizationRevoked {
+  clientId: string;
+  revokedTokensCount: number;
 }
 
 export interface AuditDetailsRoleChanged {
@@ -759,7 +780,7 @@ export interface AvatarData {
 }
 
 export interface BotCreateRequest {
-  webhook: {
+  webhook?: {
     name: string;
     nickname?: string;
     outgoingUrl?: string;
@@ -784,21 +805,39 @@ export interface BotCreateRequest {
     /** @default false */
     singleChat?: boolean;
   };
+  oauthClient?: BotOAuthClientRequest;
 }
 
 export interface BotCreateResponse {
   id: number;
   webhook: BotWebhook;
+  oauthClient?: BotOAuthClient | null;
   accessToken: string;
+  clientSecret?: string;
+}
+
+export interface BotOAuthClient {
+  clientId: string;
+  clientSecretPreview: string;
+  confidential: boolean;
+  redirectUris: string[];
+  scopes: string[];
+}
+
+export interface BotOAuthClientRequest {
+  confidential?: boolean;
+  redirectUris?: string[];
+  scopes?: string[];
 }
 
 export interface BotResponse {
   id: number;
   webhook: BotWebhook;
+  oauthClient?: BotOAuthClient | null;
 }
 
 export interface BotUpdateRequest {
-  webhook: {
+  webhook?: {
     name?: string;
     nickname?: string;
     outgoingUrl?: string;
@@ -821,6 +860,7 @@ export interface BotUpdateRequest {
     whoCanAdd?: BotWhoCanAdd;
     canEdit?: BotCanEdit[];
   };
+  oauthClient?: BotOAuthClientRequest;
 }
 
 export interface BotWebhook {
@@ -873,6 +913,7 @@ export interface Chat {
   memberIds: number[];
   groupTagIds: number[];
   channel: boolean;
+  archived: boolean;
   personal: boolean;
   public: boolean;
   lastMessageAt: string;
@@ -1531,7 +1572,7 @@ export interface UpdateUserAvatarRequest {
   image: Blob;
 }
 
-export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording;
+export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsBotOAuthClient | AuditDetailsOAuthAuthorizationGranted | AuditDetailsOAuthAuthorizationRevoked | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording;
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 
@@ -1559,6 +1600,7 @@ export interface ListChatsParams {
   sort?: ChatSortField;
   order?: SortOrder;
   availability?: ChatAvailability;
+  archived?: boolean;
   lastMessageAtAfter?: string;
   lastMessageAtBefore?: string;
   personal?: boolean;

@@ -1,6 +1,83 @@
 [
   {
     "product": "sdk",
+    "version": "1.2.0",
+    "date": "2026-08-05",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Поле `webhook` в запросах `POST /bots` и `PUT /bots/{id}` стало необязательным"
+      },
+      {
+        "type": "+",
+        "description": "Поле `archived` в модели чата и одноимённый параметр запроса в методе `Список чатов` (`GET /chats`)"
+      },
+      {
+        "type": "+",
+        "description": "Поле `oauth_client` в модели бота и в запросах `POST /bots` и `PUT /bots/{id}`, модели `BotOAuthClient` и `BotOAuthClientRequest`"
+      },
+      {
+        "type": "+",
+        "description": "Поле `client_secret` в ответе метода `Новый бот` (`POST /bots`)"
+      },
+      {
+        "type": "+",
+        "description": "Значения `bot_oauth_client_updated`, `oauth_authorization_granted` и `oauth_authorization_revoked` в `AuditEventKey` и модели их деталей"
+      },
+      {
+        "type": "~",
+        "description": "Скоуп `group_tags:read` доступен ролям `user` и `bot`"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.8.1",
+    "date": "2026-08-05",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca chats list` — флаг `--archived` для выдачи архивных чатов вместе с активными"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots create` и `pachca bots update` — флаг `--oauth-client` с параметрами OAuth-клиента бота"
+      },
+      {
+        "type": "+",
+        "description": "`pachca security list` — фильтр `--event-key` принимает `bot_oauth_client_updated`, `oauth_authorization_granted` и `oauth_authorization_revoked`"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
+    "version": "2.0.18",
+    "date": "2026-08-05",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`Chat`: операция `Get Many` — поле `Archived` для выдачи архивных чатов вместе с активными"
+      },
+      {
+        "type": "+",
+        "description": "`Bot`: операции `Create` и `Update` — поле `OAuth Client` с параметрами OAuth-клиента бота"
+      },
+      {
+        "type": "+",
+        "description": "`Security`: фильтр событий пополнился значениями `Bot OAuth Client Updated`, `OAuth Authorization Granted` и `OAuth Authorization Revoked`"
+      },
+      {
+        "type": "~",
+        "description": "`Group Tag`: у операций чтения тегов убрана пометка о необходимости прав администратора — скоуп `group_tags:read` доступен сотрудникам и ботам"
+      },
+      {
+        "type": "-",
+        "description": "JSON-поля разбираются перед отправкой запроса и больше не уходят в API строкой. Некорректный ввод падает на ноде с понятным сообщением, а не возвращается ошибкой валидации из API. Затрагивает `Message: Unfurl` (поле `Link Previews`) и новое поле `OAuth Client`"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
     "version": "1.1.0",
     "date": "2026-08-01",
     "changes": [

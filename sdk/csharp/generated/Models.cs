@@ -90,6 +90,12 @@ public enum AuditEventKey
     BotTokenRecreated,
     /// <summary>Бот удалён</summary>
     BotDeleted,
+    /// <summary>Изменены параметры OAuth-клиента бота</summary>
+    BotOauthClientUpdated,
+    /// <summary>Пользователь выдал OAuth-клиенту доступ к своим данным</summary>
+    OauthAuthorizationGranted,
+    /// <summary>Доступ OAuth-клиента к данным пользователя отозван</summary>
+    OauthAuthorizationRevoked,
     /// <summary>Видеозвонок начат</summary>
     VideoCallStarted,
     /// <summary>Видеозвонок завершён</summary>
@@ -144,6 +150,9 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             "bot_webhook_settings_updated" => AuditEventKey.BotWebhookSettingsUpdated,
             "bot_token_recreated" => AuditEventKey.BotTokenRecreated,
             "bot_deleted" => AuditEventKey.BotDeleted,
+            "bot_oauth_client_updated" => AuditEventKey.BotOauthClientUpdated,
+            "oauth_authorization_granted" => AuditEventKey.OauthAuthorizationGranted,
+            "oauth_authorization_revoked" => AuditEventKey.OauthAuthorizationRevoked,
             "video_call_started" => AuditEventKey.VideoCallStarted,
             "video_call_finished" => AuditEventKey.VideoCallFinished,
             "video_call_recording_ready" => AuditEventKey.VideoCallRecordingReady,
@@ -194,6 +203,9 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             AuditEventKey.BotWebhookSettingsUpdated => "bot_webhook_settings_updated",
             AuditEventKey.BotTokenRecreated => "bot_token_recreated",
             AuditEventKey.BotDeleted => "bot_deleted",
+            AuditEventKey.BotOauthClientUpdated => "bot_oauth_client_updated",
+            AuditEventKey.OauthAuthorizationGranted => "oauth_authorization_granted",
+            AuditEventKey.OauthAuthorizationRevoked => "oauth_authorization_revoked",
             AuditEventKey.VideoCallStarted => "video_call_started",
             AuditEventKey.VideoCallFinished => "video_call_finished",
             AuditEventKey.VideoCallRecordingReady => "video_call_recording_ready",
@@ -1844,6 +1856,9 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         (typeof(AuditDetailsBot), new HashSet<string> { "bot_id", "actor_id" }),
         (typeof(AuditDetailsBotScopes), new HashSet<string> { "added_scopes", "removed_scopes" }),
         (typeof(AuditDetailsBotWebhookSettings), new HashSet<string> { "changes" }),
+        (typeof(AuditDetailsBotOAuthClient), new HashSet<string> { "client_id", "changes" }),
+        (typeof(AuditDetailsOAuthAuthorizationGranted), new HashSet<string> { "client_id", "scopes" }),
+        (typeof(AuditDetailsOAuthAuthorizationRevoked), new HashSet<string> { "client_id", "revoked_tokens_count" }),
         (typeof(AuditDetailsVideoCallStarted), new HashSet<string> { "chat_id", "started_message_id" }),
         (typeof(AuditDetailsVideoCallFinished), new HashSet<string> { "chat_id", "started_message_id", "duration", "max_members_count" }),
         (typeof(AuditDetailsVideoCallRecording), new HashSet<string> { "chat_id", "started_message_id", "recording_id", "file_id", "duration", "size" }),
@@ -2027,6 +2042,30 @@ public class AuditDetailsBotWebhookSettings : AuditEventDetailsUnion
 {
     [JsonPropertyName("changes")]
     public Dictionary<string, object> Changes { get; set; } = default!;
+}
+
+public class AuditDetailsBotOAuthClient : AuditEventDetailsUnion
+{
+    [JsonPropertyName("client_id")]
+    public string ClientId { get; set; } = default!;
+    [JsonPropertyName("changes")]
+    public Dictionary<string, object> Changes { get; set; } = default!;
+}
+
+public class AuditDetailsOAuthAuthorizationGranted : AuditEventDetailsUnion
+{
+    [JsonPropertyName("client_id")]
+    public string ClientId { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string> Scopes { get; set; } = default!;
+}
+
+public class AuditDetailsOAuthAuthorizationRevoked : AuditEventDetailsUnion
+{
+    [JsonPropertyName("client_id")]
+    public string ClientId { get; set; } = default!;
+    [JsonPropertyName("revoked_tokens_count")]
+    public int RevokedTokensCount { get; set; } = default!;
 }
 
 public class AuditDetailsVideoCallStarted : AuditEventDetailsUnion
@@ -2581,7 +2620,9 @@ public class BotCreateRequestWebhook
 public class BotCreateRequest
 {
     [JsonPropertyName("webhook")]
-    public BotCreateRequestWebhook Webhook { get; set; } = default!;
+    public BotCreateRequestWebhook? Webhook { get; set; }
+    [JsonPropertyName("oauth_client")]
+    public BotOAuthClientRequest? OauthClient { get; set; }
 }
 
 public class BotCreateResponse
@@ -2590,8 +2631,36 @@ public class BotCreateResponse
     public int Id { get; set; } = default!;
     [JsonPropertyName("webhook")]
     public BotWebhook Webhook { get; set; } = default!;
+    [JsonPropertyName("oauth_client")]
+    public BotOAuthClient? OauthClient { get; set; }
     [JsonPropertyName("access_token")]
     public string AccessToken { get; set; } = default!;
+    [JsonPropertyName("client_secret")]
+    public string? ClientSecret { get; set; }
+}
+
+public class BotOAuthClient
+{
+    [JsonPropertyName("client_id")]
+    public string ClientId { get; set; } = default!;
+    [JsonPropertyName("client_secret_preview")]
+    public string ClientSecretPreview { get; set; } = default!;
+    [JsonPropertyName("confidential")]
+    public bool Confidential { get; set; } = default!;
+    [JsonPropertyName("redirect_uris")]
+    public List<string> RedirectUris { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string> Scopes { get; set; } = default!;
+}
+
+public class BotOAuthClientRequest
+{
+    [JsonPropertyName("confidential")]
+    public bool? Confidential { get; set; }
+    [JsonPropertyName("redirect_uris")]
+    public List<string>? RedirectUris { get; set; }
+    [JsonPropertyName("scopes")]
+    public List<string>? Scopes { get; set; }
 }
 
 public class BotResponse
@@ -2600,6 +2669,8 @@ public class BotResponse
     public int Id { get; set; } = default!;
     [JsonPropertyName("webhook")]
     public BotWebhook Webhook { get; set; } = default!;
+    [JsonPropertyName("oauth_client")]
+    public BotOAuthClient? OauthClient { get; set; }
 }
 
 public class BotUpdateRequestWebhook
@@ -2639,7 +2710,9 @@ public class BotUpdateRequestWebhook
 public class BotUpdateRequest
 {
     [JsonPropertyName("webhook")]
-    public BotUpdateRequestWebhook Webhook { get; set; } = default!;
+    public BotUpdateRequestWebhook? Webhook { get; set; }
+    [JsonPropertyName("oauth_client")]
+    public BotOAuthClientRequest? OauthClient { get; set; }
 }
 
 public class BotWebhook
@@ -2716,6 +2789,8 @@ public class Chat
     public List<int> GroupTagIds { get; set; } = default!;
     [JsonPropertyName("channel")]
     public bool Channel { get; set; } = default!;
+    [JsonPropertyName("archived")]
+    public bool Archived { get; set; } = default!;
     [JsonPropertyName("personal")]
     public bool Personal { get; set; } = default!;
     [JsonPropertyName("public")]

@@ -105,6 +105,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
    ```bash
    pachca chats list --last-message-at-before=<порог> --all
    ```
+   > Архивные чаты в выдачу не попадают, поэтому отсеивать уже заархивированные не нужно. Чтобы получить их вместе с активными, добавь `--archived` и смотри поле `archived` каждого чата
 
 2. Для каждого чата: архивируй:
    ```bash

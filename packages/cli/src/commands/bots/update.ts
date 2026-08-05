@@ -71,6 +71,9 @@ export default class BotsUpdate extends BaseCommand {
     'can-edit': Flags.string({
       description: "Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.",
     }),
+    'oauth-client': Flags.string({
+      description: "Объект параметров OAuth-клиента бота. Переданные поля заменяют текущие значения, непереданные остаются прежними.",
+    }),
   };
 
   async run(): Promise<void> {
@@ -88,7 +91,8 @@ export default class BotsUpdate extends BaseCommand {
       this.validationError(validationErrors);
     }
 
-    const body: Record<string, unknown> = { webhook: {
+    const body: Record<string, unknown> = {
+      webhook: {
       name: flags['name'],
       nickname: flags['nickname'],
       outgoing_url: flags['outgoing-url'],
@@ -104,10 +108,13 @@ export default class BotsUpdate extends BaseCommand {
       events_history_enabled: flags['events-history-enabled'],
       who_can_add: flags['who-can-add'],
       can_edit: flags['can-edit'] ? this.parseJSON(flags['can-edit'], 'can-edit') : undefined,
-    } };
+      },
+      oauth_client: flags['oauth-client'] ? this.parseJSON(flags['oauth-client'], 'oauth-client') : undefined,
+    };
     // Clean undefined fields
     const inner = body['webhook'] as Record<string, unknown>;
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
+    for (const [k, v] of Object.entries(body)) { if (k !== 'webhook' && v === undefined) delete body[k]; }
 
     if (Object.keys(inner).length === 0) {
       this.validationError(

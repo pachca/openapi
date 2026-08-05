@@ -160,7 +160,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 import PachcaSDK
 
 // Список чатов
-let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, lastMessageAtAfter: "2025-01-01T00:00:00.000Z", lastMessageAtBefore: "2025-02-01T00:00:00.000Z", personal: false, limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, archived: true, lastMessageAtAfter: "2025-01-01T00:00:00.000Z", lastMessageAtBefore: "2025-02-01T00:00:00.000Z", personal: false, limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
 // → ListChatsResponse(data: [Chat], meta: PaginationMeta)
 ```
 
@@ -181,7 +181,7 @@ let body = ChatCreateRequest(
     )
 )
 let response = try await client.chats.createChat(body: body)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
 ```
 
 
@@ -192,7 +192,7 @@ import PachcaSDK
 
 // Получение чата
 let response = try await client.chats.getChat(id: 334)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
 ```
 
 

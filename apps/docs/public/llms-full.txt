@@ -16,7 +16,7 @@
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 99–201 |
 | How-to Guides — рецепты задач с кодом TS/Python | 202–885 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 886–12005 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 886–12036 |
 | · Обзор | 891–993 |
 | · Быстрый старт | 994–1083 |
 | · AI агенты | 1084–1222 |
@@ -24,77 +24,77 @@
 | · Markdown и документы | 1293–1349 |
 | · Треды | 1350–1490 |
 | · Боты | 1491–1553 |
-| · Создание и настройка | 1554–1689 |
-| · Доступы к чатам и сообщениям | 1690–1763 |
-| · Готовые примеры реализации | 1764–1798 |
-| · Входящие вебхуки | 1799–1950 |
-| · Исходящие вебхуки | 1951–2005 |
-| · Настройка и типы событий | 2006–2247 |
-| · Безопасность и обработчик | 2248–2438 |
-| · Поллинг | 2439–2622 |
-| · Кнопки в сообщениях | 2623–2780 |
-| · Формы | 2781–2850 |
-| · Блоки представления | 2851–3064 |
-| · Обработка форм | 3065–3204 |
-| · Разворачивание ссылок | 3205–3317 |
-| · Экспорт сообщений | 3318–3460 |
-| · DLP-система | 3461–3668 |
-| · Журнал аудита событий | 3669–3824 |
-| · Права и роли | 3825–4047 |
-| · Форматирование текста | 4048–4128 |
-| · Сценарии | 4129–4641 |
-| · CLI | 4642–4735 |
-| · Установка | 4736–4828 |
-| · Авторизация | 4829–4902 |
-| · Вывод | 4903–5006 |
-| · Флаги и скрипты | 5007–5233 |
-| · Сценарии | 5234–5281 |
-| · Файлы | 5282–5316 |
-| · Прямые запросы | 5317–5427 |
-| · Команды | 5428–5570 |
-| · SDK и генератор | 5571–5663 |
-| · TypeScript | 5664–6086 |
-| · Python | 6087–6503 |
-| · Go | 6504–6945 |
-| · Kotlin | 6946–7379 |
-| · Swift | 7380–7782 |
-| · C# | 7783–8246 |
-| · n8n | 8247–8322 |
-| · Начало работы | 8323–8554 |
-| · Ресурсы и операции | 8555–8919 |
-| · Триггер | 8920–9171 |
-| · Тестирование | 9172–9445 |
-| · Примеры workflow | 9446–9660 |
-| · Продвинутые функции | 9661–9897 |
-| · Устранение ошибок | 9898–10077 |
-| · Миграция с v1 | 10078–10198 |
-| · Последние обновления | 10199–10208 |
-| · Обзор | 10209–10310 |
-| · Авторизация | 10311–10516 |
-| · Запросы и ответы | 10517–10707 |
-| · Пагинация | 10708–10944 |
-| · Загрузка файлов | 10945–11165 |
-| · Ошибки | 11166–11239 |
-| · Лимиты | 11240–11357 |
-| · Модели | 11358–12005 |
-| API-методы — все эндпоинты со схемами и примерами | 12006–29346 |
-| · OAuth | 12008–12107 |
-| · Chats | 12108–13715 |
-| · Profile | 13716–14621 |
-| · Users | 14622–17003 |
-| · Group tags | 17004–18351 |
-| · Members | 18352–19696 |
-| · Threads | 19697–20391 |
-| · Messages | 20392–22526 |
-| · Read members | 22527–22773 |
-| · Reactions | 22774–23420 |
-| · Search | 23421–24233 |
-| · Tasks | 24234–25523 |
-| · Views | 25524–26086 |
-| · Bots | 26087–28555 |
-| · Security | 28556–28893 |
-| · Custom Properties | 28894–29103 |
-| · Files | 29104–29346 |
+| · Создание и настройка | 1554–1691 |
+| · Доступы к чатам и сообщениям | 1692–1765 |
+| · Готовые примеры реализации | 1766–1800 |
+| · Входящие вебхуки | 1801–1952 |
+| · Исходящие вебхуки | 1953–2007 |
+| · Настройка и типы событий | 2008–2249 |
+| · Безопасность и обработчик | 2250–2440 |
+| · Поллинг | 2441–2624 |
+| · Кнопки в сообщениях | 2625–2782 |
+| · Формы | 2783–2852 |
+| · Блоки представления | 2853–3066 |
+| · Обработка форм | 3067–3206 |
+| · Разворачивание ссылок | 3207–3319 |
+| · Экспорт сообщений | 3320–3462 |
+| · DLP-система | 3463–3670 |
+| · Журнал аудита событий | 3671–3829 |
+| · Права и роли | 3830–4057 |
+| · Форматирование текста | 4058–4138 |
+| · Сценарии | 4139–4651 |
+| · CLI | 4652–4745 |
+| · Установка | 4746–4838 |
+| · Авторизация | 4839–4912 |
+| · Вывод | 4913–5016 |
+| · Флаги и скрипты | 5017–5243 |
+| · Сценарии | 5244–5291 |
+| · Файлы | 5292–5326 |
+| · Прямые запросы | 5327–5437 |
+| · Команды | 5438–5580 |
+| · SDK и генератор | 5581–5673 |
+| · TypeScript | 5674–6097 |
+| · Python | 6098–6515 |
+| · Go | 6516–6958 |
+| · Kotlin | 6959–7392 |
+| · Swift | 7393–7795 |
+| · C# | 7796–8259 |
+| · n8n | 8260–8335 |
+| · Начало работы | 8336–8567 |
+| · Ресурсы и операции | 8568–8932 |
+| · Триггер | 8933–9184 |
+| · Тестирование | 9185–9458 |
+| · Примеры workflow | 9459–9673 |
+| · Продвинутые функции | 9674–9910 |
+| · Устранение ошибок | 9911–10090 |
+| · Миграция с v1 | 10091–10211 |
+| · Последние обновления | 10212–10221 |
+| · Обзор | 10222–10323 |
+| · Авторизация | 10324–10529 |
+| · Запросы и ответы | 10530–10720 |
+| · Пагинация | 10721–10957 |
+| · Загрузка файлов | 10958–11178 |
+| · Ошибки | 11179–11252 |
+| · Лимиты | 11253–11370 |
+| · Модели | 11371–12036 |
+| API-методы — все эндпоинты со схемами и примерами | 12037–29569 |
+| · OAuth | 12039–12138 |
+| · Chats | 12139–13757 |
+| · Profile | 13758–14663 |
+| · Users | 14664–17045 |
+| · Group tags | 17046–18393 |
+| · Members | 18394–19738 |
+| · Threads | 19739–20433 |
+| · Messages | 20434–22568 |
+| · Read members | 22569–22815 |
+| · Reactions | 22816–23462 |
+| · Search | 23463–24277 |
+| · Tasks | 24278–25567 |
+| · Views | 25568–26130 |
+| · Bots | 26131–28767 |
+| · Security | 28768–29116 |
+| · Custom Properties | 29117–29326 |
+| · Files | 29327–29569 |
 
 # LIBRARY RULES
 
@@ -1605,6 +1605,8 @@ pachca messages create \
   ### Шаг 1. Отправьте запрос на создание
 
 Передайте параметры бота в объекте `bot.webhook`: имя, никнейм, Webhook URL, список событий и команды. Никнейм должен заканчиваться на `_bot`.
+
+Обязательное поле одно — имя. Его и никнейм можно передать и на уровне `bot`, тогда объект `bot.webhook` не нужен: `{"bot": {"name": "Бот задач"}}` создаст бота с настройками вебхука по умолчанию.
 
 Тип бота — в один или несколько чатов — задаётся полем `single_chat` и только при создании: изменить его потом нельзя, как и тип бота в интерфейсе. Ограничение «в один чат» распространяется только на беседы и каналы, треды и личные сообщения не в счёт.
 
@@ -3741,6 +3743,9 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275/link_previews" \
 | `bot_deleted`, `bot_token_recreated` | `bot_id`, `actor_id` |
 | `bot_scopes_updated` | `added_scopes`, `removed_scopes` |
 | `bot_webhook_settings_updated` | `changes` — объект, где ключ это имя настройки, а значение содержит `previous` и `new` |
+| `bot_oauth_client_updated` | `client_id`, `changes` — объект, где ключ это имя параметра клиента, а значение содержит `previous` и `new` |
+| `oauth_authorization_granted` | `client_id`, `scopes` |
+| `oauth_authorization_revoked` | `client_id`, `revoked_tokens_count` |
 | `kms_encrypt`, `kms_decrypt` | `chat_id`, `message_id`, `reason` |
 | `dlp_violation_detected` | `dlp_rule_id`, `dlp_rule_name`, `message_id`, `chat_id`, `user_id`, `action_message`, `conditions_matched` |
 | `search_users_api`, `search_chats_api`, `search_messages_api` | `search_type`, `query_present`, `cursor_present`, `limit`, `filters` |
@@ -3865,7 +3870,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 Большинство скоупов доступно всем ролям, кроме гостевых. Исключения стоит знать заранее, потому что при создании токена такие скоупы просто не появятся в списке:
 
 - **Только Владелец** — `chat_exports:read`, `chat_exports:write` для [экспорта сообщений](/guides/export) и `audit_events:read` для [журнала аудита](/guides/audit-events). Обе возможности доступны на тарифе **Корпорация**.
-- **Владелец и Администратор** — `users:create`, `users:update`, `users:delete`, `user_status:read`, `user_status:write`, `user_avatar:write`, `group_tags:read`, `group_tags:write`.
+- **Владелец и Администратор** — `users:create`, `users:update`, `users:delete`, `user_status:read`, `user_status:write`, `user_avatar:write`, `group_tags:write`.
 - **Только токен бота** — `bot_self:write` и `bot_self:webhook:write` для самоуправления бота. Персональному токену они недоступны при любой роли.
 
 Полная таблица скоупов по ролям — в разделе [Авторизация](/api/authorization#dostupnye-skoupy).
@@ -3961,14 +3966,19 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 GET /api/shared/v1/chats?availability=public
 ```
 
-У такой выгрузки две границы:
+**Архивные чаты по умолчанию не возвращаются** ни при одном значении `availability`. Чтобы получить их вместе с активными, передайте `archived=true`:
 
-- **Закрытые беседы и каналы, где токен не участник, в списке не возвращаются** — включая токен Владельца пространства. Для них доступен только состав участников, если идентификатор чата уже известен.
-- **Архивные чаты не возвращаются вообще**, ни при одном значении `availability`. Статуса архивации в объекте чата тоже нет, поэтому отличить архивный чат через API нельзя.
+```http title="Открытые чаты пространства вместе с архивными"
+GET /api/shared/v1/chats?availability=public&archived=true
+```
+
+Отличить архивный чат в выдаче можно по полю `archived` объекта чата — оно приходит всегда, независимо от параметров запроса.
+
+Граница у такой выгрузки одна: **закрытые беседы и каналы, где токен не участник, в списке не возвращаются** — включая токен Владельца пространства. Для них доступен только состав участников, если идентификатор чата уже известен.
 
 Состав участников и администраторов каждого чата возвращает [Список участников чата](/api/members/list) с параметром `role` — отдельным запросом на чат.
 
-Полный перечень чатов пространства, включая закрытые и архивные, доступен только Владельцу и только через [экспорт сообщений](/guides/export). В архив кладётся файл `chats.json`, где у каждого чата есть идентификатор, название, создатель и состав участников с их ролями в чате. Тип доступа и статус архивации в этот файл не попадают.
+Полный перечень чатов пространства, включая закрытые, доступен только Владельцу и только через [экспорт сообщений](/guides/export). В архив кладётся файл `chats.json`, где у каждого чата есть идентификатор, название, создатель и состав участников с их ролями в чате. Тип доступа и статус архивации в этот файл не попадают.
 
 ## Управление чатами других сотрудников
 
@@ -4794,7 +4804,7 @@ pachca doctor
 # ✔ Конфиг         ~/.config/pachca/config.toml (права: 600)
 # ✔ Профиль        personal (user: Иван Иванов)
 # ✔ Токен          действителен (11 скоупов)
-# ✔ CLI            v2026.8.0 (актуальная версия)
+# ✔ CLI            v2026.8.1 (актуальная версия)
 ```
 
 ## Обновление
@@ -5814,6 +5824,7 @@ const response = client.chats.listChats({
   sort: ChatSortField.Id,
   order: SortOrder.Desc,
   availability: ChatAvailability.IsMember,
+  archived: true,
   lastMessageAtAfter: "2025-01-01T00:00:00.000Z",
   lastMessageAtBefore: "2025-02-01T00:00:00.000Z",
   personal: false,
@@ -5840,7 +5851,7 @@ const request: ChatCreateRequest = {
   }
 }
 const response = client.chats.createChat(request)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 
@@ -5849,7 +5860,7 @@ const response = client.chats.createChat(request)
 ```typescript
 // Получение чата
 const response = client.chats.getChat(334)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 
@@ -6244,6 +6255,7 @@ params = ListChatsParams(
     sort=ChatSortField.ID,
     order=SortOrder.DESC,
     availability=ChatAvailability.IS_MEMBER,
+    archived=True,
     last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
     last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
     personal=False,
@@ -6271,7 +6283,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 
@@ -6280,7 +6292,7 @@ response = await client.chats.create_chat(request=request)
 ```python
 # Получение чата
 response = await client.chats.get_chat(id=334)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 
@@ -6663,6 +6675,7 @@ params := &ListChatsParams{
 	Sort: Ptr(ChatSortFieldID),
 	Order: Ptr(SortOrderDesc),
 	Availability: Ptr(ChatAvailabilityIsMember),
+	Archived: Ptr(true),
 	LastMessageAtAfter: Ptr("2025-01-01T00:00:00.000Z"),
 	LastMessageAtBefore: Ptr("2025-02-01T00:00:00.000Z"),
 	Personal: Ptr(false),
@@ -6690,7 +6703,7 @@ request := ChatCreateRequest{
 	},
 }
 response, err := client.Chats.CreateChat(ctx, request)
-// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
+// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
 ```
 
 
@@ -6701,7 +6714,7 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Получение чата
 response, err := client.Chats.GetChat(ctx, int32(334))
-// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
+// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
 ```
 
 
@@ -7113,7 +7126,7 @@ import com.pachca.sdk.SortOrder
 // Список чатов
 val lastMessageAtAfter = OffsetDateTime.parse("2025-01-01T00:00:00.000Z")
 val lastMessageAtBefore = OffsetDateTime.parse("2025-02-01T00:00:00.000Z")
-val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, archived = true, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
 // → ListChatsResponse(data: List<Chat>, meta: PaginationMeta)
 ```
 
@@ -7135,7 +7148,7 @@ val request = ChatCreateRequest(
     )
 )
 val response = client.chats.createChat(request = request)
-// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 
@@ -7144,7 +7157,7 @@ val response = client.chats.createChat(request = request)
 ```kotlin
 // Получение чата
 val response = client.chats.getChat(id = 334)
-// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 
@@ -7534,7 +7547,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 import PachcaSDK
 
 // Список чатов
-let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, lastMessageAtAfter: "2025-01-01T00:00:00.000Z", lastMessageAtBefore: "2025-02-01T00:00:00.000Z", personal: false, limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, archived: true, lastMessageAtAfter: "2025-01-01T00:00:00.000Z", lastMessageAtBefore: "2025-02-01T00:00:00.000Z", personal: false, limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
 // → ListChatsResponse(data: [Chat], meta: PaginationMeta)
 ```
 
@@ -7555,7 +7568,7 @@ let body = ChatCreateRequest(
     )
 )
 let response = try await client.chats.createChat(body: body)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
 ```
 
 
@@ -7566,7 +7579,7 @@ import PachcaSDK
 
 // Получение чата
 let response = try await client.chats.getChat(id: 334)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
 ```
 
 
@@ -7931,7 +7944,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 using Pachca.Sdk;
 
 // Список чатов
-var response = await client.Chats.ListChatsAsync(ChatSortField.Id, SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse("2025-01-01T00:00:00.000Z"), DateTimeOffset.Parse("2025-02-01T00:00:00.000Z"), false, 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
+var response = await client.Chats.ListChatsAsync(ChatSortField.Id, SortOrder.Desc, ChatAvailability.IsMember, true, DateTimeOffset.Parse("2025-01-01T00:00:00.000Z"), DateTimeOffset.Parse("2025-02-01T00:00:00.000Z"), false, 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
 // → ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta)
 ```
 
@@ -7954,7 +7967,7 @@ var request = new ChatCreateRequest
     }
 };
 var response = await client.Chats.CreateChatAsync(request);
-// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)
+// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)
 ```
 
 
@@ -7965,7 +7978,7 @@ using Pachca.Sdk;
 
 // Получение чата
 var response = await client.Chats.GetChatAsync(334);
-// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)
+// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)
 ```
 
 
@@ -10455,7 +10468,7 @@ Authorization: Bearer <ACCESS_TOKEN>
 | `users:create` | Создание новых сотрудников | Владелец, Администратор |
 | `users:update` | Редактирование данных сотрудника | Владелец, Администратор |
 | `users:delete` | Удаление сотрудников | Владелец, Администратор |
-| `group_tags:read` | Просмотр тегов | Владелец, Администратор |
+| `group_tags:read` | Просмотр тегов | Все |
 | `group_tags:write` | Создание, редактирование и удаление тегов | Владелец, Администратор |
 | `bots:read` | Просмотр ботов | Владелец, Администратор, Сотрудник |
 | `bots:write` | Управление ботами | Владелец, Администратор, Сотрудник |
@@ -11514,6 +11527,7 @@ users = await with_retry(lambda: client.users.list_users())
 - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
 - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
 - `channel: boolean` (required) — Является каналом. Пример: `true`
+- `archived: boolean` (required) — Находится в архиве. Пример: `false`
 - `personal: boolean` (required) — Является личным чатом. Пример: `false`
 - `public: boolean` (required) — Открытый доступ. Пример: `false`
 - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -11779,6 +11793,12 @@ users = await with_retry(lambda: client.users.list_users())
   - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
   - `who_can_add: string` (required) — Кто может добавлять бота в чаты
     Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+- `oauth_client: object` — Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
+  - `client_id: string` (required) — Идентификатор OAuth-клиента. Пример: `"6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4"`
+  - `client_secret_preview: string` (required) — Секрет клиента в сокращённом виде: первые 8 и последние 4 символа, между ними `...`. Пример: `"9f2b7c14...d5b8"`
+  - `confidential: boolean` (required) — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+  - `redirect_uris: array of string` (required) — Адреса возврата, разрешённые для этого клиента. Пример: `["https://www.website.com/oauth/callback"]`
+  - `scopes: array of string` (required) — Скоупы, которые клиент может запросить при авторизации. Пример: `["messages:create"]`
 
 
 ## Событие исходящего вебхука
@@ -11918,7 +11938,7 @@ users = await with_retry(lambda: client.users.list_users())
 - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 - `event_key: string` (required) — Ключ типа события
-  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова
+  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота, `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным, `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова
 - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
 - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
 - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
@@ -11982,6 +12002,17 @@ users = await with_retry(lambda: client.users.list_users())
     - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
       **Структура значений Record:**
       - Тип значения: `any`
+  - **AuditDetailsBotOAuthClient**: При: bot_oauth_client_updated
+    - `client_id: string` (required) — Идентификатор OAuth-клиента бота
+    - `changes: Record<string, object>` (required) — Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).
+      **Структура значений Record:**
+      - Тип значения: `any`
+  - **AuditDetailsOAuthAuthorizationGranted**: При: oauth_authorization_granted
+    - `client_id: string` (required) — Идентификатор OAuth-клиента, которому выдан доступ
+    - `scopes: array of string` (required) — Скоупы, на которые выдан доступ
+  - **AuditDetailsOAuthAuthorizationRevoked**: При: oauth_authorization_revoked
+    - `client_id: string` (required) — Идентификатор OAuth-клиента, у которого отозван доступ
+    - `revoked_tokens_count: integer, int32` (required) — Количество отозванных токенов
   - **AuditDetailsVideoCallStarted**: При: video_call_started
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
     - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
@@ -12193,6 +12224,7 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -12216,6 +12248,7 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
       9111
     ],
     "channel": true,
+    "archived": false,
     "personal": false,
     "public": false,
     "last_message_at": "2021-08-28T15:56:53.000Z",
@@ -12366,7 +12399,7 @@ const request: ChatCreateRequest = {
   }
 }
 const response = client.chats.createChat(request)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 ### Python
@@ -12387,7 +12420,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 ---
@@ -12411,6 +12444,7 @@ response = await client.chats.create_chat(request=request)
 - `sort: string` (default: id) — Поле сортировки
 - `order: string` (default: desc) — Направление сортировки
 - `availability: string` (default: is_member) — Параметр, который отвечает за доступность и выборку чатов для пользователя
+- `archived: boolean` (default: false) — Добавляет к выдаче архивные чаты. По умолчанию возвращаются только активные. Работает при любом значении `availability`. Значение, отличное от `true`, `false`, `1` и `0`, фильтр не применяет.
 - `last_message_at_after: date-time` — Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
 - `last_message_at_before: date-time` — Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
 - `personal: boolean` — Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.
@@ -12422,7 +12456,7 @@ response = await client.chats.create_chat(request=request)
 
 ```bash
 # Для получения следующей страницы используйте cursor из meta.paginate.next_page
-curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability=is_member&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1" \
+curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability=is_member&archived=true&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -12440,6 +12474,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -12470,6 +12505,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability
         9111
       ],
       "channel": true,
+      "archived": false,
       "personal": false,
       "public": false,
       "last_message_at": "2021-08-28T15:56:53.000Z",
@@ -12623,6 +12659,7 @@ const response = client.chats.listChats({
   sort: ChatSortField.Id,
   order: SortOrder.Desc,
   availability: ChatAvailability.IsMember,
+  archived: true,
   lastMessageAtAfter: "2025-01-01T00:00:00.000Z",
   lastMessageAtBefore: "2025-02-01T00:00:00.000Z",
   personal: false,
@@ -12644,6 +12681,7 @@ params = ListChatsParams(
     sort=ChatSortField.ID,
     order=SortOrder.DESC,
     availability=ChatAvailability.IS_MEMBER,
+    archived=True,
     last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
     last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
     personal=False,
@@ -13040,6 +13078,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/334" \
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -13063,6 +13102,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/334" \
       9111
     ],
     "channel": true,
+    "archived": false,
     "personal": false,
     "public": false,
     "last_message_at": "2021-08-28T15:56:53.000Z",
@@ -13174,7 +13214,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.chats.getChat(334)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 ### Python
@@ -13185,7 +13225,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.chats.get_chat(id=334)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 ---
@@ -13262,6 +13302,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334" \
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -13285,6 +13326,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334" \
       9111
     ],
     "channel": true,
+    "archived": false,
     "personal": false,
     "public": false,
     "last_message_at": "2021-08-28T15:56:53.000Z",
@@ -13457,7 +13499,7 @@ const client = new PachcaClient("YOUR_TOKEN")
 
 const request: ChatUpdateRequest = { chat: { name: "Бассейн", public: true } }
 const response = client.chats.updateChat(334, request)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 ### Python
@@ -13470,7 +13512,7 @@ client = PachcaClient("YOUR_TOKEN")
 
 request = ChatUpdateRequest(chat=ChatUpdateRequestChat(name="Бассейн", public=True))
 response = await client.chats.update_chat(id=334, request=request)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 ---
@@ -20416,7 +20458,7 @@ response = await client.threads.get_thread(id=265142)
 ### Схема
 
 - `message: object` (required) — Собранный объект параметров создаваемого сообщения
-  - `entity_type: string` — Тип сущности
+  - `entity_type: string` — Тип сущности. Регистр значения не учитывается. Значение вне списка возвращает `400` с кодом `invalid`.
     Значения: `discussion` — Беседа или канал, `thread` — Тред, `user` — Пользователь
   - `entity_id: integer, int32` (required) — Идентификатор сущности. Пример: `334`
   - `content: string` (required) — Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). Пример: `"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"`
@@ -23471,6 +23513,7 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -23499,6 +23542,7 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
         9111
       ],
       "channel": true,
+      "archived": false,
       "personal": false,
       "public": false,
       "last_message_at": "2021-08-28T15:56:53.000Z",
@@ -26135,7 +26179,14 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bot/recreate_token" \
     - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
     - `who_can_add: string` (required) — Кто может добавлять бота в чаты
       Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+  - `oauth_client: object` — Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
+    - `client_id: string` (required) — Идентификатор OAuth-клиента. Пример: `"6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4"`
+    - `client_secret_preview: string` (required) — Секрет клиента в сокращённом виде: первые 8 и последние 4 символа, между ними `...`. Пример: `"9f2b7c14...d5b8"`
+    - `confidential: boolean` (required) — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+    - `redirect_uris: array of string` (required) — Адреса возврата, разрешённые для этого клиента. Пример: `["https://www.website.com/oauth/callback"]`
+    - `scopes: array of string` (required) — Скоупы, которые клиент может запросить при авторизации. Пример: `["messages:create"]`
   - `access_token: string` (required) — Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота. Пример: `"bm90X2FfcmVhbF90b2tlbg"`
+  - `client_secret: string` — Секрет OAuth-клиента целиком. Возвращается один раз, только при создании конфиденциального клиента через параметр `oauth_client`. Повторно получить его нельзя. Пример: `"9f2b7c14e0a6d385b1c7f4092e6a8d53074bc1f9a2e56d8b3c07f419ae62d5b8"`
 
 **Пример ответа:**
 
@@ -26168,6 +26219,17 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bot/recreate_token" \
         "admin"
       ],
       "who_can_add": "creator"
+    },
+    "oauth_client": {
+      "client_id": "6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4",
+      "client_secret_preview": "9f2b7c14...d5b8",
+      "confidential": true,
+      "redirect_uris": [
+        "https://www.website.com/oauth/callback"
+      ],
+      "scopes": [
+        "messages:create"
+      ]
     },
     "access_token": "bm90X2FfcmVhbF90b2tlbg"
   }
@@ -26277,7 +26339,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.bots.selfRecreateBotToken()
-// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })
+// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, accessToken: string, clientSecret?: string })
 ```
 
 ### Python
@@ -26288,7 +26350,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.bots.self_recreate_bot_token()
-# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), access_token: str)
+# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, access_token: str, client_secret: str | None)
 ```
 
 ---
@@ -26367,6 +26429,12 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
     - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
     - `who_can_add: string` (required) — Кто может добавлять бота в чаты
       Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+  - `oauth_client: object` — Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
+    - `client_id: string` (required) — Идентификатор OAuth-клиента. Пример: `"6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4"`
+    - `client_secret_preview: string` (required) — Секрет клиента в сокращённом виде: первые 8 и последние 4 символа, между ними `...`. Пример: `"9f2b7c14...d5b8"`
+    - `confidential: boolean` (required) — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+    - `redirect_uris: array of string` (required) — Адреса возврата, разрешённые для этого клиента. Пример: `["https://www.website.com/oauth/callback"]`
+    - `scopes: array of string` (required) — Скоупы, которые клиент может запросить при авторизации. Пример: `["messages:create"]`
 
 **Пример ответа:**
 
@@ -26399,6 +26467,17 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bot/webhook" \
         "admin"
       ],
       "who_can_add": "creator"
+    },
+    "oauth_client": {
+      "client_id": "6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4",
+      "client_secret_preview": "9f2b7c14...d5b8",
+      "confidential": true,
+      "redirect_uris": [
+        "https://www.website.com/oauth/callback"
+      ],
+      "scopes": [
+        "messages:create"
+      ]
     }
   }
 }
@@ -26538,7 +26617,7 @@ const client = new PachcaClient("YOUR_TOKEN")
 
 const request: BotWebhookSelfUpdateRequest = { webhook: { outgoingUrl: "https://www.website.com/tasks/new" } }
 const response = client.bots.selfUpdateBotWebhook(request)
-// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })
+// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null })
 ```
 
 ### Python
@@ -26551,7 +26630,7 @@ client = PachcaClient("YOUR_TOKEN")
 
 request = BotWebhookSelfUpdateRequest(webhook=BotWebhookSelfUpdateRequestWebhook(outgoing_url="https://www.website.com/tasks/new"))
 response = await client.bots.self_update_bot_webhook(request=request)
-# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd))
+# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None)
 ```
 
 ---
@@ -26613,6 +26692,12 @@ curl "https://api.pachca.com/api/shared/v1/bots?query=задач&limit=1" \
     - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
     - `who_can_add: string` (required) — Кто может добавлять бота в чаты
       Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+  - `oauth_client: object` — Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
+    - `client_id: string` (required) — Идентификатор OAuth-клиента. Пример: `"6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4"`
+    - `client_secret_preview: string` (required) — Секрет клиента в сокращённом виде: первые 8 и последние 4 символа, между ними `...`. Пример: `"9f2b7c14...d5b8"`
+    - `confidential: boolean` (required) — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+    - `redirect_uris: array of string` (required) — Адреса возврата, разрешённые для этого клиента. Пример: `["https://www.website.com/oauth/callback"]`
+    - `scopes: array of string` (required) — Скоупы, которые клиент может запросить при авторизации. Пример: `["messages:create"]`
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`
@@ -26652,6 +26737,17 @@ curl "https://api.pachca.com/api/shared/v1/bots?query=задач&limit=1" \
           "admin"
         ],
         "who_can_add": "creator"
+      },
+      "oauth_client": {
+        "client_id": "6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4",
+        "client_secret_preview": "9f2b7c14...d5b8",
+        "confidential": true,
+        "redirect_uris": [
+          "https://www.website.com/oauth/callback"
+        ],
+        "scopes": [
+          "messages:create"
+        ]
       }
     }
   ],
@@ -26784,7 +26880,7 @@ response = await client.bots.list_bots(params=params)
 
 ### Схема
 
-- `webhook: object` (required) — Объект параметров вебхука создаваемого бота
+- `webhook: object` — Объект параметров вебхука создаваемого бота
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (max length: 255) — Никнейм бота. Должен заканчиваться на `_bot`. Пример: `"tasks_bot"`
   - `outgoing_url: string` — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
@@ -26804,6 +26900,10 @@ response = await client.bots.list_bots(params=params)
     Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
   - `can_edit: array of string` — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
   - `single_chat: boolean` (default: false) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Задаётся только при создании, при редактировании не меняется. Пример: `false`
+- `oauth_client: object` — Объект параметров OAuth-клиента бота
+  - `confidential: boolean` — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+  - `redirect_uris: array of string` — Адреса возврата, разрешённые для этого клиента. Пустой список возвращает `400` с кодом `blank`. Пример: `["https://www.website.com/oauth/callback"]`
+  - `scopes: array of string` — Скоупы, которые клиент может запросить при авторизации. Ограничения те же, что и для скоупов токена бота: недоступный роли бота скоуп возвращает `400` с кодом `forbidden`. Пример: `["messages:create"]`
 
 ### Пример
 
@@ -26880,7 +26980,14 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
     - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
     - `who_can_add: string` (required) — Кто может добавлять бота в чаты
       Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+  - `oauth_client: object` — Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
+    - `client_id: string` (required) — Идентификатор OAuth-клиента. Пример: `"6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4"`
+    - `client_secret_preview: string` (required) — Секрет клиента в сокращённом виде: первые 8 и последние 4 символа, между ними `...`. Пример: `"9f2b7c14...d5b8"`
+    - `confidential: boolean` (required) — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+    - `redirect_uris: array of string` (required) — Адреса возврата, разрешённые для этого клиента. Пример: `["https://www.website.com/oauth/callback"]`
+    - `scopes: array of string` (required) — Скоупы, которые клиент может запросить при авторизации. Пример: `["messages:create"]`
   - `access_token: string` (required) — Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота. Пример: `"bm90X2FfcmVhbF90b2tlbg"`
+  - `client_secret: string` — Секрет OAuth-клиента целиком. Возвращается один раз, только при создании конфиденциального клиента через параметр `oauth_client`. Повторно получить его нельзя. Пример: `"9f2b7c14e0a6d385b1c7f4092e6a8d53074bc1f9a2e56d8b3c07f419ae62d5b8"`
 
 **Пример ответа:**
 
@@ -26913,6 +27020,17 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
         "admin"
       ],
       "who_can_add": "creator"
+    },
+    "oauth_client": {
+      "client_id": "6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4",
+      "client_secret_preview": "9f2b7c14...d5b8",
+      "confidential": true,
+      "redirect_uris": [
+        "https://www.website.com/oauth/callback"
+      ],
+      "scopes": [
+        "messages:create"
+      ]
     },
     "access_token": "bm90X2FfcmVhbF90b2tlbg"
   }
@@ -27017,7 +27135,7 @@ curl "https://api.pachca.com/api/shared/v1/bots" \
 ### TypeScript
 
 ```typescript
-import { BotCanEdit, BotCreateRequest, BotCreateRequestWebhook, BotEventName, BotTemplateEngine, BotTriggerOn, BotWhoCanAdd, PachcaClient } from "@pachca/sdk"
+import { BotCanEdit, BotCreateRequest, BotCreateRequestWebhook, BotEventName, BotOAuthClientRequest, BotTemplateEngine, BotTriggerOn, BotWhoCanAdd, PachcaClient } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
@@ -27039,17 +27157,22 @@ const request: BotCreateRequest = {
     whoCanAdd: BotWhoCanAdd.Creator,
     canEdit: [BotCanEdit.Admin],
     singleChat: false
+  },
+  oauthClient: {
+    confidential: true,
+    redirectUris: ["example"],
+    scopes: ["example"]
   }
 }
 const response = client.bots.createBot(request)
-// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })
+// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, accessToken: string, clientSecret?: string })
 ```
 
 ### Python
 
 ```python
 from pachca.client import PachcaClient
-from pachca.models import BotCanEdit, BotCreateRequest, BotCreateRequestWebhook, BotEventName, BotTemplateEngine, BotTriggerOn, BotWhoCanAdd
+from pachca.models import BotCanEdit, BotCreateRequest, BotCreateRequestWebhook, BotEventName, BotOAuthClientRequest, BotTemplateEngine, BotTriggerOn, BotWhoCanAdd
 
 client = PachcaClient("YOUR_TOKEN")
 
@@ -27071,10 +27194,15 @@ request = BotCreateRequest(
         who_can_add=BotWhoCanAdd.CREATOR,
         can_edit=[BotCanEdit.ADMIN],
         single_chat=False
+    ),
+    oauth_client=BotOAuthClientRequest(
+        confidential=True,
+        redirect_uris=["example"],
+        scopes=["example"]
     )
 )
 response = await client.bots.create_bot(request=request)
-# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), access_token: str)
+# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, access_token: str, client_secret: str | None)
 ```
 
 ---
@@ -27133,6 +27261,12 @@ curl "https://api.pachca.com/api/shared/v1/bots/1738816" \
     - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
     - `who_can_add: string` (required) — Кто может добавлять бота в чаты
       Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+  - `oauth_client: object` — Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
+    - `client_id: string` (required) — Идентификатор OAuth-клиента. Пример: `"6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4"`
+    - `client_secret_preview: string` (required) — Секрет клиента в сокращённом виде: первые 8 и последние 4 символа, между ними `...`. Пример: `"9f2b7c14...d5b8"`
+    - `confidential: boolean` (required) — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+    - `redirect_uris: array of string` (required) — Адреса возврата, разрешённые для этого клиента. Пример: `["https://www.website.com/oauth/callback"]`
+    - `scopes: array of string` (required) — Скоупы, которые клиент может запросить при авторизации. Пример: `["messages:create"]`
 
 **Пример ответа:**
 
@@ -27165,6 +27299,17 @@ curl "https://api.pachca.com/api/shared/v1/bots/1738816" \
         "admin"
       ],
       "who_can_add": "creator"
+    },
+    "oauth_client": {
+      "client_id": "6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4",
+      "client_secret_preview": "9f2b7c14...d5b8",
+      "confidential": true,
+      "redirect_uris": [
+        "https://www.website.com/oauth/callback"
+      ],
+      "scopes": [
+        "messages:create"
+      ]
     }
   }
 }
@@ -27273,7 +27418,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.bots.getBot(1738816)
-// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })
+// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null })
 ```
 
 ### Python
@@ -27284,7 +27429,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.bots.get_bot(id=1738816)
-# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd))
+# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None)
 ```
 
 ---
@@ -27320,7 +27465,7 @@ response = await client.bots.get_bot(id=1738816)
 
 ### Схема
 
-- `webhook: object` (required) — Объект параметров вебхука редактируемого бота
+- `webhook: object` — Объект параметров вебхука редактируемого бота
   - `name: string` (max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (max length: 255) — Никнейм бота. Должен заканчиваться на `_bot`. Пример: `"tasks_bot"`
   - `outgoing_url: string` — URL исходящего вебхука. Пример: `"https://www.website.com/tasks/new"`
@@ -27339,6 +27484,10 @@ response = await client.bots.get_bot(id=1738816)
   - `who_can_add: string` — Кто может добавлять бота в чаты
     Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
   - `can_edit: array of string` — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
+- `oauth_client: object` — Объект параметров OAuth-клиента бота. Переданные поля заменяют текущие значения, непереданные остаются прежними.
+  - `confidential: boolean` — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+  - `redirect_uris: array of string` — Адреса возврата, разрешённые для этого клиента. Пустой список возвращает `400` с кодом `blank`. Пример: `["https://www.website.com/oauth/callback"]`
+  - `scopes: array of string` — Скоупы, которые клиент может запросить при авторизации. Ограничения те же, что и для скоупов токена бота: недоступный роли бота скоуп возвращает `400` с кодом `forbidden`. Пример: `["messages:create"]`
 
 ### Пример
 
@@ -27362,6 +27511,15 @@ response = await client.bots.get_bot(id=1738816)
     "challenge_key": "challenge",
     "can_edit": [
       "admin"
+    ]
+  },
+  "oauth_client": {
+    "confidential": true,
+    "redirect_uris": [
+      "https://www.website.com/oauth/callback"
+    ],
+    "scopes": [
+      "messages:create"
     ]
   }
 }
@@ -27392,6 +27550,15 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
     "challenge_key": "challenge",
     "can_edit": [
       "admin"
+    ]
+  },
+  "oauth_client": {
+    "confidential": true,
+    "redirect_uris": [
+      "https://www.website.com/oauth/callback"
+    ],
+    "scopes": [
+      "messages:create"
     ]
   }
 }'
@@ -27425,6 +27592,12 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
     - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
     - `who_can_add: string` (required) — Кто может добавлять бота в чаты
       Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+  - `oauth_client: object` — Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
+    - `client_id: string` (required) — Идентификатор OAuth-клиента. Пример: `"6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4"`
+    - `client_secret_preview: string` (required) — Секрет клиента в сокращённом виде: первые 8 и последние 4 символа, между ними `...`. Пример: `"9f2b7c14...d5b8"`
+    - `confidential: boolean` (required) — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+    - `redirect_uris: array of string` (required) — Адреса возврата, разрешённые для этого клиента. Пример: `["https://www.website.com/oauth/callback"]`
+    - `scopes: array of string` (required) — Скоупы, которые клиент может запросить при авторизации. Пример: `["messages:create"]`
 
 **Пример ответа:**
 
@@ -27457,6 +27630,17 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
         "admin"
       ],
       "who_can_add": "creator"
+    },
+    "oauth_client": {
+      "client_id": "6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4",
+      "client_secret_preview": "9f2b7c14...d5b8",
+      "confidential": true,
+      "redirect_uris": [
+        "https://www.website.com/oauth/callback"
+      ],
+      "scopes": [
+        "messages:create"
+      ]
     }
   }
 }
@@ -27620,7 +27804,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
 ### TypeScript
 
 ```typescript
-import { BotCanEdit, BotEventName, BotTemplateEngine, BotTriggerOn, BotUpdateRequest, BotUpdateRequestWebhook, BotWhoCanAdd, PachcaClient } from "@pachca/sdk"
+import { BotCanEdit, BotEventName, BotOAuthClientRequest, BotTemplateEngine, BotTriggerOn, BotUpdateRequest, BotUpdateRequestWebhook, BotWhoCanAdd, PachcaClient } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
@@ -27641,17 +27825,22 @@ const request: BotUpdateRequest = {
     eventsHistoryEnabled: false,
     whoCanAdd: BotWhoCanAdd.Creator,
     canEdit: [BotCanEdit.Admin]
+  },
+  oauthClient: {
+    confidential: true,
+    redirectUris: ["example"],
+    scopes: ["example"]
   }
 }
 const response = client.bots.updateBot(1738816, request)
-// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })
+// → BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null })
 ```
 
 ### Python
 
 ```python
 from pachca.client import PachcaClient
-from pachca.models import BotCanEdit, BotEventName, BotTemplateEngine, BotTriggerOn, BotUpdateRequest, BotUpdateRequestWebhook, BotWhoCanAdd
+from pachca.models import BotCanEdit, BotEventName, BotOAuthClientRequest, BotTemplateEngine, BotTriggerOn, BotUpdateRequest, BotUpdateRequestWebhook, BotWhoCanAdd
 
 client = PachcaClient("YOUR_TOKEN")
 
@@ -27672,10 +27861,15 @@ request = BotUpdateRequest(
         events_history_enabled=False,
         who_can_add=BotWhoCanAdd.CREATOR,
         can_edit=[BotCanEdit.ADMIN]
+    ),
+    oauth_client=BotOAuthClientRequest(
+        confidential=True,
+        redirect_uris=["example"],
+        scopes=["example"]
     )
 )
 response = await client.bots.update_bot(id=1738816, request=request)
-# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd))
+# → BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None)
 ```
 
 ---
@@ -27887,7 +28081,14 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bots/1738816/recreate_token" 
     - `can_edit: array of string` (required) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
     - `who_can_add: string` (required) — Кто может добавлять бота в чаты
       Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
+  - `oauth_client: object` — Объект параметров OAuth-клиента. `null`, если OAuth-клиент боту не заведён.
+    - `client_id: string` (required) — Идентификатор OAuth-клиента. Пример: `"6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4"`
+    - `client_secret_preview: string` (required) — Секрет клиента в сокращённом виде: первые 8 и последние 4 символа, между ними `...`. Пример: `"9f2b7c14...d5b8"`
+    - `confidential: boolean` (required) — Конфиденциальный клиент: `true` — секрет хранится на сервере приложения, `false` — публичный клиент, работающий без секрета. Пример: `true`
+    - `redirect_uris: array of string` (required) — Адреса возврата, разрешённые для этого клиента. Пример: `["https://www.website.com/oauth/callback"]`
+    - `scopes: array of string` (required) — Скоупы, которые клиент может запросить при авторизации. Пример: `["messages:create"]`
   - `access_token: string` (required) — Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота. Пример: `"bm90X2FfcmVhbF90b2tlbg"`
+  - `client_secret: string` — Секрет OAuth-клиента целиком. Возвращается один раз, только при создании конфиденциального клиента через параметр `oauth_client`. Повторно получить его нельзя. Пример: `"9f2b7c14e0a6d385b1c7f4092e6a8d53074bc1f9a2e56d8b3c07f419ae62d5b8"`
 
 **Пример ответа:**
 
@@ -27920,6 +28121,17 @@ curl -X POST "https://api.pachca.com/api/shared/v1/bots/1738816/recreate_token" 
         "admin"
       ],
       "who_can_add": "creator"
+    },
+    "oauth_client": {
+      "client_id": "6d3f1a0c8b2e4d57a91f0b3c5e7d9a12b4c6e8f0a2d4b6c8e0f2a4b6c8d0e2f4",
+      "client_secret_preview": "9f2b7c14...d5b8",
+      "confidential": true,
+      "redirect_uris": [
+        "https://www.website.com/oauth/callback"
+      ],
+      "scopes": [
+        "messages:create"
+      ]
     },
     "access_token": "bm90X2FfcmVhbF90b2tlbg"
   }
@@ -28029,7 +28241,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.bots.recreateBotToken(1738816)
-// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })
+// → BotCreateResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), oauthClient?: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, accessToken: string, clientSecret?: string })
 ```
 
 ### Python
@@ -28040,7 +28252,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.bots.recreate_bot_token(id=1738816)
-# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), access_token: str)
+# → BotCreateResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, access_token: str, client_secret: str | None)
 ```
 
 ---
@@ -28576,7 +28788,7 @@ await client.bots.delete_webhook_event(id="01KAJZ2XDSS2S3DSW9EXJZ0TBV")
 - `start_time: date-time` — Начальная метка времени (включительно)
 - `end_time: date-time` — Конечная метка времени (включительно)
 - `event_key: string` — Фильтр по конкретному типу события
-  Значения: `user_login`, `user_logout`, `user_2fa_fail`, `user_2fa_success`, `user_created`, `user_deleted`, `user_role_changed`, `user_updated`, `tag_created`, `tag_deleted`, `user_added_to_tag`, `user_removed_from_tag`, `chat_created`, `chat_renamed`, `chat_permission_changed`, `user_chat_join`, `user_chat_leave`, `tag_added_to_chat`, `tag_removed_from_chat`, `message_updated`, `message_deleted`, `message_created`, `reaction_created`, `reaction_deleted`, `thread_created`, `access_token_created`, `access_token_updated`, `access_token_destroy`, `kms_encrypt`, `kms_decrypt`, `audit_events_accessed`, `dlp_violation_detected`, `search_users_api`, `search_chats_api`, `search_messages_api`, `bot_scopes_updated`, `bot_webhook_settings_updated`, `bot_token_recreated`, `bot_deleted`, `video_call_started`, `video_call_finished`, `video_call_recording_ready`
+  Значения: `user_login`, `user_logout`, `user_2fa_fail`, `user_2fa_success`, `user_created`, `user_deleted`, `user_role_changed`, `user_updated`, `tag_created`, `tag_deleted`, `user_added_to_tag`, `user_removed_from_tag`, `chat_created`, `chat_renamed`, `chat_permission_changed`, `user_chat_join`, `user_chat_leave`, `tag_added_to_chat`, `tag_removed_from_chat`, `message_updated`, `message_deleted`, `message_created`, `reaction_created`, `reaction_deleted`, `thread_created`, `access_token_created`, `access_token_updated`, `access_token_destroy`, `kms_encrypt`, `kms_decrypt`, `audit_events_accessed`, `dlp_violation_detected`, `search_users_api`, `search_chats_api`, `search_messages_api`, `bot_scopes_updated`, `bot_webhook_settings_updated`, `bot_token_recreated`, `bot_deleted`, `bot_oauth_client_updated`, `oauth_authorization_granted`, `oauth_authorization_revoked`, `video_call_started`, `video_call_finished`, `video_call_recording_ready`
 - `actor_id: string` — Идентификатор пользователя, выполнившего действие
 - `actor_type: string` — Тип актора
 - `entity_id: string` — Идентификатор затронутой сущности
@@ -28603,7 +28815,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
   - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
   - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
   - `event_key: string` (required) — Ключ типа события
-    Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова
+    Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота, `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным, `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова
   - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
   - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
   - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
@@ -28667,6 +28879,17 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
         **Структура значений Record:**
         - Тип значения: `any`
+    - **AuditDetailsBotOAuthClient**: При: bot_oauth_client_updated
+      - `client_id: string` (required) — Идентификатор OAuth-клиента бота
+      - `changes: Record<string, object>` (required) — Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).
+        **Структура значений Record:**
+        - Тип значения: `any`
+    - **AuditDetailsOAuthAuthorizationGranted**: При: oauth_authorization_granted
+      - `client_id: string` (required) — Идентификатор OAuth-клиента, которому выдан доступ
+      - `scopes: array of string` (required) — Скоупы, на которые выдан доступ
+    - **AuditDetailsOAuthAuthorizationRevoked**: При: oauth_authorization_revoked
+      - `client_id: string` (required) — Идентификатор OAuth-клиента, у которого отозван доступ
+      - `revoked_tokens_count: integer, int32` (required) — Количество отозванных токенов
     - **AuditDetailsVideoCallStarted**: При: video_call_started
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
       - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.

@@ -216,6 +216,13 @@ export const botFields: INodeProperties[] = [
 				placeholder: 'tasks_bot',
 			},
 			{
+				displayName: 'OAuth Client',
+				name: 'oauthClient',
+				type: 'json',
+				default: "{}",
+				description: 'Request to change the bot OAuth client',
+			},
+			{
 				displayName: 'Outgoing URL',
 				name: 'outgoingUrl',
 				type: 'string',
@@ -404,6 +411,13 @@ export const botFields: INodeProperties[] = [
 				default: "",
 				description: 'Bot nickname. Must end with `_bot`.',
 				placeholder: 'tasks_bot',
+			},
+			{
+				displayName: 'OAuth Client',
+				name: 'oauthClient',
+				type: 'json',
+				default: "{}",
+				description: 'Request to change the bot OAuth client',
 			},
 			{
 				displayName: 'Outgoing URL',

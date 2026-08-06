@@ -57,7 +57,10 @@ if (existsSync(mainManifestPath)) {
 // 3. Generate CHANGELOG.md from changelog.json
 const changelogPath = 'src/data/changelog.json';
 if (existsSync(changelogPath)) {
-  const TYPE_LABELS = { '+': 'Добавлено', '~': 'Изменено', '-': 'Удалено' };
+  // `-` is a fix, not a removal: same meaning as in releases.json and in the
+  // version rule (`-` → patch). Labelling it «Удалено» turned every bugfix in the
+  // published changelog into a deletion.
+  const TYPE_LABELS = { '+': 'Добавлено', '~': 'Изменено', '-': 'Исправлено' };
   const changelog = JSON.parse(readFileSync(changelogPath, 'utf8'));
   const entries = changelog.filter((e) => e.version !== '0.0.0');
   const lines = ['# Changelog', ''];

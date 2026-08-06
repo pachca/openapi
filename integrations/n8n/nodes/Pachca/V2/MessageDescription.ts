@@ -63,6 +63,7 @@ export const messageFields: INodeProperties[] = [
 { name: 'Thread', value: 'thread' },
 { name: 'User', value: 'user' }],
 		default: "discussion",
+		description: 'Entity type. The value is case-insensitive. A value outside the list returns `400` with the `invalid` code.',
 		displayOptions: { show: { resource: ['message'], operation: ['create'] } },
 	},
 	{

@@ -62,13 +62,6 @@ export const groupTagFields: INodeProperties[] = [
 		placeholder: 'New tag name',
 	},
 	{
-		displayName: 'Requires admin permissions',
-		name: 'groupTagGetAllNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['groupTag'], operation: ['getAll'] } },
-	},
-	{
 		displayName: 'Return All',
 		name: 'returnAll',
 		type: 'boolean',
@@ -110,13 +103,6 @@ export const groupTagFields: INodeProperties[] = [
 		default: 0,
 		displayOptions: { show: { resource: ['groupTag'], operation: ['get'] } },
 		description: 'Tag ID',
-	},
-	{
-		displayName: 'Requires admin permissions',
-		name: 'groupTagGetNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['groupTag'], operation: ['get'] } },
 	},
 	{
 		displayName: 'Simplify',
@@ -176,13 +162,6 @@ export const groupTagFields: INodeProperties[] = [
 		default: 0,
 		displayOptions: { show: { resource: ['groupTag'], operation: ['getAllUsers'] } },
 		description: 'Tag ID',
-	},
-	{
-		displayName: 'Requires admin permissions',
-		name: 'groupTagGetAllUsersNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['groupTag'], operation: ['getAllUsers'] } },
 	},
 	{
 		displayName: 'Return All',

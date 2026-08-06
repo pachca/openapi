@@ -1,5 +1,5 @@
 import { BaseCommand } from '../../base-command.js';
-import { listProfiles, getActiveProfile } from '../../profiles.js';
+import { listProfiles, getActiveProfile, getAuthMethod } from '../../profiles.js';
 
 export default class AuthList extends BaseCommand {
   static override description = 'Список сохранённых профилей';
@@ -26,6 +26,8 @@ export default class AuthList extends BaseCommand {
       type: profile.type,
       user: profile.user,
       email: profile.email || null,
+      auth: getAuthMethod(profile),
+      expires_at: profile.expires_at || null,
       active: name === activeProfile,
     }));
 

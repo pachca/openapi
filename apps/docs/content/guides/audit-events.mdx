@@ -79,6 +79,9 @@ related:
 | `bot_deleted`, `bot_token_recreated` | `bot_id`, `actor_id` |
 | `bot_scopes_updated` | `added_scopes`, `removed_scopes` |
 | `bot_webhook_settings_updated` | `changes` — объект, где ключ это имя настройки, а значение содержит `previous` и `new` |
+| `bot_oauth_client_updated` | `client_id`, `changes` — объект, где ключ это имя параметра клиента, а значение содержит `previous` и `new` |
+| `oauth_authorization_granted` | `client_id`, `scopes` |
+| `oauth_authorization_revoked` | `client_id`, `revoked_tokens_count` |
 | `kms_encrypt`, `kms_decrypt` | `chat_id`, `message_id`, `reason` |
 | `dlp_violation_detected` | `dlp_rule_id`, `dlp_rule_name`, `message_id`, `chat_id`, `user_id`, `action_message`, `conditions_matched` |
 | `search_users_api`, `search_chats_api`, `search_messages_api` | `search_type`, `query_present`, `cursor_present`, `limit`, `filters` |

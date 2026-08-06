@@ -14,6 +14,7 @@ import {
 	uploadFileToS3,
 	uploadAvatar,
 	splitAndValidateCommaList,
+	parseJsonObjectField,
 	simplifyItem,
 	sanitizeBaseUrl,
 } from './GenericFunctions';
@@ -36,6 +37,7 @@ interface FieldMap {
 	arrayType?: 'int' | 'string';
 	locator?: boolean;
 	subKey?: string;
+	isJson?: boolean;
 	default?: unknown;
 }
 
@@ -216,7 +218,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/chats',
 			paginated: true,
 			queryMap: [{ api: 'sort', n8n: 'sort' }, { api: 'order', n8n: 'order' }, { api: 'availability', n8n: 'availability' }, { api: 'last_message_at_after', n8n: 'lastMessageAtAfter' }, { api: 'last_message_at_before', n8n: 'lastMessageAtBefore' }],
-			optionalQueryMap: [{ api: 'personal', n8n: 'personal' }],
+			optionalQueryMap: [{ api: 'archived', n8n: 'archived' }, { api: 'personal', n8n: 'personal' }],
 		},
 		requestExport: {
 			method: 'POST' as IHttpRequestMethods,
@@ -468,7 +470,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/messages/{id}/link_previews',
 			pathParams: [{ api: 'id', n8n: 'id', v1Fallback: 'messageId' }],
 			bodyMap: [
-				{ api: 'link_previews', n8n: 'linkPreviews' },
+				{ api: 'link_previews', n8n: 'linkPreviews', isJson: true },
 			],
 		},
 		pin: {
@@ -936,6 +938,8 @@ async function executeRoute(
 		}
 		if (fm.isArray && typeof raw === 'string') {
 			body[fm.api] = splitAndValidateCommaList(this, raw, fm.n8n, fm.arrayType!, i);
+		} else if (fm.isJson && typeof raw === 'string') {
+			body[fm.api] = parseJsonObjectField(this, raw, fm.n8n, i);
 		} else {
 			body[fm.api] = raw as IDataObject;
 		}
@@ -962,6 +966,8 @@ async function executeRoute(
 		}
 		if (fm.isArray && typeof val === 'string') {
 			body[fm.api] = splitAndValidateCommaList(this, val, fm.n8n, fm.arrayType!, i);
+		} else if (fm.isJson && typeof val === 'string') {
+			body[fm.api] = parseJsonObjectField(this, val, fm.n8n, i);
 		} else if (fm.locator && typeof val === 'object' && val !== null && (val as IDataObject).__rl) {
 			body[fm.api] = (val as IDataObject).value;
 		} else {

@@ -185,6 +185,13 @@ export const chatFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['chat'], operation: ['getAll'] } },
 		options: [
 			{
+				displayName: 'Archived',
+				name: 'archived',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to include archived chats in the response. By default only active chats are returned. Works with any `availability` value.',
+			},
+			{
 				displayName: 'Personal',
 				name: 'personal',
 				type: 'boolean',

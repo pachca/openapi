@@ -61,6 +61,11 @@ export default class Introspect extends BaseCommand {
 
     // D3 single source: baseFlagNames derived from BaseCommand.baseFlags
     const baseFlagNames = new Set(Object.keys(BaseCommand.baseFlags));
-    this.output(normalizeCommand(commandId, cmdMeta, baseFlagNames));
+    const baseFlagDescriptions = new Map(
+      Object.entries(BaseCommand.baseFlags as Record<string, { description?: string }>).map(
+        ([name, def]) => [name, def.description ?? ''],
+      ),
+    );
+    this.output(normalizeCommand(commandId, cmdMeta, baseFlagNames, baseFlagDescriptions));
   }
 }

@@ -12,6 +12,7 @@ import {
   TokenNotFoundError,
   ProfileNotFoundError,
 } from '../profiles.js';
+import { ensureFreshToken, isSessionExpired } from '../token-refresh.js';
 import { outputError } from '../output.js';
 import { defaultOutputFormat, isInteractive } from '../utils.js';
 
@@ -133,25 +134,54 @@ const hook: Hook<'init'> = async function (opts) {
   const profileIdx = process.argv.indexOf('--profile');
   const argvProfile = profileIdx !== -1 ? process.argv[profileIdx + 1] : undefined;
 
-  // Verify auth exists
+  // Verify auth exists, and renew an OAuth token that is about to run out.
+  // An OAuth session lives an hour, so without this a long agent run would lose
+  // access halfway through.
   try {
     const { profileName, profile } = resolveToken({ token: argvToken, profile: argvProfile });
 
+    if (profileName && profile) {
+      try {
+        await ensureFreshToken(profileName, profile);
+      } catch (error) {
+        // A network hiccup during refresh is not worth blocking on: the command
+        // runs with the current token and reports the real API error itself.
+        if (!isSessionExpired(error)) return;
+
+        const format = resolveOutputFromArgv();
+        if (format === 'json' || !process.stderr.isTTY) {
+          outputError(
+            {
+              error: 'Session expired',
+              type: 'PACHCA_AUTH_ERROR',
+              code: null,
+              hint: 'pachca auth login',
+            },
+            format as 'json',
+          );
+        } else {
+          process.stderr.write(`✗ Срок входа истёк. Войдите заново:\n\n`);
+          process.stderr.write(`    pachca auth login\n`);
+        }
+        process.exit(3);
+      }
+    }
   } catch (error) {
     if (error instanceof TokenNotFoundError) {
       const format = resolveOutputFromArgv();
       if (format === 'json' || !process.stderr.isTTY) {
         outputError(
-          { error: 'Token not found', type: 'PACHCA_AUTH_ERROR', code: null, hint: 'pachca auth login --token <your-token>' },
+          { error: 'Token not found', type: 'PACHCA_AUTH_ERROR', code: null, hint: 'pachca auth login, or set PACHCA_TOKEN' },
           format as 'json',
         );
       } else {
         process.stderr.write(`✗ Токен не найден. Войдите в аккаунт:\n\n`);
-        process.stderr.write(`  Интерактивно (человек):\n`);
+        process.stderr.write(`  Вход через браузер:\n`);
         process.stderr.write(`    pachca auth login\n\n`);
-        process.stderr.write(`  Неинтерактивно (агент, CI):\n`);
-        process.stderr.write(`    pachca auth login --token <ваш токен>\n\n`);
-        process.stderr.write(`  Получить токен: https://dev.pachca.com/guides/authorization\n`);
+        process.stderr.write(`  Готовым токеном (агент, CI):\n`);
+        process.stderr.write(`    pachca auth login --token <ваш токен>\n`);
+        process.stderr.write(`    либо переменная окружения PACHCA_TOKEN — без входа вообще\n\n`);
+        process.stderr.write(`  Получить токен: https://dev.pachca.com/api/authorization\n`);
       }
       process.exit(3);
     }

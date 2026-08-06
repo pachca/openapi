@@ -1,7 +1,8 @@
 import { Args } from '@oclif/core';
 import * as clack from '@clack/prompts';
 import { BaseCommand } from '../../base-command.js';
-import { listProfiles, deleteProfile } from '../../profiles.js';
+import { listProfiles, deleteProfile, getAuthMethod, getSecretStorage, getProfile } from '../../profiles.js';
+import { revokeToken } from '../../oauth.js';
 import { outputError } from '../../output.js';
 
 export default class AuthLogout extends BaseCommand {
@@ -86,12 +87,51 @@ export default class AuthLogout extends BaseCommand {
       this.exit(2);
     }
 
+    const authMethod = getAuthMethod(profiles[profileName!]);
+    const storage = getSecretStorage(profiles[profileName!]);
+
+    // Put the token out server-side before dropping the profile — afterwards the
+    // secret is gone and there is nothing left to revoke with. Only tokens this
+    // CLI issued can revoke themselves; a pasted one is not ours to cancel.
+    let revoked = false;
+    if (authMethod === 'oauth') {
+      const secret = getProfile(profileName!)?.token;
+      if (secret) revoked = await revokeToken(secret);
+    }
+
     deleteProfile(profileName!);
 
     if (format === 'json') {
-      this.output({ deleted_profile: profileName });
-    } else {
-      this.success(`Профиль ${profileName} удалён`);
+      this.output({
+        deleted_profile: profileName,
+        auth: authMethod,
+        storage,
+        token_revoked: revoked,
+      });
+      return;
+    }
+
+    this.success(`Профиль ${profileName} удалён`);
+
+    // Never claim access is closed when it is not: believing a logout revoked a
+    // token when it did not is worse than an extra line here.
+    if (!flags.quiet) {
+      if (authMethod === 'oauth') {
+        process.stderr.write(
+          revoked
+            ? `  Токен отозван на сервере и удалён с этой машины.\n`
+            : `  Токен удалён с этой машины. Отозвать его не удалось — перестанет действовать по истечении срока.\n`,
+        );
+      } else {
+        process.stderr.write(`  Токен удалён с этой машины, но продолжает действовать.\n`);
+        process.stderr.write(`  Отзовите его в настройках Пачки, если он больше не нужен.\n`);
+      }
+
+      // Storage is a property of the profile, not of how it was created: a pasted
+      // token lives in the store just the same, and its entry goes away too.
+      if (storage === 'keyring') {
+        process.stderr.write(`  Запись в хранилище ключей ОС удалена.\n`);
+      }
     }
   }
 }

@@ -27,7 +27,14 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as {
 };
 const commands = manifest.commands ?? {};
 const baseFlagNames = new Set(Object.keys(BaseCommand.baseFlags));
-const sections = groupCommandsBySection(commands, baseFlagNames);
+// Descriptions too: a command that redefines a global flag with its own meaning
+// keeps it in its own list instead of being silently dropped.
+const baseFlagDescriptions = new Map(
+  Object.entries(BaseCommand.baseFlags as Record<string, { description?: string }>).map(
+    ([name, def]) => [name, def.description ?? ''],
+  ),
+);
+const sections = groupCommandsBySection(commands, baseFlagNames, baseFlagDescriptions);
 
 // Atomic write: docs build may read this file concurrently (turbo runs the
 // docs build in parallel with no ordering dependency). tmp + rename so a

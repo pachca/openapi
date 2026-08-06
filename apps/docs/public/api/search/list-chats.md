@@ -51,6 +51,7 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -79,6 +80,7 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
         9111
       ],
       "channel": true,
+      "archived": false,
       "personal": false,
       "public": false,
       "last_message_at": "2021-08-28T15:56:53.000Z",

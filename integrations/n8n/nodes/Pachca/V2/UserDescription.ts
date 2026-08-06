@@ -582,13 +582,6 @@ export const userFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['user'], operation: ['getStatus'] } },
 	},
 	{
-		displayName: 'Requires admin permissions',
-		name: 'userGetStatusNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['user'], operation: ['getStatus'] } },
-	},
-	{
 		displayName: 'Simplify',
 		name: 'simplify',
 		type: 'boolean',

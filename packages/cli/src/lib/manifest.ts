@@ -55,13 +55,25 @@ export function normalizeCommand(
   commandId: string,
   cmdMeta: Record<string, unknown>,
   baseFlagNames: Set<string>,
+  baseFlagDescriptions?: Map<string, string>,
 ): NormalizedCommand {
   const requiredFlagNames = new Set((cmdMeta.requiredFlags as string[] | undefined) || []);
+
+  // Global flags are documented once in their own table, so they are dropped
+  // here. But a command may redefine one with a different meaning — `auth login`
+  // turns `--token` into "log in with this ready token" and `--profile` into
+  // "name of the profile to create". Those belong on the command: keep a
+  // base-named flag whenever its description differs from the global one.
+  const overridesBaseFlag = (name: string, meta: Record<string, unknown>): boolean => {
+    const baseDescription = baseFlagDescriptions?.get(name);
+    if (baseDescription === undefined) return false;
+    return ((meta.description || '') as string) !== baseDescription;
+  };
 
   const flagsMeta = cmdMeta.flags as Record<string, Record<string, unknown>> | undefined;
   const flags: NormalizedFlag[] = flagsMeta
     ? Object.entries(flagsMeta)
-        .filter(([name]) => !baseFlagNames.has(name))
+        .filter(([name, meta]) => !baseFlagNames.has(name) || overridesBaseFlag(name, meta))
         .map(([name, meta]) => ({
           name,
           type: (meta.type || 'string') as string,
@@ -106,6 +118,7 @@ export interface CommandSection {
 export function groupCommandsBySection(
   commands: ManifestCommands,
   baseFlagNames: Set<string>,
+  baseFlagDescriptions?: Map<string, string>,
 ): CommandSection[] {
   // Collect backward-compat hidden aliases (old command ids kept working after an IA rename).
   // oclif registers them as resolvable command entries, but they must NOT appear in docs/help —
@@ -119,7 +132,7 @@ export function groupCommandsBySection(
   for (const [id, meta] of Object.entries(commands)) {
     if (hiddenAliasIds.has(id)) continue; // hidden backward-compat alias — keep it out of docs/help
     const section = id.includes(':') ? id.split(':')[0] : id;
-    const normalized = normalizeCommand(id, meta, baseFlagNames);
+    const normalized = normalizeCommand(id, meta, baseFlagNames, baseFlagDescriptions);
     if (!bySection.has(section)) bySection.set(section, []);
     bySection.get(section)!.push(normalized);
   }

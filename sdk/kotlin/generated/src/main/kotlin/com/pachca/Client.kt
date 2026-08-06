@@ -373,6 +373,7 @@ interface ChatsService {
         sort: ChatSortField? = null,
         order: SortOrder? = null,
         availability: ChatAvailability? = null,
+        archived: Boolean? = null,
         lastMessageAtAfter: OffsetDateTime? = null,
         lastMessageAtBefore: OffsetDateTime? = null,
         personal: Boolean? = null,
@@ -386,6 +387,7 @@ interface ChatsService {
         sort: ChatSortField? = null,
         order: SortOrder? = null,
         availability: ChatAvailability? = null,
+        archived: Boolean? = null,
         lastMessageAtAfter: OffsetDateTime? = null,
         lastMessageAtBefore: OffsetDateTime? = null,
         personal: Boolean? = null,
@@ -431,6 +433,7 @@ class ChatsServiceImpl internal constructor(
         sort: ChatSortField?,
         order: SortOrder?,
         availability: ChatAvailability?,
+        archived: Boolean?,
         lastMessageAtAfter: OffsetDateTime?,
         lastMessageAtBefore: OffsetDateTime?,
         personal: Boolean?,
@@ -441,6 +444,7 @@ class ChatsServiceImpl internal constructor(
             sort?.let { parameter("sort", it.value) }
             order?.let { parameter("order", it.value) }
             availability?.let { parameter("availability", it.value) }
+            archived?.let { parameter("archived", it) }
             lastMessageAtAfter?.let { parameter("last_message_at_after", it.toString()) }
             lastMessageAtBefore?.let { parameter("last_message_at_before", it.toString()) }
             personal?.let { parameter("personal", it) }
@@ -458,6 +462,7 @@ class ChatsServiceImpl internal constructor(
         sort: ChatSortField?,
         order: SortOrder?,
         availability: ChatAvailability?,
+        archived: Boolean?,
         lastMessageAtAfter: OffsetDateTime?,
         lastMessageAtBefore: OffsetDateTime?,
         personal: Boolean?,
@@ -471,6 +476,7 @@ class ChatsServiceImpl internal constructor(
                 sort = sort,
                 order = order,
                 availability = availability,
+                archived = archived,
                 lastMessageAtAfter = lastMessageAtAfter,
                 lastMessageAtBefore = lastMessageAtBefore,
                 personal = personal,

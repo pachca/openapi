@@ -148,7 +148,7 @@ pachca users get 123 || case $? in
   "error": "Token not found",
   "code": null,
   "type": "PACHCA_AUTH_ERROR",
-  "hint": "pachca auth login --token <your-token>"
+  "hint": "pachca auth login, or set PACHCA_TOKEN"
 }
 ```
 
@@ -191,6 +191,8 @@ esac
 | `PACHCA_TOKEN` | Bearer-токен (высший приоритет, удобно для CI) |
 | `PACHCA_PROFILE` | Активный профиль для команды |
 | `PACHCA_HOME` | Переопределить каталог конфига (по умолчанию `~/.config/pachca`). Удобно для изоляции в CI/тестах/агентах. |
+| `PACHCA_API_URL` | Другой адрес сервера API — все команды пойдут туда. По умолчанию `https://api.pachca.com/api/shared/v1` |
+| `PACHCA_SECRET_STORE` | `file` — хранить токен в файле конфига, а не в хранилище ключей ОС |
 | `PACHCA_TIMEOUT` | Таймаут запроса в секундах (по умолчанию 30) |
 | `PACHCA_PROMPT_DISABLED` | Отключить интерактивные промпты (для агентов) |
 | `CI` | Автоматический неинтерактивный режим |

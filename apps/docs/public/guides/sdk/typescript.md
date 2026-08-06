@@ -156,6 +156,7 @@ const response = client.chats.listChats({
   sort: ChatSortField.Id,
   order: SortOrder.Desc,
   availability: ChatAvailability.IsMember,
+  archived: true,
   lastMessageAtAfter: "2025-01-01T00:00:00.000Z",
   lastMessageAtBefore: "2025-02-01T00:00:00.000Z",
   personal: false,
@@ -182,7 +183,7 @@ const request: ChatCreateRequest = {
   }
 }
 const response = client.chats.createChat(request)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 
@@ -191,7 +192,7 @@ const response = client.chats.createChat(request)
 ```typescript
 // Получение чата
 const response = client.chats.getChat(334)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 

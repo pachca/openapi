@@ -528,6 +528,7 @@ public class ChatsService
         ChatSortField? sort = null,
         SortOrder? order = null,
         ChatAvailability? availability = null,
+        bool? archived = null,
         DateTimeOffset? lastMessageAtAfter = null,
         DateTimeOffset? lastMessageAtBefore = null,
         bool? personal = null,
@@ -542,6 +543,7 @@ public class ChatsService
         ChatSortField? sort = null,
         SortOrder? order = null,
         ChatAvailability? availability = null,
+        bool? archived = null,
         DateTimeOffset? lastMessageAtAfter = null,
         DateTimeOffset? lastMessageAtBefore = null,
         bool? personal = null,
@@ -605,6 +607,7 @@ public sealed class ChatsServiceImpl : ChatsService
         ChatSortField? sort = null,
         SortOrder? order = null,
         ChatAvailability? availability = null,
+        bool? archived = null,
         DateTimeOffset? lastMessageAtAfter = null,
         DateTimeOffset? lastMessageAtBefore = null,
         bool? personal = null,
@@ -619,6 +622,8 @@ public sealed class ChatsServiceImpl : ChatsService
             queryParts.Add($"order={Uri.EscapeDataString(PachcaUtils.EnumToApiString(order.Value))}");
         if (availability != null)
             queryParts.Add($"availability={Uri.EscapeDataString(PachcaUtils.EnumToApiString(availability.Value))}");
+        if (archived != null)
+            queryParts.Add($"archived={Uri.EscapeDataString((archived.Value ? "true" : "false"))}");
         if (lastMessageAtAfter != null)
             queryParts.Add($"last_message_at_after={Uri.EscapeDataString(lastMessageAtAfter.Value.ToString("o"))}");
         if (lastMessageAtBefore != null)
@@ -648,6 +653,7 @@ public sealed class ChatsServiceImpl : ChatsService
         ChatSortField? sort = null,
         SortOrder? order = null,
         ChatAvailability? availability = null,
+        bool? archived = null,
         DateTimeOffset? lastMessageAtAfter = null,
         DateTimeOffset? lastMessageAtBefore = null,
         bool? personal = null,
@@ -659,7 +665,7 @@ public sealed class ChatsServiceImpl : ChatsService
         var hasNext = true;
         while (hasNext)
         {
-            var response = await ListChatsAsync(sort: sort, order: order, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await ListChatsAsync(sort: sort, order: order, availability: availability, archived: archived, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;

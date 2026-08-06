@@ -503,6 +503,7 @@ export class ChatsServiceImpl extends ChatsService {
     if (params?.sort !== undefined) query.set("sort", params.sort);
     if (params?.order !== undefined) query.set("order", params.order);
     if (params?.availability !== undefined) query.set("availability", params.availability);
+    if (params?.archived !== undefined) query.set("archived", String(params.archived));
     if (params?.lastMessageAtAfter !== undefined) query.set("last_message_at_after", params.lastMessageAtAfter);
     if (params?.lastMessageAtBefore !== undefined) query.set("last_message_at_before", params.lastMessageAtBefore);
     if (params?.personal !== undefined) query.set("personal", String(params.personal));

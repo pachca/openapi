@@ -932,6 +932,16 @@ paths:
             default: is_member
           example: is_member
           explode: false
+        - name: archived
+          in: query
+          required: false
+          description: Добавляет к выдаче архивные чаты. По умолчанию возвращаются только активные. Работает при любом значении `availability`.
+          schema:
+            type: boolean
+            example: true
+            default: false
+          example: true
+          explode: false
         - name: last_message_at_after
           in: query
           required: false
@@ -5585,6 +5595,20 @@ components:
           nullable: true
           description: Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
       description: 'При: bot_deleted, bot_token_recreated'
+    AuditDetailsBotOAuthClient:
+      type: object
+      required:
+        - client_id
+        - changes
+      properties:
+        client_id:
+          type: string
+          description: Идентификатор OAuth-клиента бота
+        changes:
+          type: object
+          additionalProperties: {}
+          description: Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).
+      description: 'При: bot_oauth_client_updated'
     AuditDetailsBotScopes:
       type: object
       required:
@@ -5724,6 +5748,35 @@ components:
           type: string
           description: Причина операции
       description: 'При: kms_encrypt, kms_decrypt'
+    AuditDetailsOAuthAuthorizationGranted:
+      type: object
+      required:
+        - client_id
+        - scopes
+      properties:
+        client_id:
+          type: string
+          description: Идентификатор OAuth-клиента, которому выдан доступ
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Скоупы, на которые выдан доступ
+      description: 'При: oauth_authorization_granted'
+    AuditDetailsOAuthAuthorizationRevoked:
+      type: object
+      required:
+        - client_id
+        - revoked_tokens_count
+      properties:
+        client_id:
+          type: string
+          description: Идентификатор OAuth-клиента, у которого отозван доступ
+        revoked_tokens_count:
+          type: integer
+          format: int32
+          description: Количество отозванных токенов
+      description: 'При: oauth_authorization_revoked'
     AuditDetailsRoleChanged:
       type: object
       required:
@@ -5973,6 +6026,9 @@ components:
         - $ref: '#/components/schemas/AuditDetailsBot'
         - $ref: '#/components/schemas/AuditDetailsBotScopes'
         - $ref: '#/components/schemas/AuditDetailsBotWebhookSettings'
+        - $ref: '#/components/schemas/AuditDetailsBotOAuthClient'
+        - $ref: '#/components/schemas/AuditDetailsOAuthAuthorizationGranted'
+        - $ref: '#/components/schemas/AuditDetailsOAuthAuthorizationRevoked'
         - $ref: '#/components/schemas/AuditDetailsVideoCallStarted'
         - $ref: '#/components/schemas/AuditDetailsVideoCallFinished'
         - $ref: '#/components/schemas/AuditDetailsVideoCallRecording'
@@ -6019,6 +6075,9 @@ components:
         - bot_webhook_settings_updated
         - bot_token_recreated
         - bot_deleted
+        - bot_oauth_client_updated
+        - oauth_authorization_granted
+        - oauth_authorization_revoked
         - video_call_started
         - video_call_finished
         - video_call_recording_ready
@@ -6063,6 +6122,9 @@ components:
         bot_webhook_settings_updated: Изменены настройки исходящего вебхука бота
         bot_token_recreated: Токен бота перевыпущен (ротация)
         bot_deleted: Бот удалён
+        bot_oauth_client_updated: Изменены параметры OAuth-клиента бота
+        oauth_authorization_granted: Пользователь выдал OAuth-клиенту доступ к своим данным
+        oauth_authorization_revoked: Доступ OAuth-клиента к данным пользователя отозван
         video_call_started: Видеозвонок начат
         video_call_finished: Видеозвонок завершён
         video_call_recording_ready: Запись видеозвонка готова
@@ -6599,6 +6661,7 @@ components:
         - member_ids
         - group_tag_ids
         - channel
+        - archived
         - personal
         - public
         - last_message_at
@@ -6646,6 +6709,10 @@ components:
           type: boolean
           description: Является каналом
           example: true
+        archived:
+          type: boolean
+          description: Находится в архиве
+          example: false
         personal:
           type: boolean
           description: Является личным чатом
@@ -7440,7 +7507,7 @@ components:
             entity_type:
               allOf:
                 - $ref: '#/components/schemas/MessageEntityType'
-              description: Тип сущности
+              description: Тип сущности. Регистр значения не учитывается. Значение вне списка возвращает `400` с кодом `invalid`.
               example: discussion
               default: discussion
             entity_id:
@@ -7927,6 +7994,8 @@ components:
         group_tags_read:
           - owner
           - admin
+          - user
+          - bot
         group_tags_write:
           - owner
           - admin
@@ -7965,6 +8034,8 @@ components:
         user_status_read:
           - owner
           - admin
+          - user
+          - bot
         user_status_write:
           - owner
           - admin

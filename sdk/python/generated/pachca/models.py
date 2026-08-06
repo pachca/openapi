@@ -47,6 +47,9 @@ class AuditEventKey(StrEnum):
     BOT_WEBHOOK_SETTINGS_UPDATED = "bot_webhook_settings_updated"  # Изменены настройки исходящего вебхука бота
     BOT_TOKEN_RECREATED = "bot_token_recreated"  # Токен бота перевыпущен (ротация)
     BOT_DELETED = "bot_deleted"  # Бот удалён
+    BOT_OAUTH_CLIENT_UPDATED = "bot_oauth_client_updated"  # Изменены параметры OAuth-клиента бота
+    OAUTH_AUTHORIZATION_GRANTED = "oauth_authorization_granted"  # Пользователь выдал OAuth-клиенту доступ к своим данным
+    OAUTH_AUTHORIZATION_REVOKED = "oauth_authorization_revoked"  # Доступ OAuth-клиента к данным пользователя отозван
     VIDEO_CALL_STARTED = "video_call_started"  # Видеозвонок начат
     VIDEO_CALL_FINISHED = "video_call_finished"  # Видеозвонок завершён
     VIDEO_CALL_RECORDING_READY = "video_call_recording_ready"  # Запись видеозвонка готова
@@ -451,6 +454,12 @@ class AuditDetailsBot:
 
 
 @dataclass
+class AuditDetailsBotOAuthClient:
+    client_id: str
+    changes: dict[str, Any]
+
+
+@dataclass
 class AuditDetailsBotScopes:
     added_scopes: list[str]
     removed_scopes: list[str]
@@ -508,6 +517,18 @@ class AuditDetailsKms:
     chat_id: int
     message_id: int
     reason: str
+
+
+@dataclass
+class AuditDetailsOAuthAuthorizationGranted:
+    client_id: str
+    scopes: list[str]
+
+
+@dataclass
+class AuditDetailsOAuthAuthorizationRevoked:
+    client_id: str
+    revoked_tokens_count: int
 
 
 @dataclass
@@ -711,6 +732,7 @@ class Chat:
     member_ids: list[int]
     group_tag_ids: list[int]
     channel: bool
+    archived: bool
     personal: bool
     public: bool
     last_message_at: datetime
@@ -1462,7 +1484,7 @@ class UpdateUserAvatarRequest:
     image: bytes
 
 
-AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording]
+AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording]
 
 
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]
@@ -1496,6 +1518,7 @@ class ListChatsParams:
     sort: ChatSortField | None = None
     order: SortOrder | None = None
     availability: ChatAvailability | None = None
+    archived: bool | None = None
     last_message_at_after: datetime | None = None
     last_message_at_before: datetime | None = None
     personal: bool | None = None

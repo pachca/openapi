@@ -623,6 +623,9 @@ enum ValidationErrorCode {
   bot_webhook_settings_updated: "Изменены настройки исходящего вебхука бота",
   bot_token_recreated: "Токен бота перевыпущен (ротация)",
   bot_deleted: "Бот удалён",
+  bot_oauth_client_updated: "Изменены параметры OAuth-клиента бота",
+  oauth_authorization_granted: "Пользователь выдал OAuth-клиенту доступ к своим данным",
+  oauth_authorization_revoked: "Доступ OAuth-клиента к данным пользователя отозван",
   video_call_started: "Видеозвонок начат",
   video_call_finished: "Видеозвонок завершён",
   video_call_recording_ready: "Запись видеозвонка готова",
@@ -744,6 +747,15 @@ enum AuditEventKey {
 
   @doc("Бот удалён")
   bot_deleted: "bot_deleted",
+
+  @doc("Изменены параметры OAuth-клиента бота")
+  bot_oauth_client_updated: "bot_oauth_client_updated",
+
+  @doc("Пользователь выдал OAuth-клиенту доступ к своим данным")
+  oauth_authorization_granted: "oauth_authorization_granted",
+
+  @doc("Доступ OAuth-клиента к данным пользователя отозван")
+  oauth_authorization_revoked: "oauth_authorization_revoked",
 
   @doc("Видеозвонок начат")
   video_call_started: "video_call_started",
@@ -1052,6 +1064,10 @@ model Chat {
   @doc("Является каналом")
   @example(true)
   channel: boolean;
+
+  @doc("Находится в архиве")
+  @example(false)
+  archived: boolean;
 
   @doc("Является личным чатом")
   @example(false)
@@ -1402,7 +1418,7 @@ model AvatarData {
   users_create: #["owner", "admin"],
   users_update: #["owner", "admin"],
   users_delete: #["owner", "admin"],
-  group_tags_read: #["owner", "admin"],
+  group_tags_read: #["owner", "admin", "user", "bot"],
   group_tags_write: #["owner", "admin"],
   bots_read: #["owner", "admin", "user"],
   bots_write: #["owner", "admin", "user"],
@@ -1412,7 +1428,7 @@ model AvatarData {
   profile_status_read: #["owner", "admin", "user", "bot"],
   profile_status_write: #["owner", "admin", "user", "bot"],
   profile_avatar_write: #["owner", "admin", "user", "bot"],
-  user_status_read: #["owner", "admin"],
+  user_status_read: #["owner", "admin", "user", "bot"],
   user_status_write: #["owner", "admin"],
   user_avatar_write: #["owner", "admin"],
   custom_properties_read: #["owner", "admin", "user", "bot"],
@@ -1966,14 +1982,14 @@ model UpdateMemberRoleRequest {
 model MessageCreateRequest {
   @doc("Собранный объект параметров создаваемого сообщения")
   message: {
-    @doc("Тип сущности")
+    @doc("Тип сущности. Регистр значения не учитывается. Значение вне списка возвращает `400` с кодом `invalid`.")
     @example(MessageEntityType.discussion)
     entity_type?: MessageEntityType = MessageEntityType.discussion;
-    
+
     @doc("Идентификатор сущности")
     @example(334)
     entity_id: int32;
-    
+
     @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).")
     @example("Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)")
     content: string;
@@ -2855,6 +2871,7 @@ model BotCreateRequest {
     @example(false)
     single_chat?: boolean = false;
   };
+
 }
 
 @doc("Запрос на обновление бота")
@@ -2923,7 +2940,10 @@ model BotUpdateRequest {
     @example(#[BotCanEdit.admin])
     can_edit?: BotCanEdit[];
   };
+
 }
+
+
 
 @doc("Параметры вебхука бота")
 model BotWebhook {
@@ -3012,6 +3032,7 @@ model BotResponse {
 
   @doc("Объект параметров вебхука")
   webhook: BotWebhook;
+
 }
 
 @doc("Параметры созданного бота")
@@ -3021,6 +3042,7 @@ model BotCreateResponse {
   @doc("Токен доступа бота. Возвращается при создании бота и при ротации токена. Текущий токен также можно посмотреть и скопировать в интерфейсе — вкладка «API» настроек бота.")
   @example("bm90X2FfcmVhbF90b2tlbg")
   access_token: string;
+
 }
 
 @doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed.")
@@ -3160,6 +3182,30 @@ model AuditDetailsBotWebhookSettings {
   changes: Record<unknown>;
 }
 
+@doc("При: bot_oauth_client_updated")
+model AuditDetailsBotOAuthClient {
+  @doc("Идентификатор OAuth-клиента бота")
+  client_id: string;
+  @doc("Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).")
+  changes: Record<unknown>;
+}
+
+@doc("При: oauth_authorization_granted")
+model AuditDetailsOAuthAuthorizationGranted {
+  @doc("Идентификатор OAuth-клиента, которому выдан доступ")
+  client_id: string;
+  @doc("Скоупы, на которые выдан доступ")
+  scopes: string[];
+}
+
+@doc("При: oauth_authorization_revoked")
+model AuditDetailsOAuthAuthorizationRevoked {
+  @doc("Идентификатор OAuth-клиента, у которого отозван доступ")
+  client_id: string;
+  @doc("Количество отозванных токенов")
+  revoked_tokens_count: int32;
+}
+
 @doc("При: video_call_started")
 model AuditDetailsVideoCallStarted {
   @doc("Идентификатор чата, в котором проходит видеозвонок")
@@ -3215,6 +3261,9 @@ union AuditEventDetailsUnion {
   AuditDetailsBot,
   AuditDetailsBotScopes,
   AuditDetailsBotWebhookSettings,
+  AuditDetailsBotOAuthClient,
+  AuditDetailsOAuthAuthorizationGranted,
+  AuditDetailsOAuthAuthorizationRevoked,
   AuditDetailsVideoCallStarted,
   AuditDetailsVideoCallFinished,
   AuditDetailsVideoCallRecording,
@@ -4688,6 +4737,9 @@ interface ChatOperations {
     @doc("Параметр, который отвечает за доступность и выборку чатов для пользователя")
     @extension("example", "is_member")
     @query availability?: ChatAvailability = ChatAvailability.is_member,
+    @doc("Добавляет к выдаче архивные чаты. По умолчанию возвращаются только активные. Работает при любом значении `availability`.")
+    @extension("example", true)
+    @query archived?: boolean = false,
     @doc("Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).")
     @extension("example", "2025-01-01T00:00:00.000Z")
     @query last_message_at_after?: utcDateTime,

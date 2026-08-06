@@ -3,6 +3,7 @@ import {
   resolveToken,
   TokenNotFoundError,
   ProfileNotFoundError,
+  getAuthMethod,
   getDefaults,
 } from './profiles.js';
 import { ApiError, getExitCode, formatDryRun, request, type RequestOptions, type ClientFlags, type ErrorType } from './client.js';
@@ -239,9 +240,73 @@ export abstract class BaseCommand extends Command {
   }
 
   /**
+   * Explain a scope refusal instead of printing a bare 403.
+   *
+   * An agent cannot walk through a consent screen — the most useful thing it can
+   * do is hand control back to a human with the reason spelled out. The reason
+   * differs by how the profile was authorised: an OAuth login already asks for
+   * every scope, so a refusal there can only come from the role.
+   */
+  private reportScopeError(err: ApiError): never {
+    const format = this.getOutputFormat();
+    const scope = typeof err.details.scope === 'string' ? err.details.scope : undefined;
+
+    if (format === 'json' || !process.stderr.isTTY) {
+      outputError(err.details, format);
+      this.exit(3);
+    }
+
+    let profile;
+    try {
+      ({ profile } = resolveToken({
+        token: this.parsedFlags.token,
+        profile: this.parsedFlags.profile,
+      }));
+    } catch {
+      // no profile resolved — the token came in from a flag or the environment
+    }
+
+    // Two different causes, and the fix differs. Either the scope is not in the
+    // token, or it is there but the role no longer allows it — the API checks
+    // both on every call. Which one it is shows in the token's own scope list.
+    //
+    // Naming the cause needs the scope itself, and that comes from parsing the
+    // server's message. When it cannot be identified, fall back to the generic
+    // wording: guessing a branch here would send people to fix the wrong thing.
+    const granted = scope ? profile?.scopes : undefined;
+    const hasScope = !!scope && !!granted && granted.includes(scope);
+
+    process.stderr.write(`✗ Не хватает права${scope ? ` ${scope}` : ''}.\n`);
+
+    if (granted && hasScope) {
+      process.stderr.write(`  Право у токена есть, но его не даёт текущая роль.\n`);
+      process.stderr.write(`  Обратитесь к администратору пространства.\n`);
+    } else if (granted) {
+      process.stderr.write(`  У токена этого права нет.\n`);
+      process.stderr.write(
+        getAuthMethod(profile!) === 'oauth'
+          ? `  Права выдаются по роли в момент входа — если роль с тех пор изменилась, войдите заново: pachca auth login\n`
+          : `  Выпустите токен с этим правом в интерфейсе Пачки.\n`,
+      );
+    } else {
+      process.stderr.write(`  Либо этого права нет у токена, либо его не даёт ваша роль.\n`);
+      process.stderr.write(
+        profile
+          ? `  Проверить права токена: pachca auth status\n`
+          : `  Проверить права токена: pachca api GET /oauth/token/info\n`,
+      );
+    }
+    this.exit(3);
+  }
+
+  /**
    * Handle errors with structured output.
    */
   protected override async catch(err: Error & { exitCode?: number }): Promise<void> {
+    if (err instanceof ApiError && err.details.type === 'PACHCA_SCOPE_ERROR') {
+      this.reportScopeError(err);
+    }
+
     if (err instanceof ApiError) {
       outputError(err.details, this.getOutputFormat());
       this.exit(getExitCode(err));
@@ -251,16 +316,17 @@ export abstract class BaseCommand extends Command {
       const format = this.getOutputFormat();
       if (format === 'json' || !process.stderr.isTTY) {
         outputError(
-          { error: 'Token not found', type: 'PACHCA_AUTH_ERROR', code: null, hint: 'pachca auth login --token <your-token>' },
+          { error: 'Token not found', type: 'PACHCA_AUTH_ERROR', code: null, hint: 'pachca auth login, or set PACHCA_TOKEN' },
           format,
         );
       } else {
         process.stderr.write(`✗ Токен не найден. Войдите в аккаунт:\n\n`);
-        process.stderr.write(`  Интерактивно (человек):\n`);
+        process.stderr.write(`  Вход через браузер:\n`);
         process.stderr.write(`    pachca auth login\n\n`);
-        process.stderr.write(`  Неинтерактивно (агент, CI):\n`);
-        process.stderr.write(`    pachca auth login --token <ваш токен>\n\n`);
-        process.stderr.write(`  Получить токен: https://dev.pachca.com/guides/authorization\n`);
+        process.stderr.write(`  Готовым токеном (агент, CI):\n`);
+        process.stderr.write(`    pachca auth login --token <ваш токен>\n`);
+        process.stderr.write(`    либо переменная окружения PACHCA_TOKEN — без входа вообще\n\n`);
+        process.stderr.write(`  Получить токен: https://dev.pachca.com/api/authorization\n`);
       }
       this.exit(3);
     }

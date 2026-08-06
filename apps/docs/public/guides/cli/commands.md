@@ -25,7 +25,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 |---------|-----------|
 | `pachca api` | Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs` |
 | `pachca auth list` | Список сохранённых профилей |
-| `pachca auth login` | Авторизация и сохранение токена |
+| `pachca auth login` | Вход в аккаунт и сохранение профиля |
 | `pachca auth logout` | Удаление сохранённого профиля |
 | `pachca auth status` | Статус текущего профиля |
 | `pachca auth switch` | Переключение активного профиля |

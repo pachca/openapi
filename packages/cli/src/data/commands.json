@@ -70,12 +70,37 @@
       },
       {
         "command": "pachca auth login",
-        "summary": "Авторизация и сохранение токена",
+        "summary": "Вход в аккаунт и сохранение профиля",
         "method": null,
         "path": null,
         "scope": null,
         "plan": null,
-        "flags": []
+        "flags": [
+          {
+            "name": "profile",
+            "type": "option",
+            "required": false,
+            "description": "Имя профиля (по умолчанию \"default\")"
+          },
+          {
+            "name": "token",
+            "type": "option",
+            "required": false,
+            "description": "Войти готовым токеном вместо входа через браузер. Значение `-` читает токен из потока ввода, не оставляя его в истории оболочки"
+          },
+          {
+            "name": "no-browser",
+            "type": "boolean",
+            "required": false,
+            "description": "Не открывать браузер — только напечатать адрес и код"
+          },
+          {
+            "name": "insecure-storage",
+            "type": "boolean",
+            "required": false,
+            "description": "Хранить токен в файле конфигурации, а не в хранилище ключей ОС"
+          }
+        ]
       },
       {
         "command": "pachca auth logout",
@@ -100,7 +125,14 @@
         "path": null,
         "scope": null,
         "plan": null,
-        "flags": []
+        "flags": [
+          {
+            "name": "remote",
+            "type": "boolean",
+            "required": false,
+            "description": "Спросить права у сервера, а не показывать сохранённые при входе"
+          }
+        ]
       },
       {
         "command": "pachca auth switch",
@@ -652,6 +684,12 @@
               "is_member",
               "public"
             ]
+          },
+          {
+            "name": "archived",
+            "type": "boolean",
+            "required": false,
+            "description": "Добавляет к выдаче архивные чаты. По умолчанию возвращаются только активные. Работает при любом значении `availability`."
           },
           {
             "name": "last-message-at-after",
@@ -1394,7 +1432,7 @@
             "name": "entity-type",
             "type": "option",
             "required": false,
-            "description": "Тип сущности"
+            "description": "Тип сущности. Регистр значения не учитывается. Значение вне списка возвращает `400` с кодом `invalid`."
           },
           {
             "name": "entity-id",
@@ -2239,6 +2277,9 @@
               "bot_webhook_settings_updated",
               "bot_token_recreated",
               "bot_deleted",
+              "bot_oauth_client_updated",
+              "oauth_authorization_granted",
+              "oauth_authorization_revoked",
               "video_call_started",
               "video_call_finished",
               "video_call_recording_ready"

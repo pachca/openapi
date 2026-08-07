@@ -21,7 +21,8 @@
     "dev": "node --import tsx bin/dev.js",
     "typecheck": "tsc --noEmit",
     "test": "tsc && vitest run",
-    "generate-cli": "bun scripts/generate-cli.ts"
+    "generate-cli": "bun scripts/generate-cli.ts",
+    "check-commands": "node scripts/check-commands-coverage.mjs"
   },
   "oclif": {
     "bin": "pachca",
@@ -40,25 +41,62 @@
     ],
     "topicSeparator": " ",
     "topics": {
-      "auth": { "description": "Авторизация и управление профилями" },
-      "bots": { "description": "Управление ботами и вебхуками" },
-      "chats": { "description": "Каналы и беседы" },
-      "common": { "description": "Файлы, экспорт, дополнительные поля" },
-      "config": { "description": "Настройки CLI" },
-      "group-tags": { "description": "Теги (группы) сотрудников" },
-      "link-previews": { "description": "Разворачивание ссылок (unfurling)" },
-      "members": { "description": "Участники чатов" },
-      "messages": { "description": "Сообщения" },
-      "profile": { "description": "Профиль текущего пользователя" },
-      "reactions": { "description": "Реакции на сообщения" },
-      "read-member": { "description": "Прочитавшие сообщение" },
-      "search": { "description": "Полнотекстовый поиск" },
-      "security": { "description": "Журнал аудита безопасности" },
-      "tasks": { "description": "Напоминания" },
-      "threads": { "description": "Треды (обсуждения)" },
-      "users": { "description": "Сотрудники" },
-      "views": { "description": "Представления" }
-    }
+      "auth": {
+        "description": "Авторизация и управление профилями"
+      },
+      "bots": {
+        "description": "Управление ботами и вебхуками"
+      },
+      "chats": {
+        "description": "Каналы и беседы"
+      },
+      "common": {
+        "description": "Файлы, экспорт, дополнительные поля"
+      },
+      "config": {
+        "description": "Настройки CLI"
+      },
+      "group-tags": {
+        "description": "Теги (группы) сотрудников"
+      },
+      "link-previews": {
+        "description": "Разворачивание ссылок (unfurling)"
+      },
+      "members": {
+        "description": "Участники чатов"
+      },
+      "messages": {
+        "description": "Сообщения"
+      },
+      "profile": {
+        "description": "Профиль текущего пользователя"
+      },
+      "reactions": {
+        "description": "Реакции на сообщения"
+      },
+      "read-member": {
+        "description": "Прочитавшие сообщение"
+      },
+      "search": {
+        "description": "Полнотекстовый поиск"
+      },
+      "security": {
+        "description": "Журнал аудита безопасности"
+      },
+      "tasks": {
+        "description": "Напоминания"
+      },
+      "threads": {
+        "description": "Треды (обсуждения)"
+      },
+      "users": {
+        "description": "Сотрудники"
+      },
+      "views": {
+        "description": "Представления"
+      }
+    },
+    "helpClass": "./dist/help"
   },
   "dependencies": {
     "@clack/prompts": "^0.10.0",
@@ -69,6 +107,9 @@
     "smol-toml": "^1.3.1",
     "string-width": "^8.2.0",
     "yaml": "^2.7.0"
+  },
+  "optionalDependencies": {
+    "@napi-rs/keyring": "^1.3.0"
   },
   "devDependencies": {
     "@oclif/test": "^4.1.12",

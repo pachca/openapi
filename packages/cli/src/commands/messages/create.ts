@@ -25,7 +25,7 @@ export default class MessagesCreate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'entity-type': Flags.string({
-      description: "Тип сущности",
+      description: "Тип сущности. Регистр значения не учитывается. Значение вне списка возвращает `400` с кодом `invalid`.",
     }),
     'entity-id': Flags.integer({
       description: "Идентификатор сущности (pachca chats list | pachca users list)",

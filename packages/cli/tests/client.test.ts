@@ -351,10 +351,10 @@ describe('client', () => {
   it('should parse OAuthError format (error + error_description)', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
-      status: 403,
-      statusText: 'Forbidden',
+      status: 401,
+      statusText: 'Unauthorized',
       headers: new Headers({ 'content-type': 'application/json', 'x-request-id': 'req_abc' }),
-      json: () => Promise.resolve({ error: 'insufficient_scope', error_description: 'Missing scope' }),
+      json: () => Promise.resolve({ error: 'invalid_token', error_description: 'Access token is invalid' }),
     });
 
     try {
@@ -363,8 +363,82 @@ describe('client', () => {
     } catch (error) {
       const apiError = error as ApiError;
       expect(apiError.details.type).toBe('PACHCA_AUTH_ERROR');
+      expect(apiError.details.message).toBe('invalid_token');
+      expect(apiError.details.request_id).toBe('req_abc');
+    }
+  });
+
+  // The scope name is dug out of the message text because the backend does not
+  // send WWW-Authenticate (RFC 6750). That makes us silently dependent on its
+  // exact wording — this test pins the live string so a reword fails here and
+  // not in someone's terminal. Drop it once the header arrives.
+  it('parses the exact wording the backend sends today', async () => {
+    const backendWording = 'Insufficient scope. Required: messages:create';
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: () => Promise.resolve({ error: 'insufficient_scope', error_description: backendWording }),
+    });
+
+    try {
+      await request({ method: 'GET', path: '/test', token: 'test' }, { quiet: true });
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      expect((error as ApiError).details.scope).toBe('messages:create');
+    }
+  });
+
+  it('should split insufficient_scope out of generic auth errors', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden',
+      headers: new Headers({ 'content-type': 'application/json', 'x-request-id': 'req_abc' }),
+      json: () =>
+        Promise.resolve({
+          error: 'insufficient_scope',
+          error_description: 'Insufficient scope. Required: tasks:create',
+        }),
+    });
+
+    try {
+      await request({ method: 'GET', path: '/test', token: 'test' }, { quiet: true });
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      const apiError = error as ApiError;
+      expect(apiError.details.type).toBe('PACHCA_SCOPE_ERROR');
+      expect(apiError.details.scope).toBe('tasks:create');
       expect(apiError.details.message).toBe('insufficient_scope');
       expect(apiError.details.request_id).toBe('req_abc');
+      expect(getExitCode(apiError)).toBe(3);
+    }
+  });
+
+  it('leaves scope unset when the server rewords the message', async () => {
+    // The scope name is parsed out of the server's prose. If that wording ever
+    // changes, `scope` must come back undefined rather than something invented —
+    // the refusal explanation branches on it.
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: () =>
+        Promise.resolve({
+          error: 'insufficient_scope',
+          error_description: 'Недостаточно прав для этого метода',
+        }),
+    });
+
+    try {
+      await request({ method: 'GET', path: '/test', token: 'test' }, { quiet: true });
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      const apiError = error as ApiError;
+      expect(apiError.details.type).toBe('PACHCA_SCOPE_ERROR');
+      expect(apiError.details.scope).toBeUndefined();
     }
   });
 

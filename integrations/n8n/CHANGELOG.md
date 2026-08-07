@@ -2,6 +2,22 @@
 
 # Changelog
 
+## 2.0.18 (2026-08-06)
+
+### Improvements
+
+- Chat: `Get Many` gains the `Archived` field — return archived chats along with active ones. The chat object now carries an `archived` flag
+- Bot: `Create` and `Update` gain the `OAuth Client` field — the bot OAuth client settings (`confidential`, `redirect_uris`, `scopes`)
+- Security: the event filter gains `Bot OAuth Client Updated`, `OAuth Authorization Granted` and `OAuth Authorization Revoked`
+
+### Changes
+
+- Group Tag: read operations no longer show the "Requires admin permissions" notice — the `group_tags:read` scope is available to employees and bots
+
+### Fixes
+
+- JSON fields are parsed before the request is sent, so an object no longer reaches the API as a string. Malformed input now fails on the node with a clear message instead of coming back as a validation error from the API. Affects `Message: Unfurl` (`Link Previews`) and the new `OAuth Client` field
+
 ## 2.0.17 (2026-08-01)
 
 ### Changes

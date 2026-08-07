@@ -86,7 +86,7 @@ export default class Upgrade extends BaseCommand {
       if (format === 'json') {
         this.output({ upgraded: false, current: currentVersion, error: 'Cannot determine latest version' });
       } else {
-        process.stderr.write('✗ Не удалось определить последнюю версию\n');
+        process.stderr.write('✗ Не удалось определить последнюю версию.\n');
       }
       this.exit(1);
     }

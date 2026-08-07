@@ -206,17 +206,26 @@ function extractUnwrappedBodyFields(
 
   const topKeys = Object.keys(properties);
 
-  // Detect wrapper: exactly one top-level property that is an object with its
-  // own properties. Resolve allOf and don't require a literal `type: 'object'`
-  // — an allOf-composed wrapper usually declares neither, and the real CLI
-  // generator resolves before asking, so the two would disagree.
+  // Detect wrapper: the largest top-level object property. Resolve allOf and
+  // don't require a literal `type: 'object'` — an allOf-composed wrapper usually
+  // declares neither, and the real CLI generator resolves before asking, so the
+  // two would disagree.
+  //
+  // The size rule has to match `pickWrapperKey` in the CLI generator: it used to
+  // demand exactly one object here, so a second one appearing beside the wrapper
+  // cancelled unwrapping and the example collapsed into one raw JSON flag, while
+  // the command itself kept its individual flags.
   const objectKeys = topKeys.filter((k) => {
     const inner = mergeAllOf(properties[k] as Schema);
     return !!inner.properties && Object.keys(inner.properties).length > 0;
   });
 
-  if (objectKeys.length === 1) {
-    const wrapperKey = objectKeys[0];
+  if (objectKeys.length > 0) {
+    const wrapperKey = objectKeys.reduce((biggest, key) => {
+      const size = (k: string) =>
+        Object.keys(mergeAllOf(properties[k] as Schema).properties ?? {}).length;
+      return size(key) > size(biggest) ? key : biggest;
+    }, objectKeys[0]);
     const innerSchema = properties[wrapperKey] as Schema;
     const innerRequired = innerSchema.required || [];
     const fields: BodyField[] = [];

@@ -8,7 +8,7 @@ import { isInteractive } from './utils.js';
 
 const DEFAULT_BASE_URL = 'https://api.pachca.com/api/shared/v1';
 
-function getBaseUrl(): string {
+export function getBaseUrl(): string {
   const envUrl = process.env.PACHCA_API_URL;
   if (!envUrl) return DEFAULT_BASE_URL;
 
@@ -177,7 +177,7 @@ export async function request(
 
   const showSpinner = isInteractive() && !clientFlags?.quiet && !clientFlags?.['dry-run'];
   const s = showSpinner ? spinner() : null;
-  s?.start('Загрузка...');
+  s?.start('Загрузка…');
 
   if (clientFlags?.verbose) {
     process.stderr.write(`${ansis.dim(`→ ${opts.method} ${url}`)}\n`);
@@ -298,6 +298,23 @@ export async function request(
 }
 
 function createApiError(status: number, body: unknown, requestId?: string): ApiError {
+  // Scope refusal is a distinct case from "token is bad": the token works, it
+  // just may not do this. Pull the missing scope out so the command can name it.
+  if (isRecord(body) && body.error === 'insufficient_scope') {
+    const description = typeof body.error_description === 'string' ? body.error_description : '';
+    const scope = /Required:\s*([\w:]+)/.exec(description)?.[1];
+
+    return new ApiError({
+      error: description || 'Insufficient scope',
+      code: status,
+      type: 'PACHCA_SCOPE_ERROR',
+      message: 'insufficient_scope',
+      ...(scope ? { scope } : {}),
+      request_id: requestId,
+      hint: 'pachca auth status',
+    });
+  }
+
   // OAuthError format: {error: string, error_description: string}
   if (isRecord(body) && typeof body.error === 'string' && typeof body.error_description === 'string') {
     const type: ErrorType = 'PACHCA_AUTH_ERROR';
@@ -359,7 +376,13 @@ function createApiError(status: number, body: unknown, requestId?: string): ApiE
 }
 
 export function getExitCode(error: ApiError): number {
-  if (error.details.type === 'PACHCA_AUTH_ERROR' || error.details.type === 'PACHCA_AUTH_LOGIN_ERROR') return 3;
+  if (
+    error.details.type === 'PACHCA_AUTH_ERROR' ||
+    error.details.type === 'PACHCA_AUTH_LOGIN_ERROR' ||
+    error.details.type === 'PACHCA_SCOPE_ERROR'
+  ) {
+    return 3;
+  }
   if (error.details.code === 404) return 4;
   if (error.details.type === 'PACHCA_VALIDATION_ERROR' || error.details.type === 'PACHCA_USAGE_ERROR') return 2;
   return 1;

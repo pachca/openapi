@@ -86,7 +86,7 @@
     "usage": "client.bots.deleteWebhookEvent(id = \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "val lastMessageAtAfter = OffsetDateTime.parse(\"2025-01-01T00:00:00.000Z\")\nval lastMessageAtBefore = OffsetDateTime.parse(\"2025-02-01T00:00:00.000Z\")\nval response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "usage": "val lastMessageAtAfter = OffsetDateTime.parse(\"2025-01-01T00:00:00.000Z\")\nval lastMessageAtBefore = OffsetDateTime.parse(\"2025-02-01T00:00:00.000Z\")\nval response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, archived = true, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "ListChatsResponse(data: List<Chat>, meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
@@ -96,7 +96,7 @@
   },
   "ChatOperations_getChat": {
     "usage": "val response = client.chats.getChat(id = 334)",
-    "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)"
+    "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)"
   },
   "ExportOperations_downloadExport": {
     "usage": "val response = client.chats.downloadExport(id = 22322)",
@@ -104,7 +104,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"🤿 aqua\",\n        memberIds = listOf(123),\n        groupTagIds = listOf(123),\n        channel = true,\n        public = false\n    )\n)\nval response = client.chats.createChat(request = request)",
-    "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)",
+    "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -118,7 +118,7 @@
   },
   "ChatOperations_updateChat": {
     "usage": "val request = ChatUpdateRequest(chat = ChatUpdateRequestChat(name = \"Бассейн\", public = true))\nval response = client.chats.updateChat(id = 334, request = request)",
-    "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)",
+    "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

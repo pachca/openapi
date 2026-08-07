@@ -1,6 +1,6 @@
 import { Args } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
-import { listProfiles, setActiveProfile } from '../../profiles.js';
+import { listProfiles, setActiveProfile, getProfile } from '../../profiles.js';
 import { outputError } from '../../output.js';
 
 export default class AuthSwitch extends BaseCommand {
@@ -38,10 +38,27 @@ export default class AuthSwitch extends BaseCommand {
 
     setActiveProfile(args.profile);
 
+    // Say right here if the profile cannot work, rather than letting the next
+    // unrelated command fail: switching is where the user can still act on it.
+    const profile = getProfile(args.profile);
+    const secretMissing = !profile?.token;
+    const expired = !!profile?.expires_at && new Date(profile.expires_at) <= new Date();
+
     if (format === 'json') {
-      this.output({ active_profile: args.profile });
-    } else {
-      this.success(`Активный профиль: ${args.profile}`);
+      this.output({
+        active_profile: args.profile,
+        secret_readable: !secretMissing,
+        expired,
+      });
+      return;
+    }
+
+    this.success(`Активный профиль: ${args.profile}`);
+
+    if (secretMissing) {
+      process.stderr.write(`  Секрет профиля не читается — войдите заново: pachca auth login --profile ${args.profile}\n`);
+    } else if (expired) {
+      process.stderr.write(`  Срок действия токена истёк — он будет обновлён при следующей команде\n`);
     }
   }
 }

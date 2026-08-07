@@ -107,6 +107,12 @@ enum class AuditEventKey(val value: String) {
     @SerialName("bot_token_recreated") BOT_TOKEN_RECREATED("bot_token_recreated"),
     /** Бот удалён */
     @SerialName("bot_deleted") BOT_DELETED("bot_deleted"),
+    /** Изменены параметры OAuth-клиента бота */
+    @SerialName("bot_oauth_client_updated") BOT_OAUTH_CLIENT_UPDATED("bot_oauth_client_updated"),
+    /** Пользователь выдал OAuth-клиенту доступ к своим данным */
+    @SerialName("oauth_authorization_granted") OAUTH_AUTHORIZATION_GRANTED("oauth_authorization_granted"),
+    /** Доступ OAuth-клиента к данным пользователя отозван */
+    @SerialName("oauth_authorization_revoked") OAUTH_AUTHORIZATION_REVOKED("oauth_authorization_revoked"),
     /** Видеозвонок начат */
     @SerialName("video_call_started") VIDEO_CALL_STARTED("video_call_started"),
     /** Видеозвонок завершён */
@@ -684,6 +690,9 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
         setOf("bot_id", "actor_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBot.serializer(), element) },
         setOf("added_scopes", "removed_scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotScopes.serializer(), element) },
         setOf("changes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotWebhookSettings.serializer(), element) },
+        setOf("client_id", "changes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClient.serializer(), element) },
+        setOf("client_id", "scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsOAuthAuthorizationGranted.serializer(), element) },
+        setOf("client_id", "revoked_tokens_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsOAuthAuthorizationRevoked.serializer(), element) },
         setOf("chat_id", "started_message_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallStarted.serializer(), element) },
         setOf("chat_id", "started_message_id", "duration", "max_members_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallFinished.serializer(), element) },
         setOf("chat_id", "started_message_id", "recording_id", "file_id", "duration", "size") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallRecording.serializer(), element) },
@@ -709,6 +718,9 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
             is AuditDetailsBot -> jsonEncoder.encodeSerializableValue(AuditDetailsBot.serializer(), value)
             is AuditDetailsBotScopes -> jsonEncoder.encodeSerializableValue(AuditDetailsBotScopes.serializer(), value)
             is AuditDetailsBotWebhookSettings -> jsonEncoder.encodeSerializableValue(AuditDetailsBotWebhookSettings.serializer(), value)
+            is AuditDetailsBotOAuthClient -> jsonEncoder.encodeSerializableValue(AuditDetailsBotOAuthClient.serializer(), value)
+            is AuditDetailsOAuthAuthorizationGranted -> jsonEncoder.encodeSerializableValue(AuditDetailsOAuthAuthorizationGranted.serializer(), value)
+            is AuditDetailsOAuthAuthorizationRevoked -> jsonEncoder.encodeSerializableValue(AuditDetailsOAuthAuthorizationRevoked.serializer(), value)
             is AuditDetailsVideoCallStarted -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallStarted.serializer(), value)
             is AuditDetailsVideoCallFinished -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallFinished.serializer(), value)
             is AuditDetailsVideoCallRecording -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallRecording.serializer(), value)
@@ -843,6 +855,24 @@ data class AuditDetailsBotScopes(
 @Serializable
 data class AuditDetailsBotWebhookSettings(
     val changes: Map<String, JsonElement>,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsBotOAuthClient(
+    @SerialName("client_id") val clientId: String,
+    val changes: Map<String, JsonElement>,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsOAuthAuthorizationGranted(
+    @SerialName("client_id") val clientId: String,
+    val scopes: List<String>,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsOAuthAuthorizationRevoked(
+    @SerialName("client_id") val clientId: String,
+    @SerialName("revoked_tokens_count") val revokedTokensCount: Int,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1314,6 +1344,7 @@ data class Chat(
     @SerialName("member_ids") val memberIds: List<Int>,
     @SerialName("group_tag_ids") val groupTagIds: List<Int>,
     val channel: Boolean,
+    val archived: Boolean,
     val personal: Boolean,
     val public: Boolean,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_message_at") val lastMessageAt: OffsetDateTime,

@@ -37,6 +37,11 @@ export default class ChatsList extends BaseCommand {
       options: ["is_member","public"],
       default: "is_member",
     }),
+    'archived': Flags.boolean({
+      description: "Добавляет к выдаче архивные чаты. По умолчанию возвращаются только активные. Работает при любом значении `availability`.",
+      default: false,
+      allowNo: true,
+    }),
     'last-message-at-after': Flags.string({
       description: "Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).",
     }),
@@ -75,6 +80,7 @@ export default class ChatsList extends BaseCommand {
         sort: flags['sort'],
         order: flags['order'],
         availability: flags['availability'],
+        archived: flags['archived'],
         'last_message_at_after': flags['last-message-at-after'],
         'last_message_at_before': flags['last-message-at-before'],
         personal: flags['personal'],
@@ -126,6 +132,7 @@ export default class ChatsList extends BaseCommand {
       sort: flags['sort'],
       order: flags['order'],
       availability: flags['availability'],
+      archived: flags['archived'],
       'last_message_at_after': flags['last-message-at-after'],
       'last_message_at_before': flags['last-message-at-before'],
       personal: flags['personal'],

@@ -86,7 +86,7 @@
     "usage": "client.Bots.DeleteWebhookEvent(ctx, \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "params := &ListChatsParams{\n\tSort: Ptr(ChatSortFieldID),\n\tOrder: Ptr(SortOrderDesc),\n\tAvailability: Ptr(ChatAvailabilityIsMember),\n\tLastMessageAtAfter: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tLastMessageAtBefore: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tPersonal: Ptr(false),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
+    "usage": "params := &ListChatsParams{\n\tSort: Ptr(ChatSortFieldID),\n\tOrder: Ptr(SortOrderDesc),\n\tAvailability: Ptr(ChatAvailabilityIsMember),\n\tArchived: Ptr(true),\n\tLastMessageAtAfter: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tLastMessageAtBefore: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tPersonal: Ptr(false),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
     "output": "ListChatsResponse{Data: []Chat, Meta: PaginationMeta}",
     "imports": [
       "ChatAvailability",
@@ -97,7 +97,7 @@
   },
   "ChatOperations_getChat": {
     "usage": "response, err := client.Chats.GetChat(ctx, int32(334))",
-    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}"
+    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}"
   },
   "ExportOperations_downloadExport": {
     "usage": "response, err := client.Chats.DownloadExport(ctx, int32(22322))",
@@ -105,7 +105,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"🤿 aqua\",\n\t\tMemberIDs: []int32{int32(123)},\n\t\tGroupTagIDs: []int32{int32(123)},\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(false),\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
-    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}",
+    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -119,7 +119,7 @@
   },
   "ChatOperations_updateChat": {
     "usage": "request := ChatUpdateRequest{\n\tChat: ChatUpdateRequestChat{\n\t\tName: Ptr(\"Бассейн\"),\n\t\tPublic: Ptr(true),\n\t},\n}\nresponse, err := client.Chats.UpdateChat(ctx, int32(334), request)",
-    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}",
+    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

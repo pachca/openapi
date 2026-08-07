@@ -756,6 +756,10 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           command: 'pachca chats list --last-message-at-before=<порог> --all',
           apiMethod: 'GET',
           apiPath: '/chats',
+          notes:
+            'Архивные чаты в выдачу не попадают, поэтому отсеивать уже заархивированные не нужно. Чтобы получить их вместе с активными, добавь `--archived` и смотри поле `archived` каждого чата',
+          notesEn:
+            'Archived chats are not returned, so there is no need to filter out already archived ones. To get them together with active ones, add `--archived` and check the `archived` field of each chat',
         },
         {
           description: 'Для каждого чата: архивируй',

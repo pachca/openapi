@@ -205,6 +205,7 @@
         "test",
         "@pachca/spec#overlay:validate",
         "check-models",
+        "check-commands",
         "check-n8n-resources",
         "check-examples",
         "check-anchors",
@@ -220,6 +221,18 @@
     },
     "check-n8n-resources": {
       "cache": false
+    },
+    "check-commands": {
+      "dependsOn": [
+        "@pachca/cli#build"
+      ],
+      "inputs": [
+        "scripts/check-commands-coverage.mjs",
+        "oclif.manifest.json",
+        "src/data/commands.json",
+        "src/lib/manifest.ts"
+      ],
+      "cache": true
     },
     "check-models": {
       "dependsOn": [

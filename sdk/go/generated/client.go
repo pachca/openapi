@@ -800,6 +800,9 @@ func (s *ChatsServiceImpl) ListChats(ctx context.Context, params *ListChatsParam
 	if params != nil && params.Availability != nil {
 		q.Set("availability", string(*params.Availability))
 	}
+	if params != nil && params.Archived != nil {
+		q.Set("archived", fmt.Sprintf("%v", *params.Archived))
+	}
 	if params != nil && params.LastMessageAtAfter != nil {
 		q.Set("last_message_at_after", params.LastMessageAtAfter.Format(time.RFC3339))
 	}

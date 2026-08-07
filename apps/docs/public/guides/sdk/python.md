@@ -163,6 +163,7 @@ params = ListChatsParams(
     sort=ChatSortField.ID,
     order=SortOrder.DESC,
     availability=ChatAvailability.IS_MEMBER,
+    archived=True,
     last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
     last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
     personal=False,
@@ -190,7 +191,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 
@@ -199,7 +200,7 @@ response = await client.chats.create_chat(request=request)
 ```python
 # Получение чата
 response = await client.chats.get_chat(id=334)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 

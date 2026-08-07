@@ -810,7 +810,7 @@ Retrieve information about the current OAuth token, including its scopes, creati
 
 ### GET /api/shared/v1/chats
 Retrieve a list of chats based on the specified parameters.
-Parameters: sort?, order?, availability?, last_message_at_after?, last_message_at_before?, personal?, limit?, cursor?
+Parameters: sort?, order?, availability?, archived?, last_message_at_after?, last_message_at_before?, personal?, limit?, cursor?
 
 ### POST /api/shared/v1/chats
 Create a new chat. To create a one-on-one direct message with a user, use the [New message](/api/messages/create) method. When creating a chat, you automatically become a member.

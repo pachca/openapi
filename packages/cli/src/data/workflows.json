@@ -370,7 +370,8 @@
     "steps": [
       {
         "description": "Получи чаты без активности с нужной даты",
-        "command": "pachca chats list --last-message-at-before=<порог> --all"
+        "command": "pachca chats list --last-message-at-before=<порог> --all",
+        "notes": "Архивные чаты в выдачу не попадают, поэтому отсеивать уже заархивированные не нужно. Чтобы получить их вместе с активными, добавь `--archived` и смотри поле `archived` каждого чата"
       },
       {
         "description": "Для каждого чата: архивируй",

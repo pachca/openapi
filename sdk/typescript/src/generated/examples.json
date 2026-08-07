@@ -79,7 +79,7 @@
     "usage": "client.bots.deleteWebhookEvent(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "const response = client.chats.listChats({\n  sort: ChatSortField.Id,\n  order: SortOrder.Desc,\n  availability: ChatAvailability.IsMember,\n  lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\",\n  lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\",\n  personal: false,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "usage": "const response = client.chats.listChats({\n  sort: ChatSortField.Id,\n  order: SortOrder.Desc,\n  availability: ChatAvailability.IsMember,\n  archived: true,\n  lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\",\n  lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\",\n  personal: false,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
     "output": "ListChatsResponse({ data: Chat[], meta: PaginationMeta })",
     "imports": [
       "ChatAvailability",
@@ -89,7 +89,7 @@
   },
   "ChatOperations_getChat": {
     "usage": "const response = client.chats.getChat(334)",
-    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })"
+    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })"
   },
   "ExportOperations_downloadExport": {
     "usage": "const response = client.chats.downloadExport(22322)",
@@ -97,7 +97,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"🤿 aqua\",\n    memberIds: [123],\n    groupTagIds: [123],\n    channel: true,\n    public: false\n  }\n}\nconst response = client.chats.createChat(request)",
-    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })",
+    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -111,7 +111,7 @@
   },
   "ChatOperations_updateChat": {
     "usage": "const request: ChatUpdateRequest = { chat: { name: \"Бассейн\", public: true } }\nconst response = client.chats.updateChat(334, request)",
-    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })",
+    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

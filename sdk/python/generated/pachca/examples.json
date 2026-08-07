@@ -86,7 +86,7 @@
     "usage": "await client.bots.delete_webhook_event(id=\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "params = ListChatsParams(\n    sort=ChatSortField.ID,\n    order=SortOrder.DESC,\n    availability=ChatAvailability.IS_MEMBER,\n    last_message_at_after=datetime.fromisoformat(\"2025-01-01T00:00:00.000Z\"),\n    last_message_at_before=datetime.fromisoformat(\"2025-02-01T00:00:00.000Z\"),\n    personal=False,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.chats.list_chats(params=params)",
+    "usage": "params = ListChatsParams(\n    sort=ChatSortField.ID,\n    order=SortOrder.DESC,\n    availability=ChatAvailability.IS_MEMBER,\n    archived=True,\n    last_message_at_after=datetime.fromisoformat(\"2025-01-01T00:00:00.000Z\"),\n    last_message_at_before=datetime.fromisoformat(\"2025-02-01T00:00:00.000Z\"),\n    personal=False,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.chats.list_chats(params=params)",
     "output": "ListChatsResponse(data: list[Chat], meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
@@ -97,7 +97,7 @@
   },
   "ChatOperations_getChat": {
     "usage": "response = await client.chats.get_chat(id=334)",
-    "output": "Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)"
+    "output": "Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)"
   },
   "ExportOperations_downloadExport": {
     "usage": "response = await client.chats.download_export(id=22322)",
@@ -105,7 +105,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"🤿 aqua\",\n        member_ids=[123],\n        group_tag_ids=[123],\n        channel=True,\n        public=False\n    )\n)\nresponse = await client.chats.create_chat(request=request)",
-    "output": "Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)",
+    "output": "Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -119,7 +119,7 @@
   },
   "ChatOperations_updateChat": {
     "usage": "request = ChatUpdateRequest(chat=ChatUpdateRequestChat(name=\"Бассейн\", public=True))\nresponse = await client.chats.update_chat(id=334, request=request)",
-    "output": "Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)",
+    "output": "Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

@@ -109,6 +109,71 @@ describe('manual commands — functional tests', () => {
       expect(content).toContain('Ivan Petrov');
     });
 
+    describe('--token - (чтение из потока ввода)', () => {
+      const originalStdin = Object.getOwnPropertyDescriptor(process, 'stdin')!;
+
+      /** Replace stdin with a stream that yields `chunks`, or with a bare TTY. */
+      function stubStdin(options: { isTTY: boolean; chunks?: string[] }): void {
+        const stream = {
+          isTTY: options.isTTY,
+          async *[Symbol.asyncIterator]() {
+            for (const chunk of options.chunks ?? []) yield Buffer.from(chunk);
+          },
+        };
+        Object.defineProperty(process, 'stdin', { value: stream, configurable: true });
+      }
+
+      afterEach(() => {
+        Object.defineProperty(process, 'stdin', originalStdin);
+      });
+
+      it('принимает токен из пайпа и не оставляет его в аргументах', async () => {
+        stubStdin({ isTTY: false, chunks: ['piped-token\n'] });
+
+        const tokenInfo = mockEntity('/oauth/token/info', 'GET', { user_id: 1, scopes: ['users:read'] });
+        const profileData = mockEntity('/profile', 'GET', { first_name: 'Ivan', last_name: '', email: null, bot: false });
+        let callNum = 0;
+        globalThis.fetch = vi.fn().mockImplementation(() => {
+          callNum += 1;
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve({ data: callNum === 1 ? tokenInfo : profileData }),
+            text: () => Promise.resolve('{}'),
+          });
+        });
+
+        const { error } = await runCommand(['auth', 'login', '--token', '-'], { root: CLI_ROOT });
+
+        expect(error).toBeUndefined();
+        const content = fs.readFileSync(path.join(tmpDir, 'pachca', 'config.toml'), 'utf-8');
+        // Trailing newline from `echo` must not become part of the token.
+        expect(content).toContain('piped-token');
+        expect(content).not.toContain('piped-token\\n');
+      });
+
+      it('без пайпа не виснет, а объясняет, что ожидался поток', async () => {
+        // A terminal never reaches EOF on its own: reading it would hang with no
+        // output until the person guesses to press Ctrl-D.
+        stubStdin({ isTTY: true });
+
+        const { error, stderr } = await runCommand(['auth', 'login', '--token', '-'], { root: CLI_ROOT });
+
+        expect(error).toBeTruthy();
+        expect(stderr).toContain('stdin');
+      });
+
+      it('пустой ввод — ошибка, а не вход с пустым токеном', async () => {
+        stubStdin({ isTTY: false, chunks: ['   \n'] });
+
+        const { error } = await runCommand(['auth', 'login', '--token', '-'], { root: CLI_ROOT });
+
+        expect(error).toBeTruthy();
+        expect(fs.existsSync(path.join(tmpDir, 'pachca', 'config.toml'))).toBe(false);
+      });
+    });
+
     it('--token invalid → 401 error', async () => {
       mockFetch({ status: 401, data: { error: 'invalid_token', error_description: 'Token is invalid' } });
       const { error } = await runCommand(['auth', 'login', '--token', 'bad-token'], { root: CLI_ROOT });
@@ -177,6 +242,28 @@ describe('manual commands — functional tests', () => {
       const parsed = JSON.parse(stdout);
       expect(parsed.type).toBe('bot');
     });
+
+    it('--token → profile marked as pasted, without expiry', async () => {
+      const tokenInfo = mockEntity('/oauth/token/info', 'GET', { user_id: 1, scopes: ['users:read'] });
+      const profileData = mockEntity('/profile', 'GET', { first_name: 'Ivan', last_name: 'P', email: null, bot: false });
+
+      let callNum = 0;
+      globalThis.fetch = vi.fn().mockImplementation(() => {
+        callNum++;
+        return Promise.resolve({
+          ok: true, status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve({ data: callNum === 1 ? tokenInfo : profileData }),
+          text: () => Promise.resolve('{}'),
+        });
+      });
+
+      const { stdout } = await runCommand(['auth', 'login', '--token', 'pasted', '--json'], { root: CLI_ROOT });
+      const parsed = JSON.parse(stdout);
+      expect(parsed.auth).toBe('token');
+      expect(parsed.expires_at).toBeNull();
+    });
+
   });
 
   describe('auth logout', () => {
@@ -201,6 +288,18 @@ describe('manual commands — functional tests', () => {
       const content = fs.readFileSync(path.join(tmpDir, 'pachca', 'config.toml'), 'utf-8');
       expect(content).not.toContain('active_profile = "test"');
     });
+
+    it('says the pasted token stays alive on the server', async () => {
+      setupProfile();
+      const { stderr } = await runCommand(['auth', 'logout', 'test', '-o', 'table'], { root: CLI_ROOT });
+      expect(stderr).toContain('продолжает действовать');
+    });
+
+    it('reports that nothing was revoked', async () => {
+      setupProfile();
+      const { stdout } = await runCommand(['auth', 'logout', 'test', '--json'], { root: CLI_ROOT });
+      expect(JSON.parse(stdout).token_revoked).toBe(false);
+    });
   });
 
   describe('auth status', () => {
@@ -217,6 +316,41 @@ describe('manual commands — functional tests', () => {
       const { stderr, error } = await runCommand(['auth', 'status'], { root: CLI_ROOT });
       expect(error).toBeTruthy();
       expect(stderr).toContain('No active profile');
+    });
+
+    it('pasted token → auth: token, no expiry', async () => {
+      setupProfile();
+      const { stdout } = await runCommand(['auth', 'status', '--json'], { root: CLI_ROOT });
+      const parsed = JSON.parse(stdout);
+      expect(parsed.auth).toBe('token');
+      expect(parsed.expires_at).toBeNull();
+    });
+
+    it('browser login → auth: oauth with expiry and scopes', async () => {
+      const configDir = path.join(tmpDir, 'pachca');
+      fs.mkdirSync(configDir, { recursive: true });
+      const expiresAt = new Date(Date.now() + 3_600_000).toISOString();
+      fs.writeFileSync(
+        path.join(configDir, 'config.toml'),
+        [
+          'active_profile = "test"',
+          '',
+          '[profiles.test]',
+          'type = "user"',
+          'token = "oauth-token"',
+          'user = "Test User"',
+          'auth = "oauth"',
+          'refresh_token = "refresh-1"',
+          `expires_at = "${expiresAt}"`,
+          'scopes = [ "chats:read", "messages:create" ]',
+        ].join('\n') + '\n',
+      );
+
+      const { stdout } = await runCommand(['auth', 'status', '--json'], { root: CLI_ROOT });
+      const parsed = JSON.parse(stdout);
+      expect(parsed.auth).toBe('oauth');
+      expect(parsed.expires_at).toBe(expiresAt);
+      expect(parsed.scopes).toEqual(['chats:read', 'messages:create']);
     });
   });
 
@@ -251,6 +385,40 @@ describe('manual commands — functional tests', () => {
       const { stderr, error } = await runCommand(['auth', 'switch', 'nonexistent'], { root: CLI_ROOT });
       expect(error).toBeTruthy();
       expect(stderr).toContain('not found');
+    });
+
+    it('reports a working profile as readable and not expired', async () => {
+      setupMultiProfiles();
+      const { stdout } = await runCommand(['auth', 'switch', 'bot', '--json'], { root: CLI_ROOT });
+      const parsed = JSON.parse(stdout);
+      expect(parsed.secret_readable).toBe(true);
+      expect(parsed.expired).toBe(false);
+    });
+
+    it('flags an expired profile at the moment of switching, not on the next command', async () => {
+      const configDir = path.join(tmpDir, 'pachca');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(configDir, 'config.toml'),
+        [
+          'active_profile = "default"',
+          '',
+          '[profiles.default]',
+          'type = "user"',
+          'token = "tok"',
+          'user = "Андрей"',
+          '',
+          '[profiles.stale]',
+          'type = "user"',
+          'token = "tok"',
+          'user = "Андрей"',
+          'auth = "oauth"',
+          'expires_at = "2020-01-01T00:00:00.000Z"',
+        ].join('\n'),
+      );
+
+      const { stdout } = await runCommand(['auth', 'switch', 'stale', '--json'], { root: CLI_ROOT });
+      expect(JSON.parse(stdout).expired).toBe(true);
     });
   });
 
@@ -369,6 +537,66 @@ describe('manual commands — functional tests', () => {
       const parsed = JSON.parse(stdout);
       const tokenCheck = parsed.checks.find((c: { name: string }) => c.name === 'token');
       expect(tokenCheck?.status).toBe('skipped');
+    });
+
+    it('истёкший, но обновляемый токен — не ошибка', async () => {
+      // `doctor` skips the init hook, so it is the one command that sees a token
+      // after it expired but before the next command renews it. Calling that
+      // "invalid" sent people to log in again for nothing.
+      const configDir = path.join(tmpDir, 'pachca');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(configDir, 'config.toml'),
+        [
+          'active_profile = "oauth"',
+          '',
+          '[profiles.oauth]',
+          'type = "user"',
+          'token = "expired-token"',
+          'user = "Test User"',
+          'auth = "oauth"',
+          'refresh_token = "refresh-1"',
+          `expires_at = "${new Date(Date.now() - 60_000).toISOString()}"`,
+          '',
+        ].join('\n'),
+      );
+
+      globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+        const unauthorized = typeof url === 'string' && url.includes('token/info');
+        return Promise.resolve({
+          ok: !unauthorized,
+          status: unauthorized ? 401 : 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve(unauthorized ? {} : { 'dist-tags': { latest: '0.0.0' } }),
+          text: () => Promise.resolve('{}'),
+        });
+      });
+
+      const { stdout } = await runCommand(['doctor', '--json'], { root: CLI_ROOT });
+      const tokenCheck = JSON.parse(stdout).checks.find((c: { name: string }) => c.name === 'token');
+
+      expect(tokenCheck?.status).toBe('ok');
+      expect(tokenCheck?.renewable).toBe(true);
+    });
+
+    it('истёкший вставленный токен — по-прежнему ошибка', async () => {
+      // No refresh token means nothing will renew it; here "log in again" is right.
+      setupProfile();
+      globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+        const unauthorized = typeof url === 'string' && url.includes('token/info');
+        return Promise.resolve({
+          ok: !unauthorized,
+          status: unauthorized ? 401 : 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve(unauthorized ? {} : { 'dist-tags': { latest: '0.0.0' } }),
+          text: () => Promise.resolve('{}'),
+        });
+      });
+
+      const { stdout } = await runCommand(['doctor', '--json'], { root: CLI_ROOT });
+      const tokenCheck = JSON.parse(stdout).checks.find((c: { name: string }) => c.name === 'token');
+
+      expect(tokenCheck?.status).toBe('error');
     });
   });
 

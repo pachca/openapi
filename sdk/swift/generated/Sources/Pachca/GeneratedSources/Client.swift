@@ -434,11 +434,11 @@ public final class BotsServiceImpl: BotsService {
 open class ChatsService {
     public init() {}
 
-    open func listChats(sort: ChatSortField? = nil, order: SortOrder? = nil, availability: ChatAvailability? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListChatsResponse {
+    open func listChats(sort: ChatSortField? = nil, order: SortOrder? = nil, availability: ChatAvailability? = nil, archived: Bool? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListChatsResponse {
         throw pachcaNotImplemented("Chats.listChats")
     }
 
-    open func listChatsAll(sort: ChatSortField? = nil, order: SortOrder? = nil, availability: ChatAvailability? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil) async throws -> [Chat] {
+    open func listChatsAll(sort: ChatSortField? = nil, order: SortOrder? = nil, availability: ChatAvailability? = nil, archived: Bool? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil) async throws -> [Chat] {
         throw pachcaNotImplemented("Chats.listChatsAll")
     }
 
@@ -483,12 +483,13 @@ public final class ChatsServiceImpl: ChatsService {
         super.init()
     }
 
-    public override func listChats(sort: ChatSortField? = nil, order: SortOrder? = nil, availability: ChatAvailability? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListChatsResponse {
+    public override func listChats(sort: ChatSortField? = nil, order: SortOrder? = nil, availability: ChatAvailability? = nil, archived: Bool? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListChatsResponse {
         var components = URLComponents(string: "\(baseURL)/chats")!
         var queryItems: [URLQueryItem] = []
         if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
         if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
         if let availability { queryItems.append(URLQueryItem(name: "availability", value: availability.rawValue)) }
+        if let archived { queryItems.append(URLQueryItem(name: "archived", value: String(archived))) }
         if let lastMessageAtAfter { queryItems.append(URLQueryItem(name: "last_message_at_after", value: String(lastMessageAtAfter))) }
         if let lastMessageAtBefore { queryItems.append(URLQueryItem(name: "last_message_at_before", value: String(lastMessageAtBefore))) }
         if let personal { queryItems.append(URLQueryItem(name: "personal", value: String(personal))) }
@@ -509,12 +510,12 @@ public final class ChatsServiceImpl: ChatsService {
         }
     }
 
-    public override func listChatsAll(sort: ChatSortField? = nil, order: SortOrder? = nil, availability: ChatAvailability? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil) async throws -> [Chat] {
+    public override func listChatsAll(sort: ChatSortField? = nil, order: SortOrder? = nil, availability: ChatAvailability? = nil, archived: Bool? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil) async throws -> [Chat] {
         var items: [Chat] = []
         var cursor: String? = nil
         var hasNext = true
         while hasNext {
-            let response = try await listChats(sort: sort, order: order, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor)
+            let response = try await listChats(sort: sort, order: order, availability: availability, archived: archived, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage

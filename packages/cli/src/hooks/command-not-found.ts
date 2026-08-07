@@ -37,7 +37,7 @@ const hook: Hook<'command_not_found'> = async function (opts) {
     };
     outputError(errorObj, 'json');
   } else {
-    process.stderr.write(`✗ Команда не найдена: ${commandId.replace(/:/g, ' ')}\n`);
+    process.stderr.write(`✗ Команда не найдена: ${commandId.replace(/:/g, ' ')}.\n`);
 
     if (suggestions.length > 0) {
       process.stderr.write(`\n  Возможно, вы имели в виду:\n`);

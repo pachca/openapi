@@ -114,6 +114,11 @@ actions:
   - target: $.paths['/chats'].get.parameters[?(@.name=='availability')]
     update:
       description: Parameter that controls chat availability and filtering for the user
+  - target: $.paths['/chats'].get.parameters[?(@.name=='archived')]
+    update:
+      description: >-
+        Include archived chats in the response. By default only active chats are returned. Works with any
+        `availability` value.
   - target: $.paths['/chats'].get.parameters[?(@.name=='last_message_at_after')]
     update:
       description: >-
@@ -1237,6 +1242,33 @@ actions:
   - target: $.components.schemas.AuditDetailsBotWebhookSettings.properties.changes
     update:
       description: "Changed webhook settings. The key is the setting name (outgoing_url, ignore_self_messages, events_history_enabled), the value is an object with previous and new fields."
+  - target: $.components.schemas.AuditDetailsBotOAuthClient
+    update:
+      description: 'For: bot_oauth_client_updated'
+  - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.client_id
+    update:
+      description: Bot OAuth client ID
+  - target: $.components.schemas.AuditDetailsBotOAuthClient.properties.changes
+    update:
+      description: "Changed client settings. The key is the setting name (confidential, redirect_uris, scopes), the value is an object with previous and new fields."
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted
+    update:
+      description: 'For: oauth_authorization_granted'
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted.properties.client_id
+    update:
+      description: ID of the OAuth client that was granted access
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationGranted.properties.scopes
+    update:
+      description: Scopes the access was granted for
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationRevoked
+    update:
+      description: 'For: oauth_authorization_revoked'
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationRevoked.properties.client_id
+    update:
+      description: ID of the OAuth client whose access was revoked
+  - target: $.components.schemas.AuditDetailsOAuthAuthorizationRevoked.properties.revoked_tokens_count
+    update:
+      description: Number of revoked tokens
   - target: $.components.schemas.AuditDetailsVideoCallStarted
     update:
       description: 'For: video_call_started'
@@ -1393,6 +1425,9 @@ actions:
         bot_webhook_settings_updated: Bot outgoing webhook settings changed
         bot_token_recreated: Bot token recreated (rotation)
         bot_deleted: Bot deleted
+        bot_oauth_client_updated: Bot OAuth client settings changed
+        oauth_authorization_granted: User granted an OAuth client access to their data
+        oauth_authorization_revoked: An OAuth client's access to user data was revoked
         video_call_started: Video call started
         video_call_finished: Video call finished
         video_call_recording_ready: Video call recording ready
@@ -1915,6 +1950,9 @@ actions:
   - target: $.components.schemas.Chat.properties.channel
     update:
       description: Whether this is a channel
+  - target: $.components.schemas.Chat.properties.archived
+    update:
+      description: Whether the chat is archived
   - target: $.components.schemas.Chat.properties.personal
     update:
       description: Whether this is a direct message
@@ -2484,7 +2522,7 @@ actions:
       description: Message parameters object to create
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.entity_type
     update:
-      description: Entity type
+      description: Entity type. The value is case-insensitive. A value outside the list returns `400` with the `invalid` code.
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.entity_id
     update:
       description: Entity ID

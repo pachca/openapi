@@ -16,7 +16,7 @@
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 99–201 |
 | How-to Guides — рецепты задач с кодом TS/Python | 202–885 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 886–12005 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 886–12184 |
 | · Обзор | 891–993 |
 | · Быстрый старт | 994–1083 |
 | · AI агенты | 1084–1222 |
@@ -24,77 +24,77 @@
 | · Markdown и документы | 1293–1349 |
 | · Треды | 1350–1490 |
 | · Боты | 1491–1553 |
-| · Создание и настройка | 1554–1689 |
-| · Доступы к чатам и сообщениям | 1690–1763 |
-| · Готовые примеры реализации | 1764–1798 |
-| · Входящие вебхуки | 1799–1950 |
-| · Исходящие вебхуки | 1951–2005 |
-| · Настройка и типы событий | 2006–2247 |
-| · Безопасность и обработчик | 2248–2438 |
-| · Поллинг | 2439–2622 |
-| · Кнопки в сообщениях | 2623–2780 |
-| · Формы | 2781–2850 |
-| · Блоки представления | 2851–3064 |
-| · Обработка форм | 3065–3204 |
-| · Разворачивание ссылок | 3205–3317 |
-| · Экспорт сообщений | 3318–3460 |
-| · DLP-система | 3461–3668 |
-| · Журнал аудита событий | 3669–3824 |
-| · Права и роли | 3825–4047 |
-| · Форматирование текста | 4048–4128 |
-| · Сценарии | 4129–4641 |
-| · CLI | 4642–4735 |
-| · Установка | 4736–4828 |
-| · Авторизация | 4829–4902 |
-| · Вывод | 4903–5006 |
-| · Флаги и скрипты | 5007–5233 |
-| · Сценарии | 5234–5281 |
-| · Файлы | 5282–5316 |
-| · Прямые запросы | 5317–5427 |
-| · Команды | 5428–5570 |
-| · SDK и генератор | 5571–5663 |
-| · TypeScript | 5664–6086 |
-| · Python | 6087–6503 |
-| · Go | 6504–6945 |
-| · Kotlin | 6946–7379 |
-| · Swift | 7380–7782 |
-| · C# | 7783–8246 |
-| · n8n | 8247–8322 |
-| · Начало работы | 8323–8554 |
-| · Ресурсы и операции | 8555–8919 |
-| · Триггер | 8920–9171 |
-| · Тестирование | 9172–9445 |
-| · Примеры workflow | 9446–9660 |
-| · Продвинутые функции | 9661–9897 |
-| · Устранение ошибок | 9898–10077 |
-| · Миграция с v1 | 10078–10198 |
-| · Последние обновления | 10199–10208 |
-| · Обзор | 10209–10310 |
-| · Авторизация | 10311–10516 |
-| · Запросы и ответы | 10517–10707 |
-| · Пагинация | 10708–10944 |
-| · Загрузка файлов | 10945–11165 |
-| · Ошибки | 11166–11239 |
-| · Лимиты | 11240–11357 |
-| · Модели | 11358–12005 |
-| API-методы — все эндпоинты со схемами и примерами | 12006–29346 |
-| · OAuth | 12008–12107 |
-| · Chats | 12108–13715 |
-| · Profile | 13716–14621 |
-| · Users | 14622–17003 |
-| · Group tags | 17004–18351 |
-| · Members | 18352–19696 |
-| · Threads | 19697–20391 |
-| · Messages | 20392–22526 |
-| · Read members | 22527–22773 |
-| · Reactions | 22774–23420 |
-| · Search | 23421–24233 |
-| · Tasks | 24234–25523 |
-| · Views | 25524–26086 |
-| · Bots | 26087–28555 |
-| · Security | 28556–28893 |
-| · Custom Properties | 28894–29103 |
-| · Files | 29104–29346 |
+| · Создание и настройка | 1554–1691 |
+| · Доступы к чатам и сообщениям | 1692–1765 |
+| · Готовые примеры реализации | 1766–1800 |
+| · Входящие вебхуки | 1801–1952 |
+| · Исходящие вебхуки | 1953–2007 |
+| · Настройка и типы событий | 2008–2249 |
+| · Безопасность и обработчик | 2250–2440 |
+| · Поллинг | 2441–2624 |
+| · Кнопки в сообщениях | 2625–2782 |
+| · Формы | 2783–2852 |
+| · Блоки представления | 2853–3066 |
+| · Обработка форм | 3067–3206 |
+| · Разворачивание ссылок | 3207–3319 |
+| · Экспорт сообщений | 3320–3462 |
+| · DLP-система | 3463–3670 |
+| · Журнал аудита событий | 3671–3829 |
+| · Права и роли | 3830–4057 |
+| · Форматирование текста | 4058–4138 |
+| · Сценарии | 4139–4651 |
+| · CLI | 4652–4747 |
+| · Установка | 4748–4855 |
+| · Авторизация | 4856–5048 |
+| · Вывод | 5049–5152 |
+| · Флаги и скрипты | 5153–5381 |
+| · Сценарии | 5382–5429 |
+| · Файлы | 5430–5464 |
+| · Прямые запросы | 5465–5575 |
+| · Команды | 5576–5718 |
+| · SDK и генератор | 5719–5811 |
+| · TypeScript | 5812–6235 |
+| · Python | 6236–6653 |
+| · Go | 6654–7096 |
+| · Kotlin | 7097–7530 |
+| · Swift | 7531–7933 |
+| · C# | 7934–8397 |
+| · n8n | 8398–8473 |
+| · Начало работы | 8474–8705 |
+| · Ресурсы и операции | 8706–9070 |
+| · Триггер | 9071–9322 |
+| · Тестирование | 9323–9596 |
+| · Примеры workflow | 9597–9811 |
+| · Продвинутые функции | 9812–10048 |
+| · Устранение ошибок | 10049–10228 |
+| · Миграция с v1 | 10229–10349 |
+| · Последние обновления | 10350–10359 |
+| · Обзор | 10360–10461 |
+| · Авторизация | 10462–10683 |
+| · Запросы и ответы | 10684–10874 |
+| · Пагинация | 10875–11111 |
+| · Загрузка файлов | 11112–11332 |
+| · Ошибки | 11333–11406 |
+| · Лимиты | 11407–11524 |
+| · Модели | 11525–12184 |
+| API-методы — все эндпоинты со схемами и примерами | 12185–29549 |
+| · OAuth | 12187–12286 |
+| · Chats | 12287–13905 |
+| · Profile | 13906–14811 |
+| · Users | 14812–17193 |
+| · Group tags | 17194–18541 |
+| · Members | 18542–19886 |
+| · Threads | 19887–20581 |
+| · Messages | 20582–22716 |
+| · Read members | 22717–22963 |
+| · Reactions | 22964–23610 |
+| · Search | 23611–24425 |
+| · Tasks | 24426–25715 |
+| · Views | 25716–26278 |
+| · Bots | 26279–28747 |
+| · Security | 28748–29096 |
+| · Custom Properties | 29097–29306 |
+| · Files | 29307–29549 |
 
 # LIBRARY RULES
 
@@ -1605,6 +1605,8 @@ pachca messages create \
   ### Шаг 1. Отправьте запрос на создание
 
 Передайте параметры бота в объекте `bot.webhook`: имя, никнейм, Webhook URL, список событий и команды. Никнейм должен заканчиваться на `_bot`.
+
+Обязательное поле одно — имя. Его и никнейм можно передать и на уровне `bot`, тогда объект `bot.webhook` не нужен: `{"bot": {"name": "Бот задач"}}` создаст бота с настройками вебхука по умолчанию.
 
 Тип бота — в один или несколько чатов — задаётся полем `single_chat` и только при создании: изменить его потом нельзя, как и тип бота в интерфейсе. Ограничение «в один чат» распространяется только на беседы и каналы, треды и личные сообщения не в счёт.
 
@@ -3741,6 +3743,9 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275/link_previews" \
 | `bot_deleted`, `bot_token_recreated` | `bot_id`, `actor_id` |
 | `bot_scopes_updated` | `added_scopes`, `removed_scopes` |
 | `bot_webhook_settings_updated` | `changes` — объект, где ключ это имя настройки, а значение содержит `previous` и `new` |
+| `bot_oauth_client_updated` | `client_id`, `changes` — объект, где ключ это имя параметра клиента, а значение содержит `previous` и `new` |
+| `oauth_authorization_granted` | `client_id`, `scopes` |
+| `oauth_authorization_revoked` | `client_id`, `revoked_tokens_count` |
 | `kms_encrypt`, `kms_decrypt` | `chat_id`, `message_id`, `reason` |
 | `dlp_violation_detected` | `dlp_rule_id`, `dlp_rule_name`, `message_id`, `chat_id`, `user_id`, `action_message`, `conditions_matched` |
 | `search_users_api`, `search_chats_api`, `search_messages_api` | `search_type`, `query_present`, `cursor_present`, `limit`, `filters` |
@@ -3865,7 +3870,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 Большинство скоупов доступно всем ролям, кроме гостевых. Исключения стоит знать заранее, потому что при создании токена такие скоупы просто не появятся в списке:
 
 - **Только Владелец** — `chat_exports:read`, `chat_exports:write` для [экспорта сообщений](/guides/export) и `audit_events:read` для [журнала аудита](/guides/audit-events). Обе возможности доступны на тарифе **Корпорация**.
-- **Владелец и Администратор** — `users:create`, `users:update`, `users:delete`, `user_status:read`, `user_status:write`, `user_avatar:write`, `group_tags:read`, `group_tags:write`.
+- **Владелец и Администратор** — `users:create`, `users:update`, `users:delete`, `user_status:write`, `user_avatar:write`, `group_tags:write`.
 - **Только токен бота** — `bot_self:write` и `bot_self:webhook:write` для самоуправления бота. Персональному токену они недоступны при любой роли.
 
 Полная таблица скоупов по ролям — в разделе [Авторизация](/api/authorization#dostupnye-skoupy).
@@ -3961,14 +3966,19 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 GET /api/shared/v1/chats?availability=public
 ```
 
-У такой выгрузки две границы:
+**Архивные чаты по умолчанию не возвращаются** ни при одном значении `availability`. Чтобы получить их вместе с активными, передайте `archived=true`:
 
-- **Закрытые беседы и каналы, где токен не участник, в списке не возвращаются** — включая токен Владельца пространства. Для них доступен только состав участников, если идентификатор чата уже известен.
-- **Архивные чаты не возвращаются вообще**, ни при одном значении `availability`. Статуса архивации в объекте чата тоже нет, поэтому отличить архивный чат через API нельзя.
+```http title="Открытые чаты пространства вместе с архивными"
+GET /api/shared/v1/chats?availability=public&archived=true
+```
+
+Отличить архивный чат в выдаче можно по полю `archived` объекта чата — оно приходит всегда, независимо от параметров запроса.
+
+Граница у такой выгрузки одна: **закрытые беседы и каналы, где токен не участник, в списке не возвращаются** — включая токен Владельца пространства. Для них доступен только состав участников, если идентификатор чата уже известен.
 
 Состав участников и администраторов каждого чата возвращает [Список участников чата](/api/members/list) с параметром `role` — отдельным запросом на чат.
 
-Полный перечень чатов пространства, включая закрытые и архивные, доступен только Владельцу и только через [экспорт сообщений](/guides/export). В архив кладётся файл `chats.json`, где у каждого чата есть идентификатор, название, создатель и состав участников с их ролями в чате. Тип доступа и статус архивации в этот файл не попадают.
+Полный перечень чатов пространства, включая закрытые, доступен только Владельцу и только через [экспорт сообщений](/guides/export). В архив кладётся файл `chats.json`, где у каждого чата есть идентификатор, название, создатель и состав участников с их ролями в чате. Тип доступа и статус архивации в этот файл не попадают.
 
 ## Управление чатами других сотрудников
 
@@ -4660,15 +4670,17 @@ npm install -g @pachca/cli
 
   ### Шаг 2. Вход в аккаунт
 
-Сохраните API-токен. Получить его можно в интерфейсе Пачки в разделе **Автоматизации** > **API** — подробнее в руководстве [Авторизация](/api/authorization).
+Если вход выполняете вы сами, достаточно подтвердить его в браузере — получать токен заранее не нужно. Для CI и агентов, где подтверждать некому, передайте готовый токен из раздела **Автоматизации** > **API**.
 
 ```bash
-# Интерактивный вход
+# Подтверждение в браузере
 pachca auth login
 
-# Для CI и скриптов — передайте токен через флаг
-pachca auth login --token YOUR_ACCESS_TOKEN
+# Готовым токеном — для CI и агентов
+echo "$PACHCA_TOKEN" | pachca auth login --token -
 ```
+
+Подробнее — [Авторизация в CLI](/guides/cli/authentication).
 
 
   ### Шаг 3. Первый запрос
@@ -4792,9 +4804,10 @@ pachca doctor
 # ✔ Node.js        v20.11.0 (требуется >=20)
 # ✔ Сеть           api.pachca.com доступен (142ms)
 # ✔ Конфиг         ~/.config/pachca/config.toml (права: 600)
-# ✔ Профиль        personal (user: Иван Иванов)
+# ✔ Хранилище      хранилище ключей ОС, секрет читается
+# ✔ Профиль        personal (user: Иван Иванов) — вход через браузер, осталось 47 мин
 # ✔ Токен          действителен (11 скоупов)
-# ✔ CLI            v2026.8.0 (актуальная версия)
+# ✔ CLI            v2026.8.1 (актуальная версия)
 ```
 
 ## Обновление
@@ -4814,6 +4827,20 @@ pachca changelog
 
 Отключить автоматическую проверку можно переменной `PACHCA_SKIP_NEW_VERSION_CHECK`.
 
+## Удаление
+
+```bash
+# Удалить CLI
+npm uninstall -g @pachca/cli
+
+# Выйти из всех профилей — гасит токены входа через браузер на сервере
+pachca auth logout
+```
+
+Порядок важен: `auth logout` работает только пока CLI установлен. Если его уже удалили, токены входа через браузер погаснут сами в течение часа, а готовые токены останутся живыми — их нужно удалить в интерфейсе Пачки.
+
+Конфигурация остаётся на диске и после удаления пакета. Каталог `~/.config/pachca` (или указанный в `PACHCA_HOME`) удаляется вручную. Секреты, сохранённые в хранилище ключей ОС, `npm uninstall` тоже не трогает — их убирает `pachca auth logout` для каждого профиля.
+
 
 ## Связанные разделы
 
@@ -4828,7 +4855,91 @@ pachca changelog
 
 # Авторизация
 
-Для работы CLI нужен API-токен Пачки. Получить его можно в интерфейсе: **Настройки** > **Автоматизации** > **API**. Типы токенов (персональный и бота), скоупы и настройка доступа описаны в руководстве [Авторизация](/api/authorization). Ниже — как передать токен в CLI: профили, приоритет источников, headless-режим для CI и агентов.
+Войти в CLI можно двумя способами: через браузер или передав готовый токен. Первый подходит, когда вход выполняет человек, второй — CI и агентам, где подтверждать некому. Типы токенов, скоупы и настройка доступа описаны в руководстве [Авторизация](/api/authorization).
+
+## Вход через браузер
+
+CLI покажет адрес и код подтверждения, откроет браузер и будет ждать. Введите код на открывшейся странице и подтвердите доступ — в терминале появится, под кем вы вошли.
+
+```bash
+pachca auth login
+
+#   Откройте https://app.pachca.com/apps/authorize
+#   и введите код: BCDF-GHJK
+#
+#   Ожидаю подтверждения…
+```
+
+Код нужно ввести руками: ссылку с уже подставленным кодом CLI не печатает, потому что такая ссылка работает как фишинг, если переслать её на чужое устройство. Код заодно кладётся в буфер обмена.
+
+На экране подтверждения показан список запрашиваемых прав — выбирать из него нельзя. CLI запрашивает весь каталог, но выдаётся только то, что доступно вашей роли: набор фиксируется в момент подтверждения и дальше не меняется, даже если роль изменится. Что в итоге выдано, показывает `pachca auth status`.
+
+Токен такого входа живёт **час** и продлевается сам: перед каждой командой CLI проверяет срок и при необходимости обновляет токен. Когда параллельно работает несколько процессов (частый случай у агентов), обновляет только один из них, остальные дожидаются результата.
+
+Флаг `--no-browser` печатает адрес и код, но браузер не открывает — для машин без графической среды.
+
+Под капотом — стандартный вход по коду устройства (OAuth 2.0 Device Authorization Grant, [RFC 8628](https://datatracker.ietf.org/doc/html/rfc8628)). CLI не открывает локальный порт и не принимает редирект, поэтому одинаково работает на ноутбуке, в SSH-сессии и в контейнере.
+
+## Где хранится токен
+
+Токен уходит в хранилище ключей операционной системы: Keychain на macOS, Secret Service на Linux, Диспетчер учётных данных на Windows. Файл конфигурации хранит только имя, почту и права — секрета в нём нет.
+
+Это касается **обоих способов входа**. Готовый токен, переданный через `--token`, хранится там же, и для него это важнее: он бессрочный, поэтому утёкшее значение не протухнет само.
+
+Так сделано потому, что прав `600` на файле недостаточно: они закрывают доступ другим пользователям машины, но не коду, работающему от вашего имени, а сегодня это обычное дело — postinstall-скрипты, расширения редактора, агенты. Известны кампании, которые прочёсывают домашний каталог в поиске именно таких файлов.
+
+Где лежит токен, показывает `pachca auth status`:
+
+```bash
+pachca auth status
+
+#   Хранение: хранилище ключей ОС
+```
+
+Если хранилища нет — headless-машина, контейнер, минимальный образ, — CLI сохранит токен в файл и скажет об этом прямо при входе. Отказаться от хранилища можно и вручную: флагом `--insecure-storage` при входе или переменной `PACHCA_SECRET_STORE=file` для всех команд.
+
+> **Внимание:** При хранении в файле токен лежит открытым текстом в `~/.config/pachca/config.toml`. Файл читается так же, как любой другой: у всех, кто имеет доступ к вашей учётной записи на машине, есть и доступ к API от вашего имени.
+
+
+Токен привязан к машине, на которой выполнен вход: скопированный на другую машину профиль не заработает — секрет остался в хранилище исходной. Если запись в хранилище пропала или оно заблокировано, `auth status` покажет это, а любая команда попросит войти заново.
+
+## Вход готовым токеном
+
+Получить токен можно в интерфейсе: **Настройки** > **Автоматизации** > **API**.
+
+```bash
+echo "$PACHCA_TOKEN" | pachca auth login --token -
+```
+
+`-` вместо значения читает токен из потока ввода. Так секрет не попадает ни в историю оболочки, ни в список процессов, где его видят другие пользователи машины. Для готового токена это важнее, чем для любого другого: он бессрочный, поэтому утёкшее значение не протухнет само.
+
+Передать значение аргументом тоже можно — короче для разовой настройки, но след останется в обоих местах:
+
+```bash
+pachca auth login --token YOUR_ACCESS_TOKEN
+```
+
+Такой токен не обновляется. Это единственный путь для CI и скриптов: без человека у терминала подтвердить вход в браузере невозможно, поэтому `pachca auth login` без `--token` в неинтерактивном режиме сразу отвечает ошибкой.
+
+## Состояние входа
+
+`pachca auth status` показывает, каким способом выполнен вход, сколько осталось до истечения токена и какие права выданы:
+
+```bash
+pachca auth status
+
+#   Подключён как: Андрей Лукин (andrew@pachca.com)  [user, profile: default]
+#   Вход: через браузер, осталось 52 мин
+#   Права (16): chats:read, messages:read, messages:create, …
+```
+
+Если команда вдруг начала отвечать `403`, начинать разбор стоит отсюда.
+
+Список прав здесь — тот, что был получен при входе, и сам он не обновляется. Разойтись с действительностью он может по разным причинам: у входа через браузер набор определяется ролью и замирает в момент подтверждения, а права готового токена вы могли изменить в настройках токена уже после того, как передали его CLI. Флаг `--remote` спрашивает права у сервера и, если они разошлись, обновляет сохранённые:
+
+```bash
+pachca auth status --remote
+```
 
 ## Профили
 
@@ -4855,7 +4966,10 @@ pachca auth status
 pachca auth logout bot-notify
 ```
 
-Токены хранятся в `~/.config/pachca/config.toml` с правами `chmod 600`.
+`pachca auth logout` удаляет профиль **с этой машины**. Что при этом происходит с самим токеном, зависит от способа входа:
+
+- **Вход через браузер.** Токен гасится на сервере сразу — доступ закрывается в момент выхода, а не по истечении срока. Если сервер в этот момент недоступен, CLI об этом скажет: профиль всё равно удаляется, а токен доживает свой час. В списке токенов в **Автоматизации** > **API** такая сессия не появляется: она принадлежит приложению «Pachca CLI», а не вам.
+- **Готовый токен.** Продолжит работать — он бессрочный. Удалите его в **Автоматизации** > **API**, если он больше не нужен.
 
 ## Приоритет токена
 
@@ -4887,6 +5001,38 @@ pachca messages create --profile bot-notify --entity-id 123 --content "Увед�
 # CI: токен из секрета, неинтерактивный режим
 PACHCA_TOKEN=$PACHCA_SECRET pachca messages create --entity-id 123 --content "Деплой завершён" --no-input
 ```
+
+## Отказ по правам
+
+Если нужного права нет, команда отвечает `403` и называет само право. API проверяет два условия на каждом вызове: право должно быть у токена **и** его должна давать текущая роль владельца. Отказ означает, что не выполнилось одно из двух, и починка у них разная.
+
+Какое именно — видно в списке прав токена (`pachca auth status`).
+
+**Право в списке есть.** Значит его перестала давать роль — она изменилась после того, как токен был выдан. Помочь может только администратор пространства, повторный вход бесполезен.
+
+```bash
+pachca tasks create --content "Проверить отчёт"
+
+# ✗ Не хватает права tasks:create.
+#   Право у токена есть, но его не даёт текущая роль.
+#   Обратитесь к администратору пространства.
+```
+
+**Права в списке нет.** Дальше зависит от способа входа:
+
+- **Вход через браузер** — набор прав определяется ролью в момент подтверждения и дальше не меняется. Если роль с тех пор расширили, войдите заново: новый токен получит новые права.
+- **Готовый токен** — права выбираются при выпуске, поэтому выпустите токен с нужным набором.
+
+```bash
+pachca tasks create --content "Проверить отчёт"
+
+# ✗ Не хватает права tasks:create.
+#   У токена этого права нет.
+#   Права выдаются по роли в момент входа — если роль с тех пор изменилась,
+#   войдите заново: pachca auth login
+```
+
+В `-o json` то же самое приходит машиночитаемо: тип ошибки `PACHCA_SCOPE_ERROR` и поле `scope` с недостающим правом.
 
 
 ## Связанные разделы
@@ -5161,7 +5307,7 @@ pachca users get 123 || case $? in
   "error": "Token not found",
   "code": null,
   "type": "PACHCA_AUTH_ERROR",
-  "hint": "pachca auth login --token <your-token>"
+  "hint": "pachca auth login, or set PACHCA_TOKEN"
 }
 ```
 
@@ -5204,6 +5350,8 @@ esac
 | `PACHCA_TOKEN` | Bearer-токен (высший приоритет, удобно для CI) |
 | `PACHCA_PROFILE` | Активный профиль для команды |
 | `PACHCA_HOME` | Переопределить каталог конфига (по умолчанию `~/.config/pachca`). Удобно для изоляции в CI/тестах/агентах. |
+| `PACHCA_API_URL` | Другой адрес сервера API — все команды пойдут туда. По умолчанию `https://api.pachca.com/api/shared/v1` |
+| `PACHCA_SECRET_STORE` | `file` — хранить токен в файле конфига, а не в хранилище ключей ОС |
 | `PACHCA_TIMEOUT` | Таймаут запроса в секундах (по умолчанию 30) |
 | `PACHCA_PROMPT_DISABLED` | Отключить интерактивные промпты (для агентов) |
 | `CI` | Автоматический неинтерактивный режим |
@@ -5447,7 +5595,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 |---------|-----------|
 | `pachca api` | Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs` |
 | `pachca auth list` | Список сохранённых профилей |
-| `pachca auth login` | Авторизация и сохранение токена |
+| `pachca auth login` | Вход в аккаунт и сохранение профиля |
 | `pachca auth logout` | Удаление сохранённого профиля |
 | `pachca auth status` | Статус текущего профиля |
 | `pachca auth switch` | Переключение активного профиля |
@@ -5814,6 +5962,7 @@ const response = client.chats.listChats({
   sort: ChatSortField.Id,
   order: SortOrder.Desc,
   availability: ChatAvailability.IsMember,
+  archived: true,
   lastMessageAtAfter: "2025-01-01T00:00:00.000Z",
   lastMessageAtBefore: "2025-02-01T00:00:00.000Z",
   personal: false,
@@ -5840,7 +5989,7 @@ const request: ChatCreateRequest = {
   }
 }
 const response = client.chats.createChat(request)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 
@@ -5849,7 +5998,7 @@ const response = client.chats.createChat(request)
 ```typescript
 // Получение чата
 const response = client.chats.getChat(334)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 
@@ -6244,6 +6393,7 @@ params = ListChatsParams(
     sort=ChatSortField.ID,
     order=SortOrder.DESC,
     availability=ChatAvailability.IS_MEMBER,
+    archived=True,
     last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
     last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
     personal=False,
@@ -6271,7 +6421,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 
@@ -6280,7 +6430,7 @@ response = await client.chats.create_chat(request=request)
 ```python
 # Получение чата
 response = await client.chats.get_chat(id=334)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 
@@ -6663,6 +6813,7 @@ params := &ListChatsParams{
 	Sort: Ptr(ChatSortFieldID),
 	Order: Ptr(SortOrderDesc),
 	Availability: Ptr(ChatAvailabilityIsMember),
+	Archived: Ptr(true),
 	LastMessageAtAfter: Ptr("2025-01-01T00:00:00.000Z"),
 	LastMessageAtBefore: Ptr("2025-02-01T00:00:00.000Z"),
 	Personal: Ptr(false),
@@ -6690,7 +6841,7 @@ request := ChatCreateRequest{
 	},
 }
 response, err := client.Chats.CreateChat(ctx, request)
-// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
+// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
 ```
 
 
@@ -6701,7 +6852,7 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Получение чата
 response, err := client.Chats.GetChat(ctx, int32(334))
-// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
+// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string}
 ```
 
 
@@ -7113,7 +7264,7 @@ import com.pachca.sdk.SortOrder
 // Список чатов
 val lastMessageAtAfter = OffsetDateTime.parse("2025-01-01T00:00:00.000Z")
 val lastMessageAtBefore = OffsetDateTime.parse("2025-02-01T00:00:00.000Z")
-val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, archived = true, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
 // → ListChatsResponse(data: List<Chat>, meta: PaginationMeta)
 ```
 
@@ -7135,7 +7286,7 @@ val request = ChatCreateRequest(
     )
 )
 val response = client.chats.createChat(request = request)
-// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 
@@ -7144,7 +7295,7 @@ val response = client.chats.createChat(request = request)
 ```kotlin
 // Получение чата
 val response = client.chats.getChat(id = 334)
-// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 
@@ -7534,7 +7685,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 import PachcaSDK
 
 // Список чатов
-let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, lastMessageAtAfter: "2025-01-01T00:00:00.000Z", lastMessageAtBefore: "2025-02-01T00:00:00.000Z", personal: false, limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, archived: true, lastMessageAtAfter: "2025-01-01T00:00:00.000Z", lastMessageAtBefore: "2025-02-01T00:00:00.000Z", personal: false, limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
 // → ListChatsResponse(data: [Chat], meta: PaginationMeta)
 ```
 
@@ -7555,7 +7706,7 @@ let body = ChatCreateRequest(
     )
 )
 let response = try await client.chats.createChat(body: body)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
 ```
 
 
@@ -7566,7 +7717,7 @@ import PachcaSDK
 
 // Получение чата
 let response = try await client.chats.getChat(id: 334)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
 ```
 
 
@@ -7931,7 +8082,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 using Pachca.Sdk;
 
 // Список чатов
-var response = await client.Chats.ListChatsAsync(ChatSortField.Id, SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse("2025-01-01T00:00:00.000Z"), DateTimeOffset.Parse("2025-02-01T00:00:00.000Z"), false, 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
+var response = await client.Chats.ListChatsAsync(ChatSortField.Id, SortOrder.Desc, ChatAvailability.IsMember, true, DateTimeOffset.Parse("2025-01-01T00:00:00.000Z"), DateTimeOffset.Parse("2025-02-01T00:00:00.000Z"), false, 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
 // → ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta)
 ```
 
@@ -7954,7 +8105,7 @@ var request = new ChatCreateRequest
     }
 };
 var response = await client.Chats.CreateChatAsync(request);
-// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)
+// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)
 ```
 
 
@@ -7965,7 +8116,7 @@ using Pachca.Sdk;
 
 // Получение чата
 var response = await client.Chats.GetChatAsync(334);
-// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)
+// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)
 ```
 
 
@@ -10326,6 +10477,21 @@ dotnet add package Pachca.Sdk
 
 **Доступ к данным** — те же чаты, треды и сообщения, что видит сам пользователь в интерфейсе Пачки. Никаких дополнительных ограничений или расширений у токена нет, он наследует видимость владельца.
 
+Получить такой доступ можно двумя путями, и это не одно и то же:
+
+| | Токен в интерфейсе | Вход через CLI |
+|---|---|---|
+| Как выдаётся | **Автоматизации** > **API**, руками | `pachca auth login`, подтверждение в браузере |
+| Кто выбирает права | вы, при выпуске | не выбираются: берётся весь каталог, урезанный вашей ролью на момент входа |
+| Срок | бессрочный | час, продлевается автоматически |
+| Значение токена | показывается один раз, копируется | в терминал не выводится |
+| Как прекратить доступ | удалить токен в **Автоматизации** > **API** | `pachca auth logout` — токен гасится на сервере сразу |
+| Когда подходит | унести в автоматизацию или CI, передать коллеге | работа руками и агентом на своей машине |
+
+Разница не только в удобстве. Токен из интерфейса вы держите в руках: он бессрочный, его можно скопировать в чужую систему или передать другому человеку — вместе со своими правами. Токен входа через CLI короткоживущий и привязан к машине, где выполнен вход, поэтому переносить его бессмысленно.
+
+Любой токен, с которым работает CLI, хранится в хранилище ключей операционной системы — и полученный входом через браузер, и переданный через `--token`. Там, где хранилища нет (headless-машина, контейнер), токен ложится в файл конфигурации открытым текстом, и CLI сообщает об этом при входе. Подробнее — в разделе [CLI: авторизация](/guides/cli/authentication#gde-hranitsya-token).
+
 ### Токен бота
 
 Действует от имени бота. Подходит для сервисных интеграций независимо от конкретного пользователя: чат-боты, уведомления из внешних систем, обработка вебхуков, интерактивные формы.
@@ -10341,6 +10507,7 @@ dotnet add package Pachca.Sdk
 
 | Задача | Тип токена | С чего начать |
 | --- | --- | --- |
+| Работа с API руками или агентом на своей машине | Персональный | [CLI: авторизация](/guides/cli/authentication) |
 | Скрипт или утилита от вашего имени, личная автоматизация, разовая выгрузка данных | Персональный | [Создание персонального токена](#sozdanie-personalnogo-tokena) |
 | Чат-бот, уведомления из внешних систем, обработка вебхуков, интерактивные формы | Бот | [Боты](/guides/bots/overview) |
 | Агент или headless-интеграция без участия человека (CI, сервер, облачный воркер) | Бот | [Агенты и headless-интеграции](#agenty-i-headless-integratsii) |
@@ -10455,7 +10622,7 @@ Authorization: Bearer <ACCESS_TOKEN>
 | `users:create` | Создание новых сотрудников | Владелец, Администратор |
 | `users:update` | Редактирование данных сотрудника | Владелец, Администратор |
 | `users:delete` | Удаление сотрудников | Владелец, Администратор |
-| `group_tags:read` | Просмотр тегов | Владелец, Администратор |
+| `group_tags:read` | Просмотр тегов | Все |
 | `group_tags:write` | Создание, редактирование и удаление тегов | Владелец, Администратор |
 | `bots:read` | Просмотр ботов | Владелец, Администратор, Сотрудник |
 | `bots:write` | Управление ботами | Владелец, Администратор, Сотрудник |
@@ -10465,7 +10632,7 @@ Authorization: Bearer <ACCESS_TOKEN>
 | `profile_status:read` | Просмотр статуса профиля | Все |
 | `profile_status:write` | Изменение и удаление статуса профиля | Все |
 | `profile_avatar:write` | Изменение и удаление аватара профиля | Все |
-| `user_status:read` | Просмотр статуса сотрудника | Владелец, Администратор |
+| `user_status:read` | Просмотр статуса сотрудника | Все |
 | `user_status:write` | Изменение и удаление статуса сотрудника | Владелец, Администратор |
 | `user_avatar:write` | Изменение и удаление аватара сотрудника | Владелец, Администратор |
 | `custom_properties:read` | Просмотр дополнительных полей | Все |
@@ -11514,6 +11681,7 @@ users = await with_retry(lambda: client.users.list_users())
 - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
 - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
 - `channel: boolean` (required) — Является каналом. Пример: `true`
+- `archived: boolean` (required) — Находится в архиве. Пример: `false`
 - `personal: boolean` (required) — Является личным чатом. Пример: `false`
 - `public: boolean` (required) — Открытый доступ. Пример: `false`
 - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -11918,7 +12086,7 @@ users = await with_retry(lambda: client.users.list_users())
 - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 - `event_key: string` (required) — Ключ типа события
-  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова
+  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота, `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным, `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова
 - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
 - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
 - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
@@ -11982,6 +12150,17 @@ users = await with_retry(lambda: client.users.list_users())
     - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
       **Структура значений Record:**
       - Тип значения: `any`
+  - **AuditDetailsBotOAuthClient**: При: bot_oauth_client_updated
+    - `client_id: string` (required) — Идентификатор OAuth-клиента бота
+    - `changes: Record<string, object>` (required) — Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).
+      **Структура значений Record:**
+      - Тип значения: `any`
+  - **AuditDetailsOAuthAuthorizationGranted**: При: oauth_authorization_granted
+    - `client_id: string` (required) — Идентификатор OAuth-клиента, которому выдан доступ
+    - `scopes: array of string` (required) — Скоупы, на которые выдан доступ
+  - **AuditDetailsOAuthAuthorizationRevoked**: При: oauth_authorization_revoked
+    - `client_id: string` (required) — Идентификатор OAuth-клиента, у которого отозван доступ
+    - `revoked_tokens_count: integer, int32` (required) — Количество отозванных токенов
   - **AuditDetailsVideoCallStarted**: При: video_call_started
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
     - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
@@ -12193,6 +12372,7 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -12216,6 +12396,7 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
       9111
     ],
     "channel": true,
+    "archived": false,
     "personal": false,
     "public": false,
     "last_message_at": "2021-08-28T15:56:53.000Z",
@@ -12366,7 +12547,7 @@ const request: ChatCreateRequest = {
   }
 }
 const response = client.chats.createChat(request)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 ### Python
@@ -12387,7 +12568,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 ---
@@ -12411,6 +12592,7 @@ response = await client.chats.create_chat(request=request)
 - `sort: string` (default: id) — Поле сортировки
 - `order: string` (default: desc) — Направление сортировки
 - `availability: string` (default: is_member) — Параметр, который отвечает за доступность и выборку чатов для пользователя
+- `archived: boolean` (default: false) — Добавляет к выдаче архивные чаты. По умолчанию возвращаются только активные. Работает при любом значении `availability`.
 - `last_message_at_after: date-time` — Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
 - `last_message_at_before: date-time` — Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
 - `personal: boolean` — Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.
@@ -12422,7 +12604,7 @@ response = await client.chats.create_chat(request=request)
 
 ```bash
 # Для получения следующей страницы используйте cursor из meta.paginate.next_page
-curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability=is_member&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1" \
+curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability=is_member&archived=true&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -12440,6 +12622,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -12470,6 +12653,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability
         9111
       ],
       "channel": true,
+      "archived": false,
       "personal": false,
       "public": false,
       "last_message_at": "2021-08-28T15:56:53.000Z",
@@ -12623,6 +12807,7 @@ const response = client.chats.listChats({
   sort: ChatSortField.Id,
   order: SortOrder.Desc,
   availability: ChatAvailability.IsMember,
+  archived: true,
   lastMessageAtAfter: "2025-01-01T00:00:00.000Z",
   lastMessageAtBefore: "2025-02-01T00:00:00.000Z",
   personal: false,
@@ -12644,6 +12829,7 @@ params = ListChatsParams(
     sort=ChatSortField.ID,
     order=SortOrder.DESC,
     availability=ChatAvailability.IS_MEMBER,
+    archived=True,
     last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
     last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
     personal=False,
@@ -13040,6 +13226,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/334" \
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -13063,6 +13250,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/334" \
       9111
     ],
     "channel": true,
+    "archived": false,
     "personal": false,
     "public": false,
     "last_message_at": "2021-08-28T15:56:53.000Z",
@@ -13174,7 +13362,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.chats.getChat(334)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 ### Python
@@ -13185,7 +13373,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.chats.get_chat(id=334)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 ---
@@ -13262,6 +13450,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334" \
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -13285,6 +13474,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334" \
       9111
     ],
     "channel": true,
+    "archived": false,
     "personal": false,
     "public": false,
     "last_message_at": "2021-08-28T15:56:53.000Z",
@@ -13457,7 +13647,7 @@ const client = new PachcaClient("YOUR_TOKEN")
 
 const request: ChatUpdateRequest = { chat: { name: "Бассейн", public: true } }
 const response = client.chats.updateChat(334, request)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
 ```
 
 ### Python
@@ -13470,7 +13660,7 @@ client = PachcaClient("YOUR_TOKEN")
 
 request = ChatUpdateRequest(chat=ChatUpdateRequestChat(name="Бассейн", public=True))
 response = await client.chats.update_chat(id=334, request=request)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 ---
@@ -20416,7 +20606,7 @@ response = await client.threads.get_thread(id=265142)
 ### Схема
 
 - `message: object` (required) — Собранный объект параметров создаваемого сообщения
-  - `entity_type: string` — Тип сущности
+  - `entity_type: string` — Тип сущности. Регистр значения не учитывается. Значение вне списка возвращает `400` с кодом `invalid`.
     Значения: `discussion` — Беседа или канал, `thread` — Тред, `user` — Пользователь
   - `entity_id: integer, int32` (required) — Идентификатор сущности. Пример: `334`
   - `content: string` (required) — Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). Пример: `"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"`
@@ -23471,6 +23661,7 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
   - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
   - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
   - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
   - `personal: boolean` (required) — Является личным чатом. Пример: `false`
   - `public: boolean` (required) — Открытый доступ. Пример: `false`
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
@@ -23499,6 +23690,7 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
         9111
       ],
       "channel": true,
+      "archived": false,
       "personal": false,
       "public": false,
       "last_message_at": "2021-08-28T15:56:53.000Z",
@@ -28576,7 +28768,7 @@ await client.bots.delete_webhook_event(id="01KAJZ2XDSS2S3DSW9EXJZ0TBV")
 - `start_time: date-time` — Начальная метка времени (включительно)
 - `end_time: date-time` — Конечная метка времени (включительно)
 - `event_key: string` — Фильтр по конкретному типу события
-  Значения: `user_login`, `user_logout`, `user_2fa_fail`, `user_2fa_success`, `user_created`, `user_deleted`, `user_role_changed`, `user_updated`, `tag_created`, `tag_deleted`, `user_added_to_tag`, `user_removed_from_tag`, `chat_created`, `chat_renamed`, `chat_permission_changed`, `user_chat_join`, `user_chat_leave`, `tag_added_to_chat`, `tag_removed_from_chat`, `message_updated`, `message_deleted`, `message_created`, `reaction_created`, `reaction_deleted`, `thread_created`, `access_token_created`, `access_token_updated`, `access_token_destroy`, `kms_encrypt`, `kms_decrypt`, `audit_events_accessed`, `dlp_violation_detected`, `search_users_api`, `search_chats_api`, `search_messages_api`, `bot_scopes_updated`, `bot_webhook_settings_updated`, `bot_token_recreated`, `bot_deleted`, `video_call_started`, `video_call_finished`, `video_call_recording_ready`
+  Значения: `user_login`, `user_logout`, `user_2fa_fail`, `user_2fa_success`, `user_created`, `user_deleted`, `user_role_changed`, `user_updated`, `tag_created`, `tag_deleted`, `user_added_to_tag`, `user_removed_from_tag`, `chat_created`, `chat_renamed`, `chat_permission_changed`, `user_chat_join`, `user_chat_leave`, `tag_added_to_chat`, `tag_removed_from_chat`, `message_updated`, `message_deleted`, `message_created`, `reaction_created`, `reaction_deleted`, `thread_created`, `access_token_created`, `access_token_updated`, `access_token_destroy`, `kms_encrypt`, `kms_decrypt`, `audit_events_accessed`, `dlp_violation_detected`, `search_users_api`, `search_chats_api`, `search_messages_api`, `bot_scopes_updated`, `bot_webhook_settings_updated`, `bot_token_recreated`, `bot_deleted`, `bot_oauth_client_updated`, `oauth_authorization_granted`, `oauth_authorization_revoked`, `video_call_started`, `video_call_finished`, `video_call_recording_ready`
 - `actor_id: string` — Идентификатор пользователя, выполнившего действие
 - `actor_type: string` — Тип актора
 - `entity_id: string` — Идентификатор затронутой сущности
@@ -28603,7 +28795,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
   - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
   - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
   - `event_key: string` (required) — Ключ типа события
-    Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова
+    Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота, `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным, `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова
   - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
   - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
   - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
@@ -28667,6 +28859,17 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `changes: Record<string, object>` (required) — Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).
         **Структура значений Record:**
         - Тип значения: `any`
+    - **AuditDetailsBotOAuthClient**: При: bot_oauth_client_updated
+      - `client_id: string` (required) — Идентификатор OAuth-клиента бота
+      - `changes: Record<string, object>` (required) — Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).
+        **Структура значений Record:**
+        - Тип значения: `any`
+    - **AuditDetailsOAuthAuthorizationGranted**: При: oauth_authorization_granted
+      - `client_id: string` (required) — Идентификатор OAuth-клиента, которому выдан доступ
+      - `scopes: array of string` (required) — Скоупы, на которые выдан доступ
+    - **AuditDetailsOAuthAuthorizationRevoked**: При: oauth_authorization_revoked
+      - `client_id: string` (required) — Идентификатор OAuth-клиента, у которого отозван доступ
+      - `revoked_tokens_count: integer, int32` (required) — Количество отозванных токенов
     - **AuditDetailsVideoCallStarted**: При: video_call_started
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
       - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.

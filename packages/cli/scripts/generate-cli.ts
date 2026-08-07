@@ -178,15 +178,11 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
   const properties = resolved.properties || {};
   const requiredFields = new Set(resolved.required || []);
 
-  // Check if top-level has exactly one object property that can be unwrapped
+  // Unwrap the main object property; the rest stay siblings
   const topKeys = Object.keys(properties);
-  const objectKeys = topKeys.filter((k) => {
-    const inner = resolveAllOf(properties[k]);
-    return inner.properties && Object.keys(inner.properties).length > 0;
-  });
+  const wrapperKey = pickWrapperKey(resolved);
 
-  if (objectKeys.length === 1) {
-    const wrapperKey = objectKeys[0];
+  if (wrapperKey) {
     const wrapper = properties[wrapperKey];
     const innerResolved = resolveAllOf(wrapper);
     if (innerResolved.properties) {
@@ -906,15 +902,23 @@ ${runBodyLines.join('\n')}
 }
 
 export function getWrapperKey(schema: Schema): string | null {
-  const resolved = resolveAllOf(schema);
+  return pickWrapperKey(resolveAllOf(schema));
+}
+
+// Тело запроса в API Пачки — это объект-обёртка (`{ message: {...} }`), поля которой
+// становятся флагами команды. Остальные свойства верхнего уровня остаются siblings:
+// скаляры — обычными флагами, объекты — JSON-флагами. Обёрткой считаем самое «крупное»
+// вложенное свойство, чтобы появление второго объекта рядом не отменяло разворачивание.
+function pickWrapperKey(resolved: Schema): string | null {
   if (!resolved.properties) return null;
-  const keys = Object.keys(resolved.properties);
-  const objectKeys = keys.filter((k) => {
-    const inner = resolveAllOf(resolved.properties![k]);
-    return inner.properties && Object.keys(inner.properties).length > 0;
-  });
-  if (objectKeys.length === 1) return objectKeys[0];
-  return null;
+  const properties = resolved.properties;
+  const sizeOf = (key: string): number => {
+    const inner = resolveAllOf(properties[key]);
+    return inner.properties ? Object.keys(inner.properties).length : 0;
+  };
+  const objectKeys = Object.keys(properties).filter((k) => sizeOf(k) > 0);
+  if (objectKeys.length === 0) return null;
+  return objectKeys.reduce((best, key) => (sizeOf(key) > sizeOf(best) ? key : best));
 }
 
 function getOclifArgType(schema: Schema): string {

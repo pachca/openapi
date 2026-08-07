@@ -48,15 +48,11 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
   const properties = resolved.properties || {};
   const requiredFields = new Set(resolved.required || []);
 
-  // Check if top-level has exactly one object property that can be unwrapped
+  // Unwrap the main object property; the rest stay siblings
   const topKeys = Object.keys(properties);
-  const objectKeys = topKeys.filter((k) => {
-    const inner = resolveAllOf(properties[k]);
-    return inner.properties && Object.keys(inner.properties).length > 0;
-  });
+  const wrapperKey = pickWrapperKey(resolved);
 
-  if (objectKeys.length === 1) {
-    const wrapperKey = objectKeys[0];
+  if (wrapperKey) {
     const wrapper = properties[wrapperKey];
     const innerResolved = resolveAllOf(wrapper);
     if (innerResolved.properties) {
@@ -150,16 +146,22 @@ export function getWrapperKey(requestBody?: RequestBody): string | null {
   const jsonContent = requestBody.content['application/json'];
   if (!jsonContent?.schema) return null;
 
-  const schema = jsonContent.schema;
-  const resolved = resolveAllOf(schema);
+  return pickWrapperKey(resolveAllOf(jsonContent.schema));
+}
+
+/**
+ * Pick the object property whose fields become node fields. The remaining top-level
+ * properties stay siblings and are sent next to the wrapper. The largest nested object
+ * wins, so a second object appearing beside the wrapper does not cancel unwrapping.
+ */
+function pickWrapperKey(resolved: Schema): string | null {
   if (!resolved.properties) return null;
-
-  const keys = Object.keys(resolved.properties);
-  const objectKeys = keys.filter((k) => {
-    const inner = resolveAllOf(resolved.properties![k]);
-    return inner.properties && Object.keys(inner.properties).length > 0;
-  });
-
-  if (objectKeys.length === 1) return objectKeys[0];
-  return null;
+  const properties = resolved.properties;
+  const sizeOf = (key: string): number => {
+    const inner = resolveAllOf(properties[key]);
+    return inner.properties ? Object.keys(inner.properties).length : 0;
+  };
+  const objectKeys = Object.keys(properties).filter((k) => sizeOf(k) > 0);
+  if (objectKeys.length === 0) return null;
+  return objectKeys.reduce((best, key) => (sizeOf(key) > sizeOf(best) ? key : best));
 }

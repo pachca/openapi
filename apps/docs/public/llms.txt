@@ -300,7 +300,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 
 ## Обновления
-- [06 августа 2026 — Вход в CLI через браузер, архивные чаты в списке](https://dev.pachca.com/updates/2026-08-06.md)
+- [07 августа 2026 — Вход в CLI через браузер, архивные чаты в списке](https://dev.pachca.com/updates/2026-08-07.md)
 - [01 августа 2026 — Проверка имени файла, уточнения в журнале аудита и страница «Права и роли»](https://dev.pachca.com/updates/2026-08-01.md)
 - [28 июля 2026 — Уточнения в описании API](https://dev.pachca.com/updates/2026-07-28.md)
 - [24 июля 2026 — Самостоятельные треды и аудит видеозвонков](https://dev.pachca.com/updates/2026-07-24.md)

@@ -2,7 +2,7 @@
   {
     "product": "sdk",
     "version": "1.2.0",
-    "date": "2026-08-06",
+    "date": "2026-08-07",
     "changes": [
       {
         "type": "+",
@@ -17,7 +17,7 @@
   {
     "product": "cli",
     "version": "2026.8.1",
-    "date": "2026-08-06",
+    "date": "2026-08-07",
     "changes": [
       {
         "type": "+",
@@ -72,7 +72,7 @@
   {
     "product": "n8n",
     "version": "2.0.18",
-    "date": "2026-08-06",
+    "date": "2026-08-07",
     "changes": [
       {
         "type": "+",

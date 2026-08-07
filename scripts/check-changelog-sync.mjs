@@ -130,6 +130,55 @@ function releasesForProduct(ref, product) {
   }
 }
 
+/**
+ * Whether the release entries declare a release, rather than just fixing the
+ * metadata of one that already shipped.
+ *
+ * A release slipping past midnight is normal: the entry is written on one day
+ * and merged on the next, and the date then has to be corrected. That correction
+ * touches no code, so without this the gate would demand a code change for a
+ * pure date fix — and the only way to satisfy it would be to invent one.
+ *
+ * A release is declared when a version appears, disappears, or its list of
+ * changes is edited. A date moving on a version that was already there is not.
+ */
+function declaresRelease(before, after) {
+  const byVersion = (list) => new Map(list.map((r) => [r.version, r]));
+  const prev = byVersion(before);
+  const next = byVersion(after);
+
+  if (prev.size !== next.size) return true;
+
+  for (const [version, entry] of next) {
+    const old = prev.get(version);
+    if (!old) return true;
+    if (JSON.stringify(old.changes) !== JSON.stringify(entry.changes)) return true;
+  }
+  return false;
+}
+
+/**
+ * Whether a package's own changelog changed in substance, or only in its dates.
+ *
+ * Same reason as `declaresRelease`: a release written on one day and merged on
+ * the next needs its date corrected, and that correction is not a release.
+ * Dates are blanked on both sides before comparing — in the CLI's JSON entries
+ * and in the `## 2.0.18 (2026-08-07)` headings of the n8n changelog.
+ */
+function contentChangedBeyondDate(base, file) {
+  const withoutDates = (text) =>
+    text.replace(/"date":\s*"[^"]*"/g, '"date":""').replace(/^(##\s+\S+)\s+\([^)]*\)/gm, '$1');
+
+  try {
+    return (
+      withoutDates(sh(`git show ${base}:${file}`)) !== withoutDates(sh(`git show HEAD:${file}`))
+    );
+  } catch {
+    // A file that is new or gone on either side is a real change.
+    return true;
+  }
+}
+
 const base = resolveBase();
 if (!base) {
   // Fail closed. Skipping here turned the whole gate into a no-op whenever the
@@ -157,10 +206,12 @@ for (const pkg of PACKAGES) {
   // Editing a generated changelog alone is sync-fixing, not declaring a
   // release — see the comment on `sourceChangelogs` in the PACKAGES table.
   const ownChanged =
-    pkg.sourceChangelogs.length > 0 && changedFiles(base, pkg.sourceChangelogs).length > 0;
-  const releasesChanged =
-    JSON.stringify(releasesForProduct(base, pkg.product)) !==
-    JSON.stringify(releasesForProduct('HEAD', pkg.product));
+    pkg.sourceChangelogs.length > 0 &&
+    changedFiles(base, pkg.sourceChangelogs).some((file) => contentChangedBeyondDate(base, file));
+  const releasesChanged = declaresRelease(
+    releasesForProduct(base, pkg.product),
+    releasesForProduct('HEAD', pkg.product)
+  );
   const changelogWritten = ownChanged || releasesChanged;
 
   const changelogTargets = [`${RELEASES} (product "${pkg.product}")`, ...pkg.ownChangelogs].join(

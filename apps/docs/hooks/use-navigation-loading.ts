@@ -3,7 +3,14 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 
-export function useNavigationLoading(href: string, delay: number = 200) {
+/**
+ * Loader state for a link that starts a navigation.
+ *
+ * `pending` starts the same delayed loader without a click — for navigations
+ * kicked off elsewhere (e.g. picking a section in the mobile menu jumps to its
+ * landing page, and that page's sidebar item should look like it was clicked).
+ */
+export function useNavigationLoading(href: string, delay: number = 200, pending: boolean = false) {
   const [showLoader, setShowLoader] = useState(false);
   const pathname = usePathname();
   const targetHrefRef = useRef<string | null>(null);
@@ -39,6 +46,10 @@ export function useNavigationLoading(href: string, delay: number = 200) {
       }
     }, delay);
   }, [href, pathname, delay]);
+
+  useEffect(() => {
+    if (pending) handleClick();
+  }, [pending, handleClick]);
 
   return { isLoading: showLoader, handleClick };
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PanelLeftClose, ChevronDown } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { SidebarNav } from './sidebar-nav';
 import type { NavigationSection } from '@/lib/openapi/types';
@@ -19,8 +19,16 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
   const [hasOpened, setHasOpened] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const activeTab = useActiveTab();
   const [selectedTab, setSelectedTab] = useState<TabId>(activeTab);
+  // Landing page of a section the user just picked, while its navigation is
+  // still in flight — highlighted right away so the item doesn't light up
+  // late, once the route commits.
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+  // Set when the panel itself triggers navigation (tab switch), so the
+  // route change doesn't close the panel like an outside navigation would.
+  const keepOpenRef = useRef(false);
 
   // Radix DropdownMenu generates random ids via useId, which differ between
   // SSR and the first client render and trigger a hydration warning. Render
@@ -53,16 +61,46 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
     return () => window.removeEventListener('toggle-mobile-menu', handler);
   }, [activeTab]);
 
-  // Close on route change
+  // Close on route change — except when the panel navigated on its own
   useEffect(() => {
+    setPendingHref(null);
+    if (keepOpenRef.current) {
+      keepOpenRef.current = false;
+      return;
+    }
     setIsOpen(false);
   }, [pathname]);
 
   // Lock body scroll when open (shared with the search modal)
   useBodyScrollLock(isOpen);
 
+  // Picking a section opens its landing page right away (same as clicking a
+  // header tab on desktop) while the panel stays on screen, so the sidebar
+  // can be used to keep browsing the section.
   const handleTabChange = (tabId: TabId) => {
     setSelectedTab(tabId);
+
+    const target = TABS.find((t) => t.id === tabId)?.defaultHref;
+    if (!target || target === pathname) return;
+
+    // Section changed — show its nav from the top, not the previous scroll offset.
+    const container = document.getElementById('mobile-sidebar-scroll-container');
+    if (container) container.scrollTop = 0;
+
+    setPendingHref(target);
+    keepOpenRef.current = true;
+    router.push(target);
+  };
+
+  // Picking a page keeps the panel up until the new page is actually there —
+  // the item shows its loader meanwhile, instead of the menu vanishing into a
+  // few seconds of nothing. The route change itself closes the panel.
+  const handleNavigate = (href: string) => {
+    if (href === pathname) {
+      setIsOpen(false);
+      return;
+    }
+    setPendingHref(href);
   };
 
   const selectedTabConfig = TABS.find((t) => t.id === selectedTab);
@@ -164,7 +202,11 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
               id="mobile-sidebar-scroll-container"
             >
               <div className="px-2.5 pb-4">
-                <SidebarNav navigation={navigation} onNavigate={() => setIsOpen(false)} />
+                <SidebarNav
+                  navigation={navigation}
+                  onNavigate={handleNavigate}
+                  activePath={pendingHref ?? undefined}
+                />
               </div>
             </div>
           )}

@@ -9,7 +9,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface SidebarNavProps {
   navigation: NavigationSection[];
-  onNavigate?: () => void;
+  onNavigate?: (href: string) => void;
+  /**
+   * Highlight this href instead of the current pathname. Used while a
+   * navigation started from the sidebar is still in flight, so the target
+   * item looks selected right away instead of lighting up after the commit.
+   */
+  activePath?: string;
 }
 
 /**
@@ -29,8 +35,9 @@ function isGroupActive(item: NavigationItem, pathname: string): boolean {
   return item.children?.some((child) => child.href === pathname) ?? false;
 }
 
-export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
-  const pathname = usePathname();
+export function SidebarNav({ navigation, onNavigate, activePath }: SidebarNavProps) {
+  const currentPathname = usePathname();
+  const pathname = activePath ?? currentPathname;
   const isInternalNav = useRef(false);
 
   // Collect all groups (items with children) across all sections
@@ -41,9 +48,9 @@ export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
     return allGroups.filter((g) => isGroupActive(g, pathname)).map(groupKey);
   });
 
-  const handleItemClick = () => {
+  const handleItemClick = (href: string) => {
     isInternalNav.current = true;
-    onNavigate?.();
+    onNavigate?.(href);
   };
 
   // On external navigation: expand group containing active item
@@ -142,10 +149,16 @@ export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
                     pathname={pathname}
                     isOpen={openGroups.includes(groupKey(item))}
                     onItemClick={handleItemClick}
+                    activePath={activePath}
                   />
                 </li>
               ) : (
-                <SidebarItem key={iIdx} item={item} onItemClick={handleItemClick} />
+                <SidebarItem
+                  key={iIdx}
+                  item={item}
+                  onItemClick={handleItemClick}
+                  activePath={activePath}
+                />
               )
             )}
           </ul>
@@ -163,11 +176,13 @@ function SidebarGroup({
   pathname,
   isOpen,
   onItemClick,
+  activePath,
 }: {
   item: NavigationItem;
   pathname: string;
   isOpen: boolean;
-  onItemClick: () => void;
+  onItemClick: (href: string) => void;
+  activePath?: string;
 }) {
   const activeChild = item.children?.find((c) => c.href === pathname);
   const key = groupKey(item);
@@ -191,7 +206,12 @@ function SidebarGroup({
           <div className="ml-3 pl-4 border-l border-glass-divider mt-1 space-y-0.5">
             <ul className="list-none space-y-0.5">
               {item.children!.map((child, cIdx) => (
-                <SidebarItem key={cIdx} item={child} onItemClick={onItemClick} />
+                <SidebarItem
+                  key={cIdx}
+                  item={child}
+                  onItemClick={onItemClick}
+                  activePath={activePath}
+                />
               ))}
             </ul>
           </div>
@@ -205,7 +225,7 @@ function SidebarGroup({
       {!isOpen && activeChild && (
         <div className="ml-3 pl-4 border-l border-glass-divider mt-1 space-y-0.5">
           <ul className="list-none space-y-0.5">
-            <SidebarItem item={activeChild} onItemClick={onItemClick} />
+            <SidebarItem item={activeChild} onItemClick={onItemClick} activePath={activePath} />
           </ul>
         </div>
       )}

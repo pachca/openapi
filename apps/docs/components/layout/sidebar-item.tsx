@@ -32,21 +32,26 @@ const METHOD_COLORS = {
 
 interface SidebarItemProps {
   item: NavigationItem;
-  onItemClick?: () => void;
+  onItemClick?: (href: string) => void;
+  /** Overrides the current pathname while a sidebar navigation is in flight */
+  activePath?: string;
 }
 
-export function SidebarItem({ item, onItemClick }: SidebarItemProps) {
-  const pathname = usePathname();
-  const isActive = pathname === item.href;
+export function SidebarItem({ item, onItemClick, activePath }: SidebarItemProps) {
+  const currentPathname = usePathname();
+  const isActive = (activePath ?? currentPathname) === item.href;
+  // Navigation to this item was started outside the sidebar — show it as
+  // active and loading, exactly as if it had been clicked here.
+  const isPending = activePath === item.href && currentPathname !== item.href;
   const itemRef = useRef<HTMLAnchorElement>(null);
-  const { isLoading, handleClick } = useNavigationLoading(item.href, 200);
+  const { isLoading, handleClick } = useNavigationLoading(item.href, 200, isPending);
 
   // Check if item has new badge (set by server in navigation.ts)
   const hasNewBadge = item.badge === 'new';
 
   const handleLinkClick = () => {
     handleClick();
-    onItemClick?.();
+    onItemClick?.(item.href);
   };
 
   if (item.external) {

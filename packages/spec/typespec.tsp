@@ -315,6 +315,19 @@ enum ChatAvailability {
   public: "public",
 }
 
+@doc("Состояние чатов в выборке")
+@extension("x-enum-descriptions", #{
+  active: "Только активные чаты",
+  archived: "Только архивные чаты",
+})
+enum ChatActivity {
+  @doc("Только активные чаты")
+  active: "active",
+
+  @doc("Только архивные чаты")
+  archived: "archived",
+}
+
 @doc("Тип события webhook")
 @extension("x-enum-descriptions", #{
   new: "Создание",
@@ -615,6 +628,8 @@ enum ValidationErrorCode {
   kms_encrypt: "Данные зашифрованы",
   kms_decrypt: "Данные расшифрованы",
   audit_events_accessed: "Доступ к журналам аудита получен",
+  company_chats_accessed: "Получен список всех чатов пространства",
+  company_bots_accessed: "Получен список всех ботов пространства",
   dlp_violation_detected: "Срабатывание правила DLP-системы",
   search_users_api: "Поиск сотрудников через API",
   search_chats_api: "Поиск чатов через API",
@@ -723,6 +738,12 @@ enum AuditEventKey {
 
   @doc("Доступ к журналам аудита получен")
   audit_events_accessed: "audit_events_accessed",
+
+  @doc("Получен список всех чатов пространства")
+  company_chats_accessed: "company_chats_accessed",
+
+  @doc("Получен список всех ботов пространства")
+  company_bots_accessed: "company_bots_accessed",
 
   @doc("Срабатывание правила DLP-системы")
   dlp_violation_detected: "dlp_violation_detected",
@@ -1378,6 +1399,8 @@ model AvatarData {
   user_avatar_write: "Изменение и удаление аватара сотрудника",
   custom_properties_read: "Просмотр дополнительных полей",
   audit_events_read: "Просмотр журнала аудита",
+  company_chats_read: "Просмотр списка всех чатов пространства",
+  company_bots_read: "Просмотр списка всех ботов пространства",
   tasks_read: "Просмотр задач",
   tasks_create: "Создание задач",
   tasks_update: "Изменение задачи",
@@ -1433,6 +1456,8 @@ model AvatarData {
   user_avatar_write: #["owner", "admin"],
   custom_properties_read: #["owner", "admin", "user", "bot"],
   audit_events_read: #["owner"],
+  company_chats_read: #["owner"],
+  company_bots_read: #["owner"],
   tasks_read: #["owner", "admin", "user", "bot"],
   tasks_create: #["owner", "admin", "user", "bot"],
   tasks_update: #["owner", "admin", "user", "bot"],
@@ -1562,6 +1587,12 @@ enum OAuthScope {
 
   @doc("Просмотр журнала аудита")
   audit_events_read: "audit_events:read",
+
+  @doc("Просмотр списка всех чатов пространства")
+  company_chats_read: "company_chats:read",
+
+  @doc("Просмотр списка всех ботов пространства")
+  company_bots_read: "company_bots:read",
 
   @doc("Просмотр задач")
   tasks_read: "tasks:read",
@@ -3045,7 +3076,87 @@ model BotCreateResponse {
 
 }
 
-@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed.")
+@doc("Параметры вебхука бота пространства. Настройки бота, недоступного вам для редактирования, приходят как `null` — остаются только имя и никнейм.")
+model CompanyBotWebhook {
+  @doc("Имя бота")
+  @maxLength(255)
+  @example("Бот задач")
+  name: string;
+
+  @doc("Никнейм бота")
+  @maxLength(255)
+  @example("tasks_bot")
+  nickname: string;
+
+  @doc("URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен.")
+  @example("https://www.website.com/tasks/new")
+  outgoing_url: string | null;
+
+  @doc("События, на которые подписан бот")
+  @example(#[BotEventName.message_new])
+  events: BotEventName[] | null;
+
+  @doc("Условие срабатывания исходящего вебхука")
+  @example(BotTriggerOn.commands)
+  trigger_on: BotTriggerOn | null;
+
+  @doc("Команды бота (триггер-слова)")
+  @example(#["/task"])
+  commands: string[] | null;
+
+  @doc("Скоупы (права доступа) токена бота")
+  @example(#["messages:create"])
+  scopes: string[] | null;
+
+  @doc("Шаблон форматирования входящего вебхука. `null`, если не задан.")
+  @example("Заказ от {{ client }} на сумму {{ amount }} ₽")
+  template: string | null;
+
+  @doc("Шаблонизатор для обработки шаблона входящего вебхука")
+  @example(BotTemplateEngine.liquid)
+  template_engine: BotTemplateEngine | null;
+
+  @doc("Название поля проверки для верификации входящего вебхука. `null`, если не задано.")
+  @example("challenge")
+  challenge_key: string | null;
+
+  @doc("Показывать превью ссылок в сообщениях входящего вебхука")
+  @example(true)
+  link_preview_enabled: boolean | null;
+
+  @doc("Игнорировать входящие сообщения, отправленные самим ботом")
+  @example(false)
+  ignore_self_messages: boolean | null;
+
+  @doc("Сохранять историю событий бота для последующего получения через метод истории событий")
+  @example(false)
+  events_history_enabled: boolean | null;
+
+  @doc("Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.")
+  @example(false)
+  single_chat: boolean | null;
+
+  @doc("Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.")
+  @example(#[BotCanEdit.admin])
+  can_edit: BotCanEdit[] | null;
+
+  @doc("Кто может добавлять бота в чаты")
+  @example(BotWhoCanAdd.creator)
+  who_can_add: BotWhoCanAdd | null;
+}
+
+@doc("Параметры бота пространства")
+model CompanyBotResponse {
+  @doc("Идентификатор бота (совпадает с `user_id` бота)")
+  @example(1738816)
+  id: int32;
+
+  @doc("Объект параметров вебхука")
+  webhook: CompanyBotWebhook;
+
+}
+
+@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.")
 model AuditDetailsEmpty {}
 
 @doc("При: user_updated")
@@ -3878,6 +3989,55 @@ interface ExportOperations {
   } | {
     @statusCode _: 403;
     @body body: ApiError | OAuthError;
+  };
+}
+
+@route("/company/chats")
+@tag("Chats")
+interface CompanyChatOperations {
+  @extension("x-requirements", #{
+    scope: "company_chats:read",
+    plan: "corporation",
+  })
+  @doc("""
+Список чатов пространства
+
+Метод для получения списка бесед и каналов всего пространства, включая закрытые, где вы не состоите участником. Личные переписки и треды не возвращаются.
+
+По умолчанию отдаются и активные, и архивные чаты. Параметр `activity` оставляет в выдаче только одно из состояний.
+
+Метод доступен Владельцу пространства. Каждый запрос записывается в [журнал аудита событий](/guides/audit-events) с типом `company_chats_accessed`.
+""")
+  @extension("x-paginated", true)
+  @get
+  listCompanyChats(
+    @doc("Состояние чатов. Если параметр не указан, возвращаются и активные, и архивные чаты.")
+    @extension("example", "active")
+    @query activity?: ChatActivity,
+    @doc("Количество возвращаемых сущностей за один запрос")
+    @query
+    @extension("example", 1)
+    @minValue(1)
+    @maxValue(50)
+    limit?: int32 = 50,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+    @query cursor?: string
+  ): {
+    @statusCode _: 200;
+    @body body: PaginatedDataResponse<Chat[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
 }
 
@@ -6055,10 +6215,24 @@ interface TaskOperations {
 Список напоминаний
 
 Метод для получения списка напоминаний.
+
+Без параметра `chat_ids` возвращаются только ваши напоминания: из бесед и каналов, где вы состоите участником, а также созданные вами или назначенные вам напоминания без привязки к чату. Параметр `chat_ids` меняет выборку — возвращаются все напоминания указанных чатов, включая чужие.
 """)
   @extension("x-paginated", true)
   @get
   listTasks(
+    @doc("Фильтр по состоянию. Если параметр не указан, возвращаются напоминания в любом состоянии.")
+    @extension("example", "undone")
+    @query status?: TaskStatus,
+    @doc("Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов.")
+    @extension("example", #[198, 334])
+    @query chat_ids?: int32[],
+    @doc("Фильтр по ответственным за напоминание. Не более 100 идентификаторов.")
+    @extension("example", #[12, 185])
+    @query performer_ids?: int32[],
+    @doc("Фильтр по автору напоминания")
+    @extension("example", 12)
+    @query author_id?: int32,
     @doc("Количество возвращаемых сущностей за один запрос")
     @query
     @extension("example", 1)
@@ -6786,6 +6960,109 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+}
+
+@route("/company/bots")
+@tag("Bots")
+interface CompanyBotOperations {
+  @extension("x-requirements", #{
+    scope: "company_bots:read",
+    plan: "corporation",
+  })
+  @doc("""
+Список ботов пространства
+
+Метод для получения списка ботов всего пространства, включая тех, кто недоступен вам для редактирования. У таких ботов приходят только имя и никнейм, остальные настройки — `null`.
+
+Метод доступен Владельцу пространства. Каждый запрос записывается в [журнал аудита событий](/guides/audit-events) с типом `company_bots_accessed`.
+""")
+  @extension("x-paginated", true)
+  @get
+  @opExample(#{
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #[
+          #{
+            id: 1738816,
+            webhook: #{
+              name: "Бот задач",
+              nickname: "tasks_bot",
+              outgoing_url: "https://www.website.com/tasks/new",
+              events: #[BotEventName.message_new],
+              trigger_on: BotTriggerOn.commands,
+              commands: #["/task"],
+              scopes: #["messages:create"],
+              template: "Заказ от {{ client }} на сумму {{ amount }} ₽",
+              template_engine: BotTemplateEngine.liquid,
+              challenge_key: "challenge",
+              link_preview_enabled: true,
+              ignore_self_messages: false,
+              events_history_enabled: false,
+              single_chat: false,
+              can_edit: #[BotCanEdit.admin],
+              who_can_add: BotWhoCanAdd.creator,
+            },
+          },
+          #{
+            id: 1738817,
+            webhook: #{
+              name: "Бот релизов",
+              nickname: "release_bot",
+              outgoing_url: null,
+              events: null,
+              trigger_on: null,
+              commands: null,
+              scopes: null,
+              template: null,
+              template_engine: null,
+              challenge_key: null,
+              link_preview_enabled: null,
+              ignore_self_messages: null,
+              events_history_enabled: null,
+              single_chat: null,
+              can_edit: null,
+              who_can_add: null,
+            },
+          }
+        ],
+        meta: #{
+          paginate: #{
+            next_page: "eyJpZCI6MTczODgxN30",
+          },
+        },
+      },
+    },
+  })
+  listCompanyBots(
+    @doc("Поисковая фраза для фильтрации ботов по имени")
+    @extension("example", "задач")
+    @query query?: string,
+    @doc("Количество возвращаемых сущностей за один запрос")
+    @query
+    @extension("example", 1)
+    @minValue(1)
+    @maxValue(50)
+    limit?: int32 = 50,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @extension("example", "eyJpZCI6MTczODgxNn0")
+    @query cursor?: string
+  ): {
+    @statusCode _: 200;
+    @body body: PaginatedDataResponse<CompanyBotResponse[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 400;
     @body body: ApiError;
   } | {
     @statusCode _: 402;

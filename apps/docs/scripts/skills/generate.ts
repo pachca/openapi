@@ -875,6 +875,7 @@ change to a published package ships with a release entry (and vice versa).
 - After changing \`typespec.tsp\`, always \`npx turbo build --filter=@pachca/spec --force\` — otherwise \`openapi.yaml\` stays stale.
 - Snapshot regeneration for \`packages/generator\` is a bulk snapshot rewrite. Use \`cd packages/generator && npm run regen-snapshots\` (backed by top-level \`scripts/regen-generator-snapshots.ts\`) instead of ad-hoc \`bun -e\` one-offs or the old \`bin/\` / \`tests/\` helpers.
 - Restart the docs dev server after changing component registrations or new TS/TSX files (Turbopack HMR misses them).
+- Hand-written files must stay out of a turbo task's \`outputs\` globs. On a cache **hit** turbo restores every declared output over the working tree, silently reverting hand edits — the package script alone keeps them, so it looks intermittent. \`generate-n8n\` declares \`nodes/**/*.ts\`, so \`nodes/Pachca/GenericFunctions.ts\` and \`nodes/Pachca/V1/**\` are excluded by negation in \`turbo.json\`; keep new hand-written node files excluded too.
 
 ## Deep-dive docs (read before the relevant task)
 

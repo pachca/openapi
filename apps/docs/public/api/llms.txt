@@ -26,6 +26,7 @@
 - [Редактирование чата](https://dev.pachca.com/api/chats/update.md): PUT /chats/{id}
 - [Архивация чата](https://dev.pachca.com/api/chats/archive.md): PUT /chats/{id}/archive
 - [Разархивация чата](https://dev.pachca.com/api/chats/unarchive.md): PUT /chats/{id}/unarchive
+- [Список чатов пространства](https://dev.pachca.com/api/chats/list-company.md): GET /company/chats
 
 ## Profile
 - [Свой профиль](https://dev.pachca.com/api/profile/get.md): GET /profile
@@ -112,6 +113,7 @@
 - [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
 - [Удаление бота](https://dev.pachca.com/api/bots/delete.md): DELETE /bots/{id}
 - [Ротация токена бота](https://dev.pachca.com/api/bots/recreate-token.md): POST /bots/{id}/recreate_token
+- [Список ботов пространства](https://dev.pachca.com/api/bots/list-company.md): GET /company/bots
 - [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
 - [Удаление события](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}
 

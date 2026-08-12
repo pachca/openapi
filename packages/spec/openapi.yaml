@@ -1833,6 +1833,235 @@ paths:
         - Chats
       x-requirements:
         scope: chats:archive
+  /company/bots:
+    get:
+      operationId: CompanyBotOperations_listCompanyBots
+      description: |-
+        Список ботов пространства
+
+        Метод для получения списка ботов всего пространства, включая тех, кто недоступен вам для редактирования. У таких ботов приходят только имя и никнейм, остальные настройки — `null`.
+
+        Метод доступен Владельцу пространства. Каждый запрос записывается в [журнал аудита событий](/guides/audit-events) с типом `company_bots_accessed`.
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Поисковая фраза для фильтрации ботов по имени
+          schema:
+            type: string
+            example: задач
+          example: задач
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Количество возвращаемых сущностей за один запрос
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            example: 1
+            default: 50
+          example: 1
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Курсор для пагинации (из `meta.paginate.next_page`)
+          schema:
+            type: string
+            example: eyJpZCI6MTczODgxNn0
+          example: eyJpZCI6MTczODgxNn0
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CompanyBotResponse'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                description: Обертка ответа с данными и пагинацией
+              example:
+                data:
+                  - id: 1738816
+                    webhook:
+                      name: Бот задач
+                      nickname: tasks_bot
+                      outgoing_url: https://www.website.com/tasks/new
+                      events:
+                        - message_new
+                      trigger_on: commands
+                      commands:
+                        - /task
+                      scopes:
+                        - messages:create
+                      template: Заказ от {{ client }} на сумму {{ amount }} ₽
+                      template_engine: liquid
+                      challenge_key: challenge
+                      link_preview_enabled: true
+                      ignore_self_messages: false
+                      events_history_enabled: false
+                      single_chat: false
+                      can_edit:
+                        - admin
+                      who_can_add: creator
+                  - id: 1738817
+                    webhook:
+                      name: Бот релизов
+                      nickname: release_bot
+                      outgoing_url: null
+                      events: null
+                      trigger_on: null
+                      commands: null
+                      scopes: null
+                      template: null
+                      template_engine: null
+                      challenge_key: null
+                      link_preview_enabled: null
+                      ignore_self_messages: null
+                      events_history_enabled: null
+                      single_chat: null
+                      can_edit: null
+                      who_can_add: null
+                meta:
+                  paginate:
+                    next_page: eyJpZCI6MTczODgxN30
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Bots
+      x-paginated: true
+      x-requirements:
+        scope: company_bots:read
+        plan: corporation
+  /company/chats:
+    get:
+      operationId: CompanyChatOperations_listCompanyChats
+      description: |-
+        Список чатов пространства
+
+        Метод для получения списка бесед и каналов всего пространства, включая закрытые, где вы не состоите участником. Личные переписки и треды не возвращаются.
+
+        По умолчанию отдаются и активные, и архивные чаты. Параметр `activity` оставляет в выдаче только одно из состояний.
+
+        Метод доступен Владельцу пространства. Каждый запрос записывается в [журнал аудита событий](/guides/audit-events) с типом `company_chats_accessed`.
+      parameters:
+        - name: activity
+          in: query
+          required: false
+          description: Состояние чатов. Если параметр не указан, возвращаются и активные, и архивные чаты.
+          schema:
+            $ref: '#/components/schemas/ChatActivity'
+            example: active
+          example: active
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Количество возвращаемых сущностей за один запрос
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            example: 1
+            default: 50
+          example: 1
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Курсор для пагинации (из `meta.paginate.next_page`)
+          schema:
+            type: string
+            example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Chat'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                description: Обертка ответа с данными и пагинацией
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Chats
+      x-paginated: true
+      x-requirements:
+        scope: company_chats:read
+        plan: corporation
   /custom_properties:
     get:
       operationId: CommonOperations_listProperties
@@ -4086,7 +4315,60 @@ paths:
         Список напоминаний
 
         Метод для получения списка напоминаний.
+
+        Без параметра `chat_ids` возвращаются только ваши напоминания: из бесед и каналов, где вы состоите участником, а также созданные вами или назначенные вам напоминания без привязки к чату. Параметр `chat_ids` меняет выборку — возвращаются все напоминания указанных чатов, включая чужие.
       parameters:
+        - name: status
+          in: query
+          required: false
+          description: Фильтр по состоянию. Если параметр не указан, возвращаются напоминания в любом состоянии.
+          schema:
+            $ref: '#/components/schemas/TaskStatus'
+            example: undone
+          example: undone
+          explode: false
+        - name: chat_ids
+          in: query
+          required: false
+          description: Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов.
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+            example:
+              - 198
+              - 334
+          example:
+            - 198
+            - 334
+          explode: false
+        - name: performer_ids
+          in: query
+          required: false
+          description: Фильтр по ответственным за напоминание. Не более 100 идентификаторов.
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+            example:
+              - 12
+              - 185
+          example:
+            - 12
+            - 185
+          explode: false
+        - name: author_id
+          in: query
+          required: false
+          description: Фильтр по автору напоминания
+          schema:
+            type: integer
+            format: int32
+            example: 12
+          example: 12
+          explode: false
         - name: limit
           in: query
           required: false
@@ -5708,7 +5990,7 @@ components:
       description: 'При: dlp_violation_detected'
     AuditDetailsEmpty:
       type: object
-      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed.'
+      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.'
     AuditDetailsInitiator:
       type: object
       required:
@@ -6067,6 +6349,8 @@ components:
         - kms_encrypt
         - kms_decrypt
         - audit_events_accessed
+        - company_chats_accessed
+        - company_bots_accessed
         - dlp_violation_detected
         - search_users_api
         - search_chats_api
@@ -6114,6 +6398,8 @@ components:
         kms_encrypt: Данные зашифрованы
         kms_decrypt: Данные расшифрованы
         audit_events_accessed: Доступ к журналам аудита получен
+        company_chats_accessed: Получен список всех чатов пространства
+        company_bots_accessed: Получен список всех ботов пространства
         dlp_violation_detected: Срабатывание правила DLP-системы
         search_users_api: Поиск сотрудников через API
         search_chats_api: Поиск чатов через API
@@ -6731,6 +7017,15 @@ components:
           description: Ссылка на Видеочат
           example: https://meet.pachca.com/aqua-94bb21b5
       description: Чат
+    ChatActivity:
+      type: string
+      enum:
+        - active
+        - archived
+      description: Состояние чатов в выборке
+      x-enum-descriptions:
+        active: Только активные чаты
+        archived: Только архивные чаты
     ChatAvailability:
       type: string
       enum:
@@ -6902,6 +7197,138 @@ components:
               example: true
           description: Собранный объект параметров обновляемого чата
       description: Запрос на обновление чата
+    CompanyBotResponse:
+      type: object
+      required:
+        - id
+        - webhook
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор бота (совпадает с `user_id` бота)
+          example: 1738816
+        webhook:
+          allOf:
+            - $ref: '#/components/schemas/CompanyBotWebhook'
+          description: Объект параметров вебхука
+      description: Параметры бота пространства
+    CompanyBotWebhook:
+      type: object
+      required:
+        - name
+        - nickname
+        - outgoing_url
+        - events
+        - trigger_on
+        - commands
+        - scopes
+        - template
+        - template_engine
+        - challenge_key
+        - link_preview_enabled
+        - ignore_self_messages
+        - events_history_enabled
+        - single_chat
+        - can_edit
+        - who_can_add
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Имя бота
+          example: Бот задач
+        nickname:
+          type: string
+          maxLength: 255
+          description: Никнейм бота
+          example: tasks_bot
+        outgoing_url:
+          type: string
+          nullable: true
+          description: URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен.
+          example: https://www.website.com/tasks/new
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotEventName'
+          nullable: true
+          description: События, на которые подписан бот
+          example:
+            - message_new
+        trigger_on:
+          allOf:
+            - $ref: '#/components/schemas/BotTriggerOn'
+          nullable: true
+          description: Условие срабатывания исходящего вебхука
+          example: commands
+        commands:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Команды бота (триггер-слова)
+          example:
+            - /task
+        scopes:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Скоупы (права доступа) токена бота
+          example:
+            - messages:create
+        template:
+          type: string
+          nullable: true
+          description: Шаблон форматирования входящего вебхука. `null`, если не задан.
+          example: Заказ от {{ client }} на сумму {{ amount }} ₽
+        template_engine:
+          allOf:
+            - $ref: '#/components/schemas/BotTemplateEngine'
+          nullable: true
+          description: Шаблонизатор для обработки шаблона входящего вебхука
+          example: liquid
+        challenge_key:
+          type: string
+          nullable: true
+          description: Название поля проверки для верификации входящего вебхука. `null`, если не задано.
+          example: challenge
+        link_preview_enabled:
+          type: boolean
+          nullable: true
+          description: Показывать превью ссылок в сообщениях входящего вебхука
+          example: true
+        ignore_self_messages:
+          type: boolean
+          nullable: true
+          description: Игнорировать входящие сообщения, отправленные самим ботом
+          example: false
+        events_history_enabled:
+          type: boolean
+          nullable: true
+          description: Сохранять историю событий бота для последующего получения через метод истории событий
+          example: false
+        single_chat:
+          type: boolean
+          nullable: true
+          description: 'Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.'
+          example: false
+        can_edit:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotCanEdit'
+          nullable: true
+          description: Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.
+          example:
+            - admin
+        who_can_add:
+          allOf:
+            - $ref: '#/components/schemas/BotWhoCanAdd'
+          nullable: true
+          description: Кто может добавлять бота в чаты
+          example: creator
+      description: Параметры вебхука бота пространства. Настройки бота, недоступного вам для редактирования, приходят как `null` — остаются только имя и никнейм.
     CompanyMemberWebhookPayload:
       type: object
       required:
@@ -7866,6 +8293,8 @@ components:
         - user_avatar:write
         - custom_properties:read
         - audit_events:read
+        - company_chats:read
+        - company_bots:read
         - tasks:read
         - tasks:create
         - tasks:update
@@ -8049,6 +8478,10 @@ components:
           - bot
         audit_events_read:
           - owner
+        company_chats_read:
+          - owner
+        company_bots_read:
+          - owner
         tasks_read:
           - owner
           - admin
@@ -8159,6 +8592,8 @@ components:
         user_avatar_write: Изменение и удаление аватара сотрудника
         custom_properties_read: Просмотр дополнительных полей
         audit_events_read: Просмотр журнала аудита
+        company_chats_read: Просмотр списка всех чатов пространства
+        company_bots_read: Просмотр списка всех ботов пространства
         tasks_read: Просмотр задач
         tasks_create: Создание задач
         tasks_update: Изменение задачи

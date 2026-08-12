@@ -33,6 +33,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca bots delete` | `DELETE` Удаление бота |
 | `pachca bots get` | `GET` Информация о боте |
 | `pachca bots list` | `GET` Список ботов |
+| `pachca bots list-company` | `GET` Список ботов пространства |
 | `pachca bots list-events` | `GET` История событий |
 | `pachca bots recreate-token` | `POST` Ротация токена бота |
 | `pachca bots recreate-token-self` | `POST` Ротация собственного токена бота |
@@ -45,6 +46,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca chats download-export` | `GET` Скачать архив экспорта |
 | `pachca chats get` | `GET` Информация о чате |
 | `pachca chats list` | `GET` Список чатов |
+| `pachca chats list-company` | `GET` Список чатов пространства |
 | `pachca chats request-export` | `POST` Экспорт сообщений |
 | `pachca chats unarchive` | `PUT` Разархивация чата |
 | `pachca chats update` | `PUT` Редактирование чата |

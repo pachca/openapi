@@ -414,6 +414,34 @@ describe('cleanFileAttachments', () => {
     ]);
   });
 
+  it('should strip zero-value size and duration_ms left at their defaults', () => {
+    const ctx = createMockCtx({
+      additionalFields: {
+        files: [
+          { key: 'uploads/a.pdf', name: 'a.pdf', size: 0, duration_ms: 0, height: 0, width: 0, fileType: 'file' },
+        ],
+      },
+    });
+    const result = cleanFileAttachments(ctx, 0);
+    expect(result).toEqual([
+      { key: 'uploads/a.pdf', name: 'a.pdf', file_type: 'file' },
+    ]);
+  });
+
+  it('should keep non-zero size and duration_ms', () => {
+    const ctx = createMockCtx({
+      additionalFields: {
+        files: [
+          { key: 'uploads/v.ogg', name: 'v.ogg', size: 4096, duration_ms: 5400, waveform: '4,8,12', fileType: 'voice' },
+        ],
+      },
+    });
+    const result = cleanFileAttachments(ctx, 0);
+    expect(result).toEqual([
+      { key: 'uploads/v.ogg', name: 'v.ogg', size: 4096, duration_ms: 5400, waveform: '4,8,12', file_type: 'voice' },
+    ]);
+  });
+
   it('should keep non-zero height and width', () => {
     const ctx = createMockCtx({
       additionalFields: {

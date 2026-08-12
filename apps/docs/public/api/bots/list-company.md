@@ -1,37 +1,35 @@
-> Расположение: Методы API → Напоминания
-> Краткое содержание: Метод для получения списка напоминаний.
+> Расположение: Методы API → Боты и Webhook
+> Краткое содержание: Метод для получения списка ботов всего пространства, включая тех, кто недоступен вам для редактирования
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
-# Список напоминаний
+# Список ботов пространства
 
 **Метод**: `GET`
 
-**Путь**: `/tasks`
+**Путь**: `/company/bots`
 
-> **Скоуп:** `tasks:read`
+> **Скоуп:** `company_bots:read`
 
-Метод для получения списка напоминаний.
+> **Внимание:** Доступно только на тарифе **Корпорация**
 
-Без параметра `chat_ids` возвращаются только ваши напоминания: из бесед и каналов, где вы состоите участником, а также созданные вами или назначенные вам напоминания без привязки к чату. Параметр `chat_ids` меняет выборку — возвращаются все напоминания указанных чатов, включая чужие.
+Метод для получения списка ботов всего пространства, включая тех, кто недоступен вам для редактирования. У таких ботов приходят только имя и никнейм, остальные настройки — `null`.
+
+Метод доступен Владельцу пространства. Каждый запрос записывается в [журнал аудита событий](/guides/audit-events) с типом `company_bots_accessed`.
 
 ## Параметры
 
 ### Query параметры
 
-- `status: string` — Фильтр по состоянию. Если параметр не указан, возвращаются напоминания в любом состоянии.
-  Значения: `done`, `undone`
-- `chat_ids: array` — Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов.
-- `performer_ids: array` — Фильтр по ответственным за напоминание. Не более 100 идентификаторов.
-- `author_id: integer, int32` — Фильтр по автору напоминания
+- `query: string` — Поисковая фраза для фильтрации ботов по имени
 - `limit: integer, int32` (default: 50) — Количество возвращаемых сущностей за один запрос
-- `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
+- `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page`)
 
 
 ## Пример запроса
 
 ```bash
 # Для получения следующей страницы используйте cursor из meta.paginate.next_page
-curl "https://api.pachca.com/api/shared/v1/tasks?status=undone&chat_ids[]=198&chat_ids[]=334&performer_ids[]=12&performer_ids[]=185&author_id=12&limit=1" \
+curl "https://api.pachca.com/api/shared/v1/company/bots?query=задач&limit=1" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -42,25 +40,27 @@ curl "https://api.pachca.com/api/shared/v1/tasks?status=undone&chat_ids[]=198&ch
 **Схема ответа:**
 
 - `data: array of object` (required)
-  - `id: integer, int32` (required) — Идентификатор напоминания. Пример: `22283`
-  - `kind: string` (required) — Тип
-    Значения: `call` — Позвонить контакту, `meeting` — Встреча, `reminder` — Простое напоминание, `event` — Событие, `email` — Написать письмо
-  - `content: string` (required) — Описание. Пример: `"Забрать со склада 21 заказ"`
-  - `due_at: date-time` (required, nullable) — Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан. Пример: `"2020-06-05T09:00:00.000Z"`
-  - `priority: integer, int32` (required) — Приоритет. Пример: `2`
-  - `user_id: integer, int32` (required) — Идентификатор пользователя-создателя напоминания. Пример: `12`
-  - `chat_id: integer, int32` (required, nullable) — Идентификатор чата, к которому привязано напоминание. `null`, если напоминание не привязано к чату. Пример: `334`
-  - `status: string` (required) — Статус напоминания
-    Значения: `done` — Выполнено, `undone` — Активно
-  - `created_at: date-time` (required) — Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2020-06-04T10:37:57.000Z"`
-  - `performer_ids: array of integer` (required) — Массив идентификаторов пользователей, привязанных к напоминанию как «ответственные». Пример: `[12]`
-  - `all_day: boolean` (required) — Напоминание на весь день (без указания времени). Пример: `false`
-  - `custom_properties: array of object` (required) — Дополнительные поля напоминания
-    - `id: integer, int32` (required) — Идентификатор поля. Пример: `1678`
-    - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
-    - `data_type: string` (required) — Тип поля
-      Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
+  - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
+  - `webhook: object` (required) — Объект параметров вебхука
+    - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
+    - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
+    - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://www.website.com/tasks/new"`
+    - `events: array of string` (required, nullable) — События, на которые подписан бот. Пример: `["message_new"]`
+    - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
+      Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
+    - `commands: array of string` (required, nullable) — Команды бота (триггер-слова). Пример: `["/task"]`
+    - `scopes: array of string` (required, nullable) — Скоупы (права доступа) токена бота. Пример: `["messages:create"]`
+    - `template: string` (required, nullable) — Шаблон форматирования входящего вебхука. `null`, если не задан. Пример: `"Заказ от {{ client }} на сумму {{ amount }} ₽"`
+    - `template_engine: string` (required) — Шаблонизатор для обработки шаблона входящего вебхука
+      Значения: `liquid` — Liquid — условия, циклы и фильтры, `mustache` — Mustache — простая подстановка без логики
+    - `challenge_key: string` (required, nullable) — Название поля проверки для верификации входящего вебхука. `null`, если не задано. Пример: `"challenge"`
+    - `link_preview_enabled: boolean` (required, nullable) — Показывать превью ссылок в сообщениях входящего вебхука. Пример: `true`
+    - `ignore_self_messages: boolean` (required, nullable) — Игнорировать входящие сообщения, отправленные самим ботом. Пример: `false`
+    - `events_history_enabled: boolean` (required, nullable) — Сохранять историю событий бота для последующего получения через метод истории событий. Пример: `false`
+    - `single_chat: boolean` (required, nullable) — Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Пример: `false`
+    - `can_edit: array of string` (required, nullable) — Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Пример: `["admin"]`
+    - `who_can_add: string` (required) — Кто может добавлять бота в чаты
+      Значения: `creator` — Только создатель бота, `creator_admin` — Создатель и администраторы компании, `creator_admin_user` — Создатель, администраторы и участники компании, `anyone` — Любой пользователь, в том числе гости
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`
@@ -74,35 +74,59 @@ curl "https://api.pachca.com/api/shared/v1/tasks?status=undone&chat_ids[]=198&ch
 {
   "data": [
     {
-      "id": 22283,
-      "kind": "reminder",
-      "content": "Забрать со склада 21 заказ",
-      "due_at": "2020-06-05T09:00:00.000Z",
-      "priority": 2,
-      "user_id": 12,
-      "chat_id": 334,
-      "status": "undone",
-      "created_at": "2020-06-04T10:37:57.000Z",
-      "performer_ids": [
-        12
-      ],
-      "all_day": false,
-      "custom_properties": [
-        {
-          "id": 1678,
-          "name": "Город",
-          "data_type": "string",
-          "value": "Санкт-Петербург"
-        }
-      ]
+      "id": 1738816,
+      "webhook": {
+        "name": "Бот задач",
+        "nickname": "tasks_bot",
+        "outgoing_url": "https://www.website.com/tasks/new",
+        "events": [
+          "message_new"
+        ],
+        "trigger_on": "commands",
+        "commands": [
+          "/task"
+        ],
+        "scopes": [
+          "messages:create"
+        ],
+        "template": "Заказ от {{ client }} на сумму {{ amount }} ₽",
+        "template_engine": "liquid",
+        "challenge_key": "challenge",
+        "link_preview_enabled": true,
+        "ignore_self_messages": false,
+        "events_history_enabled": false,
+        "single_chat": false,
+        "can_edit": [
+          "admin"
+        ],
+        "who_can_add": "creator"
+      }
+    },
+    {
+      "id": 1738817,
+      "webhook": {
+        "name": "Бот релизов",
+        "nickname": "release_bot",
+        "outgoing_url": null,
+        "events": null,
+        "trigger_on": null,
+        "commands": null,
+        "scopes": null,
+        "template": null,
+        "template_engine": null,
+        "challenge_key": null,
+        "link_preview_enabled": null,
+        "ignore_self_messages": null,
+        "events_history_enabled": null,
+        "single_chat": null,
+        "can_edit": null,
+        "who_can_add": null
+      }
     }
   ],
   "meta": {
     "paginate": {
-      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3",
-      "prev_page": "eyJxZCO2MiwiZGlyIjoiYXNjIn0",
-      "has_next": true,
-      "has_prev": false
+      "next_page": "eyJpZCI6MTczODgxN30"
     }
   }
 }
@@ -188,15 +212,35 @@ curl "https://api.pachca.com/api/shared/v1/tasks?status=undone&chat_ids[]=198&ch
 
 **Схема ответа при ошибке:**
 
-- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
-- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+**anyOf** - один из вариантов:
+
+- **ApiError**: Ошибка API (используется для 400, 402, 403, 404, 409, 410, 422)
+  - `errors: array of object` (required) — Массив ошибок
+    - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+    - `value: string` (required, nullable) — Значение поля, которое вызвало ошибку. `null`, если ошибка не относится к конкретному значению. Пример: `"invalid_value"`
+    - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
+    - `code: string` (required) — Код ошибки
+      Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде
+    - `payload: Record<string, object>` (required, nullable) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
+      **Структура значений Record:**
+      - Тип значения: `any`
+- **OAuthError**: Ошибка OAuth авторизации (используется для 401 и 403)
+  - `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+  - `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 **Пример ответа:**
 
 ```json
 {
-  "error": "invalid_token",
-  "error_description": "Access token is missing"
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
 }
 ```
 

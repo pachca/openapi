@@ -95,6 +95,14 @@ open class BotsService {
         throw pachcaNotImplemented("Bots.getBot")
     }
 
+    open func listCompanyBots(query: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListCompanyBotsResponse {
+        throw pachcaNotImplemented("Bots.listCompanyBots")
+    }
+
+    open func listCompanyBotsAll(query: String? = nil, limit: Int? = nil) async throws -> [CompanyBotResponse] {
+        throw pachcaNotImplemented("Bots.listCompanyBotsAll")
+    }
+
     open func getWebhookEvents(limit: Int? = nil, cursor: String? = nil) async throws -> GetWebhookEventsResponse {
         throw pachcaNotImplemented("Bots.getWebhookEvents")
     }
@@ -278,6 +286,41 @@ public final class BotsServiceImpl: BotsService {
         }
     }
 
+    public override func listCompanyBots(query: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListCompanyBotsResponse {
+        var components = URLComponents(string: "\(baseURL)/company/bots")!
+        var queryItems: [URLQueryItem] = []
+        if let query { queryItems.append(URLQueryItem(name: "query", value: String(query))) }
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ListCompanyBotsResponse.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func listCompanyBotsAll(query: String? = nil, limit: Int? = nil) async throws -> [CompanyBotResponse] {
+        var items: [CompanyBotResponse] = []
+        var cursor: String? = nil
+        var hasNext = true
+        while hasNext {
+            let response = try await listCompanyBots(query: query, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
+        return items
+    }
+
     public override func getWebhookEvents(limit: Int? = nil, cursor: String? = nil) async throws -> GetWebhookEventsResponse {
         var components = URLComponents(string: "\(baseURL)/webhooks/events")!
         var queryItems: [URLQueryItem] = []
@@ -450,6 +493,14 @@ open class ChatsService {
         throw pachcaNotImplemented("Chats.downloadExport")
     }
 
+    open func listCompanyChats(activity: ChatActivity? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListCompanyChatsResponse {
+        throw pachcaNotImplemented("Chats.listCompanyChats")
+    }
+
+    open func listCompanyChatsAll(activity: ChatActivity? = nil, limit: Int? = nil) async throws -> [Chat] {
+        throw pachcaNotImplemented("Chats.listCompanyChatsAll")
+    }
+
     open func createChat(request body: ChatCreateRequest) async throws -> Chat {
         throw pachcaNotImplemented("Chats.createChat")
     }
@@ -556,6 +607,41 @@ public final class ChatsServiceImpl: ChatsService {
         default:
             throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public override func listCompanyChats(activity: ChatActivity? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListCompanyChatsResponse {
+        var components = URLComponents(string: "\(baseURL)/company/chats")!
+        var queryItems: [URLQueryItem] = []
+        if let activity { queryItems.append(URLQueryItem(name: "activity", value: activity.rawValue)) }
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ListCompanyChatsResponse.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func listCompanyChatsAll(activity: ChatActivity? = nil, limit: Int? = nil) async throws -> [Chat] {
+        var items: [Chat] = []
+        var cursor: String? = nil
+        var hasNext = true
+        while hasNext {
+            let response = try await listCompanyChats(activity: activity, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
+        return items
     }
 
     public override func createChat(request body: ChatCreateRequest) async throws -> Chat {
@@ -1975,11 +2061,11 @@ public final class SearchServiceImpl: SearchService {
 open class TasksService {
     public init() {}
 
-    open func listTasks(limit: Int? = nil, cursor: String? = nil) async throws -> ListTasksResponse {
+    open func listTasks(status: TaskStatus? = nil, chatIds: [Int]? = nil, performerIds: [Int]? = nil, authorId: Int? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListTasksResponse {
         throw pachcaNotImplemented("Tasks.listTasks")
     }
 
-    open func listTasksAll(limit: Int? = nil) async throws -> [Task] {
+    open func listTasksAll(status: TaskStatus? = nil, chatIds: [Int]? = nil, performerIds: [Int]? = nil, authorId: Int? = nil, limit: Int? = nil) async throws -> [Task] {
         throw pachcaNotImplemented("Tasks.listTasksAll")
     }
 
@@ -2012,9 +2098,13 @@ public final class TasksServiceImpl: TasksService {
         super.init()
     }
 
-    public override func listTasks(limit: Int? = nil, cursor: String? = nil) async throws -> ListTasksResponse {
+    public override func listTasks(status: TaskStatus? = nil, chatIds: [Int]? = nil, performerIds: [Int]? = nil, authorId: Int? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListTasksResponse {
         var components = URLComponents(string: "\(baseURL)/tasks")!
         var queryItems: [URLQueryItem] = []
+        if let status { queryItems.append(URLQueryItem(name: "status", value: status.rawValue)) }
+        if let chatIds { chatIds.forEach { queryItems.append(URLQueryItem(name: "chat_ids[]", value: String($0))) } }
+        if let performerIds { performerIds.forEach { queryItems.append(URLQueryItem(name: "performer_ids[]", value: String($0))) } }
+        if let authorId { queryItems.append(URLQueryItem(name: "author_id", value: String(authorId))) }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
@@ -2032,12 +2122,12 @@ public final class TasksServiceImpl: TasksService {
         }
     }
 
-    public override func listTasksAll(limit: Int? = nil) async throws -> [Task] {
+    public override func listTasksAll(status: TaskStatus? = nil, chatIds: [Int]? = nil, performerIds: [Int]? = nil, authorId: Int? = nil, limit: Int? = nil) async throws -> [Task] {
         var items: [Task] = []
         var cursor: String? = nil
         var hasNext = true
         while hasNext {
-            let response = try await listTasks(limit: limit, cursor: cursor)
+            let response = try await listTasks(status: status, chatIds: chatIds, performerIds: performerIds, authorId: authorId, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage

@@ -69,13 +69,14 @@ npx skills add pachca/openapi
 | `pachca-tasks` | Reminders (tasks) |
 | `pachca-search` | Full-text search |
 | `pachca-security` | Audit events, DLP |
+| `pachca-oauth` | Current token info: scopes, owner, timestamps |
 | `pachca` | Router skill — routes to the right skill |
 
 Skills are generated automatically from the OpenAPI spec on `bun turbo build`. Install only from the official repository — skills contain instructions only (no executable code).
 
 ## n8n
 
-A community node for [n8n](https://n8n.io/) — 18 resources, 65+ operations, and a Pachca Trigger with automatic webhook registration.
+A community node for [n8n](https://n8n.io/) — 17 resources, 87 operations, and a Pachca Trigger with automatic webhook registration.
 
 ```bash
 # In n8n: Settings > Community Nodes > n8n-nodes-pachca
@@ -154,6 +155,7 @@ npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,sw
 | `/api/{section}/{action}.md` | A standalone .md for each endpoint and guide |
 | `<any page>.md` | Markdown version of any page (or the `Accept: text/markdown` header) |
 | `/.well-known/agent-skills/index.json` | Agent Skills discovery index (Cloudflare RFC) |
+| `/.well-known/agent-card.json` | Agent Card — service description for agent clients |
 
 [Context7](https://context7.com/pachca/openapi) — AI-native document discovery. Through the CLI, the API reference is available without the website too: `pachca api ls`, `pachca api <METHOD> <path> --describe`.
 

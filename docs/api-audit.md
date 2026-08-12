@@ -369,12 +369,13 @@ DLP документирован в **трёх** местах — при изм�
    - **Списки методов под каждой моделью** — если добавлен/удалён/переименован метод, обновить соответствующий список ссылок `[Название](METHOD /path)`
    - **Атрибут `methods` в `<Card>`** — если у модели изменился набор HTTP-методов (например, добавился DELETE), обновить атрибут
    - **Info-блок в начале** — если появился новый метод, не возвращающий модель данных, добавить его в список исключений
-7. **Проверить feature-гайды затронутой фичи** (`apps/docs/content/guides/**`). Особый случай: API получил конфигурацию для фичи, которая раньше настраивалась **только в интерфейсе** (например, поля входящего вебхука бота — `template`, `template_engine`, `challenge_key`, `link_preview_enabled` — стали приниматься в `POST`/`PUT /bots`). Тогда соответствующий гайд (`incoming-webhooks.mdx`, `bots/setup.mdx` и т.п.) обычно описывает фичу как UI-only и отстаёт — дописать блок «Настройка через API» с именами полей и ссылками на методы. Эти гайды НЕ генерируются из OpenAPI, в шагах 1–4 не видны.
-8. Добавить файл обновления `apps/docs/content/updates/<дата>.md` (формат — [updates-format](./updates-format.md))
-9. Запустить `cd packages/spec && bun run generate`
-10. Запустить `bun turbo check`. **Если менялись модели / enum / union (а не только тексты доков) — дополнительно `bun run sdk:build`**: `turbo check` **не** компилирует SDK, и поломки генерации под Kotlin / Go / C# / Swift ловятся только этим скриптом (или в CI-джобе «SDK / Generate and build»). Пример: новый член union с непривычной формой поля компилируется в невалидный Kotlin — `turbo check` зелёный, а CI красный. Отсутствующий тулчейн скрипт помечает `SKIP` (не падает), поэтому для полного покрытия держать локально JDK/Go/.NET/Swift
-11. Обновить таблицы в этом документе
-12. **Проверить скиллы** — если затронуты API-методы, перейти к шагу ниже
+7. **Проверить feature-гайды затронутой фичи** (`apps/docs/content/guides/**`). Эти гайды НЕ генерируются из OpenAPI, в шагах 1–4 не видны — сверять их отдельно по чеклисту §6d ниже.
+8. **Проверить лимиты** (`apps/docs/content/api/limits.mdx`). Новый или изменённый троттл на публичный путь в инициализаторе rack-attack — отдельный блок `<Limit>` на странице. Проверять даже когда лимит попался в диффе и был прочитан: увидеть его в бэкенде и донести до страницы — разные шаги, и теряется именно второй. Реальный промах (аудит 2026-08-12): троттл на `/api/shared/v1/company/*` — 30 запросов в минуту вместо общих ~50 в секунду — был прочитан при разборе MR и не попал в доку; первый же обход большого пространства упёрся бы в `429`
+9. Добавить файл обновления `apps/docs/content/updates/<дата>.md` (формат — [updates-format](./updates-format.md))
+10. Запустить `cd packages/spec && bun run generate`
+11. Запустить `bun turbo check`. **Если менялись модели / enum / union (а не только тексты доков) — дополнительно `bun run sdk:build`**: `turbo check` **не** компилирует SDK, и поломки генерации под Kotlin / Go / C# / Swift ловятся только этим скриптом (или в CI-джобе «SDK / Generate and build»). Пример: новый член union с непривычной формой поля компилируется в невалидный Kotlin — `turbo check` зелёный, а CI красный. Отсутствующий тулчейн скрипт помечает `SKIP` (не падает), поэтому для полного покрытия держать локально JDK/Go/.NET/Swift
+12. Обновить таблицы в этом документе
+13. **Проверить скиллы** — если затронуты API-методы, перейти к шагу ниже
 
 ### 6a. Проверка скиллов и workflow
 
@@ -417,17 +418,18 @@ typespec.tsp → openapi.yaml → generate.ts + config.ts + workflows.ts → SKI
 
 Привязка работает через OpenAPI-теги (`@tag` в TypeSpec) → `config.ts: SKILL_TAG_MAP[].tags` + исключения в `COMMON_ENDPOINT_MAP`.
 
-| Скилл             | Теги в config.ts                                 | Доп. маппинг (COMMON_ENDPOINT_MAP)          | Эндпоинты                                                                                    |
-| ----------------- | ------------------------------------------------ | ------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `pachca-profile`  | `Profile`                                        | `/custom_properties` → pachca-profile       | GET /profile, GET/PUT/DELETE /profile/status, GET /custom_properties                         |
-| `pachca-users`    | `Users`, `Group tags`                            | —                                           | CRUD /users, GET/PUT/DELETE /users/{id}/status, CRUD /group_tags, GET /group_tags/{id}/users |
-| `pachca-chats`    | `Chats`, `Members`                               | `/chats/exports` → pachca-chats             | CRUD /chats, archive/unarchive, CRUD members, tags, leave, exports                           |
-| `pachca-messages` | `Messages`, `Thread`, `Reactions`, `Read member` | `/uploads`, `/direct_url` → pachca-messages | CRUD /messages, pin, reactions, read_members, threads, uploads                               |
-| `pachca-bots`     | `Bots`, `Link Previews`                          | —                                           | PUT /bots/{id}, POST /messages/{id}/link_previews, GET/DELETE /webhooks/events               |
-| `pachca-forms`    | `Views`                                          | —                                           | POST /views/open                                                                             |
-| `pachca-tasks`    | `Tasks`                                          | —                                           | CRUD /tasks                                                                                  |
-| `pachca-search`   | `Search`                                         | —                                           | GET /search/users, GET /search/chats, GET /search/messages                                   |
-| `pachca-security` | `Security`                                       | —                                           | GET /audit-events                                                                            |
+| Скилл             | Теги в config.ts                                   | Доп. маппинг (COMMON_ENDPOINT_MAP)          | Эндпоинты                                                                                        |
+| ----------------- | -------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `pachca-profile`  | `Profile`                                          | `/custom_properties` → pachca-profile       | GET /profile, GET/PUT/DELETE /profile/status, PUT/DELETE /profile/avatar, GET /custom_properties |
+| `pachca-oauth`    | `OAuth`                                            | —                                           | GET /oauth/token/info                                                                            |
+| `pachca-users`    | `Users`, `Group tags`                              | —                                           | CRUD /users, GET/PUT/DELETE /users/{id}/status, CRUD /group_tags, GET /group_tags/{id}/users     |
+| `pachca-chats`    | `Chats`, `Members`                                 | —                                           | CRUD /chats, archive/unarchive, CRUD members, tags, leave, exports, GET /company/chats           |
+| `pachca-messages` | `Messages`, `Threads`, `Reactions`, `Read members` | `/uploads`, `/direct_url` → pachca-messages | CRUD /messages, pin, reactions, read_members, threads, uploads, unfurl                           |
+| `pachca-bots`     | `Bots`                                             | —                                           | CRUD /bots, ротация токенов, PUT /bot/webhook, GET/DELETE /webhooks/events, GET /company/bots    |
+| `pachca-forms`    | `Views`                                            | —                                           | POST /views/open                                                                                 |
+| `pachca-tasks`    | `Tasks`                                            | —                                           | CRUD /tasks                                                                                      |
+| `pachca-search`   | `Search`                                           | —                                           | GET /search/users, GET /search/chats, GET /search/messages                                       |
+| `pachca-security` | `Security`                                         | —                                           | GET /audit_events                                                                                |
 
 #### Что обновлять при разных типах изменений бэкенда
 
@@ -443,6 +445,28 @@ typespec.tsp → openapi.yaml → generate.ts + config.ts + workflows.ts → SKI
 | **Изменение скоупа/тарифа**                   | 1) Обновить в TypeSpec. 2) Если скилл стал botOnly или перестал — обновить `botOnly` в config.ts                                                                                                                                                                                | `typespec.tsp`, `config.ts`                              |
 | **Новый тип вебхук-события**                  | 1) Обновить хардкод в generate.ts (функция `generateWebhookEventsMd`). 2) Если нужен новый workflow — добавить в workflows.ts для pachca-bots                                                                                                                                   | `generate.ts`, `workflows.ts`                            |
 | **Изменение описания/триггеров скилла**       | Обновить в config.ts: `description`, `triggers`, `negativeTriggers`, `nearestAlternatives`                                                                                                                                                                                      | `config.ts`                                              |
+
+#### Эндпоинт под новым префиксом пути — пинить слаг и имя операции
+
+Действие метода выводится из **последнего** статического сегмента пути, а
+префикс отбрасывается. Поэтому `GET /company/chats` сам по себе даёт тот же
+слаг `/api/chats/list`, что и `GET /chats`, — и молча перетирает страницу
+списка своих чатов. Ровно то же в генераторе ноды n8n: операция выводится в
+`getAllChats` и конфликтует с обычным `getAll` того же ресурса.
+
+Для метода, у которого перед именем ресурса стоит новый префикс
+(`/company/…` и подобные), нужно **явно** задать:
+
+- слаг страницы и имя CLI-команды — `OPERATION_OVERRIDES` в
+  `apps/docs/lib/openapi/mapper.ts` (например, `/api/chats/list-company`);
+- имя операции ноды — `endpointToOperation` в
+  `integrations/n8n/scripts/generate-n8n.ts`, плюс подписи в
+  `operationDisplayName` и `ALIAS_LABELS`;
+- те же две строки — в копиях вывода операции внутри
+  `integrations/n8n/tests/contract.test.ts` и `tests/routes-spec.test.ts`
+  (они дублируют логику генератора и иначе падают на «orphan operations»);
+- строку ресурса в `apps/docs/content/guides/n8n/resources.mdx` — иначе падает
+  `check-n8n-resources`.
 
 #### Секции SKILL.md и откуда они берутся
 
@@ -565,6 +589,64 @@ typespec.tsp → openapi.yaml → generate.ts + config.ts + workflows.ts → SKI
   сущности (только на часть типов, состояний и т.п.), это должно быть в
   описании.
 
+### 6d. Сверка гайдов: механическая часть
+
+Гайды отстают не потому, что про них забывают целиком, а потому, что правку
+вносят в один новый абзац и не трогают всё остальное. Ниже — проверки, которые
+не полагаются на память: у каждой есть команда или конкретный список мест.
+
+**1. Каждое новое имя поля/параметра должно встретиться в прозе гайда.**
+
+```bash
+grep -rn "<имя_поля>" apps/docs/content/guides apps/docs/content/api
+```
+
+Если поле дублирует настройку интерфейса, гайд почти наверняка описывает её
+**UI-названием** и имени поля не знает — связать одно с другим читатель не может.
+Реальный промах: `ignore_self_messages` и `events_history_enabled` принимаются в
+`POST`/`PUT /bots` с 24 июня 2026, а в гайдах до 12 августа жили только как
+«Игнорировать свои сообщения» и «Сохранять историю событий». Лечится одной
+строкой «Поле `имя`» рядом с UI-названием плюс фразой, что настройка задаётся и
+через API, со ссылками на методы.
+
+**2. Устаревшие отрицания.** Новая возможность обесценивает ровно те фразы, где
+раньше писали, что её нет. Их надо найти и переписать, иначе гайд противоречит
+сам себе:
+
+```bash
+grep -rniE "только через интерфейс|только в интерфейсе|не поддерживается|недоступн|нельзя получить|только через" apps/docs/content/guides apps/docs/content/api packages/spec/workflows.ts
+```
+
+Промахи, пойманные этим грепом: «Повторно получить токен вы сможете только через
+интерфейс» (ротация появилась в API 24 июня), «Фильтрация на API не
+поддерживается» в workflow задач (фильтры появились 11 августа), «Полный
+перечень чатов доступен только через экспорт» (появился `GET /company/chats`).
+
+**3. Сводные места гайда, а не только новый раздел.** Возможность добавляется в
+один раздел, но перечисляется в нескольких. Пройти по всем:
+
+- `description` во frontmatter — там перечислены темы страницы;
+- вводный абзац гайда («исключения из правила: …»);
+- таблицы-сводки — что даёт роль, требования частых методов, коды ошибок;
+- раздел про ошибки: не появилась ли новая причина `403`/`402`.
+
+**4. Раздел про другую сущность не вкладывать в чужой.** Заголовок уровня `###`
+наследует тему родительского `##`. Инвентаризация ботов внутри «Видимость чатов»
+читается как продолжение разговора про чаты, а формулировки родителя («обходит
+правило участия») к ботам вообще неприменимы. Если сущность другая — это
+самостоятельный `##`, поставленный после всех разделов про предыдущую сущность.
+
+**5. Якоря после перестановки заголовков.** Ссылки вида
+`/guides/x#zagolovok` не проверяются сборкой. После переименования или
+переноса раздела прогнать по контенту `grep -rn "#<старый-якорь>"` и
+убедиться, что цель ещё существует; слаг считает `toSlug` из
+`apps/docs/lib/utils/transliterate.ts`.
+
+**6. Ретро-проверка раз в несколько аудитов.** Пройтись по последним записям
+`apps/docs/content/updates/` и для каждой спросить: гайд по этой теме обновляли?
+Записи — это список того, что менялось; гайды — то, что должно было измениться
+следом. Расхождение между ними и есть накопленный долг.
+
 ### 7. Отчёт
 
 Вывести краткий отчёт:
@@ -648,6 +730,7 @@ typespec.tsp → openapi.yaml → generate.ts + config.ts + workflows.ts → SKI
 | Пагинация (page/per или limit/cursor)  | Контроллер — смотреть, какой механизм пагинации используется (постраничный или курсорный пагинатор) |
 | Коды ошибок (ValidationErrorCode)      | Контроллер, интерактор, модель — места добавления/возбуждения ошибок                                |
 | Структура ошибок (ApiError/OAuthError) | Базовые обработчики ошибок публичного API                                                           |
+| Лимиты запросов (rate limits)          | Инициализатор rack-attack — троттлы по путям публичного API                                         |
 | Примеры запросов/ответов               | Тесты публичного API                                                                                |
 
 **Важно:** не доверяй только названиям параметров — проверяй обязательность по валидациям модели и интерактора/бизнес-логики.

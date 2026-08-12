@@ -97,7 +97,7 @@
 Бот виден в пространстве как отдельный участник со своим именем и аватаром. Получить его `access_token` можно двумя способами:
 
 - **В интерфейсе** — во вкладке **API** в настройках бота.
-- **Через API** — методом [Новый бот](/api/bots/create): он создаёт бота и сразу возвращает `access_token`. Сохраните токен из ответа — повторно получить его можно только через интерфейс.
+- **Через API** — методом [Новый бот](/api/bots/create): он создаёт бота и сразу возвращает `access_token`. Сохраните токен из ответа: посмотреть его повторно можно только в интерфейсе, а перевыпустить — методом [Ротация токена бота](/api/bots/recreate-token).
 
 Подробнее о создании и настройке бота — в разделе [Боты](/guides/bots/overview).
 
@@ -181,6 +181,8 @@ Authorization: Bearer <ACCESS_TOKEN>
 | `user_avatar:write` | Изменение и удаление аватара сотрудника | Владелец, Администратор |
 | `custom_properties:read` | Просмотр дополнительных полей | Все |
 | `audit_events:read` | Просмотр журнала аудита | Владелец |
+| `company_chats:read` | Просмотр списка всех чатов пространства | Владелец |
+| `company_bots:read` | Просмотр списка всех ботов пространства | Владелец |
 | `tasks:read` | Просмотр задач | Все |
 | `tasks:create` | Создание задач | Все |
 | `tasks:update` | Изменение задачи | Все |
@@ -208,6 +210,12 @@ Authorization: Bearer <ACCESS_TOKEN>
 - `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
 - `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
+
+Ответ `403 insufficient_scope` дополнительно содержит заголовок `WWW-Authenticate` по [RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750#section-3): в параметре `scope` — скоуп, которого не хватило токену. Это позволяет разобрать причину отказа, не разбирая тело ответа.
+
+```http title="Заголовок ответа 403"
+WWW-Authenticate: Bearer error="insufficient_scope", error_description="Insufficient scope. Required: profile:read", scope="profile:read"
+```
 
 Подробнее о кодах ошибок и структуре ответов — в руководстве [Ошибки](/api/errors).
 

@@ -260,7 +260,8 @@ export async function request(
       if (!response.ok) {
         s?.stop('');
         const requestId = response.headers.get('x-request-id') || undefined;
-        throw createApiError(response.status, data, requestId);
+        const authenticate = response.headers.get('www-authenticate') || undefined;
+        throw createApiError(response.status, data, requestId, authenticate);
       }
 
       s?.stop('');
@@ -297,12 +298,26 @@ export async function request(
   });
 }
 
-function createApiError(status: number, body: unknown, requestId?: string): ApiError {
+// Недостающий скоуп по RFC 6750 приходит в параметре scope заголовка
+// WWW-Authenticate: Bearer error="insufficient_scope", …, scope="profile:read"
+function scopeFromChallenge(header?: string): string | undefined {
+  if (!header) return undefined;
+  return /(?:^|[\s,])scope="([^"]*)"/.exec(header)?.[1] || undefined;
+}
+
+function createApiError(
+  status: number,
+  body: unknown,
+  requestId?: string,
+  authenticate?: string,
+): ApiError {
   // Scope refusal is a distinct case from "token is bad": the token works, it
   // just may not do this. Pull the missing scope out so the command can name it.
   if (isRecord(body) && body.error === 'insufficient_scope') {
     const description = typeof body.error_description === 'string' ? body.error_description : '';
-    const scope = /Required:\s*([\w:]+)/.exec(description)?.[1];
+    // Заголовок — источник по умолчанию: там скоуп лежит отдельным параметром.
+    // Разбор error_description оставлен запасным путём для версий API без заголовка.
+    const scope = scopeFromChallenge(authenticate) || /Required:\s*([\w:]+)/.exec(description)?.[1];
 
     return new ApiError({
       error: description || 'Insufficient scope',

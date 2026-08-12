@@ -38,6 +38,15 @@ const FIELD_DISPLAY_NAMES: Record<string, string> = {
   outgoing_url: 'Webhook URL',
 };
 
+/**
+ * Недостающий скоуп из challenge-заголовка по RFC 6750:
+ * `Bearer error="insufficient_scope", …, scope="messages:create"`.
+ */
+function scopeFromChallenge(header?: string): string | undefined {
+  if (!header) return undefined;
+  return /(?:^|[\s,])scope="([^"]*)"/.exec(header)?.[1] || undefined;
+}
+
 /** Friendly descriptions for common HTTP status codes */
 const STATUS_HINTS: Record<number, string> = {
   401: 'Authentication failed. Check your API token in Pachca credentials.',
@@ -327,6 +336,7 @@ export async function makeApiRequest(
     if (response.statusCode >= 400) {
       const resBody = (response.body ?? {}) as IDataObject;
       const errors = resBody.errors as Array<{ key: string; value: string }> | undefined;
+      const respHeaders = response.headers as Record<string, string> | undefined;
 
       let message: string;
       if (errors?.length) {
@@ -339,7 +349,14 @@ export async function makeApiRequest(
       }
 
       const hint = STATUS_HINTS[response.statusCode];
-      const description = hint ? `${hint}\n${message}` : message;
+      // Отказ по скоупу: имя недостающего скоупа приходит в WWW-Authenticate (RFC 6750).
+      // Общая подсказка «нужен админский токен или дополнительные скоупы» без него
+      // не говорит, какой именно скоуп добавить боту.
+      const missingScope = resBody.error === 'insufficient_scope'
+        ? scopeFromChallenge(respHeaders?.['www-authenticate'])
+        : undefined;
+      const scopeHint = missingScope ? `\nMissing scope: ${missingScope}` : '';
+      const description = (hint ? `${hint}\n${message}` : message) + scopeHint;
 
       const apiError = new NodeApiError(this.getNode(), resBody as JsonObject, {
         message,
@@ -347,7 +364,6 @@ export async function makeApiRequest(
         description,
         itemIndex,
       });
-      const respHeaders = response.headers as Record<string, string> | undefined;
       if (respHeaders?.['retry-after']) {
         (apiError as NodeApiError & { retryAfter?: number }).retryAfter = parseInt(respHeaders['retry-after'], 10) || 2;
       }
@@ -574,6 +590,15 @@ function buildButton(btn: IDataObject): IDataObject {
 }
 
 /**
+ * Числовые поля вложения, у которых 0 — не значение, а незаполненное поле:
+ * fixedCollection всегда отдаёт все поля со своими дефолтами, а у number-полей
+ * дефолт обязан быть числом (правило линтера n8n), поэтому пустое поле приходит
+ * нулём. `duration_ms: 0` API отвергает (в схеме `minimum: 1`), а `size`/`width`/
+ * `height` с нулём показали бы пользователю файл на 0 байт и картинку 0×0.
+ */
+const NUMERIC_FILE_FIELDS = new Set(['duration_ms', 'height', 'size', 'width']);
+
+/**
  * Clean up file attachments from fixedCollection format.
  * Removes empty/zero fields and maps camelCase to snake_case.
  */
@@ -606,7 +631,7 @@ export function cleanFileAttachments(
   return files.map(f => {
     const clean: IDataObject = {};
     for (const [k, v] of Object.entries(f)) {
-      if ((k === 'height' || k === 'width') && (v === 0 || v === '')) continue;
+      if (NUMERIC_FILE_FIELDS.has(k) && (v === 0 || v === '')) continue;
       if (v === '' || v === undefined || v === null) continue;
       clean[keyMap[k] || k] = v;
     }

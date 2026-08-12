@@ -66,6 +66,10 @@ public enum AuditEventKey: String, Codable, CaseIterable {
     case kmsDecrypt = "kms_decrypt"
     /// Доступ к журналам аудита получен
     case auditEventsAccessed = "audit_events_accessed"
+    /// Получен список всех чатов пространства
+    case companyChatsAccessed = "company_chats_accessed"
+    /// Получен список всех ботов пространства
+    case companyBotsAccessed = "company_bots_accessed"
     /// Срабатывание правила DLP-системы
     case dlpViolationDetected = "dlp_violation_detected"
     /// Поиск сотрудников через API
@@ -167,6 +171,13 @@ public enum BotWhoCanAdd: String, Codable, CaseIterable {
     case creatorAdminUser = "creator_admin_user"
     /// Любой пользователь, в том числе гости
     case anyone
+}
+
+public enum ChatActivity: String, Codable, CaseIterable {
+    /// Только активные чаты
+    case active
+    /// Только архивные чаты
+    case archived
 }
 
 public enum ChatAvailability: String, Codable, CaseIterable {
@@ -346,6 +357,10 @@ public enum OAuthScope: String, Codable, CaseIterable {
     case customPropertiesRead = "custom_properties:read"
     /// Просмотр журнала аудита
     case auditEventsRead = "audit_events:read"
+    /// Просмотр списка всех чатов пространства
+    case companyChatsRead = "company_chats:read"
+    /// Просмотр списка всех ботов пространства
+    case companyBotsRead = "company_bots:read"
     /// Просмотр задач
     case tasksRead = "tasks:read"
     /// Создание задач
@@ -1473,6 +1488,73 @@ public struct ChatUpdateRequest: Codable {
 
     public init(chat: ChatUpdateRequestChat) {
         self.chat = chat
+    }
+}
+
+public struct CompanyBotResponse: Codable {
+    public let id: Int
+    public let webhook: CompanyBotWebhook
+
+    public init(id: Int, webhook: CompanyBotWebhook) {
+        self.id = id
+        self.webhook = webhook
+    }
+}
+
+public struct CompanyBotWebhook: Codable {
+    public let name: String
+    public let nickname: String
+    public let outgoingUrl: String?
+    public let events: [BotEventName]?
+    public let triggerOn: BotTriggerOn?
+    public let commands: [String]?
+    public let scopes: [String]?
+    public let template: String?
+    public let templateEngine: BotTemplateEngine?
+    public let challengeKey: String?
+    public let linkPreviewEnabled: Bool?
+    public let ignoreSelfMessages: Bool?
+    public let eventsHistoryEnabled: Bool?
+    public let singleChat: Bool?
+    public let canEdit: [BotCanEdit]?
+    public let whoCanAdd: BotWhoCanAdd?
+
+    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil, ignoreSelfMessages: Bool? = nil, eventsHistoryEnabled: Bool? = nil, singleChat: Bool? = nil, canEdit: [BotCanEdit]? = nil, whoCanAdd: BotWhoCanAdd? = nil) {
+        self.name = name
+        self.nickname = nickname
+        self.outgoingUrl = outgoingUrl
+        self.events = events
+        self.triggerOn = triggerOn
+        self.commands = commands
+        self.scopes = scopes
+        self.template = template
+        self.templateEngine = templateEngine
+        self.challengeKey = challengeKey
+        self.linkPreviewEnabled = linkPreviewEnabled
+        self.ignoreSelfMessages = ignoreSelfMessages
+        self.eventsHistoryEnabled = eventsHistoryEnabled
+        self.singleChat = singleChat
+        self.canEdit = canEdit
+        self.whoCanAdd = whoCanAdd
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case nickname
+        case outgoingUrl = "outgoing_url"
+        case events
+        case triggerOn = "trigger_on"
+        case commands
+        case scopes
+        case template
+        case templateEngine = "template_engine"
+        case challengeKey = "challenge_key"
+        case linkPreviewEnabled = "link_preview_enabled"
+        case ignoreSelfMessages = "ignore_self_messages"
+        case eventsHistoryEnabled = "events_history_enabled"
+        case singleChat = "single_chat"
+        case canEdit = "can_edit"
+        case whoCanAdd = "who_can_add"
     }
 }
 
@@ -3544,6 +3626,16 @@ public struct ListChatsResponse: Codable {
 
 public struct ListMembersResponse: Codable {
     public let data: [User]
+    public let meta: PaginationMeta
+}
+
+public struct ListCompanyBotsResponse: Codable {
+    public let data: [CompanyBotResponse]
+    public let meta: PaginationMeta
+}
+
+public struct ListCompanyChatsResponse: Codable {
+    public let data: [Chat]
     public let meta: PaginationMeta
 }
 

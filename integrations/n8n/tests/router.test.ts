@@ -1270,6 +1270,36 @@ describe('Resource operations', () => {
 		expect(ctx._calls[0].url).toContain('/search/chats');
 		expect(ctx._calls[0].qs).toHaveProperty('query', 'dev');
 	});
+
+	it('task.getAll drops numeric filters left at their zero default', async () => {
+		const ctx = createMockContext({
+			resource: 'task',
+			operation: 'getAll',
+			params: { returnAll: false, limit: 10, status: '', chatIds: '', performerIds: '', authorId: 0 },
+		});
+		mockPaginatedResponse(ctx, [{ data: [{ id: 1 }] }]);
+		await runRouter(ctx);
+		expect(ctx._calls[0].url).toContain('/tasks');
+		expect(ctx._calls[0].url).not.toContain('chat_ids');
+		expect(ctx._calls[0].qs).not.toHaveProperty('author_id');
+		expect(ctx._calls[0].qs).not.toHaveProperty('status');
+		expect(ctx._calls[0].qs).not.toHaveProperty('chat_ids');
+	});
+
+	it('task.getAll sends filters the user filled in', async () => {
+		const ctx = createMockContext({
+			resource: 'task',
+			operation: 'getAll',
+			params: { returnAll: false, limit: 10, status: 'undone', chatIds: '198,334', performerIds: '', authorId: 12 },
+		});
+		mockPaginatedResponse(ctx, [{ data: [{ id: 1 }] }]);
+		await runRouter(ctx);
+		expect(ctx._calls[0].qs).toHaveProperty('author_id', 12);
+		expect(ctx._calls[0].qs).toHaveProperty('status', 'undone');
+		// массивы уходят в URL как chat_ids[]=, а не в qs
+		expect(ctx._calls[0].url).toContain('chat_ids%5B%5D=198');
+		expect(ctx._calls[0].url).toContain('chat_ids%5B%5D=334');
+	});
 });
 
 // ============================================================================

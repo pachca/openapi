@@ -17,6 +17,9 @@ from .models import (
     ListBotsParams,
     ListBotsResponse,
     BotResponse,
+    ListCompanyBotsParams,
+    ListCompanyBotsResponse,
+    CompanyBotResponse,
     GetWebhookEventsParams,
     GetWebhookEventsResponse,
     WebhookEvent,
@@ -31,6 +34,9 @@ from .models import (
     ChatSortField,
     SortOrder,
     ChatAvailability,
+    ListCompanyChatsParams,
+    ListCompanyChatsResponse,
+    ChatActivity,
     ChatCreateRequest,
     ExportRequest,
     ChatUpdateRequest,
@@ -83,6 +89,7 @@ from .models import (
     ListTasksParams,
     ListTasksResponse,
     Task,
+    TaskStatus,
     TaskCreateRequest,
     TaskUpdateRequest,
     ListUsersParams,
@@ -188,6 +195,18 @@ class BotsService:
         id: int,
     ) -> BotResponse:
         raise NotImplementedError("Bots.getBot is not implemented")
+
+    async def list_company_bots(
+        self,
+        params: ListCompanyBotsParams | None = None,
+    ) -> ListCompanyBotsResponse:
+        raise NotImplementedError("Bots.listCompanyBots is not implemented")
+
+    async def list_company_bots_all(
+        self,
+        params: ListCompanyBotsParams | None = None,
+    ) -> list[CompanyBotResponse]:
+        raise NotImplementedError("Bots.listCompanyBotsAll is not implemented")
 
     async def get_webhook_events(
         self,
@@ -367,6 +386,50 @@ class BotsServiceImpl(BotsService):
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def list_company_bots(
+        self,
+        params: ListCompanyBotsParams | None = None,
+    ) -> ListCompanyBotsResponse:
+        query: dict[str, str] = {}
+        if params is not None and params.query is not None:
+            query["query"] = params.query
+        if params is not None and params.limit is not None:
+            query["limit"] = str(params.limit)
+        if params is not None and params.cursor is not None:
+            query["cursor"] = params.cursor
+        response = await self._client.get(
+            "/company/bots",
+            params=query,
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(ListCompanyBotsResponse, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def list_company_bots_all(
+        self,
+        params: ListCompanyBotsParams | None = None,
+    ) -> list[CompanyBotResponse]:
+        items: list[CompanyBotResponse] = []
+        cursor: str | None = None
+        has_next = True
+        while has_next:
+            if params is None:
+                params = ListCompanyBotsParams()
+            params.cursor = cursor
+            response = await self.list_company_bots(params=params)
+            items.extend(response.data)
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
+        return items
 
     async def get_webhook_events(
         self,
@@ -548,6 +611,18 @@ class ChatsService:
     ) -> str:
         raise NotImplementedError("Chats.downloadExport is not implemented")
 
+    async def list_company_chats(
+        self,
+        params: ListCompanyChatsParams | None = None,
+    ) -> ListCompanyChatsResponse:
+        raise NotImplementedError("Chats.listCompanyChats is not implemented")
+
+    async def list_company_chats_all(
+        self,
+        params: ListCompanyChatsParams | None = None,
+    ) -> list[Chat]:
+        raise NotImplementedError("Chats.listCompanyChatsAll is not implemented")
+
     async def create_chat(
         self,
         request: ChatCreateRequest,
@@ -676,6 +751,50 @@ class ChatsServiceImpl(ChatsService):
                 raise deserialize(OAuthError, response.json())
             case _:
                 raise deserialize(ApiError, response.json())
+
+    async def list_company_chats(
+        self,
+        params: ListCompanyChatsParams | None = None,
+    ) -> ListCompanyChatsResponse:
+        query: dict[str, str] = {}
+        if params is not None and params.activity is not None:
+            query["activity"] = params.activity
+        if params is not None and params.limit is not None:
+            query["limit"] = str(params.limit)
+        if params is not None and params.cursor is not None:
+            query["cursor"] = params.cursor
+        response = await self._client.get(
+            "/company/chats",
+            params=query,
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(ListCompanyChatsResponse, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def list_company_chats_all(
+        self,
+        params: ListCompanyChatsParams | None = None,
+    ) -> list[Chat]:
+        items: list[Chat] = []
+        cursor: str | None = None
+        has_next = True
+        while has_next:
+            if params is None:
+                params = ListCompanyChatsParams()
+            params.cursor = cursor
+            response = await self.list_company_chats(params=params)
+            items.extend(response.data)
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
+        return items
 
     async def create_chat(
         self,
@@ -2195,11 +2314,21 @@ class TasksServiceImpl(TasksService):
         self,
         params: ListTasksParams | None = None,
     ) -> ListTasksResponse:
-        query: dict[str, str] = {}
+        query: list[tuple[str, str]] = []
+        if params is not None and params.status is not None:
+            query.append(("status", params.status))
+        if params is not None and params.chat_ids is not None:
+            for v in params.chat_ids:
+                query.append(("chat_ids[]", str(v)))
+        if params is not None and params.performer_ids is not None:
+            for v in params.performer_ids:
+                query.append(("performer_ids[]", str(v)))
+        if params is not None and params.author_id is not None:
+            query.append(("author_id", str(params.author_id)))
         if params is not None and params.limit is not None:
-            query["limit"] = str(params.limit)
+            query.append(("limit", str(params.limit)))
         if params is not None and params.cursor is not None:
-            query["cursor"] = params.cursor
+            query.append(("cursor", params.cursor))
         response = await self._client.get(
             "/tasks",
             params=query,

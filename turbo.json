@@ -147,7 +147,9 @@
       ],
       "outputs": [
         "nodes/**/*.ts",
-        "credentials/**/*.ts"
+        "credentials/**/*.ts",
+        "!nodes/Pachca/GenericFunctions.ts",
+        "!nodes/Pachca/V1/**"
       ],
       "cache": true
     },

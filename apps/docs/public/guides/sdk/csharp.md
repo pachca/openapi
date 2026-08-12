@@ -70,6 +70,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Chats.RequestExportAsync()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.Chats.ListChatsAsync()` | [Список чатов](/api/chats/list) |
 | `client.Chats.GetChatAsync()` | [Информация о чате](/api/chats/get) |
+| `client.Chats.ListCompanyChatsAsync()` | [Список чатов пространства](/api/chats/list-company) |
 | `client.Chats.DownloadExportAsync()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.Chats.UpdateChatAsync()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChatAsync()` | [Архивация чата](/api/chats/archive) |
@@ -133,6 +134,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.RecreateBotTokenAsync()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.Bots.ListBotsAsync()` | [Список ботов](/api/bots/list) |
 | `client.Bots.GetBotAsync()` | [Информация о боте](/api/bots/get) |
+| `client.Bots.ListCompanyBotsAsync()` | [Список ботов пространства](/api/bots/list-company) |
 | `client.Bots.GetWebhookEventsAsync()` | [История событий](/api/bots/list-events) |
 | `client.Bots.SelfUpdateBotWebhookAsync()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |

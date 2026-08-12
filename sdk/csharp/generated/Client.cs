@@ -155,6 +155,23 @@ public class BotsService
         throw new NotImplementedException("Bots.getBot is not implemented");
     }
 
+    public virtual async System.Threading.Tasks.Task<ListCompanyBotsResponse> ListCompanyBotsAsync(
+        string? query = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.listCompanyBots is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<CompanyBotResponse>> ListCompanyBotsAllAsync(
+        string? query = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.listCompanyBotsAll is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<GetWebhookEventsResponse> GetWebhookEventsAsync(
         int? limit = null,
         string? cursor = null,
@@ -350,6 +367,53 @@ public sealed class BotsServiceImpl : BotsService
             default:
                 throw PachcaUtils.Deserialize<ApiError>(json);
         }
+    }
+
+    public override async System.Threading.Tasks.Task<ListCompanyBotsResponse> ListCompanyBotsAsync(
+        string? query = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        var queryParts = new List<string>();
+        if (query != null)
+            queryParts.Add($"query={Uri.EscapeDataString(query)}");
+        if (limit != null)
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
+        if (cursor != null)
+            queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
+        var url = $"{_baseUrl}/company/bots" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListCompanyBotsResponse>(json);
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<List<CompanyBotResponse>> ListCompanyBotsAllAsync(
+        string? query = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        var items = new List<CompanyBotResponse>();
+        string? cursor = null;
+        var hasNext = true;
+        while (hasNext)
+        {
+            var response = await ListCompanyBotsAsync(query: query, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            items.AddRange(response.Data);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
+        return items;
     }
 
     public override async System.Threading.Tasks.Task<GetWebhookEventsResponse> GetWebhookEventsAsync(
@@ -563,6 +627,23 @@ public class ChatsService
         throw new NotImplementedException("Chats.downloadExport is not implemented");
     }
 
+    public virtual async System.Threading.Tasks.Task<ListCompanyChatsResponse> ListCompanyChatsAsync(
+        ChatActivity? activity = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.listCompanyChats is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<Chat>> ListCompanyChatsAllAsync(
+        ChatActivity? activity = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.listCompanyChatsAll is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Chats.createChat is not implemented");
@@ -707,6 +788,53 @@ public sealed class ChatsServiceImpl : ChatsService
             default:
                 throw PachcaUtils.Deserialize<ApiError>(json);
         }
+    }
+
+    public override async System.Threading.Tasks.Task<ListCompanyChatsResponse> ListCompanyChatsAsync(
+        ChatActivity? activity = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        var queryParts = new List<string>();
+        if (activity != null)
+            queryParts.Add($"activity={Uri.EscapeDataString(PachcaUtils.EnumToApiString(activity.Value))}");
+        if (limit != null)
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
+        if (cursor != null)
+            queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
+        var url = $"{_baseUrl}/company/chats" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListCompanyChatsResponse>(json);
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<List<Chat>> ListCompanyChatsAllAsync(
+        ChatActivity? activity = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        var items = new List<Chat>();
+        string? cursor = null;
+        var hasNext = true;
+        while (hasNext)
+        {
+            var response = await ListCompanyChatsAsync(activity: activity, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            items.AddRange(response.Data);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
+        return items;
     }
 
     public override async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
@@ -2542,6 +2670,10 @@ public class TasksService
 {
 
     public virtual async System.Threading.Tasks.Task<ListTasksResponse> ListTasksAsync(
+        TaskStatus? status = null,
+        List<int>? chatIds = null,
+        List<int>? performerIds = null,
+        int? authorId = null,
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
@@ -2550,6 +2682,10 @@ public class TasksService
     }
 
     public virtual async System.Threading.Tasks.Task<List<Pachca.Sdk.Task>> ListTasksAllAsync(
+        TaskStatus? status = null,
+        List<int>? chatIds = null,
+        List<int>? performerIds = null,
+        int? authorId = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
@@ -2592,11 +2728,25 @@ public sealed class TasksServiceImpl : TasksService
     }
 
     public override async System.Threading.Tasks.Task<ListTasksResponse> ListTasksAsync(
+        TaskStatus? status = null,
+        List<int>? chatIds = null,
+        List<int>? performerIds = null,
+        int? authorId = null,
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
+        if (status != null)
+            queryParts.Add($"status={Uri.EscapeDataString(PachcaUtils.EnumToApiString(status.Value))}");
+        if (chatIds != null)
+            foreach (var item in chatIds)
+                queryParts.Add($"chat_ids[]={Uri.EscapeDataString(item.ToString()!)}");
+        if (performerIds != null)
+            foreach (var item in performerIds)
+                queryParts.Add($"performer_ids[]={Uri.EscapeDataString(item.ToString()!)}");
+        if (authorId != null)
+            queryParts.Add($"author_id={Uri.EscapeDataString(authorId.Value.ToString()!)}");
         if (limit != null)
             queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
@@ -2617,6 +2767,10 @@ public sealed class TasksServiceImpl : TasksService
     }
 
     public override async System.Threading.Tasks.Task<List<Pachca.Sdk.Task>> ListTasksAllAsync(
+        TaskStatus? status = null,
+        List<int>? chatIds = null,
+        List<int>? performerIds = null,
+        int? authorId = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
@@ -2625,7 +2779,7 @@ public sealed class TasksServiceImpl : TasksService
         var hasNext = true;
         while (hasNext)
         {
-            var response = await ListTasksAsync(limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await ListTasksAsync(status: status, chatIds: chatIds, performerIds: performerIds, authorId: authorId, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;

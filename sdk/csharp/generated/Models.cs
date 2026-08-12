@@ -74,6 +74,10 @@ public enum AuditEventKey
     KmsDecrypt,
     /// <summary>Доступ к журналам аудита получен</summary>
     AuditEventsAccessed,
+    /// <summary>Получен список всех чатов пространства</summary>
+    CompanyChatsAccessed,
+    /// <summary>Получен список всех ботов пространства</summary>
+    CompanyBotsAccessed,
     /// <summary>Срабатывание правила DLP-системы</summary>
     DlpViolationDetected,
     /// <summary>Поиск сотрудников через API</summary>
@@ -142,6 +146,8 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             "kms_encrypt" => AuditEventKey.KmsEncrypt,
             "kms_decrypt" => AuditEventKey.KmsDecrypt,
             "audit_events_accessed" => AuditEventKey.AuditEventsAccessed,
+            "company_chats_accessed" => AuditEventKey.CompanyChatsAccessed,
+            "company_bots_accessed" => AuditEventKey.CompanyBotsAccessed,
             "dlp_violation_detected" => AuditEventKey.DlpViolationDetected,
             "search_users_api" => AuditEventKey.SearchUsersApi,
             "search_chats_api" => AuditEventKey.SearchChatsApi,
@@ -195,6 +201,8 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             AuditEventKey.KmsEncrypt => "kms_encrypt",
             AuditEventKey.KmsDecrypt => "kms_decrypt",
             AuditEventKey.AuditEventsAccessed => "audit_events_accessed",
+            AuditEventKey.CompanyChatsAccessed => "company_chats_accessed",
+            AuditEventKey.CompanyBotsAccessed => "company_bots_accessed",
             AuditEventKey.DlpViolationDetected => "dlp_violation_detected",
             AuditEventKey.SearchUsersApi => "search_users_api",
             AuditEventKey.SearchChatsApi => "search_chats_api",
@@ -460,6 +468,41 @@ internal class BotWhoCanAddConverter : JsonConverter<BotWhoCanAdd>
             BotWhoCanAdd.CreatorAdmin => "creator_admin",
             BotWhoCanAdd.CreatorAdminUser => "creator_admin_user",
             BotWhoCanAdd.Anyone => "anyone",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
+/// <summary>Состояние чатов в выборке</summary>
+[JsonConverter(typeof(ChatActivityConverter))]
+public enum ChatActivity
+{
+    /// <summary>Только активные чаты</summary>
+    Active,
+    /// <summary>Только архивные чаты</summary>
+    Archived,
+}
+
+internal class ChatActivityConverter : JsonConverter<ChatActivity>
+{
+    public override ChatActivity Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "active" => ChatActivity.Active,
+            "archived" => ChatActivity.Archived,
+            _ => throw new JsonException($"Unknown ChatActivity value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, ChatActivity value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            ChatActivity.Active => "active",
+            ChatActivity.Archived => "archived",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -997,6 +1040,10 @@ public enum OAuthScope
     CustomPropertiesRead,
     /// <summary>Просмотр журнала аудита</summary>
     AuditEventsRead,
+    /// <summary>Просмотр списка всех чатов пространства</summary>
+    CompanyChatsRead,
+    /// <summary>Просмотр списка всех ботов пространства</summary>
+    CompanyBotsRead,
     /// <summary>Просмотр задач</summary>
     TasksRead,
     /// <summary>Создание задач</summary>
@@ -1074,6 +1121,8 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             "user_avatar:write" => OAuthScope.UserAvatarWrite,
             "custom_properties:read" => OAuthScope.CustomPropertiesRead,
             "audit_events:read" => OAuthScope.AuditEventsRead,
+            "company_chats:read" => OAuthScope.CompanyChatsRead,
+            "company_bots:read" => OAuthScope.CompanyBotsRead,
             "tasks:read" => OAuthScope.TasksRead,
             "tasks:create" => OAuthScope.TasksCreate,
             "tasks:update" => OAuthScope.TasksUpdate,
@@ -1135,6 +1184,8 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             OAuthScope.UserAvatarWrite => "user_avatar:write",
             OAuthScope.CustomPropertiesRead => "custom_properties:read",
             OAuthScope.AuditEventsRead => "audit_events:read",
+            OAuthScope.CompanyChatsRead => "company_chats:read",
+            OAuthScope.CompanyBotsRead => "company_bots:read",
             OAuthScope.TasksRead => "tasks:read",
             OAuthScope.TasksCreate => "tasks:create",
             OAuthScope.TasksUpdate => "tasks:update",
@@ -2801,6 +2852,50 @@ public class ChatUpdateRequest
     public ChatUpdateRequestChat Chat { get; set; } = default!;
 }
 
+public class CompanyBotResponse
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
+    [JsonPropertyName("webhook")]
+    public CompanyBotWebhook Webhook { get; set; } = default!;
+}
+
+public class CompanyBotWebhook
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("nickname")]
+    public string Nickname { get; set; } = default!;
+    [JsonPropertyName("outgoing_url")]
+    public string? OutgoingUrl { get; set; }
+    [JsonPropertyName("events")]
+    public List<BotEventName>? Events { get; set; }
+    [JsonPropertyName("trigger_on")]
+    public BotTriggerOn? TriggerOn { get; set; }
+    [JsonPropertyName("commands")]
+    public List<string>? Commands { get; set; }
+    [JsonPropertyName("scopes")]
+    public List<string>? Scopes { get; set; }
+    [JsonPropertyName("template")]
+    public string? Template { get; set; }
+    [JsonPropertyName("template_engine")]
+    public BotTemplateEngine? TemplateEngine { get; set; }
+    [JsonPropertyName("challenge_key")]
+    public string? ChallengeKey { get; set; }
+    [JsonPropertyName("link_preview_enabled")]
+    public bool? LinkPreviewEnabled { get; set; }
+    [JsonPropertyName("ignore_self_messages")]
+    public bool? IgnoreSelfMessages { get; set; }
+    [JsonPropertyName("events_history_enabled")]
+    public bool? EventsHistoryEnabled { get; set; }
+    [JsonPropertyName("single_chat")]
+    public bool? SingleChat { get; set; }
+    [JsonPropertyName("can_edit")]
+    public List<BotCanEdit>? CanEdit { get; set; }
+    [JsonPropertyName("who_can_add")]
+    public BotWhoCanAdd? WhoCanAdd { get; set; }
+}
+
 public class CustomProperty
 {
     [JsonPropertyName("id")]
@@ -3633,6 +3728,22 @@ public class ListMembersResponse
 {
     [JsonPropertyName("data")]
     public List<User> Data { get; set; } = new();
+    [JsonPropertyName("meta")]
+    public PaginationMeta Meta { get; set; } = default!;
+}
+
+public class ListCompanyBotsResponse
+{
+    [JsonPropertyName("data")]
+    public List<CompanyBotResponse> Data { get; set; } = new();
+    [JsonPropertyName("meta")]
+    public PaginationMeta Meta { get; set; } = default!;
+}
+
+public class ListCompanyChatsResponse
+{
+    [JsonPropertyName("data")]
+    public List<Chat> Data { get; set; } = new();
     [JsonPropertyName("meta")]
     public PaginationMeta Meta { get; set; } = default!;
 }

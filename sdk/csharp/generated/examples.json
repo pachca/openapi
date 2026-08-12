@@ -20,6 +20,10 @@
     "usage": "var response = await client.Bots.GetBotAsync(1738816);",
     "output": "BotResponse(Id: int, Webhook: BotWebhook(Name: string, Nickname: string, OutgoingUrl: string?, Events: List<BotEventName>, TriggerOn: BotTriggerOn, Commands: List<string>, Scopes: List<string>, Template: string?, TemplateEngine: BotTemplateEngine, ChallengeKey: string?, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: List<BotCanEdit>, WhoCanAdd: BotWhoCanAdd))"
   },
+  "CompanyBotOperations_listCompanyBots": {
+    "usage": "var response = await client.Bots.ListCompanyBotsAsync(\"задач\", 1, \"eyJpZCI6MTczODgxNn0\");",
+    "output": "ListCompanyBotsResponse(Data: List<CompanyBotResponse>, Meta: PaginationMeta)"
+  },
   "BotOperations_getWebhookEvents": {
     "usage": "var response = await client.Bots.GetWebhookEventsAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
     "output": "GetWebhookEventsResponse(Data: List<WebhookEvent>, Meta: PaginationMeta)"
@@ -97,6 +101,13 @@
   "ExportOperations_downloadExport": {
     "usage": "var response = await client.Chats.DownloadExportAsync(22322);",
     "output": "string"
+  },
+  "CompanyChatOperations_listCompanyChats": {
+    "usage": "var response = await client.Chats.ListCompanyChatsAsync(ChatActivity.Active, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListCompanyChatsResponse(Data: List<Chat>, Meta: PaginationMeta)",
+    "imports": [
+      "ChatActivity"
+    ]
   },
   "ChatOperations_createChat": {
     "usage": "var request = new ChatCreateRequest\n{\n    Chat = new ChatCreateRequestChat\n    {\n        Name = \"🤿 aqua\",\n        MemberIds = new List<int> { 123 },\n        GroupTagIds = new List<int> { 123 },\n        Channel = true,\n        @Public = false\n    }\n};\nvar response = await client.Chats.CreateChatAsync(request);",
@@ -347,8 +358,11 @@
     ]
   },
   "TaskOperations_listTasks": {
-    "usage": "var response = await client.Tasks.ListTasksAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListTasksResponse(Data: List<Task>, Meta: PaginationMeta)"
+    "usage": "var chatIds = new List<int> { 123 };\nvar performerIds = new List<int> { 123 };\nvar response = await client.Tasks.ListTasksAsync(TaskStatus.Undone, chatIds, performerIds, 12, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListTasksResponse(Data: List<Task>, Meta: PaginationMeta)",
+    "imports": [
+      "TaskStatus"
+    ]
   },
   "TaskOperations_getTask": {
     "usage": "var response = await client.Tasks.GetTaskAsync(22283);",

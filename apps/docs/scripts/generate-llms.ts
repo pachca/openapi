@@ -384,7 +384,7 @@ function generateLibraryRules(): string {
 ## Error Handling
 - \`400\`: validation errors — \`{ errors: [{ key, value, message, code }] }\` with codes: \`blank\`, \`invalid\`, \`taken\`, \`too_short\`, \`too_long\`, \`not_a_number\`
 - \`401\`: unauthorized — \`{ error, error_description }\` (OAuthError)
-- \`403\`: forbidden — insufficient permissions. May return ApiError (business logic) or OAuthError (\`insufficient_scope\`)
+- \`403\`: forbidden — insufficient permissions. May return ApiError (business logic) or OAuthError (\`insufficient_scope\`). On \`insufficient_scope\` the missing scope is in the \`WWW-Authenticate\` response header (\`scope="…"\`, RFC 6750) — read it from there instead of parsing the message text
 - \`404\`: not found
 - \`409\`: conflict (duplicate)
 - \`422\`: unprocessable — \`{ errors: [{ key, value, message, code }] }\`

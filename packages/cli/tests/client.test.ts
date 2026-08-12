@@ -416,10 +416,60 @@ describe('client', () => {
     }
   });
 
+  it('takes the scope from the WWW-Authenticate challenge', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden',
+      headers: new Headers({
+        'content-type': 'application/json',
+        'www-authenticate':
+          'Bearer error="insufficient_scope", error_description="Insufficient scope. Required: profile:read", scope="profile:read"',
+      }),
+      json: () =>
+        Promise.resolve({
+          error: 'insufficient_scope',
+          // Прозы с «Required:» нет — скоуп должен прийти из заголовка
+          error_description: 'Недостаточно прав для этого метода',
+        }),
+    });
+
+    try {
+      await request({ method: 'GET', path: '/test', token: 'test' }, { quiet: true });
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      expect((error as ApiError).details.scope).toBe('profile:read');
+    }
+  });
+
+  it('prefers the challenge over the prose when both name a scope', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden',
+      headers: new Headers({
+        'content-type': 'application/json',
+        'www-authenticate': 'Bearer error="insufficient_scope", scope="bot_self:webhook:write"',
+      }),
+      json: () =>
+        Promise.resolve({
+          error: 'insufficient_scope',
+          error_description: 'Insufficient scope. Required: tasks:create',
+        }),
+    });
+
+    try {
+      await request({ method: 'GET', path: '/test', token: 'test' }, { quiet: true });
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      expect((error as ApiError).details.scope).toBe('bot_self:webhook:write');
+    }
+  });
+
   it('leaves scope unset when the server rewords the message', async () => {
-    // The scope name is parsed out of the server's prose. If that wording ever
-    // changes, `scope` must come back undefined rather than something invented —
-    // the refusal explanation branches on it.
+    // Без заголовка WWW-Authenticate остаётся запасной путь — разбор прозы сервера.
+    // Если формулировка меняется, `scope` должен вернуться undefined, а не выдуманным:
+    // объяснение отказа ветвится по нему.
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 403,

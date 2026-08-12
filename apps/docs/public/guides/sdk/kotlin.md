@@ -85,6 +85,7 @@ client.close()
 | `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.chats.listChats()` | [Список чатов](/api/chats/list) |
 | `client.chats.getChat()` | [Информация о чате](/api/chats/get) |
+| `client.chats.listCompanyChats()` | [Список чатов пространства](/api/chats/list-company) |
 | `client.chats.downloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.updateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archiveChat()` | [Архивация чата](/api/chats/archive) |
@@ -148,6 +149,7 @@ client.close()
 | `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.bots.listBots()` | [Список ботов](/api/bots/list) |
 | `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
+| `client.bots.listCompanyBots()` | [Список ботов пространства](/api/bots/list-company) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |

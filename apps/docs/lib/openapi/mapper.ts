@@ -18,6 +18,9 @@ const OPERATION_OVERRIDES: Record<string, string> = {
   'GET /custom_properties': '/api/custom-properties/list',
   'GET /oauth/token/info': '/api/oauth/token-info',
   'POST /messages/{id}/link_previews': '/api/messages/unfurl',
+  // Инвентаризация пространства: без пина слаг совпал бы со списками своих чатов и ботов.
+  'GET /company/chats': '/api/chats/list-company',
+  'GET /company/bots': '/api/bots/list-company',
 };
 
 export function generateUrlFromOperation(endpoint: Endpoint): string {

@@ -69,6 +69,8 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
 	if (ep.path === '/chats/exports' && method === 'POST') return 'requestExport';
 	if (ep.path === '/chats/exports/{id}' && method === 'GET') return 'downloadExport';
 	if (ep.path === '/messages/{id}/link_previews' && method === 'POST') return 'unfurl';
+	if (ep.path === '/company/chats' && method === 'GET') return 'getAllCompanyChats';
+	if (ep.path === '/company/bots' && method === 'GET') return 'getAllCompanyBots';
 
 	if (staticSegments.length > 1) {
 		const resourceRoot = staticSegments[0];

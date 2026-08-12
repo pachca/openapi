@@ -69,6 +69,7 @@ npx skills add pachca/openapi
 | `pachca-tasks` | Напоминания (задачи) |
 | `pachca-search` | Полнотекстовый поиск |
 | `pachca-security` | Аудит событий, DLP |
+| `pachca-oauth` | Информация о текущем токене: скоупы, владелец, даты |
 | `pachca` | Router skill — маршрутизация к нужному скиллу |
 
 ### Как скиллы помогают агенту
@@ -94,7 +95,7 @@ npx skills add pachca/openapi
 
 ## n8n
 
-Community node для [n8n](https://n8n.io/) — 18 ресурсов, 65+ операций, Pachca Trigger с авторегистрацией вебхука.
+Community node для [n8n](https://n8n.io/) — 17 ресурсов, 87 операций, Pachca Trigger с авторегистрацией вебхука.
 
 ```bash
 # В n8n: Settings > Community Nodes > n8n-nodes-pachca
@@ -173,6 +174,7 @@ npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,sw
 | `/api/{section}/{action}.md` | Отдельный .md для каждого endpoint'а и гайда |
 | `<любая страница>.md` | Markdown-версия любой страницы (или заголовок `Accept: text/markdown`) |
 | `/.well-known/agent-skills/index.json` | Discovery-индекс Agent Skills (Cloudflare RFC) |
+| `/.well-known/agent-card.json` | Agent Card — описание сервиса для агентных клиентов |
 
 [Context7](https://context7.com/pachca/openapi) — AI-native document discovery. Через CLI справочник по API доступен и без сайта: `pachca api ls`, `pachca api <МЕТОД> <путь> --describe`.
 
@@ -277,7 +279,7 @@ apps/docs
   + skill.md + per-endpoint и per-guide .md
   + workflows.arazzo.yaml (Arazzo 1.0.1)
   + Agent Skills (skills/, AGENTS.md, .well-known/{skills,agent-skills}/)
-  + scenarios.json + pachca.postman_collection.json
+  + pachca.postman_collection.json
   + CLI examples (10-й код-генератор)
   + OG-изображения + sitemap + RSS
 
@@ -440,6 +442,6 @@ Badge «Новое» показывается < 7 дней. Попадает в 
 
 ### Безопасность (next.config.ts)
 
-HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `openapi.yaml`, `pachca.postman_collection.json`, `scenarios.json`.
+HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `openapi.yaml`, `pachca.postman_collection.json`.
 
 </details>

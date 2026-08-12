@@ -71,6 +71,27 @@ actions:
   - target: $.paths['/bots'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/company/bots'].get
+    update:
+      description: >-
+        List workspace bots
+
+
+        Retrieve a list of every bot in the workspace, including the ones you cannot edit. For those, only the name and
+        the nickname are returned, the rest of the settings come as `null`.
+
+
+        The method is available to the workspace owner. Every request is written to the [audit
+        log](/guides/audit-events) with the `company_bots_accessed` key.
+  - target: $.paths['/company/bots'].get.parameters[?(@.name=='query')]
+    update:
+      description: Search phrase to filter bots by name
+  - target: $.paths['/company/bots'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of entities returned per request
+  - target: $.paths['/company/bots'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
   - target: $.paths['/bots/{id}'].delete
     update:
       description: >-
@@ -138,6 +159,31 @@ actions:
   - target: $.paths['/chats'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
+  - target: $.paths['/company/chats'].get
+    update:
+      description: >-
+        List workspace chats
+
+
+        Retrieve a list of conversations and channels across the whole workspace, including private ones you are not a
+        member of. Direct messages and threads are not returned.
+
+
+        Both active and archived chats are returned by default. The `activity` parameter keeps only one of the states in
+        the selection.
+
+
+        The method is available to the workspace owner. Every request is written to the [audit
+        log](/guides/audit-events) with the `company_chats_accessed` key.
+  - target: $.paths['/company/chats'].get.parameters[?(@.name=='activity')]
+    update:
+      description: Chat state. If the parameter is omitted, both active and archived chats are returned.
+  - target: $.paths['/company/chats'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of entities returned per request
+  - target: $.paths['/company/chats'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
   - target: $.paths['/chats/exports'].post
     update:
       description: |-
@@ -793,6 +839,20 @@ actions:
         List tasks
 
         Retrieve a list of tasks.
+
+        Without the `chat_ids` parameter only your own tasks are returned: those from conversations and channels you are a member of, plus tasks with no chat that you created or that are assigned to you. The `chat_ids` parameter changes the selection — all tasks of the listed chats are returned, including those of other people.
+  - target: $.paths['/tasks'].get.parameters[?(@.name=='status')]
+    update:
+      description: Filter by state. If the parameter is omitted, tasks in any state are returned.
+  - target: $.paths['/tasks'].get.parameters[?(@.name=='chat_ids')]
+    update:
+      description: Filter by the chats the tasks are attached to. Accessible chats are the ones you are a member of, public conversations and channels of the workspace, and threads available to you through their parent chat. The remaining IDs are ignored without an error. Up to 100 IDs.
+  - target: $.paths['/tasks'].get.parameters[?(@.name=='performer_ids')]
+    update:
+      description: Filter by task performers. Up to 100 IDs.
+  - target: $.paths['/tasks'].get.parameters[?(@.name=='author_id')]
+    update:
+      description: Filter by task author
   - target: $.paths['/tasks'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of records to return per request
@@ -1163,7 +1223,7 @@ actions:
       description: Rule conditions check result (true — conditions matched)
   - target: $.components.schemas.AuditDetailsEmpty
     update:
-      description: "Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed."
+      description: "Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed."
   - target: $.components.schemas.AuditDetailsInitiator
     update:
       description: 'For: user_added_to_tag, user_removed_from_tag, user_chat_leave'
@@ -1417,6 +1477,8 @@ actions:
         kms_encrypt: Data encrypted
         kms_decrypt: Data decrypted
         audit_events_accessed: Audit logs accessed
+        company_chats_accessed: Workspace-wide chat list accessed
+        company_bots_accessed: Workspace-wide bot list accessed
         dlp_violation_detected: DLP rule violation detected
         search_users_api: Employee search via API
         search_chats_api: Chat search via API
@@ -1735,6 +1797,114 @@ actions:
   - target: $.components.schemas.BotWebhook.properties.who_can_add
     update:
       description: Who can add the bot to chats
+  - target: $.components.schemas.CompanyBotResponse
+    update:
+      description: Workspace bot parameters
+  - target: $.components.schemas.CompanyBotResponse.properties.id
+    update:
+      description: Bot ID
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook
+    update:
+      description: Webhook parameters object
+  - target: $.components.schemas.CompanyBotWebhook
+    update:
+      description: "Webhook parameters of a workspace bot. Settings of a bot you cannot edit come back as `null` — only the name and the nickname remain."
+  - target: $.components.schemas.CompanyBotWebhook.properties.name
+    update:
+      description: Bot name
+  - target: $.components.schemas.CompanyBotWebhook.properties.nickname
+    update:
+      description: Bot nickname
+  - target: $.components.schemas.CompanyBotWebhook.properties.outgoing_url
+    update:
+      description: "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+  - target: $.components.schemas.CompanyBotWebhook.properties.events
+    update:
+      description: Events the bot is subscribed to
+  - target: $.components.schemas.CompanyBotWebhook.properties.trigger_on
+    update:
+      description: Outgoing webhook trigger condition
+  - target: $.components.schemas.CompanyBotWebhook.properties.commands
+    update:
+      description: Bot commands (trigger words)
+  - target: $.components.schemas.CompanyBotWebhook.properties.scopes
+    update:
+      description: Bot token scopes (permissions)
+  - target: $.components.schemas.CompanyBotWebhook.properties.template
+    update:
+      description: Template for formatting the incoming webhook. `null` if not set.
+  - target: $.components.schemas.CompanyBotWebhook.properties.template_engine
+    update:
+      description: Template engine used to process the incoming webhook template
+  - target: $.components.schemas.CompanyBotWebhook.properties.challenge_key
+    update:
+      description: Verification field name for incoming webhook verification. `null` if not set.
+  - target: $.components.schemas.CompanyBotWebhook.properties.link_preview_enabled
+    update:
+      description: Show link previews in incoming webhook messages
+  - target: $.components.schemas.CompanyBotWebhook.properties.ignore_self_messages
+    update:
+      description: Ignore incoming messages sent by the bot itself
+  - target: $.components.schemas.CompanyBotWebhook.properties.events_history_enabled
+    update:
+      description: Save the bot's event history for later retrieval via the event history method
+  - target: $.components.schemas.CompanyBotWebhook.properties.single_chat
+    update:
+      description: Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don't count toward this limit
+  - target: $.components.schemas.CompanyBotWebhook.properties.can_edit
+    update:
+      description: Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.
+  - target: $.components.schemas.CompanyBotWebhook.properties.who_can_add
+    update:
+      description: Who can add the bot to chats
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.name
+    update:
+      description: Bot name
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.nickname
+    update:
+      description: Bot nickname
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.outgoing_url
+    update:
+      description: "Outgoing webhook URL. `null` if the bot has no outgoing webhook configured."
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.events
+    update:
+      description: Events the bot is subscribed to
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.trigger_on
+    update:
+      description: Outgoing webhook trigger condition
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.commands
+    update:
+      description: Bot commands (trigger words)
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.scopes
+    update:
+      description: Bot token scopes (permissions)
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.template
+    update:
+      description: Template for formatting the incoming webhook. `null` if not set.
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.template_engine
+    update:
+      description: Template engine used to process the incoming webhook template
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.challenge_key
+    update:
+      description: Verification field name for incoming webhook verification. `null` if not set.
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.link_preview_enabled
+    update:
+      description: Show link previews in incoming webhook messages
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.ignore_self_messages
+    update:
+      description: Ignore incoming messages sent by the bot itself
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.events_history_enabled
+    update:
+      description: Save the bot's event history for later retrieval via the event history method
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.single_chat
+    update:
+      description: Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only, `false` — to multiple. Personal chats and threads don't count toward this limit
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.can_edit
+    update:
+      description: Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.
+  - target: $.components.schemas.CompanyBotResponse.properties.webhook.properties.who_can_add
+    update:
+      description: Who can add the bot to chats
   - target: $.components.schemas.BotWebhookSelfUpdateRequest
     update:
       description: Bot webhook self-registration request
@@ -1965,6 +2135,14 @@ actions:
   - target: $.components.schemas.Chat.properties.meet_room_url
     update:
       description: Video chat link
+  - target: $.components.schemas.ChatActivity
+    update:
+      description: Activity state of the chats in the selection
+  - target: $.components.schemas.ChatActivity
+    update:
+      x-enum-descriptions:
+        active: Active chats only
+        archived: Archived chats only
   - target: $.components.schemas.ChatAvailability
     update:
       description: Chat availability for the user
@@ -2721,6 +2899,8 @@ actions:
         user_status_write: Update and delete employee status
         custom_properties_read: View custom properties
         audit_events_read: View audit log
+        company_chats_read: View the list of all workspace chats
+        company_bots_read: View the list of all workspace bots
         tasks_read: View tasks
         tasks_create: Create tasks
         tasks_update: Update task

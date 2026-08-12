@@ -77,6 +77,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Chats.RequestExport()` | [Экспорт сообщений](/api/chats/request-export) |
 | `client.Chats.ListChats()` | [Список чатов](/api/chats/list) |
 | `client.Chats.GetChat()` | [Информация о чате](/api/chats/get) |
+| `client.Chats.ListCompanyChats()` | [Список чатов пространства](/api/chats/list-company) |
 | `client.Chats.DownloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.Chats.UpdateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChat()` | [Архивация чата](/api/chats/archive) |
@@ -140,6 +141,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Bots.RecreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
 | `client.Bots.ListBots()` | [Список ботов](/api/bots/list) |
 | `client.Bots.GetBot()` | [Информация о боте](/api/bots/get) |
+| `client.Bots.ListCompanyBots()` | [Список ботов пространства](/api/bots/list-company) |
 | `client.Bots.GetWebhookEvents()` | [История событий](/api/bots/list-events) |
 | `client.Bots.SelfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBot()` | [Редактирование бота](/api/bots/update) |

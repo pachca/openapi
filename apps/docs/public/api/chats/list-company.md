@@ -1,37 +1,38 @@
-> Расположение: Методы API → Напоминания
-> Краткое содержание: Метод для получения списка напоминаний.
+> Расположение: Методы API → Чаты
+> Краткое содержание: Метод для получения списка бесед и каналов всего пространства, включая закрытые, где вы не состоите участником
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
-# Список напоминаний
+# Список чатов пространства
 
 **Метод**: `GET`
 
-**Путь**: `/tasks`
+**Путь**: `/company/chats`
 
-> **Скоуп:** `tasks:read`
+> **Скоуп:** `company_chats:read`
 
-Метод для получения списка напоминаний.
+> **Внимание:** Доступно только на тарифе **Корпорация**
 
-Без параметра `chat_ids` возвращаются только ваши напоминания: из бесед и каналов, где вы состоите участником, а также созданные вами или назначенные вам напоминания без привязки к чату. Параметр `chat_ids` меняет выборку — возвращаются все напоминания указанных чатов, включая чужие.
+Метод для получения списка бесед и каналов всего пространства, включая закрытые, где вы не состоите участником. Личные переписки и треды не возвращаются.
+
+По умолчанию отдаются и активные, и архивные чаты. Параметр `activity` оставляет в выдаче только одно из состояний.
+
+Метод доступен Владельцу пространства. Каждый запрос записывается в [журнал аудита событий](/guides/audit-events) с типом `company_chats_accessed`.
 
 ## Параметры
 
 ### Query параметры
 
-- `status: string` — Фильтр по состоянию. Если параметр не указан, возвращаются напоминания в любом состоянии.
-  Значения: `done`, `undone`
-- `chat_ids: array` — Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов.
-- `performer_ids: array` — Фильтр по ответственным за напоминание. Не более 100 идентификаторов.
-- `author_id: integer, int32` — Фильтр по автору напоминания
+- `activity: string` — Состояние чатов. Если параметр не указан, возвращаются и активные, и архивные чаты.
+  Значения: `active`, `archived`
 - `limit: integer, int32` (default: 50) — Количество возвращаемых сущностей за один запрос
-- `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
+- `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page`)
 
 
 ## Пример запроса
 
 ```bash
 # Для получения следующей страницы используйте cursor из meta.paginate.next_page
-curl "https://api.pachca.com/api/shared/v1/tasks?status=undone&chat_ids[]=198&chat_ids[]=334&performer_ids[]=12&performer_ids[]=185&author_id=12&limit=1" \
+curl "https://api.pachca.com/api/shared/v1/company/chats?activity=active&limit=1" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -42,25 +43,18 @@ curl "https://api.pachca.com/api/shared/v1/tasks?status=undone&chat_ids[]=198&ch
 **Схема ответа:**
 
 - `data: array of object` (required)
-  - `id: integer, int32` (required) — Идентификатор напоминания. Пример: `22283`
-  - `kind: string` (required) — Тип
-    Значения: `call` — Позвонить контакту, `meeting` — Встреча, `reminder` — Простое напоминание, `event` — Событие, `email` — Написать письмо
-  - `content: string` (required) — Описание. Пример: `"Забрать со склада 21 заказ"`
-  - `due_at: date-time` (required, nullable) — Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан. Пример: `"2020-06-05T09:00:00.000Z"`
-  - `priority: integer, int32` (required) — Приоритет. Пример: `2`
-  - `user_id: integer, int32` (required) — Идентификатор пользователя-создателя напоминания. Пример: `12`
-  - `chat_id: integer, int32` (required, nullable) — Идентификатор чата, к которому привязано напоминание. `null`, если напоминание не привязано к чату. Пример: `334`
-  - `status: string` (required) — Статус напоминания
-    Значения: `done` — Выполнено, `undone` — Активно
-  - `created_at: date-time` (required) — Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2020-06-04T10:37:57.000Z"`
-  - `performer_ids: array of integer` (required) — Массив идентификаторов пользователей, привязанных к напоминанию как «ответственные». Пример: `[12]`
-  - `all_day: boolean` (required) — Напоминание на весь день (без указания времени). Пример: `false`
-  - `custom_properties: array of object` (required) — Дополнительные поля напоминания
-    - `id: integer, int32` (required) — Идентификатор поля. Пример: `1678`
-    - `name: string` (required, max length: 32) — Название поля. Пример: `"Город"`
-    - `data_type: string` (required) — Тип поля
-      Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
-    - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
+  - `id: integer, int32` (required) — Идентификатор созданного чата. Пример: `334`
+  - `name: string` (required, max length: 255) — Название. Пример: `"🤿 aqua"`
+  - `created_at: date-time` (required) — Дата и время создания чата (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
+  - `owner_id: integer, int32` (required) — Идентификатор пользователя, создавшего чат. Пример: `185`
+  - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, участников. Пример: `[185,186,187]`
+  - `group_tag_ids: array of integer` (required) — Массив идентификаторов тегов, участников. Пример: `[9111]`
+  - `channel: boolean` (required) — Является каналом. Пример: `true`
+  - `archived: boolean` (required) — Находится в архиве. Пример: `false`
+  - `personal: boolean` (required) — Является личным чатом. Пример: `false`
+  - `public: boolean` (required) — Открытый доступ. Пример: `false`
+  - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
+  - `meet_room_url: string` (required) — Ссылка на Видеочат. Пример: `"https://meet.pachca.com/aqua-94bb21b5"`
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`
@@ -74,27 +68,24 @@ curl "https://api.pachca.com/api/shared/v1/tasks?status=undone&chat_ids[]=198&ch
 {
   "data": [
     {
-      "id": 22283,
-      "kind": "reminder",
-      "content": "Забрать со склада 21 заказ",
-      "due_at": "2020-06-05T09:00:00.000Z",
-      "priority": 2,
-      "user_id": 12,
-      "chat_id": 334,
-      "status": "undone",
-      "created_at": "2020-06-04T10:37:57.000Z",
-      "performer_ids": [
-        12
+      "id": 334,
+      "name": "🤿 aqua",
+      "created_at": "2021-08-28T15:56:53.000Z",
+      "owner_id": 185,
+      "member_ids": [
+        185,
+        186,
+        187
       ],
-      "all_day": false,
-      "custom_properties": [
-        {
-          "id": 1678,
-          "name": "Город",
-          "data_type": "string",
-          "value": "Санкт-Петербург"
-        }
-      ]
+      "group_tag_ids": [
+        9111
+      ],
+      "channel": true,
+      "archived": false,
+      "personal": false,
+      "public": false,
+      "last_message_at": "2021-08-28T15:56:53.000Z",
+      "meet_room_url": "https://meet.pachca.com/aqua-94bb21b5"
     }
   ],
   "meta": {
@@ -188,15 +179,35 @@ curl "https://api.pachca.com/api/shared/v1/tasks?status=undone&chat_ids[]=198&ch
 
 **Схема ответа при ошибке:**
 
-- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
-- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+**anyOf** - один из вариантов:
+
+- **ApiError**: Ошибка API (используется для 400, 402, 403, 404, 409, 410, 422)
+  - `errors: array of object` (required) — Массив ошибок
+    - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+    - `value: string` (required, nullable) — Значение поля, которое вызвало ошибку. `null`, если ошибка не относится к конкретному значению. Пример: `"invalid_value"`
+    - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
+    - `code: string` (required) — Код ошибки
+      Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде
+    - `payload: Record<string, object>` (required, nullable) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
+      **Структура значений Record:**
+      - Тип значения: `any`
+- **OAuthError**: Ошибка OAuth авторизации (используется для 401 и 403)
+  - `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+  - `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 **Пример ответа:**
 
 ```json
 {
-  "error": "invalid_token",
-  "error_description": "Access token is missing"
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
 }
 ```
 

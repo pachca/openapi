@@ -772,6 +772,42 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
     },
+    {
+      title: 'Выгрузить все чаты пространства, включая закрытые',
+      titleEn: 'Export all workspace chats, including private ones',
+      related: ['Найти активные чаты за период', 'Архивация и управление чатом'],
+      relatedEn: ['Find active chats for period', 'Archive and manage chat'],
+      steps: [
+        {
+          description:
+            'Получи беседы и каналы всего пространства, включая закрытые, где владелец токена не состоит',
+          descriptionEn:
+            'Get conversations and channels of the whole workspace, including private ones the token owner is not a member of',
+          command: 'pachca chats list-company --all',
+          apiMethod: 'GET',
+          apiPath: '/company/chats',
+          notes:
+            'Возвращаются и активные, и архивные чаты. Оставить одно состояние можно флагом `--activity` со значением `active` или `archived`. Личные переписки и треды метод не отдаёт',
+          notesEn:
+            'Both active and archived chats are returned. Keep one state with `--activity` set to `active` or `archived`. Direct messages and threads are not returned',
+        },
+        {
+          description:
+            'Если метод ответил `403` — у токена нет скоупа `company_chats:read`, либо владелец токена не владелец пространства, либо у пространства нет тарифа «Корпорация». Тогда возьми открытые чаты обычным списком',
+          descriptionEn:
+            'On `403` the token lacks the `company_chats:read` scope, or its owner is not the workspace owner, or the workspace is not on the Corporation plan. In that case fall back to the regular list of public chats',
+          command: 'pachca chats list --availability=public --archived --all',
+          apiMethod: 'GET',
+          apiPath: '/chats',
+          notes: 'Закрытые чаты, где токен не участник, в такую выдачу не попадут',
+          notesEn: 'Private chats the token is not a member of will not be in this list',
+        },
+      ],
+      notes:
+        'Каждый запрос к списку чатов пространства пишется в журнал аудита как `company_chats_accessed`.',
+      notesEn:
+        'Every request to the workspace chat list is written to the audit log as `company_chats_accessed`.',
+    },
   ],
   'pachca-bots': [
     {
@@ -792,9 +828,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
         {
           description:
-            'Сохрани `access_token` из ответа — он возвращается единственный раз. Повторно получить токен можно только через интерфейс (вкладка «API» настроек бота)',
+            'Сохрани `access_token` из ответа — он возвращается единственный раз. Посмотреть выданный токен повторно можно только в интерфейсе (вкладка «API» настроек бота), а перевыпустить — командой `pachca bots recreate-token <ID>`',
           descriptionEn:
-            'Save `access_token` from the response — it is returned only once. You can obtain the token again only through the interface (the "API" tab of the bot settings)',
+            'Save `access_token` from the response — it is returned only once. The issued token can be viewed again only in the interface (the "API" tab of the bot settings), and re-issued with `pachca bots recreate-token <ID>`',
         },
         {
           description:
@@ -1152,6 +1188,39 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       ],
       notes: 'Polling — альтернатива real-time вебхуку, если у бота нет публичного URL.',
       notesEn: 'Polling — alternative to real-time webhook if bot has no public URL.',
+    },
+    {
+      title: 'Инвентаризация всех ботов пространства',
+      titleEn: 'Inventory of all workspace bots',
+      related: ['Создать бота через API и получить токен'],
+      relatedEn: ['Create a bot via API and get its token'],
+      steps: [
+        {
+          description: 'Получи всех ботов пространства, а не только доступных для редактирования',
+          descriptionEn: 'Get all workspace bots, not only the ones available for editing',
+          command: 'pachca bots list-company --all',
+          apiMethod: 'GET',
+          apiPath: '/company/bots',
+          notes:
+            'Нужен скоуп `company_bots:read`, роль владельца пространства и тариф «Корпорация», иначе метод отвечает `403`. Фильтр по имени — флаг `--query`',
+          notesEn:
+            'Requires the `company_bots:read` scope, the workspace owner role and the Corporation plan, otherwise the method responds `403`. Filter by name with `--query`',
+        },
+        {
+          description:
+            'Для каждого бота проверь, раскрыты ли настройки: у ботов, недоступных владельцу токена для редактирования, заполнены только `name` и `nickname`, остальные поля вебхука приходят `null`',
+          descriptionEn:
+            'For each bot check whether its settings are disclosed: for bots the token owner cannot edit only `name` and `nickname` are filled, the remaining webhook fields come as `null`',
+          notes:
+            'Настройки такого бота можно получить только тем токеном, которому доступно его редактирование',
+          notesEn:
+            'Settings of such a bot can only be read with a token allowed to edit it',
+        },
+      ],
+      notes:
+        'Каждый запрос к списку ботов пространства пишется в журнал аудита как `company_bots_accessed`.',
+      notesEn:
+        'Every request to the workspace bot list is written to the audit log as `company_bots_accessed`.',
     },
   ],
   'pachca-forms': [
@@ -1638,15 +1707,44 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       titleEn: 'Get list of upcoming tasks',
       steps: [
         {
-          description: 'Получи все задачи, фильтруй по `status` на клиенте',
-          descriptionEn: 'Get all tasks, filter by `status` on client side',
-          command: 'pachca tasks list --all',
+          description: 'Получи невыполненные задачи',
+          descriptionEn: 'Get incomplete tasks',
+          command: 'pachca tasks list --status=undone --all',
           apiMethod: 'GET',
           apiPath: '/tasks',
           notes:
-            '`status`: `"undone"` — не выполнена, `"done"` — выполнена. Фильтрация на API не поддерживается',
+            '`status`: `"undone"` — не выполнена, `"done"` — выполнена. Без параметра возвращаются задачи в любом состоянии. Ещё фильтры: `--author-id`, `--performer-ids`, `--chat-ids`',
           notesEn:
-            '`status`: `"undone"` — not completed, `"done"` — completed. API-side filtering not supported',
+            '`status`: `"undone"` — not completed, `"done"` — completed. Without the parameter tasks in any state are returned. More filters: `--author-id`, `--performer-ids`, `--chat-ids`',
+        },
+      ],
+    },
+    {
+      title: 'Собрать задачи по чатам проекта',
+      titleEn: 'Collect tasks from project chats',
+      related: ['Получить список предстоящих задач'],
+      relatedEn: ['Get list of upcoming tasks'],
+      steps: [
+        {
+          description: 'Запроси задачи нужных чатов',
+          descriptionEn: 'Request tasks of the wanted chats',
+          command: 'pachca tasks list --chat-ids=198,334 --all',
+          apiMethod: 'GET',
+          apiPath: '/tasks',
+          notes:
+            'С `--chat-ids` выдача перестаёт ограничиваться своими задачами и отдаёт все задачи указанных чатов. Недоступные чаты игнорируются без ошибки, не более 100 идентификаторов',
+          notesEn:
+            'With `--chat-ids` the selection is no longer limited to your own tasks and returns every task of the listed chats. Inaccessible chats are ignored without an error, up to 100 IDs',
+        },
+        {
+          description: 'Сузь выборку по автору, ответственным и состоянию',
+          descriptionEn: 'Narrow the selection by author, performers and state',
+          command:
+            'pachca tasks list --chat-ids=198,334 --author-id=12 --performer-ids=185,186 --status=undone --all',
+          apiMethod: 'GET',
+          apiPath: '/tasks',
+          notes: 'Фильтры комбинируются между собой',
+          notesEn: 'Filters combine with each other',
         },
       ],
     },

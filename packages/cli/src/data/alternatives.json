@@ -23,6 +23,8 @@
   "members:remove": "Исключение пользователя",
   "members:update": "Редактирование роли",
   "chats:unarchive": "Разархивация чата",
+  "bots:list-company": "Список ботов пространства",
+  "chats:list-company": "Список чатов пространства",
   "custom-properties:list": "Список дополнительных полей",
   "files:direct-url": "Загрузка файла",
   "group-tags:create": "Новый тег",

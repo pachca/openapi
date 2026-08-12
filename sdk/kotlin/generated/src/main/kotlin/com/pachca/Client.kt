@@ -137,6 +137,18 @@ interface BotsService {
         throw NotImplementedError("Bots.getBot is not implemented")
     }
 
+    suspend fun listCompanyBots(
+        query: String? = null,
+        limit: Int? = null,
+        cursor: String? = null,
+    ): ListCompanyBotsResponse {
+        throw NotImplementedError("Bots.listCompanyBots is not implemented")
+    }
+
+    suspend fun listCompanyBotsAll(query: String? = null, limit: Int? = null): List<CompanyBotResponse> {
+        throw NotImplementedError("Bots.listCompanyBotsAll is not implemented")
+    }
+
     suspend fun getWebhookEvents(limit: Int? = null, cursor: String? = null): GetWebhookEventsResponse {
         throw NotImplementedError("Bots.getWebhookEvents is not implemented")
     }
@@ -216,6 +228,37 @@ class BotsServiceImpl internal constructor(
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
+    }
+
+    override suspend fun listCompanyBots(
+        query: String?,
+        limit: Int?,
+        cursor: String?,
+    ): ListCompanyBotsResponse {
+        val response = client.get("$baseUrl/company/bots") {
+            query?.let { parameter("query", it) }
+            limit?.let { parameter("limit", it) }
+            cursor?.let { parameter("cursor", it) }
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun listCompanyBotsAll(query: String?, limit: Int?): List<CompanyBotResponse> {
+        val items = mutableListOf<CompanyBotResponse>()
+        var cursor: String? = null
+        var hasNext = true
+        while (hasNext) {
+            val response = listCompanyBots(query = query, limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
+        return items
     }
 
     override suspend fun getWebhookEvents(limit: Int?, cursor: String?): GetWebhookEventsResponse {
@@ -404,6 +447,18 @@ interface ChatsService {
         throw NotImplementedError("Chats.downloadExport is not implemented")
     }
 
+    suspend fun listCompanyChats(
+        activity: ChatActivity? = null,
+        limit: Int? = null,
+        cursor: String? = null,
+    ): ListCompanyChatsResponse {
+        throw NotImplementedError("Chats.listCompanyChats is not implemented")
+    }
+
+    suspend fun listCompanyChatsAll(activity: ChatActivity? = null, limit: Int? = null): List<Chat> {
+        throw NotImplementedError("Chats.listCompanyChatsAll is not implemented")
+    }
+
     suspend fun createChat(request: ChatCreateRequest): Chat {
         throw NotImplementedError("Chats.createChat is not implemented")
     }
@@ -508,6 +563,37 @@ class ChatsServiceImpl internal constructor(
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
+    }
+
+    override suspend fun listCompanyChats(
+        activity: ChatActivity?,
+        limit: Int?,
+        cursor: String?,
+    ): ListCompanyChatsResponse {
+        val response = client.get("$baseUrl/company/chats") {
+            activity?.let { parameter("activity", it.value) }
+            limit?.let { parameter("limit", it) }
+            cursor?.let { parameter("cursor", it) }
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun listCompanyChatsAll(activity: ChatActivity?, limit: Int?): List<Chat> {
+        val items = mutableListOf<Chat>()
+        var cursor: String? = null
+        var hasNext = true
+        while (hasNext) {
+            val response = listCompanyChats(activity = activity, limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
+        return items
     }
 
     override suspend fun createChat(request: ChatCreateRequest): Chat {
@@ -1740,11 +1826,24 @@ class SearchServiceImpl internal constructor(
 }
 
 interface TasksService {
-    suspend fun listTasks(limit: Int? = null, cursor: String? = null): ListTasksResponse {
+    suspend fun listTasks(
+        status: TaskStatus? = null,
+        chatIds: List<Int>? = null,
+        performerIds: List<Int>? = null,
+        authorId: Int? = null,
+        limit: Int? = null,
+        cursor: String? = null,
+    ): ListTasksResponse {
         throw NotImplementedError("Tasks.listTasks is not implemented")
     }
 
-    suspend fun listTasksAll(limit: Int? = null): List<Task> {
+    suspend fun listTasksAll(
+        status: TaskStatus? = null,
+        chatIds: List<Int>? = null,
+        performerIds: List<Int>? = null,
+        authorId: Int? = null,
+        limit: Int? = null,
+    ): List<Task> {
         throw NotImplementedError("Tasks.listTasksAll is not implemented")
     }
 
@@ -1769,8 +1868,19 @@ class TasksServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) : TasksService {
-    override suspend fun listTasks(limit: Int?, cursor: String?): ListTasksResponse {
+    override suspend fun listTasks(
+        status: TaskStatus?,
+        chatIds: List<Int>?,
+        performerIds: List<Int>?,
+        authorId: Int?,
+        limit: Int?,
+        cursor: String?,
+    ): ListTasksResponse {
         val response = client.get("$baseUrl/tasks") {
+            status?.let { parameter("status", it.value) }
+            chatIds?.forEach { parameter("chat_ids[]", it) }
+            performerIds?.forEach { parameter("performer_ids[]", it) }
+            authorId?.let { parameter("author_id", it) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
         }
@@ -1781,12 +1891,25 @@ class TasksServiceImpl internal constructor(
         }
     }
 
-    override suspend fun listTasksAll(limit: Int?): List<Task> {
+    override suspend fun listTasksAll(
+        status: TaskStatus?,
+        chatIds: List<Int>?,
+        performerIds: List<Int>?,
+        authorId: Int?,
+        limit: Int?,
+    ): List<Task> {
         val items = mutableListOf<Task>()
         var cursor: String? = null
         var hasNext = true
         while (hasNext) {
-            val response = listTasks(limit = limit, cursor = cursor)
+            val response = listTasks(
+                status = status,
+                chatIds = chatIds,
+                performerIds = performerIds,
+                authorId = authorId,
+                limit = limit,
+                cursor = cursor,
+            )
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage

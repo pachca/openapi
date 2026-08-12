@@ -335,6 +335,40 @@
         ]
       },
       {
+        "command": "pachca bots list-company",
+        "summary": "Список ботов пространства",
+        "method": "GET",
+        "path": "/company/bots",
+        "scope": "company_bots:read",
+        "plan": "corporation",
+        "flags": [
+          {
+            "name": "query",
+            "type": "option",
+            "required": false,
+            "description": "Поисковая фраза для фильтрации ботов по имени"
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
         "command": "pachca bots list-events",
         "summary": "История событий",
         "method": "GET",
@@ -708,6 +742,44 @@
             "type": "boolean",
             "required": false,
             "description": "Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты."
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca chats list-company",
+        "summary": "Список чатов пространства",
+        "method": "GET",
+        "path": "/company/chats",
+        "scope": "company_chats:read",
+        "plan": "corporation",
+        "flags": [
+          {
+            "name": "activity",
+            "type": "option",
+            "required": false,
+            "description": "Состояние чатов. Если параметр не указан, возвращаются и активные, и архивные чаты.",
+            "options": [
+              "active",
+              "archived"
+            ]
           },
           {
             "name": "limit",
@@ -2269,6 +2341,8 @@
               "kms_encrypt",
               "kms_decrypt",
               "audit_events_accessed",
+              "company_chats_accessed",
+              "company_bots_accessed",
               "dlp_violation_detected",
               "search_users_api",
               "search_chats_api",
@@ -2439,6 +2513,34 @@
         "scope": "tasks:read",
         "plan": null,
         "flags": [
+          {
+            "name": "status",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по состоянию. Если параметр не указан, возвращаются напоминания в любом состоянии.",
+            "options": [
+              "done",
+              "undone"
+            ]
+          },
+          {
+            "name": "chat-ids",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов. (через запятую)"
+          },
+          {
+            "name": "performer-ids",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по ответственным за напоминание. Не более 100 идентификаторов. (через запятую)"
+          },
+          {
+            "name": "author-id",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по автору напоминания"
+          },
           {
             "name": "limit",
             "type": "option",

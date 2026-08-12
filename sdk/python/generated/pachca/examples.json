@@ -24,6 +24,13 @@
     "usage": "response = await client.bots.get_bot(id=1738816)",
     "output": "BotResponse(id: int, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd))"
   },
+  "CompanyBotOperations_listCompanyBots": {
+    "usage": "params = ListCompanyBotsParams(\n    query=\"задач\",\n    limit=1,\n    cursor=\"eyJpZCI6MTczODgxNn0\"\n)\nresponse = await client.bots.list_company_bots(params=params)",
+    "output": "ListCompanyBotsResponse(data: list[CompanyBotResponse], meta: PaginationMeta)",
+    "imports": [
+      "ListCompanyBotsParams"
+    ]
+  },
   "BotOperations_getWebhookEvents": {
     "usage": "params = GetWebhookEventsParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.bots.get_webhook_events(params=params)",
     "output": "GetWebhookEventsResponse(data: list[WebhookEvent], meta: PaginationMeta)",
@@ -102,6 +109,14 @@
   "ExportOperations_downloadExport": {
     "usage": "response = await client.chats.download_export(id=22322)",
     "output": "str"
+  },
+  "CompanyChatOperations_listCompanyChats": {
+    "usage": "params = ListCompanyChatsParams(\n    activity=ChatActivity.ACTIVE,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.chats.list_company_chats(params=params)",
+    "output": "ListCompanyChatsResponse(data: list[Chat], meta: PaginationMeta)",
+    "imports": [
+      "ChatActivity",
+      "ListCompanyChatsParams"
+    ]
   },
   "ChatOperations_createChat": {
     "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"🤿 aqua\",\n        member_ids=[123],\n        group_tag_ids=[123],\n        channel=True,\n        public=False\n    )\n)\nresponse = await client.chats.create_chat(request=request)",
@@ -376,10 +391,11 @@
     ]
   },
   "TaskOperations_listTasks": {
-    "usage": "params = ListTasksParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.tasks.list_tasks(params=params)",
+    "usage": "params = ListTasksParams(\n    status=TaskStatus.UNDONE,\n    chat_ids=[123],\n    performer_ids=[123],\n    author_id=12,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.tasks.list_tasks(params=params)",
     "output": "ListTasksResponse(data: list[Task], meta: PaginationMeta)",
     "imports": [
-      "ListTasksParams"
+      "ListTasksParams",
+      "TaskStatus"
     ]
   },
   "TaskOperations_getTask": {

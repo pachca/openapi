@@ -362,6 +362,44 @@ describe('makeApiRequestAllPages error paths', () => {
     expect((ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(1);
   });
 
+  it('names the missing scope from the WWW-Authenticate challenge', async () => {
+    const ctx = createExecCtx({
+      httpResponses: [{
+        statusCode: 403,
+        body: { error: 'insufficient_scope', error_description: 'Insufficient scope. Required: users:read' },
+        headers: {
+          'www-authenticate':
+            'Bearer error="insufficient_scope", error_description="Insufficient scope. Required: users:read", scope="users:read"',
+        },
+      }],
+      params: { returnAll: false, limit: 10 },
+    });
+
+    // Скоуп уезжает в description ошибки — именно его n8n показывает в ноде
+    const error = await makeApiRequestAllPages
+      .call(ctx, 'GET', '/users', {}, 0, 'user', 2)
+      .then(() => null, (e: NodeApiError & { description?: string }) => e);
+    expect(error).toBeInstanceOf(NodeApiError);
+    expect(error?.description).toContain('Missing scope: users:read');
+  });
+
+  it('keeps the generic 403 description when there is no challenge', async () => {
+    const ctx = createExecCtx({
+      httpResponses: [{
+        statusCode: 403,
+        body: { error: 'Forbidden' },
+        headers: {},
+      }],
+      params: { returnAll: false, limit: 10 },
+    });
+
+    const error = await makeApiRequestAllPages
+      .call(ctx, 'GET', '/users', {}, 0, 'user', 2)
+      .then(() => null, (e: NodeApiError & { description?: string }) => e);
+    expect(error).toBeInstanceOf(NodeApiError);
+    expect(error?.description).not.toContain('Missing scope');
+  });
+
   it('should break on duplicate cursor (infinite loop guard)', async () => {
     const page1 = {
       statusCode: 200,

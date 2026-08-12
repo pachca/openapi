@@ -2,12 +2,25 @@
 
 # Changelog
 
+## 2.1.0 (2026-08-12)
+
+### Improvements
+
+- Chat: new `Get Many Workspace Chats` operation — every conversation and channel of the workspace, including private ones, with the `Activity` filter for chat state
+- Bot: new `Get Many Workspace Bots` operation — every bot of the workspace; bots you cannot edit come back with `Name` and `Nickname` only
+- Task: `Get Many` gains the `Status`, `Chat IDs`, `Performer IDs` and `Author ID` filters
+- Security: the event filter gains `Company Chats Accessed` and `Company Bots Accessed`
+
+### Fixes
+
+- API errors: a `403 insufficient_scope` now names the missing scope in the error description, read from the `WWW-Authenticate` header (RFC 6750). The generic hint alone did not say which scope to add to the bot
+- Message: an attachment left with the default `Size` and `Duration Ms` no longer sends them as `0`. `duration_ms: 0` was rejected by the API with a validation error, so sending a message with a file could fail even though nothing was filled in by hand
+
 ## 2.0.18 (2026-08-07)
 
 ### Improvements
 
 - Chat: `Get Many` gains the `Archived` field — return archived chats along with active ones. The chat object now carries an `archived` flag
-- Bot: `Create` and `Update` gain the `OAuth Client` field — the bot OAuth client settings (`confidential`, `redirect_uris`, `scopes`)
 - Security: the event filter gains `Bot OAuth Client Updated`, `OAuth Authorization Granted` and `OAuth Authorization Revoked`
 
 ### Changes
@@ -16,7 +29,7 @@
 
 ### Fixes
 
-- JSON fields are parsed before the request is sent, so an object no longer reaches the API as a string. Malformed input now fails on the node with a clear message instead of coming back as a validation error from the API. Affects `Message: Unfurl` (`Link Previews`) and the new `OAuth Client` field
+- JSON fields are parsed before the request is sent, so an object no longer reaches the API as a string. Malformed input now fails on the node with a clear message instead of coming back as a validation error from the API. Affects `Message: Unfurl` (`Link Previews`)
 
 ## 2.0.17 (2026-08-01)
 

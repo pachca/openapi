@@ -532,6 +532,10 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
   if (ep.path === '/chats/exports' && method === 'POST') return 'requestExport';
   if (ep.path === '/chats/exports/{id}' && method === 'GET') return 'downloadExport';
   if (ep.path === '/messages/{id}/link_previews' && method === 'POST') return 'unfurl';
+  // Инвентаризация пространства живёт под своим префиксом: без пина операции назывались бы
+  // "getAllChats"/"getAllBots" и путались бы с обычным "getAll" того же ресурса.
+  if (ep.path === '/company/chats' && method === 'GET') return 'getAllCompanyChats';
+  if (ep.path === '/company/bots' && method === 'GET') return 'getAllCompanyBots';
 
   // Sub-resource action paths (e.g., /users/{id}/status → getStatus, updateStatus)
   // When last static segment differs from the resource root and is NOT a CRUD collection
@@ -601,6 +605,7 @@ function operationDisplayName(op: string): string {
     recreateToken: 'Recreate Token', recreateTokenSelf: 'Recreate Token Self',
     requestExport: 'Request Export', downloadExport: 'Download Export', unfurl: 'Unfurl',
     createStandalone: 'Create Standalone',
+    getAllCompanyChats: 'Get Many Workspace Chats', getAllCompanyBots: 'Get Many Workspace Bots',
   };
   if (MAP[op]) return MAP[op];
   // Sub-resource operations: "getAllStatus" → "Get Many Status", "updateMembers" → "Update Members"
@@ -660,6 +665,8 @@ function actionLabel(op: string, resourceName: string, resource?: string): strin
     createStandalone: 'Create a standalone thread',
     requestExport: 'Request a chat export',
     downloadExport: 'Download a chat export',
+    getAllCompanyChats: 'Get many workspace chats',
+    getAllCompanyBots: 'Get many workspace bots',
   };
   if (ALIAS_LABELS[op]) return ALIAS_LABELS[op];
 
@@ -3090,6 +3097,18 @@ const IA_LEGACY_ALIASES: Record<string, { resource: string; operation: string }>
 	'profile:getInfo': { resource: 'oauth', operation: 'getInfo' },
 };
 
+/**
+ * Заполнен ли query-параметр. Числовое поле n8n, которого пользователь не
+ * трогал, приходит нулём (у number-полей дефолт обязан быть числом), а среди
+ * query-параметров API нет ни одного, где 0 — значение: это либо положительный
+ * идентификатор, либо limit от единицы. Поэтому 0 здесь означает «не задано»,
+ * иначе фильтр вроде author_id=0 уходил бы в каждый запрос и API отвечал бы
+ * ошибкой валидации.
+ */
+function isQueryValueSet(val: unknown): boolean {
+\treturn val !== undefined && val !== null && val !== '' && val !== 0;
+}
+
 // ============================================================================
 // Router Entry Point
 // ============================================================================
@@ -3274,7 +3293,7 @@ async function executeRoute(
 \t\t\t} else {
 \t\t\t\tval = this.getNodeParameter(qm.n8n, i);
 \t\t\t}
-\t\t\tif (val !== undefined && val !== null && val !== '') {
+\t\t\tif (isQueryValueSet(val)) {
 \t\t\t\tif (qm.isArray && typeof val === 'string') {
 \t\t\t\t\tqs[qm.api] = splitAndValidateCommaList(this, val, qm.n8n, qm.arrayType!, i);
 \t\t\t\t} else {
@@ -3292,11 +3311,11 @@ async function executeRoute(
 \t\tif (val === undefined) {
 \t\t\ttry { val = this.getNodeParameter(qm.n8n, i, undefined); } catch { /* not present */ }
 \t\t}
-\t\tif (val !== undefined && val !== null && val !== '') {
+\t\tif (isQueryValueSet(val)) {
 \t\t\tif (qm.isArray && typeof val === 'string') {
 \t\t\t\tqs[qm.api] = splitAndValidateCommaList(this, val, qm.n8n, qm.arrayType!, i);
 \t\t\t} else {
-\t\t\t\tqs[qm.api] = val;
+\t\t\t\tqs[qm.api] = val as IDataObject;
 \t\t\t}
 \t\t}
 \t}

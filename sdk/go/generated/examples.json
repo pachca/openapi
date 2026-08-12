@@ -24,6 +24,13 @@
     "usage": "response, err := client.Bots.GetBot(ctx, int32(1738816))",
     "output": "BotResponse{ID: int32, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}}"
   },
+  "CompanyBotOperations_listCompanyBots": {
+    "usage": "params := &ListCompanyBotsParams{\n\tQuery: Ptr(\"задач\"),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTczODgxNn0\"),\n}\nresponse, err := client.Bots.ListCompanyBots(ctx, params)",
+    "output": "ListCompanyBotsResponse{Data: []CompanyBotResponse, Meta: PaginationMeta}",
+    "imports": [
+      "ListCompanyBotsParams"
+    ]
+  },
   "BotOperations_getWebhookEvents": {
     "usage": "params := &GetWebhookEventsParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Bots.GetWebhookEvents(ctx, params)",
     "output": "GetWebhookEventsResponse{Data: []WebhookEvent, Meta: PaginationMeta}",
@@ -102,6 +109,14 @@
   "ExportOperations_downloadExport": {
     "usage": "response, err := client.Chats.DownloadExport(ctx, int32(22322))",
     "output": "string"
+  },
+  "CompanyChatOperations_listCompanyChats": {
+    "usage": "params := &ListCompanyChatsParams{\n\tActivity: Ptr(ChatActivityActive),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListCompanyChats(ctx, params)",
+    "output": "ListCompanyChatsResponse{Data: []Chat, Meta: PaginationMeta}",
+    "imports": [
+      "ChatActivity",
+      "ListCompanyChatsParams"
+    ]
   },
   "ChatOperations_createChat": {
     "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"🤿 aqua\",\n\t\tMemberIDs: []int32{int32(123)},\n\t\tGroupTagIDs: []int32{int32(123)},\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(false),\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
@@ -376,10 +391,11 @@
     ]
   },
   "TaskOperations_listTasks": {
-    "usage": "params := &ListTasksParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Tasks.ListTasks(ctx, params)",
+    "usage": "params := &ListTasksParams{\n\tStatus: Ptr(TaskStatusUndone),\n\tChatIDs: []int32{int32(123)},\n\tPerformerIDs: []int32{int32(123)},\n\tAuthorID: Ptr(int32(12)),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Tasks.ListTasks(ctx, params)",
     "output": "ListTasksResponse{Data: []Task, Meta: PaginationMeta}",
     "imports": [
-      "ListTasksParams"
+      "ListTasksParams",
+      "TaskStatus"
     ]
   },
   "TaskOperations_getTask": {

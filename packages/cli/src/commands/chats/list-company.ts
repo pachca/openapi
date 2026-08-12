@@ -2,19 +2,18 @@
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
-export default class TasksList extends BaseCommand {
-  static override description = "Список напоминаний";
+export default class ChatsListCompany extends BaseCommand {
+  static override description = "Список чатов пространства";
 
   static override examples = [
-      "Получить список предстоящих задач — Получи невыполненные задачи:\n  $ pachca tasks list",
-      "Собрать задачи по чатам проекта — Запроси задачи нужных чатов:\n  $ pachca tasks list",
-      "Собрать задачи по чатам проекта — Сузь выборку по автору, ответственным и состоянию:\n  $ pachca tasks list"
+      "Выгрузить все чаты пространства, включая закрытые — Получи беседы и каналы всего пространства, включая закрытые, где владелец токена не состоит:\n  $ pachca chats list-company"
   ];
 
-  static scope = "tasks:read";
+  static scope = "company_chats:read";
+  static plan = "corporation";
   static apiMethod = "GET";
-  static apiPath = "/tasks";
-  static defaultColumns = ["id","content","created_at","kind","due_at"];
+  static apiPath = "/company/chats";
+  static defaultColumns = ["id","name","created_at","owner_id","channel"];
 
   static override args = {
 
@@ -22,18 +21,9 @@ export default class TasksList extends BaseCommand {
 
   static override flags = {
     ...BaseCommand.baseFlags,
-    'status': Flags.string({
-      description: "Фильтр по состоянию. Если параметр не указан, возвращаются напоминания в любом состоянии.",
-      options: ["done","undone"],
-    }),
-    'chat-ids': Flags.string({
-      description: "Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов." + " (через запятую)",
-    }),
-    'performer-ids': Flags.string({
-      description: "Фильтр по ответственным за напоминание. Не более 100 идентификаторов." + " (через запятую)",
-    }),
-    'author-id': Flags.integer({
-      description: "Фильтр по автору напоминания",
+    'activity': Flags.string({
+      description: "Состояние чатов. Если параметр не указан, возвращаются и активные, и архивные чаты.",
+      options: ["active","archived"],
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',
@@ -48,7 +38,7 @@ export default class TasksList extends BaseCommand {
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(TasksList);
+    const { args, flags } = await this.parse(ChatsListCompany);
     this.parsedFlags = flags;
 
     if (flags.all) {
@@ -60,14 +50,11 @@ export default class TasksList extends BaseCommand {
 
       while (pages < 500) {
         const query: Record<string, string | number | boolean | string[] | undefined> = {
-        status: flags['status'],
-        'chat_ids': flags['chat-ids']?.split(','),
-        'performer_ids': flags['performer-ids']?.split(','),
-        'author_id': flags['author-id'],
+        activity: flags['activity'],
         limit: flags.limit,
           cursor: nextCursor,
         };
-        const response = await this.apiRequest({ method: 'GET', path: '/tasks', query });
+        const response = await this.apiRequest({ method: 'GET', path: '/company/chats', query });
         const body = response.data as Record<string, unknown>;
         const items = body.data as unknown[];
         if (items) allData.push(...items);
@@ -107,12 +94,9 @@ export default class TasksList extends BaseCommand {
 
     const { data } = await this.apiRequest({
       method: 'GET',
-      path: '/tasks',
+      path: '/company/chats',
       query: {
-      status: flags['status'],
-      'chat_ids': flags['chat-ids']?.split(','),
-      'performer_ids': flags['performer-ids']?.split(','),
-      'author_id': flags['author-id'],
+      activity: flags['activity'],
       limit: flags.limit,
       cursor: flags.cursor,
       },

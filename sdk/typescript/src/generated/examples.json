@@ -20,6 +20,10 @@
     "usage": "const response = client.bots.getBot(1738816)",
     "output": "BotResponse({ id: number, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })"
   },
+  "CompanyBotOperations_listCompanyBots": {
+    "usage": "const response = client.bots.listCompanyBots({\n  query: \"задач\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTczODgxNn0\"\n})",
+    "output": "ListCompanyBotsResponse({ data: CompanyBotResponse[], meta: PaginationMeta })"
+  },
   "BotOperations_getWebhookEvents": {
     "usage": "const response = client.bots.getWebhookEvents({ limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
     "output": "GetWebhookEventsResponse({ data: WebhookEvent[], meta: PaginationMeta })"
@@ -94,6 +98,13 @@
   "ExportOperations_downloadExport": {
     "usage": "const response = client.chats.downloadExport(22322)",
     "output": "string"
+  },
+  "CompanyChatOperations_listCompanyChats": {
+    "usage": "const response = client.chats.listCompanyChats({\n  activity: ChatActivity.Active,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "output": "ListCompanyChatsResponse({ data: Chat[], meta: PaginationMeta })",
+    "imports": [
+      "ChatActivity"
+    ]
   },
   "ChatOperations_createChat": {
     "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"🤿 aqua\",\n    memberIds: [123],\n    groupTagIds: [123],\n    channel: true,\n    public: false\n  }\n}\nconst response = client.chats.createChat(request)",
@@ -344,8 +355,11 @@
     ]
   },
   "TaskOperations_listTasks": {
-    "usage": "const response = client.tasks.listTasks({ limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
-    "output": "ListTasksResponse({ data: Task[], meta: PaginationMeta })"
+    "usage": "const response = client.tasks.listTasks({\n  status: TaskStatus.Undone,\n  chatIds: [123],\n  performerIds: [123],\n  authorId: 12,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "output": "ListTasksResponse({ data: Task[], meta: PaginationMeta })",
+    "imports": [
+      "TaskStatus"
+    ]
   },
   "TaskOperations_getTask": {
     "usage": "const response = client.tasks.getTask(22283)",

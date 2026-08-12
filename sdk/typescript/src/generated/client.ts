@@ -7,6 +7,9 @@ import {
   ListBotsParams,
   ListBotsResponse,
   BotResponse,
+  ListCompanyBotsParams,
+  ListCompanyBotsResponse,
+  CompanyBotResponse,
   GetWebhookEventsParams,
   GetWebhookEventsResponse,
   WebhookEvent,
@@ -18,6 +21,8 @@ import {
   ListChatsParams,
   ListChatsResponse,
   Chat,
+  ListCompanyChatsParams,
+  ListCompanyChatsResponse,
   ChatCreateRequest,
   ExportRequest,
   ChatUpdateRequest,
@@ -164,6 +169,14 @@ export class BotsService {
     throw new Error("Bots.getBot is not implemented");
   }
 
+  async listCompanyBots(params?: ListCompanyBotsParams): Promise<ListCompanyBotsResponse> {
+    throw new Error("Bots.listCompanyBots is not implemented");
+  }
+
+  async listCompanyBotsAll(params?: Omit<ListCompanyBotsParams, 'cursor'>): Promise<CompanyBotResponse[]> {
+    throw new Error("Bots.listCompanyBotsAll is not implemented");
+  }
+
   async getWebhookEvents(params?: GetWebhookEventsParams): Promise<GetWebhookEventsResponse> {
     throw new Error("Bots.getWebhookEvents is not implemented");
   }
@@ -303,6 +316,40 @@ export class BotsServiceImpl extends BotsService {
       default:
         throw new ApiError(body.errors);
     }
+  }
+
+  async listCompanyBots(params?: ListCompanyBotsParams): Promise<ListCompanyBotsResponse> {
+    const query = new URLSearchParams();
+    if (params?.query !== undefined) query.set("query", params.query);
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
+    const url = `${this.baseUrl}/company/bots${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserialize(body) as ListCompanyBotsResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async listCompanyBotsAll(params?: Omit<ListCompanyBotsParams, 'cursor'>): Promise<CompanyBotResponse[]> {
+    const items: CompanyBotResponse[] = [];
+    let cursor: string | undefined;
+    let hasNext = true;
+    while (hasNext) {
+      const response = await this.listCompanyBots({ ...params, cursor } as ListCompanyBotsParams);
+      items.push(...response.data);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
+    return items;
   }
 
   async getWebhookEvents(params?: GetWebhookEventsParams): Promise<GetWebhookEventsResponse> {
@@ -469,6 +516,14 @@ export class ChatsService {
     throw new Error("Chats.downloadExport is not implemented");
   }
 
+  async listCompanyChats(params?: ListCompanyChatsParams): Promise<ListCompanyChatsResponse> {
+    throw new Error("Chats.listCompanyChats is not implemented");
+  }
+
+  async listCompanyChatsAll(params?: Omit<ListCompanyChatsParams, 'cursor'>): Promise<Chat[]> {
+    throw new Error("Chats.listCompanyChatsAll is not implemented");
+  }
+
   async createChat(request: ChatCreateRequest): Promise<Chat> {
     throw new Error("Chats.createChat is not implemented");
   }
@@ -571,6 +626,40 @@ export class ChatsServiceImpl extends ChatsService {
       default:
         throw new ApiError(((await response.json()) as any).errors);
     }
+  }
+
+  async listCompanyChats(params?: ListCompanyChatsParams): Promise<ListCompanyChatsResponse> {
+    const query = new URLSearchParams();
+    if (params?.activity !== undefined) query.set("activity", params.activity);
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
+    const url = `${this.baseUrl}/company/chats${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserialize(body) as ListCompanyChatsResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async listCompanyChatsAll(params?: Omit<ListCompanyChatsParams, 'cursor'>): Promise<Chat[]> {
+    const items: Chat[] = [];
+    let cursor: string | undefined;
+    let hasNext = true;
+    while (hasNext) {
+      const response = await this.listCompanyChats({ ...params, cursor } as ListCompanyChatsParams);
+      items.push(...response.data);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
+    return items;
   }
 
   async createChat(request: ChatCreateRequest): Promise<Chat> {
@@ -1895,6 +1984,14 @@ export class TasksServiceImpl extends TasksService {
 
   async listTasks(params?: ListTasksParams): Promise<ListTasksResponse> {
     const query = new URLSearchParams();
+    if (params?.status !== undefined) query.set("status", params.status);
+    if (params?.chatIds !== undefined) {
+      params.chatIds.forEach((v) => query.append("chat_ids[]", String(v)));
+    }
+    if (params?.performerIds !== undefined) {
+      params.performerIds.forEach((v) => query.append("performer_ids[]", String(v)));
+    }
+    if (params?.authorId !== undefined) query.set("author_id", String(params.authorId));
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/tasks${query.toString() ? `?${query}` : ""}`;

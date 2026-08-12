@@ -258,6 +258,23 @@
               ]
             }
           }
+        },
+        {
+          "name": "Список чатов пространства",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company/chats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "company",
+                "chats"
+              ]
+            }
+          }
         }
       ]
     },
@@ -1915,6 +1932,23 @@
                   "key": "id",
                   "value": ""
                 }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Список ботов пространства",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company/bots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "company",
+                "bots"
               ]
             }
           }

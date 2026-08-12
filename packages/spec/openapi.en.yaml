@@ -1887,6 +1887,245 @@ paths:
         - Chats
       x-requirements:
         scope: chats:archive
+  /company/bots:
+    get:
+      operationId: CompanyBotOperations_listCompanyBots
+      description: >-
+        List workspace bots
+
+
+        Retrieve a list of every bot in the workspace, including the ones you cannot edit. For those, only the name and
+        the nickname are returned, the rest of the settings come as `null`.
+
+
+        The method is available to the workspace owner. Every request is written to the [audit
+        log](/guides/audit-events) with the `company_bots_accessed` key.
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Search phrase to filter bots by name
+          schema:
+            type: string
+            example: task
+          example: task
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Number of entities returned per request
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            example: 1
+            default: 50
+          example: 1
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Pagination cursor (from `meta.paginate.next_page`)
+          schema:
+            type: string
+            example: eyJpZCI6MTczODgxNn0
+          example: eyJpZCI6MTczODgxNn0
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CompanyBotResponse'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                description: Response wrapper with data and pagination
+              example:
+                data:
+                  - id: 1738816
+                    webhook:
+                      name: Tasks bot
+                      nickname: tasks_bot
+                      outgoing_url: https://www.website.com/tasks/new
+                      events:
+                        - message_new
+                      trigger_on: commands
+                      commands:
+                        - /task
+                      scopes:
+                        - messages:create
+                      template: Order from {{ client }} for {{ amount }} ₽
+                      template_engine: liquid
+                      challenge_key: challenge
+                      link_preview_enabled: true
+                      ignore_self_messages: false
+                      events_history_enabled: false
+                      single_chat: false
+                      can_edit:
+                        - admin
+                      who_can_add: creator
+                  - id: 1738817
+                    webhook:
+                      name: Release bot
+                      nickname: release_bot
+                      outgoing_url: null
+                      events: null
+                      trigger_on: null
+                      commands: null
+                      scopes: null
+                      template: null
+                      template_engine: null
+                      challenge_key: null
+                      link_preview_enabled: null
+                      ignore_self_messages: null
+                      events_history_enabled: null
+                      single_chat: null
+                      can_edit: null
+                      who_can_add: null
+                meta:
+                  paginate:
+                    next_page: eyJpZCI6MTczODgxN30
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Bots
+      x-paginated: true
+      x-requirements:
+        scope: company_bots:read
+        plan: corporation
+  /company/chats:
+    get:
+      operationId: CompanyChatOperations_listCompanyChats
+      description: >-
+        List workspace chats
+
+
+        Retrieve a list of conversations and channels across the whole workspace, including private ones you are not a
+        member of. Direct messages and threads are not returned.
+
+
+        Both active and archived chats are returned by default. The `activity` parameter keeps only one of the states in
+        the selection.
+
+
+        The method is available to the workspace owner. Every request is written to the [audit
+        log](/guides/audit-events) with the `company_chats_accessed` key.
+      parameters:
+        - name: activity
+          in: query
+          required: false
+          description: Chat state. If the parameter is omitted, both active and archived chats are returned.
+          schema:
+            $ref: '#/components/schemas/ChatActivity'
+            example: active
+          example: active
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Number of entities returned per request
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            example: 1
+            default: 50
+          example: 1
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Pagination cursor (from `meta.paginate.next_page`)
+          schema:
+            type: string
+            example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Chat'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                description: Response wrapper with data and pagination
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Chats
+      x-paginated: true
+      x-requirements:
+        scope: company_chats:read
+        plan: corporation
   /custom_properties:
     get:
       operationId: CommonOperations_listProperties
@@ -4193,11 +4432,71 @@ paths:
         scope: tasks:create
     get:
       operationId: TaskOperations_listTasks
-      description: |-
+      description: >-
         List tasks
 
+
         Retrieve a list of tasks.
+
+
+        Without the `chat_ids` parameter only your own tasks are returned: those from conversations and channels you are
+        a member of, plus tasks with no chat that you created or that are assigned to you. The `chat_ids` parameter
+        changes the selection — all tasks of the listed chats are returned, including those of other people.
       parameters:
+        - name: status
+          in: query
+          required: false
+          description: Filter by state. If the parameter is omitted, tasks in any state are returned.
+          schema:
+            $ref: '#/components/schemas/TaskStatus'
+            example: undone
+          example: undone
+          explode: false
+        - name: chat_ids
+          in: query
+          required: false
+          description: >-
+            Filter by the chats the tasks are attached to. Accessible chats are the ones you are a member of, public
+            conversations and channels of the workspace, and threads available to you through their parent chat. The
+            remaining IDs are ignored without an error. Up to 100 IDs.
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+            example:
+              - 198
+              - 334
+          example:
+            - 198
+            - 334
+          explode: false
+        - name: performer_ids
+          in: query
+          required: false
+          description: Filter by task performers. Up to 100 IDs.
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+            example:
+              - 12
+              - 185
+          example:
+            - 12
+            - 185
+          explode: false
+        - name: author_id
+          in: query
+          required: false
+          description: Filter by task author
+          schema:
+            type: integer
+            format: int32
+            example: 12
+          example: 12
+          explode: false
         - name: limit
           in: query
           required: false
@@ -5869,7 +6168,7 @@ components:
       description: >-
         Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted,
         chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted,
-        thread_created, audit_events_accessed.
+        thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.
     AuditDetailsInitiator:
       type: object
       required:
@@ -6234,6 +6533,8 @@ components:
         - kms_encrypt
         - kms_decrypt
         - audit_events_accessed
+        - company_chats_accessed
+        - company_bots_accessed
         - dlp_violation_detected
         - search_users_api
         - search_chats_api
@@ -6281,6 +6582,8 @@ components:
         kms_encrypt: Data encrypted
         kms_decrypt: Data decrypted
         audit_events_accessed: Audit logs accessed
+        company_chats_accessed: Workspace-wide chat list accessed
+        company_bots_accessed: Workspace-wide bot list accessed
         dlp_violation_detected: DLP rule violation detected
         search_users_api: Employee search via API
         search_chats_api: Chat search via API
@@ -6923,6 +7226,15 @@ components:
           description: Video chat link
           example: https://meet.pachca.com/aqua-94bb21b5
       description: Chat
+    ChatActivity:
+      type: string
+      enum:
+        - active
+        - archived
+      description: Activity state of the chats in the selection
+      x-enum-descriptions:
+        active: Active chats only
+        archived: Archived chats only
     ChatAvailability:
       type: string
       enum:
@@ -7094,6 +7406,144 @@ components:
               example: true
           description: Chat parameters object to update
       description: Chat update request
+    CompanyBotResponse:
+      type: object
+      required:
+        - id
+        - webhook
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Bot ID
+          example: 1738816
+        webhook:
+          allOf:
+            - $ref: '#/components/schemas/CompanyBotWebhook'
+          description: Webhook parameters object
+      description: Workspace bot parameters
+    CompanyBotWebhook:
+      type: object
+      required:
+        - name
+        - nickname
+        - outgoing_url
+        - events
+        - trigger_on
+        - commands
+        - scopes
+        - template
+        - template_engine
+        - challenge_key
+        - link_preview_enabled
+        - ignore_self_messages
+        - events_history_enabled
+        - single_chat
+        - can_edit
+        - who_can_add
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Bot name
+          example: Tasks bot
+        nickname:
+          type: string
+          maxLength: 255
+          description: Bot nickname
+          example: tasks_bot
+        outgoing_url:
+          type: string
+          nullable: true
+          description: Outgoing webhook URL. `null` if the bot has no outgoing webhook configured.
+          example: https://www.website.com/tasks/new
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotEventName'
+          nullable: true
+          description: Events the bot is subscribed to
+          example:
+            - message_new
+        trigger_on:
+          allOf:
+            - $ref: '#/components/schemas/BotTriggerOn'
+          nullable: true
+          description: Outgoing webhook trigger condition
+          example: commands
+        commands:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Bot commands (trigger words)
+          example:
+            - /task
+        scopes:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Bot token scopes (permissions)
+          example:
+            - messages:create
+        template:
+          type: string
+          nullable: true
+          description: Template for formatting the incoming webhook. `null` if not set.
+          example: Order from {{ client }} for {{ amount }} ₽
+        template_engine:
+          allOf:
+            - $ref: '#/components/schemas/BotTemplateEngine'
+          nullable: true
+          description: Template engine used to process the incoming webhook template
+          example: liquid
+        challenge_key:
+          type: string
+          nullable: true
+          description: Verification field name for incoming webhook verification. `null` if not set.
+          example: challenge
+        link_preview_enabled:
+          type: boolean
+          nullable: true
+          description: Show link previews in incoming webhook messages
+          example: true
+        ignore_self_messages:
+          type: boolean
+          nullable: true
+          description: Ignore incoming messages sent by the bot itself
+          example: false
+        events_history_enabled:
+          type: boolean
+          nullable: true
+          description: Save the bot's event history for later retrieval via the event history method
+          example: false
+        single_chat:
+          type: boolean
+          nullable: true
+          description: >-
+            Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only,
+            `false` — to multiple. Personal chats and threads don't count toward this limit
+          example: false
+        can_edit:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotCanEdit'
+          nullable: true
+          description: >-
+            Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty
+            array means only the creator can edit.
+          example:
+            - admin
+        who_can_add:
+          allOf:
+            - $ref: '#/components/schemas/BotWhoCanAdd'
+          nullable: true
+          description: Who can add the bot to chats
+          example: creator
+      description: >-
+        Webhook parameters of a workspace bot. Settings of a bot you cannot edit come back as `null` — only the name and
+        the nickname remain.
     CompanyMemberWebhookPayload:
       type: object
       required:
@@ -8111,6 +8561,8 @@ components:
         - user_avatar:write
         - custom_properties:read
         - audit_events:read
+        - company_chats:read
+        - company_bots:read
         - tasks:read
         - tasks:create
         - tasks:update
@@ -8294,6 +8746,10 @@ components:
           - bot
         audit_events_read:
           - owner
+        company_chats_read:
+          - owner
+        company_bots_read:
+          - owner
         tasks_read:
           - owner
           - admin
@@ -8404,6 +8860,8 @@ components:
         user_avatar_write: Update and delete employee avatar
         custom_properties_read: View custom properties
         audit_events_read: View audit log
+        company_chats_read: View the list of all workspace chats
+        company_bots_read: View the list of all workspace bots
         tasks_read: View tasks
         tasks_create: Create tasks
         tasks_update: Update task

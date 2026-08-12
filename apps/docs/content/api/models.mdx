@@ -24,6 +24,7 @@ hideTableOfContents: true
   <Card title="Напоминание" href="#napominanie" methods="GET POST PUT DELETE" />
   <Card title="Представление" href="#predstavlenie" methods="POST" />
   <Card title="Параметры бота" href="#parametry-bota" methods="POST, GET, PUT, DELETE" />
+  <Card title="Параметры бота пространства" href="#parametry-bota-prostranstva" methods="GET" />
   <Card title="Событие исходящего вебхука" href="#sobytie-ishodyaschego-vebhuka" methods="GET DELETE" />
   <Card title="Событие аудита" href="#sobytie-audita" methods="GET" />
 </CardGroup>
@@ -93,6 +94,7 @@ hideTableOfContents: true
 - [Экспорт сообщений](POST /chats/exports)
 - [Информация о чате](GET /chats/{id})
 - [Список чатов](GET /chats)
+- [Список чатов пространства](GET /company/chats)
 - [Поиск чатов](GET /search/chats)
 - [Скачать архив экспорта](GET /chats/exports/{id})
 - [Редактирование чата](PUT /chats/{id})
@@ -164,6 +166,12 @@ hideTableOfContents: true
 - [Ротация собственного токена бота](POST /bot/recreate_token)
 
 <ModelSchema name="BotResponse" />
+
+## Параметры бота пространства
+
+- [Список ботов пространства](GET /company/bots)
+
+<ModelSchema name="CompanyBotResponse" />
 
 ## Событие исходящего вебхука
 

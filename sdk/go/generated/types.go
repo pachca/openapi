@@ -42,6 +42,8 @@ const (
 	AuditEventKeyKmsEncrypt                AuditEventKey = "kms_encrypt" // Данные зашифрованы
 	AuditEventKeyKmsDecrypt                AuditEventKey = "kms_decrypt" // Данные расшифрованы
 	AuditEventKeyAuditEventsAccessed       AuditEventKey = "audit_events_accessed" // Доступ к журналам аудита получен
+	AuditEventKeyCompanyChatsAccessed      AuditEventKey = "company_chats_accessed" // Получен список всех чатов пространства
+	AuditEventKeyCompanyBotsAccessed       AuditEventKey = "company_bots_accessed" // Получен список всех ботов пространства
 	AuditEventKeyDlpViolationDetected      AuditEventKey = "dlp_violation_detected" // Срабатывание правила DLP-системы
 	AuditEventKeySearchUsersApi            AuditEventKey = "search_users_api" // Поиск сотрудников через API
 	AuditEventKeySearchChatsApi            AuditEventKey = "search_chats_api" // Поиск чатов через API
@@ -110,6 +112,13 @@ const (
 	BotWhoCanAddCreatorAdmin     BotWhoCanAdd = "creator_admin" // Создатель и администраторы компании
 	BotWhoCanAddCreatorAdminUser BotWhoCanAdd = "creator_admin_user" // Создатель, администраторы и участники компании
 	BotWhoCanAddAnyone           BotWhoCanAdd = "anyone" // Любой пользователь, в том числе гости
+)
+
+type ChatActivity string
+
+const (
+	ChatActivityActive   ChatActivity = "active" // Только активные чаты
+	ChatActivityArchived ChatActivity = "archived" // Только архивные чаты
 )
 
 type ChatAvailability string
@@ -245,6 +254,8 @@ const (
 	OAuthScopeUserAvatarWrite      OAuthScope = "user_avatar:write" // Изменение и удаление аватара сотрудника
 	OAuthScopeCustomPropertiesRead OAuthScope = "custom_properties:read" // Просмотр дополнительных полей
 	OAuthScopeAuditEventsRead      OAuthScope = "audit_events:read" // Просмотр журнала аудита
+	OAuthScopeCompanyChatsRead     OAuthScope = "company_chats:read" // Просмотр списка всех чатов пространства
+	OAuthScopeCompanyBotsRead      OAuthScope = "company_bots:read" // Просмотр списка всех ботов пространства
 	OAuthScopeTasksRead            OAuthScope = "tasks:read" // Просмотр задач
 	OAuthScopeTasksCreate          OAuthScope = "tasks:create" // Создание задач
 	OAuthScopeTasksUpdate          OAuthScope = "tasks:update" // Изменение задачи
@@ -806,6 +817,30 @@ type ChatUpdateRequestChat struct {
 
 type ChatUpdateRequest struct {
 	Chat ChatUpdateRequestChat `json:"chat"`
+}
+
+type CompanyBotResponse struct {
+	ID      int32             `json:"id"`
+	Webhook CompanyBotWebhook `json:"webhook"`
+}
+
+type CompanyBotWebhook struct {
+	Name                 string             `json:"name"`
+	Nickname             string             `json:"nickname"`
+	OutgoingURL          *string            `json:"outgoing_url"`
+	Events               []BotEventName     `json:"events"`
+	TriggerOn            *BotTriggerOn      `json:"trigger_on"`
+	Commands             []string           `json:"commands"`
+	Scopes               []string           `json:"scopes"`
+	Template             *string            `json:"template"`
+	TemplateEngine       *BotTemplateEngine `json:"template_engine"`
+	ChallengeKey         *string            `json:"challenge_key"`
+	LinkPreviewEnabled   *bool              `json:"link_preview_enabled"`
+	IgnoreSelfMessages   *bool              `json:"ignore_self_messages"`
+	EventsHistoryEnabled *bool              `json:"events_history_enabled"`
+	SingleChat           *bool              `json:"single_chat"`
+	CanEdit              []BotCanEdit       `json:"can_edit"`
+	WhoCanAdd            *BotWhoCanAdd      `json:"who_can_add"`
 }
 
 type CompanyMemberWebhookPayload struct {
@@ -2108,6 +2143,18 @@ type ListMembersParams struct {
 	Cursor *string
 }
 
+type ListCompanyBotsParams struct {
+	Query  *string
+	Limit  *int32
+	Cursor *string
+}
+
+type ListCompanyChatsParams struct {
+	Activity *ChatActivity
+	Limit    *int32
+	Cursor   *string
+}
+
 type ListPropertiesParams struct {
 	EntityType SearchEntityType
 }
@@ -2183,8 +2230,12 @@ type SearchUsersParams struct {
 }
 
 type ListTasksParams struct {
-	Limit  *int32
-	Cursor *string
+	Status       *TaskStatus
+	ChatIDs      []int32
+	PerformerIDs []int32
+	AuthorID     *int32
+	Limit        *int32
+	Cursor       *string
 }
 
 type ListThreadsParams struct {
@@ -2222,6 +2273,16 @@ type ListChatsResponse struct {
 
 type ListMembersResponse struct {
 	Data []User         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
+}
+
+type ListCompanyBotsResponse struct {
+	Data []CompanyBotResponse `json:"data"`
+	Meta PaginationMeta       `json:"meta"`
+}
+
+type ListCompanyChatsResponse struct {
+	Data []Chat         `json:"data"`
 	Meta PaginationMeta `json:"meta"`
 }
 

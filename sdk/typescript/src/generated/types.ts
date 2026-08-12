@@ -62,6 +62,10 @@ export enum AuditEventKey {
   KmsDecrypt = "kms_decrypt",
   /** Доступ к журналам аудита получен */
   AuditEventsAccessed = "audit_events_accessed",
+  /** Получен список всех чатов пространства */
+  CompanyChatsAccessed = "company_chats_accessed",
+  /** Получен список всех ботов пространства */
+  CompanyBotsAccessed = "company_bots_accessed",
   /** Срабатывание правила DLP-системы */
   DlpViolationDetected = "dlp_violation_detected",
   /** Поиск сотрудников через API */
@@ -168,6 +172,14 @@ export enum BotWhoCanAdd {
   CreatorAdminUser = "creator_admin_user",
   /** Любой пользователь, в том числе гости */
   Anyone = "anyone",
+}
+
+/** Состояние чатов в выборке */
+export enum ChatActivity {
+  /** Только активные чаты */
+  Active = "active",
+  /** Только архивные чаты */
+  Archived = "archived",
 }
 
 /** Доступность чатов для пользователя */
@@ -359,6 +371,10 @@ export enum OAuthScope {
   CustomPropertiesRead = "custom_properties:read",
   /** Просмотр журнала аудита */
   AuditEventsRead = "audit_events:read",
+  /** Просмотр списка всех чатов пространства */
+  CompanyChatsRead = "company_chats:read",
+  /** Просмотр списка всех ботов пространства */
+  CompanyBotsRead = "company_bots:read",
   /** Просмотр задач */
   TasksRead = "tasks:read",
   /** Создание задач */
@@ -928,6 +944,30 @@ export interface ChatUpdateRequest {
     name?: string;
     public?: boolean;
   };
+}
+
+export interface CompanyBotResponse {
+  id: number;
+  webhook: CompanyBotWebhook;
+}
+
+export interface CompanyBotWebhook {
+  name: string;
+  nickname: string;
+  outgoingUrl: string | null;
+  events: BotEventName[] | null;
+  triggerOn: BotTriggerOn | null;
+  commands: string[] | null;
+  scopes: string[] | null;
+  template: string | null;
+  templateEngine: BotTemplateEngine | null;
+  challengeKey: string | null;
+  linkPreviewEnabled: boolean | null;
+  ignoreSelfMessages: boolean | null;
+  eventsHistoryEnabled: boolean | null;
+  singleChat: boolean | null;
+  canEdit: BotCanEdit[] | null;
+  whoCanAdd: BotWhoCanAdd | null;
 }
 
 export interface CompanyMemberWebhookPayload {
@@ -1595,6 +1635,18 @@ export interface ListMembersParams {
   cursor?: string;
 }
 
+export interface ListCompanyBotsParams {
+  query?: string;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface ListCompanyChatsParams {
+  activity?: ChatActivity;
+  limit?: number;
+  cursor?: string;
+}
+
 export interface ListPropertiesParams {
   entityType: SearchEntityType;
 }
@@ -1670,6 +1722,10 @@ export interface SearchUsersParams {
 }
 
 export interface ListTasksParams {
+  status?: TaskStatus;
+  chatIds?: number[];
+  performerIds?: number[];
+  authorId?: number;
   limit?: number;
   cursor?: string;
 }
@@ -1709,6 +1765,16 @@ export interface ListChatsResponse {
 
 export interface ListMembersResponse {
   data: User[];
+  meta: PaginationMeta;
+}
+
+export interface ListCompanyBotsResponse {
+  data: CompanyBotResponse[];
+  meta: PaginationMeta;
+}
+
+export interface ListCompanyChatsResponse {
+  data: Chat[];
   meta: PaginationMeta;
 }
 

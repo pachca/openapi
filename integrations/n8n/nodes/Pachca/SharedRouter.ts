@@ -187,6 +187,12 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/bots/{id}/recreate_token',
 			pathParams: [{ api: 'id', n8n: 'id' }],
 		},
+		getAllCompanyBots: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/company/bots',
+			paginated: true,
+			queryMap: [{ api: 'query', n8n: 'query' }],
+		},
 		getAllEvents: {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/webhooks/events',
@@ -265,6 +271,12 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'PUT' as IHttpRequestMethods,
 			path: '/chats/{id}/unarchive',
 			pathParams: [{ api: 'id', n8n: 'id', locator: true, v1Fallback: 'chatId' }],
+		},
+		getAllCompanyChats: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/company/chats',
+			paginated: true,
+			queryMap: [{ api: 'activity', n8n: 'activity' }],
 		},
 		getMembers: {
 			method: 'GET' as IHttpRequestMethods,
@@ -637,6 +649,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/tasks',
 			paginated: true,
+			queryMap: [{ api: 'status', n8n: 'status' }, { api: 'chat_ids', n8n: 'chatIds', isArray: true, arrayType: 'int' }, { api: 'performer_ids', n8n: 'performerIds', isArray: true, arrayType: 'int' }, { api: 'author_id', n8n: 'authorId' }],
 		},
 		get: {
 			method: 'GET' as IHttpRequestMethods,
@@ -800,6 +813,18 @@ const IA_LEGACY_ALIASES: Record<string, { resource: string; operation: string }>
 	'linkPreview:create': { resource: 'message', operation: 'unfurl' },
 	'profile:getInfo': { resource: 'oauth', operation: 'getInfo' },
 };
+
+/**
+ * Заполнен ли query-параметр. Числовое поле n8n, которого пользователь не
+ * трогал, приходит нулём (у number-полей дефолт обязан быть числом), а среди
+ * query-параметров API нет ни одного, где 0 — значение: это либо положительный
+ * идентификатор, либо limit от единицы. Поэтому 0 здесь означает «не задано»,
+ * иначе фильтр вроде author_id=0 уходил бы в каждый запрос и API отвечал бы
+ * ошибкой валидации.
+ */
+function isQueryValueSet(val: unknown): boolean {
+	return val !== undefined && val !== null && val !== '' && val !== 0;
+}
 
 // ============================================================================
 // Router Entry Point
@@ -985,7 +1010,7 @@ async function executeRoute(
 			} else {
 				val = this.getNodeParameter(qm.n8n, i);
 			}
-			if (val !== undefined && val !== null && val !== '') {
+			if (isQueryValueSet(val)) {
 				if (qm.isArray && typeof val === 'string') {
 					qs[qm.api] = splitAndValidateCommaList(this, val, qm.n8n, qm.arrayType!, i);
 				} else {
@@ -1003,11 +1028,11 @@ async function executeRoute(
 		if (val === undefined) {
 			try { val = this.getNodeParameter(qm.n8n, i, undefined); } catch { /* not present */ }
 		}
-		if (val !== undefined && val !== null && val !== '') {
+		if (isQueryValueSet(val)) {
 			if (qm.isArray && typeof val === 'string') {
 				qs[qm.api] = splitAndValidateCommaList(this, val, qm.n8n, qm.arrayType!, i);
 			} else {
-				qs[qm.api] = val;
+				qs[qm.api] = val as IDataObject;
 			}
 		}
 	}

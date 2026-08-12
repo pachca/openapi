@@ -138,6 +138,8 @@ type BotsService interface {
 	ListBots(ctx context.Context, params *ListBotsParams) (*ListBotsResponse, error)
 	ListBotsAll(ctx context.Context, params *ListBotsParams) ([]BotResponse, error)
 	GetBot(ctx context.Context, id int32) (*BotResponse, error)
+	ListCompanyBots(ctx context.Context, params *ListCompanyBotsParams) (*ListCompanyBotsResponse, error)
+	ListCompanyBotsAll(ctx context.Context, params *ListCompanyBotsParams) ([]CompanyBotResponse, error)
 	GetWebhookEvents(ctx context.Context, params *GetWebhookEventsParams) (*GetWebhookEventsResponse, error)
 	GetWebhookEventsAll(ctx context.Context, params *GetWebhookEventsParams) ([]WebhookEvent, error)
 	PollWebhookEvents(ctx context.Context, options *PollWebhookEventsOptions, handler func(WebhookEvent) error) error
@@ -170,6 +172,14 @@ func (s *BotsServiceStub) ListBotsAll(ctx context.Context, params *ListBotsParam
 
 func (s *BotsServiceStub) GetBot(ctx context.Context, id int32) (*BotResponse, error) {
 	return nil, NotImplementedError{Method: "Bots.getBot"}
+}
+
+func (s *BotsServiceStub) ListCompanyBots(ctx context.Context, params *ListCompanyBotsParams) (*ListCompanyBotsResponse, error) {
+	return nil, NotImplementedError{Method: "Bots.listCompanyBots"}
+}
+
+func (s *BotsServiceStub) ListCompanyBotsAll(ctx context.Context, params *ListCompanyBotsParams) ([]CompanyBotResponse, error) {
+	return nil, NotImplementedError{Method: "Bots.listCompanyBotsAll"}
 }
 
 func (s *BotsServiceStub) GetWebhookEvents(ctx context.Context, params *GetWebhookEventsParams) (*GetWebhookEventsResponse, error) {
@@ -326,6 +336,79 @@ func (s *BotsServiceImpl) GetBot(ctx context.Context, id int32) (*BotResponse, e
 		}
 		return nil, &e
 	}
+}
+
+func (s *BotsServiceImpl) ListCompanyBots(ctx context.Context, params *ListCompanyBotsParams) (*ListCompanyBotsResponse, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/company/bots", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	if params != nil && params.Query != nil {
+		q.Set("query", fmt.Sprintf("%v", *params.Query))
+	}
+	if params != nil && params.Limit != nil {
+		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
+	}
+	if params != nil && params.Cursor != nil {
+		q.Set("cursor", fmt.Sprintf("%v", *params.Cursor))
+	}
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListCompanyBotsResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *BotsServiceImpl) ListCompanyBotsAll(ctx context.Context, params *ListCompanyBotsParams) ([]CompanyBotResponse, error) {
+	if params == nil {
+		params = &ListCompanyBotsParams{}
+	}
+	var items []CompanyBotResponse
+	var cursor *string
+	hasNext := true
+	for hasNext {
+		params.Cursor = cursor
+		result, err := s.ListCompanyBots(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if len(result.Data) == 0 {
+			return items, nil
+		}
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
+	}
+	return items, nil
 }
 
 func (s *BotsServiceImpl) GetWebhookEvents(ctx context.Context, params *GetWebhookEventsParams) (*GetWebhookEventsResponse, error) {
@@ -735,6 +818,8 @@ type ChatsService interface {
 	ListChatsAll(ctx context.Context, params *ListChatsParams) ([]Chat, error)
 	GetChat(ctx context.Context, id int32) (*Chat, error)
 	DownloadExport(ctx context.Context, id int32) (string, error)
+	ListCompanyChats(ctx context.Context, params *ListCompanyChatsParams) (*ListCompanyChatsResponse, error)
+	ListCompanyChatsAll(ctx context.Context, params *ListCompanyChatsParams) ([]Chat, error)
 	CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error)
 	RequestExport(ctx context.Context, request ExportRequest) error
 	UpdateChat(ctx context.Context, id int32, request ChatUpdateRequest) (*Chat, error)
@@ -758,6 +843,14 @@ func (s *ChatsServiceStub) GetChat(ctx context.Context, id int32) (*Chat, error)
 
 func (s *ChatsServiceStub) DownloadExport(ctx context.Context, id int32) (string, error) {
 	return "", NotImplementedError{Method: "Chats.downloadExport"}
+}
+
+func (s *ChatsServiceStub) ListCompanyChats(ctx context.Context, params *ListCompanyChatsParams) (*ListCompanyChatsResponse, error) {
+	return nil, NotImplementedError{Method: "Chats.listCompanyChats"}
+}
+
+func (s *ChatsServiceStub) ListCompanyChatsAll(ctx context.Context, params *ListCompanyChatsParams) ([]Chat, error) {
+	return nil, NotImplementedError{Method: "Chats.listCompanyChatsAll"}
 }
 
 func (s *ChatsServiceStub) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
@@ -940,6 +1033,79 @@ func (s *ChatsServiceImpl) DownloadExport(ctx context.Context, id int32) (string
 		}
 		return "", &e
 	}
+}
+
+func (s *ChatsServiceImpl) ListCompanyChats(ctx context.Context, params *ListCompanyChatsParams) (*ListCompanyChatsResponse, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/company/chats", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	if params != nil && params.Activity != nil {
+		q.Set("activity", string(*params.Activity))
+	}
+	if params != nil && params.Limit != nil {
+		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
+	}
+	if params != nil && params.Cursor != nil {
+		q.Set("cursor", fmt.Sprintf("%v", *params.Cursor))
+	}
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListCompanyChatsResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *ChatsServiceImpl) ListCompanyChatsAll(ctx context.Context, params *ListCompanyChatsParams) ([]Chat, error) {
+	if params == nil {
+		params = &ListCompanyChatsParams{}
+	}
+	var items []Chat
+	var cursor *string
+	hasNext := true
+	for hasNext {
+		params.Cursor = cursor
+		result, err := s.ListCompanyChats(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if len(result.Data) == 0 {
+			return items, nil
+		}
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
+	}
+	return items, nil
 }
 
 func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
@@ -3401,6 +3567,22 @@ func (s *TasksServiceImpl) ListTasks(ctx context.Context, params *ListTasksParam
 		return nil, err
 	}
 	q := u.Query()
+	if params != nil && params.Status != nil {
+		q.Set("status", string(*params.Status))
+	}
+	if params != nil {
+		for _, v := range params.ChatIDs {
+			q.Add("chat_ids[]", fmt.Sprintf("%v", v))
+		}
+	}
+	if params != nil {
+		for _, v := range params.PerformerIDs {
+			q.Add("performer_ids[]", fmt.Sprintf("%v", v))
+		}
+	}
+	if params != nil && params.AuthorID != nil {
+		q.Set("author_id", fmt.Sprintf("%v", *params.AuthorID))
+	}
 	if params != nil && params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
 	}

@@ -113,6 +113,8 @@ export const securityFields: INodeProperties[] = [
 { name: 'Chat Created', value: 'chat_created', description: 'New chat created' },
 { name: 'Chat Permission Changed', value: 'chat_permission_changed', description: 'Chat access permissions changed' },
 { name: 'Chat Renamed', value: 'chat_renamed' },
+{ name: 'Company Bots Accessed', value: 'company_bots_accessed', description: 'Workspace-wide bot list accessed' },
+{ name: 'Company Chats Accessed', value: 'company_chats_accessed', description: 'Workspace-wide chat list accessed' },
 { name: 'Dlp Violation Detected', value: 'dlp_violation_detected', description: 'DLP rule violation detected' },
 { name: 'Kms Decrypt', value: 'kms_decrypt', description: 'Data decrypted' },
 { name: 'Kms Encrypt', value: 'kms_encrypt', description: 'Data encrypted' },

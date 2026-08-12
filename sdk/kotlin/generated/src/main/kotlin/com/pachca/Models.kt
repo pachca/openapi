@@ -91,6 +91,10 @@ enum class AuditEventKey(val value: String) {
     @SerialName("kms_decrypt") KMS_DECRYPT("kms_decrypt"),
     /** Доступ к журналам аудита получен */
     @SerialName("audit_events_accessed") AUDIT_EVENTS_ACCESSED("audit_events_accessed"),
+    /** Получен список всех чатов пространства */
+    @SerialName("company_chats_accessed") COMPANY_CHATS_ACCESSED("company_chats_accessed"),
+    /** Получен список всех ботов пространства */
+    @SerialName("company_bots_accessed") COMPANY_BOTS_ACCESSED("company_bots_accessed"),
     /** Срабатывание правила DLP-системы */
     @SerialName("dlp_violation_detected") DLP_VIOLATION_DETECTED("dlp_violation_detected"),
     /** Поиск сотрудников через API */
@@ -202,6 +206,15 @@ enum class BotWhoCanAdd(val value: String) {
     @SerialName("creator_admin_user") CREATOR_ADMIN_USER("creator_admin_user"),
     /** Любой пользователь, в том числе гости */
     @SerialName("anyone") ANYONE("anyone"),
+}
+
+/** Состояние чатов в выборке */
+@Serializable
+enum class ChatActivity(val value: String) {
+    /** Только активные чаты */
+    @SerialName("active") ACTIVE("active"),
+    /** Только архивные чаты */
+    @SerialName("archived") ARCHIVED("archived"),
 }
 
 /** Доступность чатов для пользователя */
@@ -406,6 +419,10 @@ enum class OAuthScope(val value: String) {
     @SerialName("custom_properties:read") CUSTOM_PROPERTIES_READ("custom_properties:read"),
     /** Просмотр журнала аудита */
     @SerialName("audit_events:read") AUDIT_EVENTS_READ("audit_events:read"),
+    /** Просмотр списка всех чатов пространства */
+    @SerialName("company_chats:read") COMPANY_CHATS_READ("company_chats:read"),
+    /** Просмотр списка всех ботов пространства */
+    @SerialName("company_bots:read") COMPANY_BOTS_READ("company_bots:read"),
     /** Просмотр задач */
     @SerialName("tasks:read") TASKS_READ("tasks:read"),
     /** Создание задач */
@@ -1377,6 +1394,32 @@ data class ChatUpdateRequest(
 )
 
 @Serializable
+data class CompanyBotResponse(
+    val id: Int,
+    val webhook: CompanyBotWebhook,
+)
+
+@Serializable
+data class CompanyBotWebhook(
+    val name: String,
+    val nickname: String,
+    @SerialName("outgoing_url") val outgoingUrl: String? = null,
+    val events: List<BotEventName>? = null,
+    @SerialName("trigger_on") val triggerOn: BotTriggerOn? = null,
+    val commands: List<String>? = null,
+    val scopes: List<String>? = null,
+    val template: String? = null,
+    @SerialName("template_engine") val templateEngine: BotTemplateEngine? = null,
+    @SerialName("challenge_key") val challengeKey: String? = null,
+    @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = null,
+    @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean? = null,
+    @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean? = null,
+    @SerialName("single_chat") val singleChat: Boolean? = null,
+    @SerialName("can_edit") val canEdit: List<BotCanEdit>? = null,
+    @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd? = null,
+)
+
+@Serializable
 data class CustomProperty(
     val id: Int,
     val name: String,
@@ -1925,6 +1968,18 @@ data class ListChatsResponse(
 @Serializable
 data class ListMembersResponse(
     val data: List<User>,
+    val meta: PaginationMeta,
+)
+
+@Serializable
+data class ListCompanyBotsResponse(
+    val data: List<CompanyBotResponse>,
+    val meta: PaginationMeta,
+)
+
+@Serializable
+data class ListCompanyChatsResponse(
+    val data: List<Chat>,
     val meta: PaginationMeta,
 )
 

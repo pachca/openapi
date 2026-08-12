@@ -316,15 +316,34 @@ workflows:
       - stepId: find-and-archive-inactive-chats-2
         description: 'For each chat: archive (Check `"channel": false` — archiving channels may be undesirable)'
         operationId: ChatOperations_archiveChat
+  - workflowId: export-all-workspace-chats-including-private-ones
+    summary: Export all workspace chats, including private ones
+    description: >-
+      Every request to the workspace chat list is written to the audit log as
+      `company_chats_accessed`.
+    steps:
+      - stepId: export-all-workspace-chats-including-private-ones-1
+        description: >-
+          Get conversations and channels of the whole workspace, including private ones the token
+          owner is not a member of (Both active and archived chats are returned. Keep one state with
+          `--activity` set to `active` or `archived`. Direct messages and threads are not returned)
+        operationId: CompanyChatOperations_listCompanyChats
+      - stepId: export-all-workspace-chats-including-private-ones-2
+        description: >-
+          On `403` the token lacks the `company_chats:read` scope, or its owner is not the workspace
+          owner, or the workspace is not on the Corporation plan. In that case fall back to the
+          regular list of public chats (Private chats the token is not a member of will not be in
+          this list)
+        operationId: ChatOperations_listChats
   - workflowId: create-a-bot-via-api-and-get-its-token
     summary: Create a bot via API and get its token
     description: >-
       Bots can only be created with a user token, not a bot token. The `access_token` is returned
       once at creation; afterwards it can be viewed and copied in the interface. Manual
-      prerequisites: Save `access_token` from the response — it is returned only once. You can
-      obtain the token again only through the interface (the "API" tab of the bot settings); The
-      response also includes the bot `id` (its `user_id`) — needed for further calls, e.g. adding
-      the bot to a chat.
+      prerequisites: Save `access_token` from the response — it is returned only once. The issued
+      token can be viewed again only in the interface (the "API" tab of the bot settings), and
+      re-issued with `pachca bots recreate-token <ID>`; The response also includes the bot `id` (its
+      `user_id`) — needed for further calls, e.g. adding the bot to a chat.
     steps:
       - stepId: create-a-bot-via-api-and-get-its-token-1
         description: >-
@@ -469,6 +488,20 @@ workflows:
       - stepId: process-events-via-history-polling-2
         description: Delete processed event (Delete to avoid reprocessing)
         operationId: BotOperations_deleteWebhookEvent
+  - workflowId: inventory-of-all-workspace-bots
+    summary: Inventory of all workspace bots
+    description: >-
+      Every request to the workspace bot list is written to the audit log as
+      `company_bots_accessed`. Manual prerequisites: For each bot check whether its settings are
+      disclosed: for bots the token owner cannot edit only `name` and `nickname` are filled, the
+      remaining webhook fields come as `null`.
+    steps:
+      - stepId: inventory-of-all-workspace-bots-1
+        description: >-
+          Get all workspace bots, not only the ones available for editing (Requires the
+          `company_bots:read` scope, the workspace owner role and the Corporation plan, otherwise
+          the method responds `403`. Filter by name with `--query`)
+        operationId: CompanyBotOperations_listCompanyBots
   - workflowId: show-interactive-form-to-user
     summary: Show interactive form to user
     description: >-
@@ -635,8 +668,21 @@ workflows:
     steps:
       - stepId: get-list-of-upcoming-tasks-1
         description: >-
-          Get all tasks, filter by `status` on client side (`status`: `"undone"` — not completed,
-          `"done"` — completed. API-side filtering not supported)
+          Get incomplete tasks (`status`: `"undone"` — not completed, `"done"` — completed. Without
+          the parameter tasks in any state are returned. More filters: `--author-id`,
+          `--performer-ids`, `--chat-ids`)
+        operationId: TaskOperations_listTasks
+  - workflowId: collect-tasks-from-project-chats
+    summary: Collect tasks from project chats
+    steps:
+      - stepId: collect-tasks-from-project-chats-1
+        description: >-
+          Request tasks of the wanted chats (With `--chat-ids` the selection is no longer limited to
+          your own tasks and returns every task of the listed chats. Inaccessible chats are ignored
+          without an error, up to 100 IDs)
+        operationId: TaskOperations_listTasks
+      - stepId: collect-tasks-from-project-chats-2
+        description: Narrow the selection by author, performers and state (Filters combine with each other)
         operationId: TaskOperations_listTasks
   - workflowId: get-task-by-id
     summary: Get task by ID

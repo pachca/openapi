@@ -20,6 +20,10 @@
     "usage": "let response = try await client.bots.getBot(id: 1738816)",
     "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd))"
   },
+  "CompanyBotOperations_listCompanyBots": {
+    "usage": "let response = try await client.bots.listCompanyBots(query: \"задач\", limit: 1, cursor: \"eyJpZCI6MTczODgxNn0\")",
+    "output": "ListCompanyBotsResponse(data: [CompanyBotResponse], meta: PaginationMeta)"
+  },
   "BotOperations_getWebhookEvents": {
     "usage": "let response = try await client.bots.getWebhookEvents(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "GetWebhookEventsResponse(data: [WebhookEvent], meta: PaginationMeta)"
@@ -94,6 +98,13 @@
   "ExportOperations_downloadExport": {
     "usage": "let response = try await client.chats.downloadExport(id: 22322)",
     "output": "String"
+  },
+  "CompanyChatOperations_listCompanyChats": {
+    "usage": "let response = try await client.chats.listCompanyChats(activity: .active, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListCompanyChatsResponse(data: [Chat], meta: PaginationMeta)",
+    "imports": [
+      "ChatActivity"
+    ]
   },
   "ChatOperations_createChat": {
     "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"🤿 aqua\",\n        memberIds: [123],\n        groupTagIds: [123],\n        channel: true,\n        `public`: false\n    )\n)\nlet response = try await client.chats.createChat(body: body)",
@@ -344,8 +355,11 @@
     ]
   },
   "TaskOperations_listTasks": {
-    "usage": "let response = try await client.tasks.listTasks(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListTasksResponse(data: [Task], meta: PaginationMeta)"
+    "usage": "let chatIds = [123]\nlet performerIds = [123]\nlet response = try await client.tasks.listTasks(status: .undone, chatIds: chatIds, performerIds: performerIds, authorId: 12, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListTasksResponse(data: [Task], meta: PaginationMeta)",
+    "imports": [
+      "TaskStatus"
+    ]
   },
   "TaskOperations_getTask": {
     "usage": "let response = try await client.tasks.getTask(id: 22283)",

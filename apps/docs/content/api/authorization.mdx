@@ -93,7 +93,7 @@ related:
 Бот виден в пространстве как отдельный участник со своим именем и аватаром. Получить его `access_token` можно двумя способами:
 
 - **В интерфейсе** — во вкладке **API** в настройках бота.
-- **Через API** — методом [Новый бот](POST /bots): он создаёт бота и сразу возвращает `access_token`. Сохраните токен из ответа — повторно получить его можно только через интерфейс.
+- **Через API** — методом [Новый бот](POST /bots): он создаёт бота и сразу возвращает `access_token`. Сохраните токен из ответа: посмотреть его повторно можно только в интерфейсе, а перевыпустить — методом [Ротация токена бота](POST /bots/{id}/recreate_token).
 
 Подробнее о создании и настройке бота — в разделе [Боты](/guides/bots/overview).
 
@@ -145,5 +145,11 @@ Authorization: Bearer <ACCESS_TOKEN>
 - `403 Forbidden` — токен не имеет необходимого скоупа для данного метода (поле `error` содержит `insufficient_scope`)
 
 <SchemaBlock name="OAuthError"/>
+
+Ответ `403 insufficient_scope` дополнительно содержит заголовок `WWW-Authenticate` по [RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750#section-3): в параметре `scope` — скоуп, которого не хватило токену. Это позволяет разобрать причину отказа, не разбирая тело ответа.
+
+```http title="Заголовок ответа 403"
+WWW-Authenticate: Bearer error="insufficient_scope", error_description="Insufficient scope. Required: profile:read", scope="profile:read"
+```
 
 Подробнее о кодах ошибок и структуре ответов — в руководстве [Ошибки](/api/errors).

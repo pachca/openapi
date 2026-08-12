@@ -1,5 +1,86 @@
 [
   {
+    "product": "n8n",
+    "version": "2.1.0",
+    "date": "2026-08-12",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`Chat`: новая операция `Get Many Workspace Chats` — все беседы и каналы пространства, включая закрытые, с фильтром `Activity` по состоянию чата"
+      },
+      {
+        "type": "+",
+        "description": "`Bot`: новая операция `Get Many Workspace Bots` — все боты пространства, у недоступных для редактирования заполнены только `Name` и `Nickname`"
+      },
+      {
+        "type": "+",
+        "description": "`Task`: операция `Get Many` — фильтры `Status`, `Chat IDs`, `Performer IDs` и `Author ID`"
+      },
+      {
+        "type": "+",
+        "description": "`Security`: фильтр событий пополнился значениями `Company Chats Accessed` и `Company Bots Accessed`"
+      },
+      {
+        "type": "-",
+        "description": "`Message`: у вложения с незаполненными `Size` и `Duration Ms` эти поля больше не уходят в API нулями. `duration_ms: 0` API отклонял ошибкой валидации, и отправка сообщения с файлом падала, хотя руками ничего не заполняли"
+      },
+      {
+        "type": "-",
+        "description": "Ошибка `403 insufficient_scope` называет недостающий скоуп — он берётся из заголовка `WWW-Authenticate`"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.8.2",
+    "date": "2026-08-12",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca chats list-company` — все беседы и каналы пространства, включая закрытые, с флагом `--activity` для выбора состояния"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots list-company` — все боты пространства, с флагом `--query` для фильтра по имени"
+      },
+      {
+        "type": "+",
+        "description": "`pachca tasks list` — флаги `--status`, `--chat-ids`, `--performer-ids` и `--author-id`"
+      },
+      {
+        "type": "+",
+        "description": "`pachca security list` — фильтр `--event-key` принимает `company_chats_accessed` и `company_bots_accessed`"
+      },
+      {
+        "type": "-",
+        "description": "Недостающий скоуп в ошибке `insufficient_scope` берётся из заголовка `WWW-Authenticate`, а не из текста сообщения"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.3.0",
+    "date": "2026-08-12",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Метод `Список чатов пространства` (`GET /company/chats`)"
+      },
+      {
+        "type": "+",
+        "description": "Метод `Список ботов пространства` (`GET /company/bots`) и модель `CompanyBotResponse`"
+      },
+      {
+        "type": "+",
+        "description": "Параметры `status`, `chat_ids`, `performer_ids` и `author_id` в методе `Список напоминаний` (`GET /tasks`)"
+      },
+      {
+        "type": "+",
+        "description": "Значения `company_chats_accessed` и `company_bots_accessed` в `AuditEventKey`, значения `company_chats:read` и `company_bots:read` в `OAuthScope`"
+      }
+    ]
+  },
+  {
     "product": "sdk",
     "version": "1.2.0",
     "date": "2026-08-07",

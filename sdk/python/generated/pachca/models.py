@@ -39,6 +39,8 @@ class AuditEventKey(StrEnum):
     KMS_ENCRYPT = "kms_encrypt"  # Данные зашифрованы
     KMS_DECRYPT = "kms_decrypt"  # Данные расшифрованы
     AUDIT_EVENTS_ACCESSED = "audit_events_accessed"  # Доступ к журналам аудита получен
+    COMPANY_CHATS_ACCESSED = "company_chats_accessed"  # Получен список всех чатов пространства
+    COMPANY_BOTS_ACCESSED = "company_bots_accessed"  # Получен список всех ботов пространства
     DLP_VIOLATION_DETECTED = "dlp_violation_detected"  # Срабатывание правила DLP-системы
     SEARCH_USERS_API = "search_users_api"  # Поиск сотрудников через API
     SEARCH_CHATS_API = "search_chats_api"  # Поиск чатов через API
@@ -107,6 +109,13 @@ class BotWhoCanAdd(StrEnum):
     CREATOR_ADMIN = "creator_admin"  # Создатель и администраторы компании
     CREATOR_ADMIN_USER = "creator_admin_user"  # Создатель, администраторы и участники компании
     ANYONE = "anyone"  # Любой пользователь, в том числе гости
+
+
+class ChatActivity(StrEnum):
+    """Состояние чатов в выборке"""
+
+    ACTIVE = "active"  # Только активные чаты
+    ARCHIVED = "archived"  # Только архивные чаты
 
 
 class ChatAvailability(StrEnum):
@@ -240,6 +249,8 @@ class OAuthScope(StrEnum):
     USER_AVATAR_WRITE = "user_avatar:write"  # Изменение и удаление аватара сотрудника
     CUSTOM_PROPERTIES_READ = "custom_properties:read"  # Просмотр дополнительных полей
     AUDIT_EVENTS_READ = "audit_events:read"  # Просмотр журнала аудита
+    COMPANY_CHATS_READ = "company_chats:read"  # Просмотр списка всех чатов пространства
+    COMPANY_BOTS_READ = "company_bots:read"  # Просмотр списка всех ботов пространства
     TASKS_READ = "tasks:read"  # Просмотр задач
     TASKS_CREATE = "tasks:create"  # Создание задач
     TASKS_UPDATE = "tasks:update"  # Изменение задачи
@@ -773,6 +784,32 @@ class ChatUpdateRequestChat:
 @dataclass
 class ChatUpdateRequest:
     chat: ChatUpdateRequestChat
+
+
+@dataclass
+class CompanyBotResponse:
+    id: int
+    webhook: CompanyBotWebhook
+
+
+@dataclass
+class CompanyBotWebhook:
+    name: str
+    nickname: str
+    outgoing_url: str | None = None
+    events: list[BotEventName] | None = None
+    trigger_on: BotTriggerOn | None = None
+    commands: list[str] | None = None
+    scopes: list[str] | None = None
+    template: str | None = None
+    template_engine: BotTemplateEngine | None = None
+    challenge_key: str | None = None
+    link_preview_enabled: bool | None = None
+    ignore_self_messages: bool | None = None
+    events_history_enabled: bool | None = None
+    single_chat: bool | None = None
+    can_edit: list[BotCanEdit] | None = None
+    who_can_add: BotWhoCanAdd | None = None
 
 
 @dataclass
@@ -1534,6 +1571,20 @@ class ListMembersParams:
 
 
 @dataclass
+class ListCompanyBotsParams:
+    query: str | None = None
+    limit: int | None = None
+    cursor: str | None = None
+
+
+@dataclass
+class ListCompanyChatsParams:
+    activity: ChatActivity | None = None
+    limit: int | None = None
+    cursor: str | None = None
+
+
+@dataclass
 class ListPropertiesParams:
     entity_type: SearchEntityType
 
@@ -1619,6 +1670,10 @@ class SearchUsersParams:
 
 @dataclass
 class ListTasksParams:
+    status: TaskStatus | None = None
+    chat_ids: list[int] | None = None
+    performer_ids: list[int] | None = None
+    author_id: int | None = None
     limit: int | None = None
     cursor: str | None = None
 
@@ -1665,6 +1720,18 @@ class ListChatsResponse:
 @dataclass
 class ListMembersResponse:
     data: list[User]
+    meta: PaginationMeta
+
+
+@dataclass
+class ListCompanyBotsResponse:
+    data: list[CompanyBotResponse]
+    meta: PaginationMeta
+
+
+@dataclass
+class ListCompanyChatsResponse:
+    data: list[Chat]
     meta: PaginationMeta
 
 

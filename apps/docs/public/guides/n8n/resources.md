@@ -86,8 +86,11 @@
 | Unarchive | [Разархивация чата](/api/chats/unarchive) |
 | Request Export | [Экспорт сообщений](/api/chats/request-export) |
 | Download Export | [Скачивание экспорта](/api/chats/download-export) |
+| Get Many Workspace Chats | [Список чатов пространства](/api/chats/list-company) |
 
 **Сортировка в Get Many:** параметры `sort` (`id` или `last_message_at`) и `order` (`asc` / `desc`). Также доступны фильтры `availability`, `lastMessageAtAfter`, `lastMessageAtBefore`.
+
+**Get Many Workspace Chats** отдаёт беседы и каналы всего пространства, включая закрытые, где владелец токена не состоит. Фильтр `Activity` оставляет только активные или только архивные. Доступно владельцу пространства на тарифе «Корпорация».
 
 **Экспорт чата** выполняется асинхронно: операция **Request Export** ставит задачу (`webhookUrl` обязателен), Пачка присылает вебхук с `export_id`, затем **Download Export** скачивает архив по `id`. Доступно владельцу на тарифе «Корпорация».
 
@@ -230,6 +233,9 @@
 | Recreate Token Self | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | Get Many Events | [История событий](/api/bots/list-events) |
 | Remove Events | [Удаление события](/api/bots/remove-event) |
+| Get Many Workspace Bots | [Список ботов пространства](/api/bots/list-company) |
+
+**Get Many Workspace Bots** отдаёт всех ботов пространства, включая недоступных владельцу токена для редактирования. У таких ботов заполнены только `Name` и `Nickname`, остальные настройки приходят пустыми. Доступно владельцу пространства на тарифе «Корпорация».
 
 ---
 

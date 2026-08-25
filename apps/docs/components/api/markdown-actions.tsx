@@ -14,6 +14,12 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
   const [copied, setCopied] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // Radix would build this id from `useId()`, which comes out different on the
+  // server and at hydration for anything under a streamed server component —
+  // see `accordionIds` in components/layout/sidebar-nav.tsx. Deriving it from
+  // `pageUrl` keeps it stable and unique: one header per page.
+  const triggerId = `copy-menu-${pageUrl.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '') || 'home'}`;
+
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -129,7 +135,10 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
           <div>
             <DropdownMenu.Root open={dropdownOpen} onOpenChange={setDropdownOpen}>
               <DropdownMenu.Trigger asChild>
-                <button className="h-7 outline-none flex items-center gap-1 text-text-secondary font-medium hover:text-text-primary transition-colors cursor-pointer text-nowrap overflow-hidden">
+                <button
+                  id={triggerId}
+                  className="h-7 outline-none flex items-center gap-1 text-text-secondary font-medium hover:text-text-primary transition-colors cursor-pointer text-nowrap overflow-hidden"
+                >
                   {copied ? (
                     <Check className="w-3.5 h-3.5 text-accent-green shrink-0" strokeWidth={2.5} />
                   ) : (
@@ -142,6 +151,7 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
 
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
+                  aria-labelledby={triggerId}
                   className="z-50 min-w-[220px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
                   align="start"
                   collisionPadding={16}

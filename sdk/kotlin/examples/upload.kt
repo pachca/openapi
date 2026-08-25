@@ -72,7 +72,7 @@ fun main() = runBlocking {
                         key = key,
                         name = filename,
                         fileType = FileType.FILE,
-                        size = fileSize,
+                        size = fileSize.toLong(),
                     )
                 ),
             )

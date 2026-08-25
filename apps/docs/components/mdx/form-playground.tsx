@@ -494,9 +494,10 @@ function PreviewSelect({ block }: { block: ViewBlock }) {
 }
 
 function PreviewRadio({ block }: { block: ViewBlock }) {
-  const options = (block.options as SelectOption[] | undefined) || [];
+  // Radio marks its initial choice with `checked` (like checkbox), not `selected`.
+  const options = (block.options as CheckboxOption[] | undefined) || [];
   const [selected, setSelected] = useState<string | null>(() => {
-    const pre = options.find((o) => o.selected);
+    const pre = options.find((o) => o.checked);
     return pre ? pre.value : null;
   });
   return (
@@ -1126,18 +1127,16 @@ function OptionsEditor({
   const togglePreselect = (index: number) => {
     if (!preselect) return;
     if (preselect === 'select' || preselect === 'radio') {
-      // Single select — only one can be selected
+      // Single select — only one can be preselected. `select` marks it with
+      // `selected`, `radio` with `checked` (same field as checkbox).
+      const field = preselect === 'select' ? 'selected' : 'checked';
       onChange(
         options.map((o, i) => {
           const copy = { ...o };
-          if (i === index) {
-            if (copy.selected) {
-              delete copy.selected;
-            } else {
-              copy.selected = true;
-            }
+          if (i === index && !copy[field]) {
+            copy[field] = true;
           } else {
-            delete copy.selected;
+            delete copy[field];
           }
           return copy;
         })
@@ -1175,7 +1174,7 @@ function OptionsEditor({
                   {preselect === 'select' ? (
                     <Check className={`h-3.5 w-3.5 ${opt.selected ? 'text-primary' : ''}`} />
                   ) : preselect === 'radio' ? (
-                    <CircleDot className={`h-3.5 w-3.5 ${opt.selected ? 'text-primary' : ''}`} />
+                    <CircleDot className={`h-3.5 w-3.5 ${opt.checked ? 'text-primary' : ''}`} />
                   ) : (
                     <CheckSquare className={`h-3.5 w-3.5 ${opt.checked ? 'text-primary' : ''}`} />
                   )}

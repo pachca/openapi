@@ -217,7 +217,7 @@
   - `name: string` (required) — Название файла с расширением. Пример: `"congrat.png"`
   - `file_type: string` (required) — Тип файла
     Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение
-  - `url: string` (required) — Прямая ссылка на скачивание файла. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
+  - `url: string` (required) — Прямая ссылка на скачивание файла. Действует до 7 дней, оставшийся срок может быть меньше — если ссылка вернула `403`, запросите сообщение заново и получите свежую. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
   - `width: integer, int32` (nullable) — Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1920`
   - `height: integer, int32` (nullable) — Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1080`
 - `voice_content: object` (required) — Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.
@@ -338,9 +338,10 @@
         Значения: `select` — Для выпадающего списка всегда select
       - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
       - `label: string` (required, max length: 150) — Подпись к выпадающему списку
-      - `options: array of object` (max items: 100) — Массив доступных пунктов в выпадающем списке
+      - `options: array of object` (required, max items: 100) — Массив доступных пунктов в выпадающем списке
         - `text: string` (required, max length: 75) — Отображаемый текст
-        - `value: string` (required, max length: 150) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+        - `value: string` (required, max length: 255) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+        - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
         - `selected: boolean` — Изначально выбранный пункт. Только один пункт может быть выбран.
       - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под выпадающим списком серым цветом
@@ -349,11 +350,11 @@
         Значения: `radio` — Для радиокнопок всегда radio
       - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
       - `label: string` (required, max length: 150) — Подпись к группе радиокнопок
-      - `options: array of object` (max items: 10) — Массив радиокнопок
+      - `options: array of object` (required, max items: 10) — Массив радиокнопок
         - `text: string` (required, max length: 75) — Отображаемый текст
-        - `value: string` (required, max length: 150) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+        - `value: string` (required, max length: 255) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
         - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
-        - `selected: boolean` — Изначально выбранный пункт. Только один пункт может быть выбран.
+        - `checked: boolean` — Изначально выбранная радиокнопка. Только одна радиокнопка может быть выбрана.
       - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под группой радиокнопок серым цветом
     - **ViewBlockCheckbox**: Блок checkbox — чекбоксы
@@ -361,9 +362,9 @@
         Значения: `checkbox` — Для чекбоксов всегда checkbox
       - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
       - `label: string` (required, max length: 150) — Подпись к группе чекбоксов
-      - `options: array of object` (max items: 10) — Массив чекбоксов
+      - `options: array of object` (required, max items: 10) — Массив чекбоксов
         - `text: string` (required, max length: 75) — Отображаемый текст
-        - `value: string` (required, max length: 150) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+        - `value: string` (required, max length: 255) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
         - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
         - `checked: boolean` — Изначально выбранный пункт
       - `required: boolean` (default: false) — Обязательность
@@ -389,7 +390,7 @@
         Значения: `file_input` — Для загрузки файлов всегда file_input
       - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
       - `label: string` (required, max length: 150) — Подпись к полю
-      - `filetypes: array of string` — Массив допустимых расширений файлов, указанные в виде строк (например, ["png","jpg","gif"]). Если это поле не указано, все расширения файлов будут приняты.
+      - `filetypes: array of string` — Массив допустимых расширений файлов, указанные в виде строк (например, ["png","jpg","gif"]). Точка в начале не нужна, но допустима — она подставляется сама. Значение с косой чертой считается MIME-типом и остаётся как есть. Если это поле не указано, все расширения файлов будут приняты. Значение подставляется в фильтр окна выбора файла, поэтому расширение полученного файла проверяйте у себя.
       - `max_files: integer, int32` (default: 10, min: 1, max: 10) — Максимальное количество файлов, которое может загрузить пользователь в это поле
       - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
@@ -524,7 +525,7 @@
     - `private_metadata: string` (required, nullable) — Приватные метаданные, указанные при открытии представления. `null`, если при открытии формы они не были указаны. Пример: `"{\"timeoff_id\":4378}"`
     - `chat_id: integer, int32` (required, nullable) — Идентификатор чата, в котором была нажата кнопка, открывшая форму. Поле может быть `null` для форм, открытых до выкатки этого поля. Пример: `9012`
     - `user_id: integer, int32` (required) — Идентификатор пользователя, который отправил форму. Пример: `1235523`
-    - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные.
+    - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные. У блока `file_input` значение приходит массивом объектов с полями `name`, `size` и `url`, ссылка действует 2 часа.
       **Структура значений Record:**
       - Тип значения: `any`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1755075544`
@@ -583,7 +584,7 @@
     - `recording_id: integer, int32` — Идентификатор записи. Присутствует для события recording_ready. Пример: `4567`
     - `file_id: integer, int32` (nullable) — Идентификатор файла записи. Присутствует для события recording_ready. `null`, если файл ещё не привязан. Пример: `89012`
     - `url: string` — Прямая ссылка на файл записи. Присутствует для события recording_ready. Пример: `"https://api.pachca.com/files/89012"`
-    - `size: integer, int32` — Размер файла записи в байтах. Присутствует для события recording_ready. Пример: `10485760`
+    - `size: integer, int64` — Размер файла записи в байтах. Присутствует для события recording_ready. Пример: `10485760`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 
@@ -597,7 +598,7 @@
 - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 - `event_key: string` (required) — Ключ типа события
-  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `company_chats_accessed` — Получен список всех чатов пространства, `company_bots_accessed` — Получен список всех ботов пространства, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота, `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным, `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова
+  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_2fa_disabled` — Двухфакторная аутентификация отключена у сотрудника, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `company_chats_accessed` — Получен список всех чатов пространства, `company_bots_accessed` — Получен список всех ботов пространства, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота, `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным, `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова
 - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
 - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
 - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
@@ -605,7 +606,7 @@
 - `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект.
   **Возможные варианты:**
 
-  - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.
+  - **AuditDetailsEmpty**: Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.
   - **AuditDetailsUserUpdated**: При: user_updated
     - `changed_attrs: array of string` (required) — Список изменённых полей
     - `context: string` — Как было выполнено изменение. Значение `sso_login` — профиль обновился автоматически при входе через SSO. Поле отсутствует, если профиль изменили обычным способом.

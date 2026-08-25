@@ -12,6 +12,7 @@ class AuditEventKey(StrEnum):
     USER_LOGOUT = "user_logout"  # Пользователь вышел из системы
     USER_2FA_FAIL = "user_2fa_fail"  # Неудачная попытка двухфакторной аутентификации
     USER_2FA_SUCCESS = "user_2fa_success"  # Успешная двухфакторная аутентификация
+    USER_2FA_DISABLED = "user_2fa_disabled"  # Двухфакторная аутентификация отключена у сотрудника
     USER_CREATED = "user_created"  # Создана новая учетная запись пользователя
     USER_DELETED = "user_deleted"  # Учетная запись пользователя удалена
     USER_ROLE_CHANGED = "user_role_changed"  # Роль пользователя была изменена
@@ -362,7 +363,7 @@ class ValidationErrorCode(StrEnum):
     TAKEN = "taken"  # Название для этого поля уже существует
     WRONG_EMOJI = "wrong_emoji"  # Emoji статуса не может содержать значения отличные от Emoji символа
     NOT_FOUND = "not_found"  # Объект не найден
-    ALREADY_EXISTS = "already_exists"  # Объект уже существует (пояснения вы получите в поле message)
+    ALREADY_EXISTS = "already_exists"  # Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить
     PERSONAL_CHAT = "personal_chat"  # Ошибка личного чата (пояснения вы получите в поле message)
     DISPLAYED_ERROR = "displayed_error"  # Отображаемая ошибка (пояснения вы получите в поле message)
     NOT_AUTHORIZED = "not_authorized"  # Действие запрещено
@@ -1340,7 +1341,7 @@ class ViewBlockCheckbox:
     type: str  # literal "checkbox"
     name: str
     label: str
-    options: list[ViewBlockCheckboxOption] | None = None
+    options: list[ViewBlockCheckboxOption]
     required: bool | None = False
     hint: str | None = None
 
@@ -1416,7 +1417,7 @@ class ViewBlockRadio:
     type: str  # literal "radio"
     name: str
     label: str
-    options: list[ViewBlockSelectableOption] | None = None
+    options: list[ViewBlockSelectableOption]
     required: bool | None = False
     hint: str | None = None
 
@@ -1426,7 +1427,7 @@ class ViewBlockSelect:
     type: str  # literal "select"
     name: str
     label: str
-    options: list[ViewBlockSelectOption] | None = None
+    options: list[ViewBlockSelectOption]
     required: bool | None = False
     hint: str | None = None
 
@@ -1435,6 +1436,7 @@ class ViewBlockSelect:
 class ViewBlockSelectOption:
     text: str
     value: str
+    description: str | None = None
     selected: bool | None = None
 
 
@@ -1443,7 +1445,7 @@ class ViewBlockSelectableOption:
     text: str
     value: str
     description: str | None = None
-    selected: bool | None = None
+    checked: bool | None = None
 
 
 @dataclass

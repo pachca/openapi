@@ -20,6 +20,8 @@ public enum AuditEventKey
     User2faFail,
     /// <summary>Успешная двухфакторная аутентификация</summary>
     User2faSuccess,
+    /// <summary>Двухфакторная аутентификация отключена у сотрудника</summary>
+    User2faDisabled,
     /// <summary>Создана новая учетная запись пользователя</summary>
     UserCreated,
     /// <summary>Учетная запись пользователя удалена</summary>
@@ -119,6 +121,7 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             "user_logout" => AuditEventKey.UserLogout,
             "user_2fa_fail" => AuditEventKey.User2faFail,
             "user_2fa_success" => AuditEventKey.User2faSuccess,
+            "user_2fa_disabled" => AuditEventKey.User2faDisabled,
             "user_created" => AuditEventKey.UserCreated,
             "user_deleted" => AuditEventKey.UserDeleted,
             "user_role_changed" => AuditEventKey.UserRoleChanged,
@@ -174,6 +177,7 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             AuditEventKey.UserLogout => "user_logout",
             AuditEventKey.User2faFail => "user_2fa_fail",
             AuditEventKey.User2faSuccess => "user_2fa_success",
+            AuditEventKey.User2faDisabled => "user_2fa_disabled",
             AuditEventKey.UserCreated => "user_created",
             AuditEventKey.UserDeleted => "user_deleted",
             AuditEventKey.UserRoleChanged => "user_role_changed",
@@ -1629,7 +1633,7 @@ public enum ValidationErrorCode
     WrongEmoji,
     /// <summary>Объект не найден</summary>
     NotFound,
-    /// <summary>Объект уже существует (пояснения вы получите в поле message)</summary>
+    /// <summary>Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить</summary>
     AlreadyExists,
     /// <summary>Ошибка личного чата (пояснения вы получите в поле message)</summary>
     PersonalChat,
@@ -2236,7 +2240,7 @@ public class ViewBlockSelect : ViewBlockUnion
     [JsonPropertyName("label")]
     public string Label { get; set; } = default!;
     [JsonPropertyName("options")]
-    public List<ViewBlockSelectOption>? Options { get; set; }
+    public List<ViewBlockSelectOption> Options { get; set; } = default!;
     [JsonPropertyName("required")]
     public bool? Required { get; set; }
     [JsonPropertyName("hint")]
@@ -2252,7 +2256,7 @@ public class ViewBlockRadio : ViewBlockUnion
     [JsonPropertyName("label")]
     public string Label { get; set; } = default!;
     [JsonPropertyName("options")]
-    public List<ViewBlockSelectableOption>? Options { get; set; }
+    public List<ViewBlockSelectableOption> Options { get; set; } = default!;
     [JsonPropertyName("required")]
     public bool? Required { get; set; }
     [JsonPropertyName("hint")]
@@ -2268,7 +2272,7 @@ public class ViewBlockCheckbox : ViewBlockUnion
     [JsonPropertyName("label")]
     public string Label { get; set; } = default!;
     [JsonPropertyName("options")]
-    public List<ViewBlockCheckboxOption>? Options { get; set; }
+    public List<ViewBlockCheckboxOption> Options { get; set; } = default!;
     [JsonPropertyName("required")]
     public bool? Required { get; set; }
     [JsonPropertyName("hint")]
@@ -2536,7 +2540,7 @@ public class VideoCallWebhookPayload : WebhookPayloadUnion
     [JsonPropertyName("url")]
     public string? Url { get; set; }
     [JsonPropertyName("size")]
-    public int? Size { get; set; }
+    public long? Size { get; set; }
     [JsonPropertyName("webhook_timestamp")]
     public int WebhookTimestamp { get; set; } = default!;
 }
@@ -3099,7 +3103,7 @@ public class MessageCreateRequestFile
     [JsonPropertyName("file_type")]
     public FileType FileType { get; set; } = default!;
     [JsonPropertyName("size")]
-    public int Size { get; set; } = default!;
+    public long Size { get; set; } = default!;
     [JsonPropertyName("width")]
     public int? Width { get; set; }
     [JsonPropertyName("height")]
@@ -3149,7 +3153,7 @@ public class MessageUpdateRequestFile
     [JsonPropertyName("file_type")]
     public FileType? FileType { get; set; }
     [JsonPropertyName("size")]
-    public int? Size { get; set; }
+    public long? Size { get; set; }
     [JsonPropertyName("width")]
     public int? Width { get; set; }
     [JsonPropertyName("height")]
@@ -3610,6 +3614,8 @@ public class ViewBlockSelectOption
     public string Text { get; set; } = default!;
     [JsonPropertyName("value")]
     public string Value { get; set; } = default!;
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
     [JsonPropertyName("selected")]
     public bool? Selected { get; set; }
 }
@@ -3622,8 +3628,8 @@ public class ViewBlockSelectableOption
     public string Value { get; set; } = default!;
     [JsonPropertyName("description")]
     public string? Description { get; set; }
-    [JsonPropertyName("selected")]
-    public bool? Selected { get; set; }
+    [JsonPropertyName("checked")]
+    public bool? @Checked { get; set; }
 }
 
 public class VoiceContent

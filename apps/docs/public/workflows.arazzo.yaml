@@ -813,6 +813,11 @@ workflows:
         description: Get failed 2FA events for period
         operationId: SecurityOperations_getAuditEvents
       - stepId: monitor-suspicious-logins-2
+        description: >-
+          Repeat with `--event-key=user_2fa_disabled` — two-factor authentication disabled for an
+          employee
+        operationId: SecurityOperations_getAuditEvents
+      - stepId: monitor-suspicious-logins-3
         description: If anomalies found — send notification to admin
         operationId: MessageOperations_createMessage
   - workflowId: export-logs-for-period

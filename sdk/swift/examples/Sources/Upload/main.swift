@@ -60,7 +60,7 @@ let msg = try await client.messages.createMessage(request: MessageCreateRequest(
             key: key,
             name: filename,
             fileType: .file,
-            size: fileSize
+            size: Int64(fileSize)
         )]
     )
 ))

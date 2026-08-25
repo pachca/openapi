@@ -2270,6 +2270,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '422':
           description: Client error
           content:
@@ -2500,6 +2506,12 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: The request conflicts with the current state of the server.
           content:
             application/json:
               schema:
@@ -3154,6 +3166,12 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: The request conflicts with the current state of the server.
           content:
             application/json:
               schema:
@@ -5080,6 +5098,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '422':
           description: Client error
           content:
@@ -5310,6 +5334,12 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: The request conflicts with the current state of the server.
           content:
             application/json:
               schema:
@@ -6166,9 +6196,9 @@ components:
     AuditDetailsEmpty:
       type: object
       description: >-
-        Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted,
-        chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted,
-        thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.
+        Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created,
+        user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created,
+        reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.
     AuditDetailsInitiator:
       type: object
       required:
@@ -6506,6 +6536,7 @@ components:
         - user_logout
         - user_2fa_fail
         - user_2fa_success
+        - user_2fa_disabled
         - user_created
         - user_deleted
         - user_role_changed
@@ -6555,6 +6586,7 @@ components:
         user_logout: User logged out
         user_2fa_fail: Failed two-factor authentication attempt
         user_2fa_success: Successful two-factor authentication
+        user_2fa_disabled: Two-factor authentication disabled for the employee
         user_created: New user account created
         user_deleted: User account deleted
         user_role_changed: User role changed
@@ -7081,6 +7113,7 @@ components:
           example: Learn more
         url:
           type: string
+          maxLength: 1024
           description: URL that will be opened when the button is clicked
           example: https://example.com/details
         data:
@@ -8214,7 +8247,7 @@ components:
                     example: image
                   size:
                     type: integer
-                    format: int32
+                    format: int64
                     description: File size in bytes, displayed to the user
                     example: 12345
                   width:
@@ -8254,6 +8287,7 @@ components:
                 type: array
                 items:
                   $ref: '#/components/schemas/Button'
+              maxItems: 32
               description: >-
                 Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons
                 per row.
@@ -8356,7 +8390,7 @@ components:
                     default: file
                   size:
                     type: integer
-                    format: int32
+                    format: int64
                     description: File size in bytes, displayed to the user
                     example: 12345
                   width:
@@ -8394,6 +8428,7 @@ components:
                 type: array
                 items:
                   $ref: '#/components/schemas/Button'
+              maxItems: 32
               description: >-
                 Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons
                 per row. To remove buttons, send an empty array.
@@ -9284,6 +9319,8 @@ components:
             priority:
               type: integer
               format: int32
+              minimum: 1
+              maximum: 3
               description: 'Priority: 1, 2 (important), or 3 (very important)'
               example: 2
               default: 1
@@ -9379,6 +9416,8 @@ components:
             priority:
               type: integer
               format: int32
+              minimum: 1
+              maximum: 3
               description: 'Priority: 1, 2 (important), or 3 (very important)'
               example: 2
             performer_ids:
@@ -10010,7 +10049,7 @@ components:
         taken: Name for this field already exists
         wrong_emoji: Status emoji cannot contain values other than an emoji character
         not_found: Object not found
-        already_exists: Object already exists (details provided in the message field)
+        already_exists: An object with this data already exists. The conflicting field comes in key when it can be determined
         personal_chat: Direct message error (details provided in the message field)
         displayed_error: Displayed error (details provided in the message field)
         not_authorized: Action forbidden
@@ -10139,7 +10178,7 @@ components:
           example: https://api.pachca.com/files/89012
         size:
           type: integer
-          format: int32
+          format: int64
           description: Recording file size in bytes. Present for the recording_ready event.
           example: 10485760
         webhook_timestamp:
@@ -10176,6 +10215,7 @@ components:
         - type
         - name
         - label
+        - options
       properties:
         type:
           type: string
@@ -10199,6 +10239,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ViewBlockCheckboxOption'
+          minItems: 1
           maxItems: 10
           description: Array of checkboxes
         required:
@@ -10225,7 +10266,7 @@ components:
           example: None
         value:
           type: string
-          maxLength: 150
+          maxLength: 255
           description: Checkbox option value
           example: nothing
         description:
@@ -10323,7 +10364,8 @@ components:
             type: string
           description: >-
             Array of allowed file extensions as strings (e.g., ["png","jpg","gif"]). If this field is not specified, all
-            file extensions will be accepted.
+            file extensions will be accepted. The value feeds the file picker filter, so check the extension of the
+            received file on your side.
           example:
             - pdf
             - jpg
@@ -10480,6 +10522,7 @@ components:
         - type
         - name
         - label
+        - options
       properties:
         type:
           type: string
@@ -10503,6 +10546,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ViewBlockSelectableOption'
+          minItems: 1
           maxItems: 10
           description: Array of radio buttons
         required:
@@ -10522,6 +10566,7 @@ components:
         - type
         - name
         - label
+        - options
       properties:
         type:
           type: string
@@ -10545,6 +10590,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ViewBlockSelectOption'
+          minItems: 1
           maxItems: 100
           description: Array of available items in the dropdown
         required:
@@ -10571,16 +10617,21 @@ components:
           example: None
         value:
           type: string
-          maxLength: 150
+          maxLength: 255
           description: Select option value
           example: nothing
+        description:
+          type: string
+          maxLength: 75
+          description: Select option description
+          example: Every day the bot will send a list of new tasks in your team
         selected:
           type: boolean
           description: Whether this select option is selected by default
           example: true
       description: >-
-        Dropdown (select) option. Unlike radio/checkbox, a select option has no `description` subtitle — the web app
-        does not render it.
+        Dropdown (select) option. The initial choice is set with `selected`, not with `checked`, as in radio and
+        checkbox.
     ViewBlockSelectableOption:
       type: object
       required:
@@ -10594,7 +10645,7 @@ components:
           example: None
         value:
           type: string
-          maxLength: 150
+          maxLength: 255
           description: Radio option value
           example: nothing
         description:
@@ -10602,11 +10653,13 @@ components:
           maxLength: 75
           description: Radio option description
           example: Every day the bot will send a list of new tasks in your team
-        selected:
+        checked:
           type: boolean
           description: Whether this radio option is selected by default
           example: true
-      description: Option for select, radio, and checkbox blocks
+      description: >-
+        Radio button of a radio block. The initial choice is set with `checked`, as in checkbox, not with `selected`, as
+        in select.
     ViewBlockTime:
       type: object
       required:
@@ -10719,7 +10772,9 @@ components:
         data:
           type: object
           additionalProperties: {}
-          description: Submitted view field data. Key — field `action_id`, value — entered data.
+          description: >-
+            Submitted view field data. Key — block `name`, value — entered data. For a `file_input` block the value
+            arrives as an array of objects with `name`, `size` and `url`, and the link is valid for 2 hours.
         webhook_timestamp:
           type: integer
           format: int32

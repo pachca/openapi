@@ -1223,7 +1223,7 @@ actions:
       description: Rule conditions check result (true — conditions matched)
   - target: $.components.schemas.AuditDetailsEmpty
     update:
-      description: "Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed."
+      description: "Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed."
   - target: $.components.schemas.AuditDetailsInitiator
     update:
       description: 'For: user_added_to_tag, user_removed_from_tag, user_chat_leave'
@@ -1450,6 +1450,7 @@ actions:
         user_logout: User logged out
         user_2fa_fail: Failed two-factor authentication attempt
         user_2fa_success: Successful two-factor authentication
+        user_2fa_disabled: Two-factor authentication disabled for the employee
         user_created: New user account created
         user_deleted: User account deleted
         user_role_changed: User role changed
@@ -1994,13 +1995,16 @@ actions:
       description: Waveform for visualizing the voice message. Required for voice messages (`file_type` is `voice`), not used for other types.
   - target: $.components.schemas.ViewBlockSelectOption
     update:
-      description: Dropdown (select) option. Unlike radio/checkbox, a select option has no `description` subtitle — the web app does not render it.
+      description: Dropdown (select) option. The initial choice is set with `selected`, not with `checked`, as in radio and checkbox.
   - target: $.components.schemas.ViewBlockSelectOption.properties.text
     update:
       description: Displayed text
   - target: $.components.schemas.ViewBlockSelectOption.properties.value
     update:
       description: Unique string value passed to your app when this option is selected
+  - target: $.components.schemas.ViewBlockSelectOption.properties.description
+    update:
+      description: Description displayed in gray below the display text for this item
   - target: $.components.schemas.ViewBlockSelectOption.properties.selected
     update:
       description: Initially selected option. Only one option can be selected.
@@ -2344,7 +2348,7 @@ actions:
       description: File type
   - target: $.components.schemas.File.properties.url
     update:
-      description: Direct file download URL
+      description: "Direct file download URL. Valid for up to 7 days, and the remaining time may be shorter — if the link returns `403`, fetch the message again to get a fresh one."
   - target: $.components.schemas.File.properties.width
     update:
       description: "Image width in pixels. `null` for files that are not images, and if the size was not supplied at upload time."
@@ -3538,7 +3542,7 @@ actions:
         taken: Name for this field already exists
         wrong_emoji: Status emoji cannot contain values other than an emoji character
         not_found: Object not found
-        already_exists: Object already exists (details provided in the message field)
+        already_exists: An object with this data already exists. The conflicting field comes in key when it can be determined
         personal_chat: Direct message error (details provided in the message field)
         displayed_error: Displayed error (details provided in the message field)
         not_authorized: Action forbidden
@@ -3681,7 +3685,8 @@ actions:
     update:
       description: >-
         Array of allowed file extensions as strings (e.g., ["png","jpg","gif"]). If this field is not specified, all
-        file extensions will be accepted.
+        file extensions will be accepted. The value feeds the file picker filter, so check the extension of the
+        received file on your side.
   - target: $.components.schemas.ViewBlockFileInput.properties.max_files
     update:
       description: "Maximum number of files the user can upload to this field"
@@ -3819,7 +3824,7 @@ actions:
       description: Hint displayed below the dropdown in gray
   - target: $.components.schemas.ViewBlockSelectableOption
     update:
-      description: Option for select, radio, and checkbox blocks
+      description: Radio button of a radio block. The initial choice is set with `checked`, as in checkbox, not with `selected`, as in select.
   - target: $.components.schemas.ViewBlockSelectableOption.properties.text
     update:
       description: Display text
@@ -3829,9 +3834,9 @@ actions:
   - target: $.components.schemas.ViewBlockSelectableOption.properties.description
     update:
       description: Description displayed in gray below the display text for this item
-  - target: $.components.schemas.ViewBlockSelectableOption.properties.selected
+  - target: $.components.schemas.ViewBlockSelectableOption.properties.checked
     update:
-      description: Initially selected item. Only one item can be selected.
+      description: Initially selected radio button. Only one radio button can be selected.
   - target: $.components.schemas.ViewBlockTime
     update:
       description: Time block — time picker
@@ -3891,7 +3896,7 @@ actions:
       description: ID of the user who submitted the form
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.data
     update:
-      description: "Submitted view field data. Key — field `action_id`, value — entered data."
+      description: "Submitted view field data. Key — block `name`, value — entered data. For a `file_input` block the value arrives as an array of objects with `name`, `size` and `url`, and the link is valid for 2 hours."
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.webhook_timestamp
     update:
       description: Webhook send date and time (UTC+0) in UNIX format
@@ -4104,7 +4109,7 @@ actions:
   - target: $.components.schemas.ViewBlockRadio.properties.options.items.properties.description
     update:
       description: Radio option description
-  - target: $.components.schemas.ViewBlockRadio.properties.options.items.properties.selected
+  - target: $.components.schemas.ViewBlockRadio.properties.options.items.properties.checked
     update:
       description: Whether this radio option is selected by default
 
@@ -4115,6 +4120,9 @@ actions:
   - target: $.components.schemas.ViewBlockSelect.properties.options.items.properties.value
     update:
       description: Select option value
+  - target: $.components.schemas.ViewBlockSelect.properties.options.items.properties.description
+    update:
+      description: Select option description
   - target: $.components.schemas.ViewBlockSelect.properties.options.items.properties.selected
     update:
       description: Whether this select option is selected by default

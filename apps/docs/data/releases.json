@@ -1,6 +1,95 @@
 [
   {
     "product": "n8n",
+    "version": "2.1.1",
+    "date": "2026-08-20",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`Security`: фильтр событий пополнился значением `User 2fa Disabled` — сотрудник отключил себе двухфакторную аутентификацию"
+      },
+      {
+        "type": "-",
+        "description": "`Trigger`: у payload о заполнении формы описано значение блока `file_input` — массив объектов с полями `name`, `size` и `url`, где ссылка действует 2 часа"
+      },
+      {
+        "type": "-",
+        "description": "`Message`: размер файла `size` описан 64-битным числом, поэтому вложение больше 2 ГБ помещается в поле"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.8.3",
+    "date": "2026-08-20",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca security list` — флаг `--event-key` принимает значение `user_2fa_disabled`"
+      },
+      {
+        "type": "-",
+        "description": "`pachca api POST /messages --spec` — размер файла `size` описан 64-битным числом, а у ссылки `url` указан срок действия до 7 дней"
+      },
+      {
+        "type": "-",
+        "description": "`pachca api POST /views/open --spec` — у радиокнопки блока `radio` изначальный выбор задаётся полем `checked`, как у чекбоксов, а не `selected`"
+      },
+      {
+        "type": "-",
+        "description": "`pachca tasks create --spec` и `pachca tasks update --spec` — у `priority` показаны допустимые границы 1–3, которые проверяет API"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.4.0",
+    "date": "2026-08-20",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Поле `size` у файла сообщения и у записи видеозвонка описано 64-битным числом — размер файла может превышать 2 ГБ. Методы `Новое сообщение` (`POST /messages`), `Редактирование сообщения` (`PUT /messages/{id}`), payload вебхука о видеозвонке"
+      },
+      {
+        "type": "-",
+        "description": "Описан срок действия ссылок на файлы: `url` у файла сообщения действует до 7 дней, а значение блока `file_input` в `data` вебхука о заполнении формы приходит массивом объектов с полями `name`, `size` и `url`, где ссылка живёт 2 часа"
+      },
+      {
+        "type": "+",
+        "description": "Ответ `409` в методах `Новый сотрудник` (`POST /users`), `Редактирование сотрудника` (`PUT /users/{id}`), `Новый тег` (`POST /group_tags`), `Редактирование тега` (`PUT /group_tags/{id}`) и `Закрепить сообщение` (`POST /messages/{id}/pin`)"
+      },
+      {
+        "type": "~",
+        "description": "Поле `selected` у радиокнопки блока `radio` переименовано в `checked` — так его называет форма. Модель `ViewBlockSelectableOption`, метод `Открыть форму` (`POST /views/open`)"
+      },
+      {
+        "type": "~",
+        "description": "Поле `options` у блоков `select`, `radio` и `checkbox` стало обязательным — форма без пунктов отклоняется валидацией"
+      },
+      {
+        "type": "+",
+        "description": "Поле `description` у пункта выпадающего списка — модель `ViewBlockSelectOption`"
+      },
+      {
+        "type": "+",
+        "description": "Предел длины `url` у кнопки сообщения — 1024 символа, и предел массива `buttons` — 32 строки"
+      },
+      {
+        "type": "+",
+        "description": "Значение `user_2fa_disabled` в перечислении типов аудит-событий"
+      },
+      {
+        "type": "+",
+        "description": "Границы `priority` в методах напоминаний — от 1 до 3"
+      },
+      {
+        "type": "+",
+        "description": "Предел длины `value` у пункта блоков `select`, `radio` и `checkbox` — 255 символов"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
     "version": "2.1.0",
     "date": "2026-08-12",
     "changes": [

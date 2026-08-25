@@ -352,7 +352,7 @@ let body = MessageCreateRequest(
             key: "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
             name: "logo.png",
             fileType: .image,
-            size: 12345,
+            size: Int64(12345),
             width: 800,
             height: 600,
             durationMs: 5400,

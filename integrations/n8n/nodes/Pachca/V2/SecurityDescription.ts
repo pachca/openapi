@@ -133,6 +133,7 @@ export const securityFields: INodeProperties[] = [
 { name: 'Tag Deleted', value: 'tag_deleted' },
 { name: 'Tag Removed From Chat', value: 'tag_removed_from_chat' },
 { name: 'Thread Created', value: 'thread_created' },
+{ name: 'User 2fa Disabled', value: 'user_2fa_disabled', description: 'Two-factor authentication disabled for the employee' },
 { name: 'User 2fa Fail', value: 'user_2fa_fail', description: 'Failed two-factor authentication attempt' },
 { name: 'User 2fa Success', value: 'user_2fa_success', description: 'Successful two-factor authentication' },
 { name: 'User Added To Tag', value: 'user_added_to_tag' },

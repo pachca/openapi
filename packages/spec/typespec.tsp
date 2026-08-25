@@ -436,7 +436,7 @@ enum ChatSubtype {
   taken: "Название для этого поля уже существует",
   wrong_emoji: "Emoji статуса не может содержать значения отличные от Emoji символа",
   not_found: "Объект не найден",
-  already_exists: "Объект уже существует (пояснения вы получите в поле message)",
+  already_exists: "Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить",
   personal_chat: "Ошибка личного чата (пояснения вы получите в поле message)",
   displayed_error: "Отображаемая ошибка (пояснения вы получите в поле message)",
   not_authorized: "Действие запрещено",
@@ -601,6 +601,7 @@ enum ValidationErrorCode {
   user_logout: "Пользователь вышел из системы",
   user_2fa_fail: "Неудачная попытка двухфакторной аутентификации",
   user_2fa_success: "Успешная двухфакторная аутентификация",
+  user_2fa_disabled: "Двухфакторная аутентификация отключена у сотрудника",
   user_created: "Создана новая учетная запись пользователя",
   user_deleted: "Учетная запись пользователя удалена",
   user_role_changed: "Роль пользователя была изменена",
@@ -657,6 +658,9 @@ enum AuditEventKey {
 
   @doc("Успешная двухфакторная аутентификация")
   user_2fa_success: "user_2fa_success",
+
+  @doc("Двухфакторная аутентификация отключена у сотрудника")
+  user_2fa_disabled: "user_2fa_disabled",
 
   @doc("Создана новая учетная запись пользователя")
   user_created: "user_created",
@@ -875,7 +879,7 @@ model File {
   @example(FileType.image)
   file_type: FileType;
   
-  @doc("Прямая ссылка на скачивание файла")
+  @doc("Прямая ссылка на скачивание файла. Действует до 7 дней, оставшийся срок может быть меньше — если ссылка вернула `403`, запросите сообщение заново и получите свежую.")
   @example("https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8")
   url: string;
   
@@ -895,11 +899,12 @@ model Button {
   @maxLength(255)
   text: string;
 
-  @doc("Ссылка, которая будет открыта по нажатию кнопки")
+  @doc("Ссылка, которая будет открыта по нажатию кнопки. У кнопки должно быть заполнено ровно одно из полей `url` и `data`.")
   @example("https://example.com/details")
+  @maxLength(1024)
   url?: string;
 
-  @doc("Данные, которые будут отправлены в исходном вебхуке по нажатию кнопки")
+  @doc("Данные, которые будут отправлены в исходном вебхуке по нажатию кнопки. У кнопки должно быть заполнено ровно одно из полей `url` и `data`.")
   @example("awesome")
   @maxLength(255)
   data?: string;
@@ -2041,7 +2046,7 @@ model MessageCreateRequest {
       
       @doc("Размер файла в байтах, отображаемый пользователю")
       @example(12345)
-      size: int32;
+      size: int64;
       
       @doc("Ширина изображения в px (используется в случае, если file_type указан как image)")
       @example(800)
@@ -2063,6 +2068,7 @@ model MessageCreateRequest {
     }[];
 
     @doc("Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.")
+    @maxItems(32)
     @example(#[#[#{ text: "Подробнее", url: "https://example.com/details" }, #{ text: "Отлично!", data: "awesome" }]])
     buttons?: Button[][];
 
@@ -2114,7 +2120,7 @@ model MessageUpdateRequest {
 
       @doc("Размер файла в байтах, отображаемый пользователю")
       @example(12345)
-      size?: int32;
+      size?: int64;
 
       @doc("Ширина изображения в px (используется в случае, если file_type указан как image)")
       @example(800)
@@ -2136,6 +2142,7 @@ model MessageUpdateRequest {
     }[];
     
     @doc("Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.")
+    @maxItems(32)
     @example(#[#[#{ text: "Подробнее", url: "https://example.com/details" }]])
     buttons?: Button[][];
     
@@ -2215,6 +2222,8 @@ model TaskCreateRequest {
 
     @doc("Приоритет: 1, 2 (важно) или 3 (очень важно)")
     @example(2)
+    @minValue(1)
+    @maxValue(3)
     priority?: int32 = 1;
 
     @doc("Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы)")
@@ -2260,6 +2269,8 @@ model TaskUpdateRequest {
 
     @doc("Приоритет: 1, 2 (важно) или 3 (очень важно)")
     @example(2)
+    @minValue(1)
+    @maxValue(3)
     priority?: int32;
 
     @doc("Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные»")
@@ -2291,7 +2302,7 @@ model TaskUpdateRequest {
   };
 }
 
-@doc("Опция для блоков select, radio и checkbox")
+@doc("Радиокнопка блока radio. Изначальный выбор задаётся полем `checked`, как у checkbox, а не `selected`, как у select.")
 model ViewBlockSelectableOption {
   @doc("Отображаемый текст")
   @example("Ничего")
@@ -2300,7 +2311,7 @@ model ViewBlockSelectableOption {
 
   @doc("Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта")
   @example("nothing")
-  @maxLength(150)
+  @maxLength(255)
   value: string;
 
   @doc("Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом")
@@ -2308,12 +2319,12 @@ model ViewBlockSelectableOption {
   @maxLength(75)
   description?: string;
 
-  @doc("Изначально выбранный пункт. Только один пункт может быть выбран.")
+  @doc("Изначально выбранная радиокнопка. Только одна радиокнопка может быть выбрана.")
   @example(true)
-  selected?: boolean;
+  checked?: boolean;
 }
 
-@doc("Пункт выпадающего списка (select). В отличие от radio/checkbox, у пункта select нет подзаголовка `description` — веб его не отображает.")
+@doc("Пункт выпадающего списка (select). Изначальный выбор задаётся полем `selected`, а не `checked`, как у radio и checkbox.")
 model ViewBlockSelectOption {
   @doc("Отображаемый текст")
   @example("Ничего")
@@ -2322,8 +2333,13 @@ model ViewBlockSelectOption {
 
   @doc("Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта")
   @example("nothing")
-  @maxLength(150)
+  @maxLength(255)
   value: string;
+
+  @doc("Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом")
+  @example("Каждый день бот будет присылать список новых задач в вашей команде")
+  @maxLength(75)
+  description?: string;
 
   @doc("Изначально выбранный пункт. Только один пункт может быть выбран.")
   @example(true)
@@ -2338,7 +2354,7 @@ model ViewBlockCheckboxOption {
 
   @doc("Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта")
   @example("nothing")
-  @maxLength(150)
+  @maxLength(255)
   value: string;
 
   @doc("Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом")
@@ -2481,8 +2497,9 @@ model ViewBlockSelect {
   label: string;
   
   @doc("Массив доступных пунктов в выпадающем списке")
+  @minItems(1)
   @maxItems(100)
-  options?: ViewBlockSelectOption[];
+  options: ViewBlockSelectOption[];
 
   @doc("Обязательность")
   @example(false)
@@ -2514,8 +2531,9 @@ model ViewBlockRadio {
   label: string;
   
   @doc("Массив радиокнопок")
+  @minItems(1)
   @maxItems(10)
-  options?: ViewBlockSelectableOption[];
+  options: ViewBlockSelectableOption[];
   
   @doc("Обязательность")
   @example(true)
@@ -2547,8 +2565,9 @@ model ViewBlockCheckbox {
   label: string;
   
   @doc("Массив чекбоксов")
+  @minItems(1)
   @maxItems(10)
-  options?: ViewBlockCheckboxOption[];
+  options: ViewBlockCheckboxOption[];
 
   @doc("Обязательность")
   @example(false)
@@ -2645,7 +2664,7 @@ model ViewBlockFileInput {
   @maxLength(150)
   label: string;
   
-  @doc("Массив допустимых расширений файлов, указанные в виде строк (например, [\"png\",\"jpg\",\"gif\"]). Если это поле не указано, все расширения файлов будут приняты.")
+  @doc("Массив допустимых расширений файлов, указанные в виде строк (например, [\"png\",\"jpg\",\"gif\"]). Точка в начале не нужна, но допустима — она подставляется сама. Значение с косой чертой считается MIME-типом и остаётся как есть. Если это поле не указано, все расширения файлов будут приняты. Значение подставляется в фильтр окна выбора файла, поэтому расширение полученного файла проверяйте у себя.")
   @example(#["pdf","jpg","png"])
   filetypes?: string[];
   
@@ -3156,7 +3175,7 @@ model CompanyBotResponse {
 
 }
 
-@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.")
+@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.")
 model AuditDetailsEmpty {}
 
 @doc("При: user_updated")
@@ -3613,7 +3632,7 @@ model ViewSubmitWebhookPayload {
   @example(1235523)
   user_id: int32;
 
-  @doc("Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные.")
+  @doc("Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные. У блока `file_input` значение приходит массивом объектов с полями `name`, `size` и `url`, ссылка действует 2 часа.")
   data: Record<unknown>;
 
   @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
@@ -3844,7 +3863,7 @@ model VideoCallWebhookPayload {
 
   @doc("Размер файла записи в байтах. Присутствует для события recording_ready.")
   @example(10485760)
-  size?: int32;
+  size?: int64;
 
   @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
   @example(1747574400)
@@ -4242,6 +4261,9 @@ interface UserOperations {
   } | {
     @statusCode _: 402;
     @body body: ApiError;
+  } | {
+    @statusCode _: 409;
+    @body body: ApiError;
   };
 
   @extension("x-requirements", #{
@@ -4356,6 +4378,9 @@ interface UserOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 409;
     @body body: ApiError;
   };
 
@@ -4605,6 +4630,9 @@ interface GroupTagOperations {
   } | {
     @statusCode _: 402;
     @body body: ApiError;
+  } | {
+    @statusCode _: 409;
+    @body body: ApiError;
   };
 
   @extension("x-requirements", #{
@@ -4767,6 +4795,9 @@ interface GroupTagOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 409;
     @body body: ApiError;
   };
 
@@ -5654,6 +5685,9 @@ interface MessageOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+  } | {
+    @statusCode _: 409;
+    @body body: ApiError;
   };
 
   @extension("x-requirements", #{

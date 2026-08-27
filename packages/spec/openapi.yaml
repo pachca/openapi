@@ -2660,6 +2660,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
+        '429':
+          description: Client error
+          headers:
+            Retry-After:
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
       tags:
         - Messages
       requestBody:

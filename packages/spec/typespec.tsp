@@ -5546,6 +5546,10 @@ interface MessageOperations {
   } | {
     @statusCode _: 402;
     @body body: ApiError;
+  } | {
+    @statusCode _: 429;
+    @header("Retry-After") retryAfter: int32;
+    @body body: ApiError;
   };
 
   @extension("x-requirements", #{

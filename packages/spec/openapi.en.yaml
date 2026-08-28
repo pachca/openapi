@@ -4494,6 +4494,7 @@ paths:
             items:
               type: integer
               format: int32
+            maxItems: 100
             example:
               - 198
               - 334
@@ -4510,6 +4511,7 @@ paths:
             items:
               type: integer
               format: int32
+            maxItems: 100
             example:
               - 12
               - 185

@@ -2,13 +2,11 @@
 
 # Changelog
 
-## 2.1.1 (2026-08-20)
+## 2.1.1 (2026-08-28)
 
 ### Improvements
 
 - Security: the event filter gains `User 2fa Disabled` — an employee turned off their own two-factor authentication
-- Trigger: the form submission payload spells out `file_input` values — an array of objects with `name`, `size` and `url`, where the link is valid for 2 hours
-- Message: file `size` is described as a 64-bit number, so attachments over 2 GB fit the field
 
 ## 2.1.0 (2026-08-12)
 

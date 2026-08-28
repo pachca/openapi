@@ -493,8 +493,8 @@ export async function ScopeRoles() {
 
 // Update manually when a new product release goes out
 const LATEST_PRODUCT_UPDATE = {
-  date: '20 июля 2026',
-  title: 'Треды стали самостоятельными',
+  date: '27 августа 2026',
+  title: 'Теперь в видеочатах есть модераторы 🎙️',
 };
 
 export function ProductUpdatesLink() {

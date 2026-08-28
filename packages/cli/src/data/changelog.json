@@ -1,7 +1,7 @@
 [
   {
     "version": "2026.8.3",
-    "date": "20 августа 2026",
+    "date": "28 августа 2026",
     "changes": [
       {
         "type": "+",
@@ -11,12 +11,12 @@
       {
         "type": "-",
         "command": "api",
-        "description": "`api POST /messages --spec` и `--docs`: размер файла `size` описан 64-битным числом, а у ссылки `url` указан срок действия — до 7 дней с момента выдачи"
+        "description": "`api POST /messages --spec` и `--docs`: размер файла `size` описан 64-битным числом, у ссылки `url` указан срок действия до 7 дней, а у кнопок появились пределы — `url` до 1024 символов и не больше 32 строк в `buttons`"
       },
       {
         "type": "-",
         "command": "api",
-        "description": "`api POST /views/open --spec` и `--docs`: у радиокнопки блока `radio` изначальный выбор задаётся полем `checked`, как у чекбоксов, а не `selected` — с `selected` форма открывалась без выбранного варианта"
+        "description": "`api POST /views/open --spec` и `--docs`: у радиокнопки блока `radio` изначальный выбор задаётся полем `checked`, как у чекбоксов, а не `selected`. У пункта списка предел `value` — 255 символов, а сам `options` стал обязательным"
       },
       {
         "type": "-",
@@ -27,6 +27,11 @@
         "type": "-",
         "command": "api",
         "description": "`api GET /tasks --spec`: у `chat_ids` и `performer_ids` показан предел в 100 идентификаторов, который проверяет API"
+      },
+      {
+        "type": "+",
+        "command": "api",
+        "description": "`api --spec` показывает ответ `409` у методов сотрудника, тега и закрепления сообщения и ответ `429` у `POST /messages` — суточный предел сообщений в чат"
       }
     ]
   },

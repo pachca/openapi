@@ -15,6 +15,7 @@ const (
 	AuditEventKeyUserLogout                AuditEventKey = "user_logout" // Пользователь вышел из системы
 	AuditEventKeyUser2faFail               AuditEventKey = "user_2fa_fail" // Неудачная попытка двухфакторной аутентификации
 	AuditEventKeyUser2faSuccess            AuditEventKey = "user_2fa_success" // Успешная двухфакторная аутентификация
+	AuditEventKeyUser2faDisabled           AuditEventKey = "user_2fa_disabled" // Двухфакторная аутентификация отключена у сотрудника
 	AuditEventKeyUserCreated               AuditEventKey = "user_created" // Создана новая учетная запись пользователя
 	AuditEventKeyUserDeleted               AuditEventKey = "user_deleted" // Учетная запись пользователя удалена
 	AuditEventKeyUserRoleChanged           AuditEventKey = "user_role_changed" // Роль пользователя была изменена
@@ -367,7 +368,7 @@ const (
 	ValidationErrorCodeTaken              ValidationErrorCode = "taken" // Название для этого поля уже существует
 	ValidationErrorCodeWrongEmoji         ValidationErrorCode = "wrong_emoji" // Emoji статуса не может содержать значения отличные от Emoji символа
 	ValidationErrorCodeNotFound           ValidationErrorCode = "not_found" // Объект не найден
-	ValidationErrorCodeAlreadyExists      ValidationErrorCode = "already_exists" // Объект уже существует (пояснения вы получите в поле message)
+	ValidationErrorCodeAlreadyExists      ValidationErrorCode = "already_exists" // Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить
 	ValidationErrorCodePersonalChat       ValidationErrorCode = "personal_chat" // Ошибка личного чата (пояснения вы получите в поле message)
 	ValidationErrorCodeDisplayedError     ValidationErrorCode = "displayed_error" // Отображаемая ошибка (пояснения вы получите в поле message)
 	ValidationErrorCodeNotAuthorized      ValidationErrorCode = "not_authorized" // Действие запрещено
@@ -993,7 +994,7 @@ type MessageCreateRequestFile struct {
 	Key        string   `json:"key"`
 	Name       string   `json:"name"`
 	FileType   FileType `json:"file_type"`
-	Size       int32    `json:"size"`
+	Size       int64    `json:"size"`
 	Width      *int32   `json:"width,omitempty"`
 	Height     *int32   `json:"height,omitempty"`
 	DurationMs *int32   `json:"duration_ms,omitempty"`
@@ -1040,7 +1041,7 @@ type MessageUpdateRequestFile struct {
 	Key        string    `json:"key"`
 	Name       string    `json:"name"`
 	FileType   *FileType `json:"file_type,omitempty"`
-	Size       *int32    `json:"size,omitempty"`
+	Size       *int64    `json:"size,omitempty"`
 	Width      *int32    `json:"width,omitempty"`
 	Height     *int32    `json:"height,omitempty"`
 	DurationMs *int32    `json:"duration_ms,omitempty"`
@@ -1436,7 +1437,7 @@ type VideoCallWebhookPayload struct {
 	RecordingID      *int32                   `json:"recording_id,omitempty"`
 	FileID           *int32                   `json:"file_id"`
 	URL              *string                  `json:"url,omitempty"`
-	Size             *int32                   `json:"size,omitempty"`
+	Size             *int64                   `json:"size,omitempty"`
 }
 
 func (m VideoCallWebhookPayload) MarshalJSON() ([]byte, error) {
@@ -1467,25 +1468,9 @@ type ViewBlockCheckbox struct {
 	Type     string                    `json:"type"` // always "checkbox"
 	Name     string                    `json:"name"`
 	Label    string                    `json:"label"`
-	Options  []ViewBlockCheckboxOption `json:"options,omitempty"`
+	Options  []ViewBlockCheckboxOption `json:"options"`
 	Required *bool                     `json:"required,omitempty"`
 	Hint     *string                   `json:"hint,omitempty"`
-}
-
-func (m ViewBlockCheckbox) MarshalJSON() ([]byte, error) {
-	type Alias ViewBlockCheckbox
-	data, err := json.Marshal(Alias(m))
-	if err != nil {
-		return nil, err
-	}
-	var raw map[string]any
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil, err
-	}
-	if m.Options != nil {
-		raw["options"] = m.Options
-	}
-	return json.Marshal(raw)
 }
 
 type ViewBlockCheckboxOption struct {
@@ -1566,63 +1551,32 @@ type ViewBlockRadio struct {
 	Type     string                      `json:"type"` // always "radio"
 	Name     string                      `json:"name"`
 	Label    string                      `json:"label"`
-	Options  []ViewBlockSelectableOption `json:"options,omitempty"`
+	Options  []ViewBlockSelectableOption `json:"options"`
 	Required *bool                       `json:"required,omitempty"`
 	Hint     *string                     `json:"hint,omitempty"`
-}
-
-func (m ViewBlockRadio) MarshalJSON() ([]byte, error) {
-	type Alias ViewBlockRadio
-	data, err := json.Marshal(Alias(m))
-	if err != nil {
-		return nil, err
-	}
-	var raw map[string]any
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil, err
-	}
-	if m.Options != nil {
-		raw["options"] = m.Options
-	}
-	return json.Marshal(raw)
 }
 
 type ViewBlockSelect struct {
 	Type     string                  `json:"type"` // always "select"
 	Name     string                  `json:"name"`
 	Label    string                  `json:"label"`
-	Options  []ViewBlockSelectOption `json:"options,omitempty"`
+	Options  []ViewBlockSelectOption `json:"options"`
 	Required *bool                   `json:"required,omitempty"`
 	Hint     *string                 `json:"hint,omitempty"`
 }
 
-func (m ViewBlockSelect) MarshalJSON() ([]byte, error) {
-	type Alias ViewBlockSelect
-	data, err := json.Marshal(Alias(m))
-	if err != nil {
-		return nil, err
-	}
-	var raw map[string]any
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil, err
-	}
-	if m.Options != nil {
-		raw["options"] = m.Options
-	}
-	return json.Marshal(raw)
-}
-
 type ViewBlockSelectOption struct {
-	Text     string `json:"text"`
-	Value    string `json:"value"`
-	Selected *bool  `json:"selected,omitempty"`
+	Text        string  `json:"text"`
+	Value       string  `json:"value"`
+	Description *string `json:"description,omitempty"`
+	Selected    *bool   `json:"selected,omitempty"`
 }
 
 type ViewBlockSelectableOption struct {
 	Text        string  `json:"text"`
 	Value       string  `json:"value"`
 	Description *string `json:"description,omitempty"`
-	Selected    *bool   `json:"selected,omitempty"`
+	Checked     *bool   `json:"checked,omitempty"`
 }
 
 type ViewBlockTime struct {

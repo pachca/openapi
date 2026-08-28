@@ -384,7 +384,7 @@ request := MessageCreateRequest{
 			Key: "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
 			Name: "logo.png",
 			FileType: FileTypeImage,
-			Size: int32(12345),
+			Size: int64(12345),
 			Width: Ptr(int32(800)),
 			Height: Ptr(int32(600)),
 			DurationMs: Ptr(int32(5400)),

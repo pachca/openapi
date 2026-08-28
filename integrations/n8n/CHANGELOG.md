@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 2.1.1 (2026-08-28)
+
+### Improvements
+
+- Security: the event filter gains `User 2fa Disabled` — an employee turned off their own two-factor authentication
+
 ## 2.1.0 (2026-08-12)
 
 ### Improvements

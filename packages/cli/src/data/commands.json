@@ -2314,6 +2314,7 @@
               "user_logout",
               "user_2fa_fail",
               "user_2fa_success",
+              "user_2fa_disabled",
               "user_created",
               "user_deleted",
               "user_role_changed",

@@ -86,7 +86,7 @@ func main() {
 					Key:      key,
 					Name:     filename,
 					FileType: pachca.FileTypeFile,
-					Size:     int32(fileSize),
+					Size:     int64(fileSize),
 				},
 			},
 		},

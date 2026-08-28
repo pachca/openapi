@@ -954,6 +954,10 @@
         "command": "pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --event-key=user_2fa_fail --all"
       },
       {
+        "description": "Повтори запрос с `--event-key=user_2fa_disabled` — отключение второго фактора у сотрудника",
+        "command": "pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --event-key=user_2fa_disabled --all"
+      },
+      {
         "description": "Если найдены аномалии — отправь уведомление администратору",
         "command": "pachca messages create --entity-type=user --entity-id=<admin_id> --content=\"Обнаружены подозрительные входы\""
       }

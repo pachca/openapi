@@ -55,11 +55,13 @@ related:
 
 | Операция | Требуемые скоупы |
 |----------|-----------------|
-| Управление сотрудниками (User > Create/Update/Delete) | `users:write` (доступен администраторам и владельцам) |
-| Журнал безопасности (Security > Get Many) | `audit_events:read` (доступен администраторам и владельцам) |
+| Управление сотрудниками (User > Create/Update/Delete) | `users:create`, `users:update`, `users:delete` (доступны администраторам и владельцам) |
+| Журнал безопасности (Security > Get Many) | `audit_events:read` (доступен только владельцу пространства) |
 | Управление тегами (Group Tag > Create/Update/Delete) | `group_tags:write` (доступен администраторам и владельцам) |
 | Автоматическая регистрация вебхука в Pachca Trigger | `bot_self:webhook:write` (токен бота) или `bots:write` (персональный токен) |
-| Отправка сообщений, чаты, задачи | `messages:write`, `chats:write`, `tasks:write` |
+| Отправка сообщений (Message > Create) | `messages:create` |
+| Чаты (Chat > Create/Update) | `chats:create`, `chats:update` |
+| Напоминания (Task > Create/Update/Delete) | `tasks:create`, `tasks:update`, `tasks:delete` |
 
 Подробнее — в разделе [Авторизация](/api/authorization).
 

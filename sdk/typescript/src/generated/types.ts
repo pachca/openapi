@@ -8,6 +8,8 @@ export enum AuditEventKey {
   User2faFail = "user_2fa_fail",
   /** Успешная двухфакторная аутентификация */
   User2faSuccess = "user_2fa_success",
+  /** Двухфакторная аутентификация отключена у сотрудника */
+  User2faDisabled = "user_2fa_disabled",
   /** Создана новая учетная запись пользователя */
   UserCreated = "user_created",
   /** Учетная запись пользователя удалена */
@@ -531,7 +533,7 @@ export enum ValidationErrorCode {
   WrongEmoji = "wrong_emoji",
   /** Объект не найден */
   NotFound = "not_found",
-  /** Объект уже существует (пояснения вы получите в поле message) */
+  /** Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить */
   AlreadyExists = "already_exists",
   /** Ошибка личного чата (пояснения вы получите в поле message) */
   PersonalChat = "personal_chat",
@@ -1425,7 +1427,7 @@ export interface ViewBlockCheckbox {
   type: "checkbox";
   name: string;
   label: string;
-  options?: ViewBlockCheckboxOption[];
+  options: ViewBlockCheckboxOption[];
   /** @default false */
   required?: boolean;
   hint?: string;
@@ -1498,7 +1500,7 @@ export interface ViewBlockRadio {
   type: "radio";
   name: string;
   label: string;
-  options?: ViewBlockSelectableOption[];
+  options: ViewBlockSelectableOption[];
   /** @default false */
   required?: boolean;
   hint?: string;
@@ -1508,7 +1510,7 @@ export interface ViewBlockSelect {
   type: "select";
   name: string;
   label: string;
-  options?: ViewBlockSelectOption[];
+  options: ViewBlockSelectOption[];
   /** @default false */
   required?: boolean;
   hint?: string;
@@ -1517,6 +1519,7 @@ export interface ViewBlockSelect {
 export interface ViewBlockSelectOption {
   text: string;
   value: string;
+  description?: string;
   selected?: boolean;
 }
 
@@ -1524,7 +1527,7 @@ export interface ViewBlockSelectableOption {
   text: string;
   value: string;
   description?: string;
-  selected?: boolean;
+  checked?: boolean;
 }
 
 export interface ViewBlockTime {

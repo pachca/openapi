@@ -2037,6 +2037,16 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           apiPath: '/audit_events',
         },
         {
+          description:
+            'Повтори запрос с `--event-key=user_2fa_disabled` — отключение второго фактора у сотрудника',
+          descriptionEn:
+            'Repeat with `--event-key=user_2fa_disabled` — two-factor authentication disabled for an employee',
+          command:
+            'pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --event-key=user_2fa_disabled --all',
+          apiMethod: 'GET',
+          apiPath: '/audit_events',
+        },
+        {
           description: 'Если найдены аномалии — отправь уведомление администратору',
           descriptionEn: 'If anomalies found — send notification to admin',
           command:

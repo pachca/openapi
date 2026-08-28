@@ -12,6 +12,8 @@ public enum AuditEventKey: String, Codable, CaseIterable {
     case user2faFail = "user_2fa_fail"
     /// Успешная двухфакторная аутентификация
     case user2faSuccess = "user_2fa_success"
+    /// Двухфакторная аутентификация отключена у сотрудника
+    case user2faDisabled = "user_2fa_disabled"
     /// Создана новая учетная запись пользователя
     case userCreated = "user_created"
     /// Учетная запись пользователя удалена
@@ -506,7 +508,7 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case wrongEmoji = "wrong_emoji"
     /// Объект не найден
     case notFound = "not_found"
-    /// Объект уже существует (пояснения вы получите в поле message)
+    /// Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить
     case alreadyExists = "already_exists"
     /// Ошибка личного чата (пояснения вы получите в поле message)
     case personalChat = "personal_chat"
@@ -1942,13 +1944,13 @@ public struct MessageCreateRequestFile: Codable {
     public let key: String
     public let name: String
     public let fileType: FileType
-    public let size: Int
+    public let size: Int64
     public let width: Int?
     public let height: Int?
     public let durationMs: Int?
     public let waveform: String?
 
-    public init(key: String, name: String, fileType: FileType, size: Int, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
+    public init(key: String, name: String, fileType: FileType, size: Int64, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
         self.key = key
         self.name = name
         self.fileType = fileType
@@ -2026,13 +2028,13 @@ public struct MessageUpdateRequestFile: Codable {
     public let key: String
     public let name: String
     public let fileType: FileType?
-    public let size: Int?
+    public let size: Int64?
     public let width: Int?
     public let height: Int?
     public let durationMs: Int?
     public let waveform: String?
 
-    public init(key: String, name: String, fileType: FileType? = nil, size: Int? = nil, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
+    public init(key: String, name: String, fileType: FileType? = nil, size: Int64? = nil, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
         self.key = key
         self.name = name
         self.fileType = fileType
@@ -2816,10 +2818,10 @@ public struct VideoCallWebhookPayload: Codable {
     public let recordingId: Int?
     public let fileId: Int?
     public let url: String?
-    public let size: Int?
+    public let size: Int64?
     public let webhookTimestamp: Int
 
-    public init(type: String, event: VideoCallEventType, videoRoomId: Int, chatId: Int, ownerId: Int, thread: WebhookVideoCallThread? = nil, startedAt: String? = nil, finishedAt: String? = nil, duration: Int? = nil, members: [WebhookVideoCallMember]? = nil, recordingId: Int? = nil, fileId: Int? = nil, url: String? = nil, size: Int? = nil, webhookTimestamp: Int) {
+    public init(type: String, event: VideoCallEventType, videoRoomId: Int, chatId: Int, ownerId: Int, thread: WebhookVideoCallThread? = nil, startedAt: String? = nil, finishedAt: String? = nil, duration: Int? = nil, members: [WebhookVideoCallMember]? = nil, recordingId: Int? = nil, fileId: Int? = nil, url: String? = nil, size: Int64? = nil, webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.videoRoomId = videoRoomId
@@ -2884,11 +2886,11 @@ public struct ViewBlockCheckbox: Codable {
     public let type: String
     public let name: String
     public let label: String
-    public let options: [ViewBlockCheckboxOption]?
+    public let options: [ViewBlockCheckboxOption]
     public let required: Bool?
     public let hint: String?
 
-    public init(type: String, name: String, label: String, options: [ViewBlockCheckboxOption]? = nil, required: Bool? = nil, hint: String? = nil) {
+    public init(type: String, name: String, label: String, options: [ViewBlockCheckboxOption], required: Bool? = nil, hint: String? = nil) {
         self.type = type
         self.name = name
         self.label = label
@@ -3050,11 +3052,11 @@ public struct ViewBlockRadio: Codable {
     public let type: String
     public let name: String
     public let label: String
-    public let options: [ViewBlockSelectableOption]?
+    public let options: [ViewBlockSelectableOption]
     public let required: Bool?
     public let hint: String?
 
-    public init(type: String, name: String, label: String, options: [ViewBlockSelectableOption]? = nil, required: Bool? = nil, hint: String? = nil) {
+    public init(type: String, name: String, label: String, options: [ViewBlockSelectableOption], required: Bool? = nil, hint: String? = nil) {
         self.type = type
         self.name = name
         self.label = label
@@ -3068,11 +3070,11 @@ public struct ViewBlockSelect: Codable {
     public let type: String
     public let name: String
     public let label: String
-    public let options: [ViewBlockSelectOption]?
+    public let options: [ViewBlockSelectOption]
     public let required: Bool?
     public let hint: String?
 
-    public init(type: String, name: String, label: String, options: [ViewBlockSelectOption]? = nil, required: Bool? = nil, hint: String? = nil) {
+    public init(type: String, name: String, label: String, options: [ViewBlockSelectOption], required: Bool? = nil, hint: String? = nil) {
         self.type = type
         self.name = name
         self.label = label
@@ -3085,18 +3087,6 @@ public struct ViewBlockSelect: Codable {
 public struct ViewBlockSelectOption: Codable {
     public let text: String
     public let value: String
-    public let selected: Bool?
-
-    public init(text: String, value: String, selected: Bool? = nil) {
-        self.text = text
-        self.value = value
-        self.selected = selected
-    }
-}
-
-public struct ViewBlockSelectableOption: Codable {
-    public let text: String
-    public let value: String
     public let description: String?
     public let selected: Bool?
 
@@ -3105,6 +3095,20 @@ public struct ViewBlockSelectableOption: Codable {
         self.value = value
         self.description = description
         self.selected = selected
+    }
+}
+
+public struct ViewBlockSelectableOption: Codable {
+    public let text: String
+    public let value: String
+    public let description: String?
+    public let checked: Bool?
+
+    public init(text: String, value: String, description: String? = nil, checked: Bool? = nil) {
+        self.text = text
+        self.value = value
+        self.description = description
+        self.checked = checked
     }
 }
 

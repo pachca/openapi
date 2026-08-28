@@ -37,6 +37,8 @@ enum class AuditEventKey(val value: String) {
     @SerialName("user_2fa_fail") USER_2FA_FAIL("user_2fa_fail"),
     /** Успешная двухфакторная аутентификация */
     @SerialName("user_2fa_success") USER_2FA_SUCCESS("user_2fa_success"),
+    /** Двухфакторная аутентификация отключена у сотрудника */
+    @SerialName("user_2fa_disabled") USER_2FA_DISABLED("user_2fa_disabled"),
     /** Создана новая учетная запись пользователя */
     @SerialName("user_created") USER_CREATED("user_created"),
     /** Учетная запись пользователя удалена */
@@ -590,7 +592,7 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("wrong_emoji") WRONG_EMOJI("wrong_emoji"),
     /** Объект не найден */
     @SerialName("not_found") NOT_FOUND("not_found"),
-    /** Объект уже существует (пояснения вы получите в поле message) */
+    /** Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить */
     @SerialName("already_exists") ALREADY_EXISTS("already_exists"),
     /** Ошибка личного чата (пояснения вы получите в поле message) */
     @SerialName("personal_chat") PERSONAL_CHAT("personal_chat"),
@@ -969,7 +971,7 @@ data class ViewBlockSelect(
     override val type: String = "select",
     val name: String,
     val label: String,
-    val options: List<ViewBlockSelectOption>? = null,
+    val options: List<ViewBlockSelectOption>,
     val required: Boolean? = null,
     val hint: String? = null,
 ) : ViewBlockUnion
@@ -980,7 +982,7 @@ data class ViewBlockRadio(
     override val type: String = "radio",
     val name: String,
     val label: String,
-    val options: List<ViewBlockSelectableOption>? = null,
+    val options: List<ViewBlockSelectableOption>,
     val required: Boolean? = null,
     val hint: String? = null,
 ) : ViewBlockUnion
@@ -991,7 +993,7 @@ data class ViewBlockCheckbox(
     override val type: String = "checkbox",
     val name: String,
     val label: String,
-    val options: List<ViewBlockCheckboxOption>? = null,
+    val options: List<ViewBlockCheckboxOption>,
     val required: Boolean? = null,
     val hint: String? = null,
 ) : ViewBlockUnion
@@ -1184,7 +1186,7 @@ data class VideoCallWebhookPayload(
     @SerialName("recording_id") val recordingId: Int? = null,
     @SerialName("file_id") val fileId: Int? = null,
     val url: String? = null,
-    val size: Int? = null,
+    val size: Long? = null,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion
 
@@ -1549,7 +1551,7 @@ data class MessageCreateRequestFile(
     val key: String,
     val name: String,
     @SerialName("file_type") val fileType: FileType,
-    val size: Int,
+    val size: Long,
     val width: Int? = null,
     val height: Int? = null,
     @SerialName("duration_ms") val durationMs: Int? = null,
@@ -1580,7 +1582,7 @@ data class MessageUpdateRequestFile(
     val key: String,
     val name: String,
     @SerialName("file_type") val fileType: FileType? = FileType.FILE,
-    val size: Int? = null,
+    val size: Long? = null,
     val width: Int? = null,
     val height: Int? = null,
     @SerialName("duration_ms") val durationMs: Int? = null,
@@ -1883,6 +1885,7 @@ data class ViewBlockCheckboxOption(
 data class ViewBlockSelectOption(
     val text: String,
     val value: String,
+    val description: String? = null,
     val selected: Boolean? = null,
 )
 
@@ -1891,7 +1894,7 @@ data class ViewBlockSelectableOption(
     val text: String,
     val value: String,
     val description: String? = null,
-    val selected: Boolean? = null,
+    val checked: Boolean? = null,
 )
 
 @Serializable

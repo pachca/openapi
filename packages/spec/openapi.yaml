@@ -2199,6 +2199,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '422':
           description: Client error
           content:
@@ -2430,6 +2436,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '422':
           description: Client error
           content:
@@ -2644,6 +2656,18 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '429':
+          description: Client error
+          headers:
+            Retry-After:
+              required: true
+              schema:
+                type: integer
+                format: int32
           content:
             application/json:
               schema:
@@ -3062,6 +3086,12 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: The request conflicts with the current state of the server.
           content:
             application/json:
               schema:
@@ -4336,6 +4366,7 @@ paths:
             items:
               type: integer
               format: int32
+            maxItems: 100
             example:
               - 198
               - 334
@@ -4352,6 +4383,7 @@ paths:
             items:
               type: integer
               format: int32
+            maxItems: 100
             example:
               - 12
               - 185
@@ -4930,6 +4962,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '422':
           description: Client error
           content:
@@ -5154,6 +5192,12 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: The request conflicts with the current state of the server.
           content:
             application/json:
               schema:
@@ -5990,7 +6034,7 @@ components:
       description: 'При: dlp_violation_detected'
     AuditDetailsEmpty:
       type: object
-      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.'
+      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.'
     AuditDetailsInitiator:
       type: object
       required:
@@ -6322,6 +6366,7 @@ components:
         - user_logout
         - user_2fa_fail
         - user_2fa_success
+        - user_2fa_disabled
         - user_created
         - user_deleted
         - user_role_changed
@@ -6371,6 +6416,7 @@ components:
         user_logout: Пользователь вышел из системы
         user_2fa_fail: Неудачная попытка двухфакторной аутентификации
         user_2fa_success: Успешная двухфакторная аутентификация
+        user_2fa_disabled: Двухфакторная аутентификация отключена у сотрудника
         user_created: Создана новая учетная запись пользователя
         user_deleted: Учетная запись пользователя удалена
         user_role_changed: Роль пользователя была изменена
@@ -6872,12 +6918,13 @@ components:
           example: Подробнее
         url:
           type: string
-          description: Ссылка, которая будет открыта по нажатию кнопки
+          maxLength: 1024
+          description: Ссылка, которая будет открыта по нажатию кнопки. У кнопки должно быть заполнено ровно одно из полей `url` и `data`.
           example: https://example.com/details
         data:
           type: string
           maxLength: 255
-          description: Данные, которые будут отправлены в исходном вебхуке по нажатию кнопки
+          description: Данные, которые будут отправлены в исходном вебхуке по нажатию кнопки. У кнопки должно быть заполнено ровно одно из полей `url` и `data`.
           example: awesome
       description: Кнопка
     ButtonWebhookPayload:
@@ -7501,7 +7548,7 @@ components:
           example: image
         url:
           type: string
-          description: Прямая ссылка на скачивание файла
+          description: Прямая ссылка на скачивание файла. Действует до 7 дней, оставшийся срок может быть меньше — если ссылка вернула `403`, запросите сообщение заново и получите свежую.
           example: https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8
         width:
           type: integer
@@ -7966,7 +8013,7 @@ components:
                     example: image
                   size:
                     type: integer
-                    format: int32
+                    format: int64
                     description: Размер файла в байтах, отображаемый пользователю
                     example: 12345
                   width:
@@ -8002,6 +8049,7 @@ components:
                 type: array
                 items:
                   $ref: '#/components/schemas/Button'
+              maxItems: 32
               description: Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.
               example:
                 - - text: Подробнее
@@ -8098,7 +8146,7 @@ components:
                     default: file
                   size:
                     type: integer
-                    format: int32
+                    format: int64
                     description: Размер файла в байтах, отображаемый пользователю
                     example: 12345
                   width:
@@ -8132,6 +8180,7 @@ components:
                 type: array
                 items:
                   $ref: '#/components/schemas/Button'
+              maxItems: 32
               description: Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.
               example:
                 - - text: Подробнее
@@ -9006,6 +9055,8 @@ components:
             priority:
               type: integer
               format: int32
+              minimum: 1
+              maximum: 3
               description: 'Приоритет: 1, 2 (важно) или 3 (очень важно)'
               example: 2
               default: 1
@@ -9099,6 +9150,8 @@ components:
             priority:
               type: integer
               format: int32
+              minimum: 1
+              maximum: 3
               description: 'Приоритет: 1, 2 (важно) или 3 (очень важно)'
               example: 2
             performer_ids:
@@ -9705,7 +9758,7 @@ components:
         taken: Название для этого поля уже существует
         wrong_emoji: Emoji статуса не может содержать значения отличные от Emoji символа
         not_found: Объект не найден
-        already_exists: Объект уже существует (пояснения вы получите в поле message)
+        already_exists: Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить
         personal_chat: Ошибка личного чата (пояснения вы получите в поле message)
         displayed_error: Отображаемая ошибка (пояснения вы получите в поле message)
         not_authorized: Действие запрещено
@@ -9830,7 +9883,7 @@ components:
           example: https://api.pachca.com/files/89012
         size:
           type: integer
-          format: int32
+          format: int64
           description: Размер файла записи в байтах. Присутствует для события recording_ready.
           example: 10485760
         webhook_timestamp:
@@ -9867,6 +9920,7 @@ components:
         - type
         - name
         - label
+        - options
       properties:
         type:
           type: string
@@ -9890,6 +9944,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ViewBlockCheckboxOption'
+          minItems: 1
           maxItems: 10
           description: Массив чекбоксов
         required:
@@ -9916,7 +9971,7 @@ components:
           example: Ничего
         value:
           type: string
-          maxLength: 150
+          maxLength: 255
           description: Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
           example: nothing
         description:
@@ -10012,7 +10067,7 @@ components:
           type: array
           items:
             type: string
-          description: Массив допустимых расширений файлов, указанные в виде строк (например, ["png","jpg","gif"]). Если это поле не указано, все расширения файлов будут приняты.
+          description: Массив допустимых расширений файлов, указанные в виде строк (например, ["png","jpg","gif"]). Точка в начале не нужна, но допустима — она подставляется сама. Значение с косой чертой считается MIME-типом и остаётся как есть. Если это поле не указано, все расширения файлов будут приняты. Значение подставляется в фильтр окна выбора файла, поэтому расширение полученного файла проверяйте у себя.
           example:
             - pdf
             - jpg
@@ -10167,6 +10222,7 @@ components:
         - type
         - name
         - label
+        - options
       properties:
         type:
           type: string
@@ -10190,6 +10246,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ViewBlockSelectableOption'
+          minItems: 1
           maxItems: 10
           description: Массив радиокнопок
         required:
@@ -10209,6 +10266,7 @@ components:
         - type
         - name
         - label
+        - options
       properties:
         type:
           type: string
@@ -10232,6 +10290,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ViewBlockSelectOption'
+          minItems: 1
           maxItems: 100
           description: Массив доступных пунктов в выпадающем списке
         required:
@@ -10258,14 +10317,19 @@ components:
           example: Ничего
         value:
           type: string
-          maxLength: 150
+          maxLength: 255
           description: Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
           example: nothing
+        description:
+          type: string
+          maxLength: 75
+          description: Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
+          example: Каждый день бот будет присылать список новых задач в вашей команде
         selected:
           type: boolean
           description: Изначально выбранный пункт. Только один пункт может быть выбран.
           example: true
-      description: Пункт выпадающего списка (select). В отличие от radio/checkbox, у пункта select нет подзаголовка `description` — веб его не отображает.
+      description: Пункт выпадающего списка (select). Изначальный выбор задаётся полем `selected`, а не `checked`, как у radio и checkbox.
     ViewBlockSelectableOption:
       type: object
       required:
@@ -10279,7 +10343,7 @@ components:
           example: Ничего
         value:
           type: string
-          maxLength: 150
+          maxLength: 255
           description: Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
           example: nothing
         description:
@@ -10287,11 +10351,11 @@ components:
           maxLength: 75
           description: Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
           example: Каждый день бот будет присылать список новых задач в вашей команде
-        selected:
+        checked:
           type: boolean
-          description: Изначально выбранный пункт. Только один пункт может быть выбран.
+          description: Изначально выбранная радиокнопка. Только одна радиокнопка может быть выбрана.
           example: true
-      description: Опция для блоков select, radio и checkbox
+      description: Радиокнопка блока radio. Изначальный выбор задаётся полем `checked`, как у checkbox, а не `selected`, как у select.
     ViewBlockTime:
       type: object
       required:
@@ -10399,7 +10463,7 @@ components:
         data:
           type: object
           additionalProperties: {}
-          description: Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные.
+          description: Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные. У блока `file_input` значение приходит массивом объектов с полями `name`, `size` и `url`, ссылка действует 2 часа.
         webhook_timestamp:
           type: integer
           format: int32

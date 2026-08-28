@@ -66,7 +66,12 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
    pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --event-key=user_2fa_fail --all
    ```
 
-2. Если найдены аномалии — отправь уведомление администратору:
+2. Повтори запрос с `--event-key=user_2fa_disabled` — отключение второго фактора у сотрудника:
+   ```bash
+   pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --event-key=user_2fa_disabled --all
+   ```
+
+3. Если найдены аномалии — отправь уведомление администратору:
    ```bash
    pachca messages create --entity-type=user --entity-id=<admin_id> --content="Обнаружены подозрительные входы"
    ```

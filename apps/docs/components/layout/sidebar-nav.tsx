@@ -6,6 +6,7 @@ import { SidebarItem } from './sidebar-item';
 import type { NavigationSection, NavigationItem } from '@/lib/openapi/types';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { transliterate } from '@/lib/utils/transliterate';
 
 interface SidebarNavProps {
   navigation: NavigationSection[];
@@ -16,6 +17,42 @@ interface SidebarNavProps {
    * item looks selected right away instead of lighting up after the commit.
    */
   activePath?: string;
+  /**
+   * Namespace for the accordion element ids (see `accordionIds`). Both
+   * sidebars are mounted at once, so each needs its own namespace to keep
+   * the ids unique across the document.
+   */
+  idPrefix: string;
+}
+
+/**
+ * Deterministic `id` / `aria-controls` / `aria-labelledby` for an accordion
+ * group, derived from the group's own key.
+ *
+ * Radix builds these from `useId()` and freezes the value in state on first
+ * render. `Sidebar` is a streamed async server component, so the React tree
+ * id at hydration doesn't always match the one the server rendered with, and
+ * the pair comes out different on the two sides — React reports a hydration
+ * mismatch and leaves the attributes unpatched, which breaks the
+ * trigger-to-content wiring for screen readers.
+ *
+ * Radix spreads caller props *after* its own attributes on both the trigger
+ * and the content, so passing our own ids overrides the generated ones and
+ * takes `useId` out of the markup entirely.
+ */
+function accordionIds(prefix: string, key: string) {
+  // FNV-1a — keeps ids unique where slugifying alone would collide
+  // (`/api/x-y` and `/api/x/y` slugify the same).
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  const slug = transliterate(key)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  const base = `${prefix}-${slug}-${(hash >>> 0).toString(36)}`;
+  return { triggerId: `${base}-trigger`, contentId: `${base}-content` };
 }
 
 /**
@@ -35,7 +72,7 @@ function isGroupActive(item: NavigationItem, pathname: string): boolean {
   return item.children?.some((child) => child.href === pathname) ?? false;
 }
 
-export function SidebarNav({ navigation, onNavigate, activePath }: SidebarNavProps) {
+export function SidebarNav({ navigation, onNavigate, activePath, idPrefix }: SidebarNavProps) {
   const currentPathname = usePathname();
   const pathname = activePath ?? currentPathname;
   const isInternalNav = useRef(false);
@@ -150,6 +187,7 @@ export function SidebarNav({ navigation, onNavigate, activePath }: SidebarNavPro
                     isOpen={openGroups.includes(groupKey(item))}
                     onItemClick={handleItemClick}
                     activePath={activePath}
+                    idPrefix={idPrefix}
                   />
                 </li>
               ) : (
@@ -177,21 +215,28 @@ function SidebarGroup({
   isOpen,
   onItemClick,
   activePath,
+  idPrefix,
 }: {
   item: NavigationItem;
   pathname: string;
   isOpen: boolean;
   onItemClick: (href: string) => void;
   activePath?: string;
+  idPrefix: string;
 }) {
   const activeChild = item.children?.find((c) => c.href === pathname);
   const key = groupKey(item);
+  const { triggerId, contentId } = accordionIds(idPrefix, key);
 
   return (
     <>
       <Accordion.Item value={key} data-group-key={key} className="overflow-hidden">
         <Accordion.Header>
-          <Accordion.Trigger className="flex gap-1.5 w-full items-center justify-between px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-md text-text-secondary hover:bg-glass-hover transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none">
+          <Accordion.Trigger
+            id={triggerId}
+            aria-controls={contentId}
+            className="flex gap-1.5 w-full items-center justify-between px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-md text-text-secondary hover:bg-glass-hover transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none"
+          >
             <span className="min-w-0 flex items-center gap-1">
               <span className="truncate">{item.title}</span>
             </span>
@@ -202,7 +247,11 @@ function SidebarGroup({
           </Accordion.Trigger>
         </Accordion.Header>
 
-        <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
+        <Accordion.Content
+          id={contentId}
+          aria-labelledby={triggerId}
+          className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden"
+        >
           <div className="ml-3 pl-4 border-l border-glass-divider mt-1 space-y-0.5">
             <ul className="list-none space-y-0.5">
               {item.children!.map((child, cIdx) => (

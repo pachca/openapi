@@ -206,6 +206,7 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
                   navigation={navigation}
                   onNavigate={handleNavigate}
                   activePath={pendingHref ?? undefined}
+                  idPrefix="mobile-sidebar"
                 />
               </div>
             </div>

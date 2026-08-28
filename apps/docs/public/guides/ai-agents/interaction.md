@@ -65,5 +65,5 @@
 ## Связанные разделы
 
 - [AI-агенты](/guides/ai-agents/overview)
-- [Markdown и документы](/guides/ai-agents/markdown)
+- [Оформление ответов](/guides/ai-agents/markdown)
 - [Треды](/guides/threads)

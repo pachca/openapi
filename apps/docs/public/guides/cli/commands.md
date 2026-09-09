@@ -119,6 +119,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca users update-status` | `PUT` Новый статус сотрудника |
 | `pachca version` | Версия CLI |
 | `pachca views open` | `POST` Открытие представления |
+| `pachca views submit-response` | `POST` Ответ на отправку формы |
 
 
 ## Справка

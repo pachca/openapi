@@ -53,6 +53,8 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - 410: trigger_id expired or not found. trigger_id is valid for 3 seconds. Get a new one via button click (webhook)
+- 410: submit_expired on POST /views/{view_id}/submit_response. The response window is 5 seconds from form submission, and a response is accepted once. Read the event history often enough to answer in time
+- 404: view_not_found on POST /views/{view_id}/submit_response. Take view_id from the view_submit event payload and respond with the same bot token that opened the view
 - `type`: allowed values — `modal` (Модальное окно)
 - `private_metadata`: max 3000 characters
 - `callback_id`: max 255 characters
@@ -65,6 +67,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | /views/open | Открытие представления |
+| POST | /views/{view_id}/submit_response | Ответ на отправку формы |
 
 ## Advanced workflows
 

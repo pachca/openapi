@@ -796,6 +796,17 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'callback_id', n8n: 'callbackId' },
 			],
 		},
+		submitResponse: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/views/{view_id}/submit_response',
+			pathParams: [{ api: 'view_id', n8n: 'viewId' }],
+			bodyMap: [
+				{ api: 'submit_id', n8n: 'submitId' },
+			],
+			optionalBodyMap: [
+				{ api: 'errors', n8n: 'errors', isJson: true },
+			],
+		},
 		processSubmission: {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/profile',

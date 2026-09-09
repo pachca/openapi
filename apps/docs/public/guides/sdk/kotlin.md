@@ -144,6 +144,7 @@ client.close()
 | `client.tasks.updateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.deleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.views.openView()` | [Открытие представления](/api/views/open) |
+| `client.views.submitViewResponse()` | [Ответ на отправку формы](/api/views/submit-response) |
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
 | `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |

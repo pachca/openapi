@@ -482,6 +482,13 @@
   "UserStatusOperations_deleteUserStatus": {
     "usage": "await client.users.delete_user_status(user_id=12)"
   },
+  "FormOperations_submitViewResponse": {
+    "usage": "request = SubmitViewResponseRequest(submit_id=\"791a056b-006c-49dd-834b-c633fde52fe8\", errors={\"key\": \"example\"})\nresponse = await client.views.submit_view_response(view_id=\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request=request)",
+    "output": "SubmitViewResponseResult(success: bool)",
+    "imports": [
+      "SubmitViewResponseRequest"
+    ]
+  },
   "FormOperations_openView": {
     "usage": "request = OpenViewRequest(\n    type=\"modal\",\n    trigger_id=\"791a056b-006c-49dd-834b-c633fde52fe8\",\n    private_metadata=\"{\\\"timeoff_id\\\":4378}\",\n    callback_id=\"timeoff_request_form\",\n    view=OpenViewRequestView(\n        title=\"Уведомление об отпуске\",\n        close_text=\"Закрыть\",\n        submit_text=\"Отправить заявку\",\n        blocks=[ViewBlockHeader(type=\"header\", text=\"Основная информация\")]\n    )\n)\nawait client.views.open_view(request=request)",
     "imports": [

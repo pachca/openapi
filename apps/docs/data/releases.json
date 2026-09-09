@@ -1,6 +1,67 @@
 [
   {
     "product": "n8n",
+    "version": "2.1.2",
+    "date": "2026-09-09",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`Form`: операция `Submit Response` — ответ на отправку формы для бота без адреса исходящего вебхука"
+      },
+      {
+        "type": "-",
+        "description": "`Bot`: у операции `Remove Events` поле `ID` стало строковым — идентификатор события не число, и ввести его было нельзя"
+      },
+      {
+        "type": "+",
+        "description": "`Security`: фильтр событий пополнился значением `Exchange Disabled` — отключена интеграция с Exchange"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.9.0",
+    "date": "2026-09-09",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca views submit-response` — ответ на отправку формы для бота без адреса исходящего вебхука"
+      },
+      {
+        "type": "+",
+        "description": "`pachca security list` — флаг `--event-key` принимает значение `exchange_disabled`"
+      },
+      {
+        "type": "-",
+        "description": "`pachca api POST /messages --spec` — у прикрепляемых файлов показаны пределы длины: `key` до 1000 символов и `name` до 255"
+      },
+      {
+        "type": "-",
+        "description": "`pachca api POST /views/open --spec` — у блока `time` начальное значение принимается и в формате `HH:mm:ss`"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.3.2",
+    "date": "2026-09-09",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Метод ответа на отправку формы и модели запроса и результата"
+      },
+      {
+        "type": "+",
+        "description": "В payload вебхука о заполнении формы появились `view_id` и `submit_id`"
+      },
+      {
+        "type": "+",
+        "description": "Коды ошибок `view_not_found`, `submit_expired` и `service_unavailable`, тип аудит-события `exchange_disabled`"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
     "version": "2.1.1",
     "date": "2026-08-28",
     "changes": [

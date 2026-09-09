@@ -75,6 +75,8 @@ import {
   ListUsersResponse,
   UserCreateRequest,
   UserUpdateRequest,
+  SubmitViewResponseRequest,
+  SubmitViewResponseResult,
   OpenViewRequest,
 } from "./types.js";
 import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
@@ -2323,6 +2325,10 @@ export class UsersServiceImpl extends UsersService {
 }
 
 export class ViewsService {
+  async submitViewResponse(viewId: string, request: SubmitViewResponseRequest): Promise<SubmitViewResponseResult> {
+    throw new Error("Views.submitViewResponse is not implemented");
+  }
+
   async openView(request: OpenViewRequest): Promise<void> {
     throw new Error("Views.openView is not implemented");
   }
@@ -2334,6 +2340,23 @@ export class ViewsServiceImpl extends ViewsService {
     private headers: Record<string, string>,
   ) {
     super();
+  }
+
+  async submitViewResponse(viewId: string, request: SubmitViewResponseRequest): Promise<SubmitViewResponseResult> {
+    const response = await fetchWithRetry(`${this.baseUrl}/views/${viewId}/submit_response`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("SubmitViewResponseRequest", request)),
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("SubmitViewResponseResult", body) as SubmitViewResponseResult;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
   }
 
   async openView(request: OpenViewRequest): Promise<void> {

@@ -2145,6 +2145,10 @@ class UsersServiceImpl internal constructor(
 }
 
 interface ViewsService {
+    suspend fun submitViewResponse(viewId: String, request: SubmitViewResponseRequest): SubmitViewResponseResult {
+        throw NotImplementedError("Views.submitViewResponse is not implemented")
+    }
+
     suspend fun openView(request: OpenViewRequest) {
         throw NotImplementedError("Views.openView is not implemented")
     }
@@ -2154,6 +2158,18 @@ class ViewsServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) : ViewsService {
+    override suspend fun submitViewResponse(viewId: String, request: SubmitViewResponseRequest): SubmitViewResponseResult {
+        val response = client.post("$baseUrl/views/$viewId/submit_response") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     override suspend fun openView(request: OpenViewRequest) {
         val response = client.post("$baseUrl/views/open") {
             contentType(ContentType.Application.Json)

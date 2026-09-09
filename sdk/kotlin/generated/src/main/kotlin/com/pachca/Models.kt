@@ -125,6 +125,8 @@ enum class AuditEventKey(val value: String) {
     @SerialName("video_call_finished") VIDEO_CALL_FINISHED("video_call_finished"),
     /** Запись видеозвонка готова */
     @SerialName("video_call_recording_ready") VIDEO_CALL_RECORDING_READY("video_call_recording_ready"),
+    /** Отключена интеграция с Exchange */
+    @SerialName("exchange_disabled") EXCHANGE_DISABLED("exchange_disabled"),
 }
 
 /** Роль, которой разрешено редактировать настройки бота */
@@ -658,6 +660,12 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("message_deleted") MESSAGE_DELETED("message_deleted"),
     /** Нельзя создать тред для сообщения, которое уже находится в треде */
     @SerialName("thread_message") THREAD_MESSAGE("thread_message"),
+    /** Представление не найдено или принадлежит другому боту */
+    @SerialName("view_not_found") VIEW_NOT_FOUND("view_not_found"),
+    /** Время на ответ об отправке формы истекло или ответ уже был принят */
+    @SerialName("submit_expired") SUBMIT_EXPIRED("submit_expired"),
+    /** Сервис временно недоступен, повторите запрос */
+    @SerialName("service_unavailable") SERVICE_UNAVAILABLE("service_unavailable"),
 }
 
 /** Тип события видеозвонка */
@@ -1128,6 +1136,8 @@ data class ViewSubmitWebhookPayload(
     @SerialName("private_metadata") val privateMetadata: String,
     @SerialName("chat_id") val chatId: Int,
     @SerialName("user_id") val userId: Int,
+    @SerialName("view_id") val viewId: String,
+    @SerialName("submit_id") val submitId: String,
     val data: Map<String, JsonElement>,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion {
@@ -1679,6 +1689,17 @@ data class StatusUpdateRequestStatus(
 @Serializable
 data class StatusUpdateRequest(
     val status: StatusUpdateRequestStatus,
+)
+
+@Serializable
+data class SubmitViewResponseRequest(
+    @SerialName("submit_id") val submitId: String,
+    val errors: Map<String, String>? = null,
+)
+
+@Serializable
+data class SubmitViewResponseResult(
+    val success: Boolean,
 )
 
 @Serializable

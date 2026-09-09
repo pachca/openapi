@@ -1089,6 +1089,11 @@ Parameters: id
 Open a modal window with a view for the user. To open a modal window with a view, your application must have a valid, non-expired `trigger_id`.
 Body: { type*, trigger_id*, private_metadata, callback_id, view* }
 
+### POST /api/shared/v1/views/{view_id}/submit_response
+Respond to a form submission from a bot that has no outgoing webhook address. The `view_id` and `submit_id` identifiers arrive in the event payload. You must respond within 5 seconds, otherwise the user sees a submission error and the field values are kept for another attempt.
+Parameters: view_id
+Body: { submit_id*, errors }
+
 ## Bots
 
 ### POST /api/shared/v1/bot/recreate_token

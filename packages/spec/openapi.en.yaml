@@ -5779,6 +5779,86 @@ paths:
               $ref: '#/components/schemas/OpenViewRequest'
       x-requirements:
         scope: views:write
+  /views/{view_id}/submit_response:
+    post:
+      operationId: FormOperations_submitViewResponse
+      description: >-
+        Respond to a form submission
+
+
+        Respond to a form submission from a bot that has no outgoing webhook address.
+
+
+        The `view_id` and `submit_id` identifiers arrive in the event payload. You must respond within 5 seconds,
+        otherwise the user sees a submission error and the field values are kept for another attempt.
+      parameters:
+        - name: view_id
+          in: path
+          required: true
+          description: View ID
+          schema:
+            type: string
+            example: 01KAJZ2XDSS2S3DSW9EXJZ0TBV
+          example: 01KAJZ2XDSS2S3DSW9EXJZ0TBV
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitViewResponseResult'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '410':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Views
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitViewResponseRequest'
+      x-requirements:
+        scope: views:write
   /webhooks/events:
     get:
       operationId: BotOperations_getWebhookEvents
@@ -6594,6 +6674,7 @@ components:
         - video_call_started
         - video_call_finished
         - video_call_recording_ready
+        - exchange_disabled
       description: Audit event type
       x-enum-descriptions:
         user_login: User logged in successfully
@@ -6644,6 +6725,7 @@ components:
         video_call_started: Video call started
         video_call_finished: Video call finished
         video_call_recording_ready: Video call recording ready
+        exchange_disabled: Exchange integration disabled
     AvatarData:
       type: object
       required:
@@ -8246,10 +8328,12 @@ components:
                 properties:
                   key:
                     type: string
+                    maxLength: 1000
                     description: File path obtained from [file upload](POST /direct_url)
                     example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png
                   name:
                     type: string
+                    maxLength: 255
                     description: >-
                       File name to display to the user. The extension must match the extension of the file in `key`,
                       otherwise the response is 422 with the `wrong_params` code.
@@ -8388,10 +8472,12 @@ components:
                 properties:
                   key:
                     type: string
+                    maxLength: 1000
                     description: File path obtained from [file upload](POST /direct_url)
                     example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png
                   name:
                     type: string
+                    maxLength: 255
                     description: >-
                       File name to display to the user. The extension must match the extension of the file in `key`,
                       otherwise the response is 422 with the `wrong_params` code.
@@ -9218,6 +9304,35 @@ components:
             - emoji
             - title
       description: Status update request
+    SubmitViewResponseRequest:
+      type: object
+      required:
+        - submit_id
+      properties:
+        submit_id:
+          type: string
+          description: Form submission ID from the `view_submit` webhook
+          example: 791a056b-006c-49dd-834b-c633fde52fe8
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          description: >-
+            Field validation errors. Key — block `name`, value — the error text shown under the field. Without this
+            field the view closes as successfully submitted.
+          example:
+            date_end: The end date of the leave cannot be earlier than the start date
+      description: Bot response to a form submission
+    SubmitViewResponseResult:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Successful processing flag
+          example: true
+      description: Form submission response result
     TagNamesFilter:
       type: array
       items:
@@ -10053,6 +10168,9 @@ components:
         - pin_failed
         - message_deleted
         - thread_message
+        - view_not_found
+        - submit_expired
+        - service_unavailable
       description: Validation error codes
       x-enum-descriptions:
         blank: Required field (cannot be empty)
@@ -10096,6 +10214,9 @@ components:
         pin_failed: Failed to pin the message
         message_deleted: Message has been deleted
         thread_message: Cannot create a thread for a message that is already in a thread
+        view_not_found: View not found or belongs to a different bot
+        submit_expired: The response window for the form submission has expired, or a response was already accepted
+        service_unavailable: Service temporarily unavailable, retry the request
     VideoCallEventType:
       type: string
       enum:
@@ -10702,7 +10823,7 @@ components:
         initial_time:
           type: string
           format: time
-          description: Initial field value in HH:mm format
+          description: Initial field value in HH:mm format. A value in HH:mm:ss format is also accepted, with the seconds discarded
           example: '11:00'
         required:
           type: boolean
@@ -10738,6 +10859,8 @@ components:
         - private_metadata
         - chat_id
         - user_id
+        - view_id
+        - submit_id
         - data
         - webhook_timestamp
       properties:
@@ -10783,6 +10906,18 @@ components:
           format: int32
           description: ID of the user who submitted the form
           example: 1235523
+        view_id:
+          type: string
+          description: >-
+            View ID. A bot with no outgoing webhook address needs it to respond with the [Respond to a form
+            submission](POST /views/{view_id}/submit_response) method.
+          example: 01KAJZ2XDSS2S3DSW9EXJZ0TBV
+        submit_id:
+          type: string
+          description: >-
+            Form submission ID. A bot with no outgoing webhook address needs it to respond with the [Respond to a form
+            submission](POST /views/{view_id}/submit_response) method.
+          example: 791a056b-006c-49dd-834b-c633fde52fe8
         data:
           type: object
           additionalProperties: {}

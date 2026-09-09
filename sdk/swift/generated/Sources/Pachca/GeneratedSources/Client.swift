@@ -2466,6 +2466,10 @@ public final class UsersServiceImpl: UsersService {
 open class ViewsService {
     public init() {}
 
+    open func submitViewResponse(viewId: String, request body: SubmitViewResponseRequest) async throws -> SubmitViewResponseResult {
+        throw pachcaNotImplemented("Views.submitViewResponse")
+    }
+
     open func openView(request body: OpenViewRequest) async throws -> Void {
         throw pachcaNotImplemented("Views.openView")
     }
@@ -2481,6 +2485,24 @@ public final class ViewsServiceImpl: ViewsService {
         self.headers = headers
         self.session = session
         super.init()
+    }
+
+    public override func submitViewResponse(viewId: String, request body: SubmitViewResponseRequest) async throws -> SubmitViewResponseResult {
+        var request = URLRequest(url: URL(string: "\(baseURL)/views/\(viewId)/submit_response")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(SubmitViewResponseResult.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
     }
 
     public override func openView(request body: OpenViewRequest) async throws -> Void {

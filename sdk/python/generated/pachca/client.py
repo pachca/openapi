@@ -96,6 +96,8 @@ from .models import (
     ListUsersResponse,
     UserCreateRequest,
     UserUpdateRequest,
+    SubmitViewResponseRequest,
+    SubmitViewResponseResult,
     OpenViewRequest,
 )
 from .utils import deserialize, serialize, RetryTransport
@@ -2700,6 +2702,13 @@ class UsersServiceImpl(UsersService):
 
 
 class ViewsService:
+    async def submit_view_response(
+        self,
+        view_id: str,
+        request: SubmitViewResponseRequest,
+    ) -> SubmitViewResponseResult:
+        raise NotImplementedError("Views.submitViewResponse is not implemented")
+
     async def open_view(
         self,
         request: OpenViewRequest,
@@ -2710,6 +2719,24 @@ class ViewsService:
 class ViewsServiceImpl(ViewsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
+
+    async def submit_view_response(
+        self,
+        view_id: str,
+        request: SubmitViewResponseRequest,
+    ) -> SubmitViewResponseResult:
+        response = await self._client.post(
+            f"/views/{view_id}/submit_response",
+            json=serialize(request),
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(SubmitViewResponseResult, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
 
     async def open_view(
         self,

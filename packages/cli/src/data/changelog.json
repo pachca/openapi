@@ -1,5 +1,31 @@
 [
   {
+    "version": "2026.9.0",
+    "date": "9 сентября 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "views submit-response",
+        "description": "Ответ на отправку формы для бота без адреса исходящего вебхука: `view_id` и `submit_id` берутся из события `view_submit` в журнале событий"
+      },
+      {
+        "type": "+",
+        "command": "security list",
+        "description": "Флаг `--event-key` принимает значение `exchange_disabled` — отключена интеграция с Exchange"
+      },
+      {
+        "type": "-",
+        "command": "api",
+        "description": "`api POST /messages --spec` и `api PUT /messages/{id} --spec`: у прикрепляемых файлов показаны пределы длины — `key` до 1000 символов и `name` до 255"
+      },
+      {
+        "type": "-",
+        "command": "api",
+        "description": "`api POST /views/open --spec` и `--docs`: у блока `time` начальное значение принимается и в формате `HH:mm:ss`, секунды отбрасываются"
+      }
+    ]
+  },
+  {
     "version": "2026.8.3",
     "date": "28 августа 2026",
     "changes": [

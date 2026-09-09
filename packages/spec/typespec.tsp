@@ -469,6 +469,9 @@ enum ChatSubtype {
   pin_failed: "Не удалось закрепить сообщение",
   message_deleted: "Сообщение удалено",
   thread_message: "Нельзя создать тред для сообщения, которое уже находится в треде",
+  view_not_found: "Представление не найдено или принадлежит другому боту",
+  submit_expired: "Время на ответ об отправке формы истекло или ответ уже был принят",
+  service_unavailable: "Сервис временно недоступен, повторите запрос",
 })
 enum ValidationErrorCode {
   @doc("Обязательное поле (не может быть пустым)")
@@ -593,6 +596,15 @@ enum ValidationErrorCode {
 
   @doc("Нельзя создать тред для сообщения, которое уже находится в треде")
   thread_message: "thread_message",
+
+  @doc("Представление не найдено или принадлежит другому боту")
+  view_not_found: "view_not_found",
+
+  @doc("Время на ответ об отправке формы истекло или ответ уже был принят")
+  submit_expired: "submit_expired",
+
+  @doc("Сервис временно недоступен, повторите запрос")
+  service_unavailable: "service_unavailable",
 }
 
 @doc("Тип аудит-события")
@@ -645,6 +657,7 @@ enum ValidationErrorCode {
   video_call_started: "Видеозвонок начат",
   video_call_finished: "Видеозвонок завершён",
   video_call_recording_ready: "Запись видеозвонка готова",
+  exchange_disabled: "Отключена интеграция с Exchange",
 })
 enum AuditEventKey {
   @doc("Пользователь успешно вошел в систему")
@@ -790,6 +803,9 @@ enum AuditEventKey {
 
   @doc("Запись видеозвонка готова")
   video_call_recording_ready: "video_call_recording_ready",
+
+  @doc("Отключена интеграция с Exchange")
+  exchange_disabled: "exchange_disabled",
 }
 
 // ============================================================================
@@ -2034,10 +2050,12 @@ model MessageCreateRequest {
     files?: {
       @doc("Путь к файлу, полученный в результате [загрузки файла](POST /direct_url)")
       @example("attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png")
+      @maxLength(1000)
       key: string;
       
       @doc("Название файла, которое вы хотите отображать пользователю. Расширение должно совпадать с расширением файла в `key`, иначе ответ будет 422 с кодом `wrong_params`.")
       @example("logo.png")
+      @maxLength(255)
       name: string;
 
       @doc("Тип файла")
@@ -2108,10 +2126,12 @@ model MessageUpdateRequest {
     files?: {
       @doc("Путь к файлу, полученный в результате [загрузки файла](POST /direct_url)")
       @example("attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png")
+      @maxLength(1000)
       key: string;
       
       @doc("Название файла, которое вы хотите отображать пользователю. Расширение должно совпадать с расширением файла в `key`, иначе ответ будет 422 с кодом `wrong_params`.")
       @example("logo.png")
+      @maxLength(255)
       name: string;
 
       @doc("Тип файла")
@@ -2631,7 +2651,7 @@ model ViewBlockTime {
   @maxLength(150)
   label: string;
   
-  @doc("Начальное значение в поле в формате HH:mm")
+  @doc("Начальное значение в поле в формате HH:mm. Значение в формате HH:mm:ss тоже принимается — секунды отбрасываются.")
   @example(plainTime.fromISO("11:00"))
   initial_time?: plainTime;
 
@@ -3175,7 +3195,7 @@ model CompanyBotResponse {
 
 }
 
-@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.")
+@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled.")
 model AuditDetailsEmpty {}
 
 @doc("При: user_updated")
@@ -3631,6 +3651,14 @@ model ViewSubmitWebhookPayload {
   @doc("Идентификатор пользователя, который отправил форму")
   @example(1235523)
   user_id: int32;
+
+  @doc("Идентификатор представления. Нужен боту без адреса исходящего вебхука, чтобы ответить методом [Ответ на отправку формы](POST /views/{view_id}/submit_response).")
+  @example("01KAJZ2XDSS2S3DSW9EXJZ0TBV")
+  view_id: string;
+
+  @doc("Идентификатор отправки формы. Нужен боту без адреса исходящего вебхука, чтобы ответить методом [Ответ на отправку формы](POST /views/{view_id}/submit_response).")
+  @example("791a056b-006c-49dd-834b-c633fde52fe8")
+  submit_id: string;
 
   @doc("Данные заполненных полей представления. Ключ — `name` блока, значение — введённые данные. У блока `file_input` значение приходит массивом объектов с полями `name`, `size` и `url`, ссылка действует 2 часа.")
   data: Record<unknown>;
@@ -6405,6 +6433,24 @@ interface TaskOperations {
   };
 }
 
+@doc("Ответ бота на отправку формы")
+model SubmitViewResponseRequest {
+  @doc("Идентификатор отправки формы из вебхука `view_submit`")
+  @example("791a056b-006c-49dd-834b-c633fde52fe8")
+  submit_id: string;
+
+  @doc("Ошибки заполнения полей. Ключ — `name` блока, значение — текст ошибки под полем. Без этого поля представление закрывается как успешно отправленное.")
+  @example(#{ date_end: "Дата окончания отпуска не может быть меньше даты начала" })
+  errors?: Record<string>;
+}
+
+@doc("Результат ответа на отправку формы")
+model SubmitViewResponseResult {
+  @doc("Признак успешной обработки")
+  @example(true)
+  success: boolean;
+}
+
 // ============================================================================
 // Form Operations
 // ============================================================================
@@ -6444,6 +6490,51 @@ interface FormOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "views:write",
+  })
+  @doc("""
+Ответ на отправку формы
+
+Метод для ответа на отправку формы у бота без адреса исходящего вебхука.
+
+Идентификаторы `view_id` и `submit_id` приходят в payload события. Ответить нужно в течение 5 секунд, иначе пользователь увидит ошибку отправки, а значения полей сохранятся для повторной попытки.
+""")
+  @route("/{view_id}/submit_response")
+  @post
+  submitViewResponse(
+    @doc("Идентификатор представления")
+    @extension("example", "01KAJZ2XDSS2S3DSW9EXJZ0TBV")
+    @path
+    view_id: string,
+
+    @body request: SubmitViewResponseRequest,
+  ): {
+    @statusCode _: 200;
+    @body body: SubmitViewResponseResult;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 410;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 503;
     @body body: ApiError;
   };
 }

@@ -108,6 +108,8 @@ public enum AuditEventKey
     VideoCallFinished,
     /// <summary>Запись видеозвонка готова</summary>
     VideoCallRecordingReady,
+    /// <summary>Отключена интеграция с Exchange</summary>
+    ExchangeDisabled,
 }
 
 internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
@@ -165,6 +167,7 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             "video_call_started" => AuditEventKey.VideoCallStarted,
             "video_call_finished" => AuditEventKey.VideoCallFinished,
             "video_call_recording_ready" => AuditEventKey.VideoCallRecordingReady,
+            "exchange_disabled" => AuditEventKey.ExchangeDisabled,
             _ => throw new JsonException($"Unknown AuditEventKey value: {value}"),
         };
     }
@@ -221,6 +224,7 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             AuditEventKey.VideoCallStarted => "video_call_started",
             AuditEventKey.VideoCallFinished => "video_call_finished",
             AuditEventKey.VideoCallRecordingReady => "video_call_recording_ready",
+            AuditEventKey.ExchangeDisabled => "exchange_disabled",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -1699,6 +1703,12 @@ public enum ValidationErrorCode
     MessageDeleted,
     /// <summary>Нельзя создать тред для сообщения, которое уже находится в треде</summary>
     ThreadMessage,
+    /// <summary>Представление не найдено или принадлежит другому боту</summary>
+    ViewNotFound,
+    /// <summary>Время на ответ об отправке формы истекло или ответ уже был принят</summary>
+    SubmitExpired,
+    /// <summary>Сервис временно недоступен, повторите запрос</summary>
+    ServiceUnavailable,
 }
 
 internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
@@ -1749,6 +1759,9 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             "pin_failed" => ValidationErrorCode.PinFailed,
             "message_deleted" => ValidationErrorCode.MessageDeleted,
             "thread_message" => ValidationErrorCode.ThreadMessage,
+            "view_not_found" => ValidationErrorCode.ViewNotFound,
+            "submit_expired" => ValidationErrorCode.SubmitExpired,
+            "service_unavailable" => ValidationErrorCode.ServiceUnavailable,
             _ => throw new JsonException($"Unknown ValidationErrorCode value: {value}"),
         };
     }
@@ -1798,6 +1811,9 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             ValidationErrorCode.PinFailed => "pin_failed",
             ValidationErrorCode.MessageDeleted => "message_deleted",
             ValidationErrorCode.ThreadMessage => "thread_message",
+            ValidationErrorCode.ViewNotFound => "view_not_found",
+            ValidationErrorCode.SubmitExpired => "submit_expired",
+            ValidationErrorCode.ServiceUnavailable => "service_unavailable",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -2453,6 +2469,10 @@ public class ViewSubmitWebhookPayload : WebhookPayloadUnion
     public int? ChatId { get; set; }
     [JsonPropertyName("user_id")]
     public int UserId { get; set; } = default!;
+    [JsonPropertyName("view_id")]
+    public string ViewId { get; set; } = default!;
+    [JsonPropertyName("submit_id")]
+    public string SubmitId { get; set; } = default!;
     [JsonPropertyName("data")]
     public Dictionary<string, object> Data { get; set; } = default!;
     [JsonPropertyName("webhook_timestamp")]
@@ -3290,6 +3310,20 @@ public class StatusUpdateRequest
 {
     [JsonPropertyName("status")]
     public StatusUpdateRequestStatus Status { get; set; } = default!;
+}
+
+public class SubmitViewResponseRequest
+{
+    [JsonPropertyName("submit_id")]
+    public string SubmitId { get; set; } = default!;
+    [JsonPropertyName("errors")]
+    public Dictionary<string, string>? Errors { get; set; }
+}
+
+public class SubmitViewResponseResult
+{
+    [JsonPropertyName("success")]
+    public bool Success { get; set; } = default!;
 }
 
 public class Task

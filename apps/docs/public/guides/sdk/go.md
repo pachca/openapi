@@ -136,6 +136,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Tasks.UpdateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.Tasks.DeleteTask()` | [Удаление напоминания](/api/tasks/delete) |
 | `client.Views.OpenView()` | [Открытие представления](/api/views/open) |
+| `client.Views.SubmitViewResponse()` | [Ответ на отправку формы](/api/views/submit-response) |
 | `client.Bots.CreateBot()` | [Новый бот](/api/bots/create) |
 | `client.Bots.SelfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.RecreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |

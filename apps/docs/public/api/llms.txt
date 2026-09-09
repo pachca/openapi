@@ -103,6 +103,7 @@
 
 ## Views
 - [Открытие представления](https://dev.pachca.com/api/views/open.md): POST /views/open
+- [Ответ на отправку формы](https://dev.pachca.com/api/views/submit-response.md): POST /views/{view_id}/submit_response
 
 ## Bots
 - [Ротация собственного токена бота](https://dev.pachca.com/api/bots/recreate-token-self.md): POST /bot/recreate_token

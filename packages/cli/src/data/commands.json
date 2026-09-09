@@ -2357,7 +2357,8 @@
               "oauth_authorization_revoked",
               "video_call_started",
               "video_call_finished",
-              "video_call_recording_ready"
+              "video_call_recording_ready",
+              "exchange_disabled"
             ]
           },
           {
@@ -3212,6 +3213,35 @@
             "type": "option",
             "required": false,
             "description": "Необязательный идентификатор для распознавания этого представления, который будет отправлен в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для понимания, какую форму должен был заполнить пользователь. (макс. 255 символов)"
+          }
+        ]
+      },
+      {
+        "command": "pachca views submit-response",
+        "summary": "Ответ на отправку формы",
+        "method": "POST",
+        "path": "/views/{view_id}/submit_response",
+        "scope": "views:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "view_id",
+            "required": true,
+            "description": "Идентификатор представления"
+          }
+        ],
+        "flags": [
+          {
+            "name": "submit-id",
+            "type": "option",
+            "required": true,
+            "description": "Идентификатор отправки формы из вебхука `view_submit`"
+          },
+          {
+            "name": "errors",
+            "type": "option",
+            "required": false,
+            "description": "Ошибки заполнения полей. Ключ — `name` блока, значение — текст ошибки под полем. Без этого поля представление закрывается как успешно отправленное."
           }
         ]
       }

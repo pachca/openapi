@@ -21,6 +21,8 @@ const OPERATION_OVERRIDES: Record<string, string> = {
   // Инвентаризация пространства: без пина слаг совпал бы со списками своих чатов и ботов.
   'GET /company/chats': '/api/chats/list-company',
   'GET /company/bots': '/api/bots/list-company',
+  // Ответ на отправку формы: без пина POST даёт префикс add, и команда читается как создание.
+  'POST /views/{view_id}/submit_response': '/api/views/submit-response',
 };
 
 export function generateUrlFromOperation(endpoint: Endpoint): string {

@@ -223,6 +223,18 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
         reason: 'trigger_id expired or not found',
         action: 'trigger_id is valid for 3 seconds. Get a new one via button click (webhook)',
       },
+      {
+        code: 410,
+        reason: 'submit_expired on POST /views/{view_id}/submit_response',
+        action:
+          'The response window is 5 seconds from form submission, and a response is accepted once. Read the event history often enough to answer in time',
+      },
+      {
+        code: 404,
+        reason: 'view_not_found on POST /views/{view_id}/submit_response',
+        action:
+          'Take view_id from the view_submit event payload and respond with the same bot token that opened the view',
+      },
     ],
     extraEndpointContent: `## Form block types
 

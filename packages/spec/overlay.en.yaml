@@ -1072,6 +1072,17 @@ actions:
         Open a modal window with a view for the user.
 
         To open a modal window with a view, your application must have a valid, non-expired `trigger_id`.
+  - target: $.paths['/views/{view_id}/submit_response'].post
+    update:
+      description: |-
+        Respond to a form submission
+
+        Respond to a form submission from a bot that has no outgoing webhook address.
+
+        The `view_id` and `submit_id` identifiers arrive in the event payload. You must respond within 5 seconds, otherwise the user sees a submission error and the field values are kept for another attempt.
+  - target: $.paths['/views/{view_id}/submit_response'].post.parameters[?(@.name=='view_id')]
+    update:
+      description: View ID
   - target: $.paths['/webhooks/events'].get
     update:
       description: >-
@@ -1494,6 +1505,7 @@ actions:
         video_call_started: Video call started
         video_call_finished: Video call finished
         video_call_recording_ready: Video call recording ready
+        exchange_disabled: Exchange integration disabled
   - target: $.components.schemas.AvatarData
     update:
       description: Avatar data
@@ -3575,6 +3587,9 @@ actions:
         pin_failed: Failed to pin the message
         message_deleted: Message has been deleted
         thread_message: Cannot create a thread for a message that is already in a thread
+        view_not_found: View not found or belongs to a different bot
+        submit_expired: The response window for the form submission has expired, or a response was already accepted
+        service_unavailable: Service temporarily unavailable, retry the request
   - target: $.components.schemas.ViewBlock
     update:
       description: View block for forms (base model, use specific block types)
@@ -3855,7 +3870,8 @@ actions:
       description: Field label
   - target: $.components.schemas.ViewBlockTime.properties.initial_time
     update:
-      description: Initial field value in HH:mm format
+      description: Initial field value in HH:mm format. A value in HH:mm:ss format is also
+        accepted, with the seconds discarded
   - target: $.components.schemas.ViewBlockTime.properties.required
     update:
       description: Required
@@ -3894,6 +3910,32 @@ actions:
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.user_id
     update:
       description: ID of the user who submitted the form
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.view_id
+    update:
+      description: View ID. A bot with no outgoing webhook address needs it to respond
+        with the [Respond to a form submission](POST /views/{view_id}/submit_response) method.
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.submit_id
+    update:
+      description: Form submission ID. A bot with no outgoing webhook address needs it to
+        respond with the [Respond to a form submission](POST /views/{view_id}/submit_response) method.
+  - target: $.components.schemas.SubmitViewResponseRequest
+    update:
+      description: Bot response to a form submission
+  - target: $.components.schemas.SubmitViewResponseRequest.properties.submit_id
+    update:
+      description: Form submission ID from the `view_submit` webhook
+  - target: $.components.schemas.SubmitViewResponseRequest.properties.errors
+    update:
+      description: "Field validation errors. Key — block `name`, value — the error text shown
+        under the field. Without this field the view closes as successfully submitted."
+      example:
+        date_end: The end date of the leave cannot be earlier than the start date
+  - target: $.components.schemas.SubmitViewResponseResult
+    update:
+      description: Form submission response result
+  - target: $.components.schemas.SubmitViewResponseResult.properties.success
+    update:
+      description: Successful processing flag
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.data
     update:
       description: "Submitted view field data. Key — block `name`, value — entered data. For a `file_input` block the value arrives as an array of objects with `name`, `size` and `url`, and the link is valid for 2 hours."

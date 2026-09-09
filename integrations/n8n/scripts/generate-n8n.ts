@@ -536,6 +536,8 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
   // "getAllChats"/"getAllBots" и путались бы с обычным "getAll" того же ресурса.
   if (ep.path === '/company/chats' && method === 'GET') return 'getAllCompanyChats';
   if (ep.path === '/company/bots' && method === 'GET') return 'getAllCompanyBots';
+  // Ответ на отправку формы: без пина POST даёт "addSubmitResponse" и читается как создание.
+  if (ep.path === '/views/{view_id}/submit_response' && method === 'POST') return 'submitResponse';
 
   // Sub-resource action paths (e.g., /users/{id}/status → getStatus, updateStatus)
   // When last static segment differs from the resource root and is NOT a CRUD collection
@@ -613,7 +615,12 @@ function operationDisplayName(op: string): string {
     const lower = m.toLowerCase();
     if (lower === 'get all') return 'Get Many';
     return m.charAt(0).toUpperCase() + m.slice(1);
-  }).replace(/\bIds?\b/g, m => m === 'Id' ? 'ID' : 'IDs');
+  })
+    // Операция не на известный глагол («submitResponse») иначе остаётся строчной,
+    // а n8n требует title case. Локально это чинил eslint --fix из скрипта генерации,
+    // но CI зовёт генератор напрямую и падает на линте.
+    .replace(/^[a-z]/, (m) => m.toUpperCase())
+    .replace(/\bIds?\b/g, m => m === 'Id' ? 'ID' : 'IDs');
 }
 
 /** Generate n8n action label (eslint format: "Get many users") */
@@ -667,6 +674,7 @@ function actionLabel(op: string, resourceName: string, resource?: string): strin
     downloadExport: 'Download a chat export',
     getAllCompanyChats: 'Get many workspace chats',
     getAllCompanyBots: 'Get many workspace bots',
+    submitResponse: 'Respond to a form submission',
   };
   if (ALIAS_LABELS[op]) return ALIAS_LABELS[op];
 
@@ -960,12 +968,15 @@ function generateResourceDescription(
         lines.push(`\t\tdisplayOptions: { show: { ${pathVersionConstraint}resource: [${allResourceValues.map(quote).join(', ')}], operation: [${pathOpValues.map(quote).join(', ')}] } },`);
         lines.push(`\t},`);
       } else {
+        // Идентификаторы в путях почти везде числовые, но не все: `view_id` — строка (ULID).
+        // Поле типа number в таком случае просто не даёт ввести значение, поэтому тип берём из схемы.
+        const isStringParam = (param.schema?.type ?? 'integer') === 'string';
         lines.push(`\t{`);
         lines.push(`\t\tdisplayName: ${quote(formatDisplayName(param.name))},`);
         lines.push(`\t\tname: ${quote(paramName)},`);
-        lines.push(`\t\ttype: 'number',`);
+        lines.push(`\t\ttype: ${isStringParam ? "'string'" : "'number'"},`);
         lines.push(`\t\trequired: true,`);
-        lines.push(`\t\tdefault: 0,`);
+        lines.push(`\t\tdefault: ${isStringParam ? "''" : '0'},`);
         lines.push(`\t\tdisplayOptions: { show: { ${pathVersionConstraint}resource: [${allResourceValues.map(quote).join(', ')}], operation: [${pathOpValues.map(quote).join(', ')}] } },`);
         if (paramDesc && paramDesc.toLowerCase() !== formatDisplayName(param.name).toLowerCase()) {
           lines.push(`\t\tdescription: ${quote(sanitizeDescription(paramDesc))},`);

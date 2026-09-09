@@ -231,6 +231,7 @@ pachca guide            # список всех сценариев
 | Команда | Описание |
 |---------|---------|
 | `pachca views open` | Открытие представления |
+| `pachca views submit-response` | Ответ на отправку формы |
 
 <!-- AUTO:COMMANDS:END -->
 

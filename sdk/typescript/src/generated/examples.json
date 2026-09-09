@@ -442,6 +442,13 @@
   "UserStatusOperations_deleteUserStatus": {
     "usage": "client.users.deleteUserStatus(12)"
   },
+  "FormOperations_submitViewResponse": {
+    "usage": "const request: SubmitViewResponseRequest = { submitId: \"791a056b-006c-49dd-834b-c633fde52fe8\", errors: { key: \"example\" } }\nconst response = client.views.submitViewResponse(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request)",
+    "output": "SubmitViewResponseResult({ success: boolean })",
+    "imports": [
+      "SubmitViewResponseRequest"
+    ]
+  },
   "FormOperations_openView": {
     "usage": "const request: OpenViewRequest = {\n  type: \"modal\",\n  triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n  callbackId: \"timeoff_request_form\",\n  view: {\n    title: \"Уведомление об отпуске\",\n    closeText: \"Закрыть\",\n    submitText: \"Отправить заявку\",\n    blocks: [{ type: \"header\", text: \"Основная информация\" }]\n  }\n}\nclient.views.openView(request)",
     "imports": [

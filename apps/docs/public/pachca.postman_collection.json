@@ -1729,6 +1729,44 @@
               }
             }
           }
+        },
+        {
+          "name": "Ответ на отправку формы",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/views/:view_id/submit_response",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "views",
+                ":view_id",
+                "submit_response"
+              ],
+              "variable": [
+                {
+                  "key": "view_id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submit_id\": \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  \"errors\": {\n    \"date_end\": \"Дата окончания отпуска не может быть меньше даты начала\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
         }
       ]
     },

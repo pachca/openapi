@@ -76,6 +76,7 @@
   "users:update-status": "Новый статус сотрудника",
   "users:remove-status": "Удаление статуса сотрудника",
   "views:open": "Открытие представления",
+  "views:submit-response": "Ответ на отправку формы",
   "bots:list-events": "История событий",
   "bots:remove-event": "Удаление события",
   "skill:pachca-users": "pachca-users",

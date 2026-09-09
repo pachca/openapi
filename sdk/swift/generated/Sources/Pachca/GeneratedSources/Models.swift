@@ -100,6 +100,8 @@ public enum AuditEventKey: String, Codable, CaseIterable {
     case videoCallFinished = "video_call_finished"
     /// Запись видеозвонка готова
     case videoCallRecordingReady = "video_call_recording_ready"
+    /// Отключена интеграция с Exchange
+    case exchangeDisabled = "exchange_disabled"
 }
 
 public enum BotCanEdit: String, Codable, CaseIterable {
@@ -574,6 +576,12 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case messageDeleted = "message_deleted"
     /// Нельзя создать тред для сообщения, которое уже находится в треде
     case threadMessage = "thread_message"
+    /// Представление не найдено или принадлежит другому боту
+    case viewNotFound = "view_not_found"
+    /// Время на ответ об отправке формы истекло или ответ уже был принят
+    case submitExpired = "submit_expired"
+    /// Сервис временно недоступен, повторите запрос
+    case serviceUnavailable = "service_unavailable"
 }
 
 public enum VideoCallEventType: String, Codable, CaseIterable {
@@ -2352,6 +2360,29 @@ public struct StatusUpdateRequest: Codable {
     }
 }
 
+public struct SubmitViewResponseRequest: Codable {
+    public let submitId: String
+    public let errors: [String: String]?
+
+    public init(submitId: String, errors: [String: String]? = nil) {
+        self.submitId = submitId
+        self.errors = errors
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case submitId = "submit_id"
+        case errors
+    }
+}
+
+public struct SubmitViewResponseResult: Codable {
+    public let success: Bool
+
+    public init(success: Bool) {
+        self.success = success
+    }
+}
+
 public struct Task: Codable {
     public let id: Int
     public let kind: TaskKind
@@ -3146,16 +3177,20 @@ public struct ViewSubmitWebhookPayload: Codable {
     public let privateMetadata: String?
     public let chatId: Int?
     public let userId: Int
+    public let viewId: String
+    public let submitId: String
     public let data: [String: AnyCodable]
     public let webhookTimestamp: Int
 
-    public init(type: String, event: String, callbackId: String? = nil, privateMetadata: String? = nil, chatId: Int? = nil, userId: Int, data: [String: AnyCodable], webhookTimestamp: Int) {
+    public init(type: String, event: String, callbackId: String? = nil, privateMetadata: String? = nil, chatId: Int? = nil, userId: Int, viewId: String, submitId: String, data: [String: AnyCodable], webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.callbackId = callbackId
         self.privateMetadata = privateMetadata
         self.chatId = chatId
         self.userId = userId
+        self.viewId = viewId
+        self.submitId = submitId
         self.data = data
         self.webhookTimestamp = webhookTimestamp
     }
@@ -3167,6 +3202,8 @@ public struct ViewSubmitWebhookPayload: Codable {
         case privateMetadata = "private_metadata"
         case chatId = "chat_id"
         case userId = "user_id"
+        case viewId = "view_id"
+        case submitId = "submit_id"
         case data
         case webhookTimestamp = "webhook_timestamp"
     }

@@ -96,6 +96,8 @@ export enum AuditEventKey {
   VideoCallFinished = "video_call_finished",
   /** Запись видеозвонка готова */
   VideoCallRecordingReady = "video_call_recording_ready",
+  /** Отключена интеграция с Exchange */
+  ExchangeDisabled = "exchange_disabled",
 }
 
 /** Роль, которой разрешено редактировать настройки бота */
@@ -599,6 +601,12 @@ export enum ValidationErrorCode {
   MessageDeleted = "message_deleted",
   /** Нельзя создать тред для сообщения, которое уже находится в треде */
   ThreadMessage = "thread_message",
+  /** Представление не найдено или принадлежит другому боту */
+  ViewNotFound = "view_not_found",
+  /** Время на ответ об отправке формы истекло или ответ уже был принят */
+  SubmitExpired = "submit_expired",
+  /** Сервис временно недоступен, повторите запрос */
+  ServiceUnavailable = "service_unavailable",
 }
 
 /** Тип события видеозвонка */
@@ -1238,6 +1246,15 @@ export interface StatusUpdateRequest {
   };
 }
 
+export interface SubmitViewResponseRequest {
+  submitId: string;
+  errors?: Record<string, string>;
+}
+
+export interface SubmitViewResponseResult {
+  success: boolean;
+}
+
 export interface Task {
   id: number;
   kind: TaskKind;
@@ -1547,6 +1564,8 @@ export interface ViewSubmitWebhookPayload {
   privateMetadata: string | null;
   chatId: number | null;
   userId: number;
+  viewId: string;
+  submitId: string;
   data: Record<string, unknown>;
   webhookTimestamp: number;
 }

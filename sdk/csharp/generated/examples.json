@@ -445,6 +445,13 @@
   "UserStatusOperations_deleteUserStatus": {
     "usage": "await client.Users.DeleteUserStatusAsync(12);"
   },
+  "FormOperations_submitViewResponse": {
+    "usage": "var request = new SubmitViewResponseRequest { SubmitId = \"791a056b-006c-49dd-834b-c633fde52fe8\", Errors = new Dictionary<string, string> { [\"key\"] = \"example\" } };\nvar response = await client.Views.SubmitViewResponseAsync(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\", request);",
+    "output": "SubmitViewResponseResult(Success: bool)",
+    "imports": [
+      "SubmitViewResponseRequest"
+    ]
+  },
   "FormOperations_openView": {
     "usage": "var request = new OpenViewRequest\n{\n    TriggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    PrivateMetadata = \"{\\\"timeoff_id\\\":4378}\",\n    CallbackId = \"timeoff_request_form\",\n    View = new OpenViewRequestView\n    {\n        Title = \"Уведомление об отпуске\",\n        CloseText = \"Закрыть\",\n        SubmitText = \"Отправить заявку\",\n        Blocks = new List<ViewBlockUnion> { new ViewBlockHeader { Text = \"Основная информация\" } }\n    }\n};\nawait client.Views.OpenViewAsync(request);",
     "imports": [

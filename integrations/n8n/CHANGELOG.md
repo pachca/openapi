@@ -2,6 +2,17 @@
 
 # Changelog
 
+## 2.1.2 (2026-09-09)
+
+### Improvements
+
+- Form: the `Submit Response` operation answers a form submission for a bot with no outgoing webhook address
+- Security: the event filter gains `Exchange Disabled` — the Exchange integration was turned off
+
+### Fixes
+
+- Bot: the `ID` field of the `Remove Events` operation is now a string — an event identifier is not a number, so the value could not be entered
+
 ## 2.1.1 (2026-08-28)
 
 ### Improvements

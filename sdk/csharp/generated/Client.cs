@@ -3167,6 +3167,14 @@ public sealed class UsersServiceImpl : UsersService
 public class ViewsService
 {
 
+    public virtual async System.Threading.Tasks.Task<SubmitViewResponseResult> SubmitViewResponseAsync(
+        string viewId,
+        SubmitViewResponseRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Views.submitViewResponse is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task OpenViewAsync(OpenViewRequest request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Views.openView is not implemented");
@@ -3182,6 +3190,27 @@ public sealed class ViewsServiceImpl : ViewsService
     {
         _baseUrl = baseUrl;
         _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task<SubmitViewResponseResult> SubmitViewResponseAsync(
+        string viewId,
+        SubmitViewResponseRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/views/{viewId}/submit_response";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<SubmitViewResponseResult>(json);
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
     }
 
     public override async System.Threading.Tasks.Task OpenViewAsync(OpenViewRequest request, CancellationToken cancellationToken = default)

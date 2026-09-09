@@ -5619,6 +5619,83 @@ paths:
               $ref: '#/components/schemas/OpenViewRequest'
       x-requirements:
         scope: views:write
+  /views/{view_id}/submit_response:
+    post:
+      operationId: FormOperations_submitViewResponse
+      description: |-
+        Ответ на отправку формы
+
+        Метод для ответа на отправку формы у бота без адреса исходящего вебхука.
+
+        Идентификаторы `view_id` и `submit_id` приходят в payload события. Ответить нужно в течение 5 секунд, иначе пользователь увидит ошибку отправки, а значения полей сохранятся для повторной попытки.
+      parameters:
+        - name: view_id
+          in: path
+          required: true
+          description: Идентификатор представления
+          schema:
+            type: string
+            example: 01KAJZ2XDSS2S3DSW9EXJZ0TBV
+          example: 01KAJZ2XDSS2S3DSW9EXJZ0TBV
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitViewResponseResult'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '410':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Views
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitViewResponseRequest'
+      x-requirements:
+        scope: views:write
   /webhooks/events:
     get:
       operationId: BotOperations_getWebhookEvents
@@ -6034,7 +6111,7 @@ components:
       description: 'При: dlp_violation_detected'
     AuditDetailsEmpty:
       type: object
-      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.'
+      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled.'
     AuditDetailsInitiator:
       type: object
       required:
@@ -6410,6 +6487,7 @@ components:
         - video_call_started
         - video_call_finished
         - video_call_recording_ready
+        - exchange_disabled
       description: Тип аудит-события
       x-enum-descriptions:
         user_login: Пользователь успешно вошел в систему
@@ -6460,6 +6538,7 @@ components:
         video_call_started: Видеозвонок начат
         video_call_finished: Видеозвонок завершён
         video_call_recording_ready: Запись видеозвонка готова
+        exchange_disabled: Отключена интеграция с Exchange
     AvatarData:
       type: object
       required:
@@ -8000,10 +8079,12 @@ components:
                 properties:
                   key:
                     type: string
+                    maxLength: 1000
                     description: Путь к файлу, полученный в результате [загрузки файла](POST /direct_url)
                     example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png
                   name:
                     type: string
+                    maxLength: 255
                     description: Название файла, которое вы хотите отображать пользователю. Расширение должно совпадать с расширением файла в `key`, иначе ответ будет 422 с кодом `wrong_params`.
                     example: logo.png
                   file_type:
@@ -8132,10 +8213,12 @@ components:
                 properties:
                   key:
                     type: string
+                    maxLength: 1000
                     description: Путь к файлу, полученный в результате [загрузки файла](POST /direct_url)
                     example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png
                   name:
                     type: string
+                    maxLength: 255
                     description: Название файла, которое вы хотите отображать пользователю. Расширение должно совпадать с расширением файла в `key`, иначе ответ будет 422 с кодом `wrong_params`.
                     example: logo.png
                   file_type:
@@ -8942,6 +9025,33 @@ components:
             - emoji
             - title
       description: Запрос на установку статуса
+    SubmitViewResponseRequest:
+      type: object
+      required:
+        - submit_id
+      properties:
+        submit_id:
+          type: string
+          description: Идентификатор отправки формы из вебхука `view_submit`
+          example: 791a056b-006c-49dd-834b-c633fde52fe8
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          description: Ошибки заполнения полей. Ключ — `name` блока, значение — текст ошибки под полем. Без этого поля представление закрывается как успешно отправленное.
+          example:
+            date_end: Дата окончания отпуска не может быть меньше даты начала
+      description: Ответ бота на отправку формы
+    SubmitViewResponseResult:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Признак успешной обработки
+          example: true
+      description: Результат ответа на отправку формы
     TagNamesFilter:
       type: array
       items:
@@ -9748,6 +9858,9 @@ components:
         - pin_failed
         - message_deleted
         - thread_message
+        - view_not_found
+        - submit_expired
+        - service_unavailable
       description: Коды ошибок валидации
       x-enum-descriptions:
         blank: Обязательное поле (не может быть пустым)
@@ -9791,6 +9904,9 @@ components:
         pin_failed: Не удалось закрепить сообщение
         message_deleted: Сообщение удалено
         thread_message: Нельзя создать тред для сообщения, которое уже находится в треде
+        view_not_found: Представление не найдено или принадлежит другому боту
+        submit_expired: Время на ответ об отправке формы истекло или ответ уже был принят
+        service_unavailable: Сервис временно недоступен, повторите запрос
     VideoCallEventType:
       type: string
       enum:
@@ -10384,7 +10500,7 @@ components:
         initial_time:
           type: string
           format: time
-          description: Начальное значение в поле в формате HH:mm
+          description: Начальное значение в поле в формате HH:mm. Значение в формате HH:mm:ss тоже принимается — секунды отбрасываются.
           example: '11:00'
         required:
           type: boolean
@@ -10420,6 +10536,8 @@ components:
         - private_metadata
         - chat_id
         - user_id
+        - view_id
+        - submit_id
         - data
         - webhook_timestamp
       properties:
@@ -10460,6 +10578,14 @@ components:
           format: int32
           description: Идентификатор пользователя, который отправил форму
           example: 1235523
+        view_id:
+          type: string
+          description: Идентификатор представления. Нужен боту без адреса исходящего вебхука, чтобы ответить методом [Ответ на отправку формы](POST /views/{view_id}/submit_response).
+          example: 01KAJZ2XDSS2S3DSW9EXJZ0TBV
+        submit_id:
+          type: string
+          description: Идентификатор отправки формы. Нужен боту без адреса исходящего вебхука, чтобы ответить методом [Ответ на отправку формы](POST /views/{view_id}/submit_response).
+          example: 791a056b-006c-49dd-834b-c633fde52fe8
         data:
           type: object
           additionalProperties: {}

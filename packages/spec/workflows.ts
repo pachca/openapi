@@ -1291,9 +1291,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       steps: [
         {
           description:
-            'Получи вебхук с `"type": "view"`, `"event": "submit"` — содержит `callback_id`, `user_id`, `private_metadata` и `data`',
+            'Получи вебхук с `"type": "view"`, `"event": "submit"` — содержит `callback_id`, `user_id`, `private_metadata`, `view_id`, `submit_id` и `data`',
           descriptionEn:
-            'Receive webhook with `"type": "view"`, `"event": "submit"` — contains `callback_id`, `user_id`, `private_metadata` and `data`',
+            'Receive webhook with `"type": "view"`, `"event": "submit"` — contains `callback_id`, `user_id`, `private_metadata`, `view_id`, `submit_id` and `data`',
           notes: 'Значения полей: ключи совпадают с `name` каждого блока',
           notesEn: 'Field values: keys match `name` of each block',
         },
@@ -1306,12 +1306,14 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
             'Если есть `file_input` — скачай файлы по `data.field_name[].url` немедленно',
           descriptionEn:
             'If `file_input` exists — download files via `data.field_name[].url` immediately',
-          notes: 'Ссылки истекают через 1 час',
-          notesEn: 'Links expire in 1 hour',
+          notes: 'Ссылки истекают через 2 часа',
+          notesEn: 'Links expire in 2 hours',
         },
         {
           description: 'Если данные валидны → ответь HTTP 200 (пустое тело) — форма закроется',
           descriptionEn: 'If data is valid → respond HTTP 200 (empty body) — form will close',
+          notes: 'Только когда у бота задан адрес исходящего вебхука',
+          notesEn: 'Only when the bot has an outgoing webhook address',
         },
         {
           description:
@@ -1321,11 +1323,25 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           notes: 'Пользователь увидит ошибки в форме и сможет исправить',
           notesEn: 'User will see errors in form and can fix them',
         },
+        {
+          description:
+            'Если адрес исходящего вебхука не задан → ответь методом по `view_id` и `submit_id` из события: пустой `errors` закрывает форму, заполненный показывает ошибки полей',
+          descriptionEn:
+            'If no outgoing webhook address is set → respond with the method using `view_id` and `submit_id` from the event: empty `errors` closes the form, a filled one shows field errors',
+          command:
+            'pachca views submit-response <view_id> --submit-id=<submit_id> --errors=\'{"date_end":"Дата окончания меньше даты начала"}\'',
+          apiMethod: 'POST',
+          apiPath: '/views/{view_id}/submit_response',
+          notes:
+            'Окно ответа — 5 секунд. Повторный ответ на ту же отправку возвращает уже принятый результат, а после истечения окна метод отвечает 410 с кодом `submit_expired`',
+          notesEn:
+            'The response window is 5 seconds. Repeating a response for the same submission returns the already accepted result; once the window closes the method answers 410 with code `submit_expired`',
+        },
       ],
       notes:
-        'Ответ должен быть дан в течение 3 секунд. `private_metadata` — контекст, до 3000 символов.',
+        'Ответ должен быть дан в течение 3 секунд, а через журнал событий — 5 секунд. `private_metadata` — контекст, до 3000 символов.',
       notesEn:
-        'Response must be given within 3 seconds. `private_metadata` — context, up to 3000 chars.',
+        'Response must be given within 3 seconds, or 5 seconds via the event history. `private_metadata` — context, up to 3000 chars.',
     },
     {
       title: 'Опрос сотрудников через форму',

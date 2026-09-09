@@ -59,6 +59,7 @@ const (
 	AuditEventKeyVideoCallStarted          AuditEventKey = "video_call_started" // Видеозвонок начат
 	AuditEventKeyVideoCallFinished         AuditEventKey = "video_call_finished" // Видеозвонок завершён
 	AuditEventKeyVideoCallRecordingReady   AuditEventKey = "video_call_recording_ready" // Запись видеозвонка готова
+	AuditEventKeyExchangeDisabled          AuditEventKey = "exchange_disabled" // Отключена интеграция с Exchange
 )
 
 type BotCanEdit string
@@ -401,6 +402,9 @@ const (
 	ValidationErrorCodePinFailed          ValidationErrorCode = "pin_failed" // Не удалось закрепить сообщение
 	ValidationErrorCodeMessageDeleted     ValidationErrorCode = "message_deleted" // Сообщение удалено
 	ValidationErrorCodeThreadMessage      ValidationErrorCode = "thread_message" // Нельзя создать тред для сообщения, которое уже находится в треде
+	ValidationErrorCodeViewNotFound       ValidationErrorCode = "view_not_found" // Представление не найдено или принадлежит другому боту
+	ValidationErrorCodeSubmitExpired      ValidationErrorCode = "submit_expired" // Время на ответ об отправке формы истекло или ответ уже был принят
+	ValidationErrorCodeServiceUnavailable ValidationErrorCode = "service_unavailable" // Сервис временно недоступен, повторите запрос
 )
 
 type VideoCallEventType string
@@ -1179,6 +1183,31 @@ type StatusUpdateRequest struct {
 	Status StatusUpdateRequestStatus `json:"status"`
 }
 
+type SubmitViewResponseRequest struct {
+	SubmitID string            `json:"submit_id"`
+	Errors   map[string]string `json:"errors,omitempty"`
+}
+
+func (m SubmitViewResponseRequest) MarshalJSON() ([]byte, error) {
+	type Alias SubmitViewResponseRequest
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Errors != nil {
+		raw["errors"] = m.Errors
+	}
+	return json.Marshal(raw)
+}
+
+type SubmitViewResponseResult struct {
+	Success bool `json:"success"`
+}
+
 type Task struct {
 	ID               int32            `json:"id"`
 	Kind             TaskKind         `json:"kind"`
@@ -1592,6 +1621,8 @@ type ViewSubmitWebhookPayload struct {
 	Type             string         `json:"type"` // always "view"
 	Event            string         `json:"event"` // always "submit"
 	UserID           int32          `json:"user_id"`
+	ViewID           string         `json:"view_id"`
+	SubmitID         string         `json:"submit_id"`
 	Data             map[string]any `json:"data"`
 	WebhookTimestamp int32          `json:"webhook_timestamp"`
 	CallbackID       *string        `json:"callback_id"`

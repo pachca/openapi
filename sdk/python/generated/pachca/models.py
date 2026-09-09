@@ -56,6 +56,7 @@ class AuditEventKey(StrEnum):
     VIDEO_CALL_STARTED = "video_call_started"  # Видеозвонок начат
     VIDEO_CALL_FINISHED = "video_call_finished"  # Видеозвонок завершён
     VIDEO_CALL_RECORDING_READY = "video_call_recording_ready"  # Запись видеозвонка готова
+    EXCHANGE_DISABLED = "exchange_disabled"  # Отключена интеграция с Exchange
 
 
 class BotCanEdit(StrEnum):
@@ -396,6 +397,9 @@ class ValidationErrorCode(StrEnum):
     PIN_FAILED = "pin_failed"  # Не удалось закрепить сообщение
     MESSAGE_DELETED = "message_deleted"  # Сообщение удалено
     THREAD_MESSAGE = "thread_message"  # Нельзя создать тред для сообщения, которое уже находится в треде
+    VIEW_NOT_FOUND = "view_not_found"  # Представление не найдено или принадлежит другому боту
+    SUBMIT_EXPIRED = "submit_expired"  # Время на ответ об отправке формы истекло или ответ уже был принят
+    SERVICE_UNAVAILABLE = "service_unavailable"  # Сервис временно недоступен, повторите запрос
 
 
 class VideoCallEventType(StrEnum):
@@ -1126,6 +1130,17 @@ class StatusUpdateRequest:
 
 
 @dataclass
+class SubmitViewResponseRequest:
+    submit_id: str
+    errors: dict[str, str] | None = None
+
+
+@dataclass
+class SubmitViewResponseResult:
+    success: bool
+
+
+@dataclass
 class Task:
     id: int
     kind: TaskKind
@@ -1463,6 +1478,8 @@ class ViewSubmitWebhookPayload:
     type: str  # literal "view"
     event: str  # literal "submit"
     user_id: int
+    view_id: str
+    submit_id: str
     data: dict[str, Any]
     webhook_timestamp: int
     callback_id: str | None = None

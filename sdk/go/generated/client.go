@@ -4245,10 +4245,15 @@ func (s *UsersServiceImpl) DeleteUserStatus(ctx context.Context, userId int32) e
 }
 
 type ViewsService interface {
+	SubmitViewResponse(ctx context.Context, viewId string, request SubmitViewResponseRequest) (*SubmitViewResponseResult, error)
 	OpenView(ctx context.Context, request OpenViewRequest) error
 }
 
 type ViewsServiceStub struct{}
+
+func (s *ViewsServiceStub) SubmitViewResponse(ctx context.Context, viewId string, request SubmitViewResponseRequest) (*SubmitViewResponseResult, error) {
+	return nil, NotImplementedError{Method: "Views.submitViewResponse"}
+}
 
 func (s *ViewsServiceStub) OpenView(ctx context.Context, request OpenViewRequest) error {
 	return NotImplementedError{Method: "Views.openView"}
@@ -4257,6 +4262,43 @@ func (s *ViewsServiceStub) OpenView(ctx context.Context, request OpenViewRequest
 type ViewsServiceImpl struct {
 	baseURL string
 	client  *http.Client
+}
+
+func (s *ViewsServiceImpl) SubmitViewResponse(ctx context.Context, viewId string, request SubmitViewResponseRequest) (*SubmitViewResponseResult, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/views/%v/submit_response", s.baseURL, viewId), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result SubmitViewResponseResult
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
 }
 
 func (s *ViewsServiceImpl) OpenView(ctx context.Context, request OpenViewRequest) error {

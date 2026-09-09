@@ -258,6 +258,7 @@
 | Операция | API |
 |----------|-----|
 | Create | [Открытие представления](/api/views/open) |
+| Submit Response | [Ответ на отправку формы](/api/views/submit-response) |
 
 Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#formy) и в [документации форм](/guides/forms/overview).
 

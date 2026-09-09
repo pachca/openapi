@@ -567,9 +567,9 @@ export const botFields: INodeProperties[] = [
 	{
 		displayName: 'ID',
 		name: 'id',
-		type: 'number',
+		type: 'string',
 		required: true,
-		default: 0,
+		default: '',
 		displayOptions: { show: { resource: ['bot'], operation: ['removeEvents'] } },
 		description: 'Event ID',
 	},

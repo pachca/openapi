@@ -516,6 +516,25 @@ workflows:
       - stepId: show-interactive-form-to-user-2
         description: Immediately open form (`trigger_id` expires in 3 seconds — prepare form object in advance)
         operationId: FormOperations_openView
+  - workflowId: handle-form-submission-view-submission
+    summary: Handle form submission (view_submission)
+    description: >-
+      Response must be given within 3 seconds, or 5 seconds via the event history.
+      `private_metadata` — context, up to 3000 chars. Manual prerequisites: Receive webhook with
+      `"type": "view"`, `"event": "submit"` — contains `callback_id`, `user_id`, `private_metadata`,
+      `view_id`, `submit_id` and `data`; Extract values from `data`; If `file_input` exists —
+      download files via `data.field_name[].url` immediately; If data is valid → respond HTTP 200
+      (empty body) — form will close; If errors exist → respond HTTP 400 with `{"errors":
+      {"field_name": "error text"}}`.
+    steps:
+      - stepId: handle-form-submission-view-submission-1
+        description: >-
+          If no outgoing webhook address is set → respond with the method using `view_id` and
+          `submit_id` from the event: empty `errors` closes the form, a filled one shows field
+          errors (The response window is 5 seconds. Repeating a response for the same submission
+          returns the already accepted result; once the window closes the method answers 410 with
+          code `submit_expired`)
+        operationId: FormOperations_submitViewResponse
   - workflowId: employee-survey-via-form
     summary: Employee survey via form
     description: >-

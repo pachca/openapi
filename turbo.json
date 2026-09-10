@@ -158,6 +158,7 @@
         "^build",
         "generate",
         "overlay:apply",
+        "generate-mcp",
         "generate-llms",
         "generate-cli",
         "generate-n8n"
@@ -305,6 +306,22 @@
         "openapi.yaml",
         "openapi.en.yaml",
         "scripts/check-enum-descriptions.ts"
+      ],
+      "cache": true
+    },
+    "generate-mcp": {
+      "dependsOn": [
+        "@pachca/spec#generate"
+      ],
+      "inputs": [
+        "mcp-core.ts",
+        "mcp-tools.ts",
+        "mcp-manifest.schema.json",
+        "openapi.yaml",
+        "scripts/generate-mcp-manifest.ts"
+      ],
+      "outputs": [
+        "mcp-manifest.json"
       ],
       "cache": true
     }

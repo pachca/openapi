@@ -104,6 +104,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
         ],
       },
       { title: 'Треды', path: '/guides/threads' },
+      { title: 'Теги', path: '/guides/tags' },
     ],
   },
   {

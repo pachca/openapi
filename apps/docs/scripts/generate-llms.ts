@@ -145,6 +145,28 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   }
   content += '\n';
 
+  // Four requests come up constantly and have no method of their own. Left
+  // unanswered they get an invented endpoint, so the routing lives here rather
+  // than on a docs page: an agent asks what to call, not what is missing.
+  content += '## Просьбы без отдельного метода\n\n';
+  content += 'Эти задачи закрываются тем, что в API уже есть:\n\n';
+  content +=
+    '- **Отправить сообщение позже, к нужному времени** — напоминание `POST /tasks` с ' +
+    '`kind: reminder` и `due_at`, либо планировщик снаружи (cron, n8n), который в нужный ' +
+    'момент вызовет `POST /messages`.\n';
+  content +=
+    '- **Опрос, голосование** — сообщение с вариантами, голоса собираются реакциями: ' +
+    '`GET /messages/{id}/reactions` отдаёт, кто за какой вариант. Для строгого подсчёта — ' +
+    '`buttons` в сообщении бота и свой обработчик исходящего вебхука.\n';
+  content +=
+    '- **Когда человек последний раз был активен** — поле `last_activity_at` в `GET /users`. ' +
+    'Режим «Нет на месте» — `is_away` в `GET /users/{user_id}/status`; поле `user_status` — ' +
+    'это статус, который сотрудник ставит себе сам, к присутствию отношения не имеет.\n';
+  content +=
+    '- **Созвониться с коллегой** — `meet_room_url` объекта чата, постоянная ссылка на ' +
+    'видеочат: пришли её собеседнику сообщением. Состоявшиеся звонки видны в журнале ' +
+    'аудита событиями `video_call_started` и `video_call_finished`.\n\n';
+
   content += '## CLI Quick Start\n\n';
   content += '```bash\n';
   content += '# Zero-install (npx)\n';

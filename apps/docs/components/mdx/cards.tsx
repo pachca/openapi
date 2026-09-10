@@ -18,6 +18,7 @@ import {
   LayoutList,
   ShieldCheck,
   ClipboardList,
+  Tags,
   MessageSquare,
   MessagesSquare,
   Hash,
@@ -75,6 +76,7 @@ const iconMap: Record<string, LucideIcon> = {
   LayoutList,
   ShieldCheck,
   ClipboardList,
+  Tags,
   MessageSquare,
   MessagesSquare,
   Hash,
@@ -127,6 +129,7 @@ const iconMap: Record<string, LucideIcon> = {
 const GUIDE_ICONS: Record<string, string> = {
   '/guides/quickstart': 'Zap',
   '/guides/threads': 'MessageSquareMore',
+  '/guides/tags': 'Tags',
   '/guides/ai-agents': 'Sparkles',
   '/guides/ai-agents/overview': 'Sparkles',
   '/guides/ai-agents/interaction': 'BotMessageSquare',

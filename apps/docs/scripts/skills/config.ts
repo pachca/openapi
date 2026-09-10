@@ -16,7 +16,6 @@ export interface SkillConfig {
   botOnly?: boolean;
   extraSections?: { title: string; content: string }[];
   extraGotchas?: string[];
-  extraEndpointContent?: string;
   isRouter?: boolean;
 }
 
@@ -236,94 +235,19 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
           'Take view_id from the view_submit event payload and respond with the same bot token that opened the view',
       },
     ],
-    extraEndpointContent: `## Form block types
-
-### input — Text field
-
-- \`name\` (string, **required**): Field name (key in \`data\` on submit)
-- \`label\` (string, **required**): Field label
-- \`placeholder\` (string, optional): Placeholder text
-- \`multiline\` (boolean, optional): Multiline input
-- \`initial_value\` (string, optional): Initial value
-- \`min_length\` (integer, optional): Minimum length
-- \`max_length\` (integer, optional): Maximum length
-- \`required\` (boolean, optional): Required field
-- \`hint\` (string, optional): Hint below the field
-
-### select — Dropdown list
-
-- \`name\` (string, **required**): Field name
-- \`label\` (string, **required**): Label
-- \`options\` (array, **required**): Array of options
-  - \`text\` (string, **required**): Option text
-  - \`value\` (string, **required**): Value
-  - \`description\` (string, optional): Option description
-  - \`selected\` (boolean, optional): Selected by default
-- \`required\` (boolean, optional): Required field
-- \`hint\` (string, optional): Hint
-
-### radio — Radio buttons
-
-- \`name\` (string, **required**): Field name
-- \`label\` (string, **required**): Label
-- \`options\` (array, **required**): Array of options (same as \`select\`)
-- \`required\` (boolean, optional): Required field
-- \`hint\` (string, optional): Hint
-
-### checkbox — Checkboxes
-
-- \`name\` (string, **required**): Field name
-- \`label\` (string, **required**): Label
-- \`options\` (array, **required**): Array of options
-  - \`text\` (string, **required**): Option text
-  - \`value\` (string, **required**): Value
-  - \`description\` (string, optional): Description
-  - \`checked\` (boolean, optional): Checked by default
-- \`required\` (boolean, optional): Required field
-- \`hint\` (string, optional): Hint
-
-### date — Date picker
-
-- \`name\` (string, **required**): Field name
-- \`label\` (string, **required**): Label
-- \`initial_date\` (string, optional): Initial date (YYYY-MM-DD)
-- \`required\` (boolean, optional): Required field
-- \`hint\` (string, optional): Hint
-
-### time — Time picker
-
-- \`name\` (string, **required**): Field name
-- \`label\` (string, **required**): Label
-- \`initial_time\` (string, optional): Initial time (HH:MM)
-- \`required\` (boolean, optional): Required field
-- \`hint\` (string, optional): Hint
-
-### file_input — File upload
-
-- \`name\` (string, **required**): Field name
-- \`label\` (string, **required**): Label
-- \`filetypes\` (array[string], optional): Allowed extensions (["pdf", "jpg", "png"])
-- \`max_files\` (integer, optional): Maximum number of files
-- \`required\` (boolean, optional): Required field
-- \`hint\` (string, optional): Hint
-
-> Uploaded file URLs in \`data.field_name[].url\` from submit webhook expire after 1 hour — download immediately.
-
-### header — Section header
-
-- \`text\` (string, **required**): Header text
-
-### plain_text — Plain text
-
-- \`text\` (string, **required**): Text
-
-### markdown — Formatted text
-
-- \`text\` (string, **required**): Text with markdown (supports links, bold, italic)
-
-### divider — Divider
-
-Visual horizontal line. No parameters.`,
+    extraSections: [
+      {
+        title: 'Form blocks',
+        content:
+          'Eleven block types: `header`, `plain_text`, `markdown`, `divider`, `input`, `select`, ' +
+          '`radio`, `checkbox`, `date`, `time`, `file_input`. Field-level reference — parameters, ' +
+          'limits and defaults for each — lives at https://dev.pachca.com/guides/forms/blocks.md ' +
+          'and is the only place it is maintained.\n\n' +
+          '> A file uploaded through `file_input` is reachable by the URL in ' +
+          '`data.<field>[].url` for two hours, and the file itself is kept for a day. Download it ' +
+          'when the submission arrives, not later.',
+      },
+    ],
   },
   {
     name: 'pachca-tasks',

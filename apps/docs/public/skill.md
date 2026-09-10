@@ -45,12 +45,13 @@ For direct API calls, add the `Authorization` header:
 Authorization: Bearer <access_token>
 ```
 
-**Token types and their permissions:**
-- **Admin token** — full access: manage users, tags, delete messages. Get it in Settings → Automations → API.
-- **Owner token** — admin access plus audit events and data export (Corporation plan only).
-- **Bot token** — send messages with custom display name/avatar, receive webhook events, manage webhook settings. Created per-bot in Settings → Automations.
+**Token types:**
+- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Settings → Automations → API, where you pick its scopes; also obtainable with `pachca auth login`, which takes the whole catalogue trimmed by your role.
+- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created per-bot in Settings → Automations.
 
-Tokens are long-lived and do not expire. They can be reset by the admin/owner in Settings.
+Scopes decide which methods a token may call; they never widen the data beyond the boundary of the token type. What a token may do also follows the current role of its owner, and that is checked on every request — a lowered role starts answering 403 without the token being touched.
+
+A personal token issued in the interface does not expire. One obtained by `pachca auth login` lives an hour and renews itself. Some methods answer only to a bot token: opening a form, creating link previews, self-registering a bot webhook, deleting a webhook event.
 
 ## Capabilities
 
@@ -243,6 +244,7 @@ Detailed documentation on specific topics is available at:
 - [AI агенты, Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction) — Как агент в Пачке получает события через вебхук, собирает контекст треда, выполняет действия и отвечает. Реакция-индикатор и таймер agent-thinking
 - [AI агенты, Оформление ответов](https://dev.pachca.com/guides/ai-agents/markdown) — Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чеклисты, подсветка кода, diff, диаграммы Mermaid. Файлы .html открываются просмотром прямо в переписке
 - [Треды](https://dev.pachca.com/guides/threads) — Треды в Пачке для разработчиков: сквозные и самостоятельные треды как уникальная особенность, создание у сообщения (POST /messages/{id}/thread) и без привязки к сообщению (POST /threads), отправка комментариев, добавление участников, видимость родительского чата, нюансы API и поля Message.thread/root_chat_id
+- [Теги](https://dev.pachca.com/guides/tags) — Теги в Пачке: тег как состав беседы или канала с автоматической синхронизацией участников, упоминание тега в сообщении и в треде, поле list_tags у сотрудника, правила названий, права и события журнала аудита
 - [Боты, Обзор](https://dev.pachca.com/guides/bots/overview) — Боты в Пачке: что это, типы ботов, доступность в чатах и подмена имени и аватара отправителя в сообщениях
 - [Боты, Создание и настройка](https://dev.pachca.com/guides/bots/setup) — Как создать бота в Пачке: выбор типа, копирование токена, настройка имени и аватара, настройка доступов и вкладок вебхуков и API
 - [Боты, Доступы к чатам и сообщениям](https://dev.pachca.com/guides/bots/access) — Как бот получает доступ к закрытым каналам и беседам, тредам и личным сообщениям в Пачке

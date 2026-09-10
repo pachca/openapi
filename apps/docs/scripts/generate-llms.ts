@@ -83,8 +83,12 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // agent that skims only the top of the file.
   content += '## Основное\n\n';
   content +=
-    '- **Авторизация:** `Authorization: Bearer <TOKEN>`. Токены: admin (полный доступ), ' +
-    'bot (от бота + вебхуки), user (ограниченный). Бессрочные.\n';
+    '- **Авторизация:** `Authorization: Bearer <TOKEN>`. Два типа токена: **личный** — ' +
+    'работает от имени человека и видит ровно то же, что видит он; **бот** — работает от ' +
+    'имени бота, видит открытые каналы пространства и закрытые чаты, куда бота добавили. ' +
+    'Скоупы открывают методы, но не расширяют круг данных за границы типа токена. Личный ' +
+    'токен из интерфейса бессрочный, полученный входом через CLI живёт час и продлевается ' +
+    'сам.\n';
   content +=
     '- **Пагинация (курсорная):** `limit` (1–50, дефолт 50) + `cursor`. Передавай `limit` явно.\n';
   content +=
@@ -104,7 +108,11 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     '- **Rate limit:** сообщения ~4 rps на чат (burst 30 за 5s), чтение сообщений ~10 rps, ' +
     'остальное ~50 rps, чтение `/webhooks/events` ~5 req / 2s. ' +
     'Входящие вебхуки — ~10 rps на webhook id (по идентификатору в пути). ' +
-    'На `429` — жди `Retry-After`.\n';
+    'Плюс суточный предел: 7500 сообщений в один чат от одного отправителя за скользящие ' +
+    '24 часа; при превышении отправка в этот чат встаёт на час, и каждая попытка во время ' +
+    'паузы удваивает её. На `429` — жди `Retry-After`. Тело `429` бывает двух видов: ' +
+    'суточный предел приходит обычным JSON с кодом `rate_limit`, а частотный отказывает ' +
+    'до входа в метод и отвечает текстом — проверяй `Content-Type` перед разбором.\n';
   content +=
     '- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), ' +
     '`401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.\n';
@@ -330,11 +338,18 @@ function generateLibraryRules(): string {
 
 ## Authentication
 - All requests require Bearer token in Authorization header: \`Authorization: Bearer <TOKEN>\`
-- Token types: **admin** (full access — manage users, tags, delete messages), **bot** (send messages with custom name/avatar, receive webhooks), **user** (limited access)
-- Get admin token: Settings → Automations → API. Get bot token: per-bot in Settings → Automations → Integrations
-- Tokens are long-lived and do not expire. Can be reset by admin in Settings
+- Two token types: **personal** — acts as a person and sees exactly what that person sees; **bot** — acts as a service account, sees every open channel of the workspace plus the closed chats and threads the bot was added to
+- Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
+- Get a personal token: Settings → Automations → API, choosing its scopes. Get a bot token: per-bot in Settings → Automations
+- A personal token issued in the interface does not expire; one obtained by \`pachca auth login\` lives an hour and renews itself
+- What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: \`const client = new PachcaClient("YOUR_TOKEN")\`
 - Python SDK: \`client = PachcaClient("YOUR_TOKEN")\`
+
+## Rate limits
+- Messages: about 4 sends per second per chat, 30 requests per 5 seconds across all chats, and 7,500 messages per chat per rolling day from one sender. Hitting the daily cap pauses that chat for an hour and every further attempt doubles the pause
+- Reading messages: about 10 per second. Incoming webhooks: about 10 per second per webhook id
+- A \`429\` body comes in two shapes: the daily cap answers with ordinary JSON carrying \`rate_limit\`, the per-second limit is refused before the method and answers with plain text. Check \`Content-Type\` before parsing. \`Retry-After\` is present in both
 
 ## Pagination
 - Cursor-based: use \`limit\` (1–50, default 50) and \`cursor\` query parameters. Always set \`limit\` explicitly — do not rely on the default
@@ -1535,12 +1550,13 @@ For direct API calls, add the \`Authorization\` header:
 Authorization: Bearer <access_token>
 \`\`\`
 
-**Token types and their permissions:**
-- **Admin token** — full access: manage users, tags, delete messages. Get it in Settings → Automations → API.
-- **Owner token** — admin access plus audit events and data export (Corporation plan only).
-- **Bot token** — send messages with custom display name/avatar, receive webhook events, manage webhook settings. Created per-bot in Settings → Automations.
+**Token types:**
+- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Settings → Automations → API, where you pick its scopes; also obtainable with \`pachca auth login\`, which takes the whole catalogue trimmed by your role.
+- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created per-bot in Settings → Automations.
 
-Tokens are long-lived and do not expire. They can be reset by the admin/owner in Settings.`;
+Scopes decide which methods a token may call; they never widen the data beyond the boundary of the token type. What a token may do also follows the current role of its owner, and that is checked on every request — a lowered role starts answering 403 without the token being touched.
+
+A personal token issued in the interface does not expire. One obtained by \`pachca auth login\` lives an hour and renews itself. Some methods answer only to a bot token: opening a form, creating link previews, self-registering a bot webhook, deleting a webhook event.`;
 
   const workflowsSection = generateWorkflowsSection();
 

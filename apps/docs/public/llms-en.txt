@@ -10,11 +10,18 @@
 
 ## Authentication
 - All requests require Bearer token in Authorization header: `Authorization: Bearer <TOKEN>`
-- Token types: **admin** (full access — manage users, tags, delete messages), **bot** (send messages with custom name/avatar, receive webhooks), **user** (limited access)
-- Get admin token: Settings → Automations → API. Get bot token: per-bot in Settings → Automations → Integrations
-- Tokens are long-lived and do not expire. Can be reset by admin in Settings
+- Two token types: **personal** — acts as a person and sees exactly what that person sees; **bot** — acts as a service account, sees every open channel of the workspace plus the closed chats and threads the bot was added to
+- Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
+- Get a personal token: Settings → Automations → API, choosing its scopes. Get a bot token: per-bot in Settings → Automations
+- A personal token issued in the interface does not expire; one obtained by `pachca auth login` lives an hour and renews itself
+- What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: `const client = new PachcaClient("YOUR_TOKEN")`
 - Python SDK: `client = PachcaClient("YOUR_TOKEN")`
+
+## Rate limits
+- Messages: about 4 sends per second per chat, 30 requests per 5 seconds across all chats, and 7,500 messages per chat per rolling day from one sender. Hitting the daily cap pauses that chat for an hour and every further attempt doubles the pause
+- Reading messages: about 10 per second. Incoming webhooks: about 10 per second per webhook id
+- A `429` body comes in two shapes: the daily cap answers with ordinary JSON carrying `rate_limit`, the per-second limit is refused before the method and answers with plain text. Check `Content-Type` before parsing. `Retry-After` is present in both
 
 ## Pagination
 - Cursor-based: use `limit` (1–50, default 50) and `cursor` query parameters. Always set `limit` explicitly — do not rely on the default

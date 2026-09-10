@@ -45,12 +45,13 @@ For direct API calls, add the `Authorization` header:
 Authorization: Bearer <access_token>
 ```
 
-**Token types and their permissions:**
-- **Admin token** — full access: manage users, tags, delete messages. Get it in Settings → Automations → API.
-- **Owner token** — admin access plus audit events and data export (Corporation plan only).
-- **Bot token** — send messages with custom display name/avatar, receive webhook events, manage webhook settings. Created per-bot in Settings → Automations.
+**Token types:**
+- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Settings → Automations → API, where you pick its scopes; also obtainable with `pachca auth login`, which takes the whole catalogue trimmed by your role.
+- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created per-bot in Settings → Automations.
 
-Tokens are long-lived and do not expire. They can be reset by the admin/owner in Settings.
+Scopes decide which methods a token may call; they never widen the data beyond the boundary of the token type. What a token may do also follows the current role of its owner, and that is checked on every request — a lowered role starts answering 403 without the token being touched.
+
+A personal token issued in the interface does not expire. One obtained by `pachca auth login` lives an hour and renews itself. Some methods answer only to a bot token: opening a form, creating link previews, self-registering a bot webhook, deleting a webhook event.
 
 ## Capabilities
 

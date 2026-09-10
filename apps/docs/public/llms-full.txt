@@ -14,97 +14,104 @@
 
 | Раздел | Строки |
 |--------|--------|
-| LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 99–201 |
-| How-to Guides — рецепты задач с кодом TS/Python | 202–885 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 886–12420 |
-| · Обзор | 891–993 |
-| · Быстрый старт | 994–1083 |
-| · AI агенты | 1084–1222 |
-| · Взаимодействие с агентом | 1223–1292 |
-| · Оформление ответов | 1293–1363 |
-| · Треды | 1364–1504 |
-| · Боты | 1505–1567 |
-| · Создание и настройка | 1568–1711 |
-| · Доступы к чатам и сообщениям | 1712–1785 |
-| · Готовые примеры реализации | 1786–1820 |
-| · Входящие вебхуки | 1821–1972 |
-| · Исходящие вебхуки | 1973–2027 |
-| · Настройка и типы событий | 2028–2273 |
-| · Безопасность и обработчик | 2274–2464 |
-| · Поллинг | 2465–2648 |
-| · Кнопки в сообщениях | 2649–2810 |
-| · Формы | 2811–2882 |
-| · Блоки представления | 2883–3097 |
-| · Обработка форм | 3098–3275 |
-| · Разворачивание ссылок | 3276–3390 |
-| · Экспорт сообщений | 3391–3535 |
-| · DLP-система | 3536–3743 |
-| · Журнал аудита событий | 3744–3903 |
-| · Права и роли | 3904–4161 |
-| · Форматирование текста | 4162–4257 |
-| · Сценарии | 4258–4791 |
-| · CLI | 4792–4887 |
-| · Установка | 4888–4995 |
-| · Авторизация | 4996–5188 |
-| · Вывод | 5189–5292 |
-| · Флаги и скрипты | 5293–5521 |
-| · Сценарии | 5522–5569 |
-| · Файлы | 5570–5604 |
-| · Прямые запросы | 5605–5715 |
-| · Команды | 5716–5861 |
-| · SDK и генератор | 5862–5954 |
-| · TypeScript | 5955–6381 |
-| · Python | 6382–6802 |
-| · Go | 6803–7248 |
-| · Kotlin | 7249–7685 |
-| · Swift | 7686–8091 |
-| · C# | 8092–8558 |
-| · n8n | 8559–8634 |
-| · Начало работы | 8635–8866 |
-| · Ресурсы и операции | 8867–9238 |
-| · Триггер | 9239–9490 |
-| · Тестирование | 9491–9764 |
-| · Примеры workflow | 9765–9979 |
-| · Продвинутые функции | 9980–10216 |
-| · Устранение ошибок | 10217–10398 |
-| · Миграция с v1 | 10399–10519 |
-| · Последние обновления | 10520–10529 |
-| · Обзор | 10530–10631 |
-| · Авторизация | 10632–10861 |
-| · Запросы и ответы | 10862–11052 |
-| · Пагинация | 11053–11289 |
-| · Загрузка файлов | 11290–11529 |
-| · Ошибки | 11530–11606 |
-| · Лимиты | 11607–11726 |
-| · Модели | 11727–12420 |
-| API-методы — все эндпоинты со схемами и примерами | 12421–30807 |
-| · OAuth | 12423–12522 |
-| · Chats | 12523–14389 |
-| · Profile | 14390–15295 |
-| · Users | 15296–17737 |
-| · Group tags | 17738–19145 |
-| · Members | 19146–20490 |
-| · Threads | 20491–21185 |
-| · Messages | 21186–23380 |
-| · Read members | 23381–23627 |
-| · Reactions | 23628–24274 |
-| · Search | 24275–25089 |
-| · Tasks | 25090–26400 |
-| · Views | 26401–27253 |
-| · Bots | 27254–30005 |
-| · Security | 30006–30354 |
-| · Custom Properties | 30355–30564 |
-| · Files | 30565–30807 |
+| LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 99–208 |
+| How-to Guides — рецепты задач с кодом TS/Python | 209–892 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 893–12427 |
+| · Обзор | 898–1000 |
+| · Быстрый старт | 1001–1090 |
+| · AI агенты | 1091–1229 |
+| · Взаимодействие с агентом | 1230–1299 |
+| · Оформление ответов | 1300–1370 |
+| · Треды | 1371–1511 |
+| · Боты | 1512–1574 |
+| · Создание и настройка | 1575–1718 |
+| · Доступы к чатам и сообщениям | 1719–1792 |
+| · Готовые примеры реализации | 1793–1827 |
+| · Входящие вебхуки | 1828–1979 |
+| · Исходящие вебхуки | 1980–2034 |
+| · Настройка и типы событий | 2035–2280 |
+| · Безопасность и обработчик | 2281–2471 |
+| · Поллинг | 2472–2655 |
+| · Кнопки в сообщениях | 2656–2817 |
+| · Формы | 2818–2889 |
+| · Блоки представления | 2890–3104 |
+| · Обработка форм | 3105–3282 |
+| · Разворачивание ссылок | 3283–3397 |
+| · Экспорт сообщений | 3398–3542 |
+| · DLP-система | 3543–3750 |
+| · Журнал аудита событий | 3751–3910 |
+| · Права и роли | 3911–4168 |
+| · Форматирование текста | 4169–4264 |
+| · Сценарии | 4265–4798 |
+| · CLI | 4799–4894 |
+| · Установка | 4895–5002 |
+| · Авторизация | 5003–5195 |
+| · Вывод | 5196–5299 |
+| · Флаги и скрипты | 5300–5528 |
+| · Сценарии | 5529–5576 |
+| · Файлы | 5577–5611 |
+| · Прямые запросы | 5612–5722 |
+| · Команды | 5723–5868 |
+| · SDK и генератор | 5869–5961 |
+| · TypeScript | 5962–6388 |
+| · Python | 6389–6809 |
+| · Go | 6810–7255 |
+| · Kotlin | 7256–7692 |
+| · Swift | 7693–8098 |
+| · C# | 8099–8565 |
+| · n8n | 8566–8641 |
+| · Начало работы | 8642–8873 |
+| · Ресурсы и операции | 8874–9245 |
+| · Триггер | 9246–9497 |
+| · Тестирование | 9498–9771 |
+| · Примеры workflow | 9772–9986 |
+| · Продвинутые функции | 9987–10223 |
+| · Устранение ошибок | 10224–10405 |
+| · Миграция с v1 | 10406–10526 |
+| · Последние обновления | 10527–10536 |
+| · Обзор | 10537–10638 |
+| · Авторизация | 10639–10868 |
+| · Запросы и ответы | 10869–11059 |
+| · Пагинация | 11060–11296 |
+| · Загрузка файлов | 11297–11536 |
+| · Ошибки | 11537–11613 |
+| · Лимиты | 11614–11733 |
+| · Модели | 11734–12427 |
+| API-методы — все эндпоинты со схемами и примерами | 12428–30814 |
+| · OAuth | 12430–12529 |
+| · Chats | 12530–14396 |
+| · Profile | 14397–15302 |
+| · Users | 15303–17744 |
+| · Group tags | 17745–19152 |
+| · Members | 19153–20497 |
+| · Threads | 20498–21192 |
+| · Messages | 21193–23387 |
+| · Read members | 23388–23634 |
+| · Reactions | 23635–24281 |
+| · Search | 24282–25096 |
+| · Tasks | 25097–26407 |
+| · Views | 26408–27260 |
+| · Bots | 27261–30012 |
+| · Security | 30013–30361 |
+| · Custom Properties | 30362–30571 |
+| · Files | 30572–30814 |
 
 # LIBRARY RULES
 
 ## Authentication
 - All requests require Bearer token in Authorization header: `Authorization: Bearer <TOKEN>`
-- Token types: **admin** (full access — manage users, tags, delete messages), **bot** (send messages with custom name/avatar, receive webhooks), **user** (limited access)
-- Get admin token: Settings → Automations → API. Get bot token: per-bot in Settings → Automations → Integrations
-- Tokens are long-lived and do not expire. Can be reset by admin in Settings
+- Two token types: **personal** — acts as a person and sees exactly what that person sees; **bot** — acts as a service account, sees every open channel of the workspace plus the closed chats and threads the bot was added to
+- Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
+- Get a personal token: Settings → Automations → API, choosing its scopes. Get a bot token: per-bot in Settings → Automations
+- A personal token issued in the interface does not expire; one obtained by `pachca auth login` lives an hour and renews itself
+- What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: `const client = new PachcaClient("YOUR_TOKEN")`
 - Python SDK: `client = PachcaClient("YOUR_TOKEN")`
+
+## Rate limits
+- Messages: about 4 sends per second per chat, 30 requests per 5 seconds across all chats, and 7,500 messages per chat per rolling day from one sender. Hitting the daily cap pauses that chat for an hour and every further attempt doubles the pause
+- Reading messages: about 10 per second. Incoming webhooks: about 10 per second per webhook id
+- A `429` body comes in two shapes: the daily cap answers with ordinary JSON carrying `rate_limit`, the per-second limit is refused before the method and answers with plain text. Check `Content-Type` before parsing. `Retry-After` is present in both
 
 ## Pagination
 - Cursor-based: use `limit` (1–50, default 50) and `cursor` query parameters. Always set `limit` explicitly — do not rely on the default

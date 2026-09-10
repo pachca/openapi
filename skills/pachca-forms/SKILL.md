@@ -49,6 +49,12 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 3. If you don't know the parameters — run `pachca <command> --help`.
 
+## Form blocks
+
+Eleven block types: `header`, `plain_text`, `markdown`, `divider`, `input`, `select`, `radio`, `checkbox`, `date`, `time`, `file_input`. Field-level reference — parameters, limits and defaults for each — lives at https://dev.pachca.com/guides/forms/blocks.md and is the only place it is maintained.
+
+> A file uploaded through `file_input` is reachable by the URL in `data.<field>[].url` for two hours, and the file itself is kept for a day. Download it when the submission arrives, not later.
+
 ## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.

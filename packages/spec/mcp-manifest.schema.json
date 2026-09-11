@@ -17,6 +17,7 @@
     "default_scopes",
     "tools",
     "compat_tools",
+    "audiences",
     "coverage"
   ],
   "additionalProperties": false,
@@ -122,7 +123,7 @@
       "items": {
         "type": "string"
       },
-      "description": "What the client asks for when it registers, and what a person sees on the consent screen: the union of what the tools need, nothing more."
+      "description": "What the client asks for when it registers, all at once: every scope a person's token can use. The role decides which of them are granted."
     },
     "tools": {
       "type": "array",
@@ -233,6 +234,46 @@
           }
         }
       }
+    },
+    "audiences": {
+      "type": "object",
+      "description": "The listing each token receives, by role and, for the owner, by plan. A tool in a listing is its entry in `tools` with the overrides applied — the description and argument schema of the branches open to that audience — and model_tokens is what the listing costs the model, instructions included.",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "tools",
+          "model_tokens",
+          "overrides"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "model_tokens": {
+            "type": "integer"
+          },
+          "overrides": {
+            "type": "object",
+            "description": "Per tool name, what differs from the entry in `tools`.",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "inputSchema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -263,7 +304,8 @@
         },
         "description": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "What the tool does, as the model reads it. The union of every branch; a listing uses its audience's override when there is one."
         },
         "whenToUse": {
           "type": "array",
@@ -348,6 +390,75 @@
             "type": "string"
           },
           "description": "What usually follows a successful call, rendered as a closing note in the result."
+        },
+        "branches": {
+          "type": "array",
+          "description": "Every operation the tool may call, with who may call it. The server assembles each token's listing from these: a tool appears when one of its branches is open, and only the arguments of open branches remain.",
+          "items": {
+            "type": "object",
+            "required": [
+              "operation",
+              "scope",
+              "roles",
+              "confirm",
+              "arguments"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "operation": {
+                "type": "string",
+                "description": "METHOD /path in the spec."
+              },
+              "scope": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Scope the operation requires; null when any token will do."
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "owner",
+                    "admin",
+                    "user",
+                    "bot"
+                  ]
+                },
+                "description": "Roles that may hold that scope."
+              },
+              "plan": {
+                "type": "string",
+                "description": "Plan the operation needs, when it needs one."
+              },
+              "bot_token_only": {
+                "type": "boolean",
+                "description": "Answers only to a bot token."
+              },
+              "confirm": {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "shared",
+                  "others",
+                  "always"
+                ]
+              },
+              "arguments": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Arguments that select or feed this branch; name=value when a value picks it."
+              },
+              "when": {
+                "type": "string",
+                "description": "The condition that runs this branch when no argument of its own selects it."
+              }
+            }
+          }
         }
       }
     }

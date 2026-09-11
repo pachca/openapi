@@ -1,0 +1,466 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dev.pachca.com/mcp-manifest.schema.json",
+  "title": "Pachca MCP tool manifest",
+  "description": "The contract the Pachca MCP server loads instead of keeping its own list of tools. A consumer validates the manifest against this schema on boot and refuses to start when the major of schema_version is one it does not support.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_from",
+    "spec_sha256",
+    "server",
+    "instructions",
+    "cache",
+    "response_format",
+    "refusals",
+    "tool_prefix",
+    "default_scopes",
+    "tools",
+    "compat_tools",
+    "audiences",
+    "coverage"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Version of this contract. A change of the major means consumers must be updated before they can load the manifest."
+    },
+    "generated_from": {
+      "type": "string",
+      "description": "Source the manifest was built from."
+    },
+    "spec_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Hash of that source. The same spec produces a byte-identical manifest, which is what lets a build check catch drift."
+    },
+    "server": {
+      "type": "object",
+      "required": [
+        "name",
+        "title",
+        "website_url",
+        "icons"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "website_url": {
+          "type": "string"
+        },
+        "icons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "src",
+              "mimeType",
+              "sizes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "mimeType": {
+                "type": "string"
+              },
+              "sizes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "instructions": {
+      "type": "string",
+      "description": "The always-on block: what an agent needs before its first call, and nothing that belongs to a single area."
+    },
+    "cache": {
+      "type": "object",
+      "required": [
+        "scope",
+        "ttl_ms"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "description": "Listings are personal — what a token may see decides what comes back — so nothing may be cached on a shared intermediary."
+        },
+        "ttl_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "refusals": {
+      "type": "object",
+      "description": "Shared floor for refusals: status code to what the agent should do next, so a refusal never arrives as a bare code.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "tool_prefix": {
+      "type": "string"
+    },
+    "default_scopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What the client asks for when it registers, all at once: every scope a person's token can use. The role decides which of them are granted."
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/tool"
+      },
+      "description": "Everything served to every client."
+    },
+    "compat_tools": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/tool"
+      },
+      "description": "Served only to clients that require this particular shape; spending list slots on them for everyone would buy nothing."
+    },
+    "coverage": {
+      "type": "object",
+      "required": [
+        "outside_tools",
+        "refused"
+      ],
+      "additionalProperties": false,
+      "description": "Every operation of the API, placed. Tools, another channel, or refused on purpose — the three add up to the whole spec, and the build fails when they do not.",
+      "properties": {
+        "outside_tools": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "operation",
+              "scope"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "operation": {
+                "type": "string"
+              },
+              "scope": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "refused": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "response_format": {
+      "type": "object",
+      "description": "Contract for the text half of a result — what the model reads and retells. Kept here rather than left to the server so that every tool answers in the same shape.",
+      "required": [
+        "structured_content",
+        "untrusted_wrapper",
+        "pagination_footer",
+        "empty_result",
+        "truncation",
+        "noise_footer",
+        "shape"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "structured_content": {
+          "type": "string",
+          "description": "Both halves travel together: formatted text and, where a response schema is declared, the structured value conforming to it. Declaring a schema and not returning the data breaks clients that validate it."
+        },
+        "untrusted_wrapper": {
+          "type": "string",
+          "description": "Content written by other people is wrapped before it enters the model's context; the nonce is generated per response so the wrapper cannot be forged from inside the content."
+        },
+        "pagination_footer": {
+          "type": "string"
+        },
+        "empty_result": {
+          "type": "string"
+        },
+        "truncation": {
+          "type": "object",
+          "required": [
+            "max_tokens",
+            "notice"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "max_tokens": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "notice": {
+              "type": "string"
+            }
+          }
+        },
+        "noise_footer": {
+          "type": "string"
+        },
+        "shape": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "audiences": {
+      "type": "object",
+      "description": "The listing each token receives, by role and, for the owner, by plan. A tool in a listing is its entry in `tools` with the overrides applied — the description and argument schema of the branches open to that audience — and model_tokens is what the listing costs the model, instructions included.",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "tools",
+          "model_tokens",
+          "overrides"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "model_tokens": {
+            "type": "integer"
+          },
+          "overrides": {
+            "type": "object",
+            "description": "Per tool name, what differs from the entry in `tools`.",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "inputSchema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "jsonSchema": {
+      "type": "object",
+      "description": "A plain object schema: no composition keywords, because several clients drop a tool whose schema uses them."
+    },
+    "tool": {
+      "type": "object",
+      "required": [
+        "name",
+        "title",
+        "description",
+        "inputSchema",
+        "scopes",
+        "confirm",
+        "annotations"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "maxLength": 64
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the tool does, as the model reads it. The union of every branch; a listing uses its audience's override when there is one."
+        },
+        "whenToUse": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notFor": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "errorHints": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "inputSchema": {
+          "$ref": "#/$defs/jsonSchema"
+        },
+        "outputSchema": {
+          "$ref": "#/$defs/jsonSchema"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "API operations the tool stands on. More than one means the server performs the whole sequence itself."
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Permissions the call requires, taken from the spec rather than declared by hand."
+        },
+        "confirm": {
+          "enum": [
+            "auto",
+            "shared",
+            "others",
+            "always"
+          ],
+          "description": "When a human is asked first. Decided from the call itself, never from memory of previous calls — the protocol is stateless."
+        },
+        "annotations": {
+          "type": "object",
+          "required": [
+            "readOnlyHint",
+            "destructiveHint",
+            "idempotentHint",
+            "openWorldHint"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "readOnlyHint": {
+              "type": "boolean"
+            },
+            "destructiveHint": {
+              "type": "boolean"
+            },
+            "idempotentHint": {
+              "type": "boolean"
+            },
+            "openWorldHint": {
+              "type": "boolean"
+            }
+          }
+        },
+        "nextSteps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What usually follows a successful call, rendered as a closing note in the result."
+        },
+        "branches": {
+          "type": "array",
+          "description": "Every operation the tool may call, with who may call it. The server assembles each token's listing from these: a tool appears when one of its branches is open, and only the arguments of open branches remain.",
+          "items": {
+            "type": "object",
+            "required": [
+              "operation",
+              "scope",
+              "roles",
+              "confirm",
+              "arguments"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "operation": {
+                "type": "string",
+                "description": "METHOD /path in the spec."
+              },
+              "scope": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Scope the operation requires; null when any token will do."
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "owner",
+                    "admin",
+                    "user",
+                    "bot"
+                  ]
+                },
+                "description": "Roles that may hold that scope."
+              },
+              "plan": {
+                "type": "string",
+                "description": "Plan the operation needs, when it needs one."
+              },
+              "bot_token_only": {
+                "type": "boolean",
+                "description": "Answers only to a bot token."
+              },
+              "confirm": {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "shared",
+                  "others",
+                  "always"
+                ]
+              },
+              "arguments": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Arguments that select or feed this branch; name=value when a value picks it."
+              },
+              "when": {
+                "type": "string",
+                "description": "The condition that runs this branch when no argument of its own selects it."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

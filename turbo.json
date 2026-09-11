@@ -316,6 +316,7 @@
       "inputs": [
         "mcp-core.ts",
         "mcp-tools.ts",
+        "mcp-scenarios.ts",
         "mcp-manifest.schema.json",
         "openapi.yaml",
         "scripts/generate-mcp-manifest.ts"

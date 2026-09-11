@@ -14,9 +14,10 @@
  *   - a tool points at an operation that does not exist in `openapi.yaml`;
  *   - a tool has no prose, or prose exists for a tool that is not in the core;
  *   - a name is duplicated, is not snake_case, or exceeds 64 characters;
- *   - core, bridge and out-of-scope do not add up to every operation in the
- *     spec — that check is what keeps a newly added API method from silently
- *     ending up nowhere.
+ *   - an operation of the spec is neither in a tool nor refused on purpose —
+ *     the server does everything the public API offers, and that check is what
+ *     keeps a newly added API method from silently ending up nowhere;
+ *   - the listing some role receives is over the tool count or the token budget.
  *
  * Usage: bun scripts/generate-mcp-manifest.ts
  */
@@ -25,6 +26,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
 import {
+  BOT_TOKEN_ONLY,
   CACHE_POLICY,
   COMPACT_PROJECTIONS,
   RESPONSE_FORMAT,
@@ -333,30 +335,42 @@ function stripDescriptions<T>(node: T, keep = false): T {
 }
 
 function buildOutputSchema(tool: McpCoreTool, doc: YamlNode): { schema: JsonSchema | null; problems: string[] } {
-  // The one composite whose result has no single entity behind it.
-  if (tool.name === 'read_thread') {
+  // The one composite whose result has no single entity behind it: the card of
+  // the chat, the thread when one was opened, and the page of messages.
+  if (tool.name === 'read_chat') {
+    const chat = project('Chat', doc);
     const thread = project('Thread', doc);
     const messages = project('Message', doc);
     return {
       schema: {
         type: 'object',
         properties: {
+          chat: chat.schema,
           thread: thread.schema,
           messages: { type: 'array', items: messages.schema as any },
         },
         additionalProperties: true,
       },
-      problems: [...thread.problems, ...messages.problems],
+      problems: [...chat.problems, ...thread.problems, ...messages.problems],
     };
   }
 
-  // The last operation that actually returns a body: for a composite that is
-  // usually the final step, but clearing a status is a trailing no-content call
-  // and the meaningful result comes from the step before it.
+  // Branches that return different things declare nothing rather than a schema
+  // one of them would break.
+  if (tool.output === null) return { schema: null, problems: [] };
+
+  // The operation named by the tool, or else the last one that returns a body:
+  // for a composite that is usually the final step.
   let found: ReturnType<typeof responseEntity> = null;
-  for (const op of tool.operations) {
-    const candidate = responseEntity(op, doc);
-    if (candidate) found = candidate;
+  if (tool.output !== undefined) {
+    const op = tool.operations[tool.output];
+    found = op ? responseEntity(op, doc) : null;
+    if (!found) return { schema: null, problems: [`${tool.name}: output names operation ${tool.output}, which returns no entity`] };
+  } else {
+    for (const op of tool.operations) {
+      const candidate = responseEntity(op, doc);
+      if (candidate) found = candidate;
+    }
   }
   // No body in the response — nothing to declare, and declaring an empty schema
   // would oblige the server to return structured content it does not have.
@@ -444,14 +458,17 @@ function annotationsFor(tool: { kind: string; destructive?: boolean; idempotent?
  * reads is decided in one place and reviewed as a whole; the parts stay in the
  * manifest for tooling that wants them apart.
  */
-function composeDescription(prose: {
-  description: string;
-  whenToUse?: string[];
-  notFor?: string[];
-  examples?: string[];
-  errorHints?: Record<string, string>;
-}): string {
-  const out = [prose.description];
+function composeDescription(
+  prose: {
+    description: string;
+    whenToUse?: string[];
+    notFor?: string[];
+    examples?: string[];
+    errorHints?: Record<string, string>;
+  },
+  branchTexts: string[] = [],
+): string {
+  const out = [[prose.description, ...branchTexts].join(' ')];
   if (prose.whenToUse?.length) out.push('', 'Use it when:', ...prose.whenToUse.map((x) => `- ${x}`));
   if (prose.notFor?.length) out.push('', 'Not for:', ...prose.notFor.map((x) => `- ${x}`));
   if (prose.examples?.length) out.push('', 'Examples:', ...prose.examples.map((x) => `- ${x}`));
@@ -460,70 +477,130 @@ function composeDescription(prose: {
   return out.join('\n');
 }
 
-/**
- * Traps that would break a tool for part of the tokens without any error the
- * agent could act on: an operation gated behind a paid plan, or a scope its
- * caller's role may never hold. None of the core has either today; the check is
- * here so that changing the spec cannot introduce one quietly.
+/* ── Who sees what ─────────────────────────────────────────────────────────
+ * The listing is assembled per token: a tool appears when at least one of its
+ * branches is open to the caller, and inside it only the arguments and enum
+ * values of open branches remain. The specification allows exactly this — the
+ * list may vary by the authorization presented, never by the connection — and
+ * the manifest carries everything the server needs to do it: per branch, the
+ * scope, the roles that may hold it, the plan and whether it wants a bot token.
+ *
+ * The owner can hold every scope, so the owner's listing is the largest there
+ * is and the budgets below are checked against it, as well as every other role.
  */
-/**
- * Operations that answer only to a bot token. A core tool standing on one would
- * work for half the connections and refuse for the other half, with nothing in
- * the refusal to explain why.
- */
-const BOT_ONLY_OPERATIONS = new Set([
-  'POST /views/open',
-  'POST /views/{view_id}/submit_response',
-  'POST /messages/{id}/link_previews',
-  'PUT /bot/webhook',
-  'DELETE /webhooks/events/{id}',
-]);
 
-function permissionTraps(docEn: YamlNode): string[] {
-  const problems: string[] = [];
-  for (const tool of MCP_CORE) {
-    for (const op of tool.operations) {
-      if (BOT_ONLY_OPERATIONS.has(key(op))) {
-        problems.push(`${tool.name} stands on ${key(op)}, which answers only to a bot token`);
-      }
+type Role = 'owner' | 'admin' | 'user' | 'bot';
+const ALL_ROLES: Role[] = ['owner', 'admin', 'user', 'bot'];
+
+/**
+ * The listings the server serves. The role decides almost everything; the plan
+ * matters only to the owner, the one role the Corporation-only methods are for.
+ */
+const AUDIENCES: Array<{ key: string; role: Role; plan: string | null }> = [
+  { key: 'owner:corporation', role: 'owner', plan: 'corporation' },
+  { key: 'owner', role: 'owner', plan: null },
+  { key: 'admin', role: 'admin', plan: null },
+  { key: 'user', role: 'user', plan: null },
+  { key: 'bot', role: 'bot', plan: null },
+];
+
+const normaliseScope = (scope: string): string => scope.replace(/[:.]/g, '_');
+
+interface BranchAccess {
+  scope: string | null;
+  roles: Role[];
+  plan: string | null;
+  botTokenOnly: boolean;
+}
+
+function branchAccess(op: ToolOperation, docEn: YamlNode): BranchAccess {
+  const item = docEn.paths?.[op.path]?.[op.method.toLowerCase()];
+  const requirements = item?.['x-requirements'] ?? {};
+  const scope: string | null = requirements.scope ?? null;
+  const botTokenOnly = BOT_TOKEN_ONLY.has(key(op));
+  const table = docEn.components?.schemas?.OAuthScope?.['x-scope-roles'] ?? {};
+  let roles: Role[] = scope ? ((table[normaliseScope(scope)] ?? []) as Role[]) : [...ALL_ROLES];
+  if (botTokenOnly) roles = roles.includes('bot') || !scope ? ['bot'] : [];
+  return { scope, roles, plan: requirements.plan ?? null, botTokenOnly };
+}
+
+function isOpen(access: BranchAccess, audience: (typeof AUDIENCES)[number]): boolean {
+  return access.roles.includes(audience.role) && (!access.plan || access.plan === audience.plan);
+}
+
+/** Branch texts of the open branches, in operation order, each once. */
+function branchTexts(tool: McpCoreTool, open: boolean[]): string[] {
+  const texts = MCP_TOOL_PROSE[tool.name]?.branchText ?? {};
+  const out: string[] = [];
+  tool.operations.forEach((op, i) => {
+    const text = texts[key(op)];
+    if (open[i] && text && !out.includes(text)) out.push(text);
+  });
+  return out;
+}
+
+/** Paging and detail level serve whichever branch runs. */
+const SHARED_FIELDS = new Set(['limit', 'cursor', 'view']);
+
+/** Operation indices a field belongs to; null when it serves every branch. */
+function fieldOps(field: ToolField): number[] | null {
+  if (field.ops) return field.ops;
+  if (SHARED_FIELDS.has(field.name)) return null;
+  if (field.from) return [Number(field.from.includes(':') ? field.from.split(':')[0] : 0)];
+  return null;
+}
+
+/** The input schema one audience receives: closed branches take their fields and values along. */
+function schemaFor(tool: McpCoreTool, schema: JsonSchema, open: boolean[]): JsonSchema {
+  const properties: Record<string, JsonSchema> = {};
+  for (const field of tool.input) {
+    const ops = fieldOps(field);
+    if (ops && !ops.some((i) => open[i])) continue;
+    const prop = { ...schema.properties![field.name]! };
+    if (field.branches && prop.enum) {
+      prop.enum = prop.enum.filter((value) => (field.branches![value] ?? []).some((i) => open[i]));
     }
+    properties[field.name] = prop;
   }
-  const roles = docEn.components?.schemas?.OAuthScope?.['x-scope-roles'] ?? {};
-  const normalise = (scope: string): string => scope.replace(/[:.]/g, '_');
-  for (const tool of MCP_CORE) {
-    for (const op of tool.operations) {
-      const item = docEn.paths?.[op.path]?.[op.method.toLowerCase()];
-      const plan = item?.['x-requirements']?.plan;
-      if (plan) problems.push(`${tool.name} stands on ${key(op)}, which requires the ${plan} plan`);
-      const scope = item?.['x-requirements']?.scope;
-      if (!scope) continue;
-      const allowed: string[] | undefined = roles[normalise(scope)];
-      if (!allowed) continue;
-      for (const role of ['owner', 'admin', 'user', 'bot']) {
-        if (!allowed.includes(role)) {
-          problems.push(`${tool.name} needs ${scope}, which the ${role} role may never hold`);
-        }
-      }
-    }
-  }
-  return problems;
+  const required = (schema.required ?? []).filter((name) => name in properties);
+  return { ...schema, properties, ...(required.length ? { required } : {}) };
+}
+
+/**
+ * What a tool costs the model. Clients hand the model the name, the
+ * description and the argument schema; the title goes to the interface, the
+ * annotations to the confirmation dialog, and the result schema is used to
+ * check the answer — none of them reach the context. Codex, Gemini CLI and VS
+ * Code were read at the source to establish this. Roughly 3.7 characters per
+ * token for English prose and JSON punctuation.
+ */
+function modelTokens(tool: { name: string; description: string; inputSchema: JsonSchema }): number {
+  const visible = { name: tool.name, description: tool.description, input_schema: tool.inputSchema };
+  return Math.round(JSON.stringify(visible).length / 3.7);
 }
 
 /**
  * Several clients ask for the tool list once and never follow the cursor, so a
- * tool on a second page is invisible without a single error. The listing has to
- * fit one page, and the tightest client budget we know is forty tools across
- * every server a person has connected — half of that is already generous.
+ * tool on a second page is invisible without a single error. Every listing has
+ * to fit one page, and accuracy of choice falls past a few dozen similar tools,
+ * so thirty is the ceiling for the largest listing any role receives.
  */
 const MAX_TOOLS_IN_LISTING = 30;
 
 /**
- * The listing is loaded into context on every conversation, next to whatever
- * else the person has connected, and it costs those tokens whether a tool is
- * used or not. Sixteen thousand is the ceiling we hold ourselves to: above it,
- * the honest move is to cut a tool or shorten prose, not to shrug.
+ * What the largest listing may cost the model, instructions included. Clients
+ * that load everything pay it on every turn; clients that search for tools start
+ * searching around ten thousand. Thirteen thousand is the target, sixteen the
+ * ceiling the build enforces.
  */
 const MAX_LISTING_TOKENS = 16_000;
+
+/**
+ * One tool, whatever the listing. One platform refuses a tool over five
+ * thousand tokens and another drops the argument schema of a long one, so a
+ * single tool never gets anywhere near either.
+ */
+const MAX_TOOL_TOKENS = 1_500;
 
 /**
  * Client lint. Several popular clients silently drop a tool whose schema uses
@@ -560,6 +637,9 @@ function lintSchema(name: string, schema: JsonSchema): string[] {
 function proseChecks(): string[] {
   const problems: string[] = [];
   const names = new Set([...MCP_CORE.map((t) => t.name), ...SERVICE_TOOLS.map((t) => t.name)]);
+  // Argument names are quoted in backticks too; `list_tags` is a field, not a
+  // missing tool.
+  const argumentNames = new Set([...MCP_CORE, ...SERVICE_TOOLS].flatMap((t) => t.input.map((f) => f.name)));
   const referenced = (text: string): string[] =>
     [...text.matchAll(/`([a-z][a-z0-9_]*)`/g)].map((m) => m[1]!).filter((n) => names.has(n) || n.includes('_'));
 
@@ -571,7 +651,11 @@ function proseChecks(): string[] {
       for (const ref of referenced(line)) {
         // Only bare tool names are treated as references; anything else in
         // backticks is a field or a parameter and is left alone.
-        if (!names.has(ref) && /^(search|read|list|send|reply|create|add|remove|update|get)_/.test(ref)) {
+        if (
+          !names.has(ref) &&
+          !argumentNames.has(ref) &&
+          /^(search|read|list|send|reply|create|add|remove|update|get|save|export|handle)_/.test(ref)
+        ) {
           problems.push(`${name} points at "${ref}", which is not a tool`);
         }
       }
@@ -592,13 +676,16 @@ function proseChecks(): string[] {
   // Both halves of a confusable pair must name the other, otherwise the warning
   // only reaches an agent that already opened the right tool.
   const PAIRS: Array<[string, string]> = [
-    ['list_chats', 'search_chats'],
     ['send_message', 'reply_in_thread'],
-    ['create_chat', 'create_standalone_thread'],
-    ['create_standalone_thread', 'reply_in_thread'],
-    ['read_thread', 'read_chat'],
-    ['read_chat', 'read_chat_info'],
+    ['create_chat', 'reply_in_thread'],
+    ['read_chat', 'read_message'],
+    ['list_users', 'read_user'],
+    ['update_chat', 'update_chat_members'],
+    ['update_message', 'delete'],
   ];
+  // save_user already names update_my_profile. The reverse pointer is left out
+  // on purpose: an employee sees update_my_profile without save_user, and a
+  // description must not name a tool its reader does not have.
   for (const [a, b] of PAIRS) {
     for (const [from, to] of [
       [a, b],
@@ -633,8 +720,11 @@ function proseChecks(): string[] {
     }
   }
 
+  // A run shows the model a person's listing, so tools only a bot token ever
+  // receives are measured elsewhere or not at all — they are not demanded here.
   const covered = new Set(TOOL_SCENARIOS.flatMap((s) => s.accept));
   for (const tool of MCP_CORE) {
+    if (tool.operations.every((op) => BOT_TOKEN_ONLY.has(key(op)))) continue;
     if (!covered.has(tool.name)) problems.push(`no scenario reaches ${tool.name} — its description is unmeasured`);
   }
 
@@ -752,6 +842,41 @@ function validate(spec: Map<string, SpecOperation>): string[] {
     if (tool.kind === 'read' && tool.confirm !== 'auto') {
       problems.push(`${tool.name} reads but asks for confirmation — reads have no side effects`);
     }
+    for (const op of tool.operations) {
+      if (tool.kind === 'read' && op.confirm && op.confirm !== 'auto') {
+        problems.push(`${tool.name}: branch ${key(op)} reads but asks for confirmation`);
+      }
+      // One level of risk per tool: a read branch in a writing tool is fine
+      // (picking up a finished export), a write branch in a reading tool is not.
+      if (tool.kind === 'read' && op.method !== 'GET') {
+        problems.push(`${tool.name} reads, yet its branch ${key(op)} changes something`);
+      }
+    }
+    // A field tied to a branch that does not exist would never be shown, and a
+    // value leading nowhere would be offered to every token.
+    for (const field of tool.input) {
+      for (const i of [...(field.ops ?? []), ...Object.values(field.branches ?? {}).flat()]) {
+        if (!tool.operations[i]) problems.push(`${tool.name}.${field.name} points at branch ${i}, which the tool does not have`);
+      }
+      if (field.branches) {
+        for (const value of field.enum ?? []) {
+          if (!field.branches[value]) problems.push(`${tool.name}.${field.name}: the value "${value}" leads to no branch`);
+        }
+      }
+    }
+    // Every branch must be reachable: by an argument of its own, by a value of
+    // a picking argument, or by a stated condition. A branch nothing selects is
+    // dead weight the server would never run.
+    if (tool.operations.length > 1) {
+      tool.operations.forEach((op, i) => {
+        const selected =
+          Boolean(op.when) ||
+          tool.input.some(
+            (f) => (fieldOps(f) ?? []).includes(i) || Object.values(f.branches ?? {}).some((ops) => ops.includes(i)),
+          );
+        if (!selected && i > 0) problems.push(`${tool.name}: no argument leads to ${key(op)}`);
+      });
+    }
   }
 
   for (const service of SERVICE_TOOLS) {
@@ -764,6 +889,14 @@ function validate(spec: Map<string, SpecOperation>): string[] {
 
   for (const name of Object.keys(MCP_TOOL_PROSE)) {
     if (!seen.has(name)) problems.push(`prose for a tool that is not declared: ${name}`);
+  }
+
+  // Text tied to a branch the tool does not have would never be shown.
+  for (const tool of MCP_CORE) {
+    const ops = new Set(tool.operations.map(key));
+    for (const op of Object.keys(MCP_TOOL_PROSE[tool.name]?.branchText ?? {})) {
+      if (!ops.has(op)) problems.push(`${tool.name} has text for ${op}, which is not one of its branches`);
+    }
   }
 
   for (const op of OUT_OF_SCOPE) {
@@ -863,15 +996,22 @@ function build(): void {
     process.exit(1);
   }
 
-  problems.push(...permissionTraps(docEn), ...proseChecks());
+  problems.push(...proseChecks());
 
   // Argument assertions need the built schemas, so they run once the tools
   // exist rather than alongside the rest of the scenario checks.
-  const forScenarios = MCP_CORE.map((t) => ({
-    name: `${TOOL_PREFIX}${t.name}`,
-    inputSchema: schemas.get(t.name)!,
-    confirm: t.confirm as string,
-  }));
+  const forScenarios = [
+    ...MCP_CORE.map((t) => ({
+      name: `${TOOL_PREFIX}${t.name}`,
+      inputSchema: schemas.get(t.name)!,
+      confirm: t.confirm as string,
+    })),
+    ...SERVICE_TOOLS.map((t) => ({
+      name: `${TOOL_PREFIX}${t.name}`,
+      inputSchema: buildInputSchema(t, docEn).schema,
+      confirm: t.confirm as string,
+    })),
+  ];
   for (const scenario of TOOL_SCENARIOS) {
     problems.push(...scenarioArgChecks(scenario, forScenarios));
   }
@@ -883,18 +1023,42 @@ function build(): void {
   }
 
   const { core, tail, refused } = partition(spec);
-  const covered = core.length + tail.length + refused.length;
-  if (covered !== spec.size) {
-    console.error(`Coverage mismatch: ${covered} operations placed, ${spec.size} in the spec.`);
+  if (tail.length > 0) {
+    console.error('The server does everything the public API offers, but these operations are in no tool:');
+    for (const op of tail) console.error(`  - ${op}`);
     process.exit(1);
   }
 
+  const access = new Map(MCP_CORE.map((tool) => [tool.name, tool.operations.map((op) => branchAccess(op, docEn))]));
+
   const tools = MCP_CORE.map((tool) => {
     const prose = MCP_TOOL_PROSE[tool.name]!;
+    const branches = tool.operations.map((op, i) => {
+      const a = access.get(tool.name)![i]!;
+      const selectedBy = tool.input.flatMap((f) => {
+        const byValue = Object.entries(f.branches ?? {})
+          .filter(([, ops]) => ops.includes(i))
+          .map(([value]) => `${f.name}=${value}`);
+        if (byValue.length) return byValue;
+        return (fieldOps(f) ?? []).includes(i) ? [f.name] : [];
+      });
+      return {
+        operation: key(op),
+        scope: a.scope,
+        roles: a.roles,
+        ...(a.plan ? { plan: a.plan } : {}),
+        ...(a.botTokenOnly ? { bot_token_only: true } : {}),
+        confirm: op.confirm ?? tool.confirm,
+        arguments: selectedBy,
+        ...(op.when ? { when: op.when } : {}),
+      };
+    });
     return {
       name: `${TOOL_PREFIX}${tool.name}`,
       title: prose.title,
-      description: composeDescription(prose),
+      // The union of every branch. What a token actually receives is in
+      // `audiences`, assembled from the branches open to it.
+      description: composeDescription(prose, branchTexts(tool, tool.operations.map(() => true))),
       whenToUse: prose.whenToUse,
       notFor: prose.notFor,
       examples: prose.examples ?? [],
@@ -903,18 +1067,24 @@ function build(): void {
       inputSchema: schemas.get(tool.name)!,
       ...(outputs.get(tool.name) ? { outputSchema: outputs.get(tool.name)! } : {}),
       operations: tool.operations.map((op) => key(op)),
+      branches,
       scopes: scopesFor(tool, spec),
       confirm: tool.confirm,
       annotations: annotationsFor(tool),
     };
   });
 
-  const scopeUnion = [...new Set(tools.flatMap((t) => t.scopes))].sort();
-
-  // Operations no tool covers. Not a promise: they are reachable through the
-  // API and the CLI with a personal token, and listing them here only keeps the
-  // coverage check honest.
-  const tailRows = tail.map((operation) => ({ operation, scope: spec.get(operation)?.scope ?? null }));
+  // Everything a person may be asked for, requested at once: a person's
+  // connection asks for every scope a person's token can use, and the role
+  // decides which of them are granted. Bot-only operations are not a person's
+  // to grant.
+  const scopeUnion = [
+    ...new Set(
+      MCP_CORE.flatMap((tool) =>
+        tool.operations.filter((op) => !BOT_TOKEN_ONLY.has(key(op))).map((op) => spec.get(key(op))?.scope),
+      ).filter((s): s is string => Boolean(s)),
+    ),
+  ].sort();
 
   const serviceTools = SERVICE_TOOLS.map((tool) => {
     const prose = MCP_TOOL_PROSE[tool.name]!;
@@ -933,30 +1103,76 @@ function build(): void {
       annotations: annotationsFor(tool),
     };
   });
+  const listedService = serviceTools.filter((_, i) => !SERVICE_TOOLS[i]!.compat);
+
+  // One tool, whatever the listing: the full version is the largest there is.
+  for (const tool of [...tools, ...listedService]) {
+    const cost = modelTokens(tool);
+    if (cost > MAX_TOOL_TOKENS) problems.push(`${tool.name} costs about ${cost} tokens, over ${MAX_TOOL_TOKENS} for one tool`);
+  }
+
+  // Every role's listing, assembled the way the server will assemble it.
+  const instructionTokens = Math.round(SERVER_INSTRUCTIONS.length / 3.7);
+  type Override = { description?: string; inputSchema?: JsonSchema };
+  const audiences: Record<string, { tools: string[]; model_tokens: number; overrides: Record<string, Override> }> = {};
+  for (const audience of AUDIENCES) {
+    const names: string[] = [];
+    const overrides: Record<string, Override> = {};
+    let cost = instructionTokens;
+    MCP_CORE.forEach((tool, t) => {
+      const open = access.get(tool.name)!.map((a) => isOpen(a, audience));
+      if (!open.some(Boolean)) return;
+      const base = tools[t]!;
+      const listed = {
+        name: base.name,
+        description: composeDescription(MCP_TOOL_PROSE[tool.name]!, branchTexts(tool, open)),
+        inputSchema: schemaFor(tool, schemas.get(tool.name)!, open),
+      };
+      const override: Override = {};
+      if (listed.description !== base.description) override.description = listed.description;
+      if (JSON.stringify(listed.inputSchema) !== JSON.stringify(base.inputSchema)) override.inputSchema = listed.inputSchema;
+      if (Object.keys(override).length) overrides[base.name] = override;
+      names.push(base.name);
+      cost += modelTokens(listed);
+    });
+    for (const tool of listedService) {
+      names.push(tool.name);
+      cost += modelTokens(tool);
+    }
+    audiences[audience.key] = { tools: names, model_tokens: cost, overrides };
+    if (names.length > MAX_TOOLS_IN_LISTING) {
+      problems.push(`the ${audience.key} listing has ${names.length} tools, more than the ${MAX_TOOLS_IN_LISTING} that fit one page`);
+    }
+    if (cost > MAX_LISTING_TOKENS) {
+      problems.push(`the ${audience.key} listing costs about ${cost} tokens, over the ${MAX_LISTING_TOKENS} budget`);
+    }
+  }
+  for (const tool of tools) {
+    if (!AUDIENCES.some((a) => audiences[a.key]!.tools.includes(tool.name))) {
+      problems.push(`${tool.name} is open to no role at all`);
+    }
+  }
+  // A description must not send its reader to a tool that reader does not
+  // have: the model would call it, or promise the person something it cannot do.
+  const allNames = new Set([...tools, ...listedService].map((t) => t.name));
+  for (const audience of AUDIENCES) {
+    const listing = audiences[audience.key]!;
+    const present = new Set(listing.tools);
+    for (const name of listing.tools) {
+      const base = [...tools, ...listedService].find((t) => t.name === name)!;
+      const text = listing.overrides[name]?.description ?? base.description;
+      for (const [, ref] of text.matchAll(/`([a-z][a-z0-9_]*)`/g)) {
+        const full = `${TOOL_PREFIX}${ref}`;
+        if (allNames.has(full) && !present.has(full)) {
+          problems.push(`${name} names ${ref} in the ${audience.key} listing, which does not have it`);
+        }
+      }
+    }
+  }
+
   if (problems.length > 0) {
     console.error('MCP manifest not built:');
     for (const p of problems) console.error(`  - ${p}`);
-    process.exit(1);
-  }
-
-  const listed = tools.length + serviceTools.filter((_, i) => !SERVICE_TOOLS[i]!.compat).length;
-  if (listed > MAX_TOOLS_IN_LISTING) {
-    console.error(`The listing has ${listed} tools, more than the ${MAX_TOOLS_IN_LISTING} that fit one page.`);
-    process.exit(1);
-  }
-
-  const wire = [...tools, ...serviceTools.filter((_, i) => !SERVICE_TOOLS[i]!.compat)].map((tool) => ({
-    name: tool.name,
-    title: tool.title,
-    description: tool.description,
-    inputSchema: tool.inputSchema,
-    ...('outputSchema' in tool ? { outputSchema: (tool as { outputSchema: JsonSchema }).outputSchema } : {}),
-    annotations: tool.annotations,
-  }));
-  // Roughly 3.7 characters per token for English prose and JSON punctuation.
-  const listingTokens = Math.round(JSON.stringify(wire).length / 3.7);
-  if (listingTokens > MAX_LISTING_TOKENS) {
-    console.error(`The listing costs about ${listingTokens} tokens, over the ${MAX_LISTING_TOKENS} budget.`);
     process.exit(1);
   }
 
@@ -974,19 +1190,21 @@ function build(): void {
     response_format: RESPONSE_FORMAT,
     refusals: REFUSALS,
     tool_prefix: TOOL_PREFIX,
-    // What the client asks for when it registers: the union of what the core
-    // tools need, and nothing else. This is the list a person sees on the
-    // consent screen. It is a default, not a ceiling — reaching the tail needs
-    // more, and those are asked for separately when the person wants them.
+    // What the client asks for when it registers, all at once: every scope a
+    // person's token can use. The consent screen shows this list, and the
+    // person's role decides what is actually granted.
     default_scopes: scopeUnion,
-    tools: [...tools, ...serviceTools.filter((_, i) => !SERVICE_TOOLS[i]!.compat)],
+    tools: [...tools, ...listedService],
     // Served only to clients that ask for this shape; see SERVICE_TOOLS.
     compat_tools: serviceTools.filter((_, i) => SERVICE_TOOLS[i]!.compat),
+    // The listing each role receives and what it costs the model. A tool in a
+    // listing is its entry in `tools` with this audience's overrides applied:
+    // the description and argument schema of the branches open to it.
+    audiences,
     coverage: {
-      // Everything the spec has, placed: in a tool, left to another channel, or
-      // refused on purpose. The three add up to the whole spec, and the build
-      // fails when they do not.
-      outside_tools: tailRows,
+      // Everything the spec has, placed: in a tool, or refused on purpose. The
+      // build fails when an operation lands nowhere.
+      outside_tools: [],
       refused,
     },
   };
@@ -1002,12 +1220,12 @@ function build(): void {
 
   const fields = tools.reduce((n, t) => n + Object.keys(t.inputSchema.properties ?? {}).length, 0);
   const withOutput = tools.filter((t) => 'outputSchema' in t).length;
+  const perRole = AUDIENCES.map((a) => `${a.key} ${audiences[a.key]!.tools.length} tools ~${audiences[a.key]!.model_tokens}`).join(', ');
   console.log(
     `MCP manifest: ${tools.length} core + ${serviceTools.length} service tools, ${fields} arguments, ` +
-      `${withOutput} with a response schema, ` +
-      `${scopeUnion.length} scopes, ` +
-      `${core.length} operations in tools + ${tail.length} left to API and CLI + ${refused.length} refused = ${spec.size}. ` +
-      `Listing costs about ${listingTokens} tokens.`
+      `${withOutput} with a response schema, ${scopeUnion.length} scopes requested, ` +
+      `${core.length} operations in tools + ${refused.length} refused = ${spec.size}. ` +
+      `Listings (model tokens): ${perRole}.`
   );
 }
 

@@ -12,6 +12,9 @@ import yaml from 'js-yaml';
 // Extract all translatable JSONPath targets from the OpenAPI spec
 // ---------------------------------------------------------------------------
 
+/** Paths that may be translated but do not count as missing when they are not. */
+const optionalPaths = new Set<string>();
+
 function extractTranslatablePaths(doc: any): Set<string> {
 	const paths = new Set<string>();
 
@@ -106,6 +109,12 @@ function walkProperties(schema: any, prefix: string, paths: Set<string>, doc: an
 			// x-enum-descriptions on property
 			if (resolved['x-enum-descriptions']) {
 				paths.add(`${propPrefix}.x-enum-descriptions`);
+			}
+
+			// An example written in Russian may carry a translation. It is not
+			// required yet, but where the overlay has one, it is not stale.
+			if (resolved.example !== undefined && /[а-яё]/i.test(JSON.stringify(resolved.example))) {
+				optionalPaths.add(`${propPrefix}.example`);
 			}
 
 			// Nested object properties
@@ -218,9 +227,10 @@ function main() {
 		}
 	}
 
+	const optional = new Set([...optionalPaths].map(normalizeTarget));
 	const stale: string[] = [];
 	for (const [norm, original] of normalizedOverlay) {
-		if (!normalizedTranslatable.has(norm)) {
+		if (!normalizedTranslatable.has(norm) && !optional.has(norm)) {
 			stale.push(original);
 		}
 	}

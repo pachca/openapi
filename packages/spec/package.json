@@ -3,14 +3,22 @@
   "version": "1.0.0",
   "private": true,
   "exports": {
-    "./workflows": "./workflows.ts"
+    "./workflows": "./workflows.ts",
+    "./mcp-core": "./mcp-core.ts",
+    "./mcp-tools": "./mcp-tools.ts",
+    "./mcp-manifest": "./mcp-manifest.json",
+    "./mcp-manifest-schema": "./mcp-manifest.schema.json"
   },
   "scripts": {
     "setup": "true",
     "generate": "tsp compile typespec.tsp --config tspconfig.yaml",
+    "generate-mcp": "bun scripts/generate-mcp-manifest.ts",
     "overlay:apply": "bun scripts/apply-overlay.ts",
     "overlay:validate": "bun scripts/validate-overlay.ts",
-    "enum:check": "bun scripts/check-enum-descriptions.ts"
+    "enum:check": "bun scripts/check-enum-descriptions.ts",
+    "eval:build": "bun scripts/eval/build-inputs.ts",
+    "eval:run": "scripts/eval/run.sh",
+    "eval:score": "bun scripts/eval/score.ts"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

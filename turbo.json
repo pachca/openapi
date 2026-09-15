@@ -311,7 +311,8 @@
     },
     "generate-mcp": {
       "dependsOn": [
-        "@pachca/spec#generate"
+        "@pachca/spec#generate",
+        "@pachca/spec#overlay:apply"
       ],
       "inputs": [
         "mcp-core.ts",
@@ -319,6 +320,7 @@
         "mcp-scenarios.ts",
         "mcp-manifest.schema.json",
         "openapi.yaml",
+        "openapi.en.yaml",
         "scripts/generate-mcp-manifest.ts"
       ],
       "outputs": [

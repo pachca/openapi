@@ -102,6 +102,11 @@ jobs:
           node-version: 22.22.2
           registry-url: "https://registry.npmjs.org"
 
+      # Trusted publishing (OIDC) needs npm >= 11.5.1; Node 22 bundles npm 10,
+      # so the CLI has to be upgraded explicitly.
+      - name: Upgrade npm for trusted publishing
+        run: npm i -g npm@latest
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -154,17 +159,17 @@ jobs:
           bun run tsc
           find nodes icons credentials \( -name '*.png' -o -name '*.svg' \) | while read f; do mkdir -p "dist/$(dirname "$f")" && cp "$f" "dist/$f"; done
 
+      # Authenticated via OIDC (trusted publisher configured on npmjs), not a
+      # token. Provenance is attached automatically, so --provenance is dropped.
       - name: Publish to npm (idempotent)
         if: steps.changes.outputs.should_publish == 'true'
         working-directory: integrations/n8n
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           VERSION="${{ steps.changes.outputs.version }}"
           if npm view "n8n-nodes-pachca@${VERSION}" version 2>/dev/null; then
             echo "n8n-nodes-pachca@${VERSION} already published, skipping"
           else
-            npm publish --access public --provenance --ignore-scripts
+            npm publish --access public --ignore-scripts
           fi
 
       - name: Scan community package

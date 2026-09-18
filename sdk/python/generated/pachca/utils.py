@@ -202,11 +202,15 @@ def serialize(obj: object) -> dict:
 
 _MAX_RETRIES = 3
 _RETRYABLE_5XX = {500, 502, 503, 504}
+# Only the daily chat limit and the hour-long ban wait longer than a minute.
+_MAX_RETRY_AFTER = 60
 
 
+# Retry-After is a minimum, not an estimate: waiting less lands the retry
+# inside a window that is still closed. Jitter only upwards.
 def _add_jitter(delay: float) -> float:
     import random
-    return delay * (0.5 + random.random() * 0.5)
+    return delay * (1 + random.random() * 0.25)
 
 
 class RetryTransport(httpx.AsyncBaseTransport):
@@ -222,7 +226,13 @@ class RetryTransport(httpx.AsyncBaseTransport):
             response = await self._transport.handle_async_request(request)
             if response.status_code == 429 and attempt < self._max_retries:
                 retry_after = response.headers.get("retry-after")
-                delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt
+                seconds = int(retry_after) if retry_after and retry_after.isdigit() else None
+                # A long pause is the daily chat limit or an hour-long ban. Retrying
+                # it is pointless, and an early retry doubles the pause: hand the
+                # response back so the caller can schedule the work itself.
+                if seconds is not None and seconds > _MAX_RETRY_AFTER:
+                    return response
+                delay = seconds if seconds is not None else 2 ** attempt
                 await asyncio.sleep(_add_jitter(delay))
                 continue
             if response.status_code in _RETRYABLE_5XX and attempt < self._max_retries:

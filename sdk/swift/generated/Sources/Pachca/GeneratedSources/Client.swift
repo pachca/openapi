@@ -960,6 +960,10 @@ public final class CustomPropertiesServiceImpl: CustomPropertiesService {
 open class FilesService {
     public init() {}
 
+    open func downloadFile(id: Int, target: FileTarget? = nil) async throws -> Void {
+        throw pachcaNotImplemented("Files.downloadFile")
+    }
+
     open func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
         throw pachcaNotImplemented("Files.uploadFile")
     }
@@ -979,6 +983,25 @@ public final class FilesServiceImpl: FilesService {
         self.headers = headers
         self.session = session
         super.init()
+    }
+
+    public override func downloadFile(id: Int, target: FileTarget? = nil) async throws -> Void {
+        var components = URLComponents(string: "\(baseURL)/files/\(id)")!
+        var queryItems: [URLQueryItem] = []
+        if let target { queryItems.append(URLQueryItem(name: "target", value: target.rawValue)) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
     }
 
     public override func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
@@ -1026,6 +1049,151 @@ public final class FilesServiceImpl: FilesService {
         switch statusCode {
         case 201:
             return try deserialize(UploadParams.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+}
+
+open class DraftsService {
+    public init() {}
+
+    open func listDrafts(type: DraftType? = nil, entityType: MessageEntityType? = nil, entityId: Int? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListDraftsResponse {
+        throw pachcaNotImplemented("Drafts.listDrafts")
+    }
+
+    open func listDraftsAll(type: DraftType? = nil, entityType: MessageEntityType? = nil, entityId: Int? = nil, limit: Int? = nil) async throws -> [Draft] {
+        throw pachcaNotImplemented("Drafts.listDraftsAll")
+    }
+
+    open func getDraft(id: Int) async throws -> Draft {
+        throw pachcaNotImplemented("Drafts.getDraft")
+    }
+
+    open func createDraft(request body: DraftCreateRequest) async throws -> Draft {
+        throw pachcaNotImplemented("Drafts.createDraft")
+    }
+
+    open func updateDraft(id: Int, request body: DraftUpdateRequest) async throws -> Draft {
+        throw pachcaNotImplemented("Drafts.updateDraft")
+    }
+
+    open func deleteDraft(id: Int) async throws -> Void {
+        throw pachcaNotImplemented("Drafts.deleteDraft")
+    }
+}
+
+public final class DraftsServiceImpl: DraftsService {
+    let baseURL: String
+    let headers: [String: String]
+    let session: URLSession
+
+    init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        self.baseURL = baseURL
+        self.headers = headers
+        self.session = session
+        super.init()
+    }
+
+    public override func listDrafts(type: DraftType? = nil, entityType: MessageEntityType? = nil, entityId: Int? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListDraftsResponse {
+        var components = URLComponents(string: "\(baseURL)/drafts")!
+        var queryItems: [URLQueryItem] = []
+        if let type { queryItems.append(URLQueryItem(name: "type", value: type.rawValue)) }
+        if let entityType { queryItems.append(URLQueryItem(name: "entity_type", value: entityType.rawValue)) }
+        if let entityId { queryItems.append(URLQueryItem(name: "entity_id", value: String(entityId))) }
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ListDraftsResponse.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func listDraftsAll(type: DraftType? = nil, entityType: MessageEntityType? = nil, entityId: Int? = nil, limit: Int? = nil) async throws -> [Draft] {
+        var items: [Draft] = []
+        var cursor: String? = nil
+        var hasNext = true
+        while hasNext {
+            let response = try await listDrafts(type: type, entityType: entityType, entityId: entityId, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
+        return items
+    }
+
+    public override func getDraft(id: Int) async throws -> Draft {
+        var request = URLRequest(url: URL(string: "\(baseURL)/drafts/\(id)")!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(DraftDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func createDraft(request body: DraftCreateRequest) async throws -> Draft {
+        var request = URLRequest(url: URL(string: "\(baseURL)/drafts")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 201:
+            return try deserialize(DraftDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func updateDraft(id: Int, request body: DraftUpdateRequest) async throws -> Draft {
+        var request = URLRequest(url: URL(string: "\(baseURL)/drafts/\(id)")!)
+        request.httpMethod = "PUT"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(DraftDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func deleteDraft(id: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/drafts/\(id)")!)
+        request.httpMethod = "DELETE"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -2727,6 +2895,7 @@ public struct PachcaClient {
     public let chats: ChatsService
     public let common: CommonService
     public let customProperties: CustomPropertiesService
+    public let drafts: DraftsService
     public let files: FilesService
     public let groupTags: GroupTagsService
     public let linkPreviews: LinkPreviewsService
@@ -2743,11 +2912,12 @@ public struct PachcaClient {
     public let users: UsersService
     public let views: ViewsService
 
-    private init(bots: BotsService, chats: ChatsService, common: CommonService, customProperties: CustomPropertiesService, files: FilesService, groupTags: GroupTagsService, linkPreviews: LinkPreviewsService, members: MembersService, messages: MessagesService, oauth: OAuthService, profile: ProfileService, reactions: ReactionsService, readMembers: ReadMembersService, search: SearchService, security: SecurityService, tasks: TasksService, threads: ThreadsService, users: UsersService, views: ViewsService) {
+    private init(bots: BotsService, chats: ChatsService, common: CommonService, customProperties: CustomPropertiesService, drafts: DraftsService, files: FilesService, groupTags: GroupTagsService, linkPreviews: LinkPreviewsService, members: MembersService, messages: MessagesService, oauth: OAuthService, profile: ProfileService, reactions: ReactionsService, readMembers: ReadMembersService, search: SearchService, security: SecurityService, tasks: TasksService, threads: ThreadsService, users: UsersService, views: ViewsService) {
         self.bots = bots
         self.chats = chats
         self.common = common
         self.customProperties = customProperties
+        self.drafts = drafts
         self.files = files
         self.groupTags = groupTags
         self.linkPreviews = linkPreviews
@@ -2765,13 +2935,14 @@ public struct PachcaClient {
         self.views = views
     }
 
-    public init(token: String, baseURL: String = pachcaAPIURL, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, drafts: DraftsService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             bots: bots ?? BotsServiceImpl(baseURL: baseURL, headers: headers),
             chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers),
             common: common ?? CommonServiceImpl(baseURL: baseURL, headers: headers),
             customProperties: customProperties ?? CustomPropertiesServiceImpl(baseURL: baseURL, headers: headers),
+            drafts: drafts ?? DraftsServiceImpl(baseURL: baseURL, headers: headers),
             files: files ?? FilesServiceImpl(baseURL: baseURL, headers: headers),
             groupTags: groupTags ?? GroupTagsServiceImpl(baseURL: baseURL, headers: headers),
             linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers),
@@ -2790,12 +2961,13 @@ public struct PachcaClient {
         )
     }
 
-    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, customProperties: CustomPropertiesService? = nil, drafts: DraftsService? = nil, files: FilesService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, oauth: OAuthService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
         self.init(
             bots: bots ?? BotsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             common: common ?? CommonServiceImpl(baseURL: baseURL, headers: headers, session: session),
             customProperties: customProperties ?? CustomPropertiesServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            drafts: drafts ?? DraftsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             files: files ?? FilesServiceImpl(baseURL: baseURL, headers: headers, session: session),
             groupTags: groupTags ?? GroupTagsServiceImpl(baseURL: baseURL, headers: headers, session: session),
             linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers, session: session),
@@ -2814,12 +2986,13 @@ public struct PachcaClient {
         )
     }
 
-    public static func stub(bots: BotsService = BotsService(), chats: ChatsService = ChatsService(), common: CommonService = CommonService(), customProperties: CustomPropertiesService = CustomPropertiesService(), files: FilesService = FilesService(), groupTags: GroupTagsService = GroupTagsService(), linkPreviews: LinkPreviewsService = LinkPreviewsService(), members: MembersService = MembersService(), messages: MessagesService = MessagesService(), oauth: OAuthService = OAuthService(), profile: ProfileService = ProfileService(), reactions: ReactionsService = ReactionsService(), readMembers: ReadMembersService = ReadMembersService(), search: SearchService = SearchService(), security: SecurityService = SecurityService(), tasks: TasksService = TasksService(), threads: ThreadsService = ThreadsService(), users: UsersService = UsersService(), views: ViewsService = ViewsService()) -> PachcaClient {
+    public static func stub(bots: BotsService = BotsService(), chats: ChatsService = ChatsService(), common: CommonService = CommonService(), customProperties: CustomPropertiesService = CustomPropertiesService(), drafts: DraftsService = DraftsService(), files: FilesService = FilesService(), groupTags: GroupTagsService = GroupTagsService(), linkPreviews: LinkPreviewsService = LinkPreviewsService(), members: MembersService = MembersService(), messages: MessagesService = MessagesService(), oauth: OAuthService = OAuthService(), profile: ProfileService = ProfileService(), reactions: ReactionsService = ReactionsService(), readMembers: ReadMembersService = ReadMembersService(), search: SearchService = SearchService(), security: SecurityService = SecurityService(), tasks: TasksService = TasksService(), threads: ThreadsService = ThreadsService(), users: UsersService = UsersService(), views: ViewsService = ViewsService()) -> PachcaClient {
         PachcaClient(
             bots: bots,
             chats: chats,
             common: common,
             customProperties: customProperties,
+            drafts: drafts,
             files: files,
             groupTags: groupTags,
             linkPreviews: linkPreviews,

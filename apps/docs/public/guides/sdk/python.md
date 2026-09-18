@@ -97,7 +97,7 @@ await client.close()
 | `client.users.delete_user_avatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.users.delete_user_status()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.group_tags.create_tag()` | [Новый тег](/api/group-tags/create) |
-| `client.group_tags.list_tags()` | [Список тегов сотрудников](/api/group-tags/list) |
+| `client.group_tags.list_tags()` | [Список тегов](/api/group-tags/list) |
 | `client.group_tags.get_tag()` | [Информация о теге](/api/group-tags/get) |
 | `client.group_tags.get_tag_users()` | [Список сотрудников тега](/api/group-tags/list-users) |
 | `client.group_tags.update_tag()` | [Редактирование тега](/api/group-tags/update) |
@@ -106,7 +106,7 @@ await client.close()
 | `client.members.add_members()` | [Добавление пользователей](/api/members/add) |
 | `client.members.list_members()` | [Список участников чата](/api/members/list) |
 | `client.members.update_member_role()` | [Редактирование роли](/api/members/update) |
-| `client.members.leave_chat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.members.leave_chat()` | [Выход из чата](/api/members/leave) |
 | `client.members.remove_tag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.remove_member()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.create_standalone_thread()` | [Новый самостоятельный тред](/api/threads/create) |
@@ -133,6 +133,11 @@ await client.close()
 | `client.tasks.get_task()` | [Информация о напоминании](/api/tasks/get) |
 | `client.tasks.update_task()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.delete_task()` | [Удаление напоминания](/api/tasks/delete) |
+| `client.drafts.create_draft()` | [Новый черновик](/api/drafts/create) |
+| `client.drafts.list_drafts()` | [Список черновиков](/api/drafts/list) |
+| `client.drafts.get_draft()` | [Информация о черновике](/api/drafts/get) |
+| `client.drafts.update_draft()` | [Редактирование черновика](/api/drafts/update) |
+| `client.drafts.delete_draft()` | [Удаление черновика](/api/drafts/delete) |
 | `client.views.open_view()` | [Открытие представления](/api/views/open) |
 | `client.views.submit_view_response()` | [Ответ на отправку формы](/api/views/submit-response) |
 | `client.bots.create_bot()` | [Новый бот](/api/bots/create) |
@@ -150,6 +155,7 @@ await client.close()
 | `client.custom_properties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.upload_file()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.get_upload_params()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
+| `client.files.download_file()` | [Скачивание файла](/api/files/get) |
 
 
 ## Запросы
@@ -382,7 +388,7 @@ request = MessageCreateRequest(
     link_preview=False
 )
 response = await client.messages.create_message(request=request)
-# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)
+# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)
 
 # Список сотрудников
 params = ListUsersParams(

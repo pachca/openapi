@@ -489,8 +489,34 @@ describe('makeApiRequestAllPages error paths', () => {
     const results = await makeApiRequestAllPages.call(ctx, 'GET', '/users', {}, 0, 'user', 2);
 
     expect(results).toEqual([{ json: { id: 1 } }]);
-    // Retry-After: 3 → sleep(3000)
-    expect(mockSleep).toHaveBeenCalledWith(3000);
+    // Retry-After: 3 → ждём не меньше 3000 мс. Джиттер только вверх: ждать меньше,
+    // чем сказал сервер, нельзя — повтор попадёт в ещё закрытое окно.
+    const waited = (mockSleep as ReturnType<typeof vi.fn>).mock.calls[0][0] as number;
+    expect(waited).toBeGreaterThanOrEqual(3000);
+    expect(waited).toBeLessThanOrEqual(3750);
+  });
+
+  it('should not retry when Retry-After is longer than a minute', async () => {
+    const { sleep: mockSleep } = await import('n8n-workflow');
+    (mockSleep as ReturnType<typeof vi.fn>).mockClear();
+
+    // Суточный предел чата и часовой бан приходят с паузой в часы. Повторять их
+    // нельзя: прогон встал бы надолго, а ранний повтор ещё и удваивает паузу.
+    const bannedResponse = {
+      statusCode: 429,
+      body: { errors: [{ code: 'rate_limit' }] },
+      headers: { 'retry-after': '3600' },
+    };
+
+    const ctx = createExecCtx({
+      httpResponses: [bannedResponse],
+      params: { returnAll: false, limit: 10 },
+    });
+
+    await expect(
+      makeApiRequestAllPages.call(ctx, 'GET', '/users', {}, 0, 'user', 2),
+    ).rejects.toThrow();
+    expect(mockSleep).not.toHaveBeenCalled();
   });
 });
 

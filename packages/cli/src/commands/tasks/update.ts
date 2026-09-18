@@ -31,7 +31,7 @@ export default class TasksUpdate extends BaseCommand {
       description: "Описание",
     }),
     'due-at': Flags.string({
-      description: "Срок выполнения напоминания (ISO-8601) в формате YYYY-MM-DDThh:mm:ss.sssTZD. Если указано время 23:59:59.000, то напоминание будет создано на весь день (без указания времени).",
+      description: "Срок выполнения напоминания (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Секунды отбрасываются: срок встаёт на начало минуты. Исключение — ровно 23:59:59: такое напоминание создаётся на весь день, без указания времени.",
     }),
     'priority': Flags.integer({
       description: "Приоритет: 1, 2 (важно) или 3 (очень важно)",
@@ -47,7 +47,7 @@ export default class TasksUpdate extends BaseCommand {
       allowNo: true,
     }),
     'done-at': Flags.string({
-      description: "Дата и время выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ",
+      description: "Дата и время выполнения напоминания (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Значение, которое не удалось разобрать, отметку о выполнении снимает: ответ придёт успешный, а в нём `done_at` будет `null`.",
     }),
     'custom-properties': Flags.string({
       description: "Задаваемые дополнительные поля",

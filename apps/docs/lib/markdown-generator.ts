@@ -79,6 +79,22 @@ export function schemaToMarkdown(
     return content;
   }
 
+  // Handle a schema that is an enum itself, not a field with one.
+  // The object branch below needs `properties`, so without this a
+  // <SchemaBlock> with an enum rendered its heading and nothing under it.
+  const topLevelEnum = resolvedSchema.enum as unknown[] | undefined;
+  if (topLevelEnum && topLevelEnum.length > 0) {
+    const enumDescriptions =
+      (resolvedSchema['x-enum-descriptions'] as Record<string, string> | undefined) || {};
+    content += `${indent}**Возможные значения:**\n\n`;
+    for (const enumValue of topLevelEnum) {
+      const enumKey = String(enumValue);
+      const enumDesc = enumDescriptions[enumKey];
+      content += `${indent}- \`${enumKey}\`${enumDesc ? ` — ${enumDesc}` : ''}\n`;
+    }
+    return content + '\n';
+  }
+
   // Handle object properties
   if ((resolvedSchema.type === 'object' || !resolvedSchema.type) && resolvedSchema.properties) {
     for (const [propName, propSchema] of Object.entries(resolvedSchema.properties)) {

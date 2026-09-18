@@ -90,7 +90,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.users.deleteUserAvatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.users.deleteUserStatus()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.groupTags.createTag()` | [Новый тег](/api/group-tags/create) |
-| `client.groupTags.listTags()` | [Список тегов сотрудников](/api/group-tags/list) |
+| `client.groupTags.listTags()` | [Список тегов](/api/group-tags/list) |
 | `client.groupTags.getTag()` | [Информация о теге](/api/group-tags/get) |
 | `client.groupTags.getTagUsers()` | [Список сотрудников тега](/api/group-tags/list-users) |
 | `client.groupTags.updateTag()` | [Редактирование тега](/api/group-tags/update) |
@@ -99,7 +99,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.members.addMembers()` | [Добавление пользователей](/api/members/add) |
 | `client.members.listMembers()` | [Список участников чата](/api/members/list) |
 | `client.members.updateMemberRole()` | [Редактирование роли](/api/members/update) |
-| `client.members.leaveChat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.members.leaveChat()` | [Выход из чата](/api/members/leave) |
 | `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.createStandaloneThread()` | [Новый самостоятельный тред](/api/threads/create) |
@@ -126,6 +126,11 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.tasks.getTask()` | [Информация о напоминании](/api/tasks/get) |
 | `client.tasks.updateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.deleteTask()` | [Удаление напоминания](/api/tasks/delete) |
+| `client.drafts.createDraft()` | [Новый черновик](/api/drafts/create) |
+| `client.drafts.listDrafts()` | [Список черновиков](/api/drafts/list) |
+| `client.drafts.getDraft()` | [Информация о черновике](/api/drafts/get) |
+| `client.drafts.updateDraft()` | [Редактирование черновика](/api/drafts/update) |
+| `client.drafts.deleteDraft()` | [Удаление черновика](/api/drafts/delete) |
 | `client.views.openView()` | [Открытие представления](/api/views/open) |
 | `client.views.submitViewResponse()` | [Ответ на отправку формы](/api/views/submit-response) |
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
@@ -143,6 +148,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
+| `client.files.downloadFile()` | [Скачивание файла](/api/files/get) |
 
 
 ## Запросы
@@ -389,7 +395,7 @@ const request: MessageCreateRequest = {
   linkPreview: false
 }
 const response = client.messages.createMessage(request)
-// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })
+// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })
 
 // Список сотрудников
 const response = client.users.listUsers({

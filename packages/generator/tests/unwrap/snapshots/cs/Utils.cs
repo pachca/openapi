@@ -24,9 +24,14 @@ internal static class PachcaUtils
         PropertyNameCaseInsensitive = true,
     };
 
+    // Only the daily chat limit and the hour-long ban wait longer than a minute.
+    private static readonly TimeSpan MaxRetryAfter = TimeSpan.FromSeconds(60);
+
+    // Retry-After is a minimum, not an estimate: waiting less lands the retry
+    // inside a window that is still closed. Jitter only upwards.
     private static TimeSpan AddJitter(TimeSpan delay)
     {
-        var factor = 0.5 + JitterRandom.NextDouble() * 0.5;
+        var factor = 1 + JitterRandom.NextDouble() * 0.25;
         return TimeSpan.FromMilliseconds(delay.TotalMilliseconds * factor);
     }
 
@@ -51,8 +56,16 @@ internal static class PachcaUtils
 
             if ((int)response.StatusCode == 429 && attempt < MaxRetries)
             {
-                var delay = response.Headers.RetryAfter?.Delta
-                    ?? TimeSpan.FromSeconds(Math.Pow(2, attempt));
+                var retryAfter = response.Headers.RetryAfter?.Delta;
+                // A long pause is the daily chat limit or an hour-long ban. Retrying it
+                // is pointless, and an early retry doubles the pause: hand the response
+                // back so the caller can schedule the work itself.
+                if (retryAfter is { } wait && wait > MaxRetryAfter)
+                {
+                    return response;
+                }
+
+                var delay = retryAfter ?? TimeSpan.FromSeconds(Math.Pow(2, attempt));
                 await System.Threading.Tasks.Task.Delay(AddJitter(delay), cancellationToken).ConfigureAwait(false);
                 response.Dispose();
                 continue;

@@ -227,15 +227,22 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20.20.2
+          node-version: 24.21.0
+          package-manager-cache: false
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - uses: actions/setup-node@v4
+      # setup-node v7 is what makes trusted publishing work: earlier versions
+      # write an empty `_authToken` line into .npmrc whenever registry-url is
+      # set and NODE_AUTH_TOKEN is not, and npm then treats auth as configured
+      # and never starts the OIDC exchange. Node 24 ships npm 11.19, above the
+      # 11.5.1 trusted publishing needs, so npm is not upgraded by hand.
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20.20.2
+          node-version: 24.21.0
           registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
       - name: Set version from tag
         working-directory: sdk/typescript
         run: |
@@ -249,16 +256,16 @@ jobs:
       - name: Verify TypeScript SDK package (attw)
         run: bun run verify
         working-directory: sdk/typescript
+      # Authenticated via OIDC (trusted publisher configured on npmjs), not a
+      # token. Provenance is attached automatically, so --provenance is dropped.
       - name: Publish to npm
         working-directory: sdk/typescript
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           VERSION=${{ needs.generate-and-build.outputs.version }}
           if npm view "@pachca/sdk@${VERSION}" version 2>/dev/null; then
             echo "Version ${VERSION} already published, skipping"
           else
-            npm publish --access public --provenance
+            npm publish --access public
           fi
 
   publish-cli:
@@ -278,10 +285,16 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.4
-      - uses: actions/setup-node@v4
+      # setup-node v7 is what makes trusted publishing work: earlier versions
+      # write an empty `_authToken` line into .npmrc whenever registry-url is
+      # set and NODE_AUTH_TOKEN is not, and npm then treats auth as configured
+      # and never starts the OIDC exchange. Node 24 ships npm 11.19, above the
+      # 11.5.1 trusted publishing needs, so npm is not upgraded by hand.
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20.20.2
+          node-version: 24.21.0
           registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
       - run: bun install --frozen-lockfile
       - name: Set CLI version (from changelog/releases.json)
         run: |
@@ -292,16 +305,16 @@ jobs:
           cd packages/cli && node -e "const fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json'));p.version='$VERSION';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
       - run: bun run build
         working-directory: packages/cli
+      # Authenticated via OIDC (trusted publisher configured on npmjs), not a
+      # token. Provenance is attached automatically, so --provenance is dropped.
       - name: Publish to npm (idempotent)
         working-directory: packages/cli
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           VERSION="${{ needs.generate-and-build.outputs.cli_version }}"
           if npm view "@pachca/cli@${VERSION}" version 2>/dev/null; then
             echo "@pachca/cli@${VERSION} already published, skipping"
           else
-            npm publish --access public --provenance
+            npm publish --access public
           fi
 
   publish-py:

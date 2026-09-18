@@ -152,7 +152,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | PUT | /chats/{id}/archive | Архивация чата |
 | POST | /chats/{id}/group_tags | Добавление тегов |
 | DELETE | /chats/{id}/group_tags/{tag_id} | Исключение тега |
-| DELETE | /chats/{id}/leave | Выход из беседы или канала |
+| DELETE | /chats/{id}/leave | Выход из чата |
 | GET | /chats/{id}/members | Список участников чата |
 | POST | /chats/{id}/members | Добавление пользователей |
 | DELETE | /chats/{id}/members/{user_id} | Исключение пользователя |

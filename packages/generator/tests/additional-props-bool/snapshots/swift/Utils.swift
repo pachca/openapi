@@ -58,9 +58,14 @@ public struct AnyCodable: Codable {
 private let maxRetries = 3
 private let retryable5xx: Set<Int> = [500, 502, 503, 504]
 
+// Retry-After is a minimum, not an estimate: waiting less lands the retry
+// inside a window that is still closed. Jitter only upwards.
 private func jitter(_ delay: UInt64) -> UInt64 {
-    return UInt64(Double(delay) * (0.5 + Double.random(in: 0..<0.5)))
+    return UInt64(Double(delay) * (1 + Double.random(in: 0..<0.25)))
 }
+
+// Only the daily chat limit and the hour-long ban wait longer than a minute.
+private let maxRetryAfterSeconds: UInt64 = 60
 
 func dataWithRetry(session: URLSession, for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
     for attempt in 0...maxRetries {
@@ -69,6 +74,12 @@ func dataWithRetry(session: URLSession, for request: URLRequest, delegate: (any 
             if http.statusCode == 429, attempt < maxRetries {
                 let delay: UInt64
                 if let ra = http.value(forHTTPHeaderField: "Retry-After"), let secs = UInt64(ra) {
+                    // A long pause is the daily chat limit or an hour-long ban. Retrying
+                    // it is pointless, and an early retry doubles the pause: hand the
+                    // response back so the caller can schedule the work itself.
+                    if secs > maxRetryAfterSeconds {
+                        return (data, response)
+                    }
                     delay = secs * 1_000_000_000
                 } else {
                     delay = UInt64(pow(2.0, Double(attempt))) * 1_000_000_000

@@ -55,7 +55,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
    pachca bots create --name="Бот задач" --nickname="tasks_bot" --scopes='["messages:create"]'
    ```
 
-2. Сохрани `access_token` из ответа — он возвращается единственный раз. Посмотреть выданный токен повторно можно только в интерфейсе (вкладка «API» настроек бота), а перевыпустить — командой `pachca bots recreate-token <ID>`
+2. Сохрани `access_token` из ответа — он возвращается единственный раз. Повторно его не показывают, можно только перевыпустить командой `pachca bots recreate-token <ID>`
 
 3. В ответе также придёт `id` бота (его `user_id`) — он нужен для дальнейших вызовов, например чтобы добавить бота в чат
 
@@ -82,7 +82,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
    ```bash
    pachca bots update <bot_id> --outgoing-url="https://example.com/webhook"
    ```
-   > `id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота
+   > `id` бота можно узнать методом `pachca bots list`
 
 2. Или: бот сам обновляет свой webhook своим же токеном — без `id` и без участия администратора (нужен скоуп `bot_self:webhook:write`):
    ```bash

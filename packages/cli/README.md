@@ -110,7 +110,7 @@ pachca guide            # список всех сценариев
 |---------|---------|
 | `pachca members add-group-tags` | Добавление тегов |
 | `pachca members remove-group-tag` | Исключение тега |
-| `pachca members leave` | Выход из беседы или канала |
+| `pachca members leave` | Выход из чата |
 | `pachca members list` | Список участников чата |
 | `pachca members add` | Добавление пользователей |
 | `pachca members remove` | Исключение пользователя |
@@ -127,14 +127,25 @@ pachca guide            # список всех сценариев
 | Команда | Описание |
 |---------|---------|
 | `pachca files direct-url` | Загрузка файла |
+| `pachca files get` | Скачивание файла |
 | `pachca files uploads` | Получение подписи, ключа и других параметров |
+
+### drafts
+
+| Команда | Описание |
+|---------|---------|
+| `pachca drafts create` | Новый черновик |
+| `pachca drafts list` | Список черновиков |
+| `pachca drafts get` | Информация о черновике |
+| `pachca drafts update` | Редактирование черновика |
+| `pachca drafts delete` | Удаление черновика |
 
 ### group-tags
 
 | Команда | Описание |
 |---------|---------|
 | `pachca group-tags create` | Новый тег |
-| `pachca group-tags list` | Список тегов сотрудников |
+| `pachca group-tags list` | Список тегов |
 | `pachca group-tags get` | Информация о теге |
 | `pachca group-tags update` | Редактирование тега |
 | `pachca group-tags delete` | Удаление тега |

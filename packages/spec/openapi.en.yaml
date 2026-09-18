@@ -15,6 +15,7 @@ tags:
   - name: Reactions
   - name: Search
   - name: Tasks
+  - name: Drafts
   - name: Views
   - name: Bots
   - name: Security
@@ -24,15 +25,30 @@ paths:
   /audit_events:
     get:
       operationId: SecurityOperations_getAuditEvents
-      description: |-
+      description: >-
         Audit event log
 
-        Retrieve event logs based on the specified filters.
+
+        What has been happening in the workspace: sign-ins and sign-outs, changes of roles and settings, actions on
+        chats, employees, and bots. The records are read-only — they cannot be changed or deleted either through the API
+        or from the interface.
+
+
+        The method is available to the workspace owner on the "Corporation" plan; other employees receive `403`.
+        Accessing the audit log is itself written to the audit log — as the `audit_events_accessed` event.
+
+
+        Events come from newest to oldest and are selected with filters: the period by `start_time` and `end_time`, the
+        kind of event by `event_key`, and the actor by `actor_id` and `actor_type`. Without filters the method returns
+        all events of the workspace page by page.
       parameters:
         - name: start_time
           in: query
           required: false
-          description: Start timestamp (inclusive)
+          description: >-
+            Start timestamp, inclusive (ISO-8601). An offset such as `+03:00` is taken into account, and a time without
+            an offset is treated as UTC. A value that could not be parsed removes the filter — the response comes in
+            full, without an error.
           schema:
             type: string
             format: date-time
@@ -42,7 +58,10 @@ paths:
         - name: end_time
           in: query
           required: false
-          description: End timestamp (inclusive)
+          description: >-
+            End timestamp, inclusive (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an
+            offset is treated as UTC. A value that could not be parsed removes the filter — the response comes in full,
+            without an error.
           schema:
             type: string
             format: date-time
@@ -177,11 +196,14 @@ paths:
 
 
         Allows a bot to generate a new `access_token` for itself using its own token — without an administrator and
-        without knowing its own `id`. The token of the bot that owns the request token is rotated.
+        without knowing its own `id`.
 
 
-        The token used for the request is invalidated immediately. The new token is returned in the response once — be
-        sure to save it, otherwise the bot loses access to the API.
+        The very token the request was made with is rotated, and it is invalidated immediately.
+
+
+        The new token is returned in the response once — be sure to save it, otherwise the bot loses access to the API.
+        The scopes are carried over from the previous token.
       parameters: []
       responses:
         '200':
@@ -347,8 +369,17 @@ paths:
         List bots
 
 
-        Retrieve a list of bots. The response includes only the bots you can edit: those you created and those whose
-        settings grant you edit access.
+        The bots the caller is entitled to configure: those they created themselves and those whose settings grant them
+        edit access.
+
+
+        The `query` parameter selects bots by part of the name, without typos. Bot tokens do not come in the list — they
+        are shown once at creation and at rotation.
+
+
+        The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation"
+        plan — [List workspace bots](GET /company/bots). There other people's bots come with only a name and a nickname,
+        and the rest of the settings are hidden.
       parameters:
         - name: query
           in: query
@@ -455,11 +486,24 @@ paths:
         New bot
 
 
-        Creates a bot and returns its `access_token`.
+        Creates a bot in the workspace and immediately returns its `access_token`. Save the token at creation: the same
+        one is not shown again, and what remains is to reissue it with [Bot token rotation](POST
+        /bots/{id}/recreate_token).
 
 
-        When the bot is created, you receive its `access_token` — save it right away. You can obtain the token again
-        only through the interface (the "API" tab of the bot settings).
+        A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member,
+        and it is added like an employee — with the [Add users](POST /chats/{id}/members) method, passing the bot's
+        `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require
+        membership.
+
+
+        The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it
+        is the set of its chats that decides where it lands. No token is needed for that, the webhook address is enough.
+        To write into one particular chat, take the [New message](POST /messages) method — that one does need a token.
+
+
+        The nickname must end with `_bot` and be free in the workspace. The `single_chat` restriction is set only here:
+        when editing a bot it can no longer be changed.
       parameters: []
       responses:
         '201':
@@ -548,10 +592,21 @@ paths:
   /bots/{id}:
     get:
       operationId: BotOperations_getBot
-      description: |-
+      description: >-
         Bot info
 
-        Retrieves bot parameters by its `id`.
+
+        The bot's settings. The token does not come in the response — it is shown once at the bot's creation and at [Bot
+        token rotation](POST /bots/{id}/recreate_token).
+
+
+        The method returns only the bots the caller is entitled to configure: their own, and, if the bot's settings
+        allow it, also as a workspace administrator or as the owner of a chat the bot belongs to. For someone else's bot
+        the method responds `403`.
+
+
+        The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation"
+        plan — [List workspace bots](GET /company/bots).
       parameters:
         - name: id
           in: path
@@ -633,11 +688,16 @@ paths:
         Edit bot
 
 
-        Edit a bot's settings.
+        Changes a bot's settings: only the fields you pass are overwritten.
 
 
-        To edit a bot you need to know its `id` and specify it in the request `URL`. All editable bot parameters are
-        specified in the request body.
+        The `single_chat` field is accepted only when a bot is created. In this method it is silently ignored: the
+        response is successful and the bot's mode does not change.
+
+
+        The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation
+        error. Commands and scopes are replaced by the passed list as a whole, and the new set of scopes is applied to
+        the bot's current token right away — there is no need to reissue it.
 
 
         You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located
@@ -721,11 +781,8 @@ paths:
         and its outgoing webhook is deleted.
 
 
-        Deletion is available to the bot creator, and to a company administrator if the bot's settings grant
+        Deletion is available to the bot creator, and to a workspace administrator if the bot's settings grant
         administrators edit access. Chat owners and admins cannot delete a bot, even if they are allowed to edit it.
-
-
-        To delete a bot you need to know its `id` and specify it in the request `URL`.
       parameters:
         - name: id
           in: path
@@ -778,9 +835,13 @@ paths:
         compromised or for scheduled secret rotation in `CI`.
 
 
-        Rotation is available to the bot creator, and to a company administrator if the bot's settings grant
-        administrators edit access. Specify the bot's `id` in the request `URL`. The new token is returned in the
-        response only once — save it right away.
+        The new token is returned in the response only once — save it right away. Its permissions are the same: the
+        scopes are carried over from the previous token.
+
+
+        Rotation is available to the bot creator, and also to a workspace administrator if the bot's settings grant
+        administrators edit access. The owner of a chat the bot belongs to cannot rotate the token, even when the rest
+        of the bot's settings are open to them.
       parameters:
         - name: id
           in: path
@@ -860,14 +921,23 @@ paths:
   /chats:
     post:
       operationId: ChatOperations_createChat
-      description: |-
+      description: >-
         New chat
 
-        Create a new chat.
 
-        To create a one-on-one direct message with a user, use the [New message](POST /messages) method.
+        Creates a conversation or a channel. The token owner becomes the chat owner, and this role is not transferred
+        later on.
 
-        When creating a chat, you automatically become a member.
+
+        To create a one-on-one direct message with a user, use the [New message](POST /messages) method. To discuss a
+        particular message there is no need to create a chat — a thread is started under it with the [New thread](POST
+        /messages/{id}/thread) method.
+
+
+        Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who
+        belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as
+        well as suspended and deleted employees, are silently dropped — the response is successful but the employee is
+        not in the chat, so check the membership in the response.
       parameters: []
       responses:
         '201':
@@ -924,10 +994,19 @@ paths:
         scope: chats:create
     get:
       operationId: ChatOperations_listChats
-      description: |-
+      description: >-
         List chats
 
-        Retrieve a list of chats based on the specified parameters.
+
+        By default — the conversations, channels, and direct messages the token owner belongs to. With
+        `availability=public` the method returns instead all public chats of the workspace, including the ones the
+        caller has not joined.
+
+
+        Threads never come in this list; for them there is [List threads](GET /threads).
+
+
+        `archived=true` does not switch the results to the archive, it adds archived chats to the active ones.
       parameters:
         - name: sort
           in: query
@@ -975,8 +1054,9 @@ paths:
           in: query
           required: false
           description: >-
-            Filter by last message creation time. Returns chats where the last message was created no earlier than the
-            specified time (in YYYY-MM-DDThh:mm:ss.sssZ format).
+            Filter by the creation time of the last message: chats where it is later than the specified one are
+            returned. The value is in ISO-8601, an offset such as `+03:00` is taken into account, and a time without an
+            offset is treated as UTC.
           schema:
             type: string
             format: date-time
@@ -987,8 +1067,9 @@ paths:
           in: query
           required: false
           description: >-
-            Filter by last message creation time. Returns chats where the last message was created no later than the
-            specified time (in YYYY-MM-DDThh:mm:ss.sssZ format).
+            Filter by the creation time of the last message: chats where it is earlier than the specified one are
+            returned. The value is in ISO-8601, an offset such as `+03:00` is taken into account, and a time without an
+            offset is treated as UTC.
           schema:
             type: string
             format: date-time
@@ -1082,10 +1163,22 @@ paths:
   /chats/exports:
     post:
       operationId: ExportOperations_requestExport
-      description: |-
+      description: >-
         Export messages
 
-        Request a message export for the specified time period.
+
+        Order an export of the workspace messages for a period. The archive is prepared in the background, so the
+        response comes back empty and contains no export identifier.
+
+
+        The number of the finished export arrives in the `export_id` field of the webhook sent to the address from
+        `webhook_url`. The employee who ordered it also receives an email and a notification in Pachca with a link of
+        the form `/full_exports/{id}` — the number in it is the identifier. The webhook address is optional, but without
+        it a program has nowhere to take the number from: only the email and the notification to whoever ordered it are
+        left.
+
+
+        With that identifier the archive is fetched by the [Download export archive](GET /chats/exports/{id}) method.
       parameters: []
       responses:
         '204':
@@ -1134,14 +1227,13 @@ paths:
         Download export archive
 
 
-        Download a completed message export archive.
+        In response to the request the server returns `302 Found` with a `Location` header containing a temporary
+        download link for the file. Most HTTP clients automatically follow the redirect and download the file.
 
 
-        To download the archive you need to know its `id` and specify it in the request `URL`.
-
-
-        The server will respond with `302 Found` and a `Location` header containing a temporary download link. Most HTTP
-        clients automatically follow the redirect and download the file.
+        The link is valid for 5 minutes, so download the archive right after the request. The archive itself is stored
+        for 7 days, and only the employee who ordered the export can download it — the method refuses another employee
+        holding the same permission.
       parameters:
         - name: id
           in: path
@@ -1158,6 +1250,7 @@ paths:
           headers:
             location:
               required: true
+              description: Temporary link to the archive in storage, valid for 5 minutes
               schema:
                 type: string
                 format: uri
@@ -1191,12 +1284,21 @@ paths:
   /chats/{id}:
     get:
       operationId: ChatOperations_getChat
-      description: |-
+      description: >-
         Chat info
 
-        Retrieve information about a chat.
 
-        To get a chat you need to know its `id` and specify it in the request `URL`.
+        The chat's details together with the list of members and the linked tags.
+
+
+        A private conversation the caller does not belong to responds `403`, not `404`: this method does not hide the
+        existence of a chat. A public channel of your own workspace is returned even to someone who has not joined it.
+        The method does not open other people's private chats to the workspace owner either — the full list of those is
+        returned by [List workspace chats](GET /company/chats).
+
+
+        Only active members come in `member_ids`: suspended ones do not make it into the list, although their membership
+        is kept.
       parameters:
         - name: id
           in: path
@@ -1254,11 +1356,17 @@ paths:
         Edit chat
 
 
-        Update chat parameters.
+        Changes the name of a conversation or a channel and its availability. Both changes are visible to the members as
+        a system message in the chat feed.
 
 
-        To update a chat you need to know its `id` and specify it in the `URL`. All updatable fields are passed in the
-        request body.
+        A direct chat cannot be renamed, and neither can an archived one: [Unarchive chat](PUT /chats/{id}/unarchive) it
+        first. In a private chat the method is available to the chat owner and a chat administrator, in a public one to
+        any employee of the workspace, even a non-member.
+
+
+        The membership is not changed by this method; for that there are [Add users](POST /chats/{id}/members) and
+        [Remove user](DELETE /chats/{id}/members/{user_id}).
       parameters:
         - name: id
           in: path
@@ -1331,12 +1439,24 @@ paths:
   /chats/{id}/archive:
     put:
       operationId: ChatOperations_archiveChat
-      description: |-
+      description: >-
         Archive chat
 
-        Archive a chat.
 
-        To archive a chat you need to know its `id` and specify it in the request `URL`.
+        Sends a conversation or a channel to the archive: the chat disappears from the lists of all members, new
+        messages are not accepted into it, and the history is kept.
+
+
+        Archiving does not merely freeze the chat. All guests are removed from it and all tags are unlinked from it. The
+        employees a tag brought in stay as ordinary members, but the membership is no longer maintained by itself. The
+        [Unarchive chat](PUT /chats/{id}/unarchive) method brings back neither the guests nor the tag links.
+
+
+        Threads created in the chat stay open: they can still be written to after archiving.
+
+
+        A direct chat and a thread are not sent to the archive. Archiving a chat that is already archived responds
+        `403`.
       parameters:
         - name: id
           in: path
@@ -1379,12 +1499,21 @@ paths:
         Add tags
 
 
-        Add tags to the member list of a conversation or channel.
+        Links tags to a conversation or a channel so that the chat membership keeps itself up to date.
 
 
         After adding a tag, all its members automatically become members of the chat. The tag and chat member lists are
         synchronized automatically: when a new member is added to the tag, they immediately appear in the chat; when
         removed from the tag, they are removed from the chat.
+
+
+        If at least one of the tags passed is not found, the method responds `404` and links none of them. A tag already
+        linked to the chat is not linked again, but its members are still pulled into the chat.
+
+
+        A tag can be linked by a member of a private conversation and by any employee of the workspace in an open chat,
+        while taking it off is available only to the chat owner or a chat administrator through the [Remove tag](DELETE
+        /chats/{id}/group_tags/{tag_id}) method.
       parameters:
         - name: id
           in: path
@@ -1441,12 +1570,20 @@ paths:
   /chats/{id}/group_tags/{tag_id}:
     delete:
       operationId: ChatMemberOperations_removeTag
-      description: |-
+      description: >-
         Remove tag
 
-        Remove a tag from the member list of a conversation or channel.
 
-        To remove a tag you need to know its `id` and specify it in the request `URL`.
+        Unlinks a tag from a conversation or a channel and takes out the employees who were held there by it alone.
+
+
+        The removal happens in the background, after the response: the method responds `204` immediately, and the chat
+        membership changes a few moments later. The chat owner, those brought in by another tag of the same chat, and
+        those added to the chat by hand will stay.
+
+
+        A tag can be taken off a chat by the chat owner or a chat administrator. It can be linked back with the [Add
+        tags](POST /chats/{id}/group_tags) method.
       parameters:
         - name: id
           in: path
@@ -1494,10 +1631,22 @@ paths:
   /chats/{id}/leave:
     delete:
       operationId: ChatMemberOperations_leaveChat
-      description: |-
-        Leave conversation or channel
+      description: >-
+        Leave chat
 
-        Leave a conversation or channel on your own.
+
+        The token owner leaves a conversation, a channel, or a thread on their own. A thread is addressed by its
+        `chat_id`. In a private conversation the others see a system message about the departure; in a public chat and
+        in a channel they do not.
+
+
+        You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is
+        taken off the employee or off the chat. You cannot leave a direct message either, but you can leave an archived
+        chat.
+
+
+        You can come back to a public chat on your own, and to a private one only if one of the members adds you back.
+        Another employee is taken out by [Remove user](DELETE /chats/{id}/members/{user_id}).
       parameters:
         - name: id
           in: path
@@ -1552,11 +1701,16 @@ paths:
         List chat members
 
 
-        Retrieve the current list of chat members.
+        Who belongs to a conversation, a channel, or a thread. Bots come on equal terms with employees, with `bot:
+        true`.
 
 
         The workspace owner can retrieve the member list of any chat in the workspace. Admins and bots can only retrieve
         the member list of chats they belong to (or that are public).
+
+
+        Only active employees make it into the results: suspended ones do not come, although their membership is kept.
+        The method does not return a member's role in the chat — the `role` parameter works only as a filter.
       parameters:
         - name: id
           in: path
@@ -1654,10 +1808,28 @@ paths:
         scope: chat_members:read
     post:
       operationId: ChatMemberOperations_addMembers
-      description: |-
+      description: >-
         Add users
 
-        Add users to the member list of a conversation, channel, or thread.
+
+        Adds employees and bots to a conversation, a channel, or a thread. A bot is added the same way as an employee:
+        its `id` in `member_ids`. In a channel it receives the editor role, and in a conversation it becomes an ordinary
+        member — and only after that can it write there.
+
+
+        The role in the chat is assigned at the moment of adding: the workspace owner and an administrator become chat
+        administrators, everyone else becomes an ordinary member. After that it is not recalculated by itself, and
+        promoting an employee in the workspace changes nothing where they already belong. To change a role, use the
+        [Edit role](PUT /chats/{id}/members/{user_id}) method.
+
+
+        Those who already belong to the chat are silently skipped by the method, and this is not treated as an error. An
+        unknown or inactive ID, however, stops the whole request: the method responds `404` and lists such values, and
+        nobody is added.
+
+
+        Adding a whole department at once is more convenient with a tag — [Add tags](POST /chats/{id}/group_tags): then
+        the chat membership is maintained by itself.
       parameters:
         - name: id
           in: path
@@ -1718,11 +1890,18 @@ paths:
         Remove user
 
 
-        Remove a user from the member list of a conversation or channel.
+        Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its
+        `chat_id`. In a private conversation the removed member loses access to the chat but stays in the threads they
+        belonged to.
+
+
+        An employee held in the chat by a linked tag cannot be removed with this method: the response will be
+        successful, but the employee will stay in the chat. Take the tag off them with [Edit employee](PUT /users/{id})
+        or unlink the tag from the chat with the [Remove tag](DELETE /chats/{id}/group_tags/{tag_id}) method.
 
 
         If the user is the chat owner, they cannot be removed. They can only leave the chat on their own using the
-        [Leave conversation or channel](DELETE /chats/{id}/leave) method.
+        [Leave chat](DELETE /chats/{id}/leave) method.
       parameters:
         - name: id
           in: path
@@ -1773,11 +1952,14 @@ paths:
         Edit role
 
 
-        Edit a user's or bot's role in a conversation or channel.
+        Changes the role of a member of a conversation or a channel. A role in a chat is not tied to a role in the
+        workspace: a regular employee can be a chat administrator, and a promotion in the workspace does not change
+        roles in chats.
 
 
-        To edit a role in a conversation or channel you need to know the `id` of the chat and the user (or bot) and
-        specify them in the request `URL`. All editable role parameters are specified in the request body.
+        The `editor` role exists only in channels. You cannot change your own role, nor the role of someone who is not
+        in the chat: the method responds with an error. Setting the same role again is treated as an error, not as a
+        repeat.
 
 
         The chat owner's role cannot be changed. They always have Admin privileges in the chat.
@@ -1846,12 +2028,15 @@ paths:
   /chats/{id}/unarchive:
     put:
       operationId: ChatOperations_unarchiveChat
-      description: |-
+      description: >-
         Unarchive chat
 
-        Restore a chat from the archive.
 
-        To unarchive a chat you need to know its `id` and specify it in the request `URL`.
+        Brings a conversation or a channel back from the archive: the chat appears in the lists again, and it becomes
+        possible to write into it again.
+
+
+        On a chat that is not in the archive anyway the method responds with success.
       parameters:
         - name: id
           in: path
@@ -1894,8 +2079,8 @@ paths:
         List workspace bots
 
 
-        Retrieve a list of every bot in the workspace, including the ones you cannot edit. For those, only the name and
-        the nickname are returned, the rest of the settings come as `null`.
+        Every bot in the workspace, including the ones you cannot edit. For those, only the name and the nickname are
+        returned, the rest of the settings come as `null`.
 
 
         The method is available to the workspace owner. Every request is written to the [audit
@@ -2034,8 +2219,8 @@ paths:
         List workspace chats
 
 
-        Retrieve a list of conversations and channels across the whole workspace, including private ones you are not a
-        member of. Direct messages and threads are not returned.
+        The conversations and channels of the whole workspace, including private ones you are not a member of. Direct
+        messages and threads are not returned.
 
 
         Both active and archived chats are returned by default. The `activity` parameter keeps only one of the states in
@@ -2133,15 +2318,19 @@ paths:
         List custom properties
 
 
-        Working with "File" type custom properties is currently unavailable.
+        The schema of the workspace's custom properties: the ID, the name, and the type of each. Only employees and
+        tasks have such properties, their sets are independent, and the `entity_type` parameter picks the one you need.
+        The values come with the entity itself — in the employee's profile or in the task. The IDs from here are needed
+        in order to set those values.
 
 
-        Retrieve the current list of custom properties for employees and tasks in your workspace.
+        Properties of the "File" and "Multiple choice" types are not available through the API and do not make it into
+        the results. The basic profile fields — name, phone, email, department, tags — do not either: these are not
+        custom properties.
 
 
-        By default, all entities in your workspace only have basic fields. However, your workspace administrator can
-        add, edit, and delete custom properties. If you use custom properties that are no longer current (deleted or
-        non-existent) when creating employees (or tasks), you will receive an error.
+        The set of properties is defined by the workspace administrator, who also renames and deletes them. That is why
+        the list is worth re-reading before work: addressing a property that no longer exists returns an error.
       parameters:
         - name: entity_type
           in: query
@@ -2208,8 +2397,15 @@ paths:
         Upload file
 
 
-        Upload a file to the server using `multipart/form-data` format. Upload parameters are obtained via the [Get
-        signature, key and other parameters](POST /uploads) method.
+        The second step of the upload: the file itself goes to the storage as a `multipart/form-data` form. The form
+        fields and the address are taken from the response of the [Get signature, key and other parameters](POST
+        /uploads) method and passed as they are, in the same order, with the file as the last field.
+
+
+        The request goes not to the Pachca API but straight to the storage, and `204` with no body comes back in
+        response. After that the file is attached by passing its `key` in the `files` field — to [New message](POST
+        /messages) or [New draft](POST /drafts), and when editing either of them. The file name in `name` must have the
+        same extension as the `key`, otherwise the message will be rejected.
       parameters: []
       responses:
         '204':
@@ -2225,13 +2421,542 @@ paths:
       x-external-url: directUrl
       x-requirements:
         auth: false
+  /drafts:
+    post:
+      operationId: DraftOperations_createDraft
+      description: >-
+        New draft
+
+
+        Puts a draft into a conversation, a thread, or a direct message. In the Pachca interface it shows up in that
+        chat's input box, where an employee finishes it and sends it. A scheduled message is created by this same
+        method: with the `schedule` field the draft goes out by itself at the appointed time, without it the draft
+        simply lies there. The method itself sends nothing — sending is [New message](POST /messages).
+
+
+        A draft is visible only to its author — neither the other party nor a workspace administrator sees it. A chat
+        can hold only one ordinary draft. A repeated call responds `409` with the `already_exists` code and the ID of
+        the existing one in `payload.draft_id`. That one is finished with the [Edit draft](PUT /drafts/{id}) method. A
+        chat holds no more than 50 scheduled messages.
+
+
+        For a thread, `entity_id` takes the ID of the thread itself, not of the message it hangs under. A direct message
+        with an employee may not exist yet — then it is created by itself, the same way as when an ordinary message is
+        sent.
+
+
+        An empty draft cannot be created: either text or attachments are needed.
+
+
+        The method is not available to bot tokens.
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Draft'
+                description: Response wrapper with data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Drafts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftCreateRequest'
+      x-requirements:
+        scope: drafts:write
+    get:
+      operationId: DraftOperations_listDrafts
+      description: >-
+        List drafts
+
+
+        Your own drafts, newest first.
+
+
+        By default only ordinary drafts are returned: scheduled ones have to be asked for with the `type` parameter. In
+        the response they are told apart by the `schedule` field.
+
+
+        The pair `entity_type` and `entity_id` narrows the results down to a single chat, thread, or direct message. If
+        there is no such chat or it is not accessible, the method responds with an empty list rather than an error.
+      parameters:
+        - name: type
+          in: query
+          required: false
+          description: 'What to return: `regular` — ordinary drafts, `scheduled` — scheduled messages, `all` — both'
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DraftType'
+            default: regular
+          example: all
+          explode: false
+        - name: entity_type
+          in: query
+          required: false
+          description: >-
+            Chat type for filtering by a single chat. Specified together with `entity_id`: sending only one of the two
+            returns `422`.
+          schema:
+            $ref: '#/components/schemas/MessageEntityType'
+            example: discussion
+          example: discussion
+          explode: false
+        - name: entity_id
+          in: query
+          required: false
+          description: ID of what is named in `entity_type`. Specified together with it.
+          schema:
+            type: integer
+            format: int32
+            example: 334
+          example: 334
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Number of entities returned per request
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            example: 25
+            default: 50
+          example: 25
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
+          schema:
+            type: string
+            example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Draft'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                description: Response wrapper with data and pagination
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Drafts
+      x-paginated: true
+      x-requirements:
+        scope: drafts:read
+  /drafts/{id}:
+    get:
+      operationId: DraftOperations_getDraft
+      description: |-
+        Draft info
+
+        The draft. For a scheduled message its schedule comes here too.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Draft ID
+          schema:
+            type: integer
+            format: int32
+            example: 4821
+          example: 4821
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Draft'
+                description: Response wrapper with data
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Drafts
+      x-requirements:
+        scope: drafts:read
+    put:
+      operationId: DraftOperations_updateDraft
+      description: >-
+        Edit draft
+
+
+        Changes your own draft: the text, the attachments, the schedule, and the message it will reply to
+        (`parent_message_id`). Only the fields you pass are overwritten, so the text can be finished with `content`
+        alone, without touching the attachments.
+
+
+        An ordinary draft turns into a scheduled message if `schedule` is passed. The reverse transition is forbidden:
+        `schedule: null` on a scheduled message responds `422` with the `draft_type_change_forbidden` code. To cancel
+        the sending, the draft is removed with the [Delete draft](DELETE /drafts/{id}) method.
+
+
+        Editing works only while writing into the chat is allowed. If access to the chat has been lost, editing responds
+        `403`, while deletion works all the same.
+
+
+        The draft's chat is not changed by this method, it does not accept `entity_type` and `entity_id`. To move a
+        draft to another chat, create a new one and delete the old one.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Draft ID
+          schema:
+            type: integer
+            format: int32
+            example: 4821
+          example: 4821
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Draft'
+                description: Response wrapper with data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Drafts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftUpdateRequest'
+      x-requirements:
+        scope: drafts:write
+    delete:
+      operationId: DraftOperations_deleteDraft
+      description: >-
+        Delete draft
+
+
+        Removes your own draft for good: it cannot be restored, and the attachments are deleted along with it. For a
+        scheduled message deleting is the cancellation of the sending.
+
+
+        It works even if writing into the chat is no longer possible. A repeated call responds `404`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Draft ID
+          schema:
+            type: integer
+            format: int32
+            example: 4821
+          example: 4821
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Drafts
+      x-requirements:
+        scope: drafts:write
+  /files/{id}:
+    get:
+      operationId: FileOperations_downloadFile
+      description: >-
+        Downloading a file
+
+
+        Returns the file itself, not a link to it. It is needed for attachments that have no direct storage link: their
+        `url` field holds the address of this method, and it can only be opened with a token. Encrypted files and files
+        sent from the workspace secure perimeter are served this way — both settings are covered in [Encryption and the
+        secure perimeter](/guides/data-protection).
+
+
+        A refusal comes as `403` with the `confidential_download_denied` code. The address being checked is the one the
+        request came from, that is the address of your server, not of the employee whose token you use: for a server
+        integration that is the most common reason to be refused.
+
+
+        The response is the body of the file and a `Content-Disposition` header with its name, not `JSON`. An encrypted
+        file is decrypted on the fly and comes as a whole attachment: `target` does not apply to it. If it could not be
+        decrypted, the answer is `400` with the `decryption_failed` code.
+
+
+        An attachment of a message is available to whoever sees the message itself, and an attachment of a draft only to
+        its author.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: File ID as it comes in the attachment object
+          schema:
+            type: integer
+            format: int32
+            example: 3560
+          example: 3560
+        - name: target
+          in: query
+          required: false
+          description: >-
+            What to return instead of the original file: `pdf_preview` — the document converted to PDF, `pdf_first_page`
+            — the first page as an image, `thumb` — a scaled-down copy of the image, `image` — the image as it is.
+            Without the parameter the original file comes. A variant this file does not have leads to `400`.
+          schema:
+            $ref: '#/components/schemas/FileTarget'
+            example: thumb
+          example: thumb
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Files
+      x-requirements:
+        scope: files:read
   /group_tags:
     post:
       operationId: GroupTagOperations_createTag
-      description: |-
+      description: >-
         New tag
 
-        Create a new tag.
+
+        Creates a tag. A tag is a way to keep chat membership up to date by itself: it is linked to a conversation or a
+        channel, and everyone who has this tag ends up there automatically.
+
+
+        Employees are added to a tag not here but in each employee's profile — [Edit employee](PUT /users/{id}) with the
+        `list_tags` field. A fresh tag is created empty, with `users_count: 0`. It is linked to a chat by [Add
+        tags](POST /chats/{id}/group_tags).
+
+
+        The name is unique within the workspace, case-insensitively, and cannot contain `@`. Tags can be created by the
+        workspace owner and an administrator; the method is not available to a bot.
       parameters: []
       responses:
         '201':
@@ -2294,10 +3019,19 @@ paths:
         scope: group_tags:write
     get:
       operationId: GroupTagOperations_listTags
-      description: |-
-        List employee tags
+      description: >-
+        List tags
 
-        Retrieve the current list of employee tags. Tag names are unique within the workspace.
+
+        All tags of the workspace with the number of employees in each. They are visible the same way to all roles,
+        regardless of which chats they are linked to.
+
+
+        The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the
+        interface. It accepts no more than 100 names per request.
+
+
+        Who belongs to a particular tag is returned by [List tag employees](GET /group_tags/{id}/users).
       parameters:
         - name: names
           in: query
@@ -2389,12 +3123,15 @@ paths:
   /group_tags/{id}:
     get:
       operationId: GroupTagOperations_getTag
-      description: |-
+      description: >-
         Tag info
 
-        Retrieve information about a tag. Tag names are unique within the workspace.
 
-        To get a tag you need to know its `id` and specify it in the request `URL`.
+        The tag name and the number of employees in it.
+
+
+        Only active employees are counted in `users_count`: suspended ones do not make it into the counter, although
+        they remain in [List tag employees](GET /group_tags/{id}/users).
       parameters:
         - name: id
           in: path
@@ -2452,11 +3189,12 @@ paths:
         Edit tag
 
 
-        Edit a tag.
+        Renames a tag. The set of employees and the links to chats do not change: everyone who was in the tag stays in
+        it, only under the new name.
 
 
-        To edit a tag you need to know its `id` and specify it in the request `URL`. All editable tag parameters are
-        specified in the request body.
+        The name is unique within the workspace, case-insensitively, and cannot contain `@`. Tags can be renamed by the
+        workspace owner and an administrator; the method is not available to a bot.
       parameters:
         - name: id
           in: path
@@ -2534,12 +3272,19 @@ paths:
         scope: group_tags:write
     delete:
       operationId: GroupTagOperations_deleteTag
-      description: |-
+      description: >-
         Delete tag
 
-        Delete a tag.
 
-        To delete a tag you need to know its `id` and specify it in the request `URL`.
+        Removes a tag from the workspace: it is taken off every employee and unlinked from every chat.
+
+
+        Nobody leaves the chats because of this. The employees the tag brought into a conversation or a channel stay
+        there as ordinary members, and their membership is no longer maintained by the tag. To take them out of a
+        particular chat, use [Remove tag](DELETE /chats/{id}/group_tags/{tag_id}) before deleting the tag itself.
+
+
+        Tags can be deleted by the workspace owner and an administrator; the method is not available to a bot.
       parameters:
         - name: id
           in: path
@@ -2584,10 +3329,16 @@ paths:
   /group_tags/{id}/users:
     get:
       operationId: GroupTagOperations_getTagUsers
-      description: |-
+      description: >-
         List tag employees
 
-        Retrieve the current list of employees in a tag.
+
+        Who belongs to the tag. Suspended employees come in the list, although they are not counted in the tag's own
+        `users_count`; deleted ones do not come. Bots marked with the tag also make it into the results.
+
+
+        The membership of a tag is changed in an employee's profile — [Edit employee](PUT /users/{id}) with the
+        `list_tags` field, one employee at a time.
       parameters:
         - name: id
           in: path
@@ -2686,17 +3437,53 @@ paths:
         New message
 
 
-        Send a message to a conversation or channel, a direct message to a user, or a comment to a thread.
+        Sends a message to a conversation or a channel, a direct message to an employee, or a comment to a thread.
 
 
         When using `entity_type: "discussion"` (or simply without specifying `entity_type`), any `chat_id` can be passed
-        in the `entity_id` field. This means you can send a message knowing only the chat ID. Additionally, you can send
-        a message to a thread by its ID or a direct message by the user's ID.
+        in the `entity_id` field. This means you can send a message knowing only the chat ID. A message can also be sent
+        to a thread by the thread's own ID, and a direct message by the employee's ID, but then the matching
+        `entity_type` must be given: `thread` or `user`.
 
 
-        To send a direct message to a user, you do not need to create a chat. Simply specify `entity_type: "user"` and
-        the user's ID. A chat will be created automatically if there has been no prior conversation between you. Only
-        one direct chat can exist between two users.
+        There is no need to create the direct chat for this: it appears by itself if there has been no prior
+        conversation between you. Only one direct chat can exist between two employees. Your own ID writes to the chat
+        with yourself — the same place where an employee sends notes to themselves.
+
+
+        The text in the `content` field is parsed as markdown: bold, italic, strikethrough, inline code, code block, and
+        links. Lists and tables are not parsed — `-`, `1.`, and `|` stay as they are, a quote loses its `>`, and a line
+        with a hash and a space becomes bold. The details are in the [Text formatting](/guides/markdown) section.
+
+
+        `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without
+        spaces the employees of that tag. In a thread a mention also works as an invitation: a mentioned employee who is
+        not in the thread is added to it by Pachca and gains access to the thread and its parent message. To prevent
+        that, pass `skip_invite_mentions: true`. In a conversation or a channel a mention adds nobody, and the parameter
+        changes nothing there.
+
+
+        Buttons can be shown under the message text — the `buttons` array, where each nested array is a row. They only
+        work on messages sent with a bot token: a click on a button with `data` arrives as a `button_click` event to
+        that same bot, carrying a `trigger_id` — there are 3 seconds to open a form with it, the [Open view](POST
+        /views/open) method. A button with `url` simply follows the link and creates no event. Details are in the
+        [Buttons](/guides/buttons) section.
+
+
+        A bot can sign a message with someone else's name and avatar: `display_name` and `display_avatar_url` change the
+        sender for this message only. The **Bot** badge stays, and the sender's profile still shows the real bot. This
+        is how the original author is shown when a conversation is carried over from another system. With a personal
+        token these fields are not available and the response is `403`. Details are in the [Bots](/guides/bots/overview)
+        section.
+
+
+        No more than 10 files can be attached to a message. A link preview is built only if `link_preview` is passed at
+        the root of the request body.
+
+
+        A daily limit applies to the number of messages into one chat from one sender. When it is exceeded the method
+        responds `429`, and the `Retry-After` header carries the pause before the next attempt. The limit values are in
+        the [Limits](/api/limits) section.
       parameters: []
       responses:
         '201':
@@ -2769,12 +3556,19 @@ paths:
         List chat messages
 
 
-        Retrieve a list of messages from conversations, channels, threads, and direct messages.
+        The message feed of a conversation, a channel, a thread, or a direct message — by the `chat_id` of the chat in
+        question.
 
 
-        To retrieve messages you need to know the `chat_id` of the required conversation, channel, thread, or direct
-        message, and specify it in the request `URL`. Messages are returned in descending order by send date (i.e., the
-        most recent messages come first). To retrieve earlier messages, use the `limit` and `cursor` parameters.
+        Messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the
+        `limit` and `cursor` parameters.
+
+
+        Deleted messages do not make it into the list.
+
+
+        The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent
+        message hangs. The thread identifier arrives in the `thread` field of the parent message.
       parameters:
         - name: chat_id
           in: query
@@ -2890,12 +3684,19 @@ paths:
   /messages/{id}:
     get:
       operationId: MessageOperations_getMessage
-      description: |-
+      description: >-
         Message info
 
-        Retrieve information about a message.
 
-        To get a message you need to know its `id` and specify it in the request `URL`.
+        The message together with its author, attachments, and buttons.
+
+
+        A deleted message is returned by the method all the same — with empty `content` and a filled-in `deleted_at`,
+        without files and reactions.
+
+
+        The file links in the response are temporary. An ordinary file is returned as a direct link to the storage,
+        while a protected or an encrypted one comes as an API address that requires a token with the `files:read` scope.
       parameters:
         - name: id
           in: path
@@ -2953,11 +3754,16 @@ paths:
         Edit message
 
 
-        Edit a message or comment.
+        Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited
+        mark.
 
 
-        To edit a message you need to know its `id` and specify it in the request `URL`. All editable message parameters
-        are specified in the request body.
+        You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not
+        changed by the method. There are no restrictions on how long ago the message was sent.
+
+
+        Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in
+        the body leaves them as they were. Any edit removes the link previews, and they are not built again.
       parameters:
         - name: id
           in: path
@@ -3033,14 +3839,16 @@ paths:
         Delete message
 
 
-        Delete a message.
-
-
         Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are
         editors. There are no time restrictions on message deletion.
 
 
-        To delete a message you need to know its `id` and specify it in the request `URL`.
+        The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a "Message
+        deleted" note stays in place of the message in the conversation.
+
+
+        The thread created under this message stays, together with the whole conversation inside it. A repeated deletion
+        responds `204` and no longer changes anything.
       parameters:
         - name: id
           in: path
@@ -3085,10 +3893,23 @@ paths:
   /messages/{id}/link_previews:
     post:
       operationId: LinkPreviewOperations_unfurl
-      description: |-
+      description: >-
         Unfurl (link previews)
 
-        Create link previews in messages. Only available for Unfurl bots.
+
+        Inserts into a message a link preview assembled by the bot itself: a title, a description, and an image. This
+        way the company's internal addresses, which Pachca cannot open on its own, are shown in the conversation as a
+        card.
+
+
+        The method is available only to a bot whose outgoing webhook is configured for link previews. Such a bot
+        receives the `message_link_shared` event and answers it with this method, and it does not need to belong to the
+        chat with the message — it is enough that the chat is in its workspace.
+
+
+        The domain of the link must be in the bot's list of allowed ones, and the link itself must be present in the
+        message text, otherwise the method responds with an error. The response comes back empty even when no preview
+        has been applied: the result is checked by reading the message again.
       parameters:
         - name: id
           in: path
@@ -3145,12 +3966,15 @@ paths:
   /messages/{id}/pin:
     post:
       operationId: MessageOperations_pinMessage
-      description: |-
+      description: >-
         Pin message
 
-        Pin a message in a chat.
 
-        To pin a message you need to know the message `id` and specify it in the request `URL`.
+        Pins a message in the header of a conversation or a channel, where all members see it. There is no limit on the
+        number of pinned messages.
+
+
+        In threads the method does not work. A message that is already pinned responds `409`, and a deleted one `422`.
       parameters:
         - name: id
           in: path
@@ -3196,12 +4020,12 @@ paths:
         scope: pins:write
     delete:
       operationId: MessageOperations_unpinMessage
-      description: |-
+      description: >-
         Unpin message
 
-        Unpin a message from a chat.
 
-        To unpin a message you need to know the message `id` and specify it in the request `URL`.
+        Removes the pin from a message. If the message was not pinned, the response is still `204`, so a repeated call
+        is safe.
       parameters:
         - name: id
           in: path
@@ -3244,18 +4068,22 @@ paths:
         Add reaction
 
 
-        Add a reaction to a message.
+        Adds an emoji reaction to a message on behalf of the token owner.
 
 
-        To add a reaction you need to know the message `id` and specify it in the request `URL`. Message reactions are
-        sent as `Emoji` characters. If the user has already added the same reaction, it will not be duplicated. To
-        remove a reaction, use the [Delete reaction](DELETE /messages/{id}/reactions) method.
+        The `code` field carries the emoji character itself: text notations such as `+1` or `:+1:` are not accepted by
+        the method. If the user has already added the same reaction, it will not be duplicated. To remove a reaction,
+        use the [Delete reaction](DELETE /messages/{id}/reactions) method.
+
+
+        If there is a thread under the message, the employee who reacted is subscribed to it as well and starts
+        receiving the new messages of the thread.
 
 
         **Reaction limits:**
 
 
-        - Each user can add no more than **20 unique** reactions
+        - Each user can add no more than **20 unique** reactions to a message
 
         - A message can have no more than **30 unique** reactions
 
@@ -3323,14 +4151,11 @@ paths:
         Delete reaction
 
 
-        Remove a reaction from a message.
+        Removes your own reaction from a message.
 
 
-        To remove a reaction you need to know the message `id` and specify it in the request `URL`. Message reactions
-        are stored as `Emoji` characters.
-
-
-        You can only remove reactions that were added by the authenticated user.
+        Someone else's reaction and a reaction that does not exist respond `404`. Removing a reaction does not cancel
+        the thread subscription, if it appeared together with the reaction.
       parameters:
         - name: id
           in: path
@@ -3344,7 +4169,9 @@ paths:
         - name: code
           in: query
           required: true
-          description: Emoji character of the reaction
+          description: >-
+            Emoji character of the reaction. The character itself: text forms such as `+1` or `:+1:` are rejected as an
+            unknown emoji.
           schema:
             type: string
             example: 👍
@@ -3401,7 +4228,9 @@ paths:
       description: |-
         List reactions
 
-        Retrieve the current list of reactions on a message.
+        All reactions on a message and who left them: each record carries a `user_id` and the character itself.
+
+        For a deleted message the list is empty — reactions disappear along with the text and the files.
       parameters:
         - name: id
           in: path
@@ -3490,10 +4319,18 @@ paths:
   /messages/{id}/read_member_ids:
     get:
       operationId: ReadMemberOperations_listReadMembers
-      description: |-
+      description: >-
         List users who read the message
 
-        Retrieve the current list of users who have read the message.
+
+        Which of the chat members have read the feed up to this message. A flat array of IDs is returned.
+
+
+        The caller themselves and the author of the message will never be in the list — only the other members are
+        counted. For a message in a thread these are the members of the thread, not of the parent chat.
+
+
+        The method does not return names. They are fetched with the [Employee info](GET /users/{id}) method for each ID.
       parameters:
         - name: id
           in: path
@@ -3593,11 +4430,26 @@ paths:
         New thread
 
 
-        Create a new thread on a message.
+        Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A
+        thread is a separate access: an employee can be invited into it without opening the chat itself to them, and
+        they will see only the thread and the parent message.
+
+
+        A new thread immediately includes the employee who created it, the author of the message, everyone who added
+        reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the
+        parent message — by name or by tag — is added by a background job right after creation, so the first response
+        may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee
+        who is not in the chat itself is not picked up either.
+
+
+        An empty thread is not a conversation yet: send the first message into it right away with the [New message](POST
+        /messages) method and `entity_type: "thread"`. A thread has no name, and it cannot be deleted either through the
+        API or in the app.
 
 
         If a thread has already been created for the message, the response will return information about the previously
-        created thread.
+        created thread. A thread cannot be created under a message that itself lies in a thread: there are no nested
+        threads in Pachca.
       parameters:
         - name: id
           in: path
@@ -3650,8 +4502,18 @@ paths:
         Token info
 
 
-        Retrieve information about the current OAuth token, including its scopes, creation date, and last usage date.
-        The token in the response is masked — only the first 8 and last 4 characters are visible.
+        Information about the token the request itself was made with: its scopes, its owner, and the dates it was
+        created and last used. The token itself comes back masked — only the first 8 and the last 4 characters are
+        visible.
+
+
+        The method requires no scope and answers any valid token, personal or bot. That makes it convenient for checking
+        a token before work: a live one answers `200`, a revoked or expired one `401`, and the list of scopes
+        immediately shows which methods are available to this token.
+
+
+        Whose token it is can be seen from `user_id`. The owner's full profile is returned by [Own profile](GET
+        /profile).
       parameters: []
       responses:
         '200':
@@ -3677,10 +4539,18 @@ paths:
   /profile:
     get:
       operationId: ProfileOperations_getProfile
-      description: |-
+      description: >-
         Own profile
 
-        Retrieve information about your own profile.
+
+        The profile of the token owner. For a bot token this is the bot's own profile.
+
+
+        The time zone from here is needed by anyone who turns human deadlines into dates: "by 3 p.m." and "by Friday"
+        are counted in the employee's time zone, not in UTC. An empty value means the workspace time zone.
+
+
+        Someone else's profile is returned by [Employee info](GET /users/{id}).
       parameters: []
       responses:
         '200':
@@ -3714,10 +4584,20 @@ paths:
   /profile/avatar:
     put:
       operationId: ProfileAvatarOperations_updateProfileAvatar
-      description: |-
+      description: >-
         Upload own avatar
 
-        Upload or update your profile avatar. The file is sent in `multipart/form-data` format.
+
+        Sets or replaces the avatar of the token owner. The file is sent in `multipart/form-data` format, and the
+        response contains only a link to the new image.
+
+
+        `jpg`, `jpeg`, `png`, and `gif` are accepted, and an animated `gif` must be no larger than 2 MB. The image is
+        scaled down to 1024 by 1024 pixels, and an opaque `png` is stored as `jpg`.
+
+
+        Another employee's avatar is set by [Upload employee avatar](PUT /users/{user_id}/avatar), and that is available
+        only to the workspace owner and an administrator.
       parameters: []
       responses:
         '200':
@@ -3777,10 +4657,12 @@ paths:
         scope: profile_avatar:write
     delete:
       operationId: ProfileAvatarOperations_deleteProfileAvatar
-      description: |-
+      description: >-
         Delete own avatar
 
-        Delete your profile avatar.
+
+        Removes the avatar of the token owner; the interface then shows initials. If there was no avatar, the response
+        is still `204`.
       parameters: []
       responses:
         '204':
@@ -3816,7 +4698,7 @@ paths:
         Own status
 
 
-        Method for retrieving information about your own status.
+        The status of the token owner: the emoji, the title, the expiry, and away mode.
 
 
         If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status
@@ -3855,10 +4737,29 @@ paths:
         scope: profile_status:read
     put:
       operationId: ProfileOperations_updateStatus
-      description: |-
+      description: >-
         New own status
 
-        Set a new status for yourself.
+
+        Sets a status for the token owner: an emoji, a caption, and, if needed, an expiry. It is available to a bot as
+        well — the status will be visible on the bot.
+
+
+        Away mode is turned on by this same method, with the `is_away` flag. `away_message` holds the text shown in the
+        profile and to anyone trying to write to them or mention them. When the `expires_at` moment passes, the whole
+        status is cleared, the mode and that text along with it.
+
+
+        Only the fields you pass are overwritten. To extend the current status it is enough to send `expires_at` alone.
+
+
+        An expiry that an employee names in words — "until three", "until the end of the day" — is exactly `expires_at`,
+        not a part of the caption. It is counted in the employee's time zone, and the zone arrives in [Own profile](GET
+        /profile).
+
+
+        The emoji is required, and there must be exactly one, with no text around it. The caption is required and no
+        longer than 50 characters.
       parameters: []
       responses:
         '200':
@@ -3909,10 +4810,12 @@ paths:
         scope: profile_status:write
     delete:
       operationId: ProfileOperations_deleteStatus
-      description: |-
+      description: >-
         Delete own status
 
-        Delete your current status.
+
+        Removes the status from the token owner, along with away mode and its text. If there was no status, the response
+        is still `204`, so a repeated call is safe.
       parameters: []
       responses:
         '204':
@@ -3936,10 +4839,20 @@ paths:
   /search/chats:
     get:
       operationId: SearchOperations_searchChats
-      description: |-
+      description: >-
         Search chats
 
-        Full-text search for channels and conversations.
+
+        Searches for conversations and channels by name, forgiving typos. It also finds the public chats of the
+        workspace the caller has not joined, and of the private ones only those they belong to.
+
+
+        Direct messages are not searched by default. Pass `personal=true` and the search will go by the name of the
+        other party rather than by the chat name.
+
+
+        The method searches names, not content. To find where something was discussed or agreed, use [Search
+        messages](GET /search/messages).
       parameters:
         - name: query
           in: query
@@ -4077,10 +4990,21 @@ paths:
   /search/messages:
     get:
       operationId: SearchOperations_searchMessages
-      description: |-
+      description: >-
         Search messages
 
-        Full-text search for messages.
+
+        Searches by message text and by the names of attachments, but only in the chats the token owner belongs to. A
+        public channel they have not joined does not make it into the search, even though its feed can be read. Thread
+        messages are included in the results.
+
+
+        The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query in
+        quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it.
+
+
+        By default messages come from newest to oldest. `sort=relevance` switches the results to how well they match the
+        query, where recent messages are still valued higher.
       parameters:
         - name: query
           in: query
@@ -4242,10 +5166,20 @@ paths:
   /search/users:
     get:
       operationId: SearchOperations_searchUsers
-      description: |-
+      description: >-
         Search employees
 
-        Full-text search for employees by name, email, position, and other fields.
+
+        Searches for employees by first and last name, nickname, position, and department. Typos are forgiven only in
+        the first and last name; the other fields need an exact word.
+
+
+        The method searches by email only for those who can see personal data in the workspace. It does not search by
+        phone at all — for that there is [List employees](GET /users) with the `query` parameter.
+
+
+        Deleted employees are never found; suspended ones only when a text query is given, and they stand below the rest
+        in the results. Of the bots, only public ones are found.
       parameters:
         - name: query
           in: query
@@ -4384,7 +5318,7 @@ paths:
         New task
 
 
-        Create a new task.
+        Creates a task and assigns the employees responsible for it.
 
 
         When creating a task, specifying the task type is required: call, meeting, simple reminder, event, or email. No
@@ -4392,14 +5326,23 @@ paths:
         description, it will become the task's text.
 
 
-        A task must have assignees; if none are specified, you are assigned as the responsible person.
+        A task must have assignees; if none are specified, you are assigned as the responsible one.
 
 
         Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current
-        employee list using the [List employees](GET /users) method.
+        employee list using the [List employees](GET /users) method. Assignees the caller cannot see are silently
+        dropped: the response is successful but they are not in `performer_ids`, so check the list in the response.
 
 
-        A task can be linked to a chat by specifying `chat_id`. To link to a chat, you must be a member of that chat.
+        A task can be linked to a conversation with the `chat_id` field — then, besides the author and the assignees,
+        the members of that conversation see it. Whoever links it must belong to that conversation. Tasks are not
+        created in a channel, in a thread, or in an archived chat.
+
+
+        Handing a task to somebody else means changing the assignee with [Edit task](PUT /tasks/{id}).
+
+
+        If a calendar is connected to the workspace or to the profile, the task also appears there as an event.
       parameters: []
       responses:
         '201':
@@ -4466,12 +5409,12 @@ paths:
         List tasks
 
 
-        Retrieve a list of tasks.
+        The tasks available to the token owner.
 
 
         Without the `chat_ids` parameter only your own tasks are returned: those from conversations and channels you are
         a member of, plus tasks with no chat that you created or that are assigned to you. The `chat_ids` parameter
-        changes the selection — all tasks of the listed chats are returned, including those of other people.
+        changes the selection — all tasks of the listed chats are returned, including those of other employees.
       parameters:
         - name: status
           in: query
@@ -4601,12 +5544,15 @@ paths:
   /tasks/{id}:
     get:
       operationId: TaskOperations_getTask
-      description: |-
+      description: >-
         Task info
 
-        Retrieve information about a task.
 
-        To get a task you need to know its `id` and specify it in the request `URL`.
+        The task together with its author, assignees, and the chat it is linked to.
+
+
+        A task is seen by its author, its assignees, and the members of the chat it is linked to. But membership in the
+        chat is enough only to read it: a task can be changed and deleted only by the author or one of the assignees.
       parameters:
         - name: id
           in: path
@@ -4664,11 +5610,20 @@ paths:
         Edit task
 
 
-        Edit a task.
+        Changes a task: only the fields you pass are overwritten.
 
 
-        To edit a task you need to know its `id` and specify it in the request `URL`. All editable task parameters are
-        specified in the request body.
+        Handing a task over to another employee is an edit too: add them to `performer_ids` in place of the previous
+        one.
+
+
+        A completed task is closed with this same method: `status: "done"` ticks it off and keeps it in the list,
+        `status: "undone"` puts it back to work.
+
+
+        Available to the author and the assignees. A member of the chat where the task hangs sees it but cannot change
+        it. The link to a chat cannot be changed: to move a task to another chat, delete it and create it again with the
+        `chat_id` you need.
       parameters:
         - name: id
           in: path
@@ -4740,12 +5695,19 @@ paths:
         scope: tasks:update
     delete:
       operationId: TaskOperations_deleteTask
-      description: |-
+      description: >-
         Delete task
 
-        Delete a task.
 
-        To delete a task you need to know its `id` and specify it in the request `URL`.
+        Removes a task for good: it cannot be restored, and it disappears for the assignees as well. If the task went
+        into a connected calendar, the event is deleted there too.
+
+
+        Available to the author and the assignees. A repeated call responds `404`.
+
+
+        A completed task can be closed while keeping it in the list with [Edit task](PUT /tasks/{id}) and `status:
+        "done"`.
       parameters:
         - name: id
           in: path
@@ -4794,11 +5756,20 @@ paths:
         New standalone thread
 
 
-        Create a standalone thread — a thread not linked to any message.
+        Creates a thread that is not linked to anything: a place for a conversation, a dialogue with an agent, or a call
+        that needs no chat of its own. Any employees can be gathered in it.
 
 
         No request body is required. The thread creator becomes its only member, and the `message_id` and
-        `message_chat_id` fields in the response are returned as `null`.
+        `message_chat_id` fields in the response are returned as `null`. The easiest way to add members to the thread is
+        a mention: `@nickname` or `@tag` at the start or the end of the message text. The [Add users](POST
+        /chats/{id}/members) method by the `chat_id` of the thread works too.
+
+
+        A thread has no name, so send the first message into it right away — that is how employees will understand what
+        it is about. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a
+        thread under it with the [New thread](POST /messages/{id}/thread) method, and if a permanent place with a name
+        is needed, use the [New chat](POST /chats) method.
       parameters: []
       responses:
         '201':
@@ -4848,22 +5819,29 @@ paths:
         List threads
 
 
-        Get a list of available threads.
+        Threads available to the token owner.
 
 
-        Returns threads whose thread chat — or the chat where the thread was created — you are a member of. Public chats
-        you have not joined are not returned — to surface such a thread, you must be a member of the thread chat or of
-        the chat where the thread was created.
+        Returns threads where you belong either to the thread itself or to the chat it was started in. Belonging to the
+        thread is enough: you do not have to join the chat with the parent message, and standalone threads come as well.
+        Threads from open chats of the workspace you have not joined, however, do not make it into the list, even though
+        those chats are available to you.
 
 
         Sorted by the time of the last message in the thread, descending.
+
+
+        A list item carries neither a title nor any text: only the identifiers of the thread, its chat, and the parent
+        message. To find out what a thread is about, read its messages with [List chat messages](GET /messages) by
+        `chat_id`, and a thread known by its topic is found with [Search messages](GET /search/messages).
       parameters:
         - name: last_message_at_after
           in: query
           required: false
           description: >-
-            Filter by the time of the last message in the thread. Returns only threads whose last message time is no
-            earlier than the specified time (in YYYY-MM-DDThh:mm:ss.sssZ format).
+            Filter by the time of the last message in the thread: threads where it is later than the specified one are
+            returned. The value is in ISO-8601, an offset such as `+03:00` is taken into account, and a time without an
+            offset is treated as UTC.
           schema:
             type: string
             format: date-time
@@ -4874,8 +5852,9 @@ paths:
           in: query
           required: false
           description: >-
-            Filter by the time of the last message in the thread. Returns only threads whose last message time is no
-            later than the specified time (in YYYY-MM-DDThh:mm:ss.sssZ format).
+            Filter by the time of the last message in the thread: threads where it is earlier than the specified one are
+            returned. The value is in ISO-8601, an offset such as `+03:00` is taken into account, and a time without an
+            offset is treated as UTC.
           schema:
             type: string
             format: date-time
@@ -4960,12 +5939,22 @@ paths:
   /threads/{id}:
     get:
       operationId: ThreadOperations_getThread
-      description: |-
+      description: >-
         Thread info
 
-        Retrieve information about a thread.
 
-        To get a thread you need to know its `id` and specify it in the request `URL`.
+        The thread's identifiers: its own `id`, the `chat_id` for reading and sending messages, and the message it hangs
+        under. For a standalone thread `message_id` and `message_chat_id` come back as `null`.
+
+
+        The response carries identifiers only: a thread has no name and no message counter, and what it is about can be
+        seen from the conversation inside. The messages of a thread are read with the [List chat messages](GET
+        /messages) method, and its members with the [List chat members](GET /chats/{id}/members) method, both by the
+        `chat_id` of the thread.
+
+
+        Access to a thread is broader than the results of [List threads](GET /threads): a thread that opens by `id` may
+        well not appear in the list.
       parameters:
         - name: id
           in: path
@@ -5020,12 +6009,21 @@ paths:
   /uploads:
     post:
       operationId: UploadOperations_getUploadParams
-      description: |-
+      description: >-
         Get signature, key and other parameters
 
-        Retrieve the signature, key, and other parameters required for file upload.
 
-        This method must be used for each file upload.
+        The first step of a file upload: the method issues the storage address and the signed form fields with which the
+        file is uploaded by the next request.
+
+
+        Nothing is created in Pachca at this point yet: the uploaded file is visible to nobody and linked to nothing. It
+        becomes an attachment when its `key` is passed in the `files` field — to [New message](POST /messages) or [New
+        draft](POST /drafts), and when editing either of them.
+
+
+        The parameters are issued for one file: request them again for each next one. The signature is valid for 14
+        days, and the `key` is tied to the token owner, so someone else's key cannot be attached to your own message.
       parameters: []
       responses:
         '201':
@@ -5063,11 +6061,22 @@ paths:
         New employee
 
 
-        Create a new employee in your workspace.
+        Creates an employee in the workspace and sends them an invitation by email. Available to the workspace owner and
+        an administrator; the method is not available to a bot.
+
+
+        If an employee with this email address already exists in the workspace, the response is `409`. A nickname that
+        is already taken is not treated as an error: random characters are silently appended to it, and the response
+        comes back with the modified one.
 
 
         You can fill in custom properties for the employee that have been created in your workspace. You can get the
         current list of employee custom property IDs using the [List custom properties](GET /custom_properties) method.
+
+
+        The `list_tags` field puts the employee into tags right away, and together with the tags into the chats those
+        tags are linked to. For a guest no tags are assigned at all: the response is successful and `list_tags` in it is
+        empty.
 
 
         Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a
@@ -5136,10 +6145,25 @@ paths:
         scope: users:create
     get:
       operationId: UserOperations_listUsers
-      description: |-
+      description: >-
         List employees
 
-        Retrieve the current list of employees in your workspace.
+
+        Every employee of the workspace except the deleted ones. Suspended employees come together with the rest and are
+        distinguished by the `suspended` field.
+
+
+        Bots in the workspace are employees too and come in the common list with `bot: true`. But they are excluded from
+        the results for `query`: to find a bot by name, page through the list without a search query or use [List
+        bots](GET /bots).
+
+
+        Email and phone come back as `null` if the display of personal data is turned off in the workspace and the
+        caller is not an administrator.
+
+
+        The profile of a single employee is returned by [Employee info](GET /users/{id}), and your own by [Own
+        profile](GET /profile).
       parameters:
         - name: query
           in: query
@@ -5230,12 +6254,20 @@ paths:
   /users/{id}:
     get:
       operationId: UserOperations_getUser
-      description: |-
+      description: >-
         Employee info
 
-        Retrieve information about an employee.
 
-        To get an employee you need to know their `id` and specify it in the request `URL`.
+        The employee's profile.
+
+
+        A suspended employee is returned with `suspended: true`, a deleted one as `404`, like a non-existent one. A bot
+        also comes here as an employee, with `bot: true`.
+
+
+        Email and phone come back as `null` if the display of personal data is turned off in the workspace and the
+        caller is not an administrator. An employee sees their own profile in full — the same one is returned by the
+        [Own profile](GET /profile) method, and without the `users:read` scope.
       parameters:
         - name: id
           in: path
@@ -5293,12 +6325,25 @@ paths:
         Edit employee
 
 
-        Edit an employee.
+        Changes the employee's profile: only the fields you pass are overwritten. Custom property IDs are returned by
+        [List custom properties](GET /custom_properties).
 
 
-        To edit an employee you need to know their `id` and specify it in the request `URL`. All editable employee
-        parameters are specified in the request body. You can get the current list of employee custom property IDs using
-        the [List custom properties](GET /custom_properties) method.
+        The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new
+        one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not
+        exist in the workspace yet creates a new tag together with the assignment.
+
+
+        `suspended: true` suspends the employee: they lose access but remain in chats, tags, and tasks, while
+        `suspended: false` brings them back. An employee is removed for good by [Delete employee](DELETE /users/{id}).
+
+
+        The workspace owner can be edited only by themselves, and their role can be changed only to administrator.
+        Turning a regular employee into a guest is impossible — in both cases the response is `403`.
+
+
+        An unknown role value is silently ignored by the method: the response is successful and the role stays as it
+        was.
       parameters:
         - name: id
           in: path
@@ -5376,12 +6421,25 @@ paths:
         scope: users:update
     delete:
       operationId: UserOperations_deleteUser
-      description: |-
+      description: >-
         Delete employee
 
-        Delete an employee.
 
-        To delete an employee you need to know their `id` and specify it in the request `URL`.
+        Removes an employee from the workspace. This cannot be undone: they can be brought back only with a new
+        invitation, and that will already be a different employee.
+
+
+        What happens: they leave all conversations and channels except direct messages, all tags are taken off them, the
+        tasks where they were the only assignee are deleted, and they are removed from the remaining ones. The messages
+        and files they wrote stay in place.
+
+
+        The workspace owner cannot be deleted — the method responds `403`. A repeated call responds `404`: the method no
+        longer finds a deleted employee.
+
+
+        If the employee is going on vacation or the dismissal is not final yet, use [Edit employee](PUT /users/{id})
+        with `suspended: true`. Suspension is reversible and keeps chats, tags, and tasks.
       parameters:
         - name: id
           in: path
@@ -5426,10 +6484,21 @@ paths:
   /users/{user_id}/avatar:
     put:
       operationId: UserAvatarOperations_updateUserAvatar
-      description: |-
+      description: >-
         Upload employee avatar
 
-        Upload or update an employee's avatar. The file is sent in `multipart/form-data` format.
+
+        Sets or replaces the avatar of another employee. Available to the workspace owner and an administrator; not to a
+        bot. The workspace owner's avatar can be changed only by themselves.
+
+
+        The file is sent in `multipart/form-data` format, and the response contains only a link to the new image. `jpg`,
+        `jpeg`, `png`, and `gif` are accepted, an animated `gif` must be no larger than 2 MB, and the image is scaled
+        down to 1024 by 1024 pixels.
+
+
+        Your own avatar is set by the [Upload own avatar](PUT /profile/avatar) method — it is available to all roles and
+        to bots.
       parameters:
         - name: user_id
           in: path
@@ -5504,10 +6573,15 @@ paths:
         scope: user_avatar:write
     delete:
       operationId: UserAvatarOperations_deleteUserAvatar
-      description: |-
+      description: >-
         Delete employee avatar
 
-        Delete an employee's avatar.
+
+        Removes the avatar of another employee; the interface then shows initials. Available to the workspace owner and
+        an administrator; not to a bot, and the workspace owner's avatar can be removed only by themselves.
+
+
+        If there was no avatar, the response is still `204`.
       parameters:
         - name: user_id
           in: path
@@ -5558,7 +6632,7 @@ paths:
         Employee status
 
 
-        Method for retrieving information about an employee's status.
+        The status of another employee: the emoji, the title, the expiry, and away mode.
 
 
         If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status
@@ -5612,10 +6686,29 @@ paths:
         scope: user_status:read
     put:
       operationId: UserStatusOperations_updateUserStatus
-      description: |-
+      description: >-
         New employee status
 
-        Set a new status for an employee.
+
+        Sets a status for another employee — for example, "on vacation" for the time of their absence. Available to the
+        workspace owner and an administrator; not to a bot, even with the scope.
+
+
+        This same method turns on away mode for that employee with the `is_away` flag and sets the `away_message` text
+        that anyone reaching out to them will see.
+
+
+        The status is seen by everyone who sees the employee in the workspace. Only the fields you pass are overwritten,
+        so someone else's status can be extended with `expires_at` alone.
+
+
+        An expiry named in words is `expires_at`, not a part of the caption, and it is counted in the time zone of the
+        employee the status is set for. The emoji is required and there must be exactly one; the caption is required and
+        no longer than 50 characters.
+
+
+        Your own status is set by the [New own status](PUT /profile/status) method — it is available to all roles and to
+        bots.
       parameters:
         - name: user_id
           in: path
@@ -5681,10 +6774,16 @@ paths:
         scope: user_status:write
     delete:
       operationId: UserStatusOperations_deleteUserStatus
-      description: |-
+      description: >-
         Delete employee status
 
-        Delete an employee's status.
+
+        Removes the status from another employee, along with away mode and its text. Available to the workspace owner
+        and an administrator; not to a bot.
+
+
+        If there was no status, the response is still `204`. Your own status is removed by [Delete own status](DELETE
+        /profile/status).
       parameters:
         - name: user_id
           in: path
@@ -5723,12 +6822,24 @@ paths:
   /views/open:
     post:
       operationId: FormOperations_openView
-      description: |-
+      description: >-
         Open view
 
-        Open a modal window with a view for the user.
 
-        To open a modal window with a view, your application must have a valid, non-expired `trigger_id`.
+        Shows a user a modal window with a form in response to their action. The method is called with a bot token:
+        button click events reach bots only, and the window is opened on behalf of the bot.
+
+
+        There is only one way to open the window — by the `trigger_id` from the button click event. One `trigger_id`
+        opens one window and lives for 3 seconds: for a bot with a webhook, from the moment Pachca delivered the click,
+        and for a bot with the [Event history](GET /webhooks/events), from the moment the click was written to it. That
+        is why the window is opened first of all, and everything else for the event is done afterwards.
+
+
+        The filled-in form comes back as a `view_submit` event: to the outgoing webhook, and if no address is set, to
+        the event history. A webhook is answered in the response to it, and Pachca waits 3 seconds for that. An event
+        from the history is closed with [Respond to a form submission](POST /views/{view_id}/submit_response), and there
+        are 5 seconds for that. Miss the window and the user sees a submission error.
       parameters: []
       responses:
         '201':
@@ -5786,11 +6897,23 @@ paths:
         Respond to a form submission
 
 
-        Respond to a form submission from a bot that has no outgoing webhook address.
+        Closes the form for the employee or shows them errors under the fields. The method is needed by a bot that has
+        no outgoing webhook address set: such a bot has nowhere to answer the webhook, and it receives the `view_submit`
+        event from the [Event history](GET /webhooks/events). If the webhook address is set, answer the webhook directly
+        — that is simpler and does not require polling the history.
 
 
-        The `view_id` and `submit_id` identifiers arrive in the event payload. You must respond within 5 seconds,
-        otherwise the user sees a submission error and the field values are kept for another attempt.
+        The `view_id` and `submit_id` identifiers arrive in the event payload. You must respond within 5 seconds of the
+        form submission, otherwise the employee sees a submission error and the field values are kept for another
+        attempt.
+
+
+        A body without the `errors` field closes the form as successfully submitted; with the `errors` field it shows
+        the error text under each named field.
+
+
+        The response is accepted once. A repeated call with the same `view_id` and `submit_id` pair, as well as a late
+        one, receives `410` with the `submit_expired` code.
       parameters:
         - name: view_id
           in: path
@@ -5866,16 +6989,22 @@ paths:
         Event history
 
 
-        Retrieve the history of a bot's recent events. This method is useful if you cannot receive events in real time
-        at your `URL`, but need to process all events you have subscribed to.
+        The bot's event history: the same thing that goes to the outgoing webhook, but fetched with a request. The
+        method is needed when webhooks cannot be received at your own address — the handler is not reachable from the
+        internet, is not always up, or is being written right now.
 
 
-        Event history is only saved when the "Save event history" option is enabled in the "Outgoing webhook" tab of the
-        bot settings. Specifying a "Webhook `URL`" is not required.
+        The history is kept only when the "Save event history" option is enabled in the "Outgoing webhook" tab of the
+        bot settings. The webhook address does not have to be specified at all, and if it is specified, the event both
+        goes to it and lands in the history.
 
 
-        To retrieve the event history of a specific bot, you need to know its `access_token` and use it in the request.
-        Each event is a webhook `JSON` object.
+        The method works only with a bot token: a personal token has no history of its own. Events are returned from
+        newest to oldest, and an event identifier is a string, not a number.
+
+
+        The history does not clear itself: delete the events you have read with the [Delete event](DELETE
+        /webhooks/events/{id}) method, otherwise they come again on a repeat request.
       parameters:
         - name: limit
           in: query
@@ -5955,14 +7084,15 @@ paths:
   /webhooks/events/{id}:
     delete:
       operationId: BotOperations_deleteWebhookEvent
-      description: |-
+      description: >-
         Delete event
 
-        This method is only available with a bot's `access_token`.
 
-        Delete an event from the bot's event history.
+        Removes an event from the bot's event history. When working through the history, delete an event right after
+        processing it: the history does not clear itself, and everything left in it comes again on a repeat request.
 
-        To delete an event you need to know the bot's `access_token` that owns the event and the event `id`.
+
+        The method works only with the token of the bot the event belongs to.
       parameters:
         - name: id
           in: path
@@ -6062,7 +7192,9 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: Token lifetime in seconds. Always `null` — tokens are issued without expiry.
+          description: >-
+            Token lifetime in seconds. `null` for a token without an expiry — those are issued by the interface. For a
+            token obtained by signing in from the CLI it is `3600`: it lives for an hour and renews itself.
           example: null
         last_used_at:
           type: string
@@ -6152,8 +7284,8 @@ components:
           nullable: true
           description: >-
             Additional error data. Content depends on the error code: `{id: number}` — for custom property errors
-            (property ID), `{record: {type: string, id: number}, query: string}` — for authorization errors. In most
-            cases `null`.
+            (property ID), `{record: {type: string, id: number}, query: string}` — for authorization errors, `{draft_id:
+            number}` — when a draft already exists in this chat. In most cases `null`.
           example: null
       description: Detailed error information
     AuditDetailsBot:
@@ -6249,6 +7381,36 @@ components:
           type: string
           description: New chat name
       description: 'For: chat_renamed'
+    AuditDetailsDeviceAuthorizationApproved:
+      type: object
+      required:
+        - client_id
+        - scopes
+      properties:
+        client_id:
+          type: string
+          description: ID of the OAuth client that was allowed to sign in
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes the employee agreed to
+      description: 'For: oauth_device_authorization_approved'
+    AuditDetailsDeviceAuthorizationDenied:
+      type: object
+      required:
+        - client_id
+        - scopes
+      properties:
+        client_id:
+          type: string
+          description: ID of the OAuth client that was denied the sign-in
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes the client requested
+      description: 'For: oauth_device_authorization_denied'
     AuditDetailsDlp:
       type: object
       required:
@@ -6619,6 +7781,8 @@ components:
         - $ref: '#/components/schemas/AuditDetailsBotOAuthClient'
         - $ref: '#/components/schemas/AuditDetailsOAuthAuthorizationGranted'
         - $ref: '#/components/schemas/AuditDetailsOAuthAuthorizationRevoked'
+        - $ref: '#/components/schemas/AuditDetailsDeviceAuthorizationApproved'
+        - $ref: '#/components/schemas/AuditDetailsDeviceAuthorizationDenied'
         - $ref: '#/components/schemas/AuditDetailsVideoCallStarted'
         - $ref: '#/components/schemas/AuditDetailsVideoCallFinished'
         - $ref: '#/components/schemas/AuditDetailsVideoCallRecording'
@@ -6671,6 +7835,8 @@ components:
         - bot_oauth_client_updated
         - oauth_authorization_granted
         - oauth_authorization_revoked
+        - oauth_device_authorization_approved
+        - oauth_device_authorization_denied
         - video_call_started
         - video_call_finished
         - video_call_recording_ready
@@ -6722,6 +7888,8 @@ components:
         bot_oauth_client_updated: Bot OAuth client settings changed
         oauth_authorization_granted: User granted an OAuth client access to their data
         oauth_authorization_revoked: An OAuth client's access to user data was revoked
+        oauth_device_authorization_approved: Employee confirmed an app sign-in from a device
+        oauth_device_authorization_denied: Employee rejected an app sign-in from a device
         video_call_started: Video call started
         video_call_finished: Video call finished
         video_call_recording_ready: Video call recording ready
@@ -6874,9 +8042,7 @@ components:
           description: Webhook parameters object
         access_token:
           type: string
-          description: >-
-            Bot access token. Returned when the bot is created and when the token is rotated. The current token can also
-            be viewed and copied in the interface — the "API" tab of the bot settings.
+          description: Bot access token. Returned when the bot is created and when the token is rotated.
           example: bm90X2FfcmVhbF90b2tlbg
       description: Created bot parameters
     BotEventName:
@@ -7490,8 +8656,10 @@ components:
         created_at:
           type: string
           format: date-time
-          description: Event date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
-          example: '2025-05-15T14:30:00.000Z'
+          description: >-
+            Event date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ssZ format. In this webhook the time comes without
+            fractions of a second, unlike in the rest.
+          example: '2025-05-15T14:30:00Z'
         webhook_timestamp:
           type: integer
           format: int32
@@ -7707,8 +8875,10 @@ components:
         created_at:
           type: string
           format: date-time
-          description: Event date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
-          example: '2025-05-15T14:30:00.000Z'
+          description: >-
+            Event date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ssZ format. In this webhook the time comes without
+            fractions of a second, unlike in the rest.
+          example: '2025-05-15T14:30:00Z'
         webhook_timestamp:
           type: integer
           format: int32
@@ -7781,26 +8951,405 @@ components:
           description: Property type
           example: string
       description: Custom property
+    Draft:
+      type: object
+      required:
+        - id
+        - entity_type
+        - entity_id
+        - chat_id
+        - content
+        - parent_message_id
+        - files
+        - voice_content
+        - schedule
+        - next_send_at
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Draft ID
+          example: 4821
+        entity_type:
+          allOf:
+            - $ref: '#/components/schemas/MessageEntityType'
+          nullable: true
+          description: >-
+            Where the message will go: to a conversation or a channel, to a thread, or to a direct message with an
+            employee
+          example: discussion
+        entity_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: 'ID of what is named in `entity_type`: the conversation or channel, the thread, or the employee'
+          example: 334
+        chat_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the chat the draft lies in. For a thread draft this is the chat of the thread itself.
+          example: 334
+        content:
+          type: string
+          description: Draft text. A draft made of attachments alone comes with an empty string rather than `null`.
+          example: 'Weekly report: sales are up 10%'
+        parent_message_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the message the draft will be sent as a reply to. `null` if it is not a reply.
+          example: 196093
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+          description: Attached files
+        voice_content:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/VoiceContent'
+          nullable: true
+          description: >-
+            Voice message. `null` if there is no voice attachment. The transcription in `transcript` is always `null`
+            for a draft — it starts after the sending.
+        schedule:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/DraftSchedule'
+          nullable: true
+          description: Sending schedule. `null` for an ordinary draft.
+        next_send_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Next sending (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` for an ordinary draft.
+          example: '2026-09-17T12:00:00.000Z'
+        created_at:
+          type: string
+          format: date-time
+          description: Creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          example: '2026-09-16T10:00:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: Last change date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          example: '2026-09-16T10:00:00.000Z'
+      description: Draft or scheduled message
+    DraftCreateRequest:
+      type: object
+      required:
+        - draft
+      properties:
+        draft:
+          type: object
+          properties:
+            entity_type:
+              allOf:
+                - $ref: '#/components/schemas/MessageEntityType'
+              description: >-
+                Where the draft is written: to a conversation or a channel, to a thread, or to a direct message with an
+                employee
+              example: discussion
+            entity_id:
+              type: integer
+              format: int32
+              description: 'ID of what is named in `entity_type`: the conversation or channel, the thread, or the employee'
+              example: 334
+            content:
+              type: string
+              description: Draft text. It may be omitted if there are attachments, but a draft cannot be empty.
+              example: 'Weekly report: sales are up 10%'
+            parent_message_id:
+              type: integer
+              format: int32
+              nullable: true
+              description: ID of the message the draft will be sent as a reply to. The message must be in the same chat.
+              example: 196093
+            files:
+              type: array
+              items:
+                $ref: '#/components/schemas/DraftFileRequest'
+              maxItems: 10
+              description: Files to attach, no more than ten
+            schedule:
+              type: object
+              allOf:
+                - $ref: '#/components/schemas/DraftScheduleRequest'
+              nullable: true
+              description: Sending schedule. With it a scheduled message is created, without it an ordinary draft.
+          required:
+            - entity_type
+            - entity_id
+          description: Draft parameters object
+      description: Draft creation request
+    DraftFileRequest:
+      type: object
+      required:
+        - key
+        - name
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: >-
+            ID of a file that is already attached. It is passed when editing, to keep the attachment as it is. For a new
+            file it is not specified.
+          example: 3560
+        key:
+          type: string
+          maxLength: 1000
+          description: File path obtained from the [Upload file](POST /direct_url) method
+          example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png
+        name:
+          type: string
+          maxLength: 255
+          description: File name to display to the user
+          example: logo.png
+        file_type:
+          allOf:
+            - $ref: '#/components/schemas/FileType'
+          description: File type
+          example: image
+        size:
+          type: integer
+          format: int64
+          description: File size in bytes, displayed to the user
+          example: 12345
+        width:
+          type: integer
+          format: int32
+          description: Image width in pixels
+          example: 800
+        height:
+          type: integer
+          format: int32
+          description: Image height in pixels
+          example: 600
+        duration_ms:
+          type: integer
+          format: int32
+          description: Duration in milliseconds. Required for a voice message (`file_type` is `voice`).
+          example: 5400
+        waveform:
+          type: string
+          maxLength: 256
+          description: Waveform for visualization. Required for a voice message (`file_type` is `voice`).
+          example: 4,8,12,20,16,10,6,3
+      description: File attached to a draft
+    DraftRepetition:
+      type: object
+      required:
+        - interval
+      properties:
+        interval:
+          allOf:
+            - $ref: '#/components/schemas/DraftRepetitionInterval'
+          description: Repetition interval
+          example: weekly
+        days:
+          type: array
+          items:
+            type: integer
+            format: int32
+          description: 'Days of the week the message goes out on: 0 — Sunday, 6 — Saturday. Comes only with the `weekly` interval.'
+          example:
+            - 1
+            - 3
+        nth_day:
+          type: integer
+          format: int32
+          nullable: true
+          description: >-
+            Which occurrence of the weekday in the month: 1 to 4 — the first, the second, the third, the fourth, 5 — the
+            last. Comes only with a monthly interval, and `null` there means repetition by the day of the month from
+            `start_date`.
+          example: 2
+      description: Repetition rule of a scheduled message
+    DraftRepetitionInterval:
+      type: string
+      enum:
+        - once
+        - daily
+        - weekly
+        - monthly
+        - every_2_months
+        - every_3_months
+        - every_4_months
+        - every_6_months
+        - yearly
+      description: Repetition interval of a scheduled message
+      x-enum-descriptions:
+        once: Once
+        daily: Every day
+        weekly: Every week
+        monthly: Every month
+        every_2_months: Every two months
+        every_3_months: Every three months
+        every_4_months: Every four months
+        every_6_months: Every six months
+        yearly: Every year
+    DraftRepetitionRequest:
+      type: object
+      required:
+        - interval
+      properties:
+        interval:
+          allOf:
+            - $ref: '#/components/schemas/DraftRepetitionInterval'
+          description: Repetition interval
+          example: weekly
+        days:
+          type: array
+          items:
+            type: integer
+            format: int32
+          maxItems: 7
+          description: >-
+            Days of the week the message goes out on: 0 — Sunday, 6 — Saturday. Taken into account only with the
+            `weekly` interval; if not passed, the day of the week is taken from `start_date`.
+          example:
+            - 1
+            - 3
+        nth_day:
+          type: integer
+          format: int32
+          nullable: true
+          minimum: 1
+          maximum: 5
+          description: >-
+            Which occurrence of the weekday in the month: 1 to 4 — the first, the second, the third, the fourth, 5 — the
+            last. Taken into account only with a monthly interval; without it the repetition goes by the day of the
+            month from `start_date`.
+          example: 2
+      description: Repetition rule in the request
+    DraftSchedule:
+      type: object
+      required:
+        - start_date
+        - end_date
+        - repetition
+      properties:
+        start_date:
+          type: string
+          format: date-time
+          description: >-
+            First sending (ISO-8601). The time of day, the day of the month, and the day of the week on which the
+            repetition is built further are taken from it.
+          example: '2026-09-17T12:00:00.000Z'
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date after which the repetition stops (ISO-8601). `null` if no end is set.
+          example: '2026-12-31T12:00:00.000Z'
+        repetition:
+          allOf:
+            - $ref: '#/components/schemas/DraftRepetition'
+          description: Repetition rule
+      description: Sending schedule of a scheduled message
+    DraftScheduleRequest:
+      type: object
+      required:
+        - start_date
+        - repetition
+      properties:
+        start_date:
+          type: string
+          format: date-time
+          description: >-
+            First sending (ISO-8601). The time of day, the day of the month, and the day of the week on which the
+            repetition is built further are taken from it. An offset such as `+03:00` is taken into account, and a time
+            without an offset is treated as UTC.
+          example: '2026-09-17T12:00:00.000Z'
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date after which the repetition stops (ISO-8601). Without it the repetition goes on indefinitely.
+          example: '2026-12-31T12:00:00.000Z'
+        repetition:
+          allOf:
+            - $ref: '#/components/schemas/DraftRepetitionRequest'
+          description: Repetition rule
+      description: Sending schedule in the request
+    DraftType:
+      type: string
+      enum:
+        - regular
+        - scheduled
+        - all
+      description: What to return in the list of drafts
+      x-enum-descriptions:
+        regular: Ordinary drafts
+        scheduled: Scheduled messages
+        all: Both drafts and scheduled messages
+    DraftUpdateRequest:
+      type: object
+      required:
+        - draft
+      properties:
+        draft:
+          type: object
+          properties:
+            content:
+              type: string
+              description: Draft text
+              example: 'Weekly report: sales are up 10%'
+            parent_message_id:
+              type: integer
+              format: int32
+              nullable: true
+              description: ID of the message the draft will be sent as a reply to. `null` removes the reply.
+              example: 196093
+            files:
+              type: array
+              items:
+                $ref: '#/components/schemas/DraftFileRequest'
+              maxItems: 10
+              description: >-
+                Files to attach, no more than ten. The array you pass replaces the previous set: an empty one removes
+                all the attachments, and to keep a file that is already attached, pass it with its `ID`. Without this
+                field the attachments stay as they were.
+            schedule:
+              type: object
+              allOf:
+                - $ref: '#/components/schemas/DraftScheduleRequest'
+              nullable: true
+              description: >-
+                Sending schedule. For an ordinary draft it turns the draft into a scheduled message. For a scheduled
+                message the schedule can be changed but not removed: `null` gives `422` with the
+                `draft_type_change_forbidden` code in response.
+          description: Object of the draft parameters being changed
+      description: Draft update request
     ExportRequest:
       type: object
       required:
         - start_at
         - end_at
-        - webhook_url
       properties:
         start_at:
           type: string
           format: date
-          description: Export start date (ISO-8601, UTC+0) in YYYY-MM-DD format
+          description: >-
+            Export start date in YYYY-MM-DD format. If a date with a time is sent, the time is silently dropped — the
+            export always goes by calendar days.
           example: '2025-03-20'
         end_at:
           type: string
           format: date
-          description: Export end date (ISO-8601, UTC+0) in YYYY-MM-DD format
+          description: >-
+            Export end date in YYYY-MM-DD format, inclusive. If a date with a time is sent, the time is silently
+            dropped.
           example: '2025-03-20'
         webhook_url:
           type: string
-          description: URL to receive a webhook when the export is complete
+          description: >-
+            Address that the webhook with the number of the finished export arrives at. Without it there is nowhere to
+            take the number from: the person who ordered it gets an email and a notification, and the calling program
+            gets nothing.
           example: https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2
         chat_ids:
           type: array
@@ -7864,7 +9413,28 @@ components:
             Image height in pixels. `null` for files that are not images, and if the size was not supplied at upload
             time.
           example: 1080
+        duration_ms:
+          type: integer
+          format: int32
+          nullable: true
+          description: >-
+            Duration in milliseconds for a voice, an audio, and a video file. `null` for the other files and if the
+            duration was not supplied at upload time.
+          example: 5400
       description: File
+    FileTarget:
+      type: string
+      enum:
+        - pdf_preview
+        - pdf_first_page
+        - thumb
+        - image
+      description: What to return instead of the original file
+      x-enum-descriptions:
+        pdf_preview: The document converted to PDF
+        pdf_first_page: The first page of the document as an image
+        thumb: A scaled-down copy of the image
+        image: The image as it is
     FileType:
       type: string
       enum:
@@ -7872,12 +9442,14 @@ components:
         - image
         - audio
         - voice
+        - video
       description: File type
       x-enum-descriptions:
         file: Regular file
         image: Image
         audio: Audio file
         voice: Voice message
+        video: Video file
     FileUploadRequest:
       type: object
       properties:
@@ -8052,7 +9624,7 @@ components:
           properties:
             key:
               type: string
-              description: Image path obtained from [file upload](POST /direct_url)
+              description: Image path obtained from the [Upload file](POST /direct_url) method
               example: attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}
             name:
               type: string
@@ -8315,7 +9887,7 @@ components:
             entity_id:
               type: integer
               format: int32
-              description: Entity ID
+              description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or an employee.'
               example: 334
             content:
               type: string
@@ -8329,7 +9901,7 @@ components:
                   key:
                     type: string
                     maxLength: 1000
-                    description: File path obtained from [file upload](POST /direct_url)
+                    description: File path obtained from the [Upload file](POST /direct_url) method
                     example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png
                   name:
                     type: string
@@ -8397,7 +9969,9 @@ components:
             parent_message_id:
               type: integer
               format: int32
-              description: Message ID. Specify when sending a reply to another message.
+              description: >-
+                ID of the message you are replying to. The reply appears right in the chat feed rather than in a thread:
+                to write into a thread, send the message with `entity_type: "thread"`.
               example: 194270
             display_avatar_url:
               type: string
@@ -8473,7 +10047,7 @@ components:
                   key:
                     type: string
                     maxLength: 1000
-                    description: File path obtained from [file upload](POST /direct_url)
+                    description: File path obtained from the [Upload file](POST /direct_url) method
                     example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png
                   name:
                     type: string
@@ -8515,8 +10089,9 @@ components:
                     type: string
                     maxLength: 256
                     description: >-
-                      Waveform for visualizing the voice message. Required for voice messages (`file_type` is `voice`),
-                      not used for other types.
+                      Waveform for visualizing the voice message. Without it a request with a voice file (`file_type` is
+                      `voice`) does not pass validation, but when editing, the value that was sent is not saved. Not
+                      used for other types.
                     example: 4,8,12,20,16,10,6,3
                 required:
                   - key
@@ -8713,6 +10288,8 @@ components:
         - search:users
         - search:chats
         - search:messages
+        - drafts:read
+        - drafts:write
       description: OAuth token access scope
       x-scope-roles:
         chats_read:
@@ -8955,6 +10532,14 @@ components:
           - admin
           - user
           - bot
+        drafts_read:
+          - owner
+          - admin
+          - user
+        drafts_write:
+          - owner
+          - admin
+          - user
       x-enum-descriptions:
         chats_read: View chats and chat list
         chats_create: Create new chats
@@ -9011,6 +10596,8 @@ components:
         search_users: Search employees
         search_chats: Search chats
         search_messages: Search messages
+        drafts_read: View drafts and scheduled messages
+        drafts_write: Create, edit, and delete drafts and scheduled messages
     OpenViewRequest:
       type: object
       required:
@@ -9146,7 +10733,9 @@ components:
       properties:
         code:
           type: string
-          description: Reaction emoji character
+          description: >-
+            Reaction emoji character. The character itself: text forms such as `+1` or `:+1:` are rejected as an unknown
+            emoji.
           example: 👍
         name:
           type: string
@@ -9289,7 +10878,10 @@ components:
             expires_at:
               type: string
               format: date-time
-              description: Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+              description: >-
+                Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time
+                without an offset is read as UTC. A deadline the person names in words goes here: «until three» is the
+                value of this field, not part of the title.
               example: '2024-04-08T10:00:00.000Z'
             is_away:
               type: boolean
@@ -9337,6 +10929,7 @@ components:
       type: array
       items:
         type: string
+      maxItems: 100
       description: Array of tag names
       example:
         - Design
@@ -9442,8 +11035,9 @@ components:
               type: string
               format: date-time
               description: >-
-                Task due date (ISO-8601) in YYYY-MM-DDThh:mm:ss.sssTZD format. If the time is set to 23:59:59.000, the
-                task will be created as an all-day task (without specific time).
+                Task due date (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset
+                is treated as UTC. Seconds are dropped: the due date lands on the start of the minute. The exception is
+                exactly 23:59:59: such a task is created as an all-day one, without a specific time.
               example: '2020-06-05T12:00:00.000+03:00'
             priority:
               type: integer
@@ -9539,8 +11133,9 @@ components:
               type: string
               format: date-time
               description: >-
-                Task due date (ISO-8601) in YYYY-MM-DDThh:mm:ss.sssTZD format. If the time is set to 23:59:59.000, the
-                task will be created as an all-day task (without specific time).
+                Task due date (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset
+                is treated as UTC. Seconds are dropped: the due date lands on the start of the minute. The exception is
+                exactly 23:59:59: such a task is created as an all-day one, without a specific time.
               example: '2020-06-05T12:00:00.000+03:00'
             priority:
               type: integer
@@ -9569,7 +11164,10 @@ components:
             done_at:
               type: string
               format: date-time
-              description: Task completion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+              description: >-
+                Task completion date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time
+                without an offset is treated as UTC. A value that could not be parsed removes the completion mark: the
+                response comes back successful, and `done_at` in it is `null`.
               example: '2020-06-05T12:00:00.000Z'
             custom_properties:
               type: array
@@ -9603,14 +11201,14 @@ components:
         id:
           type: integer
           format: int64
-          description: Created thread ID (used to send [new comments](POST /messages) to the thread)
+          description: Created thread ID (the thread is written to with the [New message](POST /messages) method)
           example: 265142
         chat_id:
           type: integer
           format: int64
           description: >-
-            Thread chat ID (used to send [new comments](POST /messages) to the thread and to get the [list of
-            comments](GET /messages))
+            Thread chat ID (it is used to write to the thread with the [New message](POST /messages) method and to read
+            it with the [List chat messages](GET /messages) method)
           example: 2637266155
         message_id:
           type: integer
@@ -9744,16 +11342,18 @@ components:
           nullable: true
           maxLength: 255
           description: >-
-            Email. Returns `null` for bots without permission to view personal data, and when a bot for which personal
-            data of employees is hidden requests another user's data.
+            Email. In someone else's card it comes as `null` if the caller has no right to see personal data: the
+            workspace owner and an administrator always have it, an employee and a bot only when showing personal data
+            is enabled in the workspace, and a guest never. In your own card the field always comes.
           example: olegp@example.com
         phone_number:
           type: string
           nullable: true
           maxLength: 255
           description: >-
-            Phone number. Returns `null` for bots without permission to view personal data, and when a bot for which
-            personal data of employees is hidden requests another user's data.
+            Phone number. In someone else's card it comes as `null` if the caller has no right to see personal data: the
+            workspace owner and an administrator always have it, an employee and a bot only when showing personal data
+            is enabled in the workspace, and a guest never. In your own card the field always comes.
           example: '+79001234567'
         department:
           type: string
@@ -10042,7 +11642,7 @@ components:
           nullable: true
           description: >-
             "Away" mode message. Displayed in the user profile, as well as when sending a direct message or mentioning
-            them in a chat. `null` if the auto-reply text is not set.
+            them in a chat. `null` if the text is not set.
       description: User status
     UserUpdateRequest:
       type: object
@@ -10103,6 +11703,7 @@ components:
               description: Array of tags to assign to the employee
               example:
                 - Product
+                - Design
             custom_properties:
               type: array
               items:
@@ -10155,6 +11756,13 @@ components:
         - self_update
         - owner_protected
         - already_assigned
+        - next_send_at_invalid
+        - schedule_invalid
+        - schedule_end_date_invalid
+        - scheduled_messages_limit
+        - draft_type_change_forbidden
+        - confidential_download_denied
+        - decryption_failed
         - forbidden
         - permission_denied
         - access_denied
@@ -10217,6 +11825,13 @@ components:
         view_not_found: View not found or belongs to a different bot
         submit_expired: The response window for the form submission has expired, or a response was already accepted
         service_unavailable: Service temporarily unavailable, retry the request
+        next_send_at_invalid: The next sending of the scheduled message falls in the past
+        schedule_invalid: The schedule of the scheduled message does not add up to a repetition
+        schedule_end_date_invalid: The schedule ends earlier than the next sending
+        scheduled_messages_limit: Scheduled message limit per chat exceeded (50)
+        draft_type_change_forbidden: A scheduled message cannot be turned back into a draft
+        confidential_download_denied: 'Downloading the file is denied: the request has to come from the secure perimeter'
+        decryption_failed: The file could not be decrypted
     VideoCallEventType:
       type: string
       enum:
@@ -11018,12 +12633,16 @@ components:
         message_id:
           type: integer
           format: int32
-          description: ID of the message the thread was created for
+          nullable: true
+          description: >-
+            ID of the message the thread was created for. `null` for a thread without a parent message — such threads
+            are created by [New standalone thread](POST /threads).
           example: 12345
         message_chat_id:
           type: integer
           format: int32
-          description: ID of the chat of the message the thread was created for
+          nullable: true
+          description: ID of the chat of the message the thread was created for. `null` for a thread without a parent message.
           example: 67890
       description: Thread object in the message webhook
     WebhookPayloadUnion:
@@ -11084,12 +12703,16 @@ components:
         message_id:
           type: integer
           format: int32
-          description: ID of the message the thread was created for
+          nullable: true
+          description: >-
+            ID of the message the thread was created for. `null` for a thread without a parent message — such threads
+            are created by [New standalone thread](POST /threads).
           example: 268092
         message_chat_id:
           type: integer
           format: int32
-          description: Chat ID of the message the thread was created for
+          nullable: true
+          description: Chat ID of the message the thread was created for. `null` for a thread without a parent message.
           example: 23438
       description: Parameters of the thread the video call takes place in
   securitySchemes:

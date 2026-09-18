@@ -573,6 +573,48 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       notes: 'Соблюдай rate limit: ~4 req/sec для сообщений. Добавляй паузы при большом списке.',
       notesEn: 'Respect rate limit: ~4 req/sec for messages. Add delays for large lists.',
     },
+    {
+      title: 'Отправить сообщение позже или по расписанию',
+      titleEn: 'Send a message later or on a schedule',
+      steps: [
+        {
+          description: 'Найди чат, в который нужно написать',
+          descriptionEn: 'Find the chat to write to',
+          command: 'pachca search list-chats --query="название"',
+          apiMethod: 'GET',
+          apiPath: '/search/chats',
+        },
+        {
+          description:
+            'Создай отложенное сообщение: `schedule.start_date` — когда отправить, `schedule.repetition.interval` — как повторять (`once`, если один раз)',
+          descriptionEn:
+            'Create a scheduled message: `schedule.start_date` is when to send, `schedule.repetition.interval` is how to repeat (`once` for a single send)',
+          command:
+            'pachca drafts create --entity-type=discussion --entity-id=<chat_id> --content="Текст" --schedule=\'{"start_date":"2026-09-17T09:00:00Z","repetition":{"interval":"once"}}\'',
+          apiMethod: 'POST',
+          apiPath: '/drafts',
+          notes:
+            'Время без смещения считается UTC: переведи местное время сотрудника сами или пришли со смещением. Повтор по дням недели — `interval: "weekly"` и `days` (0 — воскресенье). В ответе `next_send_at` — ближайшая отправка, сверься с ней.',
+          notesEn:
+            'Time without an offset is read as UTC: convert the employee local time yourself or send an offset. To repeat on weekdays use `interval: "weekly"` with `days` (0 is Sunday). The response has `next_send_at` — check it.',
+        },
+        {
+          description: 'Чтобы отменить отправку — удали отложенное сообщение',
+          descriptionEn: 'To cancel the send, delete the scheduled message',
+          command: 'pachca drafts delete <ID>',
+          apiMethod: 'DELETE',
+          apiPath: '/drafts/{id}',
+          notes: 'Другого способа отменить нет: снять расписание правкой нельзя',
+          notesEn: 'There is no other way to cancel: the schedule cannot be removed by an update',
+        },
+      ],
+      notes:
+        'Метод недоступен токенам ботов — скоупы `drafts:read` и `drafts:write` выдаются только людям. Без `schedule` тот же метод создаёт обычный черновик: он никуда не уйдёт, а будет ждать человека в интерфейсе. Обычный черновик в чате может быть только один, повторный ответит `409`, а отложенных бывает до 50 на чат.',
+      notesEn:
+        'Bot tokens cannot use this: the `drafts:read` and `drafts:write` scopes are issued to people only. Without `schedule` the same method creates a regular draft: it is not sent anywhere and waits for the person in the interface. A chat can hold only one regular draft, a second one returns `409`; scheduled messages are limited to 50 per chat.',
+      related: ['Найти чат по имени и отправить сообщение'],
+      relatedEn: ['Find chat by name and send message'],
+    },
   ],
   'pachca-chats': [
     {
@@ -704,8 +746,10 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
             'pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>',
           apiMethod: 'POST',
           apiPath: '/chats/exports',
-          notes: '`start_at`, `end_at` (YYYY-MM-DD), `webhook_url` обязателен — запрос асинхронный',
-          notesEn: '`start_at`, `end_at` (YYYY-MM-DD), `webhook_url` required — request is async',
+          notes:
+            '`start_at`, `end_at` (YYYY-MM-DD). Запрос асинхронный: ответ приходит пустым, без номера выгрузки. `webhook_url` формально не обязателен, но без него номер взять неоткуда — присылай его всегда',
+          notesEn:
+            '`start_at`, `end_at` (YYYY-MM-DD). The request is async: the response is empty and carries no export id. `webhook_url` is not formally required, but without it there is nowhere to get the id — always send it',
         },
         {
           description:
@@ -828,9 +872,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
         {
           description:
-            'Сохрани `access_token` из ответа — он возвращается единственный раз. Посмотреть выданный токен повторно можно только в интерфейсе (вкладка «API» настроек бота), а перевыпустить — командой `pachca bots recreate-token <ID>`',
+            'Сохрани `access_token` из ответа — он возвращается единственный раз. Повторно его не показывают, можно только перевыпустить командой `pachca bots recreate-token <ID>`',
           descriptionEn:
-            'Save `access_token` from the response — it is returned only once. The issued token can be viewed again only in the interface (the "API" tab of the bot settings), and re-issued with `pachca bots recreate-token <ID>`',
+            'Save `access_token` from the response — it is returned only once. It is never shown again and can only be reissued with `pachca bots recreate-token <ID>`',
         },
         {
           description:
@@ -896,8 +940,8 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           command: 'pachca bots update <bot_id> --outgoing-url="https://example.com/webhook"',
           apiMethod: 'PUT',
           apiPath: '/bots/{id}',
-          notes: '`id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота',
-          notesEn: 'Bot `id` (its `user_id`) can be found in "API" tab of bot settings',
+          notes: '`id` бота можно узнать методом `pachca bots list`',
+          notesEn: 'Bot `id` can be found with `pachca bots list`',
         },
         {
           description:

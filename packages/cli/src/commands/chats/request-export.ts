@@ -15,7 +15,7 @@ export default class ChatsRequestExport extends BaseCommand {
   static plan = "corporation";
   static apiMethod = "POST";
   static apiPath = "/chats/exports";
-  static requiredFlags = ["start-at","end-at","webhook-url"];
+  static requiredFlags = ["start-at","end-at"];
 
   static override args = {
 
@@ -24,13 +24,13 @@ export default class ChatsRequestExport extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'start-at': Flags.string({
-      description: "Дата начала для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD",
+      description: "Дата начала для экспорта в формате YYYY-MM-DD. Если прислать дату со временем, время молча отбрасывается — экспорт всегда идёт по календарным дням.",
     }),
     'end-at': Flags.string({
-      description: "Дата окончания для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD",
+      description: "Дата окончания для экспорта в формате YYYY-MM-DD, включительно. Если прислать дату со временем, время молча отбрасывается.",
     }),
     'webhook-url': Flags.string({
-      description: "Адрес, на который будет отправлен вебхук по завершению экспорта",
+      description: "Адрес, на который придёт вебхук с номером готовой выгрузки. Без него узнать номер неоткуда: заказавший получит письмо и уведомление, а вызывающая программа — ничего.",
     }),
     'chat-ids': Flags.string({
       description: "Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов.",
@@ -46,9 +46,8 @@ export default class ChatsRequestExport extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'start-at', label: "Дата начала для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD", type: 'string' },
-      { flag: 'end-at', label: "Дата окончания для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD", type: 'string' },
-      { flag: 'webhook-url', label: "Адрес, на который будет отправлен вебхук по завершению экспорта", type: 'string' },
+      { flag: 'start-at', label: "Дата начала для экспорта в формате YYYY-MM-DD. Если прислать дату со временем, время молча отбрасывается — экспорт всегда идёт по календарным дням.", type: 'string' },
+      { flag: 'end-at', label: "Дата окончания для экспорта в формате YYYY-MM-DD, включительно. Если прислать дату со временем, время молча отбрасывается.", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {
@@ -63,7 +62,7 @@ export default class ChatsRequestExport extends BaseCommand {
       } else {
         this.validationError(
           missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
-          { hint: "Обязательные: --start-at <string>, --end-at <string>, --webhook-url <string>. pachca introspect chats request-export" },
+          { hint: "Обязательные: --start-at <string>, --end-at <string>. pachca introspect chats request-export" },
         );
       }
     }

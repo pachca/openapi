@@ -306,6 +306,8 @@ export async function makeApiRequest(
   };
 
   const MAX_RETRIES = 3;
+  // Дольше минуты ждут только суточный предел и часовой бан — их не повторяем.
+  const MAX_RETRY_AFTER_SEC = 60;
   for (let attempt = 0; ; attempt++) {
     const response = (await this.helpers.httpRequestWithAuthentication.call(
       this, 'pachcaApi', options,
@@ -328,9 +330,16 @@ export async function makeApiRequest(
     if (retryable && attempt < MAX_RETRIES) {
       const respHeaders = response.headers as Record<string, string> | undefined;
       const retryAfter = parseInt(respHeaders?.['retry-after'] ?? '', 10);
-      const delaySec = retryAfter || Math.pow(2, attempt) * (0.5 + Math.random());
-      await sleep(delaySec * 1000);
-      continue;
+      // Дольше минуты ждут только суточный предел чата и часовой бан. Повторять их
+      // нельзя: прогон сценария вставал бы на часы, а ранний повтор ещё и удваивает
+      // паузу. Такой ответ уходит наверх ошибкой — в ней есть Retry-After.
+      const waitsTooLong = Number.isFinite(retryAfter) && retryAfter > MAX_RETRY_AFTER_SEC;
+      if (!waitsTooLong) {
+        // Retry-After — это минимум ожидания, а не оценка: ждать меньше нельзя.
+        const base = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : Math.pow(2, attempt);
+        await sleep(base * (1 + Math.random() * 0.25) * 1000);
+        continue;
+      }
     }
 
     if (response.statusCode >= 400) {

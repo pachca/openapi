@@ -90,6 +90,10 @@ export enum AuditEventKey {
   OauthAuthorizationGranted = "oauth_authorization_granted",
   /** Доступ OAuth-клиента к данным пользователя отозван */
   OauthAuthorizationRevoked = "oauth_authorization_revoked",
+  /** Сотрудник подтвердил вход приложения с устройства */
+  OauthDeviceAuthorizationApproved = "oauth_device_authorization_approved",
+  /** Сотрудник отклонил вход приложения с устройства */
+  OauthDeviceAuthorizationDenied = "oauth_device_authorization_denied",
   /** Видеозвонок начат */
   VideoCallStarted = "video_call_started",
   /** Видеозвонок завершён */
@@ -246,6 +250,50 @@ export enum CustomPropertyDataType {
   Link = "link",
 }
 
+/** Периодичность повтора отложенного сообщения */
+export enum DraftRepetitionInterval {
+  /** Один раз */
+  Once = "once",
+  /** Каждый день */
+  Daily = "daily",
+  /** Каждую неделю */
+  Weekly = "weekly",
+  /** Каждый месяц */
+  Monthly = "monthly",
+  /** Раз в два месяца */
+  Every2Months = "every_2_months",
+  /** Раз в три месяца */
+  Every3Months = "every_3_months",
+  /** Раз в четыре месяца */
+  Every4Months = "every_4_months",
+  /** Раз в полгода */
+  Every6Months = "every_6_months",
+  /** Раз в год */
+  Yearly = "yearly",
+}
+
+/** Что возвращать в списке черновиков */
+export enum DraftType {
+  /** Обычные черновики */
+  Regular = "regular",
+  /** Отложенные сообщения */
+  Scheduled = "scheduled",
+  /** И черновики, и отложенные сообщения */
+  All = "all",
+}
+
+/** Что отдать вместо исходного файла */
+export enum FileTarget {
+  /** Документ, переведённый в PDF */
+  PdfPreview = "pdf_preview",
+  /** Первая страница документа картинкой */
+  PdfFirstPage = "pdf_first_page",
+  /** Уменьшенная копия изображения */
+  Thumb = "thumb",
+  /** Изображение как есть */
+  Image = "image",
+}
+
 /** Тип файла */
 export enum FileType {
   /** Обычный файл */
@@ -256,6 +304,8 @@ export enum FileType {
   Audio = "audio",
   /** Голосовое сообщение */
   Voice = "voice",
+  /** Видеофайл */
+  Video = "video",
 }
 
 /** Статус приглашения пользователя */
@@ -409,6 +459,10 @@ export enum OAuthScope {
   SearchChats = "search:chats",
   /** Поиск сообщений */
   SearchMessages = "search:messages",
+  /** Просмотр черновиков и отложенных сообщений */
+  DraftsRead = "drafts:read",
+  /** Создание, изменение и удаление черновиков и отложенных сообщений */
+  DraftsWrite = "drafts:write",
 }
 
 /** Тип события webhook для реакций */
@@ -575,6 +629,20 @@ export enum ValidationErrorCode {
   OwnerProtected = "owner_protected",
   /** Значение уже назначено */
   AlreadyAssigned = "already_assigned",
+  /** Ближайшая отправка отложенного сообщения приходится на прошлое */
+  NextSendAtInvalid = "next_send_at_invalid",
+  /** Расписание отложенного сообщения не складывается в повтор */
+  ScheduleInvalid = "schedule_invalid",
+  /** Расписание заканчивается раньше ближайшей отправки */
+  ScheduleEndDateInvalid = "schedule_end_date_invalid",
+  /** Превышен лимит отложенных сообщений на чат (50) */
+  ScheduledMessagesLimit = "scheduled_messages_limit",
+  /** Отложенное сообщение нельзя превратить обратно в черновик */
+  DraftTypeChangeForbidden = "draft_type_change_forbidden",
+  /** Скачивание файла запрещено: нужен запрос из безопасного контура */
+  ConfidentialDownloadDenied = "confidential_download_denied",
+  /** Не удалось расшифровать файл */
+  DecryptionFailed = "decryption_failed",
   /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
   Forbidden = "forbidden",
   /** Доступ запрещён (недостаточно прав) */
@@ -696,6 +764,16 @@ export interface AuditDetailsChatPermission {
 export interface AuditDetailsChatRenamed {
   oldName: string;
   newName: string;
+}
+
+export interface AuditDetailsDeviceAuthorizationApproved {
+  clientId: string;
+  scopes: string[];
+}
+
+export interface AuditDetailsDeviceAuthorizationDenied {
+  clientId: string;
+  scopes: string[];
 }
 
 export interface AuditDetailsDlp {
@@ -1001,10 +1079,81 @@ export interface CustomPropertyDefinition {
   dataType: CustomPropertyDataType;
 }
 
+export interface Draft {
+  id: number;
+  entityType: MessageEntityType | null;
+  entityId: number | null;
+  chatId: number | null;
+  content: string;
+  parentMessageId: number | null;
+  files: File[];
+  voiceContent: VoiceContent | null;
+  schedule: DraftSchedule | null;
+  nextSendAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DraftCreateRequest {
+  draft: {
+    entityType: MessageEntityType;
+    entityId: number;
+    content?: string;
+    parentMessageId?: number | null;
+    files?: DraftFileRequest[];
+    schedule?: DraftScheduleRequest | null;
+  };
+}
+
+export interface DraftFileRequest {
+  id?: number;
+  key: string;
+  name: string;
+  fileType?: FileType;
+  size?: number;
+  width?: number;
+  height?: number;
+  durationMs?: number;
+  waveform?: string;
+}
+
+export interface DraftRepetition {
+  interval: DraftRepetitionInterval;
+  days?: number[];
+  nthDay?: number | null;
+}
+
+export interface DraftRepetitionRequest {
+  interval: DraftRepetitionInterval;
+  days?: number[];
+  nthDay?: number | null;
+}
+
+export interface DraftSchedule {
+  startDate: string;
+  endDate: string | null;
+  repetition: DraftRepetition;
+}
+
+export interface DraftScheduleRequest {
+  startDate: string;
+  endDate?: string | null;
+  repetition: DraftRepetitionRequest;
+}
+
+export interface DraftUpdateRequest {
+  draft: {
+    content?: string;
+    parentMessageId?: number | null;
+    files?: DraftFileRequest[];
+    schedule?: DraftScheduleRequest | null;
+  };
+}
+
 export interface ExportRequest {
   startAt: string;
   endAt: string;
-  webhookUrl: string;
+  webhookUrl?: string;
   chatIds?: number[];
   /** @default false */
   skipChatsFile?: boolean;
@@ -1018,6 +1167,7 @@ export interface File {
   url: string;
   width?: number | null;
   height?: number | null;
+  durationMs?: number | null;
 }
 
 export interface FileUploadRequest {
@@ -1590,8 +1740,8 @@ export interface WebhookLink {
 }
 
 export interface WebhookMessageThread {
-  messageId: number;
-  messageChatId: number;
+  messageId: number | null;
+  messageChatId: number | null;
 }
 
 export interface WebhookVideoCallMember {
@@ -1603,8 +1753,8 @@ export interface WebhookVideoCallMember {
 export interface WebhookVideoCallThread {
   id: number;
   chatId: number;
-  messageId: number;
-  messageChatId: number;
+  messageId: number | null;
+  messageChatId: number | null;
 }
 
 export interface UpdateProfileAvatarRequest {
@@ -1615,7 +1765,7 @@ export interface UpdateUserAvatarRequest {
   image: Blob;
 }
 
-export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsBotOAuthClient | AuditDetailsOAuthAuthorizationGranted | AuditDetailsOAuthAuthorizationRevoked | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording;
+export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsBotOAuthClient | AuditDetailsOAuthAuthorizationGranted | AuditDetailsOAuthAuthorizationRevoked | AuditDetailsDeviceAuthorizationApproved | AuditDetailsDeviceAuthorizationDenied | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording;
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 
@@ -1671,6 +1821,18 @@ export interface ListCompanyChatsParams {
 
 export interface ListPropertiesParams {
   entityType: SearchEntityType;
+}
+
+export interface ListDraftsParams {
+  type?: DraftType;
+  entityType?: MessageEntityType;
+  entityId?: number;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface DownloadFileParams {
+  target?: FileTarget;
 }
 
 export interface ListTagsParams {
@@ -1802,6 +1964,11 @@ export interface ListCompanyChatsResponse {
 
 export interface ListPropertiesResponse {
   data: CustomPropertyDefinition[];
+}
+
+export interface ListDraftsResponse {
+  data: Draft[];
+  meta: PaginationMeta;
 }
 
 export interface ListTagsResponse {

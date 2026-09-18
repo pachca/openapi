@@ -53,6 +53,8 @@ class AuditEventKey(StrEnum):
     BOT_OAUTH_CLIENT_UPDATED = "bot_oauth_client_updated"  # Изменены параметры OAuth-клиента бота
     OAUTH_AUTHORIZATION_GRANTED = "oauth_authorization_granted"  # Пользователь выдал OAuth-клиенту доступ к своим данным
     OAUTH_AUTHORIZATION_REVOKED = "oauth_authorization_revoked"  # Доступ OAuth-клиента к данным пользователя отозван
+    OAUTH_DEVICE_AUTHORIZATION_APPROVED = "oauth_device_authorization_approved"  # Сотрудник подтвердил вход приложения с устройства
+    OAUTH_DEVICE_AUTHORIZATION_DENIED = "oauth_device_authorization_denied"  # Сотрудник отклонил вход приложения с устройства
     VIDEO_CALL_STARTED = "video_call_started"  # Видеозвонок начат
     VIDEO_CALL_FINISHED = "video_call_finished"  # Видеозвонок завершён
     VIDEO_CALL_RECORDING_READY = "video_call_recording_ready"  # Запись видеозвонка готова
@@ -168,6 +170,37 @@ class CustomPropertyDataType(StrEnum):
     LINK = "link"  # Ссылка
 
 
+class DraftRepetitionInterval(StrEnum):
+    """Периодичность повтора отложенного сообщения"""
+
+    ONCE = "once"  # Один раз
+    DAILY = "daily"  # Каждый день
+    WEEKLY = "weekly"  # Каждую неделю
+    MONTHLY = "monthly"  # Каждый месяц
+    EVERY_2_MONTHS = "every_2_months"  # Раз в два месяца
+    EVERY_3_MONTHS = "every_3_months"  # Раз в три месяца
+    EVERY_4_MONTHS = "every_4_months"  # Раз в четыре месяца
+    EVERY_6_MONTHS = "every_6_months"  # Раз в полгода
+    YEARLY = "yearly"  # Раз в год
+
+
+class DraftType(StrEnum):
+    """Что возвращать в списке черновиков"""
+
+    REGULAR = "regular"  # Обычные черновики
+    SCHEDULED = "scheduled"  # Отложенные сообщения
+    ALL = "all"  # И черновики, и отложенные сообщения
+
+
+class FileTarget(StrEnum):
+    """Что отдать вместо исходного файла"""
+
+    PDF_PREVIEW = "pdf_preview"  # Документ, переведённый в PDF
+    PDF_FIRST_PAGE = "pdf_first_page"  # Первая страница документа картинкой
+    THUMB = "thumb"  # Уменьшенная копия изображения
+    IMAGE = "image"  # Изображение как есть
+
+
 class FileType(StrEnum):
     """Тип файла"""
 
@@ -175,6 +208,7 @@ class FileType(StrEnum):
     IMAGE = "image"  # Изображение
     AUDIO = "audio"  # Аудиофайл
     VOICE = "voice"  # Голосовое сообщение
+    VIDEO = "video"  # Видеофайл
 
 
 class InviteStatus(StrEnum):
@@ -268,6 +302,8 @@ class OAuthScope(StrEnum):
     SEARCH_USERS = "search:users"  # Поиск сотрудников
     SEARCH_CHATS = "search:chats"  # Поиск чатов
     SEARCH_MESSAGES = "search:messages"  # Поиск сообщений
+    DRAFTS_READ = "drafts:read"  # Просмотр черновиков и отложенных сообщений
+    DRAFTS_WRITE = "drafts:write"  # Создание, изменение и удаление черновиков и отложенных сообщений
 
 
 class ReactionEventType(StrEnum):
@@ -384,6 +420,13 @@ class ValidationErrorCode(StrEnum):
     SELF_UPDATE = "self_update"  # Нельзя изменить свои собственные данные
     OWNER_PROTECTED = "owner_protected"  # Нельзя изменить данные владельца
     ALREADY_ASSIGNED = "already_assigned"  # Значение уже назначено
+    NEXT_SEND_AT_INVALID = "next_send_at_invalid"  # Ближайшая отправка отложенного сообщения приходится на прошлое
+    SCHEDULE_INVALID = "schedule_invalid"  # Расписание отложенного сообщения не складывается в повтор
+    SCHEDULE_END_DATE_INVALID = "schedule_end_date_invalid"  # Расписание заканчивается раньше ближайшей отправки
+    SCHEDULED_MESSAGES_LIMIT = "scheduled_messages_limit"  # Превышен лимит отложенных сообщений на чат (50)
+    DRAFT_TYPE_CHANGE_FORBIDDEN = "draft_type_change_forbidden"  # Отложенное сообщение нельзя превратить обратно в черновик
+    CONFIDENTIAL_DOWNLOAD_DENIED = "confidential_download_denied"  # Скачивание файла запрещено: нужен запрос из безопасного контура
+    DECRYPTION_FAILED = "decryption_failed"  # Не удалось расшифровать файл
     FORBIDDEN = "forbidden"  # Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     PERMISSION_DENIED = "permission_denied"  # Доступ запрещён (недостаточно прав)
     ACCESS_DENIED = "access_denied"  # Доступ запрещён
@@ -500,6 +543,18 @@ class AuditDetailsChatPermission:
 class AuditDetailsChatRenamed:
     old_name: str
     new_name: str
+
+
+@dataclass
+class AuditDetailsDeviceAuthorizationApproved:
+    client_id: str
+    scopes: list[str]
+
+
+@dataclass
+class AuditDetailsDeviceAuthorizationDenied:
+    client_id: str
+    scopes: list[str]
 
 
 @dataclass
@@ -842,10 +897,95 @@ class CustomPropertyDefinition:
 
 
 @dataclass
+class Draft:
+    id: int
+    content: str
+    files: list[File]
+    created_at: datetime
+    updated_at: datetime
+    entity_type: MessageEntityType | None = None
+    entity_id: int | None = None
+    chat_id: int | None = None
+    parent_message_id: int | None = None
+    voice_content: VoiceContent | None = None
+    schedule: DraftSchedule | None = None
+    next_send_at: datetime | None = None
+
+
+@dataclass
+class DraftCreateRequestDraft:
+    entity_type: MessageEntityType
+    entity_id: int
+    content: str | None = None
+    parent_message_id: int | None = None
+    files: list[DraftFileRequest] | None = None
+    schedule: DraftScheduleRequest | None = None
+
+
+@dataclass
+class DraftCreateRequest:
+    draft: DraftCreateRequestDraft
+
+
+@dataclass
+class DraftFileRequest:
+    key: str
+    name: str
+    id: int | None = None
+    file_type: FileType | None = None
+    size: int | None = None
+    width: int | None = None
+    height: int | None = None
+    duration_ms: int | None = None
+    waveform: str | None = None
+
+
+@dataclass
+class DraftRepetition:
+    interval: DraftRepetitionInterval
+    days: list[int] | None = None
+    nth_day: int | None = None
+
+
+@dataclass
+class DraftRepetitionRequest:
+    interval: DraftRepetitionInterval
+    days: list[int] | None = None
+    nth_day: int | None = None
+
+
+@dataclass
+class DraftSchedule:
+    start_date: datetime
+    repetition: DraftRepetition
+    end_date: datetime | None = None
+
+
+@dataclass
+class DraftScheduleRequest:
+    start_date: datetime
+    repetition: DraftRepetitionRequest
+    end_date: datetime | None = None
+
+
+@dataclass
+class DraftUpdateRequestDraft:
+    content: str | None = None
+    parent_message_id: int | None = None
+    files: list[DraftFileRequest] | None = None
+    schedule: DraftScheduleRequest | None = None
+
+
+@dataclass
+class DraftUpdateRequest:
+    draft: DraftUpdateRequestDraft
+
+
+@dataclass
 class ExportRequest:
     start_at: str
     end_at: str
-    webhook_url: str
+    webhook_url: str | None = None
     chat_ids: list[int] | None = None
     skip_chats_file: bool | None = False
 
@@ -859,6 +999,7 @@ class File:
     url: str
     width: int | None = None
     height: int | None = None
+    duration_ms: int | None = None
 
 
 @dataclass
@@ -1511,8 +1652,8 @@ class WebhookLink:
 
 @dataclass
 class WebhookMessageThread:
-    message_id: int
-    message_chat_id: int
+    message_id: int | None = None
+    message_chat_id: int | None = None
 
 
 @dataclass
@@ -1526,8 +1667,8 @@ class WebhookVideoCallMember:
 class WebhookVideoCallThread:
     id: int
     chat_id: int
-    message_id: int
-    message_chat_id: int
+    message_id: int | None = None
+    message_chat_id: int | None = None
 
 
 @dataclass
@@ -1540,7 +1681,7 @@ class UpdateUserAvatarRequest:
     image: bytes
 
 
-AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording]
+AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked, AuditDetailsDeviceAuthorizationApproved, AuditDetailsDeviceAuthorizationDenied, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording]
 
 
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]
@@ -1606,6 +1747,20 @@ class ListCompanyChatsParams:
 @dataclass
 class ListPropertiesParams:
     entity_type: SearchEntityType
+
+
+@dataclass
+class ListDraftsParams:
+    type: DraftType | None = None
+    entity_type: MessageEntityType | None = None
+    entity_id: int | None = None
+    limit: int | None = None
+    cursor: str | None = None
+
+
+@dataclass
+class DownloadFileParams:
+    target: FileTarget | None = None
 
 
 @dataclass
@@ -1757,6 +1912,12 @@ class ListCompanyChatsResponse:
 @dataclass
 class ListPropertiesResponse:
     data: list[CustomPropertyDefinition]
+
+
+@dataclass
+class ListDraftsResponse:
+    data: list[Draft]
+    meta: PaginationMeta
 
 
 @dataclass

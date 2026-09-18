@@ -175,7 +175,7 @@ const V1_EXTRA_BODY_FIELDS: Record<string, Record<string, [string, string][]>> =
 };
 
 /** Resources only visible in v2 (new, not in v1) */
-const V2_ONLY_RESOURCES = new Set(['member', 'readMember', 'search', 'security', 'oauth']);
+const V2_ONLY_RESOURCES = new Set(['member', 'readMember', 'search', 'security', 'oauth', 'draft']);
 
 /** Resources whose endpoints are sub-paths of another resource but should use standard CRUD names */
 const STANDARD_CRUD_SUBRESOURCES = new Set(['reaction', 'member', 'readMember', 'linkPreview', 'thread', 'export']);
@@ -479,6 +479,7 @@ function tagToResource(tag: string): string {
     'Security': 'security',
     'Custom Properties': 'customProperty',
     'Files': 'file',
+    'Drafts': 'draft',
   };
   if (MAP[tag]) return MAP[tag];
   // Fallback for an unmapped tag. Must produce a valid camelCase identifier:
@@ -497,7 +498,7 @@ function resourceDisplayName(resource: string): string {
     thread: 'Thread', reaction: 'Reaction', groupTag: 'Group Tag',
     profile: 'Profile', customProperty: 'Custom Property', task: 'Task',
     bot: 'Bot', file: 'File', form: 'Form', readMember: 'Read Member',
-    oauth: 'OAuth', search: 'Search', security: 'Security',
+    oauth: 'OAuth', search: 'Search', security: 'Security', draft: 'Draft',
   };
   return MAP[resource] || snakeToPascal(resource);
 }
@@ -2158,6 +2159,9 @@ function resolveCommonEndpoints(byTag: Map<string, Endpoint[]>): Map<string, End
   const PATH_TAG: { match: (p: string) => boolean; tag: string | null }[] = [
     { match: (p) => p.startsWith('/custom_properties'), tag: 'CustomProperty' },
     { match: (p) => p === '/uploads', tag: 'File' },
+    // Скачивание идёт тем же ресурсом, что и загрузка: иначе тег Files образует
+    // вторую группу с тем же именем ресурса, и одна перезатирает описание другой.
+    { match: (p) => p.startsWith('/files'), tag: 'File' },
     { match: (p) => p === '/direct_url', tag: null },
   ];
 

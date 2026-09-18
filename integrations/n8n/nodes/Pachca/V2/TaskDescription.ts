@@ -118,7 +118,7 @@ export const taskFields: INodeProperties[] = [
 				name: 'taskDueAt',
 				type: 'dateTime',
 				default: "",
-				description: 'Task due date (ISO-8601) in YYYY-MM-DDThh:mm:ss.sssTZD format. If the time is set to 23:59:59.000, the task will be created as an all-day task (without specific time).',
+				description: 'Task due date (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. Seconds are dropped: the due date lands on the start of the minute. The exception is exactly 23:59:59: such a task is created as an all-day one, without a specific time.',
 				placeholder: '2020-06-05T12:00:00.000+03:00',
 			},
 			{
@@ -289,7 +289,7 @@ export const taskFields: INodeProperties[] = [
 				name: 'doneAt',
 				type: 'dateTime',
 				default: "",
-				description: 'Task completion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format',
+				description: 'Task completion date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. A value that could not be parsed removes the completion mark: the response comes back successful, and `done_at` in it is `null`.',
 				placeholder: '2020-06-05T12:00:00.000Z',
 			},
 			{
@@ -297,7 +297,7 @@ export const taskFields: INodeProperties[] = [
 				name: 'dueAt',
 				type: 'dateTime',
 				default: "",
-				description: 'Task due date (ISO-8601) in YYYY-MM-DDThh:mm:ss.sssTZD format. If the time is set to 23:59:59.000, the task will be created as an all-day task (without specific time).',
+				description: 'Task due date (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC. Seconds are dropped: the due date lands on the start of the minute. The exception is exactly 23:59:59: such a task is created as an all-day one, without a specific time.',
 				placeholder: '2020-06-05T12:00:00.000+03:00',
 			},
 			{

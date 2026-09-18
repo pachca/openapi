@@ -94,6 +94,10 @@ public enum AuditEventKey: String, Codable, CaseIterable {
     case oauthAuthorizationGranted = "oauth_authorization_granted"
     /// Доступ OAuth-клиента к данным пользователя отозван
     case oauthAuthorizationRevoked = "oauth_authorization_revoked"
+    /// Сотрудник подтвердил вход приложения с устройства
+    case oauthDeviceAuthorizationApproved = "oauth_device_authorization_approved"
+    /// Сотрудник отклонил вход приложения с устройства
+    case oauthDeviceAuthorizationDenied = "oauth_device_authorization_denied"
     /// Видеозвонок начат
     case videoCallStarted = "video_call_started"
     /// Видеозвонок завершён
@@ -238,6 +242,47 @@ public enum CustomPropertyDataType: String, Codable, CaseIterable {
     case link
 }
 
+public enum DraftRepetitionInterval: String, Codable, CaseIterable {
+    /// Один раз
+    case once
+    /// Каждый день
+    case daily
+    /// Каждую неделю
+    case weekly
+    /// Каждый месяц
+    case monthly
+    /// Раз в два месяца
+    case every2Months = "every_2_months"
+    /// Раз в три месяца
+    case every3Months = "every_3_months"
+    /// Раз в четыре месяца
+    case every4Months = "every_4_months"
+    /// Раз в полгода
+    case every6Months = "every_6_months"
+    /// Раз в год
+    case yearly
+}
+
+public enum DraftType: String, Codable, CaseIterable {
+    /// Обычные черновики
+    case regular
+    /// Отложенные сообщения
+    case scheduled
+    /// И черновики, и отложенные сообщения
+    case all
+}
+
+public enum FileTarget: String, Codable, CaseIterable {
+    /// Документ, переведённый в PDF
+    case pdfPreview = "pdf_preview"
+    /// Первая страница документа картинкой
+    case pdfFirstPage = "pdf_first_page"
+    /// Уменьшенная копия изображения
+    case thumb
+    /// Изображение как есть
+    case image
+}
+
 public enum FileType: String, Codable, CaseIterable {
     /// Обычный файл
     case file
@@ -247,6 +292,8 @@ public enum FileType: String, Codable, CaseIterable {
     case audio
     /// Голосовое сообщение
     case voice
+    /// Видеофайл
+    case video
 }
 
 public enum InviteStatus: String, Codable, CaseIterable {
@@ -395,6 +442,10 @@ public enum OAuthScope: String, Codable, CaseIterable {
     case searchChats = "search:chats"
     /// Поиск сообщений
     case searchMessages = "search:messages"
+    /// Просмотр черновиков и отложенных сообщений
+    case draftsRead = "drafts:read"
+    /// Создание, изменение и удаление черновиков и отложенных сообщений
+    case draftsWrite = "drafts:write"
 }
 
 public enum ReactionEventType: String, Codable, CaseIterable {
@@ -550,6 +601,20 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case ownerProtected = "owner_protected"
     /// Значение уже назначено
     case alreadyAssigned = "already_assigned"
+    /// Ближайшая отправка отложенного сообщения приходится на прошлое
+    case nextSendAtInvalid = "next_send_at_invalid"
+    /// Расписание отложенного сообщения не складывается в повтор
+    case scheduleInvalid = "schedule_invalid"
+    /// Расписание заканчивается раньше ближайшей отправки
+    case scheduleEndDateInvalid = "schedule_end_date_invalid"
+    /// Превышен лимит отложенных сообщений на чат (50)
+    case scheduledMessagesLimit = "scheduled_messages_limit"
+    /// Отложенное сообщение нельзя превратить обратно в черновик
+    case draftTypeChangeForbidden = "draft_type_change_forbidden"
+    /// Скачивание файла запрещено: нужен запрос из безопасного контура
+    case confidentialDownloadDenied = "confidential_download_denied"
+    /// Не удалось расшифровать файл
+    case decryptionFailed = "decryption_failed"
     /// Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     case forbidden
     /// Доступ запрещён (недостаточно прав)
@@ -784,6 +849,36 @@ public struct AuditDetailsChatRenamed: Codable {
     enum CodingKeys: String, CodingKey {
         case oldName = "old_name"
         case newName = "new_name"
+    }
+}
+
+public struct AuditDetailsDeviceAuthorizationApproved: Codable {
+    public let clientId: String
+    public let scopes: [String]
+
+    public init(clientId: String, scopes: [String]) {
+        self.clientId = clientId
+        self.scopes = scopes
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case clientId = "client_id"
+        case scopes
+    }
+}
+
+public struct AuditDetailsDeviceAuthorizationDenied: Codable {
+    public let clientId: String
+    public let scopes: [String]
+
+    public init(clientId: String, scopes: [String]) {
+        self.clientId = clientId
+        self.scopes = scopes
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case clientId = "client_id"
+        case scopes
     }
 }
 
@@ -1631,14 +1726,231 @@ public struct CustomPropertyDefinition: Codable {
     }
 }
 
+public struct Draft: Codable {
+    public let id: Int
+    public let entityType: MessageEntityType?
+    public let entityId: Int?
+    public let chatId: Int?
+    public let content: String
+    public let parentMessageId: Int?
+    public let files: [File]
+    public let voiceContent: VoiceContent?
+    public let schedule: DraftSchedule?
+    public let nextSendAt: String?
+    public let createdAt: String
+    public let updatedAt: String
+
+    public init(id: Int, entityType: MessageEntityType? = nil, entityId: Int? = nil, chatId: Int? = nil, content: String, parentMessageId: Int? = nil, files: [File], voiceContent: VoiceContent? = nil, schedule: DraftSchedule? = nil, nextSendAt: String? = nil, createdAt: String, updatedAt: String) {
+        self.id = id
+        self.entityType = entityType
+        self.entityId = entityId
+        self.chatId = chatId
+        self.content = content
+        self.parentMessageId = parentMessageId
+        self.files = files
+        self.voiceContent = voiceContent
+        self.schedule = schedule
+        self.nextSendAt = nextSendAt
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case entityType = "entity_type"
+        case entityId = "entity_id"
+        case chatId = "chat_id"
+        case content
+        case parentMessageId = "parent_message_id"
+        case files
+        case voiceContent = "voice_content"
+        case schedule
+        case nextSendAt = "next_send_at"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+}
+
+public struct DraftCreateRequestDraft: Codable {
+    public let entityType: MessageEntityType
+    public let entityId: Int
+    public let content: String?
+    public let parentMessageId: Int?
+    public let files: [DraftFileRequest]?
+    public let schedule: DraftScheduleRequest?
+
+    public init(entityType: MessageEntityType, entityId: Int, content: String? = nil, parentMessageId: Int? = nil, files: [DraftFileRequest]? = nil, schedule: DraftScheduleRequest? = nil) {
+        self.entityType = entityType
+        self.entityId = entityId
+        self.content = content
+        self.parentMessageId = parentMessageId
+        self.files = files
+        self.schedule = schedule
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case entityType = "entity_type"
+        case entityId = "entity_id"
+        case content
+        case parentMessageId = "parent_message_id"
+        case files
+        case schedule
+    }
+}
+
+public struct DraftCreateRequest: Codable {
+    public let draft: DraftCreateRequestDraft
+
+    public init(draft: DraftCreateRequestDraft) {
+        self.draft = draft
+    }
+}
+
+public struct DraftFileRequest: Codable {
+    public let id: Int?
+    public let key: String
+    public let name: String
+    public let fileType: FileType?
+    public let size: Int64?
+    public let width: Int?
+    public let height: Int?
+    public let durationMs: Int?
+    public let waveform: String?
+
+    public init(id: Int? = nil, key: String, name: String, fileType: FileType? = nil, size: Int64? = nil, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
+        self.id = id
+        self.key = key
+        self.name = name
+        self.fileType = fileType
+        self.size = size
+        self.width = width
+        self.height = height
+        self.durationMs = durationMs
+        self.waveform = waveform
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case key
+        case name
+        case fileType = "file_type"
+        case size
+        case width
+        case height
+        case durationMs = "duration_ms"
+        case waveform
+    }
+}
+
+public struct DraftRepetition: Codable {
+    public let interval: DraftRepetitionInterval
+    public let days: [Int]?
+    public let nthDay: Int?
+
+    public init(interval: DraftRepetitionInterval, days: [Int]? = nil, nthDay: Int? = nil) {
+        self.interval = interval
+        self.days = days
+        self.nthDay = nthDay
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case interval
+        case days
+        case nthDay = "nth_day"
+    }
+}
+
+public struct DraftRepetitionRequest: Codable {
+    public let interval: DraftRepetitionInterval
+    public let days: [Int]?
+    public let nthDay: Int?
+
+    public init(interval: DraftRepetitionInterval, days: [Int]? = nil, nthDay: Int? = nil) {
+        self.interval = interval
+        self.days = days
+        self.nthDay = nthDay
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case interval
+        case days
+        case nthDay = "nth_day"
+    }
+}
+
+public struct DraftSchedule: Codable {
+    public let startDate: String
+    public let endDate: String?
+    public let repetition: DraftRepetition
+
+    public init(startDate: String, endDate: String? = nil, repetition: DraftRepetition) {
+        self.startDate = startDate
+        self.endDate = endDate
+        self.repetition = repetition
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case startDate = "start_date"
+        case endDate = "end_date"
+        case repetition
+    }
+}
+
+public struct DraftScheduleRequest: Codable {
+    public let startDate: String
+    public let endDate: String?
+    public let repetition: DraftRepetitionRequest
+
+    public init(startDate: String, endDate: String? = nil, repetition: DraftRepetitionRequest) {
+        self.startDate = startDate
+        self.endDate = endDate
+        self.repetition = repetition
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case startDate = "start_date"
+        case endDate = "end_date"
+        case repetition
+    }
+}
+
+public struct DraftUpdateRequestDraft: Codable {
+    public let content: String?
+    public let parentMessageId: Int?
+    public let files: [DraftFileRequest]?
+    public let schedule: DraftScheduleRequest?
+
+    public init(content: String? = nil, parentMessageId: Int? = nil, files: [DraftFileRequest]? = nil, schedule: DraftScheduleRequest? = nil) {
+        self.content = content
+        self.parentMessageId = parentMessageId
+        self.files = files
+        self.schedule = schedule
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case content
+        case parentMessageId = "parent_message_id"
+        case files
+        case schedule
+    }
+}
+
+public struct DraftUpdateRequest: Codable {
+    public let draft: DraftUpdateRequestDraft
+
+    public init(draft: DraftUpdateRequestDraft) {
+        self.draft = draft
+    }
+}
+
 public struct ExportRequest: Codable {
     public let startAt: String
     public let endAt: String
-    public let webhookUrl: String
+    public let webhookUrl: String?
     public let chatIds: [Int]?
     public let skipChatsFile: Bool?
 
-    public init(startAt: String, endAt: String, webhookUrl: String, chatIds: [Int]? = nil, skipChatsFile: Bool? = nil) {
+    public init(startAt: String, endAt: String, webhookUrl: String? = nil, chatIds: [Int]? = nil, skipChatsFile: Bool? = nil) {
         self.startAt = startAt
         self.endAt = endAt
         self.webhookUrl = webhookUrl
@@ -1663,8 +1975,9 @@ public struct File: Codable {
     public let url: String
     public let width: Int?
     public let height: Int?
+    public let durationMs: Int?
 
-    public init(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int? = nil, height: Int? = nil) {
+    public init(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil) {
         self.id = id
         self.key = key
         self.name = name
@@ -1672,6 +1985,7 @@ public struct File: Codable {
         self.url = url
         self.width = width
         self.height = height
+        self.durationMs = durationMs
     }
 
     enum CodingKeys: String, CodingKey {
@@ -1682,6 +1996,7 @@ public struct File: Codable {
         case url
         case width
         case height
+        case durationMs = "duration_ms"
     }
 }
 
@@ -3261,10 +3576,10 @@ public struct WebhookLink: Codable {
 }
 
 public struct WebhookMessageThread: Codable {
-    public let messageId: Int
-    public let messageChatId: Int
+    public let messageId: Int?
+    public let messageChatId: Int?
 
-    public init(messageId: Int, messageChatId: Int) {
+    public init(messageId: Int? = nil, messageChatId: Int? = nil) {
         self.messageId = messageId
         self.messageChatId = messageChatId
     }
@@ -3296,10 +3611,10 @@ public struct WebhookVideoCallMember: Codable {
 public struct WebhookVideoCallThread: Codable {
     public let id: Int
     public let chatId: Int
-    public let messageId: Int
-    public let messageChatId: Int
+    public let messageId: Int?
+    public let messageChatId: Int?
 
-    public init(id: Int, chatId: Int, messageId: Int, messageChatId: Int) {
+    public init(id: Int, chatId: Int, messageId: Int? = nil, messageChatId: Int? = nil) {
         self.id = id
         self.chatId = chatId
         self.messageId = messageId
@@ -3351,6 +3666,8 @@ public enum AuditEventDetailsUnion: Codable {
     case auditDetailsBotOAuthClient(AuditDetailsBotOAuthClient)
     case auditDetailsOAuthAuthorizationGranted(AuditDetailsOAuthAuthorizationGranted)
     case auditDetailsOAuthAuthorizationRevoked(AuditDetailsOAuthAuthorizationRevoked)
+    case auditDetailsDeviceAuthorizationApproved(AuditDetailsDeviceAuthorizationApproved)
+    case auditDetailsDeviceAuthorizationDenied(AuditDetailsDeviceAuthorizationDenied)
     case auditDetailsVideoCallStarted(AuditDetailsVideoCallStarted)
     case auditDetailsVideoCallFinished(AuditDetailsVideoCallFinished)
     case auditDetailsVideoCallRecording(AuditDetailsVideoCallRecording)
@@ -3392,6 +3709,14 @@ public enum AuditEventDetailsUnion: Codable {
         }
         if let value = try? AuditDetailsChatRenamed(from: decoder) {
             self = .auditDetailsChatRenamed(value)
+            return
+        }
+        if let value = try? AuditDetailsDeviceAuthorizationApproved(from: decoder) {
+            self = .auditDetailsDeviceAuthorizationApproved(value)
+            return
+        }
+        if let value = try? AuditDetailsDeviceAuthorizationDenied(from: decoder) {
+            self = .auditDetailsDeviceAuthorizationDenied(value)
             return
         }
         if let value = try? AuditDetailsOAuthAuthorizationGranted(from: decoder) {
@@ -3496,6 +3821,10 @@ public enum AuditEventDetailsUnion: Codable {
         case .auditDetailsOAuthAuthorizationGranted(let value):
             try value.encode(to: encoder)
         case .auditDetailsOAuthAuthorizationRevoked(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsDeviceAuthorizationApproved(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsDeviceAuthorizationDenied(let value):
             try value.encode(to: encoder)
         case .auditDetailsVideoCallStarted(let value):
             try value.encode(to: encoder)
@@ -3684,6 +4013,11 @@ public struct ListPropertiesResponse: Codable {
     public let data: [CustomPropertyDefinition]
 }
 
+public struct ListDraftsResponse: Codable {
+    public let data: [Draft]
+    public let meta: PaginationMeta
+}
+
 public struct ListTagsResponse: Codable {
     public let data: [GroupTag]
     public let meta: PaginationMeta
@@ -3749,6 +4083,10 @@ struct BotCreateResponseDataWrapper: Codable {
 
 struct ChatDataWrapper: Codable {
     let data: Chat
+}
+
+struct DraftDataWrapper: Codable {
+    let data: Draft
 }
 
 struct GroupTagDataWrapper: Codable {

@@ -25,7 +25,7 @@ export default class ReactionsRemove extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'code': Flags.string({
-      description: "Emoji символ реакции",
+      description: "Emoji символ реакции. Именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи.",
     }),
     'name': Flags.string({
       description: "Текстовое имя эмодзи (используется для кастомных эмодзи)",
@@ -41,7 +41,7 @@ export default class ReactionsRemove extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'code', label: "Emoji символ реакции", type: 'string' },
+      { flag: 'code', label: "Emoji символ реакции. Именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи.", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {

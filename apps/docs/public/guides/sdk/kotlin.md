@@ -107,7 +107,7 @@ client.close()
 | `client.users.deleteUserAvatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.users.deleteUserStatus()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.groupTags.createTag()` | [Новый тег](/api/group-tags/create) |
-| `client.groupTags.listTags()` | [Список тегов сотрудников](/api/group-tags/list) |
+| `client.groupTags.listTags()` | [Список тегов](/api/group-tags/list) |
 | `client.groupTags.getTag()` | [Информация о теге](/api/group-tags/get) |
 | `client.groupTags.getTagUsers()` | [Список сотрудников тега](/api/group-tags/list-users) |
 | `client.groupTags.updateTag()` | [Редактирование тега](/api/group-tags/update) |
@@ -116,7 +116,7 @@ client.close()
 | `client.members.addMembers()` | [Добавление пользователей](/api/members/add) |
 | `client.members.listMembers()` | [Список участников чата](/api/members/list) |
 | `client.members.updateMemberRole()` | [Редактирование роли](/api/members/update) |
-| `client.members.leaveChat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.members.leaveChat()` | [Выход из чата](/api/members/leave) |
 | `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.createStandaloneThread()` | [Новый самостоятельный тред](/api/threads/create) |
@@ -143,6 +143,11 @@ client.close()
 | `client.tasks.getTask()` | [Информация о напоминании](/api/tasks/get) |
 | `client.tasks.updateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.deleteTask()` | [Удаление напоминания](/api/tasks/delete) |
+| `client.drafts.createDraft()` | [Новый черновик](/api/drafts/create) |
+| `client.drafts.listDrafts()` | [Список черновиков](/api/drafts/list) |
+| `client.drafts.getDraft()` | [Информация о черновике](/api/drafts/get) |
+| `client.drafts.updateDraft()` | [Редактирование черновика](/api/drafts/update) |
+| `client.drafts.deleteDraft()` | [Удаление черновика](/api/drafts/delete) |
 | `client.views.openView()` | [Открытие представления](/api/views/open) |
 | `client.views.submitViewResponse()` | [Ответ на отправку формы](/api/views/submit-response) |
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
@@ -160,6 +165,7 @@ client.close()
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
+| `client.files.downloadFile()` | [Скачивание файла](/api/files/get) |
 
 
 ## Запросы
@@ -403,7 +409,7 @@ val request = MessageCreateRequest(
     linkPreview = false
 )
 val response = client.messages.createMessage(request = request)
-// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)
+// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)>, voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)
 
 // Список сотрудников
 val response = client.users.listUsers(query = "Олег", limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")

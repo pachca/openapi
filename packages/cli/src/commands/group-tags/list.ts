@@ -3,7 +3,7 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 
 export default class GroupTagsList extends BaseCommand {
-  static override description = "Список тегов сотрудников";
+  static override description = "Список тегов";
 
   static override examples = [
       "Получить всех сотрудников тега/департамента — Найди тег по названию, возьми `id`:\n  $ pachca group-tags list"

@@ -75,18 +75,29 @@ export function serializeType(_type: string, obj: unknown): unknown {
 }
 
 const MAX_RETRIES = 3;
+// Only the daily chat limit and the hour-long ban wait longer than a minute.
+const MAX_RETRY_AFTER_MS = 60_000;
 const RETRYABLE_5XX = new Set([500, 502, 503, 504]);
 
+// Retry-After is a minimum, not an estimate: waiting less lands the retry
+// inside a window that is still closed. Jitter only upwards.
 function jitter(delay: number): number {
-  return delay * (0.5 + Math.random() * 0.5);
+  return delay * (1 + Math.random() * 0.25);
 }
 
 export async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   for (let attempt = 0; ; attempt++) {
     const response = await fetch(input, init);
     if (response.status === 429 && attempt < MAX_RETRIES) {
-      const retryAfter = response.headers.get("retry-after");
-      const delay = retryAfter ? Number(retryAfter) * 1000 : 1000 * Math.pow(2, attempt);
+      const header = response.headers.get("retry-after");
+      const retryAfterMs = header ? Number(header) * 1000 : NaN;
+      // A long pause is the daily chat limit or an hour-long ban. Retrying it
+      // is pointless, and an early retry doubles the pause: hand the response
+      // back so the caller can schedule the work itself.
+      if (Number.isFinite(retryAfterMs) && retryAfterMs > MAX_RETRY_AFTER_MS) {
+        return response;
+      }
+      const delay = Number.isFinite(retryAfterMs) ? retryAfterMs : 1000 * Math.pow(2, attempt);
       await new Promise((r) => setTimeout(r, jitter(delay)));
       continue;
     }

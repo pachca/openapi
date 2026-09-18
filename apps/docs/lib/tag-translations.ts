@@ -13,6 +13,7 @@ export const TAG_TRANSLATIONS: Record<string, string> = {
   Messages: 'Сообщения',
   'Read members': 'Прочтение сообщения',
   Reactions: 'Реакции на сообщения',
+  Drafts: 'Черновики',
   Tasks: 'Напоминания',
   Views: 'Формы',
   Bots: 'Боты и Webhook',

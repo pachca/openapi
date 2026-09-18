@@ -233,9 +233,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			bodyMap: [
 				{ api: 'start_at', n8n: 'startAt' },
 				{ api: 'end_at', n8n: 'endAt' },
-				{ api: 'webhook_url', n8n: 'webhookUrl' },
 			],
 			optionalBodyMap: [
+				{ api: 'webhook_url', n8n: 'webhookUrl' },
 				{ api: 'chat_ids', n8n: 'chatIds', isArray: true, arrayType: 'int' },
 				{ api: 'skip_chats_file', n8n: 'skipChatsFile' },
 			],
@@ -369,10 +369,61 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 		},
 	},
 	file: {
+		get: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/files/{id}',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+			queryMap: [{ api: 'target', n8n: 'target' }],
+		},
 		create: {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/uploads',
 			special: 'fileUpload',
+		},
+	},
+	draft: {
+		create: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/drafts',
+			wrapperKey: 'draft',
+			bodyMap: [
+				{ api: 'entity_type', n8n: 'entityType' },
+				{ api: 'entity_id', n8n: 'entityId' },
+			],
+			optionalBodyMap: [
+				{ api: 'content', n8n: 'content' },
+				{ api: 'parent_message_id', n8n: 'parentMessageId' },
+				{ api: 'files', n8n: 'files', subKey: 'file' },
+				{ api: 'schedule', n8n: 'schedule', isJson: true },
+			],
+		},
+		getAll: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/drafts',
+			paginated: true,
+			queryMap: [{ api: 'type', n8n: 'type' }, { api: 'entity_type', n8n: 'entityType' }, { api: 'entity_id', n8n: 'entityId' }],
+		},
+		get: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/drafts/{id}',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+		},
+		update: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/drafts/{id}',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+			wrapperKey: 'draft',
+			optionalBodyMap: [
+				{ api: 'content', n8n: 'content' },
+				{ api: 'parent_message_id', n8n: 'parentMessageId' },
+				{ api: 'files', n8n: 'files', subKey: 'file' },
+				{ api: 'schedule', n8n: 'schedule', isJson: true },
+			],
+		},
+		delete: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/drafts/{id}',
+			pathParams: [{ api: 'id', n8n: 'id' }],
 		},
 	},
 	groupTag: {

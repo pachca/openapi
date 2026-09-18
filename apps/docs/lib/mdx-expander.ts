@@ -10,6 +10,7 @@ import {
   parseOpenAPI,
 } from './openapi/parser';
 import { generateCurl } from './code-generators/curl';
+import { narrowRequestBody } from './code-generators/utils';
 import { groupEndpointsByTag, generateUrlFromOperation, generateTitle } from './openapi/mapper';
 import { schemaToMarkdown } from './markdown-generator';
 import { getSdkExampleForLang } from './sdk-examples';
@@ -102,6 +103,7 @@ async function apiCardsToMarkdown(): Promise<string> {
     'Прочтение сообщения': { icon: 'CheckCheck', description: 'Информация о прочтении' },
     'Реакции на сообщения': { icon: 'SmilePlus', description: 'Реакции на сообщения' },
     Ссылки: { icon: 'LinkIcon', description: 'Разворачивание ссылок (unfurl)' },
+    Черновики: { icon: 'FilePen', description: 'Неотправленные и отложенные сообщения' },
     Напоминания: { icon: 'Bell', description: 'Создание и управление напоминаниями' },
     Формы: { icon: 'SquareMousePointer', description: 'Модальные окна с полями ввода' },
     'Боты и Webhook': { icon: 'Bot', description: 'Информация о ботах и вебхуках' },
@@ -223,6 +225,25 @@ function treeToMarkdown(jsx: string): string {
  * No-op when the minimal indent is already 0, so flush-left content is
  * never altered.
  */
+/**
+ * Атрибут `howItWorks` у <Limit> — это размеченный html: теги подсветки и
+ * `<code>` вокруг имён полей. В markdown-версию страницы он должен приехать
+ * обычным текстом, а код — обратными кавычками.
+ */
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<code[^>]*>([\s\S]*?)<\/code>/g, '`$1`')
+    .replace(/<br\s*\/?>/g, ' ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&#47;/g, '/')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function dedent(text: string): string {
   const lines = text.split('\n');
   let min = Infinity;
@@ -434,10 +455,29 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return md;
   });
 
-  // <Limit ... /> -> just remove (limit info is contextual). Limit tags are
-  // multi-line and their attribute values contain "/" (HTML entities, inline
-  // tags), so match across newlines up to the first self-closing "/>".
-  result = result.replace(/<Limit\b[\s\S]*?\/>/g, '');
+  // <Limit ... /> -> markdown line with the numbers. Stripping the tag used to
+  // leave the limits page without a single number: every card became an empty
+  // heading, so an agent reading /api/limits.md saw a page about limits that
+  // stated none. Limit tags are multi-line and their attribute values contain
+  // "/" (HTML entities, inline tags), so match across newlines up to the first
+  // self-closing "/>".
+  result = result.replace(/<Limit\b[\s\S]*?\/>/g, (tag) => {
+    const attr = (name: string) => {
+      const m = tag.match(new RegExp(`${name}="([\\s\\S]*?)"`));
+      return m ? htmlToPlainText(m[1]) : '';
+    };
+    const title = attr('title');
+    const limit = attr('limit');
+    const period = attr('period');
+    const entity = attr('entity');
+    const howItWorks = attr('howItWorks');
+
+    const head = [title, [limit, period].filter(Boolean).join(' / ')].filter(Boolean).join(' — ');
+    const parts = [head ? `**${head}**` : ''];
+    if (entity) parts.push(`Считается отдельно по \`${entity}\`.`);
+    if (howItWorks) parts.push(howItWorks);
+    return `${parts.filter(Boolean).join(' ')}\n`;
+  });
 
   // <PackageBadge name="..." href="..." version="..." /> -> code-formatted
   // package link (3rd registration site per AGENTS.md: component already in
@@ -473,8 +513,12 @@ export async function expandMdxComponents(content: string): Promise<string> {
     const schema = await getSchemaByName(schemaName);
 
     if (schema) {
+      // `hideHeader` blocks sit right under their own `##` heading on the page,
+      // so the schema name is not shown. Ignoring it left a stray `#### Name`
+      // in the .md that the page never renders.
+      const hideHeader = /\bhideHeader\b(?!\s*=\s*\{\s*false\s*\})/.test(fullMatch);
       const title = customTitle || schema.title || schemaName;
-      let schemaMarkdown = `#### ${title}\n\n`;
+      let schemaMarkdown = hideHeader ? '' : `#### ${title}\n\n`;
       schemaMarkdown += schemaToMarkdown(schema, 0, schema.required || [], true);
       result = result.replace(fullMatch, schemaMarkdown);
     } else {
@@ -673,8 +717,12 @@ export async function expandMdxComponents(content: string): Promise<string> {
       if (paramsMatch) {
         const paramsStr = paramsMatch[1];
         const paramOverrides: Record<string, unknown> = {};
-        for (const pair of paramsStr.matchAll(/(\w+):\s*(?:"([^"]*)"|([\d.]+))/g)) {
-          paramOverrides[pair[1]] = pair[2] !== undefined ? pair[2] : Number(pair[3]);
+        // JSX accepts both quote styles, so both have to parse here — otherwise
+        // a single-quoted value is silently dropped and the .md version of the
+        // page disagrees with the rendered one.
+        for (const pair of paramsStr.matchAll(/(\w+):\s*(?:"([^"]*)"|'([^']*)'|([\d.]+))/g)) {
+          const [, name, dq, sq, num] = pair;
+          paramOverrides[name] = dq ?? sq ?? Number(num);
         }
         const paramNames = Object.keys(paramOverrides);
         finalEndpoint = {
@@ -684,6 +732,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
             .map((p) =>
               paramNames.includes(p.name) ? { ...p, example: paramOverrides[p.name] } : p
             ),
+          requestBody: narrowRequestBody(endpoint.requestBody, paramOverrides),
         };
       }
 

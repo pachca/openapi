@@ -175,6 +175,12 @@
       "SearchEntityType"
     ]
   },
+  "FileOperations_downloadFile": {
+    "usage": "await client.Files.DownloadFileAsync(3560, FileTarget.Thumb);",
+    "imports": [
+      "FileTarget"
+    ]
+  },
   "DirectUploadOperations_uploadFile": {
     "usage": "var request = new FileUploadRequest\n{\n    ContentDisposition = \"example\",\n    Acl = \"example\",\n    Policy = \"example\",\n    XAmzCredential = \"example\",\n    XAmzAlgorithm = \"example\",\n    XAmzDate = \"example\",\n    XAmzSignature = \"example\",\n    Key = \"example\",\n    File = Array.Empty<byte>()\n};\nawait client.Files.UploadFileAsync(\"https://example.com\", request);",
     "imports": [
@@ -184,6 +190,48 @@
   "UploadOperations_getUploadParams": {
     "usage": "var response = await client.Files.GetUploadParamsAsync();",
     "output": "UploadParams(ContentDisposition: string, Acl: string, Policy: string, XAmzCredential: string, XAmzAlgorithm: string, XAmzDate: string, XAmzSignature: string, Key: string, DirectUrl: string)"
+  },
+  "DraftOperations_listDrafts": {
+    "usage": "var response = await client.Drafts.ListDraftsAsync(DraftType.All, MessageEntityType.Discussion, 334, 25, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListDraftsResponse(Data: List<Draft>, Meta: PaginationMeta)",
+    "imports": [
+      "DraftType",
+      "MessageEntityType"
+    ]
+  },
+  "DraftOperations_getDraft": {
+    "usage": "var response = await client.Drafts.GetDraftAsync(4821);",
+    "output": "Draft(Id: int, EntityType: MessageEntityType?, EntityId: int?, ChatId: int?, Content: string, ParentMessageId: int?, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Schedule: DraftSchedule(StartDate: DateTimeOffset, EndDate: DateTimeOffset?, Repetition: DraftRepetition(Interval: DraftRepetitionInterval, Days: List<int>?, NthDay: int?))?, NextSendAt: DateTimeOffset?, CreatedAt: DateTimeOffset, UpdatedAt: DateTimeOffset)"
+  },
+  "DraftOperations_createDraft": {
+    "usage": "var request = new DraftCreateRequest\n{\n    Draft = new DraftCreateRequestDraft\n    {\n        EntityType = MessageEntityType.Discussion,\n        EntityId = 334,\n        Content = \"Отчёт за неделю: продажи выросли на 10%\",\n        ParentMessageId = 196093,\n        Files = new List<DraftFileRequest> { new DraftFileRequest\n        {\n            Id = 3560,\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345L,\n            Width = 800,\n            Height = 600,\n            DurationMs = 5400,\n            Waveform = \"4,8,12,20,16,10,6,3\"\n        } },\n        Schedule = new DraftScheduleRequest\n        {\n            StartDate = DateTimeOffset.Parse(\"2026-09-17T12:00:00.000Z\"),\n            EndDate = DateTimeOffset.Parse(\"2026-12-31T12:00:00.000Z\"),\n            Repetition = new DraftRepetitionRequest\n            {\n                Interval = DraftRepetitionInterval.Weekly,\n                Days = new List<int> { 123 },\n                NthDay = 2\n            }\n        }\n    }\n};\nvar response = await client.Drafts.CreateDraftAsync(request);",
+    "output": "Draft(Id: int, EntityType: MessageEntityType?, EntityId: int?, ChatId: int?, Content: string, ParentMessageId: int?, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Schedule: DraftSchedule(StartDate: DateTimeOffset, EndDate: DateTimeOffset?, Repetition: DraftRepetition(Interval: DraftRepetitionInterval, Days: List<int>?, NthDay: int?))?, NextSendAt: DateTimeOffset?, CreatedAt: DateTimeOffset, UpdatedAt: DateTimeOffset)",
+    "imports": [
+      "DraftCreateRequest",
+      "DraftCreateRequestDraft",
+      "DraftFileRequest",
+      "DraftRepetitionInterval",
+      "DraftRepetitionRequest",
+      "DraftScheduleRequest",
+      "FileType",
+      "MessageEntityType"
+    ]
+  },
+  "DraftOperations_updateDraft": {
+    "usage": "var request = new DraftUpdateRequest\n{\n    Draft = new DraftUpdateRequestDraft\n    {\n        Content = \"Отчёт за неделю: продажи выросли на 10%\",\n        ParentMessageId = 196093,\n        Files = new List<DraftFileRequest> { new DraftFileRequest\n        {\n            Id = 3560,\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345L,\n            Width = 800,\n            Height = 600,\n            DurationMs = 5400,\n            Waveform = \"4,8,12,20,16,10,6,3\"\n        } },\n        Schedule = new DraftScheduleRequest\n        {\n            StartDate = DateTimeOffset.Parse(\"2026-09-17T12:00:00.000Z\"),\n            EndDate = DateTimeOffset.Parse(\"2026-12-31T12:00:00.000Z\"),\n            Repetition = new DraftRepetitionRequest\n            {\n                Interval = DraftRepetitionInterval.Weekly,\n                Days = new List<int> { 123 },\n                NthDay = 2\n            }\n        }\n    }\n};\nvar response = await client.Drafts.UpdateDraftAsync(4821, request);",
+    "output": "Draft(Id: int, EntityType: MessageEntityType?, EntityId: int?, ChatId: int?, Content: string, ParentMessageId: int?, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Schedule: DraftSchedule(StartDate: DateTimeOffset, EndDate: DateTimeOffset?, Repetition: DraftRepetition(Interval: DraftRepetitionInterval, Days: List<int>?, NthDay: int?))?, NextSendAt: DateTimeOffset?, CreatedAt: DateTimeOffset, UpdatedAt: DateTimeOffset)",
+    "imports": [
+      "DraftFileRequest",
+      "DraftRepetitionInterval",
+      "DraftRepetitionRequest",
+      "DraftScheduleRequest",
+      "DraftUpdateRequest",
+      "DraftUpdateRequestDraft",
+      "FileType"
+    ]
+  },
+  "DraftOperations_deleteDraft": {
+    "usage": "await client.Drafts.DeleteDraftAsync(4821);"
   },
   "GroupTagOperations_listTags": {
     "usage": "var names = new List<string> { \"example\" };\nvar response = await client.GroupTags.ListTagsAsync(names, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
@@ -226,11 +274,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "var response = await client.Messages.GetMessageAsync(194275);",
-    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)"
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)"
   },
   "MessageOperations_createMessage": {
     "usage": "var request = new MessageCreateRequest\n{\n    Message = new MessageCreateRequestMessage\n    {\n        EntityType = MessageEntityType.Discussion,\n        EntityId = 334,\n        Content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        Files = new List<MessageCreateRequestFile> { new MessageCreateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345L,\n            Width = 800,\n            Height = 600,\n            DurationMs = 5400,\n            Waveform = \"4,8,12,20,16,10,6,3\"\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        ParentMessageId = 194270,\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\",\n        SkipInviteMentions = false\n    },\n    LinkPreview = false\n};\nvar response = await client.Messages.CreateMessageAsync(request);",
-    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
     "imports": [
       "Button",
       "FileType",
@@ -253,7 +301,7 @@
   },
   "MessageOperations_updateMessage": {
     "usage": "var request = new MessageUpdateRequest\n{\n    Message = new MessageUpdateRequestMessage\n    {\n        Content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        Files = new List<MessageUpdateRequestFile> { new MessageUpdateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345L,\n            Width = 800,\n            Height = 600,\n            DurationMs = 5400,\n            Waveform = \"4,8,12,20,16,10,6,3\"\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\"\n    }\n};\nvar response = await client.Messages.UpdateMessageAsync(194275, request);",
-    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
     "imports": [
       "Button",
       "FileType",

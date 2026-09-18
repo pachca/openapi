@@ -834,6 +834,10 @@ class CustomPropertiesServiceImpl internal constructor(
 }
 
 interface FilesService {
+    suspend fun downloadFile(id: Int, target: FileTarget? = null) {
+        throw NotImplementedError("Files.downloadFile is not implemented")
+    }
+
     suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
         throw NotImplementedError("Files.uploadFile is not implemented")
     }
@@ -847,6 +851,17 @@ class FilesServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) : FilesService {
+    override suspend fun downloadFile(id: Int, target: FileTarget?) {
+        val response = client.get("$baseUrl/files/$id") {
+            target?.let { parameter("target", it.value) }
+        }
+        when (response.status.value) {
+            200 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     override suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
         val response = client.submitFormWithBinaryData(
             directUrl,
@@ -876,6 +891,136 @@ class FilesServiceImpl internal constructor(
         val response = client.post("$baseUrl/uploads")
         return when (response.status.value) {
             201 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+}
+
+interface DraftsService {
+    suspend fun listDrafts(
+        type: DraftType? = null,
+        entityType: MessageEntityType? = null,
+        entityId: Int? = null,
+        limit: Int? = null,
+        cursor: String? = null,
+    ): ListDraftsResponse {
+        throw NotImplementedError("Drafts.listDrafts is not implemented")
+    }
+
+    suspend fun listDraftsAll(
+        type: DraftType? = null,
+        entityType: MessageEntityType? = null,
+        entityId: Int? = null,
+        limit: Int? = null,
+    ): List<Draft> {
+        throw NotImplementedError("Drafts.listDraftsAll is not implemented")
+    }
+
+    suspend fun getDraft(id: Int): Draft {
+        throw NotImplementedError("Drafts.getDraft is not implemented")
+    }
+
+    suspend fun createDraft(request: DraftCreateRequest): Draft {
+        throw NotImplementedError("Drafts.createDraft is not implemented")
+    }
+
+    suspend fun updateDraft(id: Int, request: DraftUpdateRequest): Draft {
+        throw NotImplementedError("Drafts.updateDraft is not implemented")
+    }
+
+    suspend fun deleteDraft(id: Int) {
+        throw NotImplementedError("Drafts.deleteDraft is not implemented")
+    }
+}
+
+class DraftsServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : DraftsService {
+    override suspend fun listDrafts(
+        type: DraftType?,
+        entityType: MessageEntityType?,
+        entityId: Int?,
+        limit: Int?,
+        cursor: String?,
+    ): ListDraftsResponse {
+        val response = client.get("$baseUrl/drafts") {
+            type?.let { parameter("type", it.value) }
+            entityType?.let { parameter("entity_type", it.value) }
+            entityId?.let { parameter("entity_id", it) }
+            limit?.let { parameter("limit", it) }
+            cursor?.let { parameter("cursor", it) }
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun listDraftsAll(
+        type: DraftType?,
+        entityType: MessageEntityType?,
+        entityId: Int?,
+        limit: Int?,
+    ): List<Draft> {
+        val items = mutableListOf<Draft>()
+        var cursor: String? = null
+        var hasNext = true
+        while (hasNext) {
+            val response = listDrafts(
+                type = type,
+                entityType = entityType,
+                entityId = entityId,
+                limit = limit,
+                cursor = cursor,
+            )
+            items.addAll(response.data)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
+        return items
+    }
+
+    override suspend fun getDraft(id: Int): Draft {
+        val response = client.get("$baseUrl/drafts/$id")
+        return when (response.status.value) {
+            200 -> response.body<DraftDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun createDraft(request: DraftCreateRequest): Draft {
+        val response = client.post("$baseUrl/drafts") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            201 -> response.body<DraftDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun updateDraft(id: Int, request: DraftUpdateRequest): Draft {
+        val response = client.put("$baseUrl/drafts/$id") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            200 -> response.body<DraftDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun deleteDraft(id: Int) {
+        val response = client.delete("$baseUrl/drafts/$id")
+        when (response.status.value) {
+            204 -> return
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -2310,6 +2455,7 @@ class PachcaClient private constructor(
     val chats: ChatsService,
     val common: CommonService,
     val customProperties: CustomPropertiesService,
+    val drafts: DraftsService,
     val files: FilesService,
     val groupTags: GroupTagsService,
     val linkPreviews: LinkPreviewsService,
@@ -2335,6 +2481,7 @@ class PachcaClient private constructor(
             chats: ChatsService? = null,
             common: CommonService? = null,
             customProperties: CustomPropertiesService? = null,
+            drafts: DraftsService? = null,
             files: FilesService? = null,
             groupTags: GroupTagsService? = null,
             linkPreviews: LinkPreviewsService? = null,
@@ -2358,6 +2505,7 @@ class PachcaClient private constructor(
                 chats = chats ?: ChatsServiceImpl(baseUrl, client),
                 common = common ?: CommonServiceImpl(baseUrl, client),
                 customProperties = customProperties ?: CustomPropertiesServiceImpl(baseUrl, client),
+                drafts = drafts ?: DraftsServiceImpl(baseUrl, client),
                 files = files ?: FilesServiceImpl(baseUrl, client),
                 groupTags = groupTags ?: GroupTagsServiceImpl(baseUrl, client),
                 linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client),
@@ -2381,6 +2529,7 @@ class PachcaClient private constructor(
             chats: ChatsService = object : ChatsService {},
             common: CommonService = object : CommonService {},
             customProperties: CustomPropertiesService = object : CustomPropertiesService {},
+            drafts: DraftsService = object : DraftsService {},
             files: FilesService = object : FilesService {},
             groupTags: GroupTagsService = object : GroupTagsService {},
             linkPreviews: LinkPreviewsService = object : LinkPreviewsService {},
@@ -2402,6 +2551,7 @@ class PachcaClient private constructor(
             chats = chats,
             common = common,
             customProperties = customProperties,
+            drafts = drafts,
             files = files,
             groupTags = groupTags,
             linkPreviews = linkPreviews,
@@ -2426,15 +2576,23 @@ class PachcaClient private constructor(
             install(HttpRequestRetry) {
                 maxRetries = 3
                 retryIf { _, response ->
-                    response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
+                    val status = response.status.value
+                    val retryAfter = response.headers["Retry-After"]?.toLongOrNull()
+                    // Only the daily chat limit and the hour-long ban wait longer than a
+                    // minute. Retrying those is pointless — it blocks the caller for hours,
+                    // and an early retry doubles the pause. Hand the response back instead.
+                    val waitsTooLong = status == 429 && retryAfter != null && retryAfter > 60L
+                    !waitsTooLong && (status == 429 || status in setOf(500, 502, 503, 504))
                 }
                 delayMillis { retry ->
                     val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
+                    // Retry-After is a minimum, not an estimate: waiting less lands the
+                    // retry inside a window that is still closed. Jitter only upwards.
+                    val jitter = 1 + kotlin.random.Random.nextDouble() * 0.25
                     if (retryAfter != null && response?.status?.value == 429) {
-                        retryAfter * 1000L
+                        (retryAfter * 1000L * jitter).toLong()
                     } else {
                         val base = 10_000L * (1L shl retry)
-                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
                         (base * jitter).toLong()
                     }
                 }
@@ -2450,6 +2608,7 @@ class PachcaClient private constructor(
         chats: ChatsService? = null,
         common: CommonService? = null,
         customProperties: CustomPropertiesService? = null,
+        drafts: DraftsService? = null,
         files: FilesService? = null,
         groupTags: GroupTagsService? = null,
         linkPreviews: LinkPreviewsService? = null,
@@ -2471,6 +2630,7 @@ class PachcaClient private constructor(
         chats = chats ?: ChatsServiceImpl(baseUrl, client),
         common = common ?: CommonServiceImpl(baseUrl, client),
         customProperties = customProperties ?: CustomPropertiesServiceImpl(baseUrl, client),
+        drafts = drafts ?: DraftsServiceImpl(baseUrl, client),
         files = files ?: FilesServiceImpl(baseUrl, client),
         groupTags = groupTags ?: GroupTagsServiceImpl(baseUrl, client),
         linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client),

@@ -1,7 +1,7 @@
 // Re-export type guards from shared utils
 export { isRecord } from '../utils/type-guards';
 
-import type { Endpoint, Parameter } from '../openapi/types';
+import type { Endpoint, Parameter, Schema } from '../openapi/types';
 import { generateParameterExample } from '../openapi/example-generator';
 
 /**
@@ -65,4 +65,104 @@ export function buildQueryString(endpoint: Endpoint, exclude?: string[]): string
     }
   }
   return parts.join('&');
+}
+
+/**
+ * Flatten one level of `allOf` into the schema's own properties. The docs
+ * parser keeps `allOf` unmerged, so a composed schema has no `properties` of
+ * its own until this runs.
+ */
+export function mergeAllOf(schema: Schema): Schema {
+  if (!schema?.allOf || schema.allOf.length === 0) return schema ?? {};
+  const merged: Schema = { ...schema };
+  const properties: Record<string, Schema> = { ...(schema.properties ?? {}) };
+  const required: string[] = [...(schema.required ?? [])];
+  for (const sub of schema.allOf) {
+    const inner = mergeAllOf(sub as Schema);
+    Object.assign(properties, inner.properties ?? {});
+    required.push(...(inner.required ?? []));
+    if (!merged.type && inner.type) merged.type = inner.type;
+  }
+  merged.properties = properties;
+  merged.required = required;
+  delete merged.allOf;
+  return merged;
+}
+
+/**
+ * Pick the object property that wraps the real fields (`{ draft: {...} }`).
+ * Mirrors the rule in the CLI generator: the object property with the most
+ * fields wins, so a small sibling object beside the wrapper doesn't cancel it.
+ */
+function pickWrapperKey(properties: Record<string, Schema>): string | undefined {
+  const objectKeys = Object.keys(properties).filter((k) => {
+    const inner = mergeAllOf(properties[k]);
+    return !!inner.properties && Object.keys(inner.properties).length > 0;
+  });
+  if (objectKeys.length === 0) return undefined;
+  return objectKeys.reduce((biggest, key) => {
+    const a = Object.keys(mergeAllOf(properties[key]).properties ?? {}).length;
+    const b = Object.keys(mergeAllOf(properties[biggest]).properties ?? {}).length;
+    return a > b ? key : biggest;
+  });
+}
+
+function narrowObjectSchema(schema: Schema, params: Record<string, unknown>): Schema {
+  const merged = mergeAllOf(schema);
+  if (!merged.properties) return schema;
+
+  const kept: Record<string, Schema> = {};
+  for (const [name, prop] of Object.entries(merged.properties)) {
+    const named = Object.hasOwn(params, name);
+    if (!named && !merged.required?.includes(name)) continue;
+    kept[name] = named ? { ...prop, example: params[name] } : prop;
+  }
+  return {
+    ...merged,
+    properties: kept,
+    required: merged.required?.filter((name) => name in kept),
+  };
+}
+
+/**
+ * Keep only the named and the required fields of a request body, and use the
+ * given values as their examples.
+ *
+ * Without this, a generated guide example carried every optional field that had
+ * an `@example` in the spec — for `POST /drafts` that meant `schedule`, which
+ * turns the very thing being demonstrated into a scheduled message. Narrowing
+ * belongs here rather than in each generator so curl and CLI stay in step.
+ */
+export function narrowRequestBody(
+  requestBody: Endpoint['requestBody'],
+  params: Record<string, unknown>
+): Endpoint['requestBody'] {
+  if (!requestBody?.content) return requestBody;
+
+  const content = { ...requestBody.content };
+  let changed = false;
+
+  for (const [mediaType, media] of Object.entries(content)) {
+    const schema = media?.schema;
+    if (!schema) continue;
+
+    const merged = mergeAllOf(schema);
+    if (!merged.properties) continue;
+
+    const wrapperKey = pickWrapperKey(merged.properties);
+    const narrowed = wrapperKey
+      ? {
+          ...merged,
+          properties: {
+            ...merged.properties,
+            [wrapperKey]: narrowObjectSchema(merged.properties[wrapperKey], params),
+          },
+        }
+      : narrowObjectSchema(merged, params);
+
+    content[mediaType] = { ...media, schema: narrowed };
+    changed = true;
+  }
+
+  return changed ? { ...requestBody, content } : requestBody;
 }

@@ -1636,11 +1636,16 @@ func (s *CustomPropertiesServiceImpl) ListProperties(ctx context.Context, params
 }
 
 type FilesService interface {
+	DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) error
 	UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error
 	GetUploadParams(ctx context.Context) (*UploadParams, error)
 }
 
 type FilesServiceStub struct{}
+
+func (s *FilesServiceStub) DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) error {
+	return NotImplementedError{Method: "Files.downloadFile"}
+}
 
 func (s *FilesServiceStub) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
 	return NotImplementedError{Method: "Files.uploadFile"}
@@ -1653,6 +1658,43 @@ func (s *FilesServiceStub) GetUploadParams(ctx context.Context) (*UploadParams, 
 type FilesServiceImpl struct {
 	baseURL string
 	client  *http.Client
+}
+
+func (s *FilesServiceImpl) DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) error {
+	u, err := url.Parse(fmt.Sprintf("%s/files/%v", s.baseURL, id))
+	if err != nil {
+		return err
+	}
+	q := u.Query()
+	if params != nil && params.Target != nil {
+		q.Set("target", string(*params.Target))
+	}
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
+	}
 }
 
 func (s *FilesServiceImpl) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
@@ -1730,6 +1772,265 @@ func (s *FilesServiceImpl) GetUploadParams(ctx context.Context) (*UploadParams, 
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	}
+}
+
+type DraftsService interface {
+	ListDrafts(ctx context.Context, params *ListDraftsParams) (*ListDraftsResponse, error)
+	ListDraftsAll(ctx context.Context, params *ListDraftsParams) ([]Draft, error)
+	GetDraft(ctx context.Context, id int32) (*Draft, error)
+	CreateDraft(ctx context.Context, request DraftCreateRequest) (*Draft, error)
+	UpdateDraft(ctx context.Context, id int32, request DraftUpdateRequest) (*Draft, error)
+	DeleteDraft(ctx context.Context, id int32) error
+}
+
+type DraftsServiceStub struct{}
+
+func (s *DraftsServiceStub) ListDrafts(ctx context.Context, params *ListDraftsParams) (*ListDraftsResponse, error) {
+	return nil, NotImplementedError{Method: "Drafts.listDrafts"}
+}
+
+func (s *DraftsServiceStub) ListDraftsAll(ctx context.Context, params *ListDraftsParams) ([]Draft, error) {
+	return nil, NotImplementedError{Method: "Drafts.listDraftsAll"}
+}
+
+func (s *DraftsServiceStub) GetDraft(ctx context.Context, id int32) (*Draft, error) {
+	return nil, NotImplementedError{Method: "Drafts.getDraft"}
+}
+
+func (s *DraftsServiceStub) CreateDraft(ctx context.Context, request DraftCreateRequest) (*Draft, error) {
+	return nil, NotImplementedError{Method: "Drafts.createDraft"}
+}
+
+func (s *DraftsServiceStub) UpdateDraft(ctx context.Context, id int32, request DraftUpdateRequest) (*Draft, error) {
+	return nil, NotImplementedError{Method: "Drafts.updateDraft"}
+}
+
+func (s *DraftsServiceStub) DeleteDraft(ctx context.Context, id int32) error {
+	return NotImplementedError{Method: "Drafts.deleteDraft"}
+}
+
+type DraftsServiceImpl struct {
+	baseURL string
+	client  *http.Client
+}
+
+func (s *DraftsServiceImpl) ListDrafts(ctx context.Context, params *ListDraftsParams) (*ListDraftsResponse, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/drafts", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	if params != nil && params.Type != nil {
+		q.Set("type", string(*params.Type))
+	}
+	if params != nil && params.EntityType != nil {
+		q.Set("entity_type", string(*params.EntityType))
+	}
+	if params != nil && params.EntityID != nil {
+		q.Set("entity_id", fmt.Sprintf("%v", *params.EntityID))
+	}
+	if params != nil && params.Limit != nil {
+		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
+	}
+	if params != nil && params.Cursor != nil {
+		q.Set("cursor", fmt.Sprintf("%v", *params.Cursor))
+	}
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListDraftsResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *DraftsServiceImpl) ListDraftsAll(ctx context.Context, params *ListDraftsParams) ([]Draft, error) {
+	if params == nil {
+		params = &ListDraftsParams{}
+	}
+	var items []Draft
+	var cursor *string
+	hasNext := true
+	for hasNext {
+		params.Cursor = cursor
+		result, err := s.ListDrafts(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if len(result.Data) == 0 {
+			return items, nil
+		}
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
+	}
+	return items, nil
+}
+
+func (s *DraftsServiceImpl) GetDraft(ctx context.Context, id int32) (*Draft, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/drafts/%v", s.baseURL, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data Draft `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *DraftsServiceImpl) CreateDraft(ctx context.Context, request DraftCreateRequest) (*Draft, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/drafts", s.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusCreated:
+		var result struct {
+			Data Draft `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *DraftsServiceImpl) UpdateDraft(ctx context.Context, id int32, request DraftUpdateRequest) (*Draft, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/drafts/%v", s.baseURL, id), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data Draft `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *DraftsServiceImpl) DeleteDraft(ctx context.Context, id int32) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/drafts/%v", s.baseURL, id), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
 	}
 }
 
@@ -4606,6 +4907,7 @@ type PachcaClient struct {
 	Chats            ChatsService
 	Common           CommonService
 	CustomProperties CustomPropertiesService
+	Drafts           DraftsService
 	Files            FilesService
 	GroupTags        GroupTagsService
 	LinkPreviews     LinkPreviewsService
@@ -4629,6 +4931,7 @@ type clientConfig struct {
 	chats ChatsService
 	common CommonService
 	customProperties CustomPropertiesService
+	drafts DraftsService
 	files FilesService
 	groupTags GroupTagsService
 	linkPreviews LinkPreviewsService
@@ -4653,6 +4956,7 @@ type stubClientConfig struct {
 	chats ChatsService
 	common CommonService
 	customProperties CustomPropertiesService
+	drafts DraftsService
 	files FilesService
 	groupTags GroupTagsService
 	linkPreviews LinkPreviewsService
@@ -4692,6 +4996,10 @@ func WithCommon(service CommonService) ClientOption {
 
 func WithCustomProperties(service CustomPropertiesService) ClientOption {
 	return func(cfg *clientConfig) { cfg.customProperties = service }
+}
+
+func WithDrafts(service DraftsService) ClientOption {
+	return func(cfg *clientConfig) { cfg.drafts = service }
 }
 
 func WithFiles(service FilesService) ClientOption {
@@ -4768,6 +5076,10 @@ func WithStubCommon(service CommonService) StubClientOption {
 
 func WithStubCustomProperties(service CustomPropertiesService) StubClientOption {
 	return func(cfg *stubClientConfig) { cfg.customProperties = service }
+}
+
+func WithStubDrafts(service DraftsService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.drafts = service }
 }
 
 func WithStubFiles(service FilesService) StubClientOption {
@@ -4857,6 +5169,10 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	if cfg.customProperties != nil {
 		customProperties = cfg.customProperties
 	}
+	var drafts DraftsService = &DraftsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.drafts != nil {
+		drafts = cfg.drafts
+	}
 	var files FilesService = &FilesServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.files != nil {
 		files = cfg.files
@@ -4922,6 +5238,7 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 		Chats           : chats,
 		Common          : common,
 		CustomProperties: customProperties,
+		Drafts          : drafts,
 		Files           : files,
 		GroupTags       : groupTags,
 		LinkPreviews    : linkPreviews,
@@ -4961,6 +5278,10 @@ func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...Client
 	if cfg.customProperties != nil {
 		customProperties = cfg.customProperties
 	}
+	var drafts DraftsService = &DraftsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.drafts != nil {
+		drafts = cfg.drafts
+	}
 	var files FilesService = &FilesServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.files != nil {
 		files = cfg.files
@@ -5026,6 +5347,7 @@ func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...Client
 		Chats           : chats,
 		Common          : common,
 		CustomProperties: customProperties,
+		Drafts          : drafts,
 		Files           : files,
 		GroupTags       : groupTags,
 		LinkPreviews    : linkPreviews,
@@ -5064,6 +5386,10 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	var customProperties CustomPropertiesService = &CustomPropertiesServiceStub{}
 	if cfg.customProperties != nil {
 		customProperties = cfg.customProperties
+	}
+	var drafts DraftsService = &DraftsServiceStub{}
+	if cfg.drafts != nil {
+		drafts = cfg.drafts
 	}
 	var files FilesService = &FilesServiceStub{}
 	if cfg.files != nil {
@@ -5130,6 +5456,7 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 		Chats           : chats,
 		Common          : common,
 		CustomProperties: customProperties,
+		Drafts          : drafts,
 		Files           : files,
 		GroupTags       : groupTags,
 		LinkPreviews    : linkPreviews,

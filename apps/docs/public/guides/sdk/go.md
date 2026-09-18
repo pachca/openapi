@@ -99,7 +99,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Users.DeleteUserAvatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.Users.DeleteUserStatus()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.GroupTags.CreateTag()` | [Новый тег](/api/group-tags/create) |
-| `client.GroupTags.ListTags()` | [Список тегов сотрудников](/api/group-tags/list) |
+| `client.GroupTags.ListTags()` | [Список тегов](/api/group-tags/list) |
 | `client.GroupTags.GetTag()` | [Информация о теге](/api/group-tags/get) |
 | `client.GroupTags.GetTagUsers()` | [Список сотрудников тега](/api/group-tags/list-users) |
 | `client.GroupTags.UpdateTag()` | [Редактирование тега](/api/group-tags/update) |
@@ -108,7 +108,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Members.AddMembers()` | [Добавление пользователей](/api/members/add) |
 | `client.Members.ListMembers()` | [Список участников чата](/api/members/list) |
 | `client.Members.UpdateMemberRole()` | [Редактирование роли](/api/members/update) |
-| `client.Members.LeaveChat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.Members.LeaveChat()` | [Выход из чата](/api/members/leave) |
 | `client.Members.RemoveTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.RemoveMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.Threads.CreateStandaloneThread()` | [Новый самостоятельный тред](/api/threads/create) |
@@ -135,6 +135,11 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Tasks.GetTask()` | [Информация о напоминании](/api/tasks/get) |
 | `client.Tasks.UpdateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.Tasks.DeleteTask()` | [Удаление напоминания](/api/tasks/delete) |
+| `client.Drafts.CreateDraft()` | [Новый черновик](/api/drafts/create) |
+| `client.Drafts.ListDrafts()` | [Список черновиков](/api/drafts/list) |
+| `client.Drafts.GetDraft()` | [Информация о черновике](/api/drafts/get) |
+| `client.Drafts.UpdateDraft()` | [Редактирование черновика](/api/drafts/update) |
+| `client.Drafts.DeleteDraft()` | [Удаление черновика](/api/drafts/delete) |
 | `client.Views.OpenView()` | [Открытие представления](/api/views/open) |
 | `client.Views.SubmitViewResponse()` | [Ответ на отправку формы](/api/views/submit-response) |
 | `client.Bots.CreateBot()` | [Новый бот](/api/bots/create) |
@@ -152,6 +157,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.CustomProperties.ListProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.Files.GetUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
+| `client.Files.DownloadFile()` | [Скачивание файла](/api/files/get) |
 
 
 ## Запросы
@@ -404,7 +410,7 @@ request := MessageCreateRequest{
 	LinkPreview: Ptr(false),
 }
 response, err := client.Messages.CreateMessage(ctx, request)
-// → Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}
+// → Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}
 
 // Список сотрудников
 params := &ListUsersParams{

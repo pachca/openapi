@@ -4,7 +4,7 @@
    ```bash
    pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>
    ```
-   > `start_at`, `end_at` (YYYY-MM-DD), `webhook_url` обязателен — запрос асинхронный
+   > `start_at`, `end_at` (YYYY-MM-DD). Запрос асинхронный: ответ приходит пустым, без номера выгрузки. `webhook_url` формально не обязателен, но без него номер взять неоткуда — присылай его всегда
 
 2. Дождись вебхука: придёт JSON с `"type": "export"`, `"event": "ready"` и `export_id`
 

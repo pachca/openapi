@@ -100,10 +100,12 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
         children: [
           { title: 'Обзор', path: '/guides/ai-agents/overview' },
           { title: 'Взаимодействие с агентом', path: '/guides/ai-agents/interaction' },
+          { title: 'Черновик вместо отправки', path: '/guides/ai-agents/drafts' },
           { title: 'Оформление ответов', path: '/guides/ai-agents/markdown' },
         ],
       },
       { title: 'Треды', path: '/guides/threads' },
+      { title: 'Теги', path: '/guides/tags' },
     ],
   },
   {
@@ -148,6 +150,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
     items: [
       { title: 'Экспорт сообщений', path: '/guides/export' },
       { title: 'DLP-система', path: '/guides/dlp' },
+      { title: 'Шифрование и безопасный контур', path: '/guides/data-protection' },
       { title: 'Журнал аудита', path: '/guides/audit-events' },
     ],
   },

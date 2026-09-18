@@ -271,6 +271,26 @@
     ]
   },
   {
+    "title": "Отправить сообщение позже или по расписанию",
+    "skill": "pachca-messages",
+    "steps": [
+      {
+        "description": "Найди чат, в который нужно написать",
+        "command": "pachca search list-chats --query=\"название\""
+      },
+      {
+        "description": "Создай отложенное сообщение: `schedule.start_date` — когда отправить, `schedule.repetition.interval` — как повторять (`once`, если один раз)",
+        "command": "pachca drafts create --entity-type=discussion --entity-id=<chat_id> --content=\"Текст\" --schedule='{\"start_date\":\"2026-09-17T09:00:00Z\",\"repetition\":{\"interval\":\"once\"}}'",
+        "notes": "Время без смещения считается UTC: переведи местное время сотрудника сами или пришли со смещением. Повтор по дням недели — `interval: \"weekly\"` и `days` (0 — воскресенье). В ответе `next_send_at` — ближайшая отправка, сверься с ней."
+      },
+      {
+        "description": "Чтобы отменить отправку — удали отложенное сообщение",
+        "command": "pachca drafts delete <ID>",
+        "notes": "Другого способа отменить нет: снять расписание правкой нельзя"
+      }
+    ]
+  },
+  {
     "title": "Создать канал и пригласить участников",
     "skill": "pachca-chats",
     "steps": [
@@ -344,7 +364,7 @@
       {
         "description": "Запроси экспорт",
         "command": "pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>",
-        "notes": "`start_at`, `end_at` (YYYY-MM-DD), `webhook_url` обязателен — запрос асинхронный"
+        "notes": "`start_at`, `end_at` (YYYY-MM-DD). Запрос асинхронный: ответ приходит пустым, без номера выгрузки. `webhook_url` формально не обязателен, но без него номер взять неоткуда — присылай его всегда"
       },
       {
         "description": "Скачай файл экспорта",

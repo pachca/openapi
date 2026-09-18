@@ -127,7 +127,7 @@
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "request := ExportRequest{\n\tStartAt: \"2025-03-20\",\n\tEndAt: \"2025-03-20\",\n\tWebhookURL: \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n\tChatIDs: []int32{int32(123)},\n\tSkipChatsFile: Ptr(false),\n}\nclient.Chats.RequestExport(ctx, request)",
+    "usage": "request := ExportRequest{\n\tStartAt: \"2025-03-20\",\n\tEndAt: \"2025-03-20\",\n\tWebhookURL: Ptr(\"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\"),\n\tChatIDs: []int32{int32(123)},\n\tSkipChatsFile: Ptr(false),\n}\nclient.Chats.RequestExport(ctx, request)",
     "imports": [
       "ExportRequest"
     ]
@@ -186,6 +186,13 @@
       "SearchEntityType"
     ]
   },
+  "FileOperations_downloadFile": {
+    "usage": "params := &DownloadFileParams{\n\tTarget: Ptr(FileTargetThumb),\n}\nclient.Files.DownloadFile(ctx, int32(3560), params)",
+    "imports": [
+      "DownloadFileParams",
+      "FileTarget"
+    ]
+  },
   "DirectUploadOperations_uploadFile": {
     "usage": "request := FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: \"example\",\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tFile: bytes.NewReader(nil),\n}\nclient.Files.UploadFile(ctx, \"https://example.com\", request)",
     "imports": [
@@ -195,6 +202,49 @@
   "UploadOperations_getUploadParams": {
     "usage": "response, err := client.Files.GetUploadParams(ctx)",
     "output": "UploadParams{ContentDisposition: string, ACL: string, Policy: string, XAMZCredential: string, XAMZAlgorithm: string, XAMZDate: string, XAMZSignature: string, Key: string, DirectURL: string}"
+  },
+  "DraftOperations_listDrafts": {
+    "usage": "params := &ListDraftsParams{\n\tType: Ptr(DraftTypeAll),\n\tEntityType: Ptr(MessageEntityTypeDiscussion),\n\tEntityID: Ptr(int32(334)),\n\tLimit: Ptr(int32(25)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Drafts.ListDrafts(ctx, params)",
+    "output": "ListDraftsResponse{Data: []Draft, Meta: PaginationMeta}",
+    "imports": [
+      "DraftType",
+      "ListDraftsParams",
+      "MessageEntityType"
+    ]
+  },
+  "DraftOperations_getDraft": {
+    "usage": "response, err := client.Drafts.GetDraft(ctx, int32(4821))",
+    "output": "Draft{ID: int32, EntityType: *MessageEntityType, EntityID: *int32, ChatID: *int32, Content: string, ParentMessageID: *int32, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Schedule: *DraftSchedule{StartDate: string, EndDate: *string, Repetition: DraftRepetition{Interval: DraftRepetitionInterval, Days: *[]int32, NthDay: *int32}}, NextSendAt: *string, CreatedAt: string, UpdatedAt: string}"
+  },
+  "DraftOperations_createDraft": {
+    "usage": "request := DraftCreateRequest{\n\tDraft: DraftCreateRequestDraft{\n\t\tEntityType: MessageEntityTypeDiscussion,\n\t\tEntityID: int32(334),\n\t\tContent: Ptr(\"Отчёт за неделю: продажи выросли на 10%\"),\n\t\tParentMessageID: Ptr(int32(196093)),\n\t\tFiles: []DraftFileRequest{DraftFileRequest{\n\t\t\tID: Ptr(int32(3560)),\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: Ptr(FileTypeImage),\n\t\t\tSize: Ptr(int64(12345)),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tSchedule: Ptr(DraftScheduleRequest{\n\t\t\tStartDate: \"2026-09-17T12:00:00.000Z\",\n\t\t\tEndDate: Ptr(\"2026-12-31T12:00:00.000Z\"),\n\t\t\tRepetition: DraftRepetitionRequest{\n\t\t\t\tInterval: DraftRepetitionIntervalWeekly,\n\t\t\t\tDays: []int32{int32(123)},\n\t\t\t\tNthDay: Ptr(int32(2)),\n\t\t\t},\n\t\t}),\n\t},\n}\nresponse, err := client.Drafts.CreateDraft(ctx, request)",
+    "output": "Draft{ID: int32, EntityType: *MessageEntityType, EntityID: *int32, ChatID: *int32, Content: string, ParentMessageID: *int32, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Schedule: *DraftSchedule{StartDate: string, EndDate: *string, Repetition: DraftRepetition{Interval: DraftRepetitionInterval, Days: *[]int32, NthDay: *int32}}, NextSendAt: *string, CreatedAt: string, UpdatedAt: string}",
+    "imports": [
+      "DraftCreateRequest",
+      "DraftCreateRequestDraft",
+      "DraftFileRequest",
+      "DraftRepetitionInterval",
+      "DraftRepetitionRequest",
+      "DraftScheduleRequest",
+      "FileType",
+      "MessageEntityType"
+    ]
+  },
+  "DraftOperations_updateDraft": {
+    "usage": "request := DraftUpdateRequest{\n\tDraft: DraftUpdateRequestDraft{\n\t\tContent: Ptr(\"Отчёт за неделю: продажи выросли на 10%\"),\n\t\tParentMessageID: Ptr(int32(196093)),\n\t\tFiles: []DraftFileRequest{DraftFileRequest{\n\t\t\tID: Ptr(int32(3560)),\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: Ptr(FileTypeImage),\n\t\t\tSize: Ptr(int64(12345)),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tSchedule: Ptr(DraftScheduleRequest{\n\t\t\tStartDate: \"2026-09-17T12:00:00.000Z\",\n\t\t\tEndDate: Ptr(\"2026-12-31T12:00:00.000Z\"),\n\t\t\tRepetition: DraftRepetitionRequest{\n\t\t\t\tInterval: DraftRepetitionIntervalWeekly,\n\t\t\t\tDays: []int32{int32(123)},\n\t\t\t\tNthDay: Ptr(int32(2)),\n\t\t\t},\n\t\t}),\n\t},\n}\nresponse, err := client.Drafts.UpdateDraft(ctx, int32(4821), request)",
+    "output": "Draft{ID: int32, EntityType: *MessageEntityType, EntityID: *int32, ChatID: *int32, Content: string, ParentMessageID: *int32, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Schedule: *DraftSchedule{StartDate: string, EndDate: *string, Repetition: DraftRepetition{Interval: DraftRepetitionInterval, Days: *[]int32, NthDay: *int32}}, NextSendAt: *string, CreatedAt: string, UpdatedAt: string}",
+    "imports": [
+      "DraftFileRequest",
+      "DraftRepetitionInterval",
+      "DraftRepetitionRequest",
+      "DraftScheduleRequest",
+      "DraftUpdateRequest",
+      "DraftUpdateRequestDraft",
+      "FileType"
+    ]
+  },
+  "DraftOperations_deleteDraft": {
+    "usage": "client.Drafts.DeleteDraft(ctx, int32(4821))"
   },
   "GroupTagOperations_listTags": {
     "usage": "params := &ListTagsParams{\n\tNames: []string{\"example\"},\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.GroupTags.ListTags(ctx, params)",
@@ -244,11 +294,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "response, err := client.Messages.GetMessage(ctx, int32(194275))",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}"
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}"
   },
   "MessageOperations_createMessage": {
     "usage": "request := MessageCreateRequest{\n\tMessage: MessageCreateRequestMessage{\n\t\tEntityType: Ptr(MessageEntityTypeDiscussion),\n\t\tEntityID: int32(334),\n\t\tContent: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n\t\tFiles: []MessageCreateRequestFile{MessageCreateRequestFile{\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: FileTypeImage,\n\t\t\tSize: int64(12345),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tButtons: [][]Button{[]Button{Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: Ptr(\"https://example.com/details\"),\n\t\t\tData: Ptr(\"awesome\"),\n\t\t}}},\n\t\tParentMessageID: Ptr(int32(194270)),\n\t\tDisplayAvatarURL: Ptr(\"https://example.com/avatar.png\"),\n\t\tDisplayName: Ptr(\"Бот Поддержки\"),\n\t\tSkipInviteMentions: Ptr(false),\n\t},\n\tLinkPreview: Ptr(false),\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}",
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}",
     "imports": [
       "Button",
       "FileType",
@@ -271,7 +321,7 @@
   },
   "MessageOperations_updateMessage": {
     "usage": "request := MessageUpdateRequest{\n\tMessage: MessageUpdateRequestMessage{\n\t\tContent: Ptr(\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\"),\n\t\tFiles: []MessageUpdateRequestFile{MessageUpdateRequestFile{\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: Ptr(FileTypeImage),\n\t\t\tSize: Ptr(int64(12345)),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tButtons: [][]Button{[]Button{Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: Ptr(\"https://example.com/details\"),\n\t\t\tData: Ptr(\"awesome\"),\n\t\t}}},\n\t\tDisplayAvatarURL: Ptr(\"https://example.com/avatar.png\"),\n\t\tDisplayName: Ptr(\"Бот Поддержки\"),\n\t},\n}\nresponse, err := client.Messages.UpdateMessage(ctx, int32(194275), request)",
-    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}",
+    "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}",
     "imports": [
       "Button",
       "FileType",

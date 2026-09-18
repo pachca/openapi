@@ -72,6 +72,7 @@ export const messageFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
+		description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or an employee',
 		modes: [
 			{
 				displayName: 'From List',
@@ -146,6 +147,7 @@ export const messageFields: INodeProperties[] = [
 							options: [{ name: 'Audio', value: 'audio', description: 'Audio file' },
 { name: 'File', value: 'file', description: 'Regular file' },
 { name: 'Image', value: 'image' },
+{ name: 'Video', value: 'video', description: 'Video file' },
 { name: 'Voice', value: 'voice', description: 'Voice message' }],
 							default: "",
 						},
@@ -161,7 +163,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'key',
 							type: 'string',
 							default: "",
-							description: 'File path obtained from [file upload](POST /direct_url)',
+							description: 'File path obtained from the [Upload file](POST /direct_url) method',
 						},
 						{
 							displayName: 'Name',
@@ -209,7 +211,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'parentMessageId',
 				type: 'number',
 				default: 0,
-				description: 'Message ID. Specify when sending a reply to another message.',
+				description: 'ID of the message you are replying to. The reply appears right in the chat feed rather than in a thread: to write into a thread, send the message with `entity_type: "thread"`.',
 				placeholder: '194270',
 			},
 			{
@@ -453,6 +455,7 @@ export const messageFields: INodeProperties[] = [
 							options: [{ name: 'Audio', value: 'audio', description: 'Audio file' },
 { name: 'File', value: 'file', description: 'Regular file' },
 { name: 'Image', value: 'image' },
+{ name: 'Video', value: 'video', description: 'Video file' },
 { name: 'Voice', value: 'voice', description: 'Voice message' }],
 							default: "",
 							description: 'File type: file (file), image (image)',
@@ -469,7 +472,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'key',
 							type: 'string',
 							default: "",
-							description: 'File path obtained from [file upload](POST /direct_url)',
+							description: 'File path obtained from the [Upload file](POST /direct_url) method',
 						},
 						{
 							displayName: 'Name',
@@ -490,7 +493,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'waveform',
 							type: 'string',
 							default: "",
-							description: 'Waveform for visualizing the voice message. Required for voice messages (`file_type` is `voice`), not used for other types.',
+							description: 'Waveform for visualizing the voice message. Without it a request with a voice file (`file_type` is `voice`) does not pass validation, but when editing, the value that was sent is not saved. Not used for other types.',
 						},
 						{
 							displayName: 'Width',

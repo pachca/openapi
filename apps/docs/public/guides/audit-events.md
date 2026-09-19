@@ -56,7 +56,59 @@
 
 ## Типы событий
 
-#### AuditEventKey
+**Возможные значения:**
+
+- `user_login` — Пользователь успешно вошел в систему
+- `user_logout` — Пользователь вышел из системы
+- `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации
+- `user_2fa_success` — Успешная двухфакторная аутентификация
+- `user_2fa_disabled` — Двухфакторная аутентификация отключена у сотрудника
+- `user_created` — Создана новая учетная запись пользователя
+- `user_deleted` — Учетная запись пользователя удалена
+- `user_role_changed` — Роль пользователя была изменена
+- `user_updated` — Данные пользователя обновлены
+- `tag_created` — Создан новый тег
+- `tag_deleted` — Тег удален
+- `user_added_to_tag` — Пользователь добавлен в тег
+- `user_removed_from_tag` — Пользователь удален из тега
+- `chat_created` — Создан новый чат
+- `chat_renamed` — Чат переименован
+- `chat_permission_changed` — Изменены права доступа к чату
+- `user_chat_join` — Пользователь присоединился к чату
+- `user_chat_leave` — Пользователь покинул чат
+- `tag_added_to_chat` — Тег добавлен в чат
+- `tag_removed_from_chat` — Тег удален из чата
+- `message_updated` — Сообщение отредактировано
+- `message_deleted` — Сообщение удалено
+- `message_created` — Сообщение создано
+- `reaction_created` — Реакция добавлена
+- `reaction_deleted` — Реакция удалена
+- `thread_created` — Тред создан
+- `access_token_created` — Создан новый токен доступа
+- `access_token_updated` — Токен доступа обновлен
+- `access_token_destroy` — Токен доступа удален
+- `kms_encrypt` — Данные зашифрованы
+- `kms_decrypt` — Данные расшифрованы
+- `audit_events_accessed` — Доступ к журналам аудита получен
+- `company_chats_accessed` — Получен список всех чатов пространства
+- `company_bots_accessed` — Получен список всех ботов пространства
+- `dlp_violation_detected` — Срабатывание правила DLP-системы
+- `search_users_api` — Поиск сотрудников через API
+- `search_chats_api` — Поиск чатов через API
+- `search_messages_api` — Поиск сообщений через API
+- `bot_scopes_updated` — Изменены скоупы токена бота
+- `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота
+- `bot_token_recreated` — Токен бота перевыпущен (ротация)
+- `bot_deleted` — Бот удалён
+- `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота
+- `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным
+- `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван
+- `oauth_device_authorization_approved` — Сотрудник подтвердил вход приложения с устройства
+- `oauth_device_authorization_denied` — Сотрудник отклонил вход приложения с устройства
+- `video_call_started` — Видеозвонок начат
+- `video_call_finished` — Видеозвонок завершён
+- `video_call_recording_ready` — Запись видеозвонка готова
+- `exchange_disabled` — Отключена интеграция с Exchange
 
 
 ## Что приходит в деталях
@@ -156,3 +208,4 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 - [Права и роли](/guides/permissions)
 - [DLP-система](/guides/dlp)
 - [Экспорт сообщений](/guides/export)
+- [Шифрование и безопасный контур](/guides/data-protection)

@@ -101,14 +101,16 @@ app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
       }
       break
     case "reaction":
-      console.log(`${event.event === "new" ? "Добавлена" : "Удалена"} реакция ${event.emoji}`)
+      console.log(`${event.event === "new" ? "Добавлена" : "Удалена"} реакция ${event.code}`)
       break
     case "button":
       console.log(`Нажата кнопка: ${event.data}`)
       // trigger_id доступен 3 секунды — используйте его для открытия формы
       break
-    case "view_submit":
-      console.log(`Форма заполнена:`, event.payload)
+    case "view":
+      if (event.event === "submit") {
+        console.log(`Форма заполнена:`, event.data)
+      }
       break
   }
 
@@ -145,8 +147,8 @@ def webhook():
         print(f"Новое сообщение от {event['user_id']}: {event['content']}")
     elif event["type"] == "button":
         print(f"Нажата кнопка: {event['data']}")
-    elif event["type"] == "view_submit":
-        print(f"Форма заполнена: {event['payload']}")
+    elif event["type"] == "view" and event["event"] == "submit":
+        print(f"Форма заполнена: {event['data']}")
 
     return "OK", 200
 ```

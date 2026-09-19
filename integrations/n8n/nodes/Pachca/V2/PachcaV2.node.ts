@@ -15,6 +15,7 @@ import { chatOperations, chatFields } from './ChatDescription';
 import { memberOperations, memberFields } from './MemberDescription';
 import { customPropertyOperations, customPropertyFields } from './CustomPropertyDescription';
 import { fileOperations, fileFields } from './FileDescription';
+import { draftOperations, draftFields } from './DraftDescription';
 import { groupTagOperations, groupTagFields } from './GroupTagDescription';
 import { messageOperations, messageFields } from './MessageDescription';
 import { reactionOperations, reactionFields } from './ReactionDescription';
@@ -50,6 +51,7 @@ export class PachcaV2 implements INodeType {
 					{ name: 'Chat', value: 'chat' },
 					{ name: 'Chat Member', value: 'member' },
 					{ name: 'Custom Property', value: 'customProperty' },
+					{ name: 'Draft', value: 'draft' },
 					{ name: 'File', value: 'file' },
 					{ name: 'Form', value: 'form' },
 					{ name: 'Group Tag', value: 'groupTag' },
@@ -78,6 +80,8 @@ export class PachcaV2 implements INodeType {
 				...customPropertyFields,
 				...fileOperations,
 				...fileFields,
+				...draftOperations,
+				...draftFields,
 				...groupTagOperations,
 				...groupTagFields,
 				...messageOperations,

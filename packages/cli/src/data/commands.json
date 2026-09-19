@@ -729,13 +729,13 @@
             "name": "last-message-at-after",
             "type": "option",
             "required": false,
-            "description": "Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ)."
+            "description": "Фильтрация по времени создания последнего сообщения: вернутся чаты, где оно позже указанного. Значение в ISO-8601, смещение вида `+03:00` учитывается, время без смещения считается UTC."
           },
           {
             "name": "last-message-at-before",
             "type": "option",
             "required": false,
-            "description": "Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ)."
+            "description": "Фильтрация по времени создания последнего сообщения: вернутся чаты, где оно раньше указанного. Значение в ISO-8601, смещение вида `+03:00` учитывается, время без смещения считается UTC."
           },
           {
             "name": "personal",
@@ -813,19 +813,19 @@
             "name": "start-at",
             "type": "option",
             "required": true,
-            "description": "Дата начала для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD"
+            "description": "Дата начала для экспорта в формате YYYY-MM-DD. Если прислать дату со временем, время молча отбрасывается — экспорт всегда идёт по календарным дням."
           },
           {
             "name": "end-at",
             "type": "option",
             "required": true,
-            "description": "Дата окончания для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD"
+            "description": "Дата окончания для экспорта в формате YYYY-MM-DD, включительно. Если прислать дату со временем, время молча отбрасывается."
           },
           {
             "name": "webhook-url",
             "type": "option",
-            "required": true,
-            "description": "Адрес, на который будет отправлен вебхук по завершению экспорта"
+            "required": false,
+            "description": "Адрес, на который придёт вебхук с номером готовой выгрузки. Без него узнать номер неоткуда: заказавший получит письмо и уведомление, а вызывающая программа — ничего."
           },
           {
             "name": "chat-ids",
@@ -1000,6 +1000,193 @@
     ]
   },
   {
+    "section": "drafts",
+    "commands": [
+      {
+        "command": "pachca drafts create",
+        "summary": "Новый черновик",
+        "method": "POST",
+        "path": "/drafts",
+        "scope": "drafts:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "entity-type",
+            "type": "option",
+            "required": true,
+            "description": "Куда пишется черновик: в беседу или канал, в тред либо в личную переписку с сотрудником"
+          },
+          {
+            "name": "entity-id",
+            "type": "option",
+            "required": true,
+            "description": "Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника (pachca chats list | pachca users list)"
+          },
+          {
+            "name": "content",
+            "type": "option",
+            "required": false,
+            "description": "Текст черновика. Можно не передавать, если есть вложения, но пустым черновик быть не может."
+          },
+          {
+            "name": "parent-message-id",
+            "type": "option",
+            "required": false,
+            "description": "Идентификатор сообщения, ответом на которое уйдёт черновик. Сообщение должно быть в том же чате."
+          },
+          {
+            "name": "files",
+            "type": "option",
+            "required": false,
+            "description": "Прикрепляемые файлы, не больше десяти"
+          },
+          {
+            "name": "schedule",
+            "type": "option",
+            "required": false,
+            "description": "Расписание отправки. С ним создаётся отложенное сообщение, без него — обычный черновик."
+          }
+        ]
+      },
+      {
+        "command": "pachca drafts delete",
+        "summary": "Удаление черновика",
+        "method": "DELETE",
+        "path": "/drafts/{id}",
+        "scope": "drafts:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор черновика"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca drafts get",
+        "summary": "Информация о черновике",
+        "method": "GET",
+        "path": "/drafts/{id}",
+        "scope": "drafts:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор черновика"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca drafts list",
+        "summary": "Список черновиков",
+        "method": "GET",
+        "path": "/drafts",
+        "scope": "drafts:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "type",
+            "type": "option",
+            "required": false,
+            "description": "Что возвращать: `regular` — обычные черновики, `scheduled` — отложенные сообщения, `all` — и те и другие",
+            "options": [
+              "regular",
+              "scheduled",
+              "all"
+            ]
+          },
+          {
+            "name": "entity-type",
+            "type": "option",
+            "required": false,
+            "description": "Тип чата для фильтра по одному чату. Указывается вместе с `entity_id`: если прислать только один из двух, ответ будет `422`.",
+            "options": [
+              "discussion",
+              "thread",
+              "user"
+            ]
+          },
+          {
+            "name": "entity-id",
+            "type": "option",
+            "required": false,
+            "description": "Идентификатор того, что названо в `entity_type`. Указывается вместе с ним."
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca drafts update",
+        "summary": "Редактирование черновика",
+        "method": "PUT",
+        "path": "/drafts/{id}",
+        "scope": "drafts:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор черновика"
+          }
+        ],
+        "flags": [
+          {
+            "name": "content",
+            "type": "option",
+            "required": false,
+            "description": "Текст черновика"
+          },
+          {
+            "name": "parent-message-id",
+            "type": "option",
+            "required": false,
+            "description": "Идентификатор сообщения, ответом на которое уйдёт черновик. `null` снимает ответ."
+          },
+          {
+            "name": "files",
+            "type": "option",
+            "required": false,
+            "description": "Прикрепляемые файлы, не больше десяти. Переданный массив заменяет прежний состав: пустой снимает все вложения, а чтобы сохранить уже прикреплённый файл, передайте его с `id`. Без этого поля вложения остаются как были."
+          },
+          {
+            "name": "schedule",
+            "type": "option",
+            "required": false,
+            "description": "Расписание отправки. У обычного черновика оно превращает его в отложенное сообщение. У отложенного расписание можно изменить, но не снять: `null` в ответ даст `422` с кодом `draft_type_change_forbidden`."
+          }
+        ]
+      }
+    ]
+  },
+  {
     "section": "files",
     "commands": [
       {
@@ -1069,6 +1256,41 @@
             "type": "option",
             "required": false,
             "description": "Файл для загрузки"
+          }
+        ]
+      },
+      {
+        "command": "pachca files get",
+        "summary": "Скачивание файла",
+        "method": "GET",
+        "path": "/files/{id}",
+        "scope": "files:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор файла из поля `id` вложения"
+          }
+        ],
+        "flags": [
+          {
+            "name": "target",
+            "type": "option",
+            "required": false,
+            "description": "Что отдать вместо исходного файла: `pdf_preview` — документ, переведённый в PDF, `pdf_first_page` — первая страница картинкой, `thumb` — уменьшенная копия изображения, `image` — изображение как есть. Без параметра приходит исходный файл. Вариант, которого у этого файла нет, приводит к `400`.",
+            "options": [
+              "pdf_preview",
+              "pdf_first_page",
+              "thumb",
+              "image"
+            ]
+          },
+          {
+            "name": "save",
+            "type": "option",
+            "required": false,
+            "description": "Путь для сохранения файла"
           }
         ]
       },
@@ -1143,7 +1365,7 @@
       },
       {
         "command": "pachca group-tags list",
-        "summary": "Список тегов сотрудников",
+        "summary": "Список тегов",
         "method": "GET",
         "path": "/group_tags",
         "scope": "group_tags:read",
@@ -1334,7 +1556,7 @@
       },
       {
         "command": "pachca members leave",
-        "summary": "Выход из беседы или канала",
+        "summary": "Выход из чата",
         "method": "DELETE",
         "path": "/chats/{id}/leave",
         "scope": "chats:leave",
@@ -1510,7 +1732,7 @@
             "name": "entity-id",
             "type": "option",
             "required": true,
-            "description": "Идентификатор сущности (pachca chats list | pachca users list)"
+            "description": "Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника. (pachca chats list | pachca users list)"
           },
           {
             "name": "content",
@@ -1534,7 +1756,7 @@
             "name": "parent-message-id",
             "type": "option",
             "required": false,
-            "description": "Идентификатор сообщения. Указывается в случае, если вы отправляете ответ на другое сообщение."
+            "description": "Идентификатор сообщения, на которое отвечаете. Ответ появится прямо в ленте чата, а не в треде: для треда отправляйте сообщение с `entity_type: \"thread\"`."
           },
           {
             "name": "display-avatar-url",
@@ -1879,7 +2101,7 @@
             "name": "expires-at",
             "type": "option",
             "required": false,
-            "description": "Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ"
+            "description": "Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Сюда идёт срок, названный словами: «до трёх» это значение поля, а не часть подписи."
           },
           {
             "name": "is-away",
@@ -1919,7 +2141,7 @@
             "name": "code",
             "type": "option",
             "required": true,
-            "description": "Emoji символ реакции"
+            "description": "Emoji символ реакции. Именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи."
           },
           {
             "name": "name",
@@ -1983,7 +2205,7 @@
             "name": "code",
             "type": "option",
             "required": true,
-            "description": "Emoji символ реакции"
+            "description": "Emoji символ реакции. Именно символ: текстовые записи вроде `+1` или `:+1:` отклоняются как неизвестный эмодзи."
           },
           {
             "name": "name",
@@ -2296,13 +2518,13 @@
             "name": "start-time",
             "type": "option",
             "required": false,
-            "description": "Начальная метка времени (включительно)"
+            "description": "Начальная метка времени, включительно (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Значение, которое не удалось разобрать, фильтр снимает — ответ придёт полным, без ошибки."
           },
           {
             "name": "end-time",
             "type": "option",
             "required": false,
-            "description": "Конечная метка времени (включительно)"
+            "description": "Конечная метка времени, включительно (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Значение, которое не удалось разобрать, фильтр снимает — ответ придёт полным, без ошибки."
           },
           {
             "name": "event-key",
@@ -2355,6 +2577,8 @@
               "bot_oauth_client_updated",
               "oauth_authorization_granted",
               "oauth_authorization_revoked",
+              "oauth_device_authorization_approved",
+              "oauth_device_authorization_denied",
               "video_call_started",
               "video_call_finished",
               "video_call_recording_ready",
@@ -2434,7 +2658,7 @@
             "name": "due-at",
             "type": "option",
             "required": false,
-            "description": "Срок выполнения напоминания (ISO-8601) в формате YYYY-MM-DDThh:mm:ss.sssTZD. Если указано время 23:59:59.000, то напоминание будет создано на весь день (без указания времени)."
+            "description": "Срок выполнения напоминания (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Секунды отбрасываются: срок встаёт на начало минуты. Исключение — ровно 23:59:59: такое напоминание создаётся на весь день, без указания времени."
           },
           {
             "name": "priority",
@@ -2594,7 +2818,7 @@
             "name": "due-at",
             "type": "option",
             "required": false,
-            "description": "Срок выполнения напоминания (ISO-8601) в формате YYYY-MM-DDThh:mm:ss.sssTZD. Если указано время 23:59:59.000, то напоминание будет создано на весь день (без указания времени)."
+            "description": "Срок выполнения напоминания (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Секунды отбрасываются: срок встаёт на начало минуты. Исключение — ровно 23:59:59: такое напоминание создаётся на весь день, без указания времени."
           },
           {
             "name": "priority",
@@ -2624,7 +2848,7 @@
             "name": "done-at",
             "type": "option",
             "required": false,
-            "description": "Дата и время выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ"
+            "description": "Дата и время выполнения напоминания (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Значение, которое не удалось разобрать, отметку о выполнении снимает: ответ придёт успешный, а в нём `done_at` будет `null`."
           },
           {
             "name": "custom-properties",
@@ -2692,13 +2916,13 @@
             "name": "last-message-at-after",
             "type": "option",
             "required": false,
-            "description": "Фильтрация по времени последнего сообщения в треде. Будут возвращены только те треды, время последнего сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ)."
+            "description": "Фильтрация по времени последнего сообщения в треде: вернутся треды, где оно позже указанного. Значение в ISO-8601, смещение вида `+03:00` учитывается, время без смещения считается UTC."
           },
           {
             "name": "last-message-at-before",
             "type": "option",
             "required": false,
-            "description": "Фильтрация по времени последнего сообщения в треде. Будут возвращены только те треды, время последнего сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ)."
+            "description": "Фильтрация по времени последнего сообщения в треде: вернутся треды, где оно раньше указанного. Значение в ISO-8601, смещение вида `+03:00` учитывается, время без смещения считается UTC."
           },
           {
             "name": "limit",
@@ -3120,7 +3344,7 @@
             "name": "expires-at",
             "type": "option",
             "required": false,
-            "description": "Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ"
+            "description": "Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Сюда идёт срок, названный словами: «до трёх» это значение поля, а не часть подписи."
           },
           {
             "name": "is-away",

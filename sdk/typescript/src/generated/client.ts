@@ -33,8 +33,14 @@ import {
   ChatMemberRole,
   ListPropertiesParams,
   ListPropertiesResponse,
+  DownloadFileParams,
   FileUploadRequest,
   UploadParams,
+  ListDraftsParams,
+  ListDraftsResponse,
+  Draft,
+  DraftCreateRequest,
+  DraftUpdateRequest,
   ListTagsParams,
   ListTagsResponse,
   GroupTag,
@@ -948,6 +954,10 @@ export class CustomPropertiesServiceImpl extends CustomPropertiesService {
 }
 
 export class FilesService {
+  async downloadFile(id: number, params?: DownloadFileParams): Promise<void> {
+    throw new Error("Files.downloadFile is not implemented");
+  }
+
   async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
     throw new Error("Files.uploadFile is not implemented");
   }
@@ -963,6 +973,23 @@ export class FilesServiceImpl extends FilesService {
     private headers: Record<string, string>,
   ) {
     super();
+  }
+
+  async downloadFile(id: number, params?: DownloadFileParams): Promise<void> {
+    const query = new URLSearchParams();
+    if (params?.target !== undefined) query.set("target", params.target);
+    const url = `${this.baseUrl}/files/${id}${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 200:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
   }
 
   async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
@@ -1001,6 +1028,141 @@ export class FilesServiceImpl extends FilesService {
         throw new OAuthError(body.error);
       default:
         throw new ApiError(body.errors);
+    }
+  }
+}
+
+export class DraftsService {
+  async listDrafts(params?: ListDraftsParams): Promise<ListDraftsResponse> {
+    throw new Error("Drafts.listDrafts is not implemented");
+  }
+
+  async listDraftsAll(params?: Omit<ListDraftsParams, 'cursor'>): Promise<Draft[]> {
+    throw new Error("Drafts.listDraftsAll is not implemented");
+  }
+
+  async getDraft(id: number): Promise<Draft> {
+    throw new Error("Drafts.getDraft is not implemented");
+  }
+
+  async createDraft(request: DraftCreateRequest): Promise<Draft> {
+    throw new Error("Drafts.createDraft is not implemented");
+  }
+
+  async updateDraft(id: number, request: DraftUpdateRequest): Promise<Draft> {
+    throw new Error("Drafts.updateDraft is not implemented");
+  }
+
+  async deleteDraft(id: number): Promise<void> {
+    throw new Error("Drafts.deleteDraft is not implemented");
+  }
+}
+
+export class DraftsServiceImpl extends DraftsService {
+  constructor(
+    private baseUrl: string,
+    private headers: Record<string, string>,
+  ) {
+    super();
+  }
+
+  async listDrafts(params?: ListDraftsParams): Promise<ListDraftsResponse> {
+    const query = new URLSearchParams();
+    if (params?.type !== undefined) query.set("type", params.type);
+    if (params?.entityType !== undefined) query.set("entity_type", params.entityType);
+    if (params?.entityId !== undefined) query.set("entity_id", String(params.entityId));
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
+    const url = `${this.baseUrl}/drafts${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserialize(body) as ListDraftsResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async listDraftsAll(params?: Omit<ListDraftsParams, 'cursor'>): Promise<Draft[]> {
+    const items: Draft[] = [];
+    let cursor: string | undefined;
+    let hasNext = true;
+    while (hasNext) {
+      const response = await this.listDrafts({ ...params, cursor } as ListDraftsParams);
+      items.push(...response.data);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
+    return items;
+  }
+
+  async getDraft(id: number): Promise<Draft> {
+    const response = await fetchWithRetry(`${this.baseUrl}/drafts/${id}`, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("Draft", body.data) as Draft;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async createDraft(request: DraftCreateRequest): Promise<Draft> {
+    const response = await fetchWithRetry(`${this.baseUrl}/drafts`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("DraftCreateRequest", request)),
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 201:
+        return deserializeType("Draft", body.data) as Draft;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async updateDraft(id: number, request: DraftUpdateRequest): Promise<Draft> {
+    const response = await fetchWithRetry(`${this.baseUrl}/drafts/${id}`, {
+      method: "PUT",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("DraftUpdateRequest", request)),
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("Draft", body.data) as Draft;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async deleteDraft(id: number): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/drafts/${id}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
     }
   }
 }
@@ -2538,6 +2700,7 @@ export class PachcaClient {
   /** @deprecated Renamed for clarity — use the new service(s). Kept working for backward compatibility. */
   readonly common: CommonService;
   readonly customProperties: CustomPropertiesService;
+  readonly drafts: DraftsService;
   readonly files: FilesService;
   readonly groupTags: GroupTagsService;
   /** @deprecated Renamed for clarity — use the new service(s). Kept working for backward compatibility. */
@@ -2556,8 +2719,8 @@ export class PachcaClient {
   readonly views: ViewsService;
 
   constructor(token: string, baseUrl?: string);
-  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
-  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
     let resolvedHeaders: Record<string, string>;
     let resolvedBaseUrl: string;
     if (typeof tokenOrConfig === 'string') {
@@ -2567,6 +2730,7 @@ export class PachcaClient {
       this.chats = new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.common = new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.customProperties = new CustomPropertiesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.drafts = new DraftsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.files = new FilesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.groupTags = new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.linkPreviews = new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -2589,6 +2753,7 @@ export class PachcaClient {
       this.chats = tokenOrConfig.chats ?? new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.common = tokenOrConfig.common ?? new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.customProperties = tokenOrConfig.customProperties ?? new CustomPropertiesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.drafts = tokenOrConfig.drafts ?? new DraftsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.files = tokenOrConfig.files ?? new FilesServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.groupTags = tokenOrConfig.groupTags ?? new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
       this.linkPreviews = tokenOrConfig.linkPreviews ?? new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
@@ -2607,12 +2772,13 @@ export class PachcaClient {
     }
   }
 
-  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
+  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; customProperties?: CustomPropertiesService; drafts?: DraftsService; files?: FilesService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; oauth?: OAuthService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
     client.bots = overrides.bots ?? new BotsService();
     client.chats = overrides.chats ?? new ChatsService();
     client.common = overrides.common ?? new CommonService();
     client.customProperties = overrides.customProperties ?? new CustomPropertiesService();
+    client.drafts = overrides.drafts ?? new DraftsService();
     client.files = overrides.files ?? new FilesService();
     client.groupTags = overrides.groupTags ?? new GroupTagsService();
     client.linkPreviews = overrides.linkPreviews ?? new LinkPreviewsService();

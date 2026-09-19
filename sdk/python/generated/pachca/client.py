@@ -49,8 +49,17 @@ from .models import (
     ListPropertiesParams,
     ListPropertiesResponse,
     SearchEntityType,
+    DownloadFileParams,
+    FileTarget,
     FileUploadRequest,
     UploadParams,
+    ListDraftsParams,
+    ListDraftsResponse,
+    Draft,
+    DraftType,
+    MessageEntityType,
+    DraftCreateRequest,
+    DraftUpdateRequest,
     ListTagsParams,
     ListTagsResponse,
     GroupTag,
@@ -1121,6 +1130,13 @@ class CustomPropertiesServiceImpl(CustomPropertiesService):
 
 
 class FilesService:
+    async def download_file(
+        self,
+        id: int,
+        params: DownloadFileParams | None = None,
+    ) -> None:
+        raise NotImplementedError("Files.downloadFile is not implemented")
+
     async def upload_file(
         self,
         direct_url: str,
@@ -1136,6 +1152,26 @@ class FilesService:
 class FilesServiceImpl(FilesService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
+
+    async def download_file(
+        self,
+        id: int,
+        params: DownloadFileParams | None = None,
+    ) -> None:
+        query: dict[str, str] = {}
+        if params is not None and params.target is not None:
+            query["target"] = params.target
+        response = await self._client.get(
+            f"/files/{id}",
+            params=query,
+        )
+        match response.status_code:
+            case 200:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
 
     async def upload_file(
         self,
@@ -1176,6 +1212,164 @@ class FilesServiceImpl(FilesService):
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+
+class DraftsService:
+    async def list_drafts(
+        self,
+        params: ListDraftsParams | None = None,
+    ) -> ListDraftsResponse:
+        raise NotImplementedError("Drafts.listDrafts is not implemented")
+
+    async def list_drafts_all(
+        self,
+        params: ListDraftsParams | None = None,
+    ) -> list[Draft]:
+        raise NotImplementedError("Drafts.listDraftsAll is not implemented")
+
+    async def get_draft(
+        self,
+        id: int,
+    ) -> Draft:
+        raise NotImplementedError("Drafts.getDraft is not implemented")
+
+    async def create_draft(
+        self,
+        request: DraftCreateRequest,
+    ) -> Draft:
+        raise NotImplementedError("Drafts.createDraft is not implemented")
+
+    async def update_draft(
+        self,
+        id: int,
+        request: DraftUpdateRequest,
+    ) -> Draft:
+        raise NotImplementedError("Drafts.updateDraft is not implemented")
+
+    async def delete_draft(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Drafts.deleteDraft is not implemented")
+
+
+class DraftsServiceImpl(DraftsService):
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+
+    async def list_drafts(
+        self,
+        params: ListDraftsParams | None = None,
+    ) -> ListDraftsResponse:
+        query: dict[str, str] = {}
+        if params is not None and params.type is not None:
+            query["type"] = params.type
+        if params is not None and params.entity_type is not None:
+            query["entity_type"] = params.entity_type
+        if params is not None and params.entity_id is not None:
+            query["entity_id"] = str(params.entity_id)
+        if params is not None and params.limit is not None:
+            query["limit"] = str(params.limit)
+        if params is not None and params.cursor is not None:
+            query["cursor"] = params.cursor
+        response = await self._client.get(
+            "/drafts",
+            params=query,
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(ListDraftsResponse, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def list_drafts_all(
+        self,
+        params: ListDraftsParams | None = None,
+    ) -> list[Draft]:
+        items: list[Draft] = []
+        cursor: str | None = None
+        has_next = True
+        while has_next:
+            if params is None:
+                params = ListDraftsParams()
+            params.cursor = cursor
+            response = await self.list_drafts(params=params)
+            items.extend(response.data)
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
+        return items
+
+    async def get_draft(
+        self,
+        id: int,
+    ) -> Draft:
+        response = await self._client.get(
+            f"/drafts/{id}",
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(Draft, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def create_draft(
+        self,
+        request: DraftCreateRequest,
+    ) -> Draft:
+        response = await self._client.post(
+            "/drafts",
+            json=serialize(request),
+        )
+        body = response.json()
+        match response.status_code:
+            case 201:
+                return deserialize(Draft, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def update_draft(
+        self,
+        id: int,
+        request: DraftUpdateRequest,
+    ) -> Draft:
+        response = await self._client.put(
+            f"/drafts/{id}",
+            json=serialize(request),
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(Draft, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def delete_draft(
+        self,
+        id: int,
+    ) -> None:
+        response = await self._client.delete(
+            f"/drafts/{id}",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
 
 
 class GroupTagsService:
@@ -2924,7 +3118,7 @@ PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, custom_properties: CustomPropertiesService | None = None, files: FilesService | None = None, group_tags: GroupTagsService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, oauth: OAuthService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, custom_properties: CustomPropertiesService | None = None, drafts: DraftsService | None = None, files: FilesService | None = None, group_tags: GroupTagsService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, oauth: OAuthService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
@@ -2934,6 +3128,7 @@ class PachcaClient:
         self.chats: ChatsService = chats or ChatsServiceImpl(self._client)
         self.common: CommonService = common or CommonServiceImpl(self._client)
         self.custom_properties: CustomPropertiesService = custom_properties or CustomPropertiesServiceImpl(self._client)
+        self.drafts: DraftsService = drafts or DraftsServiceImpl(self._client)
         self.files: FilesService = files or FilesServiceImpl(self._client)
         self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(self._client)
         self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(self._client)
@@ -2961,6 +3156,7 @@ class PachcaClient:
         chats: ChatsService | None = None,
         common: CommonService | None = None,
         custom_properties: CustomPropertiesService | None = None,
+        drafts: DraftsService | None = None,
         files: FilesService | None = None,
         group_tags: GroupTagsService | None = None,
         link_previews: LinkPreviewsService | None = None,
@@ -2983,6 +3179,7 @@ class PachcaClient:
         self.chats: ChatsService = chats or ChatsServiceImpl(client)
         self.common: CommonService = common or CommonServiceImpl(client)
         self.custom_properties: CustomPropertiesService = custom_properties or CustomPropertiesServiceImpl(client)
+        self.drafts: DraftsService = drafts or DraftsServiceImpl(client)
         self.files: FilesService = files or FilesServiceImpl(client)
         self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(client)
         self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(client)
@@ -3007,6 +3204,7 @@ class PachcaClient:
         chats: ChatsService | None = None,
         common: CommonService | None = None,
         custom_properties: CustomPropertiesService | None = None,
+        drafts: DraftsService | None = None,
         files: FilesService | None = None,
         group_tags: GroupTagsService | None = None,
         link_previews: LinkPreviewsService | None = None,
@@ -3029,6 +3227,7 @@ class PachcaClient:
         self.chats = chats or ChatsService()
         self.common = common or CommonService()
         self.custom_properties = custom_properties or CustomPropertiesService()
+        self.drafts = drafts or DraftsService()
         self.files = files or FilesService()
         self.group_tags = group_tags or GroupTagsService()
         self.link_previews = link_previews or LinkPreviewsService()

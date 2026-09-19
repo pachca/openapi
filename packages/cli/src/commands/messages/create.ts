@@ -28,7 +28,7 @@ export default class MessagesCreate extends BaseCommand {
       description: "Тип сущности. Регистр значения не учитывается. Значение вне списка возвращает `400` с кодом `invalid`.",
     }),
     'entity-id': Flags.integer({
-      description: "Идентификатор сущности (pachca chats list | pachca users list)",
+      description: "Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника. (pachca chats list | pachca users list)",
     }),
     'content': Flags.string({
       description: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).",
@@ -40,7 +40,7 @@ export default class MessagesCreate extends BaseCommand {
       description: "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.",
     }),
     'parent-message-id': Flags.integer({
-      description: "Идентификатор сообщения. Указывается в случае, если вы отправляете ответ на другое сообщение.",
+      description: "Идентификатор сообщения, на которое отвечаете. Ответ появится прямо в ленте чата, а не в треде: для треда отправляйте сообщение с `entity_type: \"thread\"`.",
     }),
     'display-avatar-url': Flags.string({
       description: "Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота. (макс. 255 символов)",
@@ -72,7 +72,7 @@ export default class MessagesCreate extends BaseCommand {
     }
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'entity-id', label: "Идентификатор сущности", type: 'integer' },
+      { flag: 'entity-id', label: "Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника.", type: 'integer' },
       { flag: 'content', label: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 

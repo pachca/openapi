@@ -24,14 +24,14 @@ export default class SecurityList extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'start-time': Flags.string({
-      description: "Начальная метка времени (включительно)",
+      description: "Начальная метка времени, включительно (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Значение, которое не удалось разобрать, фильтр снимает — ответ придёт полным, без ошибки.",
     }),
     'end-time': Flags.string({
-      description: "Конечная метка времени (включительно)",
+      description: "Конечная метка времени, включительно (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Значение, которое не удалось разобрать, фильтр снимает — ответ придёт полным, без ошибки.",
     }),
     'event-key': Flags.string({
       description: "Фильтр по конкретному типу события",
-      options: ["user_login","user_logout","user_2fa_fail","user_2fa_success","user_2fa_disabled","user_created","user_deleted","user_role_changed","user_updated","tag_created","tag_deleted","user_added_to_tag","user_removed_from_tag","chat_created","chat_renamed","chat_permission_changed","user_chat_join","user_chat_leave","tag_added_to_chat","tag_removed_from_chat","message_updated","message_deleted","message_created","reaction_created","reaction_deleted","thread_created","access_token_created","access_token_updated","access_token_destroy","kms_encrypt","kms_decrypt","audit_events_accessed","company_chats_accessed","company_bots_accessed","dlp_violation_detected","search_users_api","search_chats_api","search_messages_api","bot_scopes_updated","bot_webhook_settings_updated","bot_token_recreated","bot_deleted","bot_oauth_client_updated","oauth_authorization_granted","oauth_authorization_revoked","video_call_started","video_call_finished","video_call_recording_ready","exchange_disabled"],
+      options: ["user_login","user_logout","user_2fa_fail","user_2fa_success","user_2fa_disabled","user_created","user_deleted","user_role_changed","user_updated","tag_created","tag_deleted","user_added_to_tag","user_removed_from_tag","chat_created","chat_renamed","chat_permission_changed","user_chat_join","user_chat_leave","tag_added_to_chat","tag_removed_from_chat","message_updated","message_deleted","message_created","reaction_created","reaction_deleted","thread_created","access_token_created","access_token_updated","access_token_destroy","kms_encrypt","kms_decrypt","audit_events_accessed","company_chats_accessed","company_bots_accessed","dlp_violation_detected","search_users_api","search_chats_api","search_messages_api","bot_scopes_updated","bot_webhook_settings_updated","bot_token_recreated","bot_deleted","bot_oauth_client_updated","oauth_authorization_granted","oauth_authorization_revoked","oauth_device_authorization_approved","oauth_device_authorization_denied","video_call_started","video_call_finished","video_call_recording_ready","exchange_disabled"],
     }),
     'actor-id': Flags.string({
       description: "Идентификатор пользователя, выполнившего действие",

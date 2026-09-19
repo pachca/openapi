@@ -36,6 +36,7 @@ const SECTION = {
   Bot: 'Bot',
   Chat: 'Chat',
   CustomProperty: 'Custom Property',
+  Draft: 'Draft',
   File: 'File',
   Form: 'Form',
   GroupTag: 'Group Tag',

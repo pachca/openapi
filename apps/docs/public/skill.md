@@ -45,12 +45,13 @@ For direct API calls, add the `Authorization` header:
 Authorization: Bearer <access_token>
 ```
 
-**Token types and their permissions:**
-- **Admin token** — full access: manage users, tags, delete messages. Get it in Settings → Automations → API.
-- **Owner token** — admin access plus audit events and data export (Corporation plan only).
-- **Bot token** — send messages with custom display name/avatar, receive webhook events, manage webhook settings. Created per-bot in Settings → Automations.
+**Token types:**
+- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Settings → Automations → API, where you pick its scopes; also obtainable with `pachca auth login`, which takes the whole catalogue trimmed by your role.
+- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created per-bot in Settings → Automations.
 
-Tokens are long-lived and do not expire. They can be reset by the admin/owner in Settings.
+Scopes decide which methods a token may call; they never widen the data beyond the boundary of the token type. What a token may do also follows the current role of its owner, and that is checked on every request — a lowered role starts answering 403 without the token being touched.
+
+A personal token issued in the interface does not expire. One obtained by `pachca auth login` lives an hour and renews itself. Some methods answer only to a bot token: opening a form, creating link previews, self-registering a bot webhook, deleting a webhook event.
 
 ## Capabilities
 
@@ -141,6 +142,13 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `PUT /tasks/{id}` — Update task
 - `DELETE /tasks/{id}` — Delete task
 
+### Drafts
+- `POST /drafts` — Create draft
+- `GET /drafts` — List drafts
+- `GET /drafts/{id}` — Get draft
+- `PUT /drafts/{id}` — Update draft
+- `DELETE /drafts/{id}` — Delete draft
+
 ### Views
 - `POST /views/open` — Open view
 - `POST /views/{view_id}/submit_response` — Submit view response
@@ -166,6 +174,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 
 ### Files
 - `POST /direct_url` — Upload file
+- `GET /files/{id}` — Download file
 - `POST /uploads` — Get upload params
 
 
@@ -241,8 +250,10 @@ Detailed documentation on specific topics is available at:
 - [Быстрый старт](https://dev.pachca.com/guides/quickstart) — Первый запрос к API Пачки за 5 минут: получение персонального токена, проверка авторизации и отправка сообщения через cURL, Postman или официальный CLI
 - [AI агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview) — Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — llms.txt, CLI как основной путь, Agent Skills, OpenAPI, Arazzo, Context7
 - [AI агенты, Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction) — Как агент в Пачке получает события через вебхук, собирает контекст треда, выполняет действия и отвечает. Реакция-индикатор и таймер agent-thinking
+- [AI агенты, Черновик вместо отправки](https://dev.pachca.com/guides/ai-agents/drafts) — Агент готовит сообщение черновиком, а отправляет сотрудник: зачем это нужно, почему работает только личным токеном, один черновик на чат и чем от черновика отличается отложенное сообщение
 - [AI агенты, Оформление ответов](https://dev.pachca.com/guides/ai-agents/markdown) — Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чеклисты, подсветка кода, diff, диаграммы Mermaid. Файлы .html открываются просмотром прямо в переписке
 - [Треды](https://dev.pachca.com/guides/threads) — Треды в Пачке для разработчиков: сквозные и самостоятельные треды как уникальная особенность, создание у сообщения (POST /messages/{id}/thread) и без привязки к сообщению (POST /threads), отправка комментариев, добавление участников, видимость родительского чата, нюансы API и поля Message.thread/root_chat_id
+- [Теги](https://dev.pachca.com/guides/tags) — Теги в Пачке: тег как состав беседы или канала с автоматической синхронизацией участников, упоминание тега в сообщении и в треде, поле list_tags у сотрудника, правила названий, права и события журнала аудита
 - [Боты, Обзор](https://dev.pachca.com/guides/bots/overview) — Боты в Пачке: что это, типы ботов, доступность в чатах и подмена имени и аватара отправителя в сообщениях
 - [Боты, Создание и настройка](https://dev.pachca.com/guides/bots/setup) — Как создать бота в Пачке: выбор типа, копирование токена, настройка имени и аватара, настройка доступов и вкладок вебхуков и API
 - [Боты, Доступы к чатам и сообщениям](https://dev.pachca.com/guides/bots/access) — Как бот получает доступ к закрытым каналам и беседам, тредам и личным сообщениям в Пачке
@@ -259,9 +270,10 @@ Detailed documentation on specific topics is available at:
 - [Разворачивание ссылок](https://dev.pachca.com/guides/link-previews) — Unfurl в Пачке: превью ссылок внутренних сервисов прямо в чатах — бот ловит URL, подтягивает заголовок, описание, изображение и отправляет обратно в чат
 - [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт сообщений из чатов Пачки: запрос архива за период до 45 дней, скачивание JSON-файлов, структура архива и ограничения по чатам. Тариф «Корпорация»
 - [DLP-система](https://dev.pachca.com/guides/dlp) — DLP-система Пачки для защиты от утечек конфиденциальной информации: правила с условиями и действиями, приоритеты, контексты применения. Тариф «Корпорация»
+- [Шифрование и безопасный контур](https://dev.pachca.com/guides/data-protection) — Две настройки безопасности пространства Пачки и что они меняют для интеграции: безопасный контур по списку IP, продвинутое шифрование на своём ключе KMS, ссылки на вложения через API, отказы confidential_download_denied и decryption_failed. Тариф «Корпорация»
 - [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Журнал аудита событий Пачки для команд безопасности: структура записи, типы событий и состав деталей, фильтры и пагинация, хранение. Тариф «Корпорация»
 - [Права и роли](https://dev.pachca.com/guides/permissions) — Как устроены права в API Пачки: роль в пространстве (Владелец, Администратор, Сотрудник, гости) и роль в чате (Создатель, Админ, Редактор, Участник, Подписчик), единственная точка их связи, видимость закрытых бесед и каналов, инвентаризация чатов и ботов пространства, управление чужими чатами и чаты уволенных сотрудников
-- [Форматирование текста](https://dev.pachca.com/guides/markdown) — Какой markdown понимает Пачка в тексте сообщений, входящих вебхуках и блоках форм: жирный, курсив, зачёркнутый, ссылки, строчный код и блоки кода. Списки, цитаты и заголовки остаются обычным текстом.
+- [Форматирование текста](https://dev.pachca.com/guides/markdown) — Какой markdown понимает Пачка в тексте сообщений, входящих вебхуках и блоках форм: жирный, курсив, зачёркнутый, ссылки, строчный код и блоки кода. Строка с решёткой становится жирной, а списки, цитаты и таблицы остаются обычным текстом.
 - [Сценарии](https://dev.pachca.com/guides/workflows) — Пошаговые сценарии для типичных задач с API Пачки: какие методы вызывать и в каком порядке. Основа Agent Skills для AI-агентов и команды pachca guide в CLI
 - [CLI, Обзор](https://dev.pachca.com/guides/cli/overview) — Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+
 - [CLI, Установка](https://dev.pachca.com/guides/cli/installation) — Установка @pachca/cli: глобально через npm или без установки через npx (для агентов и CI). Автодополнение, настройки по умолчанию, диагностика и обновление.
@@ -269,7 +281,7 @@ Detailed documentation on specific topics is available at:
 - [CLI, Вывод](https://dev.pachca.com/guides/cli/output) — Форматы вывода Pachca CLI (table, json, yaml, csv), выбор колонок, плоский TSV-режим, пайпы и перенаправление, курсорная пагинация.
 - [CLI, Флаги и скрипты](https://dev.pachca.com/guides/cli/scripting) — Глобальные флаги Pachca CLI, сортировка, kebab-case, boolean-флаги, dry-run, деструктивные операции, exit codes, таксономия ошибок, переменные окружения, неинтерактивный режим.
 - [CLI, Сценарии](https://dev.pachca.com/guides/cli/workflows) — Готовые пошаговые сценарии Pachca CLI через pachca guide: поиск рецептов по задаче, последовательности команд с комментариями.
-- [CLI, Файлы](https://dev.pachca.com/guides/cli/files) — Загрузка файлов через Pachca CLI: pachca upload автоматически получает подпись и загружает на S3 одной командой.
+- [CLI, Файлы](https://dev.pachca.com/guides/cli/files) — Файлы в Pachca CLI: pachca upload получает подпись и загружает на S3 одной командой, pachca files get забирает вложения, у которых нет прямой ссылки.
 - [CLI, Прямые запросы](https://dev.pachca.com/guides/cli/api-requests) — Команда pachca api: прямые HTTP-запросы к любому методу (поля -f/-F, инлайн JSON, stdin) и встроенный справочник по API (ls, --describe, --spec, --docs) прямо в терминале, без сайта документации.
 - [CLI, Команды](https://dev.pachca.com/guides/cli/commands) — Справочник всех команд Pachca CLI: каждый метод API как команда, паттерн pachca [секция] [действие] [--флаги]. Параметры каждой команды — по клику.
 - [SDK, Обзор](https://dev.pachca.com/guides/sdk/overview) — Типизированные SDK для Pachca API на TypeScript, Python, Go, Kotlin, Swift и C#: автодополнение, retry и пагинация. Или свой клиент через OpenAPI-генератор
@@ -281,7 +293,7 @@ Detailed documentation on specific topics is available at:
 - [SDK, C#](https://dev.pachca.com/guides/sdk/csharp) — Типизированный клиент для Pachca API на C#: .NET 8+ с async/await, CancellationToken, автопагинацией и обработкой retry. NuGet-пакет Pachca.Sdk
 - [n8n, Обзор](https://dev.pachca.com/guides/n8n/overview) — Расширение Пачки для n8n со статусом verified by n8n: 18 ресурсов, триггер событий и AI-агент. Визуальные workflow без кода для CRM, CI/CD и уведомлений
 - [n8n, Начало работы](https://dev.pachca.com/guides/n8n/setup) — Установка расширения Пачки для n8n из официальной витрины: верифицированная нода, установка через Nodes panel, n8n Cloud и self-hosted, настройка Credentials и первый workflow
-- [n8n, Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources) — 18 ресурсов и более 60 операций расширения Пачки для n8n: сообщения, чаты, задачи, сотрудники, боты, теги и вебхуки в модели Resource → Operation
+- [n8n, Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources) — 18 ресурсов и более 65 операций расширения Пачки для n8n: сообщения, черновики, чаты, задачи, сотрудники, боты, теги и вебхуки в модели Resource → Operation
 - [n8n, Триггер](https://dev.pachca.com/guides/n8n/trigger) — Триггер Pachca Trigger для n8n: 16 типов событий Пачки, автоматическая и ручная регистрация вебхука, проверка подписи запроса и IP-фильтр для безопасности
 - [n8n, Тестирование](https://dev.pachca.com/guides/n8n/testing) — Тестирование n8n-узлов Пачки: Listen for test event, Pin Data и Execute Step для экшн-узлов, защита webhook-слота бота и локальная разработка через туннель
 - [n8n, Примеры workflow](https://dev.pachca.com/guides/n8n/workflows) — Готовые сценарии автоматизации Пачки в n8n: приветствие сотрудника, пересылка сообщений, задачи из обсуждений, согласование, мониторинг и заявки на отпуск
@@ -293,10 +305,10 @@ Detailed documentation on specific topics is available at:
 - [Основы API, Авторизация](https://dev.pachca.com/api/authorization) — Авторизация в API Пачки: персональный токен и токен бота, скоупы методов, headless-интеграции для агентов, настройка доступа для администраторов и сотрудников, смена владельца пространства
 - [Основы API, Запросы и ответы](https://dev.pachca.com/api/requests-responses) — Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
 - [Основы API, Пагинация](https://dev.pachca.com/api/pagination) — Пагинация в API Пачки по курсору: две группы методов (списочные и поиск) с разной структурой meta, поля next_page, prev_page, has_next, has_prev, обход всех записей и polling новых данных через prev_page
-- [Основы API, Загрузка файлов](https://dev.pachca.com/api/file-uploads) — Трёхшаговая загрузка файлов в API Пачки через presigned URL S3: получение подписи, отправка multipart/form-data и прикрепление к сообщению или задаче
+- [Основы API, Загрузка файлов](https://dev.pachca.com/api/file-uploads) — Файлы в API Пачки: трёхшаговая загрузка через presigned URL S3, типы вложений и их поля, ссылка на скачивание и когда она ведёт не в хранилище, а на адрес API
 - [Основы API, Ошибки](https://dev.pachca.com/api/errors) — Коды ошибок HTTP в API Пачки и структуры тела ответа: ApiError (400/402/403/404/409/410/422) и OAuthError (401/403) с описанием полей и кодов
 - [Основы API, Лимиты](https://dev.pachca.com/api/limits) — Лимиты запросов (rate limits) в API Пачки: числа по типам операций, поведение ответа 429, заголовок Retry-After, готовые примеры экспоненциального backoff на TypeScript и Python
-- [Основы API, Модели](https://dev.pachca.com/api/models) — Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, задачи, теги, вебхуки и другие сущности
+- [Основы API, Модели](https://dev.pachca.com/api/models) — Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, черновики, задачи, теги, вебхуки и другие сущности
 
 
 ## Modular Skills

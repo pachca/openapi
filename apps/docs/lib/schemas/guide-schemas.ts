@@ -130,7 +130,7 @@ export const HTTP_CODES = [
   {
     code: '402',
     message: 'Payment Required',
-    description: 'Действие недоступно на текущем тарифном плане',
+    description: 'Работа пространства приостановлена: израсходован лимит сообщений тарифа',
   },
   {
     code: '403',

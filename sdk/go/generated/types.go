@@ -11,55 +11,57 @@ import (
 type AuditEventKey string
 
 const (
-	AuditEventKeyUserLogin                 AuditEventKey = "user_login" // Пользователь успешно вошел в систему
-	AuditEventKeyUserLogout                AuditEventKey = "user_logout" // Пользователь вышел из системы
-	AuditEventKeyUser2faFail               AuditEventKey = "user_2fa_fail" // Неудачная попытка двухфакторной аутентификации
-	AuditEventKeyUser2faSuccess            AuditEventKey = "user_2fa_success" // Успешная двухфакторная аутентификация
-	AuditEventKeyUser2faDisabled           AuditEventKey = "user_2fa_disabled" // Двухфакторная аутентификация отключена у сотрудника
-	AuditEventKeyUserCreated               AuditEventKey = "user_created" // Создана новая учетная запись пользователя
-	AuditEventKeyUserDeleted               AuditEventKey = "user_deleted" // Учетная запись пользователя удалена
-	AuditEventKeyUserRoleChanged           AuditEventKey = "user_role_changed" // Роль пользователя была изменена
-	AuditEventKeyUserUpdated               AuditEventKey = "user_updated" // Данные пользователя обновлены
-	AuditEventKeyTagCreated                AuditEventKey = "tag_created" // Создан новый тег
-	AuditEventKeyTagDeleted                AuditEventKey = "tag_deleted" // Тег удален
-	AuditEventKeyUserAddedToTag            AuditEventKey = "user_added_to_tag" // Пользователь добавлен в тег
-	AuditEventKeyUserRemovedFromTag        AuditEventKey = "user_removed_from_tag" // Пользователь удален из тега
-	AuditEventKeyChatCreated               AuditEventKey = "chat_created" // Создан новый чат
-	AuditEventKeyChatRenamed               AuditEventKey = "chat_renamed" // Чат переименован
-	AuditEventKeyChatPermissionChanged     AuditEventKey = "chat_permission_changed" // Изменены права доступа к чату
-	AuditEventKeyUserChatJoin              AuditEventKey = "user_chat_join" // Пользователь присоединился к чату
-	AuditEventKeyUserChatLeave             AuditEventKey = "user_chat_leave" // Пользователь покинул чат
-	AuditEventKeyTagAddedToChat            AuditEventKey = "tag_added_to_chat" // Тег добавлен в чат
-	AuditEventKeyTagRemovedFromChat        AuditEventKey = "tag_removed_from_chat" // Тег удален из чата
-	AuditEventKeyMessageUpdated            AuditEventKey = "message_updated" // Сообщение отредактировано
-	AuditEventKeyMessageDeleted            AuditEventKey = "message_deleted" // Сообщение удалено
-	AuditEventKeyMessageCreated            AuditEventKey = "message_created" // Сообщение создано
-	AuditEventKeyReactionCreated           AuditEventKey = "reaction_created" // Реакция добавлена
-	AuditEventKeyReactionDeleted           AuditEventKey = "reaction_deleted" // Реакция удалена
-	AuditEventKeyThreadCreated             AuditEventKey = "thread_created" // Тред создан
-	AuditEventKeyAccessTokenCreated        AuditEventKey = "access_token_created" // Создан новый токен доступа
-	AuditEventKeyAccessTokenUpdated        AuditEventKey = "access_token_updated" // Токен доступа обновлен
-	AuditEventKeyAccessTokenDestroy        AuditEventKey = "access_token_destroy" // Токен доступа удален
-	AuditEventKeyKmsEncrypt                AuditEventKey = "kms_encrypt" // Данные зашифрованы
-	AuditEventKeyKmsDecrypt                AuditEventKey = "kms_decrypt" // Данные расшифрованы
-	AuditEventKeyAuditEventsAccessed       AuditEventKey = "audit_events_accessed" // Доступ к журналам аудита получен
-	AuditEventKeyCompanyChatsAccessed      AuditEventKey = "company_chats_accessed" // Получен список всех чатов пространства
-	AuditEventKeyCompanyBotsAccessed       AuditEventKey = "company_bots_accessed" // Получен список всех ботов пространства
-	AuditEventKeyDlpViolationDetected      AuditEventKey = "dlp_violation_detected" // Срабатывание правила DLP-системы
-	AuditEventKeySearchUsersApi            AuditEventKey = "search_users_api" // Поиск сотрудников через API
-	AuditEventKeySearchChatsApi            AuditEventKey = "search_chats_api" // Поиск чатов через API
-	AuditEventKeySearchMessagesApi         AuditEventKey = "search_messages_api" // Поиск сообщений через API
-	AuditEventKeyBotScopesUpdated          AuditEventKey = "bot_scopes_updated" // Изменены скоупы токена бота
-	AuditEventKeyBotWebhookSettingsUpdated AuditEventKey = "bot_webhook_settings_updated" // Изменены настройки исходящего вебхука бота
-	AuditEventKeyBotTokenRecreated         AuditEventKey = "bot_token_recreated" // Токен бота перевыпущен (ротация)
-	AuditEventKeyBotDeleted                AuditEventKey = "bot_deleted" // Бот удалён
-	AuditEventKeyBotOAuthClientUpdated     AuditEventKey = "bot_oauth_client_updated" // Изменены параметры OAuth-клиента бота
-	AuditEventKeyOAuthAuthorizationGranted AuditEventKey = "oauth_authorization_granted" // Пользователь выдал OAuth-клиенту доступ к своим данным
-	AuditEventKeyOAuthAuthorizationRevoked AuditEventKey = "oauth_authorization_revoked" // Доступ OAuth-клиента к данным пользователя отозван
-	AuditEventKeyVideoCallStarted          AuditEventKey = "video_call_started" // Видеозвонок начат
-	AuditEventKeyVideoCallFinished         AuditEventKey = "video_call_finished" // Видеозвонок завершён
-	AuditEventKeyVideoCallRecordingReady   AuditEventKey = "video_call_recording_ready" // Запись видеозвонка готова
-	AuditEventKeyExchangeDisabled          AuditEventKey = "exchange_disabled" // Отключена интеграция с Exchange
+	AuditEventKeyUserLogin                        AuditEventKey = "user_login" // Пользователь успешно вошел в систему
+	AuditEventKeyUserLogout                       AuditEventKey = "user_logout" // Пользователь вышел из системы
+	AuditEventKeyUser2faFail                      AuditEventKey = "user_2fa_fail" // Неудачная попытка двухфакторной аутентификации
+	AuditEventKeyUser2faSuccess                   AuditEventKey = "user_2fa_success" // Успешная двухфакторная аутентификация
+	AuditEventKeyUser2faDisabled                  AuditEventKey = "user_2fa_disabled" // Двухфакторная аутентификация отключена у сотрудника
+	AuditEventKeyUserCreated                      AuditEventKey = "user_created" // Создана новая учетная запись пользователя
+	AuditEventKeyUserDeleted                      AuditEventKey = "user_deleted" // Учетная запись пользователя удалена
+	AuditEventKeyUserRoleChanged                  AuditEventKey = "user_role_changed" // Роль пользователя была изменена
+	AuditEventKeyUserUpdated                      AuditEventKey = "user_updated" // Данные пользователя обновлены
+	AuditEventKeyTagCreated                       AuditEventKey = "tag_created" // Создан новый тег
+	AuditEventKeyTagDeleted                       AuditEventKey = "tag_deleted" // Тег удален
+	AuditEventKeyUserAddedToTag                   AuditEventKey = "user_added_to_tag" // Пользователь добавлен в тег
+	AuditEventKeyUserRemovedFromTag               AuditEventKey = "user_removed_from_tag" // Пользователь удален из тега
+	AuditEventKeyChatCreated                      AuditEventKey = "chat_created" // Создан новый чат
+	AuditEventKeyChatRenamed                      AuditEventKey = "chat_renamed" // Чат переименован
+	AuditEventKeyChatPermissionChanged            AuditEventKey = "chat_permission_changed" // Изменены права доступа к чату
+	AuditEventKeyUserChatJoin                     AuditEventKey = "user_chat_join" // Пользователь присоединился к чату
+	AuditEventKeyUserChatLeave                    AuditEventKey = "user_chat_leave" // Пользователь покинул чат
+	AuditEventKeyTagAddedToChat                   AuditEventKey = "tag_added_to_chat" // Тег добавлен в чат
+	AuditEventKeyTagRemovedFromChat               AuditEventKey = "tag_removed_from_chat" // Тег удален из чата
+	AuditEventKeyMessageUpdated                   AuditEventKey = "message_updated" // Сообщение отредактировано
+	AuditEventKeyMessageDeleted                   AuditEventKey = "message_deleted" // Сообщение удалено
+	AuditEventKeyMessageCreated                   AuditEventKey = "message_created" // Сообщение создано
+	AuditEventKeyReactionCreated                  AuditEventKey = "reaction_created" // Реакция добавлена
+	AuditEventKeyReactionDeleted                  AuditEventKey = "reaction_deleted" // Реакция удалена
+	AuditEventKeyThreadCreated                    AuditEventKey = "thread_created" // Тред создан
+	AuditEventKeyAccessTokenCreated               AuditEventKey = "access_token_created" // Создан новый токен доступа
+	AuditEventKeyAccessTokenUpdated               AuditEventKey = "access_token_updated" // Токен доступа обновлен
+	AuditEventKeyAccessTokenDestroy               AuditEventKey = "access_token_destroy" // Токен доступа удален
+	AuditEventKeyKmsEncrypt                       AuditEventKey = "kms_encrypt" // Данные зашифрованы
+	AuditEventKeyKmsDecrypt                       AuditEventKey = "kms_decrypt" // Данные расшифрованы
+	AuditEventKeyAuditEventsAccessed              AuditEventKey = "audit_events_accessed" // Доступ к журналам аудита получен
+	AuditEventKeyCompanyChatsAccessed             AuditEventKey = "company_chats_accessed" // Получен список всех чатов пространства
+	AuditEventKeyCompanyBotsAccessed              AuditEventKey = "company_bots_accessed" // Получен список всех ботов пространства
+	AuditEventKeyDlpViolationDetected             AuditEventKey = "dlp_violation_detected" // Срабатывание правила DLP-системы
+	AuditEventKeySearchUsersApi                   AuditEventKey = "search_users_api" // Поиск сотрудников через API
+	AuditEventKeySearchChatsApi                   AuditEventKey = "search_chats_api" // Поиск чатов через API
+	AuditEventKeySearchMessagesApi                AuditEventKey = "search_messages_api" // Поиск сообщений через API
+	AuditEventKeyBotScopesUpdated                 AuditEventKey = "bot_scopes_updated" // Изменены скоупы токена бота
+	AuditEventKeyBotWebhookSettingsUpdated        AuditEventKey = "bot_webhook_settings_updated" // Изменены настройки исходящего вебхука бота
+	AuditEventKeyBotTokenRecreated                AuditEventKey = "bot_token_recreated" // Токен бота перевыпущен (ротация)
+	AuditEventKeyBotDeleted                       AuditEventKey = "bot_deleted" // Бот удалён
+	AuditEventKeyBotOAuthClientUpdated            AuditEventKey = "bot_oauth_client_updated" // Изменены параметры OAuth-клиента бота
+	AuditEventKeyOAuthAuthorizationGranted        AuditEventKey = "oauth_authorization_granted" // Пользователь выдал OAuth-клиенту доступ к своим данным
+	AuditEventKeyOAuthAuthorizationRevoked        AuditEventKey = "oauth_authorization_revoked" // Доступ OAuth-клиента к данным пользователя отозван
+	AuditEventKeyOAuthDeviceAuthorizationApproved AuditEventKey = "oauth_device_authorization_approved" // Сотрудник подтвердил вход приложения с устройства
+	AuditEventKeyOAuthDeviceAuthorizationDenied   AuditEventKey = "oauth_device_authorization_denied" // Сотрудник отклонил вход приложения с устройства
+	AuditEventKeyVideoCallStarted                 AuditEventKey = "video_call_started" // Видеозвонок начат
+	AuditEventKeyVideoCallFinished                AuditEventKey = "video_call_finished" // Видеозвонок завершён
+	AuditEventKeyVideoCallRecordingReady          AuditEventKey = "video_call_recording_ready" // Запись видеозвонка готова
+	AuditEventKeyExchangeDisabled                 AuditEventKey = "exchange_disabled" // Отключена интеграция с Exchange
 )
 
 type BotCanEdit string
@@ -171,6 +173,37 @@ const (
 	CustomPropertyDataTypeLink   CustomPropertyDataType = "link" // Ссылка
 )
 
+type DraftRepetitionInterval string
+
+const (
+	DraftRepetitionIntervalOnce         DraftRepetitionInterval = "once" // Один раз
+	DraftRepetitionIntervalDaily        DraftRepetitionInterval = "daily" // Каждый день
+	DraftRepetitionIntervalWeekly       DraftRepetitionInterval = "weekly" // Каждую неделю
+	DraftRepetitionIntervalMonthly      DraftRepetitionInterval = "monthly" // Каждый месяц
+	DraftRepetitionIntervalEvery2Months DraftRepetitionInterval = "every_2_months" // Раз в два месяца
+	DraftRepetitionIntervalEvery3Months DraftRepetitionInterval = "every_3_months" // Раз в три месяца
+	DraftRepetitionIntervalEvery4Months DraftRepetitionInterval = "every_4_months" // Раз в четыре месяца
+	DraftRepetitionIntervalEvery6Months DraftRepetitionInterval = "every_6_months" // Раз в полгода
+	DraftRepetitionIntervalYearly       DraftRepetitionInterval = "yearly" // Раз в год
+)
+
+type DraftType string
+
+const (
+	DraftTypeRegular   DraftType = "regular" // Обычные черновики
+	DraftTypeScheduled DraftType = "scheduled" // Отложенные сообщения
+	DraftTypeAll       DraftType = "all" // И черновики, и отложенные сообщения
+)
+
+type FileTarget string
+
+const (
+	FileTargetPdfPreview   FileTarget = "pdf_preview" // Документ, переведённый в PDF
+	FileTargetPdfFirstPage FileTarget = "pdf_first_page" // Первая страница документа картинкой
+	FileTargetThumb        FileTarget = "thumb" // Уменьшенная копия изображения
+	FileTargetImage        FileTarget = "image" // Изображение как есть
+)
+
 type FileType string
 
 const (
@@ -178,6 +211,7 @@ const (
 	FileTypeImage FileType = "image" // Изображение
 	FileTypeAudio FileType = "audio" // Аудиофайл
 	FileTypeVoice FileType = "voice" // Голосовое сообщение
+	FileTypeVideo FileType = "video" // Видеофайл
 )
 
 type InviteStatus string
@@ -273,6 +307,8 @@ const (
 	OAuthScopeSearchUsers          OAuthScope = "search:users" // Поиск сотрудников
 	OAuthScopeSearchChats          OAuthScope = "search:chats" // Поиск чатов
 	OAuthScopeSearchMessages       OAuthScope = "search:messages" // Поиск сообщений
+	OAuthScopeDraftsRead           OAuthScope = "drafts:read" // Просмотр черновиков и отложенных сообщений
+	OAuthScopeDraftsWrite          OAuthScope = "drafts:write" // Создание, изменение и удаление черновиков и отложенных сообщений
 )
 
 type ReactionEventType string
@@ -361,50 +397,57 @@ const (
 type ValidationErrorCode string
 
 const (
-	ValidationErrorCodeBlank              ValidationErrorCode = "blank" // Обязательное поле (не может быть пустым)
-	ValidationErrorCodeTooLong            ValidationErrorCode = "too_long" // Слишком длинное значение (пояснения вы получите в поле message)
-	ValidationErrorCodeInvalid            ValidationErrorCode = "invalid" // Поле не соответствует правилам (пояснения вы получите в поле message)
-	ValidationErrorCodeInclusion          ValidationErrorCode = "inclusion" // Поле имеет непредусмотренное значение
-	ValidationErrorCodeExclusion          ValidationErrorCode = "exclusion" // Поле имеет недопустимое значение
-	ValidationErrorCodeTaken              ValidationErrorCode = "taken" // Название для этого поля уже существует
-	ValidationErrorCodeWrongEmoji         ValidationErrorCode = "wrong_emoji" // Emoji статуса не может содержать значения отличные от Emoji символа
-	ValidationErrorCodeNotFound           ValidationErrorCode = "not_found" // Объект не найден
-	ValidationErrorCodeAlreadyExists      ValidationErrorCode = "already_exists" // Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить
-	ValidationErrorCodePersonalChat       ValidationErrorCode = "personal_chat" // Ошибка личного чата (пояснения вы получите в поле message)
-	ValidationErrorCodeDisplayedError     ValidationErrorCode = "displayed_error" // Отображаемая ошибка (пояснения вы получите в поле message)
-	ValidationErrorCodeNotAuthorized      ValidationErrorCode = "not_authorized" // Действие запрещено
-	ValidationErrorCodeInvalidDateRange   ValidationErrorCode = "invalid_date_range" // Выбран слишком большой диапазон дат
-	ValidationErrorCodeInvalidWebhookURL  ValidationErrorCode = "invalid_webhook_url" // Некорректный URL вебхука
-	ValidationErrorCodeRateLimit          ValidationErrorCode = "rate_limit" // Достигнут лимит запросов
-	ValidationErrorCodeLicensesLimit      ValidationErrorCode = "licenses_limit" // Превышен лимит активных сотрудников (пояснения вы получите в поле message)
-	ValidationErrorCodeUserLimit          ValidationErrorCode = "user_limit" // Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
-	ValidationErrorCodeUniqueLimit        ValidationErrorCode = "unique_limit" // Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
-	ValidationErrorCodeGeneralLimit       ValidationErrorCode = "general_limit" // Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
-	ValidationErrorCodeUnhandled          ValidationErrorCode = "unhandled" // Ошибка выполнения запроса (пояснения вы получите в поле message)
-	ValidationErrorCodeTriggerNotFound    ValidationErrorCode = "trigger_not_found" // Не удалось найти идентификатор события
-	ValidationErrorCodeTriggerExpired     ValidationErrorCode = "trigger_expired" // Время жизни идентификатора события истекло
-	ValidationErrorCodeRequired           ValidationErrorCode = "required" // Обязательный параметр не передан
-	ValidationErrorCodeIn                 ValidationErrorCode = "in" // Недопустимое значение (не входит в список допустимых)
-	ValidationErrorCodeNotApplicable      ValidationErrorCode = "not_applicable" // Значение неприменимо в данном контексте (пояснения вы получите в поле message)
-	ValidationErrorCodeSelfUpdate         ValidationErrorCode = "self_update" // Нельзя изменить свои собственные данные
-	ValidationErrorCodeOwnerProtected     ValidationErrorCode = "owner_protected" // Нельзя изменить данные владельца
-	ValidationErrorCodeAlreadyAssigned    ValidationErrorCode = "already_assigned" // Значение уже назначено
-	ValidationErrorCodeForbidden          ValidationErrorCode = "forbidden" // Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
-	ValidationErrorCodePermissionDenied   ValidationErrorCode = "permission_denied" // Доступ запрещён (недостаточно прав)
-	ValidationErrorCodeAccessDenied       ValidationErrorCode = "access_denied" // Доступ запрещён
-	ValidationErrorCodeWrongParams        ValidationErrorCode = "wrong_params" // Некорректные параметры запроса (пояснения вы получите в поле message)
-	ValidationErrorCodePaymentRequired    ValidationErrorCode = "payment_required" // Требуется оплата
-	ValidationErrorCodeMinLength          ValidationErrorCode = "min_length" // Значение слишком короткое (пояснения вы получите в поле message)
-	ValidationErrorCodeMaxLength          ValidationErrorCode = "max_length" // Значение слишком длинное (пояснения вы получите в поле message)
-	ValidationErrorCodeUseOfSystemWords   ValidationErrorCode = "use_of_system_words" // Использовано зарезервированное системное слово (here, all)
-	ValidationErrorCodeExportFileNotFound ValidationErrorCode = "export_file_not_found" // Файл экспорта не найден или ещё не готов
-	ValidationErrorCodeCannotKickOwner    ValidationErrorCode = "cannot_kick_owner" // Нельзя исключить владельца чата
-	ValidationErrorCodePinFailed          ValidationErrorCode = "pin_failed" // Не удалось закрепить сообщение
-	ValidationErrorCodeMessageDeleted     ValidationErrorCode = "message_deleted" // Сообщение удалено
-	ValidationErrorCodeThreadMessage      ValidationErrorCode = "thread_message" // Нельзя создать тред для сообщения, которое уже находится в треде
-	ValidationErrorCodeViewNotFound       ValidationErrorCode = "view_not_found" // Представление не найдено или принадлежит другому боту
-	ValidationErrorCodeSubmitExpired      ValidationErrorCode = "submit_expired" // Время на ответ об отправке формы истекло или ответ уже был принят
-	ValidationErrorCodeServiceUnavailable ValidationErrorCode = "service_unavailable" // Сервис временно недоступен, повторите запрос
+	ValidationErrorCodeBlank                      ValidationErrorCode = "blank" // Обязательное поле (не может быть пустым)
+	ValidationErrorCodeTooLong                    ValidationErrorCode = "too_long" // Слишком длинное значение (пояснения вы получите в поле message)
+	ValidationErrorCodeInvalid                    ValidationErrorCode = "invalid" // Поле не соответствует правилам (пояснения вы получите в поле message)
+	ValidationErrorCodeInclusion                  ValidationErrorCode = "inclusion" // Поле имеет непредусмотренное значение
+	ValidationErrorCodeExclusion                  ValidationErrorCode = "exclusion" // Поле имеет недопустимое значение
+	ValidationErrorCodeTaken                      ValidationErrorCode = "taken" // Название для этого поля уже существует
+	ValidationErrorCodeWrongEmoji                 ValidationErrorCode = "wrong_emoji" // Emoji статуса не может содержать значения отличные от Emoji символа
+	ValidationErrorCodeNotFound                   ValidationErrorCode = "not_found" // Объект не найден
+	ValidationErrorCodeAlreadyExists              ValidationErrorCode = "already_exists" // Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить
+	ValidationErrorCodePersonalChat               ValidationErrorCode = "personal_chat" // Ошибка личного чата (пояснения вы получите в поле message)
+	ValidationErrorCodeDisplayedError             ValidationErrorCode = "displayed_error" // Отображаемая ошибка (пояснения вы получите в поле message)
+	ValidationErrorCodeNotAuthorized              ValidationErrorCode = "not_authorized" // Действие запрещено
+	ValidationErrorCodeInvalidDateRange           ValidationErrorCode = "invalid_date_range" // Выбран слишком большой диапазон дат
+	ValidationErrorCodeInvalidWebhookURL          ValidationErrorCode = "invalid_webhook_url" // Некорректный URL вебхука
+	ValidationErrorCodeRateLimit                  ValidationErrorCode = "rate_limit" // Достигнут лимит запросов
+	ValidationErrorCodeLicensesLimit              ValidationErrorCode = "licenses_limit" // Превышен лимит активных сотрудников (пояснения вы получите в поле message)
+	ValidationErrorCodeUserLimit                  ValidationErrorCode = "user_limit" // Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
+	ValidationErrorCodeUniqueLimit                ValidationErrorCode = "unique_limit" // Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
+	ValidationErrorCodeGeneralLimit               ValidationErrorCode = "general_limit" // Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
+	ValidationErrorCodeUnhandled                  ValidationErrorCode = "unhandled" // Ошибка выполнения запроса (пояснения вы получите в поле message)
+	ValidationErrorCodeTriggerNotFound            ValidationErrorCode = "trigger_not_found" // Не удалось найти идентификатор события
+	ValidationErrorCodeTriggerExpired             ValidationErrorCode = "trigger_expired" // Время жизни идентификатора события истекло
+	ValidationErrorCodeRequired                   ValidationErrorCode = "required" // Обязательный параметр не передан
+	ValidationErrorCodeIn                         ValidationErrorCode = "in" // Недопустимое значение (не входит в список допустимых)
+	ValidationErrorCodeNotApplicable              ValidationErrorCode = "not_applicable" // Значение неприменимо в данном контексте (пояснения вы получите в поле message)
+	ValidationErrorCodeSelfUpdate                 ValidationErrorCode = "self_update" // Нельзя изменить свои собственные данные
+	ValidationErrorCodeOwnerProtected             ValidationErrorCode = "owner_protected" // Нельзя изменить данные владельца
+	ValidationErrorCodeAlreadyAssigned            ValidationErrorCode = "already_assigned" // Значение уже назначено
+	ValidationErrorCodeNextSendAtInvalid          ValidationErrorCode = "next_send_at_invalid" // Ближайшая отправка отложенного сообщения приходится на прошлое
+	ValidationErrorCodeScheduleInvalid            ValidationErrorCode = "schedule_invalid" // Расписание отложенного сообщения не складывается в повтор
+	ValidationErrorCodeScheduleEndDateInvalid     ValidationErrorCode = "schedule_end_date_invalid" // Расписание заканчивается раньше ближайшей отправки
+	ValidationErrorCodeScheduledMessagesLimit     ValidationErrorCode = "scheduled_messages_limit" // Превышен лимит отложенных сообщений на чат (50)
+	ValidationErrorCodeDraftTypeChangeForbidden   ValidationErrorCode = "draft_type_change_forbidden" // Отложенное сообщение нельзя превратить обратно в черновик
+	ValidationErrorCodeConfidentialDownloadDenied ValidationErrorCode = "confidential_download_denied" // Скачивание файла запрещено: нужен запрос из безопасного контура
+	ValidationErrorCodeDecryptionFailed           ValidationErrorCode = "decryption_failed" // Не удалось расшифровать файл
+	ValidationErrorCodeForbidden                  ValidationErrorCode = "forbidden" // Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
+	ValidationErrorCodePermissionDenied           ValidationErrorCode = "permission_denied" // Доступ запрещён (недостаточно прав)
+	ValidationErrorCodeAccessDenied               ValidationErrorCode = "access_denied" // Доступ запрещён
+	ValidationErrorCodeWrongParams                ValidationErrorCode = "wrong_params" // Некорректные параметры запроса (пояснения вы получите в поле message)
+	ValidationErrorCodePaymentRequired            ValidationErrorCode = "payment_required" // Требуется оплата
+	ValidationErrorCodeMinLength                  ValidationErrorCode = "min_length" // Значение слишком короткое (пояснения вы получите в поле message)
+	ValidationErrorCodeMaxLength                  ValidationErrorCode = "max_length" // Значение слишком длинное (пояснения вы получите в поле message)
+	ValidationErrorCodeUseOfSystemWords           ValidationErrorCode = "use_of_system_words" // Использовано зарезервированное системное слово (here, all)
+	ValidationErrorCodeExportFileNotFound         ValidationErrorCode = "export_file_not_found" // Файл экспорта не найден или ещё не готов
+	ValidationErrorCodeCannotKickOwner            ValidationErrorCode = "cannot_kick_owner" // Нельзя исключить владельца чата
+	ValidationErrorCodePinFailed                  ValidationErrorCode = "pin_failed" // Не удалось закрепить сообщение
+	ValidationErrorCodeMessageDeleted             ValidationErrorCode = "message_deleted" // Сообщение удалено
+	ValidationErrorCodeThreadMessage              ValidationErrorCode = "thread_message" // Нельзя создать тред для сообщения, которое уже находится в треде
+	ValidationErrorCodeViewNotFound               ValidationErrorCode = "view_not_found" // Представление не найдено или принадлежит другому боту
+	ValidationErrorCodeSubmitExpired              ValidationErrorCode = "submit_expired" // Время на ответ об отправке формы истекло или ответ уже был принят
+	ValidationErrorCodeServiceUnavailable         ValidationErrorCode = "service_unavailable" // Сервис временно недоступен, повторите запрос
 )
 
 type VideoCallEventType string
@@ -500,6 +543,16 @@ type AuditDetailsChatPermission struct {
 type AuditDetailsChatRenamed struct {
 	OldName string `json:"old_name"`
 	NewName string `json:"new_name"`
+}
+
+type AuditDetailsDeviceAuthorizationApproved struct {
+	ClientID string   `json:"client_id"`
+	Scopes   []string `json:"scopes"`
+}
+
+type AuditDetailsDeviceAuthorizationDenied struct {
+	ClientID string   `json:"client_id"`
+	Scopes   []string `json:"scopes"`
 }
 
 type AuditDetailsDlp struct {
@@ -869,10 +922,149 @@ type CustomPropertyDefinition struct {
 	DataType CustomPropertyDataType `json:"data_type"`
 }
 
+type Draft struct {
+	ID              int32              `json:"id"`
+	Content         string             `json:"content"`
+	Files           []File             `json:"files"`
+	CreatedAt       time.Time          `json:"created_at"`
+	UpdatedAt       time.Time          `json:"updated_at"`
+	EntityType      *MessageEntityType `json:"entity_type"`
+	EntityID        *int32             `json:"entity_id"`
+	ChatID          *int32             `json:"chat_id"`
+	ParentMessageID *int32             `json:"parent_message_id"`
+	VoiceContent    *VoiceContent      `json:"voice_content"`
+	Schedule        *DraftSchedule     `json:"schedule"`
+	NextSendAt      *string            `json:"next_send_at"`
+}
+
+type DraftCreateRequestDraft struct {
+	EntityType      MessageEntityType     `json:"entity_type"`
+	EntityID        int32                 `json:"entity_id"`
+	Content         *string               `json:"content,omitempty"`
+	ParentMessageID *int32                `json:"parent_message_id"`
+	Files           []DraftFileRequest    `json:"files,omitempty"`
+	Schedule        *DraftScheduleRequest `json:"schedule"`
+}
+
+func (m DraftCreateRequestDraft) MarshalJSON() ([]byte, error) {
+	type Alias DraftCreateRequestDraft
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Files != nil {
+		raw["files"] = m.Files
+	}
+	return json.Marshal(raw)
+}
+
+type DraftCreateRequest struct {
+	Draft DraftCreateRequestDraft `json:"draft"`
+}
+
+type DraftFileRequest struct {
+	Key        string    `json:"key"`
+	Name       string    `json:"name"`
+	ID         *int32    `json:"id,omitempty"`
+	FileType   *FileType `json:"file_type,omitempty"`
+	Size       *int64    `json:"size,omitempty"`
+	Width      *int32    `json:"width,omitempty"`
+	Height     *int32    `json:"height,omitempty"`
+	DurationMs *int32    `json:"duration_ms,omitempty"`
+	Waveform   *string   `json:"waveform,omitempty"`
+}
+
+type DraftRepetition struct {
+	Interval DraftRepetitionInterval `json:"interval"`
+	Days     []int32                 `json:"days,omitempty"`
+	NthDay   *int32                  `json:"nth_day"`
+}
+
+func (m DraftRepetition) MarshalJSON() ([]byte, error) {
+	type Alias DraftRepetition
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Days != nil {
+		raw["days"] = m.Days
+	}
+	return json.Marshal(raw)
+}
+
+type DraftRepetitionRequest struct {
+	Interval DraftRepetitionInterval `json:"interval"`
+	Days     []int32                 `json:"days,omitempty"`
+	NthDay   *int32                  `json:"nth_day"`
+}
+
+func (m DraftRepetitionRequest) MarshalJSON() ([]byte, error) {
+	type Alias DraftRepetitionRequest
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Days != nil {
+		raw["days"] = m.Days
+	}
+	return json.Marshal(raw)
+}
+
+type DraftSchedule struct {
+	StartDate  time.Time       `json:"start_date"`
+	Repetition DraftRepetition `json:"repetition"`
+	EndDate    *string         `json:"end_date"`
+}
+
+type DraftScheduleRequest struct {
+	StartDate  time.Time              `json:"start_date"`
+	Repetition DraftRepetitionRequest `json:"repetition"`
+	EndDate    *string                `json:"end_date"`
+}
+
+type DraftUpdateRequestDraft struct {
+	Content         *string               `json:"content,omitempty"`
+	ParentMessageID *int32                `json:"parent_message_id"`
+	Files           []DraftFileRequest    `json:"files,omitempty"`
+	Schedule        *DraftScheduleRequest `json:"schedule"`
+}
+
+func (m DraftUpdateRequestDraft) MarshalJSON() ([]byte, error) {
+	type Alias DraftUpdateRequestDraft
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Files != nil {
+		raw["files"] = m.Files
+	}
+	return json.Marshal(raw)
+}
+
+type DraftUpdateRequest struct {
+	Draft DraftUpdateRequestDraft `json:"draft"`
+}
+
 type ExportRequest struct {
 	StartAt       string  `json:"start_at"`
 	EndAt         string  `json:"end_at"`
-	WebhookURL    string  `json:"webhook_url"`
+	WebhookURL    *string `json:"webhook_url,omitempty"`
 	ChatIDs       []int32 `json:"chat_ids,omitempty"`
 	SkipChatsFile *bool   `json:"skip_chats_file,omitempty"`
 }
@@ -894,13 +1086,14 @@ func (m ExportRequest) MarshalJSON() ([]byte, error) {
 }
 
 type File struct {
-	ID       int32    `json:"id"`
-	Key      string   `json:"key"`
-	Name     string   `json:"name"`
-	FileType FileType `json:"file_type"`
-	URL      string   `json:"url"`
-	Width    *int32   `json:"width"`
-	Height   *int32   `json:"height"`
+	ID         int32    `json:"id"`
+	Key        string   `json:"key"`
+	Name       string   `json:"name"`
+	FileType   FileType `json:"file_type"`
+	URL        string   `json:"url"`
+	Width      *int32   `json:"width"`
+	Height     *int32   `json:"height"`
+	DurationMs *int32   `json:"duration_ms"`
 }
 
 type FileUploadRequest struct {
@@ -1650,8 +1843,8 @@ type WebhookLink struct {
 }
 
 type WebhookMessageThread struct {
-	MessageID     int32 `json:"message_id"`
-	MessageChatID int32 `json:"message_chat_id"`
+	MessageID     *int32 `json:"message_id"`
+	MessageChatID *int32 `json:"message_chat_id"`
 }
 
 type WebhookVideoCallMember struct {
@@ -1661,10 +1854,10 @@ type WebhookVideoCallMember struct {
 }
 
 type WebhookVideoCallThread struct {
-	ID            int32 `json:"id"`
-	ChatID        int32 `json:"chat_id"`
-	MessageID     int32 `json:"message_id"`
-	MessageChatID int32 `json:"message_chat_id"`
+	ID            int32  `json:"id"`
+	ChatID        int32  `json:"chat_id"`
+	MessageID     *int32 `json:"message_id"`
+	MessageChatID *int32 `json:"message_chat_id"`
 }
 
 type UpdateProfileAvatarRequest struct {
@@ -1711,30 +1904,32 @@ func pickUnionMember(data []byte, shapes []unionMemberShape) int {
 }
 
 type AuditEventDetailsUnion struct {
-	AuditDetailsEmpty                     *AuditDetailsEmpty
-	AuditDetailsUserUpdated               *AuditDetailsUserUpdated
-	AuditDetailsRoleChanged               *AuditDetailsRoleChanged
-	AuditDetailsTagName                   *AuditDetailsTagName
-	AuditDetailsInitiator                 *AuditDetailsInitiator
-	AuditDetailsInviter                   *AuditDetailsInviter
-	AuditDetailsChatRenamed               *AuditDetailsChatRenamed
-	AuditDetailsChatPermission            *AuditDetailsChatPermission
-	AuditDetailsTagChat                   *AuditDetailsTagChat
-	AuditDetailsChatId                    *AuditDetailsChatId
-	AuditDetailsTokenScopes               *AuditDetailsTokenScopes
-	AuditDetailsKms                       *AuditDetailsKms
-	AuditDetailsDlp                       *AuditDetailsDlp
-	AuditDetailsSearch                    *AuditDetailsSearch
-	AuditDetailsBot                       *AuditDetailsBot
-	AuditDetailsBotScopes                 *AuditDetailsBotScopes
-	AuditDetailsBotWebhookSettings        *AuditDetailsBotWebhookSettings
-	AuditDetailsBotOAuthClient            *AuditDetailsBotOAuthClient
-	AuditDetailsOAuthAuthorizationGranted *AuditDetailsOAuthAuthorizationGranted
-	AuditDetailsOAuthAuthorizationRevoked *AuditDetailsOAuthAuthorizationRevoked
-	AuditDetailsVideoCallStarted          *AuditDetailsVideoCallStarted
-	AuditDetailsVideoCallFinished         *AuditDetailsVideoCallFinished
-	AuditDetailsVideoCallRecording        *AuditDetailsVideoCallRecording
-	Raw                                   json.RawMessage
+	AuditDetailsEmpty                       *AuditDetailsEmpty
+	AuditDetailsUserUpdated                 *AuditDetailsUserUpdated
+	AuditDetailsRoleChanged                 *AuditDetailsRoleChanged
+	AuditDetailsTagName                     *AuditDetailsTagName
+	AuditDetailsInitiator                   *AuditDetailsInitiator
+	AuditDetailsInviter                     *AuditDetailsInviter
+	AuditDetailsChatRenamed                 *AuditDetailsChatRenamed
+	AuditDetailsChatPermission              *AuditDetailsChatPermission
+	AuditDetailsTagChat                     *AuditDetailsTagChat
+	AuditDetailsChatId                      *AuditDetailsChatId
+	AuditDetailsTokenScopes                 *AuditDetailsTokenScopes
+	AuditDetailsKms                         *AuditDetailsKms
+	AuditDetailsDlp                         *AuditDetailsDlp
+	AuditDetailsSearch                      *AuditDetailsSearch
+	AuditDetailsBot                         *AuditDetailsBot
+	AuditDetailsBotScopes                   *AuditDetailsBotScopes
+	AuditDetailsBotWebhookSettings          *AuditDetailsBotWebhookSettings
+	AuditDetailsBotOAuthClient              *AuditDetailsBotOAuthClient
+	AuditDetailsOAuthAuthorizationGranted   *AuditDetailsOAuthAuthorizationGranted
+	AuditDetailsOAuthAuthorizationRevoked   *AuditDetailsOAuthAuthorizationRevoked
+	AuditDetailsDeviceAuthorizationApproved *AuditDetailsDeviceAuthorizationApproved
+	AuditDetailsDeviceAuthorizationDenied   *AuditDetailsDeviceAuthorizationDenied
+	AuditDetailsVideoCallStarted            *AuditDetailsVideoCallStarted
+	AuditDetailsVideoCallFinished           *AuditDetailsVideoCallFinished
+	AuditDetailsVideoCallRecording          *AuditDetailsVideoCallRecording
+	Raw                                     json.RawMessage
 }
 
 var auditEventDetailsUnionShapes = []unionMemberShape{
@@ -1758,6 +1953,8 @@ var auditEventDetailsUnionShapes = []unionMemberShape{
 	{keys: map[string]struct{}{"client_id": {}, "changes": {}}},
 	{keys: map[string]struct{}{"client_id": {}, "scopes": {}}},
 	{keys: map[string]struct{}{"client_id": {}, "revoked_tokens_count": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "scopes": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "scopes": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "duration": {}, "max_members_count": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "recording_id": {}, "file_id": {}, "duration": {}, "size": {}}},
@@ -1830,12 +2027,18 @@ func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
 		u.AuditDetailsOAuthAuthorizationRevoked = &AuditDetailsOAuthAuthorizationRevoked{}
 		return json.Unmarshal(data, u.AuditDetailsOAuthAuthorizationRevoked)
 	case 20:
+		u.AuditDetailsDeviceAuthorizationApproved = &AuditDetailsDeviceAuthorizationApproved{}
+		return json.Unmarshal(data, u.AuditDetailsDeviceAuthorizationApproved)
+	case 21:
+		u.AuditDetailsDeviceAuthorizationDenied = &AuditDetailsDeviceAuthorizationDenied{}
+		return json.Unmarshal(data, u.AuditDetailsDeviceAuthorizationDenied)
+	case 22:
 		u.AuditDetailsVideoCallStarted = &AuditDetailsVideoCallStarted{}
 		return json.Unmarshal(data, u.AuditDetailsVideoCallStarted)
-	case 21:
+	case 23:
 		u.AuditDetailsVideoCallFinished = &AuditDetailsVideoCallFinished{}
 		return json.Unmarshal(data, u.AuditDetailsVideoCallFinished)
-	case 22:
+	case 24:
 		u.AuditDetailsVideoCallRecording = &AuditDetailsVideoCallRecording{}
 		return json.Unmarshal(data, u.AuditDetailsVideoCallRecording)
 	}
@@ -1902,6 +2105,12 @@ func (u AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {
 	}
 	if u.AuditDetailsOAuthAuthorizationRevoked != nil {
 		return json.Marshal(u.AuditDetailsOAuthAuthorizationRevoked)
+	}
+	if u.AuditDetailsDeviceAuthorizationApproved != nil {
+		return json.Marshal(u.AuditDetailsDeviceAuthorizationApproved)
+	}
+	if u.AuditDetailsDeviceAuthorizationDenied != nil {
+		return json.Marshal(u.AuditDetailsDeviceAuthorizationDenied)
 	}
 	if u.AuditDetailsVideoCallStarted != nil {
 		return json.Marshal(u.AuditDetailsVideoCallStarted)
@@ -2144,6 +2353,18 @@ type ListPropertiesParams struct {
 	EntityType SearchEntityType
 }
 
+type ListDraftsParams struct {
+	Type       *DraftType
+	EntityType *MessageEntityType
+	EntityID   *int32
+	Limit      *int32
+	Cursor     *string
+}
+
+type DownloadFileParams struct {
+	Target *FileTarget
+}
+
 type ListTagsParams struct {
 	Names  []string
 	Limit  *int32
@@ -2273,6 +2494,11 @@ type ListCompanyChatsResponse struct {
 
 type ListPropertiesResponse struct {
 	Data []CustomPropertyDefinition `json:"data"`
+}
+
+type ListDraftsResponse struct {
+	Data []Draft        `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListTagsResponse struct {

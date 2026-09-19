@@ -9,10 +9,10 @@
 - [Авторизация](https://dev.pachca.com/api/authorization.md): Авторизация в API Пачки: персональный токен и токен бота, скоупы методов, headless-интеграции для агентов, настройка доступа для администраторов и сотрудников, смена владельца пространства
 - [Запросы и ответы](https://dev.pachca.com/api/requests-responses.md): Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
 - [Пагинация](https://dev.pachca.com/api/pagination.md): Пагинация в API Пачки по курсору: две группы методов (списочные и поиск) с разной структурой meta, поля next_page, prev_page, has_next, has_prev, обход всех записей и polling новых данных через prev_page
-- [Загрузка файлов](https://dev.pachca.com/api/file-uploads.md): Трёхшаговая загрузка файлов в API Пачки через presigned URL S3: получение подписи, отправка multipart/form-data и прикрепление к сообщению или задаче
+- [Загрузка файлов](https://dev.pachca.com/api/file-uploads.md): Файлы в API Пачки: трёхшаговая загрузка через presigned URL S3, типы вложений и их поля, ссылка на скачивание и когда она ведёт не в хранилище, а на адрес API
 - [Ошибки](https://dev.pachca.com/api/errors.md): Коды ошибок HTTP в API Пачки и структуры тела ответа: ApiError (400/402/403/404/409/410/422) и OAuthError (401/403) с описанием полей и кодов
 - [Лимиты](https://dev.pachca.com/api/limits.md): Лимиты запросов (rate limits) в API Пачки: числа по типам операций, поведение ответа 429, заголовок Retry-After, готовые примеры экспоненциального backoff на TypeScript и Python
-- [Модели](https://dev.pachca.com/api/models.md): Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, задачи, теги, вебхуки и другие сущности
+- [Модели](https://dev.pachca.com/api/models.md): Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, черновики, задачи, теги, вебхуки и другие сущности
 
 ## OAuth
 - [Информация о токене](https://dev.pachca.com/api/oauth/token-info.md): GET /oauth/token/info
@@ -50,7 +50,7 @@
 
 ## Group tags
 - [Новый тег](https://dev.pachca.com/api/group-tags/create.md): POST /group_tags
-- [Список тегов сотрудников](https://dev.pachca.com/api/group-tags/list.md): GET /group_tags
+- [Список тегов](https://dev.pachca.com/api/group-tags/list.md): GET /group_tags
 - [Информация о теге](https://dev.pachca.com/api/group-tags/get.md): GET /group_tags/{id}
 - [Редактирование тега](https://dev.pachca.com/api/group-tags/update.md): PUT /group_tags/{id}
 - [Удаление тега](https://dev.pachca.com/api/group-tags/delete.md): DELETE /group_tags/{id}
@@ -59,7 +59,7 @@
 ## Members
 - [Добавление тегов](https://dev.pachca.com/api/members/add-group-tags.md): POST /chats/{id}/group_tags
 - [Исключение тега](https://dev.pachca.com/api/members/remove-group-tag.md): DELETE /chats/{id}/group_tags/{tag_id}
-- [Выход из беседы или канала](https://dev.pachca.com/api/members/leave.md): DELETE /chats/{id}/leave
+- [Выход из чата](https://dev.pachca.com/api/members/leave.md): DELETE /chats/{id}/leave
 - [Список участников чата](https://dev.pachca.com/api/members/list.md): GET /chats/{id}/members
 - [Добавление пользователей](https://dev.pachca.com/api/members/add.md): POST /chats/{id}/members
 - [Исключение пользователя](https://dev.pachca.com/api/members/remove.md): DELETE /chats/{id}/members/{user_id}
@@ -101,6 +101,13 @@
 - [Редактирование напоминания](https://dev.pachca.com/api/tasks/update.md): PUT /tasks/{id}
 - [Удаление напоминания](https://dev.pachca.com/api/tasks/delete.md): DELETE /tasks/{id}
 
+## Drafts
+- [Новый черновик](https://dev.pachca.com/api/drafts/create.md): POST /drafts
+- [Список черновиков](https://dev.pachca.com/api/drafts/list.md): GET /drafts
+- [Информация о черновике](https://dev.pachca.com/api/drafts/get.md): GET /drafts/{id}
+- [Редактирование черновика](https://dev.pachca.com/api/drafts/update.md): PUT /drafts/{id}
+- [Удаление черновика](https://dev.pachca.com/api/drafts/delete.md): DELETE /drafts/{id}
+
 ## Views
 - [Открытие представления](https://dev.pachca.com/api/views/open.md): POST /views/open
 - [Ответ на отправку формы](https://dev.pachca.com/api/views/submit-response.md): POST /views/{view_id}/submit_response
@@ -126,5 +133,6 @@
 
 ## Files
 - [Загрузка файла](https://dev.pachca.com/api/files/direct-url.md): POST /direct_url
+- [Скачивание файла](https://dev.pachca.com/api/files/get.md): GET /files/{id}
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 

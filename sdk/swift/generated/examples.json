@@ -172,6 +172,12 @@
       "SearchEntityType"
     ]
   },
+  "FileOperations_downloadFile": {
+    "usage": "try await client.files.downloadFile(id: 3560, target: .thumb)",
+    "imports": [
+      "FileTarget"
+    ]
+  },
   "DirectUploadOperations_uploadFile": {
     "usage": "let body = FileUploadRequest(\n    ContentDisposition: \"example\",\n    acl: \"example\",\n    policy: \"example\",\n    xAmzCredential: \"example\",\n    xAmzAlgorithm: \"example\",\n    xAmzDate: \"example\",\n    xAmzSignature: \"example\",\n    key: \"example\",\n    file: Data()\n)\ntry await client.files.uploadFile(directUrl: \"https://example.com\", body: body)",
     "imports": [
@@ -181,6 +187,48 @@
   "UploadOperations_getUploadParams": {
     "usage": "let response = try await client.files.getUploadParams()",
     "output": "UploadParams(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
+  },
+  "DraftOperations_listDrafts": {
+    "usage": "let response = try await client.drafts.listDrafts(type: .all, entityType: .discussion, entityId: 334, limit: 25, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListDraftsResponse(data: [Draft], meta: PaginationMeta)",
+    "imports": [
+      "DraftType",
+      "MessageEntityType"
+    ]
+  },
+  "DraftOperations_getDraft": {
+    "usage": "let response = try await client.drafts.getDraft(id: 4821)",
+    "output": "Draft(id: Int, entityType: MessageEntityType?, entityId: Int?, chatId: Int?, content: String, parentMessageId: Int?, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, schedule: DraftSchedule(startDate: String, endDate: String?, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: [Int]?, nthDay: Int?))?, nextSendAt: String?, createdAt: String, updatedAt: String)"
+  },
+  "DraftOperations_createDraft": {
+    "usage": "let body = DraftCreateRequest(\n    draft: DraftCreateRequestDraft(\n        entityType: .discussion,\n        entityId: 334,\n        content: \"Отчёт за неделю: продажи выросли на 10%\",\n        parentMessageId: 196093,\n        files: [DraftFileRequest(\n            id: 3560,\n            key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name: \"logo.png\",\n            fileType: .image,\n            size: Int64(12345),\n            width: 800,\n            height: 600,\n            durationMs: 5400,\n            waveform: \"4,8,12,20,16,10,6,3\"\n        )],\n        schedule: DraftScheduleRequest(\n            startDate: \"2026-09-17T12:00:00.000Z\",\n            endDate: \"2026-12-31T12:00:00.000Z\",\n            repetition: DraftRepetitionRequest(\n                interval: .weekly,\n                days: [123],\n                nthDay: 2\n            )\n        )\n    )\n)\nlet response = try await client.drafts.createDraft(body: body)",
+    "output": "Draft(id: Int, entityType: MessageEntityType?, entityId: Int?, chatId: Int?, content: String, parentMessageId: Int?, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, schedule: DraftSchedule(startDate: String, endDate: String?, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: [Int]?, nthDay: Int?))?, nextSendAt: String?, createdAt: String, updatedAt: String)",
+    "imports": [
+      "DraftCreateRequest",
+      "DraftCreateRequestDraft",
+      "DraftFileRequest",
+      "DraftRepetitionInterval",
+      "DraftRepetitionRequest",
+      "DraftScheduleRequest",
+      "FileType",
+      "MessageEntityType"
+    ]
+  },
+  "DraftOperations_updateDraft": {
+    "usage": "let body = DraftUpdateRequest(\n    draft: DraftUpdateRequestDraft(\n        content: \"Отчёт за неделю: продажи выросли на 10%\",\n        parentMessageId: 196093,\n        files: [DraftFileRequest(\n            id: 3560,\n            key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name: \"logo.png\",\n            fileType: .image,\n            size: Int64(12345),\n            width: 800,\n            height: 600,\n            durationMs: 5400,\n            waveform: \"4,8,12,20,16,10,6,3\"\n        )],\n        schedule: DraftScheduleRequest(\n            startDate: \"2026-09-17T12:00:00.000Z\",\n            endDate: \"2026-12-31T12:00:00.000Z\",\n            repetition: DraftRepetitionRequest(\n                interval: .weekly,\n                days: [123],\n                nthDay: 2\n            )\n        )\n    )\n)\nlet response = try await client.drafts.updateDraft(id: 4821, body: body)",
+    "output": "Draft(id: Int, entityType: MessageEntityType?, entityId: Int?, chatId: Int?, content: String, parentMessageId: Int?, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, schedule: DraftSchedule(startDate: String, endDate: String?, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: [Int]?, nthDay: Int?))?, nextSendAt: String?, createdAt: String, updatedAt: String)",
+    "imports": [
+      "DraftFileRequest",
+      "DraftRepetitionInterval",
+      "DraftRepetitionRequest",
+      "DraftScheduleRequest",
+      "DraftUpdateRequest",
+      "DraftUpdateRequestDraft",
+      "FileType"
+    ]
+  },
+  "DraftOperations_deleteDraft": {
+    "usage": "try await client.drafts.deleteDraft(id: 4821)"
   },
   "GroupTagOperations_listTags": {
     "usage": "let names = [\"example\"]\nlet response = try await client.groupTags.listTags(names: names, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -223,11 +271,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "let response = try await client.messages.getMessage(id: 194275)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)"
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)"
   },
   "MessageOperations_createMessage": {
     "usage": "let body = MessageCreateRequest(\n    message: MessageCreateRequestMessage(\n        entityType: .discussion,\n        entityId: 334,\n        content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files: [MessageCreateRequestFile(\n            key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name: \"logo.png\",\n            fileType: .image,\n            size: Int64(12345),\n            width: 800,\n            height: 600,\n            durationMs: 5400,\n            waveform: \"4,8,12,20,16,10,6,3\"\n        )],\n        buttons: [[Button(\n            text: \"Подробнее\",\n            url: \"https://example.com/details\",\n            data: \"awesome\"\n        )]],\n        parentMessageId: 194270,\n        displayAvatarUrl: \"https://example.com/avatar.png\",\n        displayName: \"Бот Поддержки\",\n        skipInviteMentions: false\n    ),\n    linkPreview: false\n)\nlet response = try await client.messages.createMessage(body: body)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
     "imports": [
       "Button",
       "FileType",
@@ -250,7 +298,7 @@
   },
   "MessageOperations_updateMessage": {
     "usage": "let body = MessageUpdateRequest(\n    message: MessageUpdateRequestMessage(\n        content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files: [MessageUpdateRequestFile(\n            key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name: \"logo.png\",\n            fileType: .image,\n            size: Int64(12345),\n            width: 800,\n            height: 600,\n            durationMs: 5400,\n            waveform: \"4,8,12,20,16,10,6,3\"\n        )],\n        buttons: [[Button(\n            text: \"Подробнее\",\n            url: \"https://example.com/details\",\n            data: \"awesome\"\n        )]],\n        displayAvatarUrl: \"https://example.com/avatar.png\",\n        displayName: \"Бот Поддержки\"\n    )\n)\nlet response = try await client.messages.updateMessage(id: 194275, body: body)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
     "imports": [
       "Button",
       "FileType",

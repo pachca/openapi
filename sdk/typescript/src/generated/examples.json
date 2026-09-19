@@ -172,6 +172,12 @@
       "SearchEntityType"
     ]
   },
+  "FileOperations_downloadFile": {
+    "usage": "client.files.downloadFile(3560, { target: FileTarget.Thumb })",
+    "imports": [
+      "FileTarget"
+    ]
+  },
   "DirectUploadOperations_uploadFile": {
     "usage": "const request: FileUploadRequest = {\n  contentDisposition: \"example\",\n  acl: \"example\",\n  policy: \"example\",\n  xAmzCredential: \"example\",\n  xAmzAlgorithm: \"example\",\n  xAmzDate: \"example\",\n  xAmzSignature: \"example\",\n  key: \"example\",\n  file: new Blob([])\n}\nclient.files.uploadFile(\"https://example.com\", request)",
     "imports": [
@@ -181,6 +187,48 @@
   "UploadOperations_getUploadParams": {
     "usage": "const response = client.files.getUploadParams()",
     "output": "UploadParams({ contentDisposition: string, acl: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, directUrl: string })"
+  },
+  "DraftOperations_listDrafts": {
+    "usage": "const response = client.drafts.listDrafts({\n  type: DraftType.All,\n  entityType: MessageEntityType.Discussion,\n  entityId: 334,\n  limit: 25,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "output": "ListDraftsResponse({ data: Draft[], meta: PaginationMeta })",
+    "imports": [
+      "DraftType",
+      "MessageEntityType"
+    ]
+  },
+  "DraftOperations_getDraft": {
+    "usage": "const response = client.drafts.getDraft(4821)",
+    "output": "Draft({ id: number, entityType: MessageEntityType | null, entityId: number | null, chatId: number | null, content: string, parentMessageId: number | null, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, schedule: DraftSchedule({ startDate: string, endDate: string | null, repetition: DraftRepetition({ interval: DraftRepetitionInterval, days?: number[], nthDay?: number | null }) }) | null, nextSendAt: string | null, createdAt: string, updatedAt: string })"
+  },
+  "DraftOperations_createDraft": {
+    "usage": "const request: DraftCreateRequest = {\n  draft: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Отчёт за неделю: продажи выросли на 10%\",\n    parentMessageId: 196093,\n    files: [{\n      id: 3560,\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    schedule: {\n      startDate: \"2026-09-17T12:00:00.000Z\",\n      endDate: \"2026-12-31T12:00:00.000Z\",\n      repetition: {\n        interval: DraftRepetitionInterval.Weekly,\n        days: [123],\n        nthDay: 2\n      }\n    }\n  }\n}\nconst response = client.drafts.createDraft(request)",
+    "output": "Draft({ id: number, entityType: MessageEntityType | null, entityId: number | null, chatId: number | null, content: string, parentMessageId: number | null, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, schedule: DraftSchedule({ startDate: string, endDate: string | null, repetition: DraftRepetition({ interval: DraftRepetitionInterval, days?: number[], nthDay?: number | null }) }) | null, nextSendAt: string | null, createdAt: string, updatedAt: string })",
+    "imports": [
+      "DraftCreateRequest",
+      "DraftCreateRequestDraft",
+      "DraftFileRequest",
+      "DraftRepetitionInterval",
+      "DraftRepetitionRequest",
+      "DraftScheduleRequest",
+      "FileType",
+      "MessageEntityType"
+    ]
+  },
+  "DraftOperations_updateDraft": {
+    "usage": "const request: DraftUpdateRequest = {\n  draft: {\n    content: \"Отчёт за неделю: продажи выросли на 10%\",\n    parentMessageId: 196093,\n    files: [{\n      id: 3560,\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    schedule: {\n      startDate: \"2026-09-17T12:00:00.000Z\",\n      endDate: \"2026-12-31T12:00:00.000Z\",\n      repetition: {\n        interval: DraftRepetitionInterval.Weekly,\n        days: [123],\n        nthDay: 2\n      }\n    }\n  }\n}\nconst response = client.drafts.updateDraft(4821, request)",
+    "output": "Draft({ id: number, entityType: MessageEntityType | null, entityId: number | null, chatId: number | null, content: string, parentMessageId: number | null, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, schedule: DraftSchedule({ startDate: string, endDate: string | null, repetition: DraftRepetition({ interval: DraftRepetitionInterval, days?: number[], nthDay?: number | null }) }) | null, nextSendAt: string | null, createdAt: string, updatedAt: string })",
+    "imports": [
+      "DraftFileRequest",
+      "DraftRepetitionInterval",
+      "DraftRepetitionRequest",
+      "DraftScheduleRequest",
+      "DraftUpdateRequest",
+      "DraftUpdateRequestDraft",
+      "FileType"
+    ]
+  },
+  "DraftOperations_deleteDraft": {
+    "usage": "client.drafts.deleteDraft(4821)"
   },
   "GroupTagOperations_listTags": {
     "usage": "const response = client.groupTags.listTags({\n  names: [\"example\"],\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
@@ -223,11 +271,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "const response = client.messages.getMessage(194275)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })"
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })"
   },
   "MessageOperations_createMessage": {
     "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    files: [{\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    buttons: [[{\n      text: \"Подробнее\",\n      url: \"https://example.com/details\",\n      data: \"awesome\"\n    }]],\n    parentMessageId: 194270,\n    displayAvatarUrl: \"https://example.com/avatar.png\",\n    displayName: \"Бот Поддержки\",\n    skipInviteMentions: false\n  },\n  linkPreview: false\n}\nconst response = client.messages.createMessage(request)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })",
     "imports": [
       "Button",
       "FileType",
@@ -250,7 +298,7 @@
   },
   "MessageOperations_updateMessage": {
     "usage": "const request: MessageUpdateRequest = {\n  message: {\n    content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n    files: [{\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600,\n      durationMs: 5400,\n      waveform: \"4,8,12,20,16,10,6,3\"\n    }],\n    buttons: [[{\n      text: \"Подробнее\",\n      url: \"https://example.com/details\",\n      data: \"awesome\"\n    }]],\n    displayAvatarUrl: \"https://example.com/avatar.png\",\n    displayName: \"Бот Поддержки\"\n  }\n}\nconst response = client.messages.updateMessage(194275, request)",
-    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null, durationMs?: number | null })[], voiceContent: VoiceContent({ durationMs: number, waveform: string, transcript: string | null }) | null, buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl?: string | null, displayName?: string | null, changedAt: string | null, deletedAt: string | null })",
     "imports": [
       "Button",
       "FileType",

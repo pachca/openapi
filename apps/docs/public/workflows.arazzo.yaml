@@ -231,6 +231,30 @@ workflows:
       - stepId: send-notification-to-multiple-users-2
         description: 'For each: send direct message (For each recipient)'
         operationId: MessageOperations_createMessage
+  - workflowId: send-a-message-later-or-on-a-schedule
+    summary: Send a message later or on a schedule
+    description: >-
+      Bot tokens cannot use this: the `drafts:read` and `drafts:write` scopes are issued to people
+      only. Without `schedule` the same method creates a regular draft: it is not sent anywhere and
+      waits for the person in the interface. A chat can hold only one regular draft, a second one
+      returns `409`; scheduled messages are limited to 50 per chat.
+    steps:
+      - stepId: send-a-message-later-or-on-a-schedule-1
+        description: Find the chat to write to
+        operationId: SearchOperations_searchChats
+      - stepId: send-a-message-later-or-on-a-schedule-2
+        description: >-
+          Create a scheduled message: `schedule.start_date` is when to send,
+          `schedule.repetition.interval` is how to repeat (`once` for a single send) (Time without
+          an offset is read as UTC: convert the employee local time yourself or send an offset. To
+          repeat on weekdays use `interval: "weekly"` with `days` (0 is Sunday). The response has
+          `next_send_at` — check it.)
+        operationId: DraftOperations_createDraft
+      - stepId: send-a-message-later-or-on-a-schedule-3
+        description: >-
+          To cancel the send, delete the scheduled message (There is no other way to cancel: the
+          schedule cannot be removed by an update)
+        operationId: DraftOperations_deleteDraft
   - workflowId: create-channel-and-invite-members
     summary: Create channel and invite members
     description: '`channel` — boolean, not string. `member_ids` and `group_tag_ids` — optional on creation.'
@@ -290,8 +314,9 @@ workflows:
     steps:
       - stepId: export-chat-history-1
         description: >-
-          Request export (`start_at`, `end_at` (YYYY-MM-DD), `webhook_url` required — request is
-          async)
+          Request export (`start_at`, `end_at` (YYYY-MM-DD). The request is async: the response is
+          empty and carries no export id. `webhook_url` is not formally required, but without it
+          there is nowhere to get the id — always send it)
         operationId: ExportOperations_requestExport
       - stepId: export-chat-history-2
         description: Download export file (Server returns 302, HTTP client downloads file automatically)

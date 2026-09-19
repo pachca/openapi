@@ -1,5 +1,5 @@
 > Расположение: Основы API
-> Краткое содержание: Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, задачи, теги, вебхуки и другие сущности
+> Краткое содержание: Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, черновики, задачи, теги, вебхуки и другие сущности
 > Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
 
@@ -7,7 +7,7 @@
 
 Все модели данных, возвращаемые в ответах API. Каждая модель содержит связанные методы и таблицу свойств.
 
-> Методы [Получение подписи](/api/files/uploads) и [Загрузка файла](/api/files/direct-url) не возвращают модели данных.
+> Методы [Получение подписи, ключа и других параметров](/api/files/uploads), [Загрузка файла](/api/files/direct-url) и [Скачивание файла](/api/files/get) не возвращают модели данных: первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом.
 
 
 ## Дополнительное поле
@@ -35,7 +35,7 @@
 - `scopes: array of string` (required) — Список скоупов токена. Пример: `["messages:read","chats:read"]`
 - `created_at: date-time` (required) — Дата создания токена. Пример: `"2025-01-15T10:30:00.000Z"`
 - `revoked_at: date-time` (required, nullable) — Дата отзыва токена. Всегда `null`: по отозванному токену метод возвращает 401. Пример: `null`
-- `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. Всегда `null` — токены выдаются бессрочно. Пример: `null`
+- `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. `null` у бессрочного токена — такие выдаёт интерфейс. У токена, полученного входом из CLI, здесь `3600`: он живёт час и продлевается сам. Пример: `null`
 - `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать. Пример: `"2025-02-24T14:20:00.000Z"`
 
 
@@ -54,7 +54,7 @@
 - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
 - `expires_at: date-time` (required, nullable) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан — такой статус не сбрасывается автоматически. Пример: `"2024-04-08T10:00:00.000Z"`
 - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
-- `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. `null`, если текст автоответа не задан.
+- `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. `null`, если текст не задан.
   - `text: string` (required, max length: 1024) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
 
 
@@ -88,8 +88,8 @@
 - `first_name: string` (required, nullable, max length: 255) — Имя. Возвращается `null`, пока приглашённый сотрудник не завершил регистрацию (`invite_status` со значением `sent`). Пример: `"Олег"`
 - `last_name: string` (required, nullable, max length: 255) — Фамилия. Если не заполнена, возвращается `null` или пустая строка. Пример: `"Петров"`
 - `nickname: string` (required, max length: 255) — Имя пользователя. Пример: `"olegpetrov"`
-- `email: string` (required, nullable, max length: 255) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"olegp@example.com"`
-- `phone_number: string` (required, nullable, max length: 255) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников. Пример: `"+79001234567"`
+- `email: string` (required, nullable, max length: 255) — Электронная почта. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя — никогда. В своей карточке поле приходит всегда. Пример: `"olegp@example.com"`
+- `phone_number: string` (required, nullable, max length: 255) — Телефон. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя — никогда. В своей карточке поле приходит всегда. Пример: `"+79001234567"`
 - `department: string` (required, nullable, max length: 255) — Департамент. Если не указан, возвращается `null` или пустая строка. Пример: `"Продукт"`
 - `title: string` (required, nullable) — Должность. Если не указана, возвращается `null` или пустая строка. Пример: `"CIO"`
 - `role: string` (required) — Уровень доступа
@@ -110,7 +110,7 @@
   - `title: string` (required, max length: 50) — Текст статуса. Пример: `"Очень занят"`
   - `expires_at: date-time` (required, nullable) — Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если срок не задан — такой статус не сбрасывается автоматически. Пример: `"2024-04-08T10:00:00.000Z"`
   - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
-  - `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. `null`, если текст автоответа не задан.
+  - `away_message: object` (required, nullable) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. `null`, если текст не задан.
     - `text: string` (required, max length: 1024) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
 - `bot: boolean` (required) — Является ботом. Пример: `false`
 - `sso: boolean` (required) — Использует ли пользователь SSO. Пример: `false`
@@ -125,7 +125,7 @@
 - [Новый тег](/api/group-tags/create)
 - [Добавление тегов](/api/members/add-group-tags)
 - [Информация о теге](/api/group-tags/get)
-- [Список тегов сотрудников](/api/group-tags/list)
+- [Список тегов](/api/group-tags/list)
 - [Редактирование тега](/api/group-tags/update)
 - [Исключение тега](/api/members/remove-group-tag)
 - [Удаление тега](/api/group-tags/delete)
@@ -151,7 +151,7 @@
 - [Архивация чата](/api/chats/archive)
 - [Разархивация чата](/api/chats/unarchive)
 - [Редактирование роли](/api/members/update)
-- [Выход из беседы или канала](/api/members/leave)
+- [Выход из чата](/api/members/leave)
 - [Исключение пользователя](/api/members/remove)
 
 Чат
@@ -179,8 +179,8 @@
 
 Тред
 
-- `id: integer, int64` (required) — Идентификатор созданного треда (используется для отправки [новых комментариев](/api/messages/create) в тред). Пример: `265142`
-- `chat_id: integer, int64` (required) — Идентификатор чата треда (используется для отправки [новых комментариев](/api/messages/create) в тред и получения [списка комментариев](/api/messages/list)). Пример: `2637266155`
+- `id: integer, int64` (required) — Идентификатор созданного треда (в тред пишут методом [Новое сообщение](/api/messages/create)). Пример: `265142`
+- `chat_id: integer, int64` (required) — Идентификатор чата треда (по нему пишут в тред методом [Новое сообщение](/api/messages/create) и читают его методом [Список сообщений чата](/api/messages/list)). Пример: `2637266155`
 - `message_id: integer, int64` (required, nullable) — Идентификатор сообщения, к которому был создан тред. `null` для самостоятельного треда, созданного без привязки к сообщению. Пример: `154332686`
 - `message_chat_id: integer, int64` (required, nullable) — Идентификатор чата сообщения. `null` для самостоятельного треда, созданного без привязки к сообщению. Пример: `2637266154`
 - `updated_at: date-time` (required) — Дата и время обновления треда (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2023-02-01T19:20:47.204Z"`
@@ -216,10 +216,11 @@
   - `key: string` (required) — Путь к файлу. Пример: `"attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png"`
   - `name: string` (required) — Название файла с расширением. Пример: `"congrat.png"`
   - `file_type: string` (required) — Тип файла
-    Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение
-  - `url: string` (required) — Прямая ссылка на скачивание файла. Действует до 7 дней, оставшийся срок может быть меньше — если ссылка вернула `403`, запросите сообщение заново и получите свежую. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
+    Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение, `video` — Видеофайл
+  - `url: string` (required) — Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](/api/files/get): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
   - `width: integer, int32` (nullable) — Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1920`
   - `height: integer, int32` (nullable) — Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1080`
+  - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового, аудио- и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
 - `voice_content: object` (required) — Данные голосового сообщения. Заполняется только для голосовых сообщений (`file_type` файла — `voice`), иначе `null`.
   - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
   - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
@@ -286,6 +287,50 @@
   - `data_type: string` (required) — Тип поля
     Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
   - `value: string` (required, nullable, max length: 768) — Значение. Возвращается `null`, если поле не заполнено. Число передаётся строкой, дата — в формате ISO 8601. Пример: `"Санкт-Петербург"`
+
+
+## Черновик
+
+- [Новый черновик](/api/drafts/create)
+- [Информация о черновике](/api/drafts/get)
+- [Список черновиков](/api/drafts/list)
+- [Редактирование черновика](/api/drafts/update)
+- [Удаление черновика](/api/drafts/delete)
+
+Черновик или отложенное сообщение
+
+- `id: integer, int32` (required) — Идентификатор черновика. Пример: `4821`
+- `entity_type: string` (required) — Куда уйдёт сообщение: в беседу или канал, в тред либо в личную переписку с сотрудником
+  Значения: `discussion` — Беседа или канал, `thread` — Тред, `user` — Пользователь
+- `entity_id: integer, int32` (required, nullable) — Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника. Пример: `334`
+- `chat_id: integer, int32` (required, nullable) — Идентификатор чата, в котором лежит черновик. У черновика треда это чат самого треда. Пример: `334`
+- `content: string` (required) — Текст черновика. У черновика из одних вложений приходит пустая строка, а не `null`. Пример: `"Отчёт за неделю: продажи выросли на 10%"`
+- `parent_message_id: integer, int32` (required, nullable) — Идентификатор сообщения, ответом на которое уйдёт черновик. `null`, если это не ответ. Пример: `196093`
+- `files: array of object` (required) — Прикреплённые файлы
+  - `id: integer, int32` (required) — Идентификатор файла. Пример: `3560`
+  - `key: string` (required) — Путь к файлу. Пример: `"attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png"`
+  - `name: string` (required) — Название файла с расширением. Пример: `"congrat.png"`
+  - `file_type: string` (required) — Тип файла
+    Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение, `video` — Видеофайл
+  - `url: string` (required) — Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](/api/files/get): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
+  - `width: integer, int32` (nullable) — Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1920`
+  - `height: integer, int32` (nullable) — Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1080`
+  - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового, аудио- и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
+- `voice_content: object` (required) — Голосовое сообщение. `null`, если голосового вложения нет. Расшифровка в `transcript` у черновика всегда `null` — она запускается после отправки.
+  - `duration_ms: integer, int32` (required) — Длительность голосового сообщения в миллисекундах. Пример: `5400`
+  - `waveform: string` (required) — Форма волны (амплитуды) для визуализации голосового сообщения. Пример: `"4,8,12,20,16,10,6,3"`
+  - `transcript: string` (required, nullable) — Расшифровка голосового сообщения в текст. `null`, пока расшифровка не готова или недоступна. Пример: `"Привет, посмотри пожалуйста последний отчёт"`
+- `schedule: object` (required) — Расписание отправки. `null` у обычного черновика.
+  - `start_date: date-time` (required) — Первая отправка (ISO-8601). Из неё берутся время суток, число месяца и день недели, по которым дальше строится повтор. Пример: `"2026-09-17T12:00:00.000Z"`
+  - `end_date: date-time` (required, nullable) — Дата, после которой повтор прекращается (ISO-8601). `null`, если конец не задан. Пример: `"2026-12-31T12:00:00.000Z"`
+  - `repetition: object` (required) — Правило повтора
+    - `interval: string` (required) — Периодичность
+      Значения: `once` — Один раз, `daily` — Каждый день, `weekly` — Каждую неделю, `monthly` — Каждый месяц, `every_2_months` — Раз в два месяца, `every_3_months` — Раз в три месяца, `every_4_months` — Раз в четыре месяца, `every_6_months` — Раз в полгода, `yearly` — Раз в год
+    - `days: array of integer` — Дни недели, по которым уходит сообщение: 0 — воскресенье, 6 — суббота. Приходит только при периодичности `weekly`. Пример: `[1,3]`
+    - `nth_day: integer, int32` (nullable) — Какой по счёту день недели в месяце: от 1 до 4 — первый, второй, третий, четвёртый, 5 — последний. Приходит только при периодичности по месяцам, а `null` в ней означает повтор по числу месяца из `start_date`. Пример: `2`
+- `next_send_at: date-time` (required, nullable) — Ближайшая отправка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null` у обычного черновика. Пример: `"2026-09-17T12:00:00.000Z"`
+- `created_at: date-time` (required) — Дата и время создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2026-09-16T10:00:00.000Z"`
+- `updated_at: date-time` (required) — Дата и время последнего изменения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2026-09-16T10:00:00.000Z"`
 
 
 ## Представление
@@ -491,8 +536,8 @@
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Пример: `9012`
     - `parent_message_id: integer, int32` (nullable) — Идентификатор сообщения, к которому написан ответ. `null`, если сообщение не является ответом на другое сообщение. Пример: `3456`
     - `thread: object` — Тред, в котором отправлено сообщение. `null`, если сообщение отправлено не в треде. В отличие от поля `thread` в объекте сообщения REST API, здесь описывается тред, внутри которого находится сообщение.
-      - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому был создан тред. Пример: `12345`
-      - `message_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому был создан тред. Пример: `67890`
+      - `message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому был создан тред. `null` у треда без сообщения-родителя — такие создаёт [Новый самостоятельный тред](/api/threads/create). Пример: `12345`
+      - `message_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому был создан тред. `null` у треда без сообщения-родителя. Пример: `67890`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
   - **ReactionWebhookPayload**: Структура исходящего вебхука о реакции
     - `type: string` (required) — Тип объекта. Пример: `"reaction"`
@@ -540,7 +585,7 @@
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором изменился состав участников. Пример: `9012`
     - `thread_id: integer, int32` (nullable) — Идентификатор треда. `null`, если участники добавлены в обычный чат или канал, а не в тред. Пример: `5678`
     - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие. Пример: `[2345,6789]`
-    - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+    - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ssZ. В этом вебхуке время приходит без долей секунды, в отличие от остальных. Пример: `"2025-05-15T14:30:00Z"`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
   - **CompanyMemberWebhookPayload**: Структура исходящего вебхука об участниках пространства
     - `type: string` (required) — Тип объекта. Пример: `"company_member"`
@@ -548,7 +593,7 @@
     - `event: string` (required) — Тип события
       Значения: `invite` — Приглашение, `confirm` — Подтверждение, `update` — Обновление, `suspend` — Приостановка, `activate` — Активация, `delete` — Удаление
     - `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие. Пример: `[2345,6789]`
-    - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+    - `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ssZ. В этом вебхуке время приходит без долей секунды, в отличие от остальных. Пример: `"2025-05-15T14:30:00Z"`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
   - **LinkSharedWebhookPayload**: Структура исходящего вебхука о разворачивании ссылок
     - `type: string` (required) — Тип объекта. Пример: `"message"`
@@ -575,8 +620,8 @@
     - `thread: object` — Объект с параметрами треда, если видеозвонок проходит в треде. `null`, если звонок не в треде.
       - `id: integer, int32` (required) — Идентификатор треда. Пример: `12345`
       - `chat_id: integer, int32` (required) — Идентификатор чата треда. Пример: `67890`
-      - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому создан тред. Пример: `268092`
-      - `message_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому создан тред. Пример: `23438`
+      - `message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому создан тред. `null` у треда без сообщения-родителя — такие создаёт [Новый самостоятельный тред](/api/threads/create). Пример: `268092`
+      - `message_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому создан тред. `null` у треда без сообщения-родителя. Пример: `23438`
     - `started_at: date-time` — Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished. Пример: `"2025-05-15T14:30:00.000Z"`
     - `finished_at: date-time` — Дата и время завершения звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для события finished. Пример: `"2025-05-15T14:45:00.000Z"`
     - `duration: integer, int32` — Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи. Пример: `900`
@@ -601,7 +646,7 @@
 - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
 - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 - `event_key: string` (required) — Ключ типа события
-  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_2fa_disabled` — Двухфакторная аутентификация отключена у сотрудника, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `company_chats_accessed` — Получен список всех чатов пространства, `company_bots_accessed` — Получен список всех ботов пространства, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота, `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным, `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова, `exchange_disabled` — Отключена интеграция с Exchange
+  Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_2fa_disabled` — Двухфакторная аутентификация отключена у сотрудника, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `company_chats_accessed` — Получен список всех чатов пространства, `company_bots_accessed` — Получен список всех ботов пространства, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API, `bot_scopes_updated` — Изменены скоупы токена бота, `bot_webhook_settings_updated` — Изменены настройки исходящего вебхука бота, `bot_token_recreated` — Токен бота перевыпущен (ротация), `bot_deleted` — Бот удалён, `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота, `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным, `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван, `oauth_device_authorization_approved` — Сотрудник подтвердил вход приложения с устройства, `oauth_device_authorization_denied` — Сотрудник отклонил вход приложения с устройства, `video_call_started` — Видеозвонок начат, `video_call_finished` — Видеозвонок завершён, `video_call_recording_ready` — Запись видеозвонка готова, `exchange_disabled` — Отключена интеграция с Exchange
 - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
 - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
 - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
@@ -676,6 +721,12 @@
   - **AuditDetailsOAuthAuthorizationRevoked**: При: oauth_authorization_revoked
     - `client_id: string` (required) — Идентификатор OAuth-клиента, у которого отозван доступ
     - `revoked_tokens_count: integer, int32` (required) — Количество отозванных токенов
+  - **AuditDetailsDeviceAuthorizationApproved**: При: oauth_device_authorization_approved
+    - `client_id: string` (required) — Идентификатор OAuth-клиента, которому разрешён вход
+    - `scopes: array of string` (required) — Скоупы, на которые согласился сотрудник
+  - **AuditDetailsDeviceAuthorizationDenied**: При: oauth_device_authorization_denied
+    - `client_id: string` (required) — Идентификатор OAuth-клиента, которому отказано во входе
+    - `scopes: array of string` (required) — Скоупы, которые клиент запрашивал
   - **AuditDetailsVideoCallStarted**: При: video_call_started
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходит видеозвонок
     - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.

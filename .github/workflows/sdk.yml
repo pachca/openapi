@@ -258,6 +258,11 @@ jobs:
         working-directory: sdk/typescript
       # Authenticated via OIDC (trusted publisher configured on npmjs), not a
       # token. Provenance is attached automatically, so --provenance is dropped.
+      #
+      # `--tag latest` is explicit on purpose: @pachca/sdk carries stray 2.0.0
+      # and 3.0.0 from March 2026, and npm refuses to move `latest` implicitly
+      # to a version below the highest one ever published. Naming the tag is
+      # what npm asks for in that case, and the 1.x line stays `latest`.
       - name: Publish to npm
         working-directory: sdk/typescript
         run: |
@@ -265,7 +270,7 @@ jobs:
           if npm view "@pachca/sdk@${VERSION}" version 2>/dev/null; then
             echo "Version ${VERSION} already published, skipping"
           else
-            npm publish --access public
+            npm publish --access public --tag latest
           fi
 
   publish-cli:

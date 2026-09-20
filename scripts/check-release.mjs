@@ -7,11 +7,17 @@
  *      (the latest entry for this product) — this is the single source of
  *      the version number.
  *   2. V is NOT yet on npm (no duplicate re-publish).
- *   3. The package code actually changed in this push (HEAD~1..HEAD), so a
- *      portal edit alone doesn't trigger a release.
- *   4. If the package keeps its own changelog (CLI: changelog.json,
+ *   3. If the package keeps its own changelog (CLI: changelog.json,
  *      n8n: CHANGELOG.md), V must also appear there. SDK/generator have no
  *      own changelog — the portal entry is enough.
+ *
+ * Whether the package code changed in this very push is deliberately NOT a
+ * condition. It used to be, and it made a failed publish unrecoverable: the
+ * version stayed declared in the changelog and missing from npm, while every
+ * later push that did not touch the package skipped it, and the next one that
+ * did would carry a higher version. Rules 1, 2 and 3 already keep a stray
+ * publish from happening; dropping this one lets the next push to main finish
+ * a release that broke halfway.
  *
  * Usage:
  *   node scripts/check-release.mjs --product cli --npm @pachca/cli \
@@ -162,21 +168,7 @@ const stepOk = validIncrement(version, published);
 // if it's a stray higher version not on `latest`.
 const onNpm = allPublishedVersions().includes(version);
 
-// Rule 3: package code changed in this push (ignore script-only churn).
-let codeChanged = false;
-try {
-  const dirs = dir.split(',').map((d) => d.trim());
-  const diff = execSync(`git diff --name-only HEAD~1 HEAD -- ${dirs.join(' ')}`, {
-    encoding: 'utf-8',
-  })
-    .split('\n')
-    .filter((f) => f && !f.includes('/scripts/'));
-  codeChanged = diff.length > 0;
-} catch {
-  codeChanged = false;
-}
-
-// Rule 4: version present in the package's own changelog, when it has one.
+// Rule 3: version present in the package's own changelog, when it has one.
 let inChangelog = true;
 if (changelog) {
   const content = fs.readFileSync(changelog, 'utf-8');
@@ -188,12 +180,12 @@ if (changelog) {
   }
 }
 
-const shouldPublish = formatOk && stepOk && !onNpm && codeChanged && inChangelog;
+const shouldPublish = formatOk && stepOk && !onNpm && inChangelog;
 
 console.error(
   `[check-release] ${product}: version=${version} (rule=${versionRule}) ` +
     `formatOk=${formatOk} stepOk=${stepOk} (npm-latest=${published ?? 'none'}) ` +
-    `onNpm=${onNpm} codeChanged=${codeChanged} inChangelog=${inChangelog} → publish=${shouldPublish}`
+    `onNpm=${onNpm} inChangelog=${inChangelog} → publish=${shouldPublish}`
 );
 if (!formatOk) {
   console.error(

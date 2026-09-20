@@ -492,6 +492,17 @@ export const RESPONSE_FORMAT = {
   redirect: 'not followed: the answer is its Location, as url in the structured half',
 
   /**
+   * A body that is not JSON is the file itself. Only one method answers with
+   * one, and it exists for the attachments that have no link to follow —
+   * encrypted, or sent from the secure perimeter — so refusing to carry it
+   * would leave them unreadable by any means. Base64 mirrors the input side,
+   * where a file argument is base64 too, and the media type travels with it so
+   * a client knows what it received. Size is the caller's to watch: a large
+   * file grows by a third on the way in.
+   */
+  binary_body: 'the file itself, as content: base64 with mime_type in the structured half',
+
+  /**
    * Long content is cut rather than allowed to flood the context, and the cut
    * is announced with the way to get the rest. The budget is the worst case one
    * client allows for a single result.

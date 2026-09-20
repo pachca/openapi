@@ -142,7 +142,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "edge-others-status",
     prompt: "поставь Пете статус «в отпуске» до среды",
     accept: ["list_users", "search_users", "update_user_status"],
-    args: { must: { user_id: 3560 }, present: ["title", "expires_at"], onWeekday: { expires_at: "wednesday" } },
+    args: { must: { user_id: 48217 }, present: ["title", "expires_at"], onWeekday: { expires_at: "wednesday" } },
     note:
       "Свой статус и чужой — соседние инструменты с почти одинаковыми именами. Пара «своё и чужое» — " +
       "самая близкая из возможных. Срок назван днём недели нарочно: так его и называют. Понедельник " +
@@ -396,7 +396,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "who-is-user",
     prompt: "кто такой Петя, покажи его карточку",
     accept: ["list_users", "search_users", "get_user"],
-    args: { must: { id: 3560 } },
+    args: { must: { id: 48217 } },
   },
   {
     id: "read-one-message",
@@ -421,7 +421,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "dm-person",
     prompt: "напиши Пете Смирнову в личку, что я задержусь",
     accept: ["list_users", "search_users", "send_message"],
-    args: { must: { entity_id: 3560 }},
+    args: { must: { entity_id: 48217 }},
     note: "Человека называют по имени. Личный чат заводится по идентификатору получателя, так что сотрудника сначала находят поиском.",
   },
   {
@@ -813,31 +813,31 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "method-update-user",
     prompt: "поменяй Пете должность на «ведущий дизайнер»",
     accept: ["list_users", "search_users", "update_user"],
-    args: { must: { id: 3560 }},
+    args: { must: { id: 48217 }},
   },
   {
     id: "method-user-avatar",
     prompt: "поставь Пете фото, вот картинка в base64: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
     accept: ["list_users", "search_users", "update_user_avatar"],
-    args: { must: { user_id: 3560 }},
+    args: { must: { user_id: 48217 }},
   },
   {
     id: "method-user-clear-avatar",
     prompt: "убери фото у Пети",
     accept: ["list_users", "search_users", "delete_user_avatar"],
-    args: { must: { user_id: 3560} },
+    args: { must: { user_id: 48217} },
   },
   {
     id: "method-user-status",
     prompt: "поставь Пете статус «на созвоне» 📞 до 16:00",
     accept: ["list_users", "search_users", "update_user_status", "get_user", "get_user_status"],
-    args: { must: { user_id: 3560 }},
+    args: { must: { user_id: 48217 }},
   },
   {
     id: "method-user-clear-status",
     prompt: "сними статус у Пети",
     accept: ["list_users", "search_users", "delete_user_status"],
-    args: { must: { user_id: 3560} },
+    args: { must: { user_id: 48217} },
   },
   {
     id: "method-create-tag",
@@ -886,7 +886,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "method-delete-user",
     prompt: "удали Петю из пространства насовсем",
     accept: ["list_users", "search_users", "delete_user"],
-    args: { must: { id: 3560 } },
+    args: { must: { id: 48217 } },
     note: "Удаление навсегда против блокировки: suspended в update_user оставляет данные, delete_user — нет.",
   },
   {

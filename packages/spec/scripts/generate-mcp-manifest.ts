@@ -328,10 +328,50 @@ function mergeShapes(a: JsonSchema, b: JsonSchema): JsonSchema {
 }
 
 /** Every operation of the spec, with the access it needs. */
+/**
+ * Which tool serves which operation, so a cross-reference in the spec can be
+ * said the way a model can act on it.
+ *
+ * The spec links neighbours the way documentation does — `[Bot token
+ * rotation](POST /bots/{id}/recreate_token)`. A reader opens that page; a model
+ * has no page and no HTTP, only tools, so the path is both unusable and noise.
+ * Filled by `readOperations`, read by `specText`.
+ */
+const TOOL_BY_KEY = new Map<OperationKey, string>();
+
+/**
+ * Every name the spec itself uses: schema fields, parameters, error codes and
+ * enum values. A description may name any of them, and a model needs them —
+ * `submit_expired` is what an answer that came too late says, `export_id` is
+ * the field an export answers with. Filled by `readOperations`, read by the
+ * check that hunts for pointers at tools nobody has.
+ */
+const SPEC_VOCABULARY = new Set<string>();
+
+/** Walk a spec document and remember every name a description may legitimately use. */
+function collectVocabulary(doc: YamlNode): void {
+  const walk = (node: any, depth = 0): void => {
+    if (!node || typeof node !== 'object' || depth > 12) return;
+    if (Array.isArray(node)) {
+      for (const item of node) walk(item, depth + 1);
+      return;
+    }
+    for (const [k, v] of Object.entries<any>(node)) {
+      if (k === 'properties' && v && typeof v === 'object') for (const name of Object.keys(v)) SPEC_VOCABULARY.add(name);
+      if (k === 'x-enum-descriptions' && v && typeof v === 'object') for (const name of Object.keys(v)) SPEC_VOCABULARY.add(name);
+      if (k === 'enum' && Array.isArray(v)) for (const value of v) if (typeof value === 'string') SPEC_VOCABULARY.add(value);
+      if (k === 'name' && typeof v === 'string') SPEC_VOCABULARY.add(v);
+      walk(v, depth + 1);
+    }
+  };
+  walk(doc);
+}
+
 function readOperations(): Operation[] {
   const doc = yaml.load(fs.readFileSync(SPEC_PATH, 'utf8')) as YamlNode;
   const docEn = yaml.load(fs.readFileSync(SPEC_EN_PATH, 'utf8')) as YamlNode;
   const roleTable = docEn.components?.schemas?.OAuthScope?.['x-scope-roles'] ?? {};
+  collectVocabulary(docEn);
   const out: Operation[] = [];
   for (const [p, item] of Object.entries<any>(doc.paths ?? {})) {
     for (const method of HTTP_METHODS) {
@@ -355,6 +395,7 @@ function readOperations(): Operation[] {
         node,
         nodeEn: docEn.paths?.[p]?.[method],
       });
+      TOOL_BY_KEY.set(k, out[out.length - 1].name);
     }
   }
   return out;
@@ -566,6 +607,21 @@ function outputSchema(op: Operation, docEn: YamlNode): JsonSchema | null {
     }
     return { ...schema, type: 'object' };
   }
+  // A body that is not JSON is the file itself (`RESPONSE_FORMAT.binary_body`).
+  // The input side already turns a file into base64, so the answer mirrors it,
+  // and the media type travels along so the client knows what it got.
+  for (const [code, response] of Object.entries<any>(op.nodeEn?.responses ?? {})) {
+    if (!/^2/.test(code)) continue;
+    const other = Object.keys(response?.content ?? {}).find((type) => type !== 'application/json');
+    if (!other) continue;
+    return {
+      type: 'object',
+      properties: {
+        content: { type: 'string', description: 'The file itself, base64-encoded.' },
+        mime_type: { type: 'string', description: `The media type of the file, ${other} when the API does not name a narrower one.` },
+      },
+    };
+  }
   // A redirect is not followed (`RESPONSE_FORMAT.redirect`): the archive of an
   // export is a link for the person, and the answer is where it points.
   for (const [code, response] of Object.entries<any>(op.nodeEn?.responses ?? {})) {
@@ -705,6 +761,17 @@ const HTTP_ONLY_SENTENCES = [
  */
 const HTTP_REWRITES: Array<[RegExp, string]> = [
   [/The server will respond with `302 Found` and a `Location` header containing ([^.]*)\./g, 'The answer is $1.'],
+  [/In response to the request the server returns `302 Found` with a `Location` header containing ([^.]*)\./g, 'The answer is $1, valid for five minutes.'],
+  // Where a field sits in the HTTP body is the client's business; the tool takes
+  // an argument, and the fact worth keeping is that the preview needs asking for.
+  [/ at the root of the request body\./g, '.'],
+  // Which field of a webhook payload carries the number is for whoever receives
+  // the webhook. A model receives none — what it needs is that the number comes
+  // later and not from this answer.
+  [
+    /The number of the finished export arrives in the `export_id` field of the webhook sent to the address from\s+`webhook_url`\./g,
+    'The number of the finished export arrives in the webhook sent to `webhook_url`.',
+  ],
 ];
 
 // A webhook has a `URL` of its own, so only the plumbing phrasings count.
@@ -718,10 +785,27 @@ const HTTP_LEFTOVER = /request `URL`|in the `URL`|request body|`302 Found`|`Loca
  * Collapsing the whitespace glued the two into «List chats Retrieve a list», so
  * the title is separated as a sentence of its own before anything else.
  */
+/**
+ * A documentation cross-reference, said as a tool.
+ *
+ * `[Bot token rotation](POST /bots/{id}/recreate_token)` is how the spec points
+ * at a neighbour, and it is right for a reader with a browser. A model has
+ * neither the page nor the HTTP call — it has tools — so the link becomes the
+ * tool that serves that operation. An operation no tool serves keeps its words
+ * and loses the path: the fact stays, the dead end goes.
+ */
+function linksAsTools(text: string): string {
+  return text.replace(/\[([^\]]+)\]\((GET|POST|PUT|DELETE) ([^)]+)\)/g, (_all, label: string, method: string, path: string) => {
+    const tool = TOOL_BY_KEY.get(`${method} ${path}`);
+    return tool ? `\`${tool}\`` : label;
+  });
+}
+
 function specText(op: Operation): string {
   const one = (value: unknown): string => String(value ?? '').replace(/\s+/g, ' ').trim();
   const summary = one(op.nodeEn?.summary);
-  const rewritten = HTTP_REWRITES.reduce((text, [pattern, to]) => text.replace(pattern, to), String(op.nodeEn?.description ?? ''));
+  const linked = linksAsTools(String(op.nodeEn?.description ?? ''));
+  const rewritten = HTTP_REWRITES.reduce((text, [pattern, to]) => text.replace(pattern, to), linked);
   const raw = HTTP_ONLY_SENTENCES.reduce((text, pattern) => text.replace(pattern, ''), rewritten);
   const [head, ...rest] = raw.split(/\n\s*\n/);
   const title = summary || one(head);
@@ -891,7 +975,10 @@ function build(): void {
     const otherBodies = Object.entries<any>(op.nodeEn?.responses ?? {}).filter(
       ([code, r]) => /^2/.test(code) && Object.keys(r?.content ?? {}).some((type) => type !== 'application/json'),
     );
-    for (const [code] of otherBodies) problems.push(`${tool.name} answers ${code} with a body that is not JSON, which nothing here reads`);
+    for (const [code] of otherBodies) {
+      if (tool.outputSchema?.properties?.content && tool.outputSchema?.properties?.mime_type) continue;
+      problems.push(`${tool.name} answers ${code} with a body that is not JSON and declares no content to hand it back in`);
+    }
     for (const code of ['200', '201', '202']) {
       const answer = op.nodeEn?.responses?.[code]?.content?.['application/json']?.schema;
       if (answer && tool.outputSchema) {
@@ -998,11 +1085,16 @@ function build(): void {
 
   // Prose must not point at a tool the reader does not have, and must not tell
   // the model to ask permission: approval is the client's dialogue, per tool.
+  //
+  // The pattern catches any verb_word, so it also catches the spec's own
+  // vocabulary — an error code like `submit_expired`, a field of an answer like
+  // `export_id`. Those are facts a model needs, not dangling pointers, so the
+  // check knows them and only flags what names nothing at all.
   const quoted = TOOL_NAME_IN_PROSE;
   for (const tool of tools) {
     for (const quotedName of new Set(tool.description.match(quoted) ?? [])) {
-      if (!names.has(quotedName) && !tool.inputSchema.properties?.[quotedName]) {
-        problems.push(`${tool.name} names "${quotedName}", which is neither a tool nor its argument`);
+      if (!names.has(quotedName) && !tool.inputSchema.properties?.[quotedName] && !SPEC_VOCABULARY.has(quotedName)) {
+        problems.push(`${tool.name} names "${quotedName}", which is neither a tool, an argument, nor a name the spec uses`);
       }
     }
     if (/\bconfirm\b/i.test(tool.description) && !/needs no confirmation/i.test(tool.description)) {
@@ -1124,7 +1216,10 @@ function build(): void {
       const hit = readWords.find((r) => containsRun(r.words, wordsOf(name!)));
       if (hit) problems.push(`${scenario.id} names «${name}», and so does ${hit.where} — a copied example would pass`);
     }
-    const bare = scenario.prompt.replace(/\d{4}-\d{2}-\d{2}(T[\d:.]+Z?)?|\d{1,2}:\d{2}/g, ' ');
+    // A year is not an id. «за март 2026 года» read as one and matched the 2026
+    // inside every date an example carries, so a request that names a month
+    // collided with tools it has nothing to do with.
+    const bare = scenario.prompt.replace(/\d{4}-\d{2}-\d{2}(T[\d:.]+Z?)?|\d{1,2}:\d{2}|(?<![\d-])(?:19|20)\d{2}(?![\d-])/g, ' ');
     const ids = new Set([
       ...(bare.match(/(?<![\p{L}\p{N}])\d{3,}(?![\p{L}\p{N}])/gu) ?? []),
       ...idValues([scenario.args?.must, scenario.args?.either]),

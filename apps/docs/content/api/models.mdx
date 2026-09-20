@@ -1,6 +1,6 @@
 ---
 title: Модели
-description: "Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, задачи, теги, вебхуки и другие сущности"
+description: "Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, черновики, задачи, теги, вебхуки и другие сущности"
 hideTableOfContents: true
 ---
 
@@ -8,7 +8,7 @@ hideTableOfContents: true
 
 Все модели данных, возвращаемые в ответах API. Каждая модель содержит связанные методы и таблицу свойств.
 
-<Info>Методы [Получение подписи](POST /uploads) и [Загрузка файла](POST /direct_url) не возвращают модели данных.</Info>
+<Info>Методы [Получение подписи, ключа и других параметров](POST /uploads), [Загрузка файла](POST /direct_url) и [Скачивание файла](GET /files/{id}) не возвращают модели данных: первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом.</Info>
 
 <CardGroup>
   <Card title="Дополнительное поле" href="#dopolnitelnoe-pole" methods="GET" />
@@ -22,6 +22,7 @@ hideTableOfContents: true
   <Card title="Сообщение" href="#soobschenie" methods="GET POST PUT DELETE" />
   <Card title="Реакция на сообщение" href="#reaktsiya-na-soobschenie" methods="GET POST DELETE" />
   <Card title="Напоминание" href="#napominanie" methods="GET POST PUT DELETE" />
+  <Card title="Черновик" href="#chernovik" methods="GET POST PUT DELETE" />
   <Card title="Представление" href="#predstavlenie" methods="POST" />
   <Card title="Параметры бота" href="#parametry-bota" methods="POST, GET, PUT, DELETE" />
   <Card title="Параметры бота пространства" href="#parametry-bota-prostranstva" methods="GET" />
@@ -80,7 +81,7 @@ hideTableOfContents: true
 - [Новый тег](POST /group_tags)
 - [Добавление тегов](POST /chats/{id}/group_tags)
 - [Информация о теге](GET /group_tags/{id})
-- [Список тегов сотрудников](GET /group_tags)
+- [Список тегов](GET /group_tags)
 - [Редактирование тега](PUT /group_tags/{id})
 - [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id})
 - [Удаление тега](DELETE /group_tags/{id})
@@ -101,7 +102,7 @@ hideTableOfContents: true
 - [Архивация чата](PUT /chats/{id}/archive)
 - [Разархивация чата](PUT /chats/{id}/unarchive)
 - [Редактирование роли](PUT /chats/{id}/members/{user_id})
-- [Выход из беседы или канала](DELETE /chats/{id}/leave)
+- [Выход из чата](DELETE /chats/{id}/leave)
 - [Исключение пользователя](DELETE /chats/{id}/members/{user_id})
 
 <ModelSchema name="Chat" />
@@ -147,6 +148,16 @@ hideTableOfContents: true
 - [Удаление напоминания](DELETE /tasks/{id})
 
 <ModelSchema name="Task" />
+
+## Черновик
+
+- [Новый черновик](POST /drafts)
+- [Информация о черновике](GET /drafts/{id})
+- [Список черновиков](GET /drafts)
+- [Редактирование черновика](PUT /drafts/{id})
+- [Удаление черновика](DELETE /drafts/{id})
+
+<ModelSchema name="Draft" />
 
 ## Представление
 

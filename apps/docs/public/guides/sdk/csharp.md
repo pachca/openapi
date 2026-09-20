@@ -92,7 +92,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Users.DeleteUserAvatarAsync()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.Users.DeleteUserStatusAsync()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.GroupTags.CreateTagAsync()` | [Новый тег](/api/group-tags/create) |
-| `client.GroupTags.ListTagsAsync()` | [Список тегов сотрудников](/api/group-tags/list) |
+| `client.GroupTags.ListTagsAsync()` | [Список тегов](/api/group-tags/list) |
 | `client.GroupTags.GetTagAsync()` | [Информация о теге](/api/group-tags/get) |
 | `client.GroupTags.GetTagUsersAsync()` | [Список сотрудников тега](/api/group-tags/list-users) |
 | `client.GroupTags.UpdateTagAsync()` | [Редактирование тега](/api/group-tags/update) |
@@ -101,7 +101,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Members.AddMembersAsync()` | [Добавление пользователей](/api/members/add) |
 | `client.Members.ListMembersAsync()` | [Список участников чата](/api/members/list) |
 | `client.Members.UpdateMemberRoleAsync()` | [Редактирование роли](/api/members/update) |
-| `client.Members.LeaveChatAsync()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.Members.LeaveChatAsync()` | [Выход из чата](/api/members/leave) |
 | `client.Members.RemoveTagAsync()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.Members.RemoveMemberAsync()` | [Исключение пользователя](/api/members/remove) |
 | `client.Threads.CreateStandaloneThreadAsync()` | [Новый самостоятельный тред](/api/threads/create) |
@@ -128,6 +128,11 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Tasks.GetTaskAsync()` | [Информация о напоминании](/api/tasks/get) |
 | `client.Tasks.UpdateTaskAsync()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.Tasks.DeleteTaskAsync()` | [Удаление напоминания](/api/tasks/delete) |
+| `client.Drafts.CreateDraftAsync()` | [Новый черновик](/api/drafts/create) |
+| `client.Drafts.ListDraftsAsync()` | [Список черновиков](/api/drafts/list) |
+| `client.Drafts.GetDraftAsync()` | [Информация о черновике](/api/drafts/get) |
+| `client.Drafts.UpdateDraftAsync()` | [Редактирование черновика](/api/drafts/update) |
+| `client.Drafts.DeleteDraftAsync()` | [Удаление черновика](/api/drafts/delete) |
 | `client.Views.OpenViewAsync()` | [Открытие представления](/api/views/open) |
 | `client.Views.SubmitViewResponseAsync()` | [Ответ на отправку формы](/api/views/submit-response) |
 | `client.Bots.CreateBotAsync()` | [Новый бот](/api/bots/create) |
@@ -145,6 +150,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.CustomProperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFileAsync()` | [Загрузка файла](/api/files/direct-url) |
 | `client.Files.GetUploadParamsAsync()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
+| `client.Files.DownloadFileAsync()` | [Скачивание файла](/api/files/get) |
 
 
 ## Запросы
@@ -431,7 +437,7 @@ var request = new MessageCreateRequest
     LinkPreview = false
 };
 var response = await client.Messages.CreateMessageAsync(request);
-// → Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)
+// → Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?, DurationMs: int?)>, VoiceContent: VoiceContent(DurationMs: int, Waveform: string, Transcript: string?)?, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)
 
 // Список сотрудников
 var response = await client.Users.ListUsersAsync("Олег", 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");

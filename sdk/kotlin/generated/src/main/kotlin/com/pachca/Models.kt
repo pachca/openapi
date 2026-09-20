@@ -119,6 +119,10 @@ enum class AuditEventKey(val value: String) {
     @SerialName("oauth_authorization_granted") OAUTH_AUTHORIZATION_GRANTED("oauth_authorization_granted"),
     /** Доступ OAuth-клиента к данным пользователя отозван */
     @SerialName("oauth_authorization_revoked") OAUTH_AUTHORIZATION_REVOKED("oauth_authorization_revoked"),
+    /** Сотрудник подтвердил вход приложения с устройства */
+    @SerialName("oauth_device_authorization_approved") OAUTH_DEVICE_AUTHORIZATION_APPROVED("oauth_device_authorization_approved"),
+    /** Сотрудник отклонил вход приложения с устройства */
+    @SerialName("oauth_device_authorization_denied") OAUTH_DEVICE_AUTHORIZATION_DENIED("oauth_device_authorization_denied"),
     /** Видеозвонок начат */
     @SerialName("video_call_started") VIDEO_CALL_STARTED("video_call_started"),
     /** Видеозвонок завершён */
@@ -287,6 +291,53 @@ enum class CustomPropertyDataType(val value: String) {
     @SerialName("link") LINK("link"),
 }
 
+/** Периодичность повтора отложенного сообщения */
+@Serializable
+enum class DraftRepetitionInterval(val value: String) {
+    /** Один раз */
+    @SerialName("once") ONCE("once"),
+    /** Каждый день */
+    @SerialName("daily") DAILY("daily"),
+    /** Каждую неделю */
+    @SerialName("weekly") WEEKLY("weekly"),
+    /** Каждый месяц */
+    @SerialName("monthly") MONTHLY("monthly"),
+    /** Раз в два месяца */
+    @SerialName("every_2_months") EVERY_2_MONTHS("every_2_months"),
+    /** Раз в три месяца */
+    @SerialName("every_3_months") EVERY_3_MONTHS("every_3_months"),
+    /** Раз в четыре месяца */
+    @SerialName("every_4_months") EVERY_4_MONTHS("every_4_months"),
+    /** Раз в полгода */
+    @SerialName("every_6_months") EVERY_6_MONTHS("every_6_months"),
+    /** Раз в год */
+    @SerialName("yearly") YEARLY("yearly"),
+}
+
+/** Что возвращать в списке черновиков */
+@Serializable
+enum class DraftType(val value: String) {
+    /** Обычные черновики */
+    @SerialName("regular") REGULAR("regular"),
+    /** Отложенные сообщения */
+    @SerialName("scheduled") SCHEDULED("scheduled"),
+    /** И черновики, и отложенные сообщения */
+    @SerialName("all") ALL("all"),
+}
+
+/** Что отдать вместо исходного файла */
+@Serializable
+enum class FileTarget(val value: String) {
+    /** Документ, переведённый в PDF */
+    @SerialName("pdf_preview") PDF_PREVIEW("pdf_preview"),
+    /** Первая страница документа картинкой */
+    @SerialName("pdf_first_page") PDF_FIRST_PAGE("pdf_first_page"),
+    /** Уменьшенная копия изображения */
+    @SerialName("thumb") THUMB("thumb"),
+    /** Изображение как есть */
+    @SerialName("image") IMAGE("image"),
+}
+
 /** Тип файла */
 @Serializable
 enum class FileType(val value: String) {
@@ -298,6 +349,8 @@ enum class FileType(val value: String) {
     @SerialName("audio") AUDIO("audio"),
     /** Голосовое сообщение */
     @SerialName("voice") VOICE("voice"),
+    /** Видеофайл */
+    @SerialName("video") VIDEO("video"),
 }
 
 /** Статус приглашения пользователя */
@@ -457,6 +510,10 @@ enum class OAuthScope(val value: String) {
     @SerialName("search:chats") SEARCH_CHATS("search:chats"),
     /** Поиск сообщений */
     @SerialName("search:messages") SEARCH_MESSAGES("search:messages"),
+    /** Просмотр черновиков и отложенных сообщений */
+    @SerialName("drafts:read") DRAFTS_READ("drafts:read"),
+    /** Создание, изменение и удаление черновиков и отложенных сообщений */
+    @SerialName("drafts:write") DRAFTS_WRITE("drafts:write"),
 }
 
 /** Тип события webhook для реакций */
@@ -634,6 +691,20 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("owner_protected") OWNER_PROTECTED("owner_protected"),
     /** Значение уже назначено */
     @SerialName("already_assigned") ALREADY_ASSIGNED("already_assigned"),
+    /** Ближайшая отправка отложенного сообщения приходится на прошлое */
+    @SerialName("next_send_at_invalid") NEXT_SEND_AT_INVALID("next_send_at_invalid"),
+    /** Расписание отложенного сообщения не складывается в повтор */
+    @SerialName("schedule_invalid") SCHEDULE_INVALID("schedule_invalid"),
+    /** Расписание заканчивается раньше ближайшей отправки */
+    @SerialName("schedule_end_date_invalid") SCHEDULE_END_DATE_INVALID("schedule_end_date_invalid"),
+    /** Превышен лимит отложенных сообщений на чат (50) */
+    @SerialName("scheduled_messages_limit") SCHEDULED_MESSAGES_LIMIT("scheduled_messages_limit"),
+    /** Отложенное сообщение нельзя превратить обратно в черновик */
+    @SerialName("draft_type_change_forbidden") DRAFT_TYPE_CHANGE_FORBIDDEN("draft_type_change_forbidden"),
+    /** Скачивание файла запрещено: нужен запрос из безопасного контура */
+    @SerialName("confidential_download_denied") CONFIDENTIAL_DOWNLOAD_DENIED("confidential_download_denied"),
+    /** Не удалось расшифровать файл */
+    @SerialName("decryption_failed") DECRYPTION_FAILED("decryption_failed"),
     /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
     @SerialName("forbidden") FORBIDDEN("forbidden"),
     /** Доступ запрещён (недостаточно прав) */
@@ -720,6 +791,8 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
         setOf("client_id", "changes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClient.serializer(), element) },
         setOf("client_id", "scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsOAuthAuthorizationGranted.serializer(), element) },
         setOf("client_id", "revoked_tokens_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsOAuthAuthorizationRevoked.serializer(), element) },
+        setOf("client_id", "scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsDeviceAuthorizationApproved.serializer(), element) },
+        setOf("client_id", "scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsDeviceAuthorizationDenied.serializer(), element) },
         setOf("chat_id", "started_message_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallStarted.serializer(), element) },
         setOf("chat_id", "started_message_id", "duration", "max_members_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallFinished.serializer(), element) },
         setOf("chat_id", "started_message_id", "recording_id", "file_id", "duration", "size") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallRecording.serializer(), element) },
@@ -748,6 +821,8 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
             is AuditDetailsBotOAuthClient -> jsonEncoder.encodeSerializableValue(AuditDetailsBotOAuthClient.serializer(), value)
             is AuditDetailsOAuthAuthorizationGranted -> jsonEncoder.encodeSerializableValue(AuditDetailsOAuthAuthorizationGranted.serializer(), value)
             is AuditDetailsOAuthAuthorizationRevoked -> jsonEncoder.encodeSerializableValue(AuditDetailsOAuthAuthorizationRevoked.serializer(), value)
+            is AuditDetailsDeviceAuthorizationApproved -> jsonEncoder.encodeSerializableValue(AuditDetailsDeviceAuthorizationApproved.serializer(), value)
+            is AuditDetailsDeviceAuthorizationDenied -> jsonEncoder.encodeSerializableValue(AuditDetailsDeviceAuthorizationDenied.serializer(), value)
             is AuditDetailsVideoCallStarted -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallStarted.serializer(), value)
             is AuditDetailsVideoCallFinished -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallFinished.serializer(), value)
             is AuditDetailsVideoCallRecording -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallRecording.serializer(), value)
@@ -900,6 +975,18 @@ data class AuditDetailsOAuthAuthorizationGranted(
 data class AuditDetailsOAuthAuthorizationRevoked(
     @SerialName("client_id") val clientId: String,
     @SerialName("revoked_tokens_count") val revokedTokensCount: Int,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsDeviceAuthorizationApproved(
+    @SerialName("client_id") val clientId: String,
+    val scopes: List<String>,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsDeviceAuthorizationDenied(
+    @SerialName("client_id") val clientId: String,
+    val scopes: List<String>,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1447,10 +1534,95 @@ data class CustomPropertyDefinition(
 )
 
 @Serializable
+data class Draft(
+    val id: Int,
+    @SerialName("entity_type") val entityType: MessageEntityType? = null,
+    @SerialName("entity_id") val entityId: Int? = null,
+    @SerialName("chat_id") val chatId: Int? = null,
+    val content: String,
+    @SerialName("parent_message_id") val parentMessageId: Int? = null,
+    val files: List<File>,
+    @SerialName("voice_content") val voiceContent: VoiceContent? = null,
+    val schedule: DraftSchedule? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("next_send_at") val nextSendAt: OffsetDateTime? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("updated_at") val updatedAt: OffsetDateTime,
+)
+
+@Serializable
+data class DraftCreateRequestDraft(
+    @SerialName("entity_type") val entityType: MessageEntityType,
+    @SerialName("entity_id") val entityId: Int,
+    val content: String? = null,
+    @SerialName("parent_message_id") val parentMessageId: Int? = null,
+    val files: List<DraftFileRequest>? = null,
+    val schedule: DraftScheduleRequest? = null,
+)
+
+@Serializable
+data class DraftCreateRequest(
+    val draft: DraftCreateRequestDraft,
+)
+
+@Serializable
+data class DraftFileRequest(
+    val id: Int? = null,
+    val key: String,
+    val name: String,
+    @SerialName("file_type") val fileType: FileType? = null,
+    val size: Long? = null,
+    val width: Int? = null,
+    val height: Int? = null,
+    @SerialName("duration_ms") val durationMs: Int? = null,
+    val waveform: String? = null,
+)
+
+@Serializable
+data class DraftRepetition(
+    val interval: DraftRepetitionInterval,
+    val days: List<Int>? = null,
+    @SerialName("nth_day") val nthDay: Int? = null,
+)
+
+@Serializable
+data class DraftRepetitionRequest(
+    val interval: DraftRepetitionInterval,
+    val days: List<Int>? = null,
+    @SerialName("nth_day") val nthDay: Int? = null,
+)
+
+@Serializable
+data class DraftSchedule(
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("start_date") val startDate: OffsetDateTime,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("end_date") val endDate: OffsetDateTime? = null,
+    val repetition: DraftRepetition,
+)
+
+@Serializable
+data class DraftScheduleRequest(
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("start_date") val startDate: OffsetDateTime,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("end_date") val endDate: OffsetDateTime? = null,
+    val repetition: DraftRepetitionRequest,
+)
+
+@Serializable
+data class DraftUpdateRequestDraft(
+    val content: String? = null,
+    @SerialName("parent_message_id") val parentMessageId: Int? = null,
+    val files: List<DraftFileRequest>? = null,
+    val schedule: DraftScheduleRequest? = null,
+)
+
+@Serializable
+data class DraftUpdateRequest(
+    val draft: DraftUpdateRequestDraft,
+)
+
+@Serializable
 data class ExportRequest(
     @SerialName("start_at") val startAt: String,
     @SerialName("end_at") val endAt: String,
-    @SerialName("webhook_url") val webhookUrl: String,
+    @SerialName("webhook_url") val webhookUrl: String? = null,
     @SerialName("chat_ids") val chatIds: List<Int>? = null,
     @SerialName("skip_chats_file") val skipChatsFile: Boolean? = false,
 )
@@ -1464,6 +1636,7 @@ data class File(
     val url: String,
     val width: Int? = null,
     val height: Int? = null,
+    @SerialName("duration_ms") val durationMs: Int? = null,
 )
 
 @Serializable
@@ -1942,8 +2115,8 @@ data class WebhookLink(
 
 @Serializable
 data class WebhookMessageThread(
-    @SerialName("message_id") val messageId: Int,
-    @SerialName("message_chat_id") val messageChatId: Int,
+    @SerialName("message_id") val messageId: Int? = null,
+    @SerialName("message_chat_id") val messageChatId: Int? = null,
 )
 
 @Serializable
@@ -1957,8 +2130,8 @@ data class WebhookVideoCallMember(
 data class WebhookVideoCallThread(
     val id: Int,
     @SerialName("chat_id") val chatId: Int,
-    @SerialName("message_id") val messageId: Int,
-    @SerialName("message_chat_id") val messageChatId: Int,
+    @SerialName("message_id") val messageId: Int? = null,
+    @SerialName("message_chat_id") val messageChatId: Int? = null,
 )
 
 @Serializable
@@ -2010,6 +2183,12 @@ data class ListCompanyChatsResponse(
 @Serializable
 data class ListPropertiesResponse(
     val data: List<CustomPropertyDefinition>,
+)
+
+@Serializable
+data class ListDraftsResponse(
+    val data: List<Draft>,
+    val meta: PaginationMeta,
 )
 
 @Serializable
@@ -2086,6 +2265,9 @@ data class BotCreateResponseDataWrapper(val data: BotCreateResponse)
 
 @Serializable
 data class ChatDataWrapper(val data: Chat)
+
+@Serializable
+data class DraftDataWrapper(val data: Draft)
 
 @Serializable
 data class GroupTagDataWrapper(val data: GroupTag)

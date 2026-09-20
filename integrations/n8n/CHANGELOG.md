@@ -2,6 +2,23 @@
 
 # Changelog
 
+## 2.1.3 (2026-09-16)
+
+### Features
+
+- Draft: new resource with `Create`, `Get`, `Get Many`, `Update` and `Delete` operations for drafts and scheduled messages. A scheduled message is created with the `Schedule` field; bot tokens cannot use the resource
+- Message: attachments gained the `Video` type and the `Duration Ms` field — the length of a voice, audio or video file
+- File: new `Get` operation — downloading an attachment that has no direct link, an encrypted or a confidential one
+
+### Improvements
+
+- Retrying after a `429` now waits at least as long as `Retry-After` says. A pause longer than a minute is not retried at all: the node returns an error instead of holding the execution for hours
+- Message: the `Entity ID` hint explains what the value is, depending on `Entity Type`, and `Parent Message ID` says the reply lands in the chat feed rather than in a thread
+- Reaction: the `Code` field states that the emoji character itself is required — `+1` and `:+1:` are rejected
+- Profile and User: the status expiry field states that an offset such as `+03:00` is taken into account and a time without an offset is read as UTC
+- Trigger: in the thread object the `Message ID` and `Message Chat ID` fields are declared optional — a thread without a parent message returns them empty
+- Chat: the `Request Export` operation no longer requires the `Webhook URL` field
+
 ## 2.1.2 (2026-09-09)
 
 ### Improvements

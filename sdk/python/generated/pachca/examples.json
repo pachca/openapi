@@ -186,6 +186,13 @@
       "SearchEntityType"
     ]
   },
+  "FileOperations_downloadFile": {
+    "usage": "params = DownloadFileParams(target=FileTarget.THUMB)\nawait client.files.download_file(id=3560, params=params)",
+    "imports": [
+      "DownloadFileParams",
+      "FileTarget"
+    ]
+  },
   "DirectUploadOperations_uploadFile": {
     "usage": "request = FileUploadRequest(\n    content_disposition=\"example\",\n    acl=\"example\",\n    policy=\"example\",\n    x_amz_credential=\"example\",\n    x_amz_algorithm=\"example\",\n    x_amz_date=\"example\",\n    x_amz_signature=\"example\",\n    key=\"example\",\n    file=b\"\"\n)\nawait client.files.upload_file(direct_url=\"https://example.com\", request=request)",
     "imports": [
@@ -195,6 +202,49 @@
   "UploadOperations_getUploadParams": {
     "usage": "response = await client.files.get_upload_params()",
     "output": "UploadParams(content_disposition: str, acl: str, policy: str, x_amz_credential: str, x_amz_algorithm: str, x_amz_date: str, x_amz_signature: str, key: str, direct_url: str)"
+  },
+  "DraftOperations_listDrafts": {
+    "usage": "params = ListDraftsParams(\n    type=DraftType.ALL,\n    entity_type=MessageEntityType.DISCUSSION,\n    entity_id=334,\n    limit=25,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.drafts.list_drafts(params=params)",
+    "output": "ListDraftsResponse(data: list[Draft], meta: PaginationMeta)",
+    "imports": [
+      "DraftType",
+      "ListDraftsParams",
+      "MessageEntityType"
+    ]
+  },
+  "DraftOperations_getDraft": {
+    "usage": "response = await client.drafts.get_draft(id=4821)",
+    "output": "Draft(id: int, entity_type: MessageEntityType | None, entity_id: int | None, chat_id: int | None, content: str, parent_message_id: int | None, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, schedule: DraftSchedule(start_date: datetime, end_date: datetime | None, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: list[int] | None, nth_day: int | None)) | None, next_send_at: datetime | None, created_at: datetime, updated_at: datetime)"
+  },
+  "DraftOperations_createDraft": {
+    "usage": "request = DraftCreateRequest(\n    draft=DraftCreateRequestDraft(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=334,\n        content=\"Отчёт за неделю: продажи выросли на 10%\",\n        parent_message_id=196093,\n        files=[DraftFileRequest(\n            id=3560,\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        schedule=DraftScheduleRequest(\n            start_date=datetime.fromisoformat(\"2026-09-17T12:00:00.000Z\"),\n            end_date=datetime.fromisoformat(\"2026-12-31T12:00:00.000Z\"),\n            repetition=DraftRepetitionRequest(\n                interval=DraftRepetitionInterval.WEEKLY,\n                days=[123],\n                nth_day=2\n            )\n        )\n    )\n)\nresponse = await client.drafts.create_draft(request=request)",
+    "output": "Draft(id: int, entity_type: MessageEntityType | None, entity_id: int | None, chat_id: int | None, content: str, parent_message_id: int | None, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, schedule: DraftSchedule(start_date: datetime, end_date: datetime | None, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: list[int] | None, nth_day: int | None)) | None, next_send_at: datetime | None, created_at: datetime, updated_at: datetime)",
+    "imports": [
+      "DraftCreateRequest",
+      "DraftCreateRequestDraft",
+      "DraftFileRequest",
+      "DraftRepetitionInterval",
+      "DraftRepetitionRequest",
+      "DraftScheduleRequest",
+      "FileType",
+      "MessageEntityType"
+    ]
+  },
+  "DraftOperations_updateDraft": {
+    "usage": "request = DraftUpdateRequest(\n    draft=DraftUpdateRequestDraft(\n        content=\"Отчёт за неделю: продажи выросли на 10%\",\n        parent_message_id=196093,\n        files=[DraftFileRequest(\n            id=3560,\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        schedule=DraftScheduleRequest(\n            start_date=datetime.fromisoformat(\"2026-09-17T12:00:00.000Z\"),\n            end_date=datetime.fromisoformat(\"2026-12-31T12:00:00.000Z\"),\n            repetition=DraftRepetitionRequest(\n                interval=DraftRepetitionInterval.WEEKLY,\n                days=[123],\n                nth_day=2\n            )\n        )\n    )\n)\nresponse = await client.drafts.update_draft(id=4821, request=request)",
+    "output": "Draft(id: int, entity_type: MessageEntityType | None, entity_id: int | None, chat_id: int | None, content: str, parent_message_id: int | None, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, schedule: DraftSchedule(start_date: datetime, end_date: datetime | None, repetition: DraftRepetition(interval: DraftRepetitionInterval, days: list[int] | None, nth_day: int | None)) | None, next_send_at: datetime | None, created_at: datetime, updated_at: datetime)",
+    "imports": [
+      "DraftFileRequest",
+      "DraftRepetitionInterval",
+      "DraftRepetitionRequest",
+      "DraftScheduleRequest",
+      "DraftUpdateRequest",
+      "DraftUpdateRequestDraft",
+      "FileType"
+    ]
+  },
+  "DraftOperations_deleteDraft": {
+    "usage": "await client.drafts.delete_draft(id=4821)"
   },
   "GroupTagOperations_listTags": {
     "usage": "params = ListTagsParams(\n    names=[\"example\"],\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.group_tags.list_tags(params=params)",
@@ -244,11 +294,11 @@
   },
   "MessageOperations_getMessage": {
     "usage": "response = await client.messages.get_message(id=194275)",
-    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)"
+    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)"
   },
   "MessageOperations_createMessage": {
     "usage": "request = MessageCreateRequest(\n    message=MessageCreateRequestMessage(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=334,\n        content=\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files=[MessageCreateRequestFile(\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        buttons=[[Button(\n            text=\"Подробнее\",\n            url=\"https://example.com/details\",\n            data=\"awesome\"\n        )]],\n        parent_message_id=194270,\n        display_avatar_url=\"https://example.com/avatar.png\",\n        display_name=\"Бот Поддержки\",\n        skip_invite_mentions=False\n    ),\n    link_preview=False\n)\nresponse = await client.messages.create_message(request=request)",
-    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)",
+    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)",
     "imports": [
       "Button",
       "FileType",
@@ -271,7 +321,7 @@
   },
   "MessageOperations_updateMessage": {
     "usage": "request = MessageUpdateRequest(\n    message=MessageUpdateRequestMessage(\n        content=\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files=[MessageUpdateRequestFile(\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600,\n            duration_ms=5400,\n            waveform=\"4,8,12,20,16,10,6,3\"\n        )],\n        buttons=[[Button(\n            text=\"Подробнее\",\n            url=\"https://example.com/details\",\n            data=\"awesome\"\n        )]],\n        display_avatar_url=\"https://example.com/avatar.png\",\n        display_name=\"Бот Поддержки\"\n    )\n)\nresponse = await client.messages.update_message(id=194275, request=request)",
-    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)",
+    "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None, duration_ms: int | None)], voice_content: VoiceContent(duration_ms: int, waveform: str, transcript: str | None) | None, buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)",
     "imports": [
       "Button",
       "FileType",

@@ -56,19 +56,25 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca config set` | Установка значения конфигурации |
 | `pachca custom-properties list` | `GET` Список дополнительных полей |
 | `pachca doctor` | Диагностика окружения: Node.js, сеть, токен, конфигурация |
+| `pachca drafts create` | `POST` Новый черновик |
+| `pachca drafts delete` | `DELETE` Удаление черновика |
+| `pachca drafts get` | `GET` Информация о черновике |
+| `pachca drafts list` | `GET` Список черновиков |
+| `pachca drafts update` | `PUT` Редактирование черновика |
 | `pachca files direct-url` | `POST` Загрузка файла |
+| `pachca files get` | `GET` Скачивание файла |
 | `pachca files uploads` | `POST` Получение подписи, ключа и других параметров |
 | `pachca group-tags create` | `POST` Новый тег |
 | `pachca group-tags delete` | `DELETE` Удаление тега |
 | `pachca group-tags get` | `GET` Информация о теге |
-| `pachca group-tags list` | `GET` Список тегов сотрудников |
+| `pachca group-tags list` | `GET` Список тегов |
 | `pachca group-tags list-users` | `GET` Список сотрудников тега |
 | `pachca group-tags update` | `PUT` Редактирование тега |
 | `pachca guide` | Поиск сценариев использования |
 | `pachca introspect` | Метаданные команды в машиночитаемом формате |
 | `pachca members add` | `POST` Добавление пользователей |
 | `pachca members add-group-tags` | `POST` Добавление тегов |
-| `pachca members leave` | `DELETE` Выход из беседы или канала |
+| `pachca members leave` | `DELETE` Выход из чата |
 | `pachca members list` | `GET` Список участников чата |
 | `pachca members remove` | `DELETE` Исключение пользователя |
 | `pachca members remove-group-tag` | `DELETE` Исключение тега |

@@ -102,6 +102,10 @@ public enum AuditEventKey
     OauthAuthorizationGranted,
     /// <summary>Доступ OAuth-клиента к данным пользователя отозван</summary>
     OauthAuthorizationRevoked,
+    /// <summary>Сотрудник подтвердил вход приложения с устройства</summary>
+    OauthDeviceAuthorizationApproved,
+    /// <summary>Сотрудник отклонил вход приложения с устройства</summary>
+    OauthDeviceAuthorizationDenied,
     /// <summary>Видеозвонок начат</summary>
     VideoCallStarted,
     /// <summary>Видеозвонок завершён</summary>
@@ -164,6 +168,8 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             "bot_oauth_client_updated" => AuditEventKey.BotOauthClientUpdated,
             "oauth_authorization_granted" => AuditEventKey.OauthAuthorizationGranted,
             "oauth_authorization_revoked" => AuditEventKey.OauthAuthorizationRevoked,
+            "oauth_device_authorization_approved" => AuditEventKey.OauthDeviceAuthorizationApproved,
+            "oauth_device_authorization_denied" => AuditEventKey.OauthDeviceAuthorizationDenied,
             "video_call_started" => AuditEventKey.VideoCallStarted,
             "video_call_finished" => AuditEventKey.VideoCallFinished,
             "video_call_recording_ready" => AuditEventKey.VideoCallRecordingReady,
@@ -221,6 +227,8 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             AuditEventKey.BotOauthClientUpdated => "bot_oauth_client_updated",
             AuditEventKey.OauthAuthorizationGranted => "oauth_authorization_granted",
             AuditEventKey.OauthAuthorizationRevoked => "oauth_authorization_revoked",
+            AuditEventKey.OauthDeviceAuthorizationApproved => "oauth_device_authorization_approved",
+            AuditEventKey.OauthDeviceAuthorizationDenied => "oauth_device_authorization_denied",
             AuditEventKey.VideoCallStarted => "video_call_started",
             AuditEventKey.VideoCallFinished => "video_call_finished",
             AuditEventKey.VideoCallRecordingReady => "video_call_recording_ready",
@@ -751,6 +759,151 @@ internal class CustomPropertyDataTypeConverter : JsonConverter<CustomPropertyDat
     }
 }
 
+/// <summary>Периодичность повтора отложенного сообщения</summary>
+[JsonConverter(typeof(DraftRepetitionIntervalConverter))]
+public enum DraftRepetitionInterval
+{
+    /// <summary>Один раз</summary>
+    Once,
+    /// <summary>Каждый день</summary>
+    Daily,
+    /// <summary>Каждую неделю</summary>
+    Weekly,
+    /// <summary>Каждый месяц</summary>
+    Monthly,
+    /// <summary>Раз в два месяца</summary>
+    Every2Months,
+    /// <summary>Раз в три месяца</summary>
+    Every3Months,
+    /// <summary>Раз в четыре месяца</summary>
+    Every4Months,
+    /// <summary>Раз в полгода</summary>
+    Every6Months,
+    /// <summary>Раз в год</summary>
+    Yearly,
+}
+
+internal class DraftRepetitionIntervalConverter : JsonConverter<DraftRepetitionInterval>
+{
+    public override DraftRepetitionInterval Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "once" => DraftRepetitionInterval.Once,
+            "daily" => DraftRepetitionInterval.Daily,
+            "weekly" => DraftRepetitionInterval.Weekly,
+            "monthly" => DraftRepetitionInterval.Monthly,
+            "every_2_months" => DraftRepetitionInterval.Every2Months,
+            "every_3_months" => DraftRepetitionInterval.Every3Months,
+            "every_4_months" => DraftRepetitionInterval.Every4Months,
+            "every_6_months" => DraftRepetitionInterval.Every6Months,
+            "yearly" => DraftRepetitionInterval.Yearly,
+            _ => throw new JsonException($"Unknown DraftRepetitionInterval value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, DraftRepetitionInterval value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            DraftRepetitionInterval.Once => "once",
+            DraftRepetitionInterval.Daily => "daily",
+            DraftRepetitionInterval.Weekly => "weekly",
+            DraftRepetitionInterval.Monthly => "monthly",
+            DraftRepetitionInterval.Every2Months => "every_2_months",
+            DraftRepetitionInterval.Every3Months => "every_3_months",
+            DraftRepetitionInterval.Every4Months => "every_4_months",
+            DraftRepetitionInterval.Every6Months => "every_6_months",
+            DraftRepetitionInterval.Yearly => "yearly",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
+/// <summary>Что возвращать в списке черновиков</summary>
+[JsonConverter(typeof(DraftTypeConverter))]
+public enum DraftType
+{
+    /// <summary>Обычные черновики</summary>
+    Regular,
+    /// <summary>Отложенные сообщения</summary>
+    Scheduled,
+    /// <summary>И черновики, и отложенные сообщения</summary>
+    All,
+}
+
+internal class DraftTypeConverter : JsonConverter<DraftType>
+{
+    public override DraftType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "regular" => DraftType.Regular,
+            "scheduled" => DraftType.Scheduled,
+            "all" => DraftType.All,
+            _ => throw new JsonException($"Unknown DraftType value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, DraftType value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            DraftType.Regular => "regular",
+            DraftType.Scheduled => "scheduled",
+            DraftType.All => "all",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
+/// <summary>Что отдать вместо исходного файла</summary>
+[JsonConverter(typeof(FileTargetConverter))]
+public enum FileTarget
+{
+    /// <summary>Документ, переведённый в PDF</summary>
+    PdfPreview,
+    /// <summary>Первая страница документа картинкой</summary>
+    PdfFirstPage,
+    /// <summary>Уменьшенная копия изображения</summary>
+    Thumb,
+    /// <summary>Изображение как есть</summary>
+    Image,
+}
+
+internal class FileTargetConverter : JsonConverter<FileTarget>
+{
+    public override FileTarget Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "pdf_preview" => FileTarget.PdfPreview,
+            "pdf_first_page" => FileTarget.PdfFirstPage,
+            "thumb" => FileTarget.Thumb,
+            "image" => FileTarget.Image,
+            _ => throw new JsonException($"Unknown FileTarget value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, FileTarget value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            FileTarget.PdfPreview => "pdf_preview",
+            FileTarget.PdfFirstPage => "pdf_first_page",
+            FileTarget.Thumb => "thumb",
+            FileTarget.Image => "image",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Тип файла</summary>
 [JsonConverter(typeof(FileTypeConverter))]
 public enum FileType
@@ -763,6 +916,8 @@ public enum FileType
     Audio,
     /// <summary>Голосовое сообщение</summary>
     Voice,
+    /// <summary>Видеофайл</summary>
+    Video,
 }
 
 internal class FileTypeConverter : JsonConverter<FileType>
@@ -776,6 +931,7 @@ internal class FileTypeConverter : JsonConverter<FileType>
             "image" => FileType.Image,
             "audio" => FileType.Audio,
             "voice" => FileType.Voice,
+            "video" => FileType.Video,
             _ => throw new JsonException($"Unknown FileType value: {value}"),
         };
     }
@@ -788,6 +944,7 @@ internal class FileTypeConverter : JsonConverter<FileType>
             FileType.Image => "image",
             FileType.Audio => "audio",
             FileType.Voice => "voice",
+            FileType.Video => "video",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -1082,6 +1239,10 @@ public enum OAuthScope
     SearchChats,
     /// <summary>Поиск сообщений</summary>
     SearchMessages,
+    /// <summary>Просмотр черновиков и отложенных сообщений</summary>
+    DraftsRead,
+    /// <summary>Создание, изменение и удаление черновиков и отложенных сообщений</summary>
+    DraftsWrite,
 }
 
 internal class OAuthScopeConverter : JsonConverter<OAuthScope>
@@ -1146,6 +1307,8 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             "search:users" => OAuthScope.SearchUsers,
             "search:chats" => OAuthScope.SearchChats,
             "search:messages" => OAuthScope.SearchMessages,
+            "drafts:read" => OAuthScope.DraftsRead,
+            "drafts:write" => OAuthScope.DraftsWrite,
             _ => throw new JsonException($"Unknown OAuthScope value: {value}"),
         };
     }
@@ -1209,6 +1372,8 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             OAuthScope.SearchUsers => "search:users",
             OAuthScope.SearchChats => "search:chats",
             OAuthScope.SearchMessages => "search:messages",
+            OAuthScope.DraftsRead => "drafts:read",
+            OAuthScope.DraftsWrite => "drafts:write",
             _ => value.ToString(),
         };
         writer.WriteStringValue(str);
@@ -1677,6 +1842,20 @@ public enum ValidationErrorCode
     OwnerProtected,
     /// <summary>Значение уже назначено</summary>
     AlreadyAssigned,
+    /// <summary>Ближайшая отправка отложенного сообщения приходится на прошлое</summary>
+    NextSendAtInvalid,
+    /// <summary>Расписание отложенного сообщения не складывается в повтор</summary>
+    ScheduleInvalid,
+    /// <summary>Расписание заканчивается раньше ближайшей отправки</summary>
+    ScheduleEndDateInvalid,
+    /// <summary>Превышен лимит отложенных сообщений на чат (50)</summary>
+    ScheduledMessagesLimit,
+    /// <summary>Отложенное сообщение нельзя превратить обратно в черновик</summary>
+    DraftTypeChangeForbidden,
+    /// <summary>Скачивание файла запрещено: нужен запрос из безопасного контура</summary>
+    ConfidentialDownloadDenied,
+    /// <summary>Не удалось расшифровать файл</summary>
+    DecryptionFailed,
     /// <summary>Недостаточно прав для выполнения действия (пояснения вы получите в поле message)</summary>
     Forbidden,
     /// <summary>Доступ запрещён (недостаточно прав)</summary>
@@ -1746,6 +1925,13 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             "self_update" => ValidationErrorCode.SelfUpdate,
             "owner_protected" => ValidationErrorCode.OwnerProtected,
             "already_assigned" => ValidationErrorCode.AlreadyAssigned,
+            "next_send_at_invalid" => ValidationErrorCode.NextSendAtInvalid,
+            "schedule_invalid" => ValidationErrorCode.ScheduleInvalid,
+            "schedule_end_date_invalid" => ValidationErrorCode.ScheduleEndDateInvalid,
+            "scheduled_messages_limit" => ValidationErrorCode.ScheduledMessagesLimit,
+            "draft_type_change_forbidden" => ValidationErrorCode.DraftTypeChangeForbidden,
+            "confidential_download_denied" => ValidationErrorCode.ConfidentialDownloadDenied,
+            "decryption_failed" => ValidationErrorCode.DecryptionFailed,
             "forbidden" => ValidationErrorCode.Forbidden,
             "permission_denied" => ValidationErrorCode.PermissionDenied,
             "access_denied" => ValidationErrorCode.AccessDenied,
@@ -1798,6 +1984,13 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             ValidationErrorCode.SelfUpdate => "self_update",
             ValidationErrorCode.OwnerProtected => "owner_protected",
             ValidationErrorCode.AlreadyAssigned => "already_assigned",
+            ValidationErrorCode.NextSendAtInvalid => "next_send_at_invalid",
+            ValidationErrorCode.ScheduleInvalid => "schedule_invalid",
+            ValidationErrorCode.ScheduleEndDateInvalid => "schedule_end_date_invalid",
+            ValidationErrorCode.ScheduledMessagesLimit => "scheduled_messages_limit",
+            ValidationErrorCode.DraftTypeChangeForbidden => "draft_type_change_forbidden",
+            ValidationErrorCode.ConfidentialDownloadDenied => "confidential_download_denied",
+            ValidationErrorCode.DecryptionFailed => "decryption_failed",
             ValidationErrorCode.Forbidden => "forbidden",
             ValidationErrorCode.PermissionDenied => "permission_denied",
             ValidationErrorCode.AccessDenied => "access_denied",
@@ -1930,6 +2123,8 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         (typeof(AuditDetailsBotOAuthClient), new HashSet<string> { "client_id", "changes" }),
         (typeof(AuditDetailsOAuthAuthorizationGranted), new HashSet<string> { "client_id", "scopes" }),
         (typeof(AuditDetailsOAuthAuthorizationRevoked), new HashSet<string> { "client_id", "revoked_tokens_count" }),
+        (typeof(AuditDetailsDeviceAuthorizationApproved), new HashSet<string> { "client_id", "scopes" }),
+        (typeof(AuditDetailsDeviceAuthorizationDenied), new HashSet<string> { "client_id", "scopes" }),
         (typeof(AuditDetailsVideoCallStarted), new HashSet<string> { "chat_id", "started_message_id" }),
         (typeof(AuditDetailsVideoCallFinished), new HashSet<string> { "chat_id", "started_message_id", "duration", "max_members_count" }),
         (typeof(AuditDetailsVideoCallRecording), new HashSet<string> { "chat_id", "started_message_id", "recording_id", "file_id", "duration", "size" }),
@@ -2137,6 +2332,22 @@ public class AuditDetailsOAuthAuthorizationRevoked : AuditEventDetailsUnion
     public string ClientId { get; set; } = default!;
     [JsonPropertyName("revoked_tokens_count")]
     public int RevokedTokensCount { get; set; } = default!;
+}
+
+public class AuditDetailsDeviceAuthorizationApproved : AuditEventDetailsUnion
+{
+    [JsonPropertyName("client_id")]
+    public string ClientId { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string> Scopes { get; set; } = default!;
+}
+
+public class AuditDetailsDeviceAuthorizationDenied : AuditEventDetailsUnion
+{
+    [JsonPropertyName("client_id")]
+    public string ClientId { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string> Scopes { get; set; } = default!;
 }
 
 public class AuditDetailsVideoCallStarted : AuditEventDetailsUnion
@@ -2942,6 +3153,136 @@ public class CustomPropertyDefinition
     public CustomPropertyDataType DataType { get; set; } = default!;
 }
 
+public class Draft
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
+    [JsonPropertyName("entity_type")]
+    public MessageEntityType? EntityType { get; set; }
+    [JsonPropertyName("entity_id")]
+    public int? EntityId { get; set; }
+    [JsonPropertyName("chat_id")]
+    public int? ChatId { get; set; }
+    [JsonPropertyName("content")]
+    public string Content { get; set; } = default!;
+    [JsonPropertyName("parent_message_id")]
+    public int? ParentMessageId { get; set; }
+    [JsonPropertyName("files")]
+    public List<File> Files { get; set; } = default!;
+    [JsonPropertyName("voice_content")]
+    public VoiceContent? VoiceContent { get; set; }
+    [JsonPropertyName("schedule")]
+    public DraftSchedule? Schedule { get; set; }
+    [JsonPropertyName("next_send_at")]
+    public DateTimeOffset? NextSendAt { get; set; }
+    [JsonPropertyName("created_at")]
+    public DateTimeOffset CreatedAt { get; set; } = default!;
+    [JsonPropertyName("updated_at")]
+    public DateTimeOffset UpdatedAt { get; set; } = default!;
+}
+
+public class DraftCreateRequestDraft
+{
+    [JsonPropertyName("entity_type")]
+    public MessageEntityType EntityType { get; set; } = default!;
+    [JsonPropertyName("entity_id")]
+    public int EntityId { get; set; } = default!;
+    [JsonPropertyName("content")]
+    public string? Content { get; set; }
+    [JsonPropertyName("parent_message_id")]
+    public int? ParentMessageId { get; set; }
+    [JsonPropertyName("files")]
+    public List<DraftFileRequest>? Files { get; set; }
+    [JsonPropertyName("schedule")]
+    public DraftScheduleRequest? Schedule { get; set; }
+}
+
+public class DraftCreateRequest
+{
+    [JsonPropertyName("draft")]
+    public DraftCreateRequestDraft Draft { get; set; } = default!;
+}
+
+public class DraftFileRequest
+{
+    [JsonPropertyName("id")]
+    public int? Id { get; set; }
+    [JsonPropertyName("key")]
+    public string Key { get; set; } = default!;
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("file_type")]
+    public FileType? FileType { get; set; }
+    [JsonPropertyName("size")]
+    public long? Size { get; set; }
+    [JsonPropertyName("width")]
+    public int? Width { get; set; }
+    [JsonPropertyName("height")]
+    public int? Height { get; set; }
+    [JsonPropertyName("duration_ms")]
+    public int? DurationMs { get; set; }
+    [JsonPropertyName("waveform")]
+    public string? Waveform { get; set; }
+}
+
+public class DraftRepetition
+{
+    [JsonPropertyName("interval")]
+    public DraftRepetitionInterval Interval { get; set; } = default!;
+    [JsonPropertyName("days")]
+    public List<int>? Days { get; set; }
+    [JsonPropertyName("nth_day")]
+    public int? NthDay { get; set; }
+}
+
+public class DraftRepetitionRequest
+{
+    [JsonPropertyName("interval")]
+    public DraftRepetitionInterval Interval { get; set; } = default!;
+    [JsonPropertyName("days")]
+    public List<int>? Days { get; set; }
+    [JsonPropertyName("nth_day")]
+    public int? NthDay { get; set; }
+}
+
+public class DraftSchedule
+{
+    [JsonPropertyName("start_date")]
+    public DateTimeOffset StartDate { get; set; } = default!;
+    [JsonPropertyName("end_date")]
+    public DateTimeOffset? EndDate { get; set; }
+    [JsonPropertyName("repetition")]
+    public DraftRepetition Repetition { get; set; } = default!;
+}
+
+public class DraftScheduleRequest
+{
+    [JsonPropertyName("start_date")]
+    public DateTimeOffset StartDate { get; set; } = default!;
+    [JsonPropertyName("end_date")]
+    public DateTimeOffset? EndDate { get; set; }
+    [JsonPropertyName("repetition")]
+    public DraftRepetitionRequest Repetition { get; set; } = default!;
+}
+
+public class DraftUpdateRequestDraft
+{
+    [JsonPropertyName("content")]
+    public string? Content { get; set; }
+    [JsonPropertyName("parent_message_id")]
+    public int? ParentMessageId { get; set; }
+    [JsonPropertyName("files")]
+    public List<DraftFileRequest>? Files { get; set; }
+    [JsonPropertyName("schedule")]
+    public DraftScheduleRequest? Schedule { get; set; }
+}
+
+public class DraftUpdateRequest
+{
+    [JsonPropertyName("draft")]
+    public DraftUpdateRequestDraft Draft { get; set; } = default!;
+}
+
 public class ExportRequest
 {
     [JsonPropertyName("start_at")]
@@ -2949,7 +3290,7 @@ public class ExportRequest
     [JsonPropertyName("end_at")]
     public string EndAt { get; set; } = default!;
     [JsonPropertyName("webhook_url")]
-    public string WebhookUrl { get; set; } = default!;
+    public string? WebhookUrl { get; set; }
     [JsonPropertyName("chat_ids")]
     public List<int>? ChatIds { get; set; }
     [JsonPropertyName("skip_chats_file")]
@@ -2972,6 +3313,8 @@ public class File
     public int? Width { get; set; }
     [JsonPropertyName("height")]
     public int? Height { get; set; }
+    [JsonPropertyName("duration_ms")]
+    public int? DurationMs { get; set; }
 }
 
 public class FileUploadRequest
@@ -3701,9 +4044,9 @@ public class WebhookLink
 public class WebhookMessageThread
 {
     [JsonPropertyName("message_id")]
-    public int MessageId { get; set; } = default!;
+    public int? MessageId { get; set; }
     [JsonPropertyName("message_chat_id")]
-    public int MessageChatId { get; set; } = default!;
+    public int? MessageChatId { get; set; }
 }
 
 public class WebhookVideoCallMember
@@ -3723,9 +4066,9 @@ public class WebhookVideoCallThread
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
     [JsonPropertyName("message_id")]
-    public int MessageId { get; set; } = default!;
+    public int? MessageId { get; set; }
     [JsonPropertyName("message_chat_id")]
-    public int MessageChatId { get; set; } = default!;
+    public int? MessageChatId { get; set; }
 }
 
 public class UpdateProfileAvatarRequest
@@ -3792,6 +4135,14 @@ public class ListPropertiesResponse
 {
     [JsonPropertyName("data")]
     public List<CustomPropertyDefinition> Data { get; set; } = new();
+}
+
+public class ListDraftsResponse
+{
+    [JsonPropertyName("data")]
+    public List<Draft> Data { get; set; } = new();
+    [JsonPropertyName("meta")]
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListTagsResponse
@@ -3898,6 +4249,12 @@ public class ChatDataWrapper
 {
     [JsonPropertyName("data")]
     public Chat Data { get; set; } = default!;
+}
+
+public class DraftDataWrapper
+{
+    [JsonPropertyName("data")]
+    public Draft Data { get; set; } = default!;
 }
 
 public class GroupTagDataWrapper

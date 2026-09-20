@@ -512,7 +512,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"email\": \"olegpetrov@example.com\",\n    \"phone_number\": \"+79001234567\",\n    \"nickname\": \"olegpetrov\",\n    \"department\": \"Отдел разработки\",\n    \"title\": \"Старший разработчик\",\n    \"role\": \"user\",\n    \"list_tags\": [\n      \"Product\"\n    ],\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  }\n}",
+              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"email\": \"olegpetrov@example.com\",\n    \"phone_number\": \"+79001234567\",\n    \"nickname\": \"olegpetrov\",\n    \"department\": \"Отдел разработки\",\n    \"title\": \"Старший разработчик\",\n    \"role\": \"user\",\n    \"list_tags\": [\n      \"Product\",\n      \"Design\"\n    ],\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -728,7 +728,7 @@
           }
         },
         {
-          "name": "Список тегов сотрудников",
+          "name": "Список тегов",
           "request": {
             "method": "GET",
             "header": [],
@@ -923,7 +923,7 @@
           }
         },
         {
-          "name": "Выход из беседы или канала",
+          "name": "Выход из чата",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -1697,6 +1697,140 @@
       ]
     },
     {
+      "name": "Drafts",
+      "item": [
+        {
+          "name": "Новый черновик",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/drafts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "drafts"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"draft\": {\n    \"entity_type\": \"discussion\",\n    \"entity_id\": 334,\n    \"content\": \"Отчёт за неделю: продажи выросли на 10%\",\n    \"parent_message_id\": 196093,\n    \"files\": [\n      {\n        \"id\": 3560,\n        \"key\": \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n        \"name\": \"logo.png\",\n        \"file_type\": \"image\",\n        \"size\": 12345,\n        \"width\": 800,\n        \"height\": 600,\n        \"duration_ms\": 5400,\n        \"waveform\": \"4,8,12,20,16,10,6,3\"\n      }\n    ],\n    \"schedule\": {\n      \"start_date\": \"2026-09-17T12:00:00.000Z\",\n      \"end_date\": \"2026-12-31T12:00:00.000Z\",\n      \"repetition\": {\n        \"interval\": \"weekly\",\n        \"days\": [\n          1,\n          3\n        ],\n        \"nth_day\": 2\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Список черновиков",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/drafts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "drafts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Информация о черновике",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/drafts/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "drafts",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Редактирование черновика",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/drafts/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "drafts",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"draft\": {\n    \"content\": \"Отчёт за неделю: продажи выросли на 10%\",\n    \"parent_message_id\": 196093,\n    \"files\": [\n      {\n        \"id\": 3560,\n        \"key\": \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n        \"name\": \"logo.png\",\n        \"file_type\": \"image\",\n        \"size\": 12345,\n        \"width\": 800,\n        \"height\": 600,\n        \"duration_ms\": 5400,\n        \"waveform\": \"4,8,12,20,16,10,6,3\"\n      }\n    ],\n    \"schedule\": {\n      \"start_date\": \"2026-09-17T12:00:00.000Z\",\n      \"end_date\": \"2026-12-31T12:00:00.000Z\",\n      \"repetition\": {\n        \"interval\": \"weekly\",\n        \"days\": [\n          1,\n          3\n        ],\n        \"nth_day\": 2\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Удаление черновика",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/drafts/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "drafts",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Views",
       "item": [
         {
@@ -2106,6 +2240,29 @@
                   "language": "json"
                 }
               }
+            }
+          }
+        },
+        {
+          "name": "Скачивание файла",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/files/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "files",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
             }
           }
         },

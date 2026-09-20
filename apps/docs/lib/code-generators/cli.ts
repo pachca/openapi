@@ -5,7 +5,7 @@ import {
   generateExample,
   type ExampleOptions,
 } from '../openapi/example-generator';
-import { requiresAuth, getQueryParams, resolveParamName, shellQuote } from './utils';
+import { requiresAuth, getQueryParams, resolveParamName, shellQuote, mergeAllOf } from './utils';
 
 export function generateCLI(endpoint: Endpoint, options?: ExampleOptions): string {
   const url = generateUrlFromOperation(endpoint);
@@ -59,8 +59,14 @@ export function generateCLI(endpoint: Endpoint, options?: ExampleOptions): strin
     parts.unshift(`--${externalFlag}=$DIRECT_URL`);
   }
 
-  // Add --json for consistent JSON output
-  parts.push('--json');
+  // Ответ телом файла: команда сохраняет его на диск, JSON-вывода у неё нет
+  const binaryResponse = !!endpoint.responses?.['200']?.content?.['application/octet-stream'];
+  if (binaryResponse) {
+    parts.push('--save ./file');
+  } else {
+    // Add --json for consistent JSON output
+    parts.push('--json');
+  }
 
   // Add --token if auth required (skip for external URL endpoints)
   if (requiresAuth(endpoint) && !endpoint.externalUrl) {
@@ -156,28 +162,6 @@ interface BodyField {
   example: unknown;
   schemaType?: string | string[];
   format?: string;
-}
-
-/**
- * Flatten one level of `allOf` into the schema's own properties. The docs
- * parser keeps `allOf` unmerged, so a composed schema has no `properties` of
- * its own until this runs.
- */
-function mergeAllOf(schema: Schema): Schema {
-  if (!schema?.allOf || schema.allOf.length === 0) return schema ?? {};
-  const merged: Schema = { ...schema };
-  const properties: Record<string, Schema> = { ...(schema.properties ?? {}) };
-  const required: string[] = [...(schema.required ?? [])];
-  for (const sub of schema.allOf) {
-    const inner = mergeAllOf(sub as Schema);
-    Object.assign(properties, inner.properties ?? {});
-    required.push(...(inner.required ?? []));
-    if (!merged.type && inner.type) merged.type = inner.type;
-  }
-  merged.properties = properties;
-  merged.required = required;
-  delete merged.allOf;
-  return merged;
 }
 
 function extractUnwrappedBodyFields(

@@ -63,15 +63,23 @@ class PachcaClient private constructor(
             install(HttpRequestRetry) {
                 maxRetries = 3
                 retryIf { _, response ->
-                    response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
+                    val status = response.status.value
+                    val retryAfter = response.headers["Retry-After"]?.toLongOrNull()
+                    // Only the daily chat limit and the hour-long ban wait longer than a
+                    // minute. Retrying those is pointless — it blocks the caller for hours,
+                    // and an early retry doubles the pause. Hand the response back instead.
+                    val waitsTooLong = status == 429 && retryAfter != null && retryAfter > 60L
+                    !waitsTooLong && (status == 429 || status in setOf(500, 502, 503, 504))
                 }
                 delayMillis { retry ->
                     val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
+                    // Retry-After is a minimum, not an estimate: waiting less lands the
+                    // retry inside a window that is still closed. Jitter only upwards.
+                    val jitter = 1 + kotlin.random.Random.nextDouble() * 0.25
                     if (retryAfter != null && response?.status?.value == 429) {
-                        retryAfter * 1000L
+                        (retryAfter * 1000L * jitter).toLong()
                     } else {
                         val base = 10_000L * (1L shl retry)
-                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
                         (base * jitter).toLong()
                     }
                 }

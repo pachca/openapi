@@ -84,6 +84,9 @@ function generateCommand(endpoint: Endpoint, examples?: string[]): GeneratedComm
   // Determine if this is a redirect command
   const isRedirect = !!endpoint.responses['302'];
 
+  // Ответ — содержимое файла (application/octet-stream), а не JSON
+  const isBinaryResponse = !!endpoint.responses['200']?.content?.['application/octet-stream'];
+
   // Determine if this is a DELETE command
   const isDelete = endpoint.method === 'DELETE';
 
@@ -118,6 +121,7 @@ function generateCommand(endpoint: Endpoint, examples?: string[]): GeneratedComm
     isList,
     hasPagination,
     isRedirect,
+    isBinaryResponse,
     isDelete,
     hasBinaryField,
     requiresAuth,
@@ -294,6 +298,7 @@ interface CommandGenParams {
   isList: boolean;
   hasPagination: boolean;
   isRedirect: boolean;
+  isBinaryResponse: boolean;
   isDelete: boolean;
   hasBinaryField: boolean;
   requiresAuth: boolean;
@@ -347,6 +352,10 @@ function generateCommandCode(p: CommandGenParams): string {
   }
   if (p.isRedirect) {
     imports.push(`import { downloadFile } from '../../client.js';`);
+    imports.push(`import { formatSize } from '../../utils.js';`);
+  }
+  if (p.isBinaryResponse) {
+    imports.push(`import * as fs from 'node:fs';`);
     imports.push(`import { formatSize } from '../../utils.js';`);
   }
   // Build args
@@ -497,6 +506,14 @@ function generateCommandCode(p: CommandGenParams): string {
   if (p.isRedirect) {
     bodyFlagLines.push(`    save: Flags.string({
       description: 'Путь для сохранения файла',
+    }),`);
+  }
+
+  // Ответ телом файла: сохраняем на диск, печатать его в терминал бессмысленно
+  if (p.isBinaryResponse) {
+    bodyFlagLines.push(`    save: Flags.string({
+      description: 'Путь для сохранения файла',
+      required: true,
     }),`);
   }
 
@@ -824,6 +841,9 @@ function generateCommandCode(p: CommandGenParams): string {
     if (p.isRedirect) {
       runBodyLines.push(`      isRedirect: true,`);
     }
+    if (p.isBinaryResponse) {
+      runBodyLines.push(`      isBinary: true,`);
+    }
     runBodyLines.push(`    });`);
   }
 
@@ -838,12 +858,22 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`    }`);
   }
 
+  // Ответ телом файла — пишем на диск и выходим
+  if (p.isBinaryResponse) {
+    runBodyLines.push('');
+    runBodyLines.push(`    const fileBody = Buffer.isBuffer(data) ? data : Buffer.from(String(data ?? ''));`);
+    runBodyLines.push(`    fs.writeFileSync(flags.save, fileBody);`);
+    runBodyLines.push(`    this.success(\`Сохранено: \${flags.save} (\${formatSize(fileBody.length)})\`);`);
+  }
+
   // Unwrap response data
   runBodyLines.push('');
   // `data` is null for 204 / empty-body responses (see client.ts). Guard the
   // cast: an S3 direct upload answers 204, and reading `.data` off null threw
   // a TypeError on every successful upload.
-  if (p.isList) {
+  if (p.isBinaryResponse) {
+    // тело уже записано на диск выше — печатать нечего
+  } else if (p.isList) {
     runBodyLines.push(`    const responseBody = (data ?? {}) as Record<string, unknown>;`);
     runBodyLines.push(`    const items = responseBody.data ?? responseBody;`);
     runBodyLines.push(`    this.output(items);`);

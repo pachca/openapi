@@ -57,6 +57,8 @@ export interface RequestOptions {
   noRetry?: boolean;
   noAuth?: boolean;
   isRedirect?: boolean;
+  /** Ответ — содержимое файла, а не JSON: читаем тело байтами. Ошибки при этом остаются JSON. */
+  isBinary?: boolean;
   formData?: FormData;
 }
 
@@ -135,12 +137,12 @@ const MAX_RETRY_AFTER_MS = 60_000;
  * discarded the server's backoff. Negative and absurd values are clamped so a
  * hostile or buggy header can neither hot-loop nor park the CLI for a day.
  */
-function parseRetryAfter(header: string | null): number {
-  if (!header) return 1000;
+function parseRetryAfter(header: string | null): number | null {
+  if (!header) return null;
   const seconds = Number.parseInt(header, 10);
   const ms = Number.isNaN(seconds) ? Date.parse(header) - Date.now() : seconds * 1000;
-  if (Number.isNaN(ms)) return 1000;
-  return Math.min(Math.max(ms, 0), MAX_RETRY_AFTER_MS);
+  if (Number.isNaN(ms)) return null;
+  return Math.max(ms, 0);
 }
 
 export async function request(
@@ -223,12 +225,22 @@ export async function request(
       // Handle rate limiting (429). Safe for any method: a throttled request
       // was rejected before it was processed, so it cannot have been committed.
       if (response.status === 429 && !noRetry && attempt < MAX_RETRIES) {
-        const waitMs = parseRetryAfter(response.headers.get('retry-after'));
-        if (clientFlags?.verbose) {
-          process.stderr.write(`${ansis.dim(`⏳ Rate limited, retrying in ${waitMs}ms...`)}\n`);
+        const retryAfterMs = parseRetryAfter(response.headers.get('retry-after'));
+        // Дольше минуты ждут только суточный предел чата и часовой бан. Раньше мы
+        // зажимали ожидание минутой и повторяли — а повтор внутри паузы её удваивает,
+        // так что три попытки превращали час в восемь. Теперь такой ответ уходит
+        // вызывающему как есть: в нём Retry-After, и когда вернуться, решает он.
+        const waitsTooLong = retryAfterMs !== null && retryAfterMs > MAX_RETRY_AFTER_MS;
+        if (!waitsTooLong) {
+          // Retry-After — это минимум ожидания, а не оценка: ждать меньше нельзя.
+          const base = retryAfterMs ?? 1000;
+          const waitMs = Math.round(base * (1 + Math.random() * 0.25));
+          if (clientFlags?.verbose) {
+            process.stderr.write(`${ansis.dim(`⏳ Rate limited, retrying in ${waitMs}ms...`)}\n`);
+          }
+          await sleep(waitMs);
+          continue;
         }
-        await sleep(waitMs);
-        continue;
       }
 
       // Handle 503 with backoff. Unlike 429, a 503 from a proxy or a draining
@@ -250,6 +262,10 @@ export async function request(
 
       if (response.status === 204 || response.headers.get('content-length') === '0') {
         data = null;
+      } else if (opts.isBinary && response.ok) {
+        // Тело файла нельзя читать как текст: любой байт вне UTF-8 портится
+        // при декодировании, и сохранённый файл оказывается битым.
+        data = Buffer.from(await response.arrayBuffer());
       } else if (contentType.includes('application/json')) {
         data = await response.json();
       } else {

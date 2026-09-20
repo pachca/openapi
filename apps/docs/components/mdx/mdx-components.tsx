@@ -277,7 +277,7 @@ export async function ApiCards() {
  * ]} />
  *
  * operationId = {InterfaceName}_{methodName} from TypeSpec (see openapi.yaml)
- * params — override query parameter values; only specified + required params are included (curl/cli only)
+ * params — override parameter and body field values; only specified + required ones are included (curl/cli only)
  * responseMode — "full" (default): all fields with values; "minimal": null for nullable, [] for optional arrays
  * lang — single language: no dropdown/header, renders as simple code block
  * langs — filter languages in multi-language dropdown (e.g. ["typescript", "python", "go", "kotlin", "swift", "csharp"])
@@ -421,12 +421,17 @@ export async function ApiCodeExample({
 
   let finalEndpoint = endpoint;
   if (params) {
+    const { narrowRequestBody } = await import('@/lib/code-generators/utils');
     const paramNames = Object.keys(params);
     finalEndpoint = {
       ...endpoint,
       parameters: endpoint.parameters
         .filter((p) => p.in !== 'query' || p.required || paramNames.includes(p.name))
         .map((p) => (paramNames.includes(p.name) ? { ...p, example: params[p.name] } : p)),
+      // Body fields are narrowed the same way: a guide that asks for three
+      // fields should not get every optional one that happens to have an
+      // example in the spec.
+      requestBody: narrowRequestBody(endpoint.requestBody, params),
     };
   }
 

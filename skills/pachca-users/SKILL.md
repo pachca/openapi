@@ -216,7 +216,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | /group_tags | Новый тег |
-| GET | /group_tags | Список тегов сотрудников |
+| GET | /group_tags | Список тегов |
 | GET | /group_tags/{id} | Информация о теге |
 | PUT | /group_tags/{id} | Редактирование тега |
 | DELETE | /group_tags/{id} | Удаление тега |

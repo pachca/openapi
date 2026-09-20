@@ -34,7 +34,7 @@ related:
 
     <ApiCodeExample defaultLang="curl" operationId="ProfileOperations_getProfile" title="Получение профиля" show="request" />
 
-    Все запросы отправляются на базовый URL `https://api.pachca.com/api/shared/v1`. Токен передаётся в заголовке `Authorization: Bearer TOKEN`. Ответ содержит данные в объекте `data`, а для списочных методов — ещё и блок `meta` с информацией о [пагинации](/api/pagination).
+    Все запросы отправляются на базовый URL `https://api.pachca.com/api/shared/v1`. Токен передаётся в заголовке `Authorization: Bearer YOUR_ACCESS_TOKEN`. Ответ содержит данные в объекте `data`, а для списочных методов — ещё и блок `meta` с информацией о [пагинации](/api/pagination).
 
     <Info>Если вместо данных вы получили `401 Unauthorized` — проверьте, что токен скопирован без лишних пробелов и что у него есть нужный [скоуп](/api/authorization#skoupy).</Info>
   </Step>
@@ -43,7 +43,7 @@ related:
 
     <ApiCodeExample defaultLang="curl" operationId="ChatOperations_createChat" title="Создание чата" show="request" />
 
-    Укажите название чата и список участников. Идентификаторы сотрудников можно получить через метод [Список сотрудников](GET /users), а идентификаторы тегов — через метод [Список тегов](GET /group_tags). Запросы с телом отправляются в формате JSON с заголовком `Content-Type: application/json`.
+    Укажите название чата и список участников. Идентификаторы сотрудников можно получить через метод [Список сотрудников](GET /users), а идентификаторы тегов — через метод [Список тегов](GET /group_tags). О том, как тег держит состав чата, — в руководстве [Теги](/guides/tags). Запросы с телом отправляются в формате JSON с заголовком `Content-Type: application/json`.
   </Step>
 </Steps>
 

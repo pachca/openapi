@@ -98,7 +98,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.users.deleteUserAvatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.users.deleteUserStatus()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.groupTags.createTag()` | [Новый тег](/api/group-tags/create) |
-| `client.groupTags.listTags()` | [Список тегов сотрудников](/api/group-tags/list) |
+| `client.groupTags.listTags()` | [Список тегов](/api/group-tags/list) |
 | `client.groupTags.getTag()` | [Информация о теге](/api/group-tags/get) |
 | `client.groupTags.getTagUsers()` | [Список сотрудников тега](/api/group-tags/list-users) |
 | `client.groupTags.updateTag()` | [Редактирование тега](/api/group-tags/update) |
@@ -107,7 +107,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.members.addMembers()` | [Добавление пользователей](/api/members/add) |
 | `client.members.listMembers()` | [Список участников чата](/api/members/list) |
 | `client.members.updateMemberRole()` | [Редактирование роли](/api/members/update) |
-| `client.members.leaveChat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.members.leaveChat()` | [Выход из чата](/api/members/leave) |
 | `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
 | `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.createStandaloneThread()` | [Новый самостоятельный тред](/api/threads/create) |
@@ -134,6 +134,11 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.tasks.getTask()` | [Информация о напоминании](/api/tasks/get) |
 | `client.tasks.updateTask()` | [Редактирование напоминания](/api/tasks/update) |
 | `client.tasks.deleteTask()` | [Удаление напоминания](/api/tasks/delete) |
+| `client.drafts.createDraft()` | [Новый черновик](/api/drafts/create) |
+| `client.drafts.listDrafts()` | [Список черновиков](/api/drafts/list) |
+| `client.drafts.getDraft()` | [Информация о черновике](/api/drafts/get) |
+| `client.drafts.updateDraft()` | [Редактирование черновика](/api/drafts/update) |
+| `client.drafts.deleteDraft()` | [Удаление черновика](/api/drafts/delete) |
 | `client.views.openView()` | [Открытие представления](/api/views/open) |
 | `client.views.submitViewResponse()` | [Ответ на отправку формы](/api/views/submit-response) |
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
@@ -151,6 +156,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
 | `client.files.getUploadParams()` | [Получение подписи, ключа и других параметров](/api/files/uploads) |
+| `client.files.downloadFile()` | [Скачивание файла](/api/files/get) |
 
 
 ## Запросы
@@ -372,7 +378,7 @@ let body = MessageCreateRequest(
     linkPreview: false
 )
 let response = try await client.messages.createMessage(body: body)
-// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)
+// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)
 
 // Список сотрудников
 let response = try await client.users.listUsers(query: "Олег", limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")

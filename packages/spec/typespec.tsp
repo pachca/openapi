@@ -176,13 +176,13 @@ enum InviteStatus {
   user: "Пользователь",
 })
 enum MessageEntityType {
-  @doc("Беседа или канал")
+  @doc("Беседа или канал, но не тред")
   discussion: "discussion",
   
-  @doc("Тред")
+  @doc("Тред: сообщение уйдёт внутрь обсуждения")
   thread: "thread",
   
-  @doc("Пользователь")
+  @doc("Сотрудник: сообщение уйдёт в личную переписку с ним")
   user: "user",
 }
 

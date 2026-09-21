@@ -79,17 +79,15 @@ const MARKDOWN_NOTE =
  * what goes into it.
  */
 const NAMED_DAY_NOTE =
-  'Never the name of a day: «Friday» is not a value this takes. Take the date from the week in your ' +
-  'instructions or in the footer of any result instead of counting, which is where it lands a day ' +
-  'out, and write it with the offset the footer’s Now carries, not Z: «до среды» for a person at ' +
-  '+03:00 is that Wednesday, 23:59:59+03:00.';
+  'A weekday name is not a value this takes. Take the date from the week in your instructions or in the ' +
+  'footer of any result rather than counting it, which is where it lands a day out, and use the ' +
+  'offset the footer’s Now carries.';
 
 export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   // ── Where a message goes ────────────────────────────────────────────────
   send_message: {
     whenToUse: [
-      'Writing to the person themselves — «скинь мне», «запиши себе»: their own id with entity_type ' +
-        'user lands in their chat with themselves.',
+      'Writing to the person themselves — «скинь мне», «запиши себе»: their own id with entity_type user.',
     ],
     notFor: [
       'Opening a thread under a message that has none — create_thread makes it, then send here.',
@@ -99,7 +97,6 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
     ],
     arguments: {
       content: MARKDOWN_NOTE,
-      entity_type: '`discussion` is never a thread; `thread` is a reply inside one; `user` is a direct message.',
       entity_id: 'From list_chats, list_users or search_messages, or from a link the person pasted.',
       parent_message_id: 'A reply right in the chat rather than in a thread — «ответь Лене прямо в канале, а не в треде».',
     },
@@ -143,10 +140,8 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
 
   // ── Reactions ───────────────────────────────────────────────────────────
   add_reaction: {
-    arguments: { code: 'A shortcode such as +1 or :+1: is refused as an unknown emoji.' },
   },
   remove_reaction: {
-    arguments: { code: 'A shortcode such as +1 or :+1: is refused as an unknown emoji.' },
   },
 
   // ── Tags: on chats and on people ────────────────────────────────────────
@@ -240,9 +235,7 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   },
   search_chats: {
     notFor: [
-      'Finding where something was said or decided — «где мы договаривались про бюджет» — ' +
-        'search_messages. This one matches chat names, and a topic rarely lives in a chat named ' +
-        'after it.',
+      'Finding where something was said or decided — «где мы договаривались про бюджет» — search_messages.',
     ],
   },
   search_messages: {

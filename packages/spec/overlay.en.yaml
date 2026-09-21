@@ -3155,9 +3155,9 @@ actions:
   - target: $.components.schemas.MessageEntityType
     update:
       x-enum-descriptions:
-        discussion: Conversation or channel
-        thread: Thread
-        user: User
+        discussion: Conversation or channel, never a thread
+        thread: "Thread: the message goes inside the discussion"
+        user: "Employee: the message goes to the direct chat with them"
   - target: $.components.schemas.MessageUpdateRequest
     update:
       description: Message update request

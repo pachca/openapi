@@ -63,6 +63,7 @@ import {
   SERVICE_TOOLS,
   TOOL_NAME_IN_PROSE,
   TOOL_PREFIX,
+  DRAFT_ARGUMENT,
   VIEW_ARGUMENT,
   type McpServiceTool,
   type OperationKey,
@@ -504,6 +505,12 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
   const card = responseEntity(op, docEn);
   if (op.kind === 'read' && card && COMPACT_PROJECTIONS[card]) {
     const { name, ...rest } = VIEW_ARGUMENT;
+    claim(name, { in: 'server' }, rest as JsonSchema);
+  }
+  // A send may finish a draft (`DRAFT_ARGUMENT`): naming it here keeps the
+  // tidying inside the act that made it necessary, instead of a second call.
+  if (op.key === 'POST /messages') {
+    const { name, ...rest } = DRAFT_ARGUMENT;
     claim(name, { in: 'server' }, rest as JsonSchema);
   }
   // Written argument text follows the spec's rather than replacing it: the spec
@@ -1081,6 +1088,35 @@ function build(): void {
       else if (op.scope && !scopes.includes(op.scope)) scopes.push(op.scope);
     }
     serviceScopes.set(tool.name, scopes);
+  }
+
+  // Prose must not say again what the spec already says. A fact with two homes
+  // drifts: the spec moves with the API, prose moves when somebody remembers.
+  // Six words in a row is long enough to be a restatement and short enough to
+  // catch one that changed a word or two on the way.
+  const REPEAT_RUN = 6;
+  const wordsIn = (text: string) => text.toLowerCase().replace(/`[^`]*`/g, ' ').split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  for (const op of operations) {
+    const prose = MCP_TOOL_PROSE[op.name];
+    if (!prose) continue;
+    const said = wordsIn(specText(op));
+    const written: Array<[string, string]> = [
+      ...(prose.description ? [['description', prose.description] as [string, string]] : []),
+      ...(prose.whenToUse ?? []).map((l) => ['whenToUse', l] as [string, string]),
+      ...(prose.notFor ?? []).map((l) => ['notFor', l] as [string, string]),
+      ...Object.entries(prose.arguments ?? {}).map(([a, l]) => [`argument ${a}`, l] as [string, string]),
+    ];
+    for (const [where, line] of written) {
+      const mine = wordsIn(line);
+      for (let i = 0; i + REPEAT_RUN <= mine.length; i += 1) {
+        const run = mine.slice(i, i + REPEAT_RUN);
+        const hit = said.some((_, j) => run.every((w, k) => said[j + k] === w));
+        if (hit) {
+          problems.push(`${op.name} ${where} says again what the spec says: «${run.join(' ')}»`);
+          break;
+        }
+      }
+    }
   }
 
   // Prose must not point at a tool the reader does not have, and must not tell

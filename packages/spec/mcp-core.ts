@@ -149,6 +149,27 @@ export const DESTRUCTIVE = new Set<OperationKey>([
  * chats costs as much as the chats themselves, and a model that only needs a
  * name pays for everything else.
  */
+/**
+ * The draft a send replaces, cleared once the message is away.
+ *
+ * A draft is what the person sees in the input box of that chat, so sending its
+ * text and leaving it there shows the same words twice — and the person is left
+ * to delete one of them. The API has no such field: `POST /messages` knows
+ * nothing about drafts, and the tidying is `delete_draft`, a second call with a
+ * second approval for work the first call already finished. Naming the draft on
+ * the send makes it one act, which is also how the live set measured against
+ * this one does it.
+ *
+ * Optional on purpose: most sends start from nothing and have no draft to name.
+ */
+export const DRAFT_ARGUMENT = {
+  name: 'draft_id',
+  type: 'integer' as const,
+  description:
+    'The draft this message replaces, if it came from one. The draft is deleted once the message is sent, ' +
+    'so its text does not stay in the input box of the chat. A send that fails leaves the draft alone.',
+};
+
 export const VIEW_ARGUMENT = {
   name: 'view',
   type: 'string' as const,

@@ -60,15 +60,9 @@ export interface ToolProse {
  * already names the two spellings of a mention there, so this says the rest.
  */
 const MARKDOWN_NOTE =
-  '@all mentions every member of the chat and @here the ones online; @ with a group tag’s name ' +
-  'mentions the people of that tag, when the name has no spaces. Outside a thread a mention reaches ' +
-  'only members of the chat, and a bare name, or a mention inside code, mentions nobody. Pachca ' +
-  'parses a subset of Markdown: bold, italic, strikethrough, inline code, code blocks and links. ' +
-  'Bulleted and numbered lists and tables are NOT parsed — `-`, `1.` and `|` stay exactly as typed, ' +
-  'so write a list as separate lines — and a quote loses its `>` and reads as a plain paragraph. A ' +
-  'line starting with `#` and a space loses the hashes and becomes bold. For a table, a checklist or ' +
-  'a diagram, attach a `.md` file instead: it opens formatted, and as the only document of a ' +
-  'message, up to 150 KB, its beginning shows right in the chat.';
+  'A bare name, or a mention inside code, mentions nobody. Write a list as separate lines, and for a ' +
+  'table, a checklist or a diagram attach a `.md` file instead: it opens formatted, and as the only ' +
+  'document of a message, up to 150 KB, its beginning shows right in the chat.';
 
 /**
  * What to put in a moment the person named in words. Where the dates come from
@@ -107,7 +101,6 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   },
 
   create_thread: {
-    description: 'An empty thread is not a conversation yet: send what is to be talked over into it straight away.',
     notFor: [
       'A new topic with no message behind it — create_unattached_thread.',
       'Reading a thread that may already exist — get_message returns the thread of a message, and ' +
@@ -121,9 +114,6 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   },
 
   create_unattached_thread: {
-    description:
-      'It has no title of its own: a thread is known by what is written in it, so send the first ' +
-      'message into it straight away. A thread cannot be deleted afterwards.',
     notFor: [
       'Anything that continues something already written, however «отдельно» it is meant — ' +
         'create_thread opens it under that message, where the people reading it see what is discussed.',
@@ -156,10 +146,6 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   },
   update_user: {
     arguments: {
-      list_tags:
-        'The list replaces the tags the person has, so pass the ones they keep along with the new one. ' +
-        'A tag left out is taken off, and they leave the chats that tag brought them into; a name no ' +
-        'tag has yet creates that tag.',
     },
   },
   delete_tag: {
@@ -293,11 +279,8 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   },
   download_export: {
     description:
-      'request_export answers without an id. The id comes in the webhook sent to the address given ' +
-      'there and in the notice telling the person the archive is ready, so here it is the one the person ' +
-      'names or pastes — «выгрузка 812» is export 812, not a message. Only whoever requested the export ' +
-      'can download it, the archive is kept for seven days, and the link in the answer works for five ' +
-      'minutes: hand it over straight away.',
+      'The id is the one the person names or pastes — «выгрузка 812» is export 812, not a message. ' +
+      'The link the answer carries is for the person: hand it over straight away.',
   },
 
   // ── Forms: bot-only, and the names hide what they do ────────────────────

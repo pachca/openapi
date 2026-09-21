@@ -3051,7 +3051,7 @@
         "owner"
       ],
       "bot_token_only": false,
-      "description": "Download export archive. The answer is a temporary download link for the file, valid for five minutes. The link is valid for 5 minutes, so download the archive right after the request. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission. request_export answers without an id. The id comes in the webhook sent to the address given there and in the notice telling the person the archive is ready, so here it is the one the person names or pastes — «выгрузка 812» is export 812, not a message. Only whoever requested the export can download it, the archive is kept for seven days, and the link in the answer works for five minutes: hand it over straight away.",
+      "description": "Download export archive. The answer is a temporary download link for the file, valid for five minutes. The link is valid for 5 minutes, so download the archive right after the request. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission. The id is the one the person names or pastes — «выгрузка 812» is export 812, not a message. The link the answer carries is for the person: hand it over straight away.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -7470,7 +7470,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). @all mentions every member of the chat and @here the ones online; @ with a group tag’s name mentions the people of that tag, when the name has no spaces. Outside a thread a mention reaches only members of the chat, and a bare name, or a mention inside code, mentions nobody. Pachca parses a subset of Markdown: bold, italic, strikethrough, inline code, code blocks and links. Bulleted and numbered lists and tables are NOT parsed — `-`, `1.` and `|` stay exactly as typed, so write a list as separate lines — and a quote loses its `>` and reads as a plain paragraph. A line starting with `#` and a space loses the hashes and becomes bold. For a table, a checklist or a diagram, attach a `.md` file instead: it opens formatted, and as the only document of a message, up to 150 KB, its beginning shows right in the chat.",
+            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). A bare name, or a mention inside code, mentions nobody. Write a list as separate lines, and for a table, a checklist or a diagram attach a `.md` file instead: it opens formatted, and as the only document of a message, up to 150 KB, its beginning shows right in the chat.",
             "example": "Yesterday we sold 756 t-shirts (10% more than last Sunday)"
           },
           "files": {
@@ -7610,6 +7610,10 @@
             "description": "Display a preview of the first link found in the message text",
             "default": false,
             "example": false
+          },
+          "draft_id": {
+            "type": "integer",
+            "description": "The draft this message replaces, if it came from one. The draft is deleted once the message is sent, so its text does not stay in the input box of the chat. A send that fails leaves the draft alone."
           }
         },
         "required": [
@@ -7656,6 +7660,9 @@
           "link_preview": {
             "in": "body",
             "at": "link_preview"
+          },
+          "draft_id": {
+            "in": "server"
           },
           "files": {
             "in": "upload",
@@ -8331,7 +8338,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). @all mentions every member of the chat and @here the ones online; @ with a group tag’s name mentions the people of that tag, when the name has no spaces. Outside a thread a mention reaches only members of the chat, and a bare name, or a mention inside code, mentions nobody. Pachca parses a subset of Markdown: bold, italic, strikethrough, inline code, code blocks and links. Bulleted and numbered lists and tables are NOT parsed — `-`, `1.` and `|` stay exactly as typed, so write a list as separate lines — and a quote loses its `>` and reads as a plain paragraph. A line starting with `#` and a space loses the hashes and becomes bold. For a table, a checklist or a diagram, attach a `.md` file instead: it opens formatted, and as the only document of a message, up to 150 KB, its beginning shows right in the chat.",
+            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). A bare name, or a mention inside code, mentions nobody. Write a list as separate lines, and for a table, a checklist or a diagram attach a `.md` file instead: it opens formatted, and as the only document of a message, up to 150 KB, its beginning shows right in the chat.",
             "example": "Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur, liaison, necessary, surveillance, questionnaire."
           },
           "files": {
@@ -9407,7 +9414,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New thread. Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either. An empty thread is not a conversation yet: send the first message into it right away with the `send_message` method and `entity_type: \"thread\"`. A thread has no name, and it cannot be deleted either through the API or in the app. If a thread has already been created for the message, the response will return information about the previously created thread. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca. An empty thread is not a conversation yet: send what is to be talked over into it straight away.\n\nUse it when:\n- Taking something already said aside — «давай обсудим это отдельно». Aside, under the message, is what a thread is.\n- Answering a specific message so the chat feed stays clean.\n\nNot for:\n- A new topic with no message behind it — create_unattached_thread.\n- Reading a thread that may already exist — get_message returns the thread of a message, and get_thread reads it.",
+      "description": "New thread. Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either. An empty thread is not a conversation yet: send the first message into it right away with the `send_message` method and `entity_type: \"thread\"`. A thread has no name, and it cannot be deleted either through the API or in the app. If a thread has already been created for the message, the response will return information about the previously created thread. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca.\n\nUse it when:\n- Taking something already said aside — «давай обсудим это отдельно». Aside, under the message, is what a thread is.\n- Answering a specific message so the chat feed stays clean.\n\nNot for:\n- A new topic with no message behind it — create_unattached_thread.\n- Reading a thread that may already exist — get_message returns the thread of a message, and get_thread reads it.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -12524,7 +12531,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New standalone thread. Creates a thread that is not linked to anything: a place for a conversation, a dialogue with an agent, or a call that needs no chat of its own. Any employees can be gathered in it. The thread creator becomes its only member, and the `message_id` and `message_chat_id` fields in the response are returned as `null`. The easiest way to add members to the thread is a mention: `@nickname` or `@tag` at the start or the end of the message text. The `add_members` method by the `chat_id` of the thread works too. A thread has no name, so send the first message into it right away — that is how employees will understand what it is about. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a thread under it with the `create_thread` method, and if a permanent place with a name is needed, use the `create_chat` method. It has no title of its own: a thread is known by what is written in it, so send the first message into it straight away. A thread cannot be deleted afterwards.\n\nNot for:\n- Anything that continues something already written, however «отдельно» it is meant — create_thread opens it under that message, where the people reading it see what is discussed.\n- A place that needs a name of its own — create_chat. The missing title is the difference, not a reason to make a chat instead.",
+      "description": "New standalone thread. Creates a thread that is not linked to anything: a place for a conversation, a dialogue with an agent, or a call that needs no chat of its own. Any employees can be gathered in it. The thread creator becomes its only member, and the `message_id` and `message_chat_id` fields in the response are returned as `null`. The easiest way to add members to the thread is a mention: `@nickname` or `@tag` at the start or the end of the message text. The `add_members` method by the `chat_id` of the thread works too. A thread has no name, so send the first message into it right away — that is how employees will understand what it is about. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a thread under it with the `create_thread` method, and if a permanent place with a name is needed, use the `create_chat` method.\n\nNot for:\n- Anything that continues something already written, however «отдельно» it is meant — create_thread opens it under that message, where the people reading it see what is discussed.\n- A place that needs a name of its own — create_chat. The missing title is the difference, not a reason to make a chat instead.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -13792,7 +13799,7 @@
           },
           "list_tags": {
             "type": "array",
-            "description": "Array of tags to assign to the employee. The list replaces the tags the person has, so pass the ones they keep along with the new one. A tag left out is taken off, and they leave the chats that tag brought them into; a name no tag has yet creates that tag.",
+            "description": "Array of tags to assign to the employee",
             "example": [
               "Product",
               "Design"
@@ -15545,7 +15552,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 34251
+      "model_tokens": 33825
     },
     "owner": {
       "role": "owner",
@@ -15625,7 +15632,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 31328
+      "model_tokens": 30970
     },
     "admin": {
       "role": "admin",
@@ -15705,7 +15712,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 31328
+      "model_tokens": 30970
     },
     "user": {
       "role": "user",
@@ -15775,7 +15782,7 @@
         "pachca_get_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 27653
+      "model_tokens": 27354
     },
     "bot": {
       "role": "bot",
@@ -15841,7 +15848,7 @@
         "pachca_delete_webhook_event",
         "pachca_search_documentation"
       ],
-      "model_tokens": 23824
+      "model_tokens": 23525
     }
   }
 }

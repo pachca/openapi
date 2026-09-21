@@ -2,7 +2,7 @@
   "schema_version": "2.0.0",
   "generated_from": {
     "spec": "openapi.yaml",
-    "digest": "151324e24745f7ed"
+    "digest": "93689b59d38d2cc3"
   },
   "server": {
     "name": "pachca",
@@ -1311,7 +1311,7 @@
         "user"
       ],
       "bot_token_only": false,
-      "description": "New bot. Creates a bot in the workspace and immediately returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to reissue it with `recreate_bot_token`. A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member, and it is added like an employee — with the `add_members` method, passing the bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require membership. The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it is the set of its chats that decides where it lands. No token is needed for that, the webhook address is enough. To write into one particular chat, take the `send_message` method — that one does need a token. The nickname must end with `_bot` and be free in the workspace. The `single_chat` restriction is set only here: when editing a bot it can no longer be changed. A bot writes into a conversation or channel only once it is a member there, and its incoming webhook posts into every conversation and channel it is a member of — so the chats it is added to decide where its posts land. It is added with add_members, its id in member_ids, and in a channel it becomes an editor. Direct messages, and threads in open chats, need no membership.",
+      "description": "New bot. Creates a bot in the workspace and immediately returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to reissue it with `recreate_bot_token`. A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member, and it is added like an employee — with the `add_members` method, passing the bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require membership. The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it is the set of its chats that decides where it lands. No token is needed for that, the webhook address is enough. To write into one particular chat, take the `send_message` method — that one does need a token. The nickname must end with `_bot` and be free in the workspace. The `single_chat` restriction is set only here: when editing a bot it can no longer be changed.\n\nNot for:\n- Putting the bot into a chat — add_members, its id in member_ids.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -2361,7 +2361,7 @@
         "user"
       ],
       "bot_token_only": false,
-      "description": "Bot token rotation. Generates a new `access_token` for the bot and immediately invalidates the previous one. Use it when a token is compromised or for scheduled secret rotation in `CI`. The new token is returned in the response only once — save it right away. Its permissions are the same: the scopes are carried over from the previous token. Rotation is available to the bot creator, and also to a workspace administrator if the bot's settings grant administrators edit access. The owner of a chat the bot belongs to cannot rotate the token, even when the rest of the bot's settings are open to them. Only the main token is replaced: other tokens issued on the bot’s page keep working. Hand the new token to the person, never into a chat.",
+      "description": "Bot token rotation. Generates a new `access_token` for the bot and immediately invalidates the previous one. Use it when a token is compromised or for scheduled secret rotation in `CI`. The new token is returned in the response only once — save it right away. Its permissions are the same: the scopes are carried over from the previous token. Rotation is available to the bot creator, and also to a workspace administrator if the bot's settings grant administrators edit access. The owner of a chat the bot belongs to cannot rotate the token, even when the rest of the bot's settings are open to them. Hand the new token to the person, never into a chat.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -3051,7 +3051,7 @@
         "owner"
       ],
       "bot_token_only": false,
-      "description": "Download export archive. The answer is a temporary download link for the file, valid for five minutes. The link is valid for 5 minutes, so download the archive right after the request. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission. The id is the one the person names or pastes — «выгрузка 812» is export 812, not a message. The link the answer carries is for the person: hand it over straight away.",
+      "description": "Download export archive. The answer is a temporary download link for the file, valid for five minutes. The link is valid for 5 minutes, so download the archive right after the request. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -3063,7 +3063,7 @@
         "properties": {
           "id": {
             "type": "integer",
-            "description": "Export ID",
+            "description": "Export ID. The one the person names or pastes — «выгрузка 812» is export 812, not a message.",
             "format": "int32",
             "example": 22322
           }
@@ -3367,7 +3367,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Archive chat. Sends a conversation or a channel to the archive: the chat disappears from the lists of all members, new messages are not accepted into it, and the history is kept. Archiving does not merely freeze the chat. All guests are removed from it and all tags are unlinked from it. The employees a tag brought in stay as ordinary members, but the membership is no longer maintained by itself. The `unarchive_chat` method brings back neither the guests nor the tag links. Threads created in the chat stay open: they can still be written to after archiving. A direct chat and a thread are not sent to the archive. Archiving a chat that is already archived responds `403`. The chat leaves everyone’s list and refuses new messages and threads, while threads already in it stay open; the history stays. Archiving also removes guests and detaches group tags, and unarchive_chat brings the chat back without them.",
+      "description": "Archive chat. Sends a conversation or a channel to the archive: the chat disappears from the lists of all members, new messages are not accepted into it, and the history is kept. Archiving does not merely freeze the chat. All guests are removed from it and all tags are unlinked from it. The employees a tag brought in stay as ordinary members, but the membership is no longer maintained by itself. The `unarchive_chat` method brings back neither the guests nor the tag links. Threads created in the chat stay open: they can still be written to after archiving. A direct chat and a thread are not sent to the archive. Archiving a chat that is already archived responds `403`.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -3471,7 +3471,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Remove tag. Unlinks a tag from a conversation or a channel and takes out the employees who were held there by it alone. The removal happens in the background, after the response: the method responds `204` immediately, and the chat membership changes a few moments later. The chat owner, those brought in by another tag of the same chat, and those added to the chat by hand will stay. A tag can be taken off a chat by the chat owner or a chat administrator. It can be linked back with the `add_tags_to_chat` method. The people who came into the chat with the tag leave it, shortly after the call answers — even those added by hand since — except the chat owner and anyone another tag of this chat brings in.",
+      "description": "Remove tag. Unlinks a tag from a conversation or a channel and takes out the employees who were held there by it alone. The removal happens in the background, after the response: the method responds `204` immediately, and the chat membership changes a few moments later. The chat owner, those brought in by another tag of the same chat, and those added to the chat by hand will stay. A tag can be taken off a chat by the chat owner or a chat administrator. It can be linked back with the `add_tags_to_chat` method.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -3524,7 +3524,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Leave chat. The token owner leaves a conversation, a channel, or a thread on their own. A thread is addressed by its `chat_id`. In a private conversation the others see a system message about the departure; in a public chat and in a channel they do not. You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is taken off the employee or off the chat. You cannot leave a direct message either, but you can leave an archived chat. You can come back to a public chat on your own, and to a private one only if one of the members adds you back. Another employee is taken out by `remove_member`. In a closed conversation the others see that you left, and getting back takes someone inside to add you; an open chat or channel can be rejoined at any time. Membership that came with a group tag cannot be left this way.\n\nNot for:\n- Removing somebody else — remove_member.",
+      "description": "Leave chat. The token owner leaves a conversation, a channel, or a thread on their own. A thread is addressed by its `chat_id`. In a private conversation the others see a system message about the departure; in a public chat and in a channel they do not. You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is taken off the employee or off the chat. You cannot leave a direct message either, but you can leave an archived chat. You can come back to a public chat on your own, and to a private one only if one of the members adds you back. Another employee is taken out by `remove_member`.\n\nNot for:\n- Removing somebody else — remove_member.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -4051,7 +4051,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Remove user. Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its `chat_id`. In a private conversation the removed member loses access to the chat but stays in the threads they belonged to. An employee held in the chat by a linked tag cannot be removed with this method: the response will be successful, but the employee will stay in the chat. Take the tag off them with `update_user` or unlink the tag from the chat with the `remove_tag_from_chat` method. If the user is the chat owner, they cannot be removed. They can only leave the chat on their own using the `leave_chat` method. In a closed chat they lose its history, though not the threads they take part in. Someone who is in the chat through a group tag stays, even though the call answers success: take them out with remove_tag_from_chat, or with update_user leaving that tag out of list_tags.",
+      "description": "Remove user. Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its `chat_id`. In a private conversation the removed member loses access to the chat but stays in the threads they belonged to. An employee held in the chat by a linked tag cannot be removed with this method: the response will be successful, but the employee will stay in the chat. Take the tag off them with `update_user` or unlink the tag from the chat with the `remove_tag_from_chat` method. If the user is the chat owner, they cannot be removed. They can only leave the chat on their own using the `leave_chat` method.\n\nNot for:\n- Taking out somebody a group tag holds in the chat — remove_tag_from_chat, or update_user with that tag left out of list_tags.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -6432,7 +6432,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "New tag. Creates a tag. A tag is a way to keep chat membership up to date by itself: it is linked to a conversation or a channel, and everyone who has this tag ends up there automatically. Employees are added to a tag not here but in each employee's profile — `update_user` with the `list_tags` field. A fresh tag is created empty, with `users_count: 0`. It is linked to a chat by `add_tags_to_chat`. The name is unique within the workspace, case-insensitively, and cannot contain `@`. Tags can be created by the workspace owner and an administrator; the method is not available to a bot. People are put into a tag on their own card — update_user with list_tags, one person at a time.",
+      "description": "New tag. Creates a tag. A tag is a way to keep chat membership up to date by itself: it is linked to a conversation or a channel, and everyone who has this tag ends up there automatically. Employees are added to a tag not here but in each employee's profile — `update_user` with the `list_tags` field. A fresh tag is created empty, with `users_count: 0`. It is linked to a chat by `add_tags_to_chat`. The name is unique within the workspace, case-insensitively, and cannot contain `@`. Tags can be created by the workspace owner and an administrator; the method is not available to a bot.\n\nNot for:\n- Putting people into the tag — update_user with list_tags, one person at a time.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -6652,7 +6652,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "Delete tag. Removes a tag from the workspace: it is taken off every employee and unlinked from every chat. Nobody leaves the chats because of this. The employees the tag brought into a conversation or a channel stay there as ordinary members, and their membership is no longer maintained by the tag. To take them out of a particular chat, use `remove_tag_from_chat` before deleting the tag itself. Tags can be deleted by the workspace owner and an administrator; the method is not available to a bot. The people the tag brought into chats stay in them as ordinary members.\n\nNot for:\n- Detaching a tag from one chat — remove_tag_from_chat; this takes it off every chat it is attached to.",
+      "description": "Delete tag. Removes a tag from the workspace: it is taken off every employee and unlinked from every chat. Nobody leaves the chats because of this. The employees the tag brought into a conversation or a channel stay there as ordinary members, and their membership is no longer maintained by the tag. To take them out of a particular chat, use `remove_tag_from_chat` before deleting the tag itself. Tags can be deleted by the workspace owner and an administrator; the method is not available to a bot.\n\nNot for:\n- Detaching a tag from one chat — remove_tag_from_chat; this takes it off every chat it is attached to.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -7441,7 +7441,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New message. Sends a message to a conversation or a channel, a direct message to an employee, or a comment to a thread. When using `entity_type: \"discussion\"` (or simply without specifying `entity_type`), any `chat_id` can be passed in the `entity_id` field. This means you can send a message knowing only the chat ID. A message can also be sent to a thread by the thread's own ID, and a direct message by the employee's ID, but then the matching `entity_type` must be given: `thread` or `user`. There is no need to create the direct chat for this: it appears by itself if there has been no prior conversation between you. Only one direct chat can exist between two employees. Your own ID writes to the chat with yourself — the same place where an employee sends notes to themselves. The text in the `content` field is parsed as markdown: bold, italic, strikethrough, inline code, code block, and links. Lists and tables are not parsed — `-`, `1.`, and `|` stay as they are, a quote loses its `>`, and a line with a hash and a space becomes bold. The details are in the [Text formatting](/guides/markdown) section. `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. To prevent that, pass `skip_invite_mentions: true`. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there. Buttons can be shown under the message text — the `buttons` array, where each nested array is a row. They only work on messages sent with a bot token: a click on a button with `data` arrives as a `button_click` event to that same bot, carrying a `trigger_id` — there are 3 seconds to open a form with it, the `open_form` method. A button with `url` simply follows the link and creates no event. Details are in the [Buttons](/guides/buttons) section. A bot can sign a message with someone else's name and avatar: `display_name` and `display_avatar_url` change the sender for this message only. The **Bot** badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when a conversation is carried over from another system. With a personal token these fields are not available and the response is `403`. Details are in the [Bots](/guides/bots/overview) section. No more than 10 files can be attached to a message. A link preview is built only if `link_preview` is passed. A daily limit applies to the number of messages into one chat from one sender. When it is exceeded the method responds `429`, and the `Retry-After` header carries the pause before the next attempt. The limit values are in the [Limits](/api/limits) section.\n\nUse it when:\n- Writing to the person themselves — «скинь мне», «запиши себе»: their own id with entity_type user lands in their chat with themselves.\n\nNot for:\n- Opening a thread under a message that has none — create_thread makes it, then send here.\n- Editing something already sent — update_message.\n- Handing a task to somebody — update_task moves it to them. Writing them about it instead leaves the task where it was, and they get a message rather than the task.",
+      "description": "New message. Sends a message to a conversation or a channel, a direct message to an employee, or a comment to a thread. When using `entity_type: \"discussion\"` (or simply without specifying `entity_type`), any `chat_id` can be passed in the `entity_id` field. This means you can send a message knowing only the chat ID. A message can also be sent to a thread by the thread's own ID, and a direct message by the employee's ID, but then the matching `entity_type` must be given: `thread` or `user`. There is no need to create the direct chat for this: it appears by itself if there has been no prior conversation between you. Only one direct chat can exist between two employees. Your own ID writes to the chat with yourself — the same place where an employee sends notes to themselves. The text in the `content` field is parsed as markdown: bold, italic, strikethrough, inline code, code block, and links. Lists and tables are not parsed — `-`, `1.`, and `|` stay as they are, a quote loses its `>`, and a line with a hash and a space becomes bold. The details are in the [Text formatting](/guides/markdown) section. `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. To prevent that, pass `skip_invite_mentions: true`. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there. A name without `@`, and a mention inside inline code or a code block, are not mentions. Buttons can be shown under the message text — the `buttons` array, where each nested array is a row. They only work on messages sent with a bot token: a click on a button with `data` arrives as a `button_click` event to that same bot, carrying a `trigger_id` — there are 3 seconds to open a form with it, the `open_form` method. A button with `url` simply follows the link and creates no event. Details are in the [Buttons](/guides/buttons) section. A bot can sign a message with someone else's name and avatar: `display_name` and `display_avatar_url` change the sender for this message only. The **Bot** badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when a conversation is carried over from another system. With a personal token these fields are not available and the response is `403`. Details are in the [Bots](/guides/bots/overview) section. No more than 10 files can be attached to a message. A link preview is built only if `link_preview` is passed. A daily limit applies to the number of messages into one chat from one sender. When it is exceeded the method responds `429`, and the `Retry-After` header carries the pause before the next attempt. The limit values are in the [Limits](/api/limits) section.\n\nUse it when:\n- Writing to the person themselves — «скинь мне», «запиши себе»: their own id with entity_type user lands in their chat with themselves.\n\nNot for:\n- Opening a thread under a message that has none — create_thread makes it, then send here.\n- Editing something already sent — update_message.\n- Handing a task to somebody — update_task moves it to them. Writing them about it instead leaves the task where it was, and they get a message rather than the task.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -7470,7 +7470,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). A bare name, or a mention inside code, mentions nobody. Write a list as separate lines, and for a table, a checklist or a diagram attach a `.md` file instead: it opens formatted, and as the only document of a message, up to 150 KB, its beginning shows right in the chat.",
+            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). Write a list as separate lines, and for a table, a checklist or a diagram attach a `.md` file instead: as the only document of a message it opens formatted, with its beginning shown right in the chat.",
             "example": "Yesterday we sold 756 t-shirts (10% more than last Sunday)"
           },
           "files": {
@@ -8338,7 +8338,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). A bare name, or a mention inside code, mentions nobody. Write a list as separate lines, and for a table, a checklist or a diagram attach a `.md` file instead: it opens formatted, and as the only document of a message, up to 150 KB, its beginning shows right in the chat.",
+            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). Write a list as separate lines, and for a table, a checklist or a diagram attach a `.md` file instead: as the only document of a message it opens formatted, with its beginning shown right in the chat.",
             "example": "Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur, liaison, necessary, surveillance, questionnaire."
           },
           "files": {
@@ -8797,7 +8797,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Delete message. Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. There are no time restrictions on message deletion. The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a \"Message deleted\" note stays in place of the message in the conversation. The thread created under this message stays, together with the whole conversation inside it. A repeated deletion responds `204` and no longer changes anything. Its text, files and reactions are gone for everyone and cannot be brought back; in the app a placeholder saying it was deleted stays in its place. Name exactly the message that goes.",
+      "description": "Delete message. Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. There are no time restrictions on message deletion. The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a \"Message deleted\" note stays in place of the message in the conversation. The thread created under this message stays, together with the whole conversation inside it. A repeated deletion responds `204` and no longer changes anything.\n\nNot for:\n- Taking back something you only regret sending — update_message edits it in place instead.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -9310,7 +9310,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "List users who read the message. Which of the chat members have read the feed up to this message. A flat array of IDs is returned. The caller themselves and the author of the message will never be in the list — only the other members are counted. For a message in a thread these are the members of the thread, not of the parent chat. The method does not return names. They are fetched with the `get_user` method for each ID. It returns ids, not names; pair it with list_users when names are wanted.",
+      "description": "List users who read the message. Which of the chat members have read the feed up to this message. A flat array of IDs is returned. The caller themselves and the author of the message will never be in the list — only the other members are counted. For a message in a thread these are the members of the thread, not of the parent chat. The method does not return names. They are fetched with the `get_user` method for each ID.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -9658,7 +9658,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Own profile. The profile of the token owner. For a bot token this is the bot's own profile. The time zone from here is needed by anyone who turns human deadlines into dates: \"by 3 p.m.\" and \"by Friday\" are counted in the employee's time zone, not in UTC. An empty value means the workspace time zone. Someone else's profile is returned by `get_user`. Your name and id are already in the instructions and in the footer of every result — read the card when the rest matters, such as your time zone, which decides what «до 15:00» means.",
+      "description": "Own profile. The profile of the token owner. For a bot token this is the bot's own profile. The time zone from here is needed by anyone who turns human deadlines into dates: \"by 3 p.m.\" and \"by Friday\" are counted in the employee's time zone, not in UTC. An empty value means the workspace time zone. Someone else's profile is returned by `get_user`.\n\nUse it when:\n- Something about you beyond name and id matters — your time zone, which decides what «до 15:00» means. The name and the id are already in your instructions and in every footer.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -10107,7 +10107,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New own status. Sets a status for the token owner: an emoji, a caption, and, if needed, an expiry. It is available to a bot as well — the status will be visible on the bot. Away mode is turned on by this same method, with the `is_away` flag. `away_message` holds the text shown in the profile and to anyone trying to write to them or mention them. When the `expires_at` moment passes, the whole status is cleared, the mode and that text along with it. Only the fields you pass are overwritten. To extend the current status it is enough to send `expires_at` alone. An expiry that an employee names in words — \"until three\", \"until the end of the day\" — is exactly `expires_at`, not a part of the caption. It is counted in the employee's time zone, and the zone arrives in `get_my_card`. The emoji is required, and there must be exactly one, with no text around it. The caption is required and no longer than 50 characters. A time the person names — «до трёх» — goes to expires_at, not into the text.",
+      "description": "New own status. Sets a status for the token owner: an emoji, a caption, and, if needed, an expiry. It is available to a bot as well — the status will be visible on the bot. Away mode is turned on by this same method, with the `is_away` flag. `away_message` holds the text shown in the profile and to anyone trying to write to them or mention them. When the `expires_at` moment passes, the whole status is cleared, the mode and that text along with it. Only the fields you pass are overwritten. To extend the current status it is enough to send `expires_at` alone. An expiry that an employee names in words — \"until three\", \"until the end of the day\" — is exactly `expires_at`, not a part of the caption. It is counted in the employee's time zone, and the zone arrives in `get_my_card`. The emoji is required, and there must be exactly one, with no text around it. The caption is required and no longer than 50 characters.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -10490,7 +10490,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Search messages. Searches by message text and by the names of attachments, but only in the chats the token owner belongs to. A public channel they have not joined does not make it into the search, even though its feed can be read. Thread messages are included in the results. The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query in quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it. By default messages come from newest to oldest. `sort=relevance` switches the results to how well they match the query, where recent messages are still valued higher. It searches only the chats the person is a member of: an open channel they have not joined stays out, and its feed is read with list_chat_messages instead.\n\nNot for:\n- What happened lately with nothing specific to look for — «что нового за выходные» — list_chats sorted by the last message, then the feeds that moved. A search needs words to match.",
+      "description": "Search messages. Searches by message text and by the names of attachments, but only in the chats the token owner belongs to. A public channel they have not joined does not make it into the search, even though its feed can be read. Thread messages are included in the results. The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query in quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it. By default messages come from newest to oldest. `sort=relevance` switches the results to how well they match the query, where recent messages are still valued higher.\n\nNot for:\n- What happened lately with nothing specific to look for — «что нового за выходные» — list_chats sorted by the last message, then the feeds that moved. A search needs words to match.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -12376,7 +12376,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "List threads. Threads available to the token owner. Returns threads where you belong either to the thread itself or to the chat it was started in. Belonging to the thread is enough: you do not have to join the chat with the parent message, and standalone threads come as well. Threads from open chats of the workspace you have not joined, however, do not make it into the list, even though those chats are available to you. Sorted by the time of the last message in the thread, descending. A list item carries neither a title nor any text: only the identifiers of the thread, its chat, and the parent message. To find out what a thread is about, read its messages with `list_chat_messages` by `chat_id`, and a thread known by its topic is found with `search_messages`. A thread has no title and this list carries no text, so a thread the person names by its topic — «тред про закупку ноутбуков» — is found with search_messages, not here.",
+      "description": "List threads. Threads available to the token owner. Returns threads where you belong either to the thread itself or to the chat it was started in. Belonging to the thread is enough: you do not have to join the chat with the parent message, and standalone threads come as well. Threads from open chats of the workspace you have not joined, however, do not make it into the list, even though those chats are available to you. Sorted by the time of the last message in the thread, descending. A list item carries neither a title nor any text: only the identifiers of the thread, its chat, and the parent message. To find out what a thread is about, read its messages with `list_chat_messages` by `chat_id`, and a thread known by its topic is found with `search_messages`.\n\nNot for:\n- A thread the person names by its topic — «тред про закупку ноутбуков» — search_messages finds it, this list carries no text to match.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -14127,7 +14127,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "Delete employee. Removes an employee from the workspace. This cannot be undone: they can be brought back only with a new invitation, and that will already be a different employee. What happens: they leave all conversations and channels except direct messages, all tags are taken off them, the tasks where they were the only assignee are deleted, and they are removed from the remaining ones. The messages and files they wrote stay in place. The workspace owner cannot be deleted — the method responds `403`. A repeated call responds `404`: the method no longer finds a deleted employee. If the employee is going on vacation or the dismissal is not final yet, use `update_user` with `suspended: true`. Suspension is reversible and keeps chats, tags, and tasks. Nothing here can be undone. «Удали», «насовсем» is the instruction — carry it out. «Заблокируй», «отключи», «пока» is update_user with suspended, which is reversible.",
+      "description": "Delete employee. Removes an employee from the workspace. This cannot be undone: they can be brought back only with a new invitation, and that will already be a different employee. What happens: they leave all conversations and channels except direct messages, all tags are taken off them, the tasks where they were the only assignee are deleted, and they are removed from the remaining ones. The messages and files they wrote stay in place. The workspace owner cannot be deleted — the method responds `403`. A repeated call responds `404`: the method no longer finds a deleted employee. If the employee is going on vacation or the dismissal is not final yet, use `update_user` with `suspended: true`. Suspension is reversible and keeps chats, tags, and tasks.\n\nNot for:\n- «Заблокируй», «отключи», «пока» — update_user with suspended, which is reversible.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -14382,7 +14382,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "New employee status. Sets a status for another employee — for example, \"on vacation\" for the time of their absence. Available to the workspace owner and an administrator; not to a bot, even with the scope. This same method turns on away mode for that employee with the `is_away` flag and sets the `away_message` text that anyone reaching out to them will see. The status is seen by everyone who sees the employee in the workspace. Only the fields you pass are overwritten, so someone else's status can be extended with `expires_at` alone. An expiry named in words is `expires_at`, not a part of the caption, and it is counted in the time zone of the employee the status is set for. The emoji is required and there must be exactly one; the caption is required and no longer than 50 characters. Your own status is set by the `update_my_status` method — it is available to all roles and to bots. Everyone in the workspace who can see the person sees it. A time the person names goes to expires_at, not into the text.",
+      "description": "New employee status. Sets a status for another employee — for example, \"on vacation\" for the time of their absence. Available to the workspace owner and an administrator; not to a bot, even with the scope. This same method turns on away mode for that employee with the `is_away` flag and sets the `away_message` text that anyone reaching out to them will see. The status is seen by everyone who sees the employee in the workspace. Only the fields you pass are overwritten, so someone else's status can be extended with `expires_at` alone. An expiry named in words is `expires_at`, not a part of the caption, and it is counted in the time zone of the employee the status is set for. The emoji is required and there must be exactly one; the caption is required and no longer than 50 characters. Your own status is set by the `update_my_status` method — it is available to all roles and to bots.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -14561,7 +14561,7 @@
         "bot"
       ],
       "bot_token_only": true,
-      "description": "Open view. Shows a user a modal window with a form in response to their action. The method is called with a bot token: button click events reach bots only, and the window is opened on behalf of the bot. There is only one way to open the window — by the `trigger_id` from the button click event. One `trigger_id` opens one window and lives for 3 seconds: for a bot with a webhook, from the moment Pachca delivered the click, and for a bot with the `get_webhook_events`, from the moment the click was written to it. That is why the window is opened first of all, and everything else for the event is done afterwards. The filled-in form comes back as a `view_submit` event: to the outgoing webhook, and if no address is set, to the event history. A webhook is answered in the response to it, and Pachca waits 3 seconds for that. An event from the history is closed with `answer_form`, and there are 5 seconds for that. Miss the window and the user sees a submission error. A trigger_id opens one form, within three seconds of Pachca handing the button press to the bot — for a bot reading its event history, of the press appearing there — so open the form before doing anything else with that event.",
+      "description": "Open view. Shows a user a modal window with a form in response to their action. The method is called with a bot token: button click events reach bots only, and the window is opened on behalf of the bot. There is only one way to open the window — by the `trigger_id` from the button click event. One `trigger_id` opens one window and lives for 3 seconds: for a bot with a webhook, from the moment Pachca delivered the click, and for a bot with the `get_webhook_events`, from the moment the click was written to it. That is why the window is opened first of all, and everything else for the event is done afterwards. The filled-in form comes back as a `view_submit` event: to the outgoing webhook, and if no address is set, to the event history. A webhook is answered in the response to it, and Pachca waits 3 seconds for that. An event from the history is closed with `answer_form`, and there are 5 seconds for that. Miss the window and the user sees a submission error.\n\nUse it when:\n- A button press has just arrived — open the form before doing anything else with that event.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -15552,7 +15552,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 33825
+      "model_tokens": 33289
     },
     "owner": {
       "role": "owner",
@@ -15632,7 +15632,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 30970
+      "model_tokens": 30456
     },
     "admin": {
       "role": "admin",
@@ -15712,7 +15712,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 30970
+      "model_tokens": 30456
     },
     "user": {
       "role": "user",
@@ -15782,7 +15782,7 @@
         "pachca_get_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 27354
+      "model_tokens": 26914
     },
     "bot": {
       "role": "bot",
@@ -15848,7 +15848,7 @@
         "pachca_delete_webhook_event",
         "pachca_search_documentation"
       ],
-      "model_tokens": 23525
+      "model_tokens": 23156
     }
   }
 }

@@ -24,8 +24,17 @@
  *    value and has no place for that.
  * 3. **The consequence worth knowing** before a call that cannot be taken back.
  *
- * A fact about behaviour that the spec is missing is written here only until the
- * spec has it — each such sentence is a documentation fix waiting to be made.
+ * A fact about behaviour does not belong here at all. The spec's description is
+ * read by everything — documentation, CLI, SDK, llms.txt — so a fact written
+ * here reaches only whoever came through MCP, and a fact written in both places
+ * drifts. Missing from the spec is not a reason to write it here: it is a
+ * documentation fix, and the fix is cheap. The `description` field survives for
+ * the one thing that is about the model rather than the API — what not to do
+ * with what the answer hands back.
+ *
+ * The build checks the mechanical half of this: six words shared between prose
+ * and the operation's description fail it. Reworded restatement it cannot see,
+ * so the rule above is the one that matters.
  *
  * Examples here never borrow from the scenarios: no chat, tag, id or phrasing a
  * request of `mcp-scenarios.ts` uses. A model that copies an example must not pass
@@ -60,9 +69,9 @@ export interface ToolProse {
  * already names the two spellings of a mention there, so this says the rest.
  */
 const MARKDOWN_NOTE =
-  'A bare name, or a mention inside code, mentions nobody. Write a list as separate lines, and for a ' +
-  'table, a checklist or a diagram attach a `.md` file instead: it opens formatted, and as the only ' +
-  'document of a message, up to 150 KB, its beginning shows right in the chat.';
+  'Write a list as separate lines, and for a table, a checklist or a diagram attach a `.md` file ' +
+  'instead: as the only document of a message it opens formatted, with its beginning shown right ' +
+  'in the chat.';
 
 /**
  * What to put in a moment the person named in words. Where the dates come from
@@ -142,22 +151,18 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
 
   // ── Tags: on chats and on people ────────────────────────────────────────
   create_tag: {
-    description: 'People are put into a tag on their own card — update_user with list_tags, one person at a time.',
+    notFor: ['Putting people into the tag — update_user with list_tags, one person at a time.'],
   },
   update_user: {
     arguments: {
     },
   },
   delete_tag: {
-    description: 'The people the tag brought into chats stay in them as ordinary members.',
     notFor: [
       'Detaching a tag from one chat — remove_tag_from_chat; this takes it off every chat it is attached to.',
     ],
   },
   remove_tag_from_chat: {
-    description:
-      'The people who came into the chat with the tag leave it, shortly after the call answers — even ' +
-      'those added by hand since — except the chat owner and anyone another tag of this chat brings in.',
   },
 
   // ── Deadlines and statuses ──────────────────────────────────────────────
@@ -185,13 +190,9 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
     },
   },
   update_my_status: {
-    description: 'A time the person names — «до трёх» — goes to expires_at, not into the text.',
     arguments: { expires_at: NAMED_DAY_NOTE },
   },
   update_user_status: {
-    description:
-      'Everyone in the workspace who can see the person sees it. A time the person names goes to ' +
-      'expires_at, not into the text.',
     arguments: { expires_at: NAMED_DAY_NOTE },
   },
 
@@ -199,45 +200,27 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   // The sentences about behaviour below are missing from the operation
   // descriptions and belong there.
   leave_chat: {
-    description:
-      'In a closed conversation the others see that you left, and getting back takes someone inside ' +
-      'to add you; an open chat or channel can be rejoined at any time. Membership that came with a ' +
-      'group tag cannot be left this way.',
     notFor: ['Removing somebody else — remove_member.'],
   },
   archive_chat: {
-    description:
-      'The chat leaves everyone’s list and refuses new messages and threads, while threads already in ' +
-      'it stay open; the history stays. Archiving also removes guests and detaches group tags, and ' +
-      'unarchive_chat brings the chat back without them.',
   },
   delete_message: {
-    description:
-      'Its text, files and reactions are gone for everyone and cannot be brought back; in the app a ' +
-      'placeholder saying it was deleted stays in its place. Name exactly the message that goes.',
+    notFor: ['Taking back something you only regret sending — update_message edits it in place instead.'],
   },
   delete_user: {
-    description:
-      'Nothing here can be undone. «Удали», «насовсем» is the instruction — carry it out. ' +
-      '«Заблокируй», «отключи», «пока» is update_user with suspended, which is reversible.',
+    notFor: ['«Заблокируй», «отключи», «пока» — update_user with suspended, which is reversible.'],
   },
   remove_member: {
-    description:
-      'In a closed chat they lose its history, though not the threads they take part in. Someone who ' +
-      'is in the chat through a group tag stays, even though the call answers success: take them out ' +
-      'with remove_tag_from_chat, or with update_user leaving that tag out of list_tags.',
+    notFor: [
+      'Taking out somebody a group tag holds in the chat — remove_tag_from_chat, or update_user with ' +
+        'that tag left out of list_tags.',
+    ],
   },
   create_bot: {
-    description:
-      'A bot writes into a conversation or channel only once it is a member there, and its incoming ' +
-      'webhook posts into every conversation and channel it is a member of — so the chats it is added ' +
-      'to decide where its posts land. It is added with add_members, its id in member_ids, and in a ' +
-      'channel it becomes an editor. Direct messages, and threads in open chats, need no membership.',
+    notFor: ['Putting the bot into a chat — add_members, its id in member_ids.'],
   },
   recreate_bot_token: {
-    description:
-      'Only the main token is replaced: other tokens issued on the bot’s page keep working. Hand the new ' +
-      'token to the person, never into a chat.',
+    description: 'Hand the new token to the person, never into a chat.',
   },
 
   // ── Reading: which of the neighbours shows what ─────────────────────────
@@ -248,12 +231,12 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
     notFor: ['What kind of chat it is — get_chat.', 'Finding a chat by name — list_chats.'],
   },
   list_threads: {
-    description:
-      'A thread has no title and this list carries no text, so a thread the person names by its topic ' +
-      '— «тред про закупку ноутбуков» — is found with search_messages, not here.',
+    notFor: [
+      'A thread the person names by its topic — «тред про закупку ноутбуков» — search_messages finds ' +
+        'it, this list carries no text to match.',
+    ],
   },
   list_message_readers: {
-    description: 'It returns ids, not names; pair it with list_users when names are wanted.',
   },
   search_chats: {
     notFor: [
@@ -263,9 +246,6 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
     ],
   },
   search_messages: {
-    description:
-      'It searches only the chats the person is a member of: an open channel they have not joined ' +
-      'stays out, and its feed is read with list_chat_messages instead.',
     notFor: [
       'What happened lately with nothing specific to look for — «что нового за выходные» — ' +
         'list_chats sorted by the last message, then the feeds that moved. A search needs words to ' +
@@ -273,21 +253,19 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
     ],
   },
   get_my_card: {
-    description:
-      'Your name and id are already in the instructions and in the footer of every result — read the ' +
-      'card when the rest matters, such as your time zone, which decides what «до 15:00» means.',
+    whenToUse: [
+      'Something about you beyond name and id matters — your time zone, which decides what «до 15:00» ' +
+        'means. The name and the id are already in your instructions and in every footer.',
+    ],
   },
   download_export: {
-    description:
-      'The id is the one the person names or pastes — «выгрузка 812» is export 812, not a message. ' +
-      'The link the answer carries is for the person: hand it over straight away.',
+    arguments: {
+      id: 'The one the person names or pastes — «выгрузка 812» is export 812, not a message.',
+    },
   },
 
   // ── Forms: bot-only, and the names hide what they do ────────────────────
   open_form: {
-    description:
-      'A trigger_id opens one form, within three seconds of Pachca handing the button press to the ' +
-      'bot — for a bot reading its event history, of the press appearing there — so open the form ' +
-      'before doing anything else with that event.',
+    whenToUse: ['A button press has just arrived — open the form before doing anything else with that event.'],
   },
 };

@@ -3460,7 +3460,7 @@ paths:
         spaces the employees of that tag. In a thread a mention also works as an invitation: a mentioned employee who is
         not in the thread is added to it by Pachca and gains access to the thread and its parent message. To prevent
         that, pass `skip_invite_mentions: true`. In a conversation or a channel a mention adds nobody, and the parameter
-        changes nothing there.
+        changes nothing there. A name without `@`, and a mention inside inline code or a code block, are not mentions.
 
 
         Buttons can be shown under the message text — the `buttons` array, where each nested array is a row. They only

@@ -668,9 +668,9 @@ export const SERVICE_TOOLS: McpServiceTool[] = [
     description:
       'How Pachca itself works, as opposed to what is inside this workspace: the way a webhook ' +
       'signature is checked, how paging works, what a thread is and when one is the right place, ' +
-      'what a bot token may do. Ask in plain words, name an area and get its working rules in one ' +
-      'read, or read the page another tool’s description points to. Any question about how Pachca ' +
-      'behaves belongs here — answering it from memory is how a confident wrong answer reaches the person.',
+      'what a bot token may do. Ask in plain words, or read the whole page another tool’s ' +
+      'description points to. Any question about how Pachca behaves belongs here — answering it ' +
+      'from memory is how a confident wrong answer reaches the person.',
     // The documentation is public; nothing of the workspace is read. It travels
     // in the package beside the manifest — the pages are generated from the same
     // repository — so the runtime answers from data it already has instead of
@@ -682,12 +682,6 @@ export const SERVICE_TOOLS: McpServiceTool[] = [
         name: 'query',
         type: 'string',
         description: 'Look this up in the documentation, in plain words: "webhook signature", "pagination".',
-      },
-      {
-        name: 'area',
-        type: 'string',
-        enum: ['messages', 'threads', 'chats', 'people', 'tasks', 'files', 'search', 'administration', 'bots'],
-        description: 'Read the working rules for this area. Pass query, area or both.',
       },
       {
         // A description points at a page by its path; the page comes back whole,

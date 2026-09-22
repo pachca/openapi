@@ -15527,7 +15527,7 @@
         "file": "mcp-docs.json"
       },
       "scopes": [],
-      "description": "How Pachca itself works, as opposed to what is inside this workspace: the way a webhook signature is checked, how paging works, what a thread is and when one is the right place, what a bot token may do. Ask in plain words, name an area and get its working rules in one read, or read the page another tool’s description points to. Any question about how Pachca behaves belongs here — answering it from memory is how a confident wrong answer reaches the person.",
+      "description": "How Pachca itself works, as opposed to what is inside this workspace: the way a webhook signature is checked, how paging works, what a thread is and when one is the right place, what a bot token may do. Ask in plain words, or read the whole page another tool’s description points to. Any question about how Pachca behaves belongs here — answering it from memory is how a confident wrong answer reaches the person.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -15540,21 +15540,6 @@
           "query": {
             "type": "string",
             "description": "Look this up in the documentation, in plain words: \"webhook signature\", \"pagination\"."
-          },
-          "area": {
-            "type": "string",
-            "enum": [
-              "messages",
-              "threads",
-              "chats",
-              "people",
-              "tasks",
-              "files",
-              "search",
-              "administration",
-              "bots"
-            ],
-            "description": "Read the working rules for this area. Pass query, area or both."
           },
           "page": {
             "type": "string",
@@ -15719,7 +15704,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 32154
+      "model_tokens": 32096
     },
     "owner": {
       "role": "owner",
@@ -15799,7 +15784,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 29311
+      "model_tokens": 29253
     },
     "admin": {
       "role": "admin",
@@ -15879,7 +15864,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 29311
+      "model_tokens": 29253
     },
     "user": {
       "role": "user",
@@ -15949,7 +15934,7 @@
         "pachca_get_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 25950
+      "model_tokens": 25892
     },
     "bot": {
       "role": "bot",
@@ -16015,7 +16000,7 @@
         "pachca_delete_webhook_event",
         "pachca_search_documentation"
       ],
-      "model_tokens": 22273
+      "model_tokens": 22215
     }
   }
 }

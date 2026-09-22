@@ -164,6 +164,15 @@ export const DESTRUCTIVE = new Set<OperationKey>([
  *
  * Optional on purpose: most sends start from nothing and have no draft to name.
  */
+/**
+ * What the server does with `draft_id` after the send goes through. Declared
+ * here so the runtime executes what the manifest says instead of knowing this
+ * one argument by name: a second argument like it would otherwise be a second
+ * change in the backend, and the point of the package is that new tools need
+ * none.
+ */
+export const DRAFT_CLEANUP = { operation: 'DELETE /drafts/{id}', at: 'id', on: 'success' } as const;
+
 export const DRAFT_ARGUMENT = {
   name: 'draft_id',
   type: 'integer' as const,
@@ -632,6 +641,12 @@ export interface McpServiceTool {
    */
   description: string;
   /**
+   * Where the answer comes from when it is not an API call: a file of the same
+   * package. Declared so the runtime serves it as data rather than carrying its
+   * own copy of the documentation.
+   */
+  source?: { kind: 'package'; file: string };
+  /**
    * Served only to clients that need it. The generic search/fetch pair exists
    * because one platform's research mode requires that exact shape; serving it
    * to everyone would spend two slots for nothing.
@@ -656,8 +671,12 @@ export const SERVICE_TOOLS: McpServiceTool[] = [
       'what a bot token may do. Ask in plain words, name an area and get its working rules in one ' +
       'read, or read the page another tool’s description points to. Any question about how Pachca ' +
       'behaves belongs here — answering it from memory is how a confident wrong answer reaches the person.',
-    // The documentation is public; nothing of the workspace is read.
+    // The documentation is public; nothing of the workspace is read. It travels
+    // in the package beside the manifest — the pages are generated from the same
+    // repository — so the runtime answers from data it already has instead of
+    // reaching out to the site, and new pages arrive with a new version.
     operations: [],
+    source: { kind: 'package', file: 'mcp-docs.json' },
     input: [
       {
         name: 'query',

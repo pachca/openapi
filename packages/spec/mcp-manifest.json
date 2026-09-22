@@ -333,10 +333,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "AuditEvent"
+            }
           }
         }
       },
+      "entity": "AuditEvent",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -699,6 +704,7 @@
       "request": {
         "arguments": {}
       },
+      "entity": "BotCreateResponse",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -895,6 +901,7 @@
           }
         }
       },
+      "entity": "BotResponse",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -1112,10 +1119,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "BotResponse"
+            }
           }
         }
       },
+      "entity": "BotResponse",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -1547,6 +1559,7 @@
           }
         }
       },
+      "entity": "BotCreateResponse",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -1752,10 +1765,15 @@
             "in": "path"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "BotResponse"
+            }
           }
         }
       },
+      "entity": "BotResponse",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -2155,6 +2173,7 @@
           }
         }
       },
+      "entity": "BotResponse",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -2390,6 +2409,7 @@
           }
         }
       },
+      "entity": "BotCreateResponse",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -2675,10 +2695,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Chat"
+            }
           }
         }
       },
+      "entity": "Chat",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -2880,6 +2905,7 @@
           }
         }
       },
+      "entity": "Chat",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -3140,10 +3166,15 @@
             "in": "path"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Chat"
+            }
           }
         }
       },
+      "entity": "Chat",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -3280,6 +3311,7 @@
           }
         }
       },
+      "entity": "Chat",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -3639,10 +3671,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "User"
+            }
           }
         }
       },
+      "entity": "User",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -4197,10 +4234,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "CompanyBotResponse"
+            }
           }
         }
       },
+      "entity": "CompanyBotResponse",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -4486,10 +4528,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Chat"
+            }
           }
         }
       },
+      "entity": "Chat",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -4639,6 +4686,7 @@
           }
         }
       },
+      "entity": "CustomPropertyDefinition",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -4758,6 +4806,7 @@
           }
         }
       },
+      "entity": "Draft",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -5249,6 +5298,7 @@
           }
         }
       },
+      "entity": "Draft",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -5513,6 +5563,7 @@
           }
         }
       },
+      "entity": "Draft",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -5957,6 +6008,7 @@
           }
         }
       },
+      "entity": "Draft",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -6356,6 +6408,7 @@
           }
         }
       },
+      "entity": "GroupTag",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -6457,6 +6510,7 @@
           }
         }
       },
+      "entity": "GroupTag",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -6527,6 +6581,7 @@
           }
         }
       },
+      "entity": "GroupTag",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -6607,6 +6662,7 @@
           }
         }
       },
+      "entity": "GroupTag",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -6746,10 +6802,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "User"
+            }
           }
         }
       },
+      "entity": "User",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -7099,10 +7160,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Message"
+            }
           }
         }
       },
+      "entity": "Message",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -7656,7 +7722,16 @@
             "at": "link_preview"
           },
           "draft_id": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "operation": "DELETE /drafts/{id}",
+              "at": "id",
+              "on": "success",
+              "kind": "after",
+              "scopes": [
+                "drafts:write"
+              ]
+            }
           },
           "files": {
             "in": "upload",
@@ -7671,6 +7746,7 @@
           }
         }
       },
+      "entity": "Message",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -8009,10 +8085,15 @@
             "in": "path"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Message"
+            }
           }
         }
       },
+      "entity": "Message",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -8490,6 +8571,7 @@
           }
         }
       },
+      "entity": "Message",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -9078,10 +9160,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Reaction"
+            }
           }
         }
       },
+      "entity": "Reaction",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -9206,6 +9293,7 @@
           }
         }
       },
+      "entity": "Reaction",
       "outputSchema": {
         "type": "object",
         "description": "Message reaction",
@@ -9437,6 +9525,7 @@
           }
         }
       },
+      "entity": "Thread",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -9509,6 +9598,7 @@
       "request": {
         "arguments": {}
       },
+      "entity": "AccessTokenInfo",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -9677,10 +9767,15 @@
       "request": {
         "arguments": {
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "User"
+            }
           }
         }
       },
+      "entity": "User",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -9949,6 +10044,7 @@
           }
         }
       },
+      "entity": "AvatarData",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -10033,10 +10129,15 @@
       "request": {
         "arguments": {
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "UserStatus"
+            }
           }
         }
       },
+      "entity": "UserStatus",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -10171,6 +10272,7 @@
           }
         }
       },
+      "entity": "UserStatus",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -10369,10 +10471,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Chat"
+            }
           }
         }
       },
+      "entity": "Chat",
       "outputSchema": {
         "type": "object",
         "description": "Search results response wrapper with data and pagination",
@@ -10617,10 +10724,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Message"
+            }
           }
         }
       },
+      "entity": "Message",
       "outputSchema": {
         "type": "object",
         "description": "Search results response wrapper with data and pagination",
@@ -11061,10 +11173,15 @@
             "explode": false
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "User"
+            }
           }
         }
       },
+      "entity": "User",
       "outputSchema": {
         "type": "object",
         "description": "Search results response wrapper with data and pagination",
@@ -11426,10 +11543,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Task"
+            }
           }
         }
       },
+      "entity": "Task",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -11728,6 +11850,7 @@
           }
         }
       },
+      "entity": "Task",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -11900,10 +12023,15 @@
             "in": "path"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Task"
+            }
           }
         }
       },
+      "entity": "Task",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -12192,6 +12320,7 @@
           }
         }
       },
+      "entity": "Task",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -12433,10 +12562,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Thread"
+            }
           }
         }
       },
+      "entity": "Thread",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -12540,6 +12674,7 @@
       "request": {
         "arguments": {}
       },
+      "entity": "Thread",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -12634,10 +12769,15 @@
             "in": "path"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "Thread"
+            }
           }
         }
       },
+      "entity": "Thread",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -12748,10 +12888,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "User"
+            }
           }
         }
       },
+      "entity": "User",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -13203,6 +13348,7 @@
           }
         }
       },
+      "entity": "User",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -13478,10 +13624,15 @@
             "in": "path"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "User"
+            }
           }
         }
       },
+      "entity": "User",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -13885,6 +14036,7 @@
           }
         }
       },
+      "entity": "User",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -14202,6 +14354,7 @@
           }
         }
       },
+      "entity": "AvatarData",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -14310,10 +14463,15 @@
             "in": "path"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "UserStatus"
+            }
           }
         }
       },
+      "entity": "UserStatus",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -14456,6 +14614,7 @@
           }
         }
       },
+      "entity": "UserStatus",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data",
@@ -14889,6 +15048,7 @@
           }
         }
       },
+      "entity": "SubmitViewResponseResult",
       "outputSchema": {
         "type": "object",
         "description": "Form submission response result",
@@ -14955,10 +15115,15 @@
             "in": "query"
           },
           "view": {
-            "in": "server"
+            "in": "server",
+            "effect": {
+              "kind": "projection",
+              "entity": "WebhookEvent"
+            }
           }
         }
       },
+      "entity": "WebhookEvent",
       "outputSchema": {
         "type": "object",
         "description": "Response wrapper with data and pagination",
@@ -15357,6 +15522,10 @@
       "kind": "read",
       "compat": false,
       "operations": [],
+      "source": {
+        "kind": "package",
+        "file": "mcp-docs.json"
+      },
       "scopes": [],
       "description": "How Pachca itself works, as opposed to what is inside this workspace: the way a webhook signature is checked, how paging works, what a thread is and when one is the right place, what a bot token may do. Ask in plain words, name an area and get its working rules in one read, or read the page another tool’s description points to. Any question about how Pachca behaves belongs here — answering it from memory is how a confident wrong answer reaches the person.",
       "annotations": {

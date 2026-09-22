@@ -64,6 +64,7 @@ import {
   TOOL_NAME_IN_PROSE,
   TOOL_PREFIX,
   DRAFT_ARGUMENT,
+  DRAFT_CLEANUP,
   VIEW_ARGUMENT,
   type McpServiceTool,
   type OperationKey,
@@ -442,6 +443,16 @@ interface ArgumentPlace {
    */
   operations?: OperationKey[];
   scopes?: string[];
+  /**
+   * What the server does with an argument the API has no field for. Written out
+   * so the runtime executes a declaration instead of knowing the argument by
+   * name: `view` cuts the answer to the card of an entity, `draft_id` runs one
+   * more operation once the first one succeeded. A third such argument is then a
+   * new version of the package rather than a change in the backend.
+   */
+  effect?:
+    | { kind: 'projection'; entity: string }
+    | { kind: 'after'; operation: OperationKey; at: string; on: 'success'; scopes: string[] };
 }
 
 interface BuiltInput {
@@ -509,13 +520,15 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
   const card = responseEntity(op, docEn);
   if (op.kind === 'read' && card && COMPACT_PROJECTIONS[card]) {
     const { name, ...rest } = VIEW_ARGUMENT;
-    claim(name, { in: 'server' }, rest as JsonSchema);
+    claim(name, { in: 'server', effect: { kind: 'projection', entity: card } }, rest as JsonSchema);
   }
   // A send may finish a draft (`DRAFT_ARGUMENT`): naming it here keeps the
   // tidying inside the act that made it necessary, instead of a second call.
   if (op.key === 'POST /messages') {
     const { name, ...rest } = DRAFT_ARGUMENT;
-    claim(name, { in: 'server' }, rest as JsonSchema);
+    // The scope of the operation that clears the draft is filled from the spec
+    // beside the tool, the same way an upload step brings its own.
+    claim(name, { in: 'server', effect: { ...DRAFT_CLEANUP, kind: 'after', scopes: [] } }, rest as JsonSchema);
   }
   // Written argument text follows the spec's rather than replacing it: the spec
   // says what the field is, prose what to put there — the day a deadline lands on,
@@ -747,6 +760,8 @@ interface BuiltTool {
   request: BuiltInput['request'];
   clashes: string[];
   outputSchema: JsonSchema | null;
+  /** The entity a successful answer carries, when the spec names one. */
+  entity: string | null;
 }
 
 /**
@@ -927,8 +942,20 @@ function build(): void {
         request: input.request,
         clashes: input.clashes,
         outputSchema: outputSchema(op, docEn),
+        entity: responseEntity(op, docEn),
       };
     });
+
+  // An operation a declared effect runs brings its own scope, read from the
+  // spec: a token that may send a message but not delete a draft is refused
+  // before the send rather than left with a draft it cannot clear.
+  for (const tool of tools) {
+    for (const place of Object.values(tool.request.arguments)) {
+      if (place.effect?.kind !== 'after') continue;
+      const after = byKey.get(place.effect.operation);
+      if (after?.scope && !place.effect.scopes.includes(after.scope)) place.effect.scopes.push(after.scope);
+    }
+  }
 
   // ── Checks ───────────────────────────────────────────────────────────────
   const seen = new Set<string>();
@@ -1099,6 +1126,49 @@ function build(): void {
       else if (op.scope && !scopes.includes(op.scope)) scopes.push(op.scope);
     }
     serviceScopes.set(tool.name, scopes);
+  }
+
+  // The runtime executes what the manifest declares, so an argument the API has
+  // no field for has to say what the server does with it. Without that line the
+  // backend learns the argument by name, and the next one like it is a change in
+  // the backend rather than a new version of the package.
+  for (const tool of tools) {
+    for (const [name, place] of Object.entries(tool.request.arguments)) {
+      if (place.in !== 'server') continue;
+      const effect = place.effect;
+      if (!effect) {
+        problems.push(`${tool.name} takes ${name}, which the API has no field for, and does not say what the server does with it`);
+        continue;
+      }
+      if (effect.kind === 'projection') {
+        if (!COMPACT_PROJECTIONS[effect.entity]) problems.push(`${tool.name} cuts ${name} to the card of ${effect.entity}, which has no card`);
+        if (tool.entity !== effect.entity) problems.push(`${tool.name} answers with ${tool.entity ?? 'nothing named'} and cuts ${name} to ${effect.entity}`);
+      }
+      if (effect.kind === 'after') {
+        const after = byKey.get(effect.operation);
+        if (!after) problems.push(`${tool.name} runs ${effect.operation} after ${name}, which is not an operation of the spec`);
+        else if (after.scope && !effect.scopes.includes(after.scope)) {
+          problems.push(`${tool.name} runs ${effect.operation}, which needs ${after.scope}, and ${name} does not require it`);
+        }
+      }
+    }
+  }
+
+  // A service tool that answers from the package has to have that file, and the
+  // pages the descriptions send a model to have to be in it. Otherwise a link
+  // turned into «read this page» points at a page the server cannot serve.
+  for (const tool of SERVICE_TOOLS) {
+    if (!tool.source) continue;
+    const bundle = path.join(HERE, '..', '..', '..', 'apps', 'docs', 'public', tool.source.file);
+    if (!fs.existsSync(bundle)) continue;
+    const pages = new Set<string>(
+      (JSON.parse(fs.readFileSync(bundle, 'utf8')).pages ?? []).map((p: { path: string }) => p.path),
+    );
+    const wanted = new Set<string>();
+    for (const t of tools) for (const [, page] of `${t.description}${JSON.stringify(t.inputSchema)}`.matchAll(/page `([^`]+)`/g)) wanted.add(page!);
+    for (const page of wanted) {
+      if (!pages.has(page)) problems.push(`a description sends a model to ${page}, which ${tool.source.file} does not carry`);
+    }
   }
 
   // Prose must not say again what the spec already says. A fact with two homes
@@ -1384,6 +1454,7 @@ function build(): void {
       annotations: t.annotations,
       inputSchema: t.inputSchema,
       request: t.request,
+      ...(t.entity ? { entity: t.entity } : {}),
       ...(t.outputSchema ? { outputSchema: t.outputSchema } : {}),
     })),
     service_tools: SERVICE_TOOLS.map((t: McpServiceTool) => ({
@@ -1391,6 +1462,7 @@ function build(): void {
       kind: t.kind,
       compat: Boolean(t.compat),
       operations: t.operations,
+      ...(t.source ? { source: t.source } : {}),
       scopes: serviceScopes.get(t.name) ?? [],
       description: t.description,
       annotations: {

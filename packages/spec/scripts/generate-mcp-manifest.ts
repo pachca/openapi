@@ -234,7 +234,9 @@ function property(schema: any, doc: YamlNode, depth = 0, shape: Shape = { side: 
     const said = String(out.description ?? '').trim();
     out.description = `${said && !/[.!?]$/.test(said) ? `${said}.` : said} The file contents, base64-encoded.`.trim();
   }
-  if (typeof out.description === 'string') out.description = out.description.replace(/\s+/g, ' ').trim();
+  // A field points at neighbours the same way an operation does, so it gets the
+  // same translation: a method becomes its tool, a guide becomes a page to read.
+  if (typeof out.description === 'string') out.description = linksAsTools(out.description).replace(/\s+/g, ' ').trim();
   return out;
 }
 
@@ -768,7 +770,8 @@ const HTTP_ONLY_SENTENCES = [
  */
 const HTTP_REWRITES: Array<[RegExp, string]> = [
   [/The server will respond with `302 Found` and a `Location` header containing ([^.]*)\./g, 'The answer is $1.'],
-  [/In response to the request the server returns `302 Found` with a `Location` header containing ([^.]*)\./g, 'The answer is $1, valid for five minutes.'],
+  // How long the link lives the spec says in a sentence of its own.
+  [/In response to the request the server returns `302 Found` with a `Location` header containing ([^.]*)\./g, 'The answer is $1.'],
   // Where a field sits in the HTTP body is the client's business; the tool takes
   // an argument, and the fact worth keeping is that the preview needs asking for.
   [/ at the root of the request body\./g, '.'],
@@ -802,10 +805,16 @@ const HTTP_LEFTOVER = /request `URL`|in the `URL`|request body|`302 Found`|`Loca
  * and loses the path: the fact stays, the dead end goes.
  */
 function linksAsTools(text: string): string {
-  return text.replace(/\[([^\]]+)\]\((GET|POST|PUT|DELETE) ([^)]+)\)/g, (_all, label: string, method: string, path: string) => {
-    const tool = TOOL_BY_KEY.get(`${method} ${path}`);
-    return tool ? `\`${tool}\`` : label;
-  });
+  return text
+    .replace(/\[([^\]]+)\]\((GET|POST|PUT|DELETE) ([^)]+)\)/g, (_all, label: string, method: string, path: string) => {
+      const tool = TOOL_BY_KEY.get(`${method} ${path}`);
+      return tool ? `\`${tool}\`` : label;
+    })
+    // A guide is a page, and `search_documentation` reads a page by its path. The
+    // title stays in quotes to say what the page is; the path is what gets passed,
+    // because the guides exist in Russian only and an English title finds nothing.
+    .replace(/\[([^\]]+)\]\((\/[^)#\s]+)(?:#[^)\s]*)?\)/g, (_all, label: string, page: string) =>
+      `"${label}" (\`search_documentation\`, page \`${page}\`)`);
 }
 
 function specText(op: Operation): string {
@@ -1117,6 +1126,16 @@ function build(): void {
         }
       }
     }
+    // The spec points at a neighbour with a link, which reaches the tool as a
+    // name in a code span — the run above skips those. A line naming the same
+    // neighbour says it again, unless it carries the words a request comes in:
+    // «давай обсудим это отдельно» is the one thing the spec has no place for.
+    const pointed = new Set([...specText(op).matchAll(/`(\w+)`/g)].map((m) => m[1]!).filter((n) => names.has(n)));
+    for (const [where, line] of written) {
+      if ((where !== 'whenToUse' && where !== 'notFor') || /«[^»]+»/.test(line)) continue;
+      const again = (line.match(TOOL_NAME_IN_PROSE) ?? []).find((n) => pointed.has(n));
+      if (again) problems.push(`${op.name} ${where} points at ${again}, which the spec already names`);
+    }
   }
 
   // Prose must not point at a tool the reader does not have, and must not tell
@@ -1129,7 +1148,7 @@ function build(): void {
   const quoted = TOOL_NAME_IN_PROSE;
   for (const tool of tools) {
     for (const quotedName of new Set(tool.description.match(quoted) ?? [])) {
-      if (!names.has(quotedName) && !tool.inputSchema.properties?.[quotedName] && !SPEC_VOCABULARY.has(quotedName)) {
+      if (!names.has(quotedName) && !serviceNames.has(quotedName) && !tool.inputSchema.properties?.[quotedName] && !SPEC_VOCABULARY.has(quotedName)) {
         problems.push(`${tool.name} names "${quotedName}", which is neither a tool, an argument, nor a name the spec uses`);
       }
     }

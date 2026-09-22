@@ -59,9 +59,9 @@ export const messageFields: INodeProperties[] = [
 		name: 'entityType',
 		type: 'options',
 		required: true,
-		options: [{ name: 'Discussion', value: 'discussion', description: 'Conversation or channel, never a thread' },
-{ name: 'Thread', value: 'thread', description: 'Thread: the message goes inside the discussion' },
-{ name: 'User', value: 'user', description: 'Employee: the message goes to the direct chat with them' }],
+		options: [{ name: 'Discussion', value: 'discussion', description: 'Conversation or channel' },
+{ name: 'Thread', value: 'thread' },
+{ name: 'User', value: 'user' }],
 		default: "discussion",
 		description: 'Entity type. The value is case-insensitive. A value outside the list returns `400` with the `invalid` code.',
 		displayOptions: { show: { resource: ['message'], operation: ['create'] } },
@@ -72,7 +72,7 @@ export const messageFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
-		description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or an employee',
+		description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user',
 		modes: [
 			{
 				displayName: 'From List',

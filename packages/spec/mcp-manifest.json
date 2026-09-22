@@ -2,7 +2,7 @@
   "schema_version": "2.0.0",
   "generated_from": {
     "spec": "openapi.yaml",
-    "digest": "93689b59d38d2cc3"
+    "digest": "e6bdd743c8c4e1d9"
   },
   "server": {
     "name": "pachca",
@@ -1311,7 +1311,7 @@
         "user"
       ],
       "bot_token_only": false,
-      "description": "New bot. Creates a bot in the workspace and immediately returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to reissue it with `recreate_bot_token`. A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member, and it is added like an employee — with the `add_members` method, passing the bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require membership. The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it is the set of its chats that decides where it lands. No token is needed for that, the webhook address is enough. To write into one particular chat, take the `send_message` method — that one does need a token. The nickname must end with `_bot` and be free in the workspace. The `single_chat` restriction is set only here: when editing a bot it can no longer be changed.\n\nNot for:\n- Putting the bot into a chat — add_members, its id in member_ids.",
+      "description": "New bot. Creates a bot in the workspace and immediately returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to reissue it with `recreate_bot_token`. A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member, and it is added like an employee — with the `add_members` method, passing the bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require membership. The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it is the set of its chats that decides where it lands. No token is needed for that, the webhook address is enough. To write into one particular chat, take the `send_message` method — that one does need a token. The nickname must end with `_bot` and be free in the workspace. The `single_chat` restriction is set only here: when editing a bot it can no longer be changed.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -2797,7 +2797,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New chat. Creates a conversation or a channel. The token owner becomes the chat owner, and this role is not transferred later on. To create a one-on-one direct message with a user, use the `send_message` method. To discuss a particular message there is no need to create a chat — a thread is started under it with the `create_thread` method. Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, are silently dropped — the response is successful but the employee is not in the chat, so check the membership in the response.\n\nNot for:\n- Talking one topic over, apart from any chat — «давай про закупку поговорим в сторонке» — create_unattached_thread.",
+      "description": "New chat. Creates a conversation or a channel. The token owner becomes the chat owner, and this role is not transferred later on. To create a one-on-one direct message with a user, use the `send_message` method. To discuss a particular message there is no need to create a chat — a thread is started under it with the `create_thread` method. A conversation on a single topic needs no permanent place either: there is the `create_unattached_thread` method for it. Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, are silently dropped — the response is successful but the employee is not in the chat, so check the membership in the response.\n\nNot for:\n- One topic talked over «в сторонке» — create_unattached_thread.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -3051,7 +3051,7 @@
         "owner"
       ],
       "bot_token_only": false,
-      "description": "Download export archive. The answer is a temporary download link for the file, valid for five minutes. The link is valid for 5 minutes, so download the archive right after the request. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission.",
+      "description": "Download export archive. The answer is a temporary download link for the file. The link is valid for 5 minutes, so download the archive right after the request. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -3524,7 +3524,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Leave chat. The token owner leaves a conversation, a channel, or a thread on their own. A thread is addressed by its `chat_id`. In a private conversation the others see a system message about the departure; in a public chat and in a channel they do not. You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is taken off the employee or off the chat. You cannot leave a direct message either, but you can leave an archived chat. You can come back to a public chat on your own, and to a private one only if one of the members adds you back. Another employee is taken out by `remove_member`.\n\nNot for:\n- Removing somebody else — remove_member.",
+      "description": "Leave chat. The token owner leaves a conversation, a channel, or a thread on their own. A thread is addressed by its `chat_id`. In a private conversation the others see a system message about the departure; in a public chat and in a channel they do not. You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is taken off the employee or off the chat. You cannot leave a direct message either, but you can leave an archived chat. You can come back to a public chat on your own, and to a private one only if one of the members adds you back. Another employee is taken out by `remove_member`.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -4051,7 +4051,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Remove user. Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its `chat_id`. In a private conversation the removed member loses access to the chat but stays in the threads they belonged to. An employee held in the chat by a linked tag cannot be removed with this method: the response will be successful, but the employee will stay in the chat. Take the tag off them with `update_user` or unlink the tag from the chat with the `remove_tag_from_chat` method. If the user is the chat owner, they cannot be removed. They can only leave the chat on their own using the `leave_chat` method.\n\nNot for:\n- Taking out somebody a group tag holds in the chat — remove_tag_from_chat, or update_user with that tag left out of list_tags.",
+      "description": "Remove user. Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its `chat_id`. In a private conversation the removed member loses access to the chat but stays in the threads they belonged to. An employee held in the chat by a linked tag cannot be removed with this method: the response will be successful, but the employee will stay in the chat. Take the tag off them with `update_user` or unlink the tag from the chat with the `remove_tag_from_chat` method. If the user is the chat owner, they cannot be removed. They can only leave the chat on their own using the `leave_chat` method.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -4144,7 +4144,7 @@
         "owner"
       ],
       "bot_token_only": false,
-      "description": "List workspace bots. Every bot in the workspace, including the ones you cannot edit. For those, only the name and the nickname are returned, the rest of the settings come as `null`. The method is available to the workspace owner. Every request is written to the [audit log](/guides/audit-events) with the `company_bots_accessed` key.",
+      "description": "List workspace bots. Every bot in the workspace, including the ones you cannot edit. For those, only the name and the nickname are returned, the rest of the settings come as `null`. The method is available to the workspace owner. Every request is written to the \"audit log\" (`search_documentation`, page `/guides/audit-events`) with the `company_bots_accessed` key.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -4430,7 +4430,7 @@
         "owner"
       ],
       "bot_token_only": false,
-      "description": "List workspace chats. The conversations and channels of the whole workspace, including private ones you are not a member of. Direct messages and threads are not returned. Both active and archived chats are returned by default. The `activity` parameter keeps only one of the states in the selection. The method is available to the workspace owner. Every request is written to the [audit log](/guides/audit-events) with the `company_chats_accessed` key.",
+      "description": "List workspace chats. The conversations and channels of the whole workspace, including private ones you are not a member of. Direct messages and threads are not returned. Both active and archived chats are returned by default. The `activity` parameter keeps only one of the states in the selection. The method is available to the workspace owner. Every request is written to the \"audit log\" (`search_documentation`, page `/guides/audit-events`) with the `company_chats_accessed` key.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -4709,7 +4709,7 @@
           },
           "entity_type": {
             "type": "string",
-            "description": "Chat type for filtering by a single chat. Specified together with `entity_id`: sending only one of the two returns `422`. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+            "description": "Chat type for filtering by a single chat. Specified together with `entity_id`: sending only one of the two returns `422`. Values: discussion — Conversation or channel; thread — Thread; user — User.",
             "enum": [
               "discussion",
               "thread",
@@ -4778,7 +4778,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "Where the message will go: to a conversation or a channel, to a thread, or to a direct message with an employee. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+                  "description": "Where the message will go: to a conversation or a channel, to a thread, or to a direct message with an employee. Values: discussion — Conversation or channel; thread — Thread; user — User.",
                   "enum": [
                     "discussion",
                     "thread",
@@ -5036,7 +5036,7 @@
         "properties": {
           "entity_type": {
             "type": "string",
-            "description": "Where the draft is written: to a conversation or a channel, to a thread, or to a direct message with an employee. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+            "description": "Where the draft is written: to a conversation or a channel, to a thread, or to a direct message with an employee. Values: discussion — Conversation or channel; thread — Thread; user — User.",
             "enum": [
               "discussion",
               "thread",
@@ -5066,23 +5066,14 @@
           },
           "files": {
             "type": "array",
-            "description": "Files to attach, no more than ten",
-            "maxItems": 10,
             "items": {
               "type": "object",
-              "description": "File attached to a draft",
               "properties": {
                 "id": {
                   "type": "integer",
                   "description": "ID of a file that is already attached. It is passed when editing, to keep the attachment as it is. For a new file it is not specified.",
                   "format": "int32",
                   "example": 3560
-                },
-                "key": {
-                  "type": "string",
-                  "description": "File path obtained from the [Upload file](POST /direct_url) method",
-                  "maxLength": 1000,
-                  "example": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"
                 },
                 "name": {
                   "type": "string",
@@ -5101,12 +5092,6 @@
                     "video"
                   ],
                   "example": "image"
-                },
-                "size": {
-                  "type": "integer",
-                  "description": "File size in bytes, displayed to the user",
-                  "format": "int64",
-                  "example": 12345
                 },
                 "width": {
                   "type": "integer",
@@ -5131,13 +5116,18 @@
                   "description": "Waveform for visualization. Required for a voice message (`file_type` is `voice`).",
                   "maxLength": 256,
                   "example": "4,8,12,20,16,10,6,3"
+                },
+                "content": {
+                  "type": "string",
+                  "description": "The file contents, base64-encoded."
                 }
               },
               "required": [
-                "key",
-                "name"
+                "name",
+                "content"
               ]
-            }
+            },
+            "description": "Files to attach. The server uploads each one, fills in the key and the size, and sends them with the message."
           },
           "schedule": {
             "type": [
@@ -5242,13 +5232,20 @@
             "in": "body",
             "at": "draft.parent_message_id"
           },
-          "files": {
-            "in": "body",
-            "at": "draft.files"
-          },
           "schedule": {
             "in": "body",
             "at": "draft.schedule"
+          },
+          "files": {
+            "in": "upload",
+            "at": "draft.files",
+            "operations": [
+              "POST /uploads",
+              "POST /direct_url"
+            ],
+            "scopes": [
+              "uploads:write"
+            ]
           }
         }
       },
@@ -5270,7 +5267,7 @@
                   "string",
                   "null"
                 ],
-                "description": "Where the message will go: to a conversation or a channel, to a thread, or to a direct message with an employee. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+                "description": "Where the message will go: to a conversation or a channel, to a thread, or to a direct message with an employee. Values: discussion — Conversation or channel; thread — Thread; user — User.",
                 "enum": [
                   "discussion",
                   "thread",
@@ -5534,7 +5531,7 @@
                   "string",
                   "null"
                 ],
-                "description": "Where the message will go: to a conversation or a channel, to a thread, or to a direct message with an employee. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+                "description": "Where the message will go: to a conversation or a channel, to a thread, or to a direct message with an employee. Values: discussion — Conversation or channel; thread — Thread; user — User.",
                 "enum": [
                   "discussion",
                   "thread",
@@ -5783,23 +5780,14 @@
           },
           "files": {
             "type": "array",
-            "description": "Files to attach, no more than ten. The array you pass replaces the previous set: an empty one removes all the attachments, and to keep a file that is already attached, pass it with its `ID`. Without this field the attachments stay as they were.",
-            "maxItems": 10,
             "items": {
               "type": "object",
-              "description": "File attached to a draft",
               "properties": {
                 "id": {
                   "type": "integer",
                   "description": "ID of a file that is already attached. It is passed when editing, to keep the attachment as it is. For a new file it is not specified.",
                   "format": "int32",
                   "example": 3560
-                },
-                "key": {
-                  "type": "string",
-                  "description": "File path obtained from the [Upload file](POST /direct_url) method",
-                  "maxLength": 1000,
-                  "example": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"
                 },
                 "name": {
                   "type": "string",
@@ -5818,12 +5806,6 @@
                     "video"
                   ],
                   "example": "image"
-                },
-                "size": {
-                  "type": "integer",
-                  "description": "File size in bytes, displayed to the user",
-                  "format": "int64",
-                  "example": 12345
                 },
                 "width": {
                   "type": "integer",
@@ -5848,13 +5830,18 @@
                   "description": "Waveform for visualization. Required for a voice message (`file_type` is `voice`).",
                   "maxLength": 256,
                   "example": "4,8,12,20,16,10,6,3"
+                },
+                "content": {
+                  "type": "string",
+                  "description": "The file contents, base64-encoded."
                 }
               },
               "required": [
-                "key",
-                "name"
+                "name",
+                "content"
               ]
-            }
+            },
+            "description": "Files to attach. The server uploads each one, fills in the key and the size, and sends them with the message."
           },
           "schedule": {
             "type": [
@@ -5953,13 +5940,20 @@
             "in": "body",
             "at": "draft.parent_message_id"
           },
-          "files": {
-            "in": "body",
-            "at": "draft.files"
-          },
           "schedule": {
             "in": "body",
             "at": "draft.schedule"
+          },
+          "files": {
+            "in": "upload",
+            "at": "draft.files",
+            "operations": [
+              "POST /uploads",
+              "POST /direct_url"
+            ],
+            "scopes": [
+              "uploads:write"
+            ]
           }
         }
       },
@@ -5981,7 +5975,7 @@
                   "string",
                   "null"
                 ],
-                "description": "Where the message will go: to a conversation or a channel, to a thread, or to a direct message with an employee. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+                "description": "Where the message will go: to a conversation or a channel, to a thread, or to a direct message with an employee. Values: discussion — Conversation or channel; thread — Thread; user — User.",
                 "enum": [
                   "discussion",
                   "thread",
@@ -6241,7 +6235,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Downloading a file. Returns the file itself, not a link to it. It is needed for attachments that have no direct storage link: their `url` field holds the address of this method, and it can only be opened with a token. Encrypted files and files sent from the workspace secure perimeter are served this way — both settings are covered in [Encryption and the secure perimeter](/guides/data-protection). A refusal comes as `403` with the `confidential_download_denied` code. The address being checked is the one the request came from, that is the address of your server, not of the employee whose token you use: for a server integration that is the most common reason to be refused. The response is the body of the file and a `Content-Disposition` header with its name, not `JSON`. An encrypted file is decrypted on the fly and comes as a whole attachment: `target` does not apply to it. If it could not be decrypted, the answer is `400` with the `decryption_failed` code. An attachment of a message is available to whoever sees the message itself, and an attachment of a draft only to its author.",
+      "description": "Downloading a file. Returns the file itself, not a link to it. It is needed for attachments that have no direct storage link: their `url` field holds the address of this method, and it can only be opened with a token. Encrypted files and files sent from the workspace secure perimeter are served this way — both settings are covered in \"Encryption and the secure perimeter\" (`search_documentation`, page `/guides/data-protection`). A refusal comes as `403` with the `confidential_download_denied` code. The address being checked is the one the request came from, that is the address of your server, not of the employee whose token you use: for a server integration that is the most common reason to be refused. The response is the body of the file and a `Content-Disposition` header with its name, not `JSON`. An encrypted file is decrypted on the fly and comes as a whole attachment: `target` does not apply to it. If it could not be decrypted, the answer is `400` with the `decryption_failed` code. An attachment of a message is available to whoever sees the message itself, and an attachment of a draft only to its author.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -6432,7 +6426,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "New tag. Creates a tag. A tag is a way to keep chat membership up to date by itself: it is linked to a conversation or a channel, and everyone who has this tag ends up there automatically. Employees are added to a tag not here but in each employee's profile — `update_user` with the `list_tags` field. A fresh tag is created empty, with `users_count: 0`. It is linked to a chat by `add_tags_to_chat`. The name is unique within the workspace, case-insensitively, and cannot contain `@`. Tags can be created by the workspace owner and an administrator; the method is not available to a bot.\n\nNot for:\n- Putting people into the tag — update_user with list_tags, one person at a time.",
+      "description": "New tag. Creates a tag. A tag is a way to keep chat membership up to date by itself: it is linked to a conversation or a channel, and everyone who has this tag ends up there automatically. Employees are added to a tag not here but in each employee's profile — `update_user` with the `list_tags` field. A fresh tag is created empty, with `users_count: 0`. It is linked to a chat by `add_tags_to_chat`. The name is unique within the workspace, case-insensitively, and cannot contain `@`. Tags can be created by the workspace owner and an administrator; the method is not available to a bot.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -6652,7 +6646,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "Delete tag. Removes a tag from the workspace: it is taken off every employee and unlinked from every chat. Nobody leaves the chats because of this. The employees the tag brought into a conversation or a channel stay there as ordinary members, and their membership is no longer maintained by the tag. To take them out of a particular chat, use `remove_tag_from_chat` before deleting the tag itself. Tags can be deleted by the workspace owner and an administrator; the method is not available to a bot.\n\nNot for:\n- Detaching a tag from one chat — remove_tag_from_chat; this takes it off every chat it is attached to.",
+      "description": "Delete tag. Removes a tag from the workspace: it is taken off every employee and unlinked from every chat. Nobody leaves the chats because of this. The employees the tag brought into a conversation or a channel stay there as ordinary members, and their membership is no longer maintained by the tag. To take them out of a particular chat, use `remove_tag_from_chat` before deleting the tag itself. Tags can be deleted by the workspace owner and an administrator; the method is not available to a bot.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -7025,7 +7019,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "List chat messages. The message feed of a conversation, a channel, a thread, or a direct message — by the `chat_id` of the chat in question. Messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the `limit` and `cursor` parameters. Deleted messages do not make it into the list. The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent message hangs. The thread identifier arrives in the `thread` field of the parent message.\n\nNot for:\n- What kind of chat it is — get_chat.\n- Finding a chat by name — list_chats.",
+      "description": "List chat messages. The message feed of a conversation, a channel, a thread, or a direct message — by the `chat_id` of the chat in question. Messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the `limit` and `cursor` parameters. Deleted messages do not make it into the list. The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent message hangs. The thread identifier arrives in the `thread` field of the parent message.\n\nNot for:\n- What kind of chat it is — get_chat.\n- Finding a chat by name — search_chats.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -7126,7 +7120,7 @@
                 },
                 "entity_type": {
                   "type": "string",
-                  "description": "Entity type the message belongs to. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+                  "description": "Entity type the message belongs to. Values: discussion — Conversation or channel; thread — Thread; user — User.",
                   "enum": [
                     "discussion",
                     "thread",
@@ -7441,7 +7435,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New message. Sends a message to a conversation or a channel, a direct message to an employee, or a comment to a thread. When using `entity_type: \"discussion\"` (or simply without specifying `entity_type`), any `chat_id` can be passed in the `entity_id` field. This means you can send a message knowing only the chat ID. A message can also be sent to a thread by the thread's own ID, and a direct message by the employee's ID, but then the matching `entity_type` must be given: `thread` or `user`. There is no need to create the direct chat for this: it appears by itself if there has been no prior conversation between you. Only one direct chat can exist between two employees. Your own ID writes to the chat with yourself — the same place where an employee sends notes to themselves. The text in the `content` field is parsed as markdown: bold, italic, strikethrough, inline code, code block, and links. Lists and tables are not parsed — `-`, `1.`, and `|` stay as they are, a quote loses its `>`, and a line with a hash and a space becomes bold. The details are in the [Text formatting](/guides/markdown) section. `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. To prevent that, pass `skip_invite_mentions: true`. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there. A name without `@`, and a mention inside inline code or a code block, are not mentions. Buttons can be shown under the message text — the `buttons` array, where each nested array is a row. They only work on messages sent with a bot token: a click on a button with `data` arrives as a `button_click` event to that same bot, carrying a `trigger_id` — there are 3 seconds to open a form with it, the `open_form` method. A button with `url` simply follows the link and creates no event. Details are in the [Buttons](/guides/buttons) section. A bot can sign a message with someone else's name and avatar: `display_name` and `display_avatar_url` change the sender for this message only. The **Bot** badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when a conversation is carried over from another system. With a personal token these fields are not available and the response is `403`. Details are in the [Bots](/guides/bots/overview) section. No more than 10 files can be attached to a message. A link preview is built only if `link_preview` is passed. A daily limit applies to the number of messages into one chat from one sender. When it is exceeded the method responds `429`, and the `Retry-After` header carries the pause before the next attempt. The limit values are in the [Limits](/api/limits) section.\n\nUse it when:\n- Writing to the person themselves — «скинь мне», «запиши себе»: their own id with entity_type user.\n\nNot for:\n- Opening a thread under a message that has none — create_thread makes it, then send here.\n- Editing something already sent — update_message.\n- Handing a task to somebody — update_task moves it to them. Writing them about it instead leaves the task where it was, and they get a message rather than the task.",
+      "description": "New message. Sends a message to a conversation or a channel, a direct message to a user, or a comment to a thread. With `entity_type: \"discussion\"` — the default — `entity_id` takes the `chat_id` of any chat, so knowing the chat ID is enough to send. A message can also be addressed to a thread by the thread's own ID, and a direct message by the user's ID, but then the matching `entity_type` is needed: `thread` or `user`. There is no need to create the direct chat for this: it appears by itself if there has been no prior conversation between you. Only one direct chat can exist between two users. Your own ID writes to the chat with yourself, where notes to oneself go. Unlike a direct chat, a thread does not appear by itself: if a message has no thread yet, it is first created with the `create_thread` method. The text in the `content` field is parsed as markdown: bold, italic, strikethrough, inline code, code block, and links. Lists and tables are not parsed — `-`, `1.`, and `|` stay as they are, a quote loses its `>`, and a line with a hash and a space becomes bold. Attach a table, a checklist, or a diagram as an `.md` file: Pachca shows such a file formatted, and if it is the only document in the message, its beginning is visible right in the chat. The details are in the \"Text formatting\" (`search_documentation`, page `/guides/markdown`) section. `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. To prevent that, pass `skip_invite_mentions: true`. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there. A name without `@`, and a mention inside inline code or a code block, are not mentions. Buttons can be shown under the message text — the `buttons` array, where each nested array is a row. They only work on messages sent with a bot token: a click on a button with `data` arrives as a `button_click` event to that same bot, carrying a `trigger_id` — there are 3 seconds to open a form with it, the `open_form` method. A button with `url` simply follows the link and creates no event. Details are in the \"Buttons\" (`search_documentation`, page `/guides/buttons`) section. A bot can sign a message with someone else's name and avatar: `display_name` and `display_avatar_url` change the sender for this message only. The **Bot** badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when a conversation is carried over from another system. With a personal token these fields are not available and the response is `403`. Details are in the \"Bots\" (`search_documentation`, page `/guides/bots/overview`) section. No more than 10 files can be attached to a message. A link preview is built only if `link_preview` is passed. A daily limit applies to the number of messages into one chat from one sender. When it is exceeded the method responds `429`, and the `Retry-After` header carries the pause before the next attempt. The limit values are in the \"Limits\" (`search_documentation`, page `/api/limits`) section.\n\nNot for:\n- Editing something already sent — update_message.\n- Handing a task to somebody — update_task moves it to them, while a message leaves the task where it was.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -7453,7 +7447,7 @@
         "properties": {
           "entity_type": {
             "type": "string",
-            "description": "Entity type. The value is case-insensitive. A value outside the list returns `400` with the `invalid` code. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+            "description": "Entity type. The value is case-insensitive. A value outside the list returns `400` with the `invalid` code. Values: discussion — Conversation or channel; thread — Thread; user — User.",
             "enum": [
               "discussion",
               "thread",
@@ -7464,13 +7458,13 @@
           },
           "entity_id": {
             "type": "integer",
-            "description": "Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or an employee. From list_chats, list_users or search_messages, or from a link the person pasted.",
+            "description": "Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user. From search_chats, list_users or search_messages, or from a link the person pasted.",
             "format": "int32",
             "example": 334
           },
           "content": {
             "type": "string",
-            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). Write a list as separate lines, and for a table, a checklist or a diagram attach a `.md` file instead: as the only document of a message it opens formatted, with its beginning shown right in the chat.",
+            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`).",
             "example": "Yesterday we sold 756 t-shirts (10% more than last Sunday)"
           },
           "files": {
@@ -7583,7 +7577,7 @@
           },
           "parent_message_id": {
             "type": "integer",
-            "description": "ID of the message you are replying to. The reply appears right in the chat feed rather than in a thread: to write into a thread, send the message with `entity_type: \"thread\"`. A reply right in the chat rather than in a thread — «ответь Лене прямо в канале, а не в треде».",
+            "description": "ID of the message you are replying to. The reply appears right in the chat feed rather than in a thread: to write into a thread, send the message with `entity_type: \"thread\"`.",
             "format": "int32",
             "example": 194270
           },
@@ -7692,7 +7686,7 @@
               },
               "entity_type": {
                 "type": "string",
-                "description": "Entity type the message belongs to. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+                "description": "Entity type the message belongs to. Values: discussion — Conversation or channel; thread — Thread; user — User.",
                 "enum": [
                   "discussion",
                   "thread",
@@ -8034,7 +8028,7 @@
               },
               "entity_type": {
                 "type": "string",
-                "description": "Entity type the message belongs to. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+                "description": "Entity type the message belongs to. Values: discussion — Conversation or channel; thread — Thread; user — User.",
                 "enum": [
                   "discussion",
                   "thread",
@@ -8320,7 +8314,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Edit message. Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark. You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. There are no restrictions on how long ago the message was sent. Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.",
+      "description": "Edit message. Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited mark. The text follows the same formatting rules as in the `send_message` method. You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not changed by the method. There are no restrictions on how long ago the message was sent. Files and buttons are replaced as a whole: an empty array removes all of them, while the absence of the field in the body leaves them as they were. Any edit removes the link previews, and they are not built again.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -8338,7 +8332,7 @@
           },
           "content": {
             "type": "string",
-            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). Write a list as separate lines, and for a table, a checklist or a diagram attach a `.md` file instead: as the only document of a message it opens formatted, with its beginning shown right in the chat.",
+            "description": "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`).",
             "example": "Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur, liaison, necessary, surveillance, questionnaire."
           },
           "files": {
@@ -8511,7 +8505,7 @@
               },
               "entity_type": {
                 "type": "string",
-                "description": "Entity type the message belongs to. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+                "description": "Entity type the message belongs to. Values: discussion — Conversation or channel; thread — Thread; user — User.",
                 "enum": [
                   "discussion",
                   "thread",
@@ -8881,7 +8875,7 @@
                   "properties": {
                     "key": {
                       "type": "string",
-                      "description": "Image path obtained from the [Upload file](POST /direct_url) method",
+                      "description": "Image path obtained from the `upload_file` method",
                       "example": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}"
                     },
                     "name": {
@@ -9414,7 +9408,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New thread. Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either. An empty thread is not a conversation yet: send the first message into it right away with the `send_message` method and `entity_type: \"thread\"`. A thread has no name, and it cannot be deleted either through the API or in the app. If a thread has already been created for the message, the response will return information about the previously created thread. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca.\n\nUse it when:\n- Taking something already said aside — «давай обсудим это отдельно». Aside, under the message, is what a thread is.\n- Answering a specific message so the chat feed stays clean.\n\nNot for:\n- A new topic with no message behind it — create_unattached_thread.\n- Reading a thread that may already exist — get_message returns the thread of a message, and get_thread reads it.",
+      "description": "New thread. Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A thread is a separate access: an employee can be invited into it without opening the chat itself to them, and they will see only the thread and the parent message. If a topic rather than a message needs discussing, start a thread with the `create_unattached_thread` method. A new thread immediately includes the employee who created it, the author of the message, everyone who added reactions to the message, and the chat members who turned on thread notifications. Anyone mentioned in the parent message — by name or by tag — is added by a background job right after creation, so the first response may not list them yet. Blanket mentions such as `@all` bring nobody into the thread, and a mentioned employee who is not in the chat itself is not picked up either. An empty thread is not a conversation yet: send the first message into it right away with the `send_message` method and `entity_type: \"thread\"`. A thread has no name, and it cannot be deleted either through the API or in the app. If a thread has already been created for the message, the response will return information about the previously created thread. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca.\n\nUse it when:\n- Taking something already said aside — «давай обсудим это отдельно».\n\nNot for:\n- Reading a thread that may already exist — get_message returns the thread of a message, and get_thread reads it.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -9453,12 +9447,12 @@
             "properties": {
               "id": {
                 "type": "integer",
-                "description": "Created thread ID (the thread is written to with the [New message](POST /messages) method)",
+                "description": "Created thread ID (the thread is written to with the `send_message` method)",
                 "format": "int64"
               },
               "chat_id": {
                 "type": "integer",
-                "description": "Thread chat ID (it is used to write to the thread with the [New message](POST /messages) method and to read it with the [List chat messages](GET /messages) method)",
+                "description": "Thread chat ID (it is used to write to the thread with the `send_message` method and to read it with the `list_chat_messages` method)",
                 "format": "int64"
               },
               "message_id": {
@@ -9658,7 +9652,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Own profile. The profile of the token owner. For a bot token this is the bot's own profile. The time zone from here is needed by anyone who turns human deadlines into dates: \"by 3 p.m.\" and \"by Friday\" are counted in the employee's time zone, not in UTC. An empty value means the workspace time zone. Someone else's profile is returned by `get_user`.\n\nUse it when:\n- Something about you beyond name and id matters — your time zone, which decides what «до 15:00» means. The name and the id are already in your instructions and in every footer.",
+      "description": "Own profile. The profile of the token owner. For a bot token this is the bot's own profile. The time zone from here is needed by anyone who turns human deadlines into dates: \"by 3 p.m.\" and \"by Friday\" are counted in the employee's time zone, not in UTC. An empty value means the workspace time zone. Someone else's profile is returned by `get_user`.\n\nUse it when:\n- Anything about you beyond the name and id, which your instructions and every footer already carry.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -10130,7 +10124,7 @@
           },
           "expires_at": {
             "type": "string",
-            "description": "Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC. A deadline the person names in words goes here: «until three» is the value of this field, not part of the title. A weekday name is not a value this takes. Take the date from the week in your instructions or in the footer of any result rather than counting it, which is where it lands a day out, and use the offset the footer’s Now carries.",
+            "description": "Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC. A weekday name is not a value this takes. Take the date from the week in your instructions or in the footer of any result rather than counting it, which is where it lands a day out, and use the offset the footer’s Now carries.",
             "format": "date-time",
             "example": "2024-04-08T10:00:00.000Z"
           },
@@ -10267,7 +10261,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Search chats. Searches for conversations and channels by name, forgiving typos. It also finds the public chats of the workspace the caller has not joined, and of the private ones only those they belong to. Direct messages are not searched by default. Pass `personal=true` and the search will go by the name of the other party rather than by the chat name. The method searches names, not content. To find where something was discussed or agreed, use `search_messages`.\n\nNot for:\n- Finding where something was said or decided — «где мы договаривались про бюджет» — search_messages.",
+      "description": "Search chats. Searches for conversations and channels by name, forgiving typos. It also finds the public chats of the workspace the caller has not joined, and of the private ones only those they belong to. Direct messages are not searched by default. Pass `personal=true` and the search will go by the name of the other party rather than by the chat name. The method searches names, not content. To find where something was discussed or agreed, use `search_messages`.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -10644,7 +10638,7 @@
                 },
                 "entity_type": {
                   "type": "string",
-                  "description": "Entity type the message belongs to. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+                  "description": "Entity type the message belongs to. Values: discussion — Conversation or channel; thread — Thread; user — User.",
                   "enum": [
                     "discussion",
                     "thread",
@@ -11602,7 +11596,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New task. Creates a task and assigns the employees responsible for it. When creating a task, specifying the task type is required: call, meeting, simple reminder, event, or email. No additional description is needed — you simply create a task with the corresponding text. If you specify a task description, it will become the task's text. A task must have assignees; if none are specified, you are assigned as the responsible one. Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the `list_users` method. Assignees the caller cannot see are silently dropped: the response is successful but they are not in `performer_ids`, so check the list in the response. A task can be linked to a conversation with the `chat_id` field — then, besides the author and the assignees, the members of that conversation see it. Whoever links it must belong to that conversation. Tasks are not created in a channel, in a thread, or in an archived chat. Handing a task to somebody else means changing the assignee with `update_task`. If a calendar is connected to the workspace or to the profile, the task also appears there as an event.\n\nNot for:\n- Handing an existing task to somebody — update_task on that task moves it to them. A new one with the same words leaves the original sitting on you.",
+      "description": "New task. Creates a task and assigns the employees responsible for it. When creating a task, specifying the task type is required: call, meeting, simple reminder, event, or email. No additional description is needed — you simply create a task with the corresponding text. If you specify a task description, it will become the task's text. A task must have assignees; if none are specified, you are assigned as the responsible one. Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the `list_users` method. Assignees the caller cannot see are silently dropped: the response is successful but they are not in `performer_ids`, so check the list in the response. A task can be linked to a conversation with the `chat_id` field — then, besides the author and the assignees, the members of that conversation see it. Whoever links it must belong to that conversation. Tasks are not created in a channel, in a thread, or in an archived chat. Handing a task to somebody else means changing the assignee with `update_task`. If a calendar is connected to the workspace or to the profile, the task also appears there as an event.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -11664,7 +11658,7 @@
           },
           "all_day": {
             "type": "boolean",
-            "description": "Whether this is an all-day task (without specific time). Pass it whenever the request names no hour — «в пятницу», «время неважно» — instead of inventing one that then shows in the task.",
+            "description": "Whether this is an all-day task (without specific time). Pass it whenever the request names no hour — «в пятницу», «время неважно», «до конца дня» — instead of inventing one that then shows in the task.",
             "example": false
           },
           "custom_properties": {
@@ -12376,7 +12370,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "List threads. Threads available to the token owner. Returns threads where you belong either to the thread itself or to the chat it was started in. Belonging to the thread is enough: you do not have to join the chat with the parent message, and standalone threads come as well. Threads from open chats of the workspace you have not joined, however, do not make it into the list, even though those chats are available to you. Sorted by the time of the last message in the thread, descending. A list item carries neither a title nor any text: only the identifiers of the thread, its chat, and the parent message. To find out what a thread is about, read its messages with `list_chat_messages` by `chat_id`, and a thread known by its topic is found with `search_messages`.\n\nNot for:\n- A thread the person names by its topic — «тред про закупку ноутбуков» — search_messages finds it, this list carries no text to match.",
+      "description": "List threads. Threads available to the token owner. Returns threads where you belong either to the thread itself or to the chat it was started in. Belonging to the thread is enough: you do not have to join the chat with the parent message, and standalone threads come as well. Threads from open chats of the workspace you have not joined, however, do not make it into the list, even though those chats are available to you. Sorted by the time of the last message in the thread, descending. A list item carries neither a title nor any text: only the identifiers of the thread, its chat, and the parent message. To find out what a thread is about, read its messages with `list_chat_messages` by `chat_id`, and a thread known by its topic is found with `search_messages`.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -12455,12 +12449,12 @@
               "properties": {
                 "id": {
                   "type": "integer",
-                  "description": "Created thread ID (the thread is written to with the [New message](POST /messages) method)",
+                  "description": "Created thread ID (the thread is written to with the `send_message` method)",
                   "format": "int64"
                 },
                 "chat_id": {
                   "type": "integer",
-                  "description": "Thread chat ID (it is used to write to the thread with the [New message](POST /messages) method and to read it with the [List chat messages](GET /messages) method)",
+                  "description": "Thread chat ID (it is used to write to the thread with the `send_message` method and to read it with the `list_chat_messages` method)",
                   "format": "int64"
                 },
                 "message_id": {
@@ -12531,7 +12525,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "New standalone thread. Creates a thread that is not linked to anything: a place for a conversation, a dialogue with an agent, or a call that needs no chat of its own. Any employees can be gathered in it. The thread creator becomes its only member, and the `message_id` and `message_chat_id` fields in the response are returned as `null`. The easiest way to add members to the thread is a mention: `@nickname` or `@tag` at the start or the end of the message text. The `add_members` method by the `chat_id` of the thread works too. A thread has no name, so send the first message into it right away — that is how employees will understand what it is about. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a thread under it with the `create_thread` method, and if a permanent place with a name is needed, use the `create_chat` method.\n\nNot for:\n- Anything that continues something already written, however «отдельно» it is meant — create_thread opens it under that message, where the people reading it see what is discussed.\n- A place that needs a name of its own — create_chat. The missing title is the difference, not a reason to make a chat instead.",
+      "description": "New standalone thread. Creates a thread that is not linked to anything: a place for a conversation, a dialogue with an agent, or a call that needs no chat of its own. Any employees can be gathered in it. The thread creator becomes its only member, and the `message_id` and `message_chat_id` fields in the response are returned as `null`. The easiest way to add members to the thread is a mention: `@nickname` or `@tag` at the start or the end of the message text. The `add_members` method by the `chat_id` of the thread works too. A thread has no name, so send the first message into it right away — that is how employees will understand what it is about. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a thread under it with the `create_thread` method, and if a permanent place with a name is needed, use the `create_chat` method.\n\nNot for:\n- Anything that continues something already written, however «отдельно» it is meant — create_thread.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -12556,12 +12550,12 @@
             "properties": {
               "id": {
                 "type": "integer",
-                "description": "Created thread ID (the thread is written to with the [New message](POST /messages) method)",
+                "description": "Created thread ID (the thread is written to with the `send_message` method)",
                 "format": "int64"
               },
               "chat_id": {
                 "type": "integer",
-                "description": "Thread chat ID (it is used to write to the thread with the [New message](POST /messages) method and to read it with the [List chat messages](GET /messages) method)",
+                "description": "Thread chat ID (it is used to write to the thread with the `send_message` method and to read it with the `list_chat_messages` method)",
                 "format": "int64"
               },
               "message_id": {
@@ -12654,12 +12648,12 @@
             "properties": {
               "id": {
                 "type": "integer",
-                "description": "Created thread ID (the thread is written to with the [New message](POST /messages) method)",
+                "description": "Created thread ID (the thread is written to with the `send_message` method)",
                 "format": "int64"
               },
               "chat_id": {
                 "type": "integer",
-                "description": "Thread chat ID (it is used to write to the thread with the [New message](POST /messages) method and to read it with the [List chat messages](GET /messages) method)",
+                "description": "Thread chat ID (it is used to write to the thread with the `send_message` method and to read it with the `list_chat_messages` method)",
                 "format": "int64"
               },
               "message_id": {
@@ -14127,7 +14121,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "Delete employee. Removes an employee from the workspace. This cannot be undone: they can be brought back only with a new invitation, and that will already be a different employee. What happens: they leave all conversations and channels except direct messages, all tags are taken off them, the tasks where they were the only assignee are deleted, and they are removed from the remaining ones. The messages and files they wrote stay in place. The workspace owner cannot be deleted — the method responds `403`. A repeated call responds `404`: the method no longer finds a deleted employee. If the employee is going on vacation or the dismissal is not final yet, use `update_user` with `suspended: true`. Suspension is reversible and keeps chats, tags, and tasks.\n\nNot for:\n- «Заблокируй», «отключи», «пока» — update_user with suspended, which is reversible.",
+      "description": "Delete employee. Removes an employee from the workspace. This cannot be undone: they can be brought back only with a new invitation, and that will already be a different employee. What happens: they leave all conversations and channels except direct messages, all tags are taken off them, the tasks where they were the only assignee are deleted, and they are removed from the remaining ones. The messages and files they wrote stay in place. The workspace owner cannot be deleted — the method responds `403`. A repeated call responds `404`: the method no longer finds a deleted employee. If the employee is going on vacation or the dismissal is not final yet, use `update_user` with `suspended: true`. Suspension is reversible and keeps chats, tags, and tasks.\n\nNot for:\n- «Заблокируй», «отключи», «пока» — update_user with suspended.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -14411,7 +14405,7 @@
           },
           "expires_at": {
             "type": "string",
-            "description": "Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC. A deadline the person names in words goes here: «until three» is the value of this field, not part of the title. A weekday name is not a value this takes. Take the date from the week in your instructions or in the footer of any result rather than counting it, which is where it lands a day out, and use the offset the footer’s Now carries.",
+            "description": "Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC. A weekday name is not a value this takes. Take the date from the week in your instructions or in the footer of any result rather than counting it, which is where it lands a day out, and use the offset the footer’s Now carries.",
             "format": "date-time",
             "example": "2024-04-08T10:00:00.000Z"
           },
@@ -14561,7 +14555,7 @@
         "bot"
       ],
       "bot_token_only": true,
-      "description": "Open view. Shows a user a modal window with a form in response to their action. The method is called with a bot token: button click events reach bots only, and the window is opened on behalf of the bot. There is only one way to open the window — by the `trigger_id` from the button click event. One `trigger_id` opens one window and lives for 3 seconds: for a bot with a webhook, from the moment Pachca delivered the click, and for a bot with the `get_webhook_events`, from the moment the click was written to it. That is why the window is opened first of all, and everything else for the event is done afterwards. The filled-in form comes back as a `view_submit` event: to the outgoing webhook, and if no address is set, to the event history. A webhook is answered in the response to it, and Pachca waits 3 seconds for that. An event from the history is closed with `answer_form`, and there are 5 seconds for that. Miss the window and the user sees a submission error.\n\nUse it when:\n- A button press has just arrived — open the form before doing anything else with that event.",
+      "description": "Open view. Shows a user a modal window with a form in response to their action. The method is called with a bot token: button click events reach bots only, and the window is opened on behalf of the bot. There is only one way to open the window — by the `trigger_id` from the button click event. One `trigger_id` opens one window and lives for 3 seconds: for a bot with a webhook, from the moment Pachca delivered the click, and for a bot with the `get_webhook_events`, from the moment the click was written to it. That is why the window is opened first of all, and everything else for the event is done afterwards. The filled-in form comes back as a `view_submit` event: to the outgoing webhook, and if no address is set, to the event history. A webhook is answered in the response to it, and Pachca waits 3 seconds for that. An event from the history is closed with `answer_form`, and there are 5 seconds for that. Miss the window and the user sees a submission error.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -15015,7 +15009,7 @@
                     },
                     "entity_type": {
                       "type": "string",
-                      "description": "Entity type the message belongs to. Values: discussion — Conversation or channel, never a thread; thread — Thread: the message goes inside the discussion; user — Employee: the message goes to the direct chat with them.",
+                      "description": "Entity type the message belongs to. Values: discussion — Conversation or channel; thread — Thread; user — User.",
                       "enum": [
                         "discussion",
                         "thread",
@@ -15081,7 +15075,7 @@
                             "integer",
                             "null"
                           ],
-                          "description": "ID of the message the thread was created for. `null` for a thread without a parent message — such threads are created by [New standalone thread](POST /threads).",
+                          "description": "ID of the message the thread was created for. `null` for a thread without a parent message — such threads are created by `create_unattached_thread`.",
                           "format": "int32"
                         },
                         "message_chat_id": {
@@ -15150,11 +15144,11 @@
                     },
                     "view_id": {
                       "type": "string",
-                      "description": "View ID. A bot with no outgoing webhook address needs it to respond with the [Respond to a form submission](POST /views/{view_id}/submit_response) method."
+                      "description": "View ID. A bot with no outgoing webhook address needs it to respond with the `answer_form` method."
                     },
                     "submit_id": {
                       "type": "string",
-                      "description": "Form submission ID. A bot with no outgoing webhook address needs it to respond with the [Respond to a form submission](POST /views/{view_id}/submit_response) method."
+                      "description": "Form submission ID. A bot with no outgoing webhook address needs it to respond with the `answer_form` method."
                     },
                     "thread_id": {
                       "type": [
@@ -15364,7 +15358,7 @@
       "compat": false,
       "operations": [],
       "scopes": [],
-      "description": "How Pachca itself works, as opposed to what is inside this workspace: the way a webhook signature is checked, how paging works, what a thread is and when one is the right place, what a bot token may do. Ask in plain words, or name an area and get its working rules in one read. Any question about how Pachca behaves belongs here — answering it from memory is how a confident wrong answer reaches the person.",
+      "description": "How Pachca itself works, as opposed to what is inside this workspace: the way a webhook signature is checked, how paging works, what a thread is and when one is the right place, what a bot token may do. Ask in plain words, name an area and get its working rules in one read, or read the page another tool’s description points to. Any question about how Pachca behaves belongs here — answering it from memory is how a confident wrong answer reaches the person.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -15392,6 +15386,10 @@
               "bots"
             ],
             "description": "Read the working rules for this area. Pass query, area or both."
+          },
+          "page": {
+            "type": "string",
+            "description": "Read this one page whole, by its path in the documentation: \"/guides/markdown\". A tool description that sends you to a page names its path."
           }
         },
         "additionalProperties": false
@@ -15552,7 +15550,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 33177
+      "model_tokens": 32514
     },
     "owner": {
       "role": "owner",
@@ -15632,7 +15630,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 30344
+      "model_tokens": 29671
     },
     "admin": {
       "role": "admin",
@@ -15712,7 +15710,7 @@
         "pachca_delete_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 30344
+      "model_tokens": 29671
     },
     "user": {
       "role": "user",
@@ -15782,7 +15780,7 @@
         "pachca_get_user_status",
         "pachca_search_documentation"
       ],
-      "model_tokens": 26829
+      "model_tokens": 26249
     },
     "bot": {
       "role": "bot",
@@ -15848,7 +15846,7 @@
         "pachca_delete_webhook_event",
         "pachca_search_documentation"
       ],
-      "model_tokens": 23013
+      "model_tokens": 22652
     }
   }
 }

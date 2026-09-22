@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 2.1.4 (2026-09-22)
+
+### Improvements
+
+- Message: the `Entity ID` hint names a user rather than an employee — a direct message can go to a bot as well
+
 ## 2.1.3 (2026-09-16)
 
 ### Features

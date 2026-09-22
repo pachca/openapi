@@ -1,6 +1,44 @@
 [
   {
     "product": "n8n",
+    "version": "2.1.4",
+    "date": "2026-09-22",
+    "changes": [
+      {
+        "type": "-",
+        "description": "`Message`: подсказка к полю `Entity ID` называет пользователя, а не сотрудника — личное сообщение можно отправить и боту"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.9.2",
+    "date": "2026-09-22",
+    "changes": [
+      {
+        "type": "-",
+        "command": "api",
+        "description": "`api POST /messages --describe`: личное сообщение адресуется идентификатором пользователя, в том числе бота, а имя без `@` и упоминание внутри кода упоминанием не считаются"
+      },
+      {
+        "type": "-",
+        "command": "api",
+        "description": "`api POST /messages --describe`: тред под сообщением, у которого его ещё нет, сначала создают, а таблицу, чек-лист или диаграмму прикладывают файлом `.md`"
+      },
+      {
+        "type": "-",
+        "command": "api",
+        "description": "`api POST /chats --describe` и `api POST /messages/{id}/thread --describe`: для разговора на одну тему указан самостоятельный тред"
+      },
+      {
+        "type": "-",
+        "command": "messages",
+        "description": "`pachca messages create`: подсказка к `--entity-id` называет пользователя, а не сотрудника — личное сообщение можно отправить и боту"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
     "version": "2.1.3",
     "date": "2026-09-20",
     "changes": [

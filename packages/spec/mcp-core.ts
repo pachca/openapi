@@ -113,12 +113,14 @@ export const NAME_OVERRIDES: Record<OperationKey, string> = {
  * no meaning apart from the action they serve.
  */
 export const CHAIN_STEPS: Record<OperationKey, { into: OperationKey[]; argument: string }> = {
+  // A draft takes the same upload key as a message: without the steps folded in,
+  // a model would be handed a field for a key it has no way to obtain.
   'POST /uploads': {
-    into: ['POST /messages', 'PUT /messages/{id}'],
+    into: ['POST /messages', 'PUT /messages/{id}', 'POST /drafts', 'PUT /drafts/{id}'],
     argument: 'files',
   },
   'POST /direct_url': {
-    into: ['POST /messages', 'PUT /messages/{id}'],
+    into: ['POST /messages', 'PUT /messages/{id}', 'POST /drafts', 'PUT /drafts/{id}'],
     argument: 'files',
   },
 };
@@ -648,9 +650,9 @@ export const SERVICE_TOOLS: McpServiceTool[] = [
     description:
       'How Pachca itself works, as opposed to what is inside this workspace: the way a webhook ' +
       'signature is checked, how paging works, what a thread is and when one is the right place, ' +
-      'what a bot token may do. Ask in plain words, or name an area and get its working rules in ' +
-      'one read. Any question about how Pachca behaves belongs here — answering it from memory is ' +
-      'how a confident wrong answer reaches the person.',
+      'what a bot token may do. Ask in plain words, name an area and get its working rules in one ' +
+      'read, or read the page another tool’s description points to. Any question about how Pachca ' +
+      'behaves belongs here — answering it from memory is how a confident wrong answer reaches the person.',
     // The documentation is public; nothing of the workspace is read.
     operations: [],
     input: [
@@ -664,6 +666,16 @@ export const SERVICE_TOOLS: McpServiceTool[] = [
         type: 'string',
         enum: ['messages', 'threads', 'chats', 'people', 'tasks', 'files', 'search', 'administration', 'bots'],
         description: 'Read the working rules for this area. Pass query, area or both.',
+      },
+      {
+        // A description points at a page by its path; the page comes back whole,
+        // with no search in between — so neither the language of a query nor the
+        // quality of a search stands between a model and the page it was sent to.
+        name: 'page',
+        type: 'string',
+        description:
+          'Read this one page whole, by its path in the documentation: "/guides/markdown". ' +
+          'A tool description that sends you to a page names its path.',
       },
     ],
   },

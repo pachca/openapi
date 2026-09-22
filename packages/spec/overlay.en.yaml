@@ -213,7 +213,7 @@ actions:
       description: |-
         Chat info
 
-        The chat's details together with the list of members and the linked tags.
+        The chat's details together with the list of members and the linked tags. What is written in the chat is returned by the [List chat messages](GET /messages) method.
 
         A private conversation the caller does not belong to responds `403`, not `404`: this method does not hide the existence of a chat. A public channel of your own workspace is returned even to someone who has not joined it. The method does not open other people's private chats to the workspace owner either — the full list of those is returned by [List workspace chats](GET /company/chats).
 
@@ -399,7 +399,7 @@ actions:
       description: |-
         New draft
 
-        Puts a draft into a conversation, a thread, or a direct message. In the Pachca interface it shows up in that chat's input box, where an employee finishes it and sends it. A scheduled message is created by this same method: with the `schedule` field the draft goes out by itself at the appointed time, without it the draft simply lies there. The method itself sends nothing — sending is [New message](POST /messages).
+        Puts a draft into a conversation, a thread, or a direct message. In the Pachca interface it shows up in that chat's input box, where an employee finishes it and sends it. A scheduled message is created by this same method: with the `schedule` field the draft goes out by itself at the appointed time, without it the draft simply lies there. The method itself sends nothing — sending is [New message](POST /messages). Sending a message does not remove the draft: the Pachca app clears it by itself, while through the API it is removed with the [Delete draft](DELETE /drafts/{id}) method — otherwise the text stays in the input box.
 
         A draft is visible only to its author — neither the other party nor a workspace administrator sees it. A chat can hold only one ordinary draft. A repeated call responds `409` with the `already_exists` code and the ID of the existing one in `payload.draft_id`. That one is finished with the [Edit draft](PUT /drafts/{id}) method. A chat holds no more than 50 scheduled messages.
 
@@ -755,7 +755,7 @@ actions:
 
         An empty thread is not a conversation yet: send the first message into it right away with the [New message](POST /messages) method and `entity_type: "thread"`. A thread has no name, and it cannot be deleted either through the API or in the app.
 
-        If a thread has already been created for the message, the response will return information about the previously created thread. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca.
+        If a thread has already been created for the message, the response will return information about the previously created thread. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a thread: there are no nested threads in Pachca.
   - target: $.paths['/messages/{id}/thread'].post.parameters[?(@.name=='id')]
     update:
       description: Message ID
@@ -939,7 +939,7 @@ actions:
 
         Creates a task and assigns the employees responsible for it.
 
-        When creating a task, specifying the task type is required: call, meeting, simple reminder, event, or email. No additional description is needed — you simply create a task with the corresponding text. If you specify a task description, it will become the task's text.
+        Specifying the task type is required when creating a task: call, meeting, simple reminder, event, or email. A description is not required — without it the task takes the name of its type as the text. If a description is passed, it is what becomes the task's text.
 
         A task must have assignees; if none are specified, you are assigned as the responsible one.
 

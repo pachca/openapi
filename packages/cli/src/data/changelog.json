@@ -16,12 +16,22 @@
       {
         "type": "-",
         "command": "api",
+        "description": "`api POST /drafts --describe`: отправка сообщения черновик не удаляет — через API его убирают отдельным вызовом"
+      },
+      {
+        "type": "-",
+        "command": "api",
         "description": "`api POST /chats --describe` и `api POST /messages/{id}/thread --describe`: для разговора на одну тему указан самостоятельный тред"
       },
       {
         "type": "-",
         "command": "messages",
         "description": "`pachca messages create`: подсказка к `--entity-id` называет пользователя, а не сотрудника — личное сообщение можно отправить и боту"
+      },
+      {
+        "type": "-",
+        "command": "api",
+        "description": "`api POST /messages/{id}/thread` и `api GET /chats/{id} --describe`: прочитать существующий тред можно без создания, а переписку чата возвращает список сообщений"
       }
     ]
   },

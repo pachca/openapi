@@ -78,6 +78,8 @@ const SPEC_PATH = path.join(HERE, '..', 'openapi.yaml');
 const SPEC_EN_PATH = path.join(HERE, '..', 'openapi.en.yaml');
 const OUT_PATH = path.join(HERE, '..', 'mcp-manifest.json');
 const SCHEMA_PATH = path.join(HERE, '..', 'mcp-manifest.schema.json');
+/** The fake workspace a judged run answers from; the ids a scenario's key wants live in it. */
+const WORLD_PATH = path.join(HERE, 'eval', 'world.json');
 
 /** Manifest schema version. Bump the major when consumers must be updated. */
 const SCHEMA_VERSION = '2.0.0';
@@ -1265,6 +1267,7 @@ function build(): void {
         : typeof value === 'number' && /(^|_)ids?$/.test(key)
           ? [String(value)]
           : [];
+  const world = fs.readFileSync(WORLD_PATH, 'utf8');
   for (const scenario of TOOL_SCENARIOS) {
     const accepted = scenario.accept.map((n) => tools.find((t) => t.name === n)).filter(Boolean) as BuiltTool[];
     for (const [, name] of scenario.prompt.matchAll(/«([^»]+)»/g)) {
@@ -1282,6 +1285,15 @@ function build(): void {
     for (const id of ids) {
       const hit = readable.find((r) => new RegExp(`(?<!\\d)${id}(?!\\d)`).test(r.text));
       if (hit) problems.push(`${scenario.id} wants id ${id}, which ${hit.where} also carries — a copied example would pass`);
+    }
+    // The key and the world change together. An id the key wants that neither the
+    // request nor the fake workspace hands out can only be guessed: moving a
+    // person's id in the key alone once failed nine scenarios for the instrument,
+    // with the agent doing everything right.
+    for (const id of idValues([scenario.args?.must, scenario.args?.either])) {
+      if (!new RegExp(`(?<!\\d)${id}(?!\\d)`).test(`${world}\n${scenario.prompt}`)) {
+        problems.push(`${scenario.id} wants id ${id}, which neither its request nor the fake workspace gives`);
+      }
     }
     // A value the key wants that the schema offers as the example of that very
     // argument — 👍 for a reaction — passes on a copy, unless the request itself

@@ -231,13 +231,15 @@ export const INSTRUCTION_PLACEHOLDERS = {
 export const SERVER_INSTRUCTIONS = [
   'Pachca is a corporate messenger. You act inside it on behalf of the person whose token this is, ' +
     'and this server does everything its public API offers: read and search chats, threads and ' +
-    'messages; send messages, files and reactions; create chats and threads, change their members ' +
-    'and settings; tasks, where handing one to someone is editing it rather than making another; ' +
-    'people, their statuses and group tags; bots; for the workspace owner, message exports and the ' +
-    'security log. Tools are named pachca_<verb>_<object>.',
+    'messages, and download their files; send messages, files and reactions, or, with a personal ' +
+    'token, keep a message as a draft or schedule it for later; create chats and threads, change ' +
+    'their members and settings; tasks, where handing one to someone is editing it rather than ' +
+    'making another; people, their statuses and group tags; bots; for the workspace owner, message ' +
+    'exports and the security log. Tools are named pachca_<verb>_<object>.',
   '',
-  'You are acting as {caller}: «я», «мне», «моё» in a request are this person, and a message «мне» ' +
-    'goes to this id. Today is {today}. This week: {week}.',
+  'You are acting as {caller}: «я», «мне», «моё» in a request are this person. A message «мне» or ' +
+    '«себе», a direct one included, goes to this id — their chat with themselves — so it names who to ' +
+    'write to, and there is nobody left to ask about. Today is {today}. This week: {week}.',
   '',
   'Authorship. Everything you send is signed with that name — there is no way to post as someone ' +
     'else — and readers take it as written by them: most connections leave no mark that an app sent ' +
@@ -265,7 +267,8 @@ export const SERVER_INSTRUCTIONS = [
     'can be brought into it without being given the chat, and they see the thread and its parent ' +
     'message only. That is what makes a thread the safe place to talk something over with someone ' +
     'outside the chat. A person’s «обсуждение» is not the API word: talking something over apart — ' +
-    '«отдельное обсуждение», «обсудим отдельно» — is a thread, under the message it continues or tied ' +
+    '«отдельное обсуждение», «обсудим отдельно», «в сторонке» — is a thread, under the message it ' +
+    'continues or tied ' +
     'to nothing when nothing was written yet; a chat is a lasting place with a name of its own.',
   '',
   'Formatting. What a message you write may contain is on send_message and update_message. Text ' +

@@ -17,12 +17,11 @@
  *
  * 1. **The words a request comes in.** The spec points at the neighbour — a
  *    topic with no message behind it gets a standalone thread — and a model gets
- *    that link as a tool name. The phrasing has no place there: «давай обсудим
- *    это отдельно» asks for a thread under the message, though «отдельно» reads
- *    like a thread apart from everything.
- * 2. **What to put in a field.** A deadline named as a weekday is a date read off
- *    the week the server sends, not counted; the spec gives the shape of the
- *    value and has no place for that.
+ *    that link as a tool name. The phrasing has no place there: «подними
+ *    переписку» asks for the feed of a chat, though «подними» reads like pinning.
+ * 2. **What to put in a field.** A request that names no hour takes the all-day
+ *    flag rather than an invented time; the spec gives the shape of the value and
+ *    has no place for that.
  * 3. **The consequence worth knowing** before a call that cannot be taken back.
  *
  * A fact about behaviour does not belong here at all. The spec's description is
@@ -44,7 +43,13 @@
  * a scenario for it, and the build fails when one would.
  *
  * A rule that holds for every tool lives in the server instructions
- * (`mcp-core.ts`), not repeated per tool.
+ * (`mcp-core.ts`), not repeated per tool. They already carry the widest of them:
+ * a day named in words is read off the week the footer carries rather than
+ * counted; ids come from search, from webhooks and from the links people paste,
+ * and a link is read parameter by parameter; «обсудим отдельно» is a thread
+ * under the message it continues; a message «мне» goes to the caller's own id;
+ * handing a task to somebody is editing it; and a task with nothing to name it
+ * by is still a task. A line repeating any of those reaches the model twice.
  *
  * Two habits hold throughout. Say what the tool is NOT for and name the
  * neighbour that is — collisions between similar names are the largest source
@@ -69,86 +74,17 @@ export interface ToolProse {
 }
 
 /**
- * What to put in a moment the person named in words. Where the dates come from
- * and how a local day ends is in the server instructions; the field says only
- * what goes into it.
+ * A day with no hour in it, on either side of a task. The instructions say where
+ * the date comes from; this says what to pass when the request names no time.
  */
-const NAMED_DAY_NOTE =
-  'A weekday name is not a value this takes. Take the date from the week in your instructions or in the ' +
-  'footer of any result rather than counting it, which is where it lands a day out, and use the ' +
-  'offset the footer’s Now carries.';
-
-/** A deadline with a day in it and no hour, on either side of a task. */
 const NO_HOUR_NOTE =
   'Pass it whenever the request names no hour — «в пятницу», «время неважно», «до конца дня» — ' +
   'instead of inventing one that then shows in the task.';
 
 export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
-  // ── Where a message goes ────────────────────────────────────────────────
-  send_message: {
-    notFor: [
-      'Editing something already sent — update_message.',
-      'Handing a task to somebody — update_task moves it to them, while a message leaves the task where it was.',
-    ],
-    arguments: {
-      entity_id: 'From search_chats, list_users or search_messages, or from a link the person pasted.',
-    },
-  },
-
-  create_thread: {
-    whenToUse: ['Taking something already said aside — «давай обсудим это отдельно».'],
-    notFor: [
-      'Reading a thread that may already exist — get_message returns the thread of a message, and ' +
-        'get_thread reads it.',
-    ],
-  },
-  create_unattached_thread: {
-    notFor: ['Anything that continues something already written, however «отдельно» it is meant — create_thread.'],
-  },
-  create_chat: {
-    notFor: ['One topic talked over «в сторонке» — create_unattached_thread.'],
-  },
+  // ── Where a request lands on the wrong neighbour ────────────────────────
   pin_message: {
     notFor: ['«Подними переписку» — that is reading the feed, list_chat_messages, not pinning.'],
-  },
-
-  // ── Deadlines and statuses ──────────────────────────────────────────────
-  create_task: {
-    arguments: {
-      due_at: NAMED_DAY_NOTE,
-      all_day: NO_HOUR_NOTE,
-      content:
-        'Write it from whatever the request names the task by, and say your wording in your reply; with ' +
-        'nothing to name it by, leave it out.',
-    },
-  },
-  update_task: {
-    arguments: { due_at: NAMED_DAY_NOTE, all_day: NO_HOUR_NOTE },
-  },
-  update_my_status: {
-    arguments: { expires_at: NAMED_DAY_NOTE },
-  },
-  update_user_status: {
-    arguments: { expires_at: NAMED_DAY_NOTE },
-  },
-
-  // ── Where the consequence is the thing worth knowing ────────────────────
-  delete_message: {
-    notFor: ['Taking back something you only regret sending — update_message edits it in place instead.'],
-  },
-  delete_user: {
-    notFor: ['«Заблокируй», «отключи», «пока» — update_user with suspended.'],
-  },
-  recreate_bot_token: {
-    description: 'Hand the new token to the person, never into a chat.',
-  },
-
-  // ── Reading: which of the neighbours shows what ─────────────────────────
-  get_chat: {
-    notFor: ['Reading what is written in it — list_chat_messages.'],
-  },
-  list_chat_messages: {
-    notFor: ['What kind of chat it is — get_chat.', 'Finding a chat by name — search_chats.'],
   },
   search_messages: {
     notFor: [
@@ -157,12 +93,38 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
         'match.',
     ],
   },
-  get_my_card: {
-    whenToUse: ['Anything about you beyond the name and id, which your instructions and every footer already carry.'],
+  delete_user: {
+    notFor: ['«Заблокируй», «отключи», «пока» — update_user with suspended.'],
+  },
+
+  // ── What to put in a field ──────────────────────────────────────────────
+  create_task: {
+    arguments: { all_day: NO_HOUR_NOTE },
+  },
+  update_task: {
+    arguments: { all_day: NO_HOUR_NOTE },
   },
   download_export: {
     arguments: {
       id: 'The one the person names or pastes — «выгрузка 812» is export 812, not a message.',
     },
+  },
+
+  // ── Where the consequence is the thing worth knowing ────────────────────
+  delete_message: {
+    notFor: ['Taking back something you only regret sending — update_message edits it in place instead.'],
+  },
+  recreate_bot_token: {
+    description: 'Hand the new token to the person, never into a chat.',
+  },
+
+  // ── What the server does that the API has no field for ──────────────────
+  list_drafts: {
+    description: 'To send one, pass its text and draft_id to send_message: the draft goes once the message is sent.',
+  },
+
+  // ── A call the instructions have already answered ───────────────────────
+  get_my_card: {
+    whenToUse: ['Anything about you beyond the name and id, which your instructions and every footer already carry.'],
   },
 };

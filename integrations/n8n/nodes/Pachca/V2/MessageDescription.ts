@@ -72,7 +72,7 @@ export const messageFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
-		description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or an employee',
+		description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user',
 		modes: [
 			{
 				displayName: 'From List',

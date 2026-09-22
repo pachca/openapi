@@ -32,7 +32,7 @@ export default class UsersUpdateStatus extends BaseCommand {
       description: "Текст статуса (макс. 50 символов)",
     }),
     'expires-at': Flags.string({
-      description: "Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Сюда идёт срок, названный словами: «до трёх» это значение поля, а не часть подписи.",
+      description: "Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC.",
     }),
     'is-away': Flags.boolean({
       description: "Режим «Нет на месте»",

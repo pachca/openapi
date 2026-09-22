@@ -41,6 +41,7 @@ if (!IS_CI && !FORCE) {
 const GENERATED_PATHS = [
   // Spec
   'packages/spec/openapi.yaml',
+  'packages/spec/mcp-manifest.json',
   // CLI
   'packages/cli/CHANGELOG.md',
   'packages/cli/oclif.manifest.json',

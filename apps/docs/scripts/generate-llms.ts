@@ -2011,6 +2011,38 @@ function generateUpdatesIndexMd(): string {
   return md;
 }
 
+/**
+ * The documentation the MCP server answers from, as one file.
+ *
+ * The tool that answers «how does Pachca work» has no API operation behind it:
+ * its content is these pages. Shipping them beside the manifest keeps the whole
+ * tool set in one package — the server reads a page by its path and searches
+ * this text, instead of the backend keeping its own copy of the documentation or
+ * reaching out to the site on a model's behalf. New pages arrive with a new
+ * version of the package, like every other change to the set.
+ *
+ * Only the pages a person reads are here. Per-method reference pages are left
+ * out: a model already holds them as tool descriptions.
+ */
+function generateMcpDocsBundle(
+  files: { path: string; content: string; location?: string; summary?: string }[]
+): string {
+  const pages = files
+    .filter((file) => !file.path.startsWith('public/updates'))
+    .map((file) => {
+      const address = file.path.replace(/^public/, '').replace(/\.md$/, '');
+      return {
+        path: address === '/index' ? '/' : address,
+        title: file.content.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? '',
+        section: file.location ?? null,
+        summary: file.summary ?? null,
+        text: file.content,
+      };
+    })
+    .sort((a, b) => a.path.localeCompare(b.path));
+  return `${JSON.stringify({ generated_from: 'apps/docs/content', pages }, null, 1)}\n`;
+}
+
 async function generateGuideMdFiles() {
   const guidePages = getOrderedPages();
   const files: { path: string; content: string; location?: string; summary?: string }[] = [];
@@ -2415,6 +2447,9 @@ async function main() {
     writeFile(file.path, withAgentPointer(file.content, file));
   }
   console.log(`✓ ${guideFiles.length} guide .md files`);
+
+  writeFile('public/mcp-docs.json', generateMcpDocsBundle(guideFiles));
+  console.log('✓ public/mcp-docs.json');
 
   const updateFiles = generateUpdateMdFiles();
   for (const file of updateFiles) {

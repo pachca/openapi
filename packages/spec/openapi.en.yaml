@@ -931,7 +931,8 @@ paths:
 
         To create a one-on-one direct message with a user, use the [New message](POST /messages) method. To discuss a
         particular message there is no need to create a chat — a thread is started under it with the [New thread](POST
-        /messages/{id}/thread) method.
+        /messages/{id}/thread) method. A conversation on a single topic needs no permanent place either: there is the
+        [New standalone thread](POST /threads) method for it.
 
 
         Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who
@@ -1288,7 +1289,8 @@ paths:
         Chat info
 
 
-        The chat's details together with the list of members and the linked tags.
+        The chat's details together with the list of members and the linked tags. What is written in the chat is
+        returned by the [List chat messages](GET /messages) method.
 
 
         A private conversation the caller does not belong to responds `403`, not `404`: this method does not hide the
@@ -2431,7 +2433,9 @@ paths:
         Puts a draft into a conversation, a thread, or a direct message. In the Pachca interface it shows up in that
         chat's input box, where an employee finishes it and sends it. A scheduled message is created by this same
         method: with the `schedule` field the draft goes out by itself at the appointed time, without it the draft
-        simply lies there. The method itself sends nothing — sending is [New message](POST /messages).
+        simply lies there. The method itself sends nothing — sending is [New message](POST /messages). Sending a message
+        does not remove the draft: the Pachca app clears it by itself, while through the API it is removed with the
+        [Delete draft](DELETE /drafts/{id}) method — otherwise the text stays in the input box.
 
 
         A draft is visible only to its author — neither the other party nor a workspace administrator sees it. A chat
@@ -3437,30 +3441,35 @@ paths:
         New message
 
 
-        Sends a message to a conversation or a channel, a direct message to an employee, or a comment to a thread.
+        Sends a message to a conversation or a channel, a direct message to a user, or a comment to a thread.
 
 
-        When using `entity_type: "discussion"` (or simply without specifying `entity_type`), any `chat_id` can be passed
-        in the `entity_id` field. This means you can send a message knowing only the chat ID. A message can also be sent
-        to a thread by the thread's own ID, and a direct message by the employee's ID, but then the matching
-        `entity_type` must be given: `thread` or `user`.
+        With `entity_type: "discussion"` — the default — `entity_id` takes the `chat_id` of any chat, so knowing the
+        chat ID is enough to send. A message can also be addressed to a thread by the thread's own ID, and a direct
+        message by the user's ID, but then the matching `entity_type` is needed: `thread` or `user`.
 
 
         There is no need to create the direct chat for this: it appears by itself if there has been no prior
-        conversation between you. Only one direct chat can exist between two employees. Your own ID writes to the chat
-        with yourself — the same place where an employee sends notes to themselves.
+        conversation between you. Only one direct chat can exist between two users. Your own ID writes to the chat with
+        yourself, where notes to oneself go.
+
+
+        Unlike a direct chat, a thread does not appear by itself: if a message has no thread yet, it is first created
+        with the [New thread](POST /messages/{id}/thread) method.
 
 
         The text in the `content` field is parsed as markdown: bold, italic, strikethrough, inline code, code block, and
         links. Lists and tables are not parsed — `-`, `1.`, and `|` stay as they are, a quote loses its `>`, and a line
-        with a hash and a space becomes bold. The details are in the [Text formatting](/guides/markdown) section.
+        with a hash and a space becomes bold. Attach a table, a checklist, or a diagram as an `.md` file: Pachca shows
+        such a file formatted, and if it is the only document in the message, its beginning is visible right in the
+        chat. The details are in the [Text formatting](/guides/markdown) section.
 
 
         `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without
         spaces the employees of that tag. In a thread a mention also works as an invitation: a mentioned employee who is
         not in the thread is added to it by Pachca and gains access to the thread and its parent message. To prevent
         that, pass `skip_invite_mentions: true`. In a conversation or a channel a mention adds nobody, and the parameter
-        changes nothing there.
+        changes nothing there. A name without `@`, and a mention inside inline code or a code block, are not mentions.
 
 
         Buttons can be shown under the message text — the `buttons` array, where each nested array is a row. They only
@@ -3755,7 +3764,7 @@ paths:
 
 
         Changes the text, files, and buttons of a message that has already been sent. In the interface it gets an edited
-        mark.
+        mark. The text follows the same formatting rules as in the [New message](POST /messages) method.
 
 
         You can edit only your own messages, and only ordinary ones: a system, a forwarded, and a voice message are not
@@ -4432,7 +4441,8 @@ paths:
 
         Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A
         thread is a separate access: an employee can be invited into it without opening the chat itself to them, and
-        they will see only the thread and the parent message.
+        they will see only the thread and the parent message. If a topic rather than a message needs discussing, start a
+        thread with the [New standalone thread](POST /threads) method.
 
 
         A new thread immediately includes the employee who created it, the author of the message, everyone who added
@@ -4448,8 +4458,9 @@ paths:
 
 
         If a thread has already been created for the message, the response will return information about the previously
-        created thread. A thread cannot be created under a message that itself lies in a thread: there are no nested
-        threads in Pachca.
+        created thread. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in
+        the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a
+        thread: there are no nested threads in Pachca.
       parameters:
         - name: id
           in: path
@@ -5321,9 +5332,9 @@ paths:
         Creates a task and assigns the employees responsible for it.
 
 
-        When creating a task, specifying the task type is required: call, meeting, simple reminder, event, or email. No
-        additional description is needed — you simply create a task with the corresponding text. If you specify a task
-        description, it will become the task's text.
+        Specifying the task type is required when creating a task: call, meeting, simple reminder, event, or email. A
+        description is not required — without it the task takes the name of its type as the text. If a description is
+        passed, it is what becomes the task's text.
 
 
         A task must have assignees; if none are specified, you are assigned as the responsible one.
@@ -9887,7 +9898,7 @@ components:
             entity_id:
               type: integer
               format: int32
-              description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or an employee.'
+              description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user.'
               example: 334
             content:
               type: string
@@ -10880,8 +10891,7 @@ components:
               format: date-time
               description: >-
                 Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time
-                without an offset is read as UTC. A deadline the person names in words goes here: «until three» is the
-                value of this field, not part of the title.
+                without an offset is read as UTC.
               example: '2024-04-08T10:00:00.000Z'
             is_away:
               type: boolean

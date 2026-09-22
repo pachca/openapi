@@ -1,0 +1,563 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dev.pachca.com/mcp-manifest.schema.json",
+  "title": "Pachca MCP tool manifest",
+  "description": "The contract a consumer validates before it boots. The server keeps no list of its own: it loads this file and serves exactly what is here. One tool stands on one API operation, except for the few that absorb a chain step; what a token may see is decided by the audience listings.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_from",
+    "server",
+    "instructions",
+    "instruction_placeholders",
+    "cache",
+    "response_format",
+    "refusals",
+    "compact_projections",
+    "tools",
+    "service_tools",
+    "audiences"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Major changes when a consumer has to be updated."
+    },
+    "generated_from": {
+      "type": "object",
+      "required": [
+        "spec",
+        "digest"
+      ],
+      "additionalProperties": false,
+      "description": "Which spec produced this file. The digest is content, not a timestamp, so the same spec always produces the same manifest.",
+      "properties": {
+        "spec": {
+          "type": "string"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "required": [
+        "name",
+        "title",
+        "website_url"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "website_url": {
+          "type": "string"
+        },
+        "icons": {
+          "type": "array"
+        }
+      }
+    },
+    "instructions": {
+      "type": "string",
+      "description": "The always-on block a model reads before its first call. Carries {placeholders} the server fills when a connection opens."
+    },
+    "instruction_placeholders": {
+      "type": "object",
+      "description": "What each placeholder in the instructions stands for. They belong to the caller and to the day, so the server fills them per connection: the date has to be known before the first call, and nothing else is in front of the model then.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "cache": {
+      "type": "object",
+      "required": [
+        "scope",
+        "ttl_ms"
+      ],
+      "additionalProperties": false,
+      "description": "Listings are personal — what a token may see decides what comes back — so nothing here may be cached on a shared intermediary.",
+      "properties": {
+        "scope": {
+          "const": "private"
+        },
+        "ttl_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "response_format": {
+      "type": "object",
+      "description": "How a tool answers: the rules live here rather than in the server, so results do not differ per handler. Most entries are one line of text; the shape of the text half is a list of lines, and the cut of a long result carries its budget alongside the notice.",
+      "required": [
+        "shape",
+        "truncation"
+      ],
+      "properties": {
+        "shape": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "truncation": {
+          "type": "object",
+          "required": [
+            "max_tokens",
+            "notice"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "max_tokens": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "notice": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "refusals": {
+      "type": "object",
+      "description": "What an agent should do when a call is refused, by code.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "compact_projections": {
+      "type": "object",
+      "description": "The fields a compact card of each entity carries: the default for every read, full on request. A write answers with the whole record.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/tool"
+      }
+    },
+    "service_tools": {
+      "type": "array",
+      "description": "Tools that are not one API operation: the documentation lookup, which reads nothing of the workspace, and the generic search and fetch pair one platform requires, which call several.",
+      "items": {
+        "$ref": "#/$defs/serviceTool"
+      }
+    },
+    "audiences": {
+      "type": "object",
+      "description": "What each kind of token receives. The protocol allows a different listing per authorization, and a tool whose scope a role never gets is not shown at all.",
+      "additionalProperties": {
+        "$ref": "#/$defs/audience"
+      }
+    }
+  },
+  "$defs": {
+    "jsonSchema": {
+      "type": "object",
+      "description": "A JSON Schema without composition keywords: several clients silently drop a tool whose schema carries $ref, allOf, oneOf, anyOf or not.",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "properties": {
+          "type": "object"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": {
+          "type": [
+            "boolean",
+            "object"
+          ],
+          "description": "false on a tool's arguments; a schema where a value is a map — link previews by URL, errors by field."
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "$ref"
+            ]
+          },
+          {
+            "required": [
+              "allOf"
+            ]
+          },
+          {
+            "required": [
+              "oneOf"
+            ]
+          },
+          {
+            "required": [
+              "anyOf"
+            ]
+          }
+        ]
+      }
+    },
+    "annotations": {
+      "type": "object",
+      "required": [
+        "readOnlyHint",
+        "destructiveHint",
+        "idempotentHint",
+        "openWorldHint"
+      ],
+      "additionalProperties": false,
+      "description": "What a client shows the person. Clients group tools by these and let one decision cover a group, so the flags decide what a single «always allow» opens.",
+      "properties": {
+        "readOnlyHint": {
+          "type": "boolean"
+        },
+        "destructiveHint": {
+          "type": "boolean"
+        },
+        "idempotentHint": {
+          "type": "boolean"
+        },
+        "openWorldHint": {
+          "type": "boolean"
+        }
+      }
+    },
+    "tool": {
+      "type": "object",
+      "required": [
+        "name",
+        "operation",
+        "kind",
+        "scope",
+        "plan",
+        "roles",
+        "bot_token_only",
+        "description",
+        "annotations",
+        "inputSchema",
+        "request"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^pachca_[a-z][a-z0-9_]*$",
+          "maxLength": 64
+        },
+        "operation": {
+          "type": "string",
+          "pattern": "^(GET|POST|PUT|PATCH|DELETE) /",
+          "description": "The one API operation this tool stands on."
+        },
+        "kind": {
+          "enum": [
+            "read",
+            "write"
+          ]
+        },
+        "scope": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Read from x-requirements of the operation. Never written by hand, so a permission change in the spec cannot drift away from here. An operation the tool runs besides its own brings its scope to the argument that triggers it."
+        },
+        "plan": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "owner",
+              "admin",
+              "user",
+              "bot"
+            ]
+          },
+          "description": "Read from x-scope-roles of the spec."
+        },
+        "bot_token_only": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "annotations": {
+          "$ref": "#/$defs/annotations"
+        },
+        "inputSchema": {
+          "$ref": "#/$defs/jsonSchema"
+        },
+        "request": {
+          "$ref": "#/$defs/request"
+        },
+        "outputSchema": {
+          "$ref": "#/$defs/jsonSchema",
+          "description": "The structured half of an answer: the response body as the API gives it, data and, for a list, meta. A read cuts each record to its compact card unless view is full; a write answers with the whole record. Nothing in it is required, so both fit."
+        },
+        "entity": {
+          "type": "string",
+          "description": "The entity a successful answer carries, as compact_projections names it. The runtime needs it to know which card to cut a read to."
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "arguments"
+      ],
+      "additionalProperties": false,
+      "description": "How the arguments become the API request. They are flat for the model and the body is not, so every argument names its place.",
+      "properties": {
+        "media_type": {
+          "enum": [
+            "application/json",
+            "multipart/form-data"
+          ]
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "in"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "in": {
+                "enum": [
+                  "path",
+                  "query",
+                  "body",
+                  "upload",
+                  "server"
+                ],
+                "description": "upload: the server uploads each file and puts the result at `at`; server: the server's own argument, never sent to the API."
+              },
+              "at": {
+                "type": "string",
+                "description": "The dotted place in the body: message.content."
+              },
+              "explode": {
+                "type": "boolean",
+                "description": "false: a list in the query goes as one comma-separated value."
+              },
+              "operations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^(GET|POST|PUT|PATCH|DELETE) /"
+                },
+                "description": "upload: the operations the server runs to make each upload, in order — steps of the action rather than actions of their own."
+              },
+              "scopes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "upload: the scopes those operations need beyond the tool's own, read from the spec. Passing the argument without them is refused before the first step."
+              },
+              "effect": {
+                "description": "server: what the runtime does with an argument the API has no field for. Declared rather than known by name, so a new argument of this kind is a new version of the package and not a change in the backend.",
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "entity"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "const": "projection"
+                      },
+                      "entity": {
+                        "type": "string",
+                        "description": "Cut each record of the answer to the card of this entity unless the full view is asked for."
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "operation",
+                      "at",
+                      "on",
+                      "scopes"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "const": "after"
+                      },
+                      "operation": {
+                        "type": "string",
+                        "pattern": "^(GET|POST|PUT|PATCH|DELETE) /",
+                        "description": "Run this operation once the tool's own call succeeded."
+                      },
+                      "at": {
+                        "type": "string",
+                        "description": "The argument of that operation the value goes into."
+                      },
+                      "on": {
+                        "const": "success"
+                      },
+                      "scopes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "The scopes that operation needs beyond the tool's own."
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "serviceTool": {
+      "type": "object",
+      "required": [
+        "name",
+        "kind",
+        "compat",
+        "operations",
+        "scopes",
+        "description",
+        "annotations",
+        "inputSchema"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^pachca_[a-z][a-z0-9_]*$",
+          "maxLength": 64
+        },
+        "kind": {
+          "enum": [
+            "read",
+            "write"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "compat": {
+          "type": "boolean",
+          "description": "Served only to clients that need it: the generic search and fetch pair exists because one platform's research mode requires that exact shape."
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(GET|POST|PUT|PATCH|DELETE) /"
+          },
+          "description": "The API operations the tool calls. Empty for the documentation lookup."
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The scopes of those operations, read from the spec. The tool calls an operation only where the token holds its scope."
+        },
+        "annotations": {
+          "$ref": "#/$defs/annotations"
+        },
+        "inputSchema": {
+          "$ref": "#/$defs/jsonSchema"
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "kind",
+            "file"
+          ],
+          "additionalProperties": false,
+          "description": "Where the answer comes from when the tool calls no API operation: a file shipped in the same package.",
+          "properties": {
+            "kind": {
+              "const": "package"
+            },
+            "file": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "audience": {
+      "type": "object",
+      "required": [
+        "role",
+        "plan",
+        "tools",
+        "model_tokens"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "enum": [
+            "owner",
+            "admin",
+            "user",
+            "bot"
+          ]
+        },
+        "plan": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^pachca_"
+          }
+        },
+        "model_tokens": {
+          "type": "integer",
+          "description": "Roughly what this listing costs a model if a client loads it whole. Clients that fetch a schema when it is needed pay a fraction of it."
+        }
+      }
+    }
+  }
+}

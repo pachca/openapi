@@ -110,7 +110,7 @@ export const profileFields: INodeProperties[] = [
 				name: 'statusExpiresAt',
 				type: 'dateTime',
 				default: "",
-				description: 'Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC. A deadline the person names in words goes here: «until three» is the value of this field, not part of the title.',
+				description: 'Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC.',
 				placeholder: '2024-04-08T10:00:00.000Z',
 			},
 			{

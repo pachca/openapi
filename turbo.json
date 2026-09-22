@@ -42,6 +42,7 @@
         "public/llms-en.txt",
         "public/skill.md",
         "public/index.md",
+        "public/mcp-docs.json",
         "public/guides/**",
         "public/**/*.md",
         "public/.well-known/**",
@@ -70,6 +71,7 @@
         "public/llms-en.txt",
         "public/skill.md",
         "public/index.md",
+        "public/mcp-docs.json",
         "public/guides/**",
         "public/**/*.md",
         "public/.well-known/**",
@@ -158,6 +160,7 @@
         "^build",
         "generate",
         "overlay:apply",
+        "generate-mcp",
         "generate-llms",
         "generate-cli",
         "generate-n8n"
@@ -305,6 +308,25 @@
         "openapi.yaml",
         "openapi.en.yaml",
         "scripts/check-enum-descriptions.ts"
+      ],
+      "cache": true
+    },
+    "generate-mcp": {
+      "dependsOn": [
+        "@pachca/spec#generate",
+        "@pachca/spec#overlay:apply"
+      ],
+      "inputs": [
+        "mcp-core.ts",
+        "mcp-tools.ts",
+        "mcp-scenarios.ts",
+        "mcp-manifest.schema.json",
+        "openapi.yaml",
+        "openapi.en.yaml",
+        "scripts/generate-mcp-manifest.ts"
+      ],
+      "outputs": [
+        "mcp-manifest.json"
       ],
       "cache": true
     }

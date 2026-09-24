@@ -6,16 +6,11 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import type { Schema } from '@/lib/openapi/types';
 import { CopyableCode } from './schema-tree';
 import { InlineCodeText } from './inline-code-text';
-
-const ROLES = ['owner', 'admin', 'user', 'bot'] as const;
-type Role = (typeof ROLES)[number];
-
-const ROLE_LABELS: Record<Role, string> = {
-  owner: 'Владелец',
-  admin: 'Администратор',
-  user: 'Сотрудник',
-  bot: 'Бот',
-};
+import {
+  SCOPE_ROLES as ROLES,
+  SCOPE_ROLE_LABELS as ROLE_LABELS,
+  type ScopeRole as Role,
+} from '@/lib/scope-roles';
 
 interface ScopeRolesTableProps {
   schema: Schema;

@@ -40,13 +40,6 @@ export const draftOperations: INodeProperties[] = [
 
 export const draftFields: INodeProperties[] = [
 	{
-		displayName: 'Requires owner, admin, user roles',
-		name: 'draftCreateNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['draft'], operation: ['create'] } },
-	},
-	{
 		displayName: 'Entity Type',
 		name: 'entityType',
 		type: 'options',
@@ -82,7 +75,7 @@ export const draftFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 4 },
 				default: "",
-				description: 'Draft text. It may be omitted if there are attachments, but a draft cannot be empty.',
+				description: 'Draft text. It may be omitted if there are attachments, but a draft cannot be empty. Up to 40,000 bytes in UTF-8, and for a scheduled message in a workspace with advanced encryption — up to 27,000.',
 				placeholder: 'Weekly report: sales are up 10%',
 			},
 			{
@@ -99,7 +92,7 @@ export const draftFields: INodeProperties[] = [
 							name: 'duration_ms',
 							type: 'number',
 							default: 0,
-							description: 'Duration in milliseconds. Required for a voice message (`file_type` is `voice`).',
+							description: 'Duration in milliseconds. Required for a voice message (`file_type` is `voice`). A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.',
 						},
 						{
 							displayName: 'File Type',
@@ -184,13 +177,6 @@ export const draftFields: INodeProperties[] = [
 		],
 	},
 	{
-		displayName: 'Requires owner, admin, user roles',
-		name: 'draftGetAllNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['draft'], operation: ['getAll'] } },
-	},
-	{
 		displayName: 'Return All',
 		name: 'returnAll',
 		type: 'boolean',
@@ -256,13 +242,6 @@ export const draftFields: INodeProperties[] = [
 		description: 'Draft ID',
 	},
 	{
-		displayName: 'Requires owner, admin, user roles',
-		name: 'draftGetNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['draft'], operation: ['get'] } },
-	},
-	{
 		displayName: 'Simplify',
 		name: 'simplify',
 		type: 'boolean',
@@ -280,13 +259,6 @@ export const draftFields: INodeProperties[] = [
 		description: 'Draft ID',
 	},
 	{
-		displayName: 'Requires owner, admin, user roles',
-		name: 'draftUpdateNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['draft'], operation: ['update'] } },
-	},
-	{
 		displayName: 'Additional Fields',
 		name: 'additionalFields',
 		type: 'collection',
@@ -300,7 +272,7 @@ export const draftFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 4 },
 				default: "",
-				description: 'Draft text',
+				description: 'Draft text. Up to 40,000 bytes in UTF-8, and for a scheduled message in a workspace with advanced encryption — up to 27,000.',
 				placeholder: 'Weekly report: sales are up 10%',
 			},
 			{
@@ -317,7 +289,7 @@ export const draftFields: INodeProperties[] = [
 							name: 'duration_ms',
 							type: 'number',
 							default: 0,
-							description: 'Duration in milliseconds. Required for a voice message (`file_type` is `voice`).',
+							description: 'Duration in milliseconds. Required for a voice message (`file_type` is `voice`). A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.',
 						},
 						{
 							displayName: 'File Type',
@@ -409,12 +381,5 @@ export const draftFields: INodeProperties[] = [
 		default: 0,
 		displayOptions: { show: { resource: ['draft'], operation: ['delete'] } },
 		description: 'Draft ID',
-	},
-	{
-		displayName: 'Requires owner, admin, user roles',
-		name: 'draftDeleteNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['draft'], operation: ['delete'] } },
 	},
 ];

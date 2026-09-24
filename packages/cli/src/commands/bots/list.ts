@@ -12,7 +12,7 @@ export default class BotsList extends BaseCommand {
   static scope = "bots:read";
   static apiMethod = "GET";
   static apiPath = "/bots";
-  static defaultColumns = ["id","webhook"];
+  static defaultColumns = ["id","name","created_at","nickname","avatar_url"];
 
   static override args = {
 

@@ -98,10 +98,26 @@ public enum AuditEventKey
     BotDeleted,
     /// <summary>Изменены параметры OAuth-клиента бота</summary>
     BotOauthClientUpdated,
+    /// <summary>У бота выключена авторизация от имени сотрудника</summary>
+    BotOauthClientDisabled,
+    /// <summary>Обновлён секрет OAuth-клиента бота</summary>
+    BotOauthClientSecretRotated,
+    /// <summary>Выпущен секрет OAuth-клиента бота</summary>
+    BotOauthClientSecretIssued,
+    /// <summary>Выпущен токен бота</summary>
+    BotTokenCreated,
+    /// <summary>Изменены имя или скоупы токена бота</summary>
+    BotTokenUpdated,
+    /// <summary>Отдельный токен бота перевыпущен</summary>
+    BotTokenReissued,
+    /// <summary>Токен бота удалён</summary>
+    BotTokenDeleted,
     /// <summary>Пользователь выдал OAuth-клиенту доступ к своим данным</summary>
     OauthAuthorizationGranted,
     /// <summary>Доступ OAuth-клиента к данным пользователя отозван</summary>
     OauthAuthorizationRevoked,
+    /// <summary>OAuth-клиент отозвал выданный ему токен</summary>
+    OauthTokenRevoked,
     /// <summary>Сотрудник подтвердил вход приложения с устройства</summary>
     OauthDeviceAuthorizationApproved,
     /// <summary>Сотрудник отклонил вход приложения с устройства</summary>
@@ -166,8 +182,16 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             "bot_token_recreated" => AuditEventKey.BotTokenRecreated,
             "bot_deleted" => AuditEventKey.BotDeleted,
             "bot_oauth_client_updated" => AuditEventKey.BotOauthClientUpdated,
+            "bot_oauth_client_disabled" => AuditEventKey.BotOauthClientDisabled,
+            "bot_oauth_client_secret_rotated" => AuditEventKey.BotOauthClientSecretRotated,
+            "bot_oauth_client_secret_issued" => AuditEventKey.BotOauthClientSecretIssued,
+            "bot_token_created" => AuditEventKey.BotTokenCreated,
+            "bot_token_updated" => AuditEventKey.BotTokenUpdated,
+            "bot_token_reissued" => AuditEventKey.BotTokenReissued,
+            "bot_token_deleted" => AuditEventKey.BotTokenDeleted,
             "oauth_authorization_granted" => AuditEventKey.OauthAuthorizationGranted,
             "oauth_authorization_revoked" => AuditEventKey.OauthAuthorizationRevoked,
+            "oauth_token_revoked" => AuditEventKey.OauthTokenRevoked,
             "oauth_device_authorization_approved" => AuditEventKey.OauthDeviceAuthorizationApproved,
             "oauth_device_authorization_denied" => AuditEventKey.OauthDeviceAuthorizationDenied,
             "video_call_started" => AuditEventKey.VideoCallStarted,
@@ -225,8 +249,16 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
             AuditEventKey.BotTokenRecreated => "bot_token_recreated",
             AuditEventKey.BotDeleted => "bot_deleted",
             AuditEventKey.BotOauthClientUpdated => "bot_oauth_client_updated",
+            AuditEventKey.BotOauthClientDisabled => "bot_oauth_client_disabled",
+            AuditEventKey.BotOauthClientSecretRotated => "bot_oauth_client_secret_rotated",
+            AuditEventKey.BotOauthClientSecretIssued => "bot_oauth_client_secret_issued",
+            AuditEventKey.BotTokenCreated => "bot_token_created",
+            AuditEventKey.BotTokenUpdated => "bot_token_updated",
+            AuditEventKey.BotTokenReissued => "bot_token_reissued",
+            AuditEventKey.BotTokenDeleted => "bot_token_deleted",
             AuditEventKey.OauthAuthorizationGranted => "oauth_authorization_granted",
             AuditEventKey.OauthAuthorizationRevoked => "oauth_authorization_revoked",
+            AuditEventKey.OauthTokenRevoked => "oauth_token_revoked",
             AuditEventKey.OauthDeviceAuthorizationApproved => "oauth_device_authorization_approved",
             AuditEventKey.OauthDeviceAuthorizationDenied => "oauth_device_authorization_denied",
             AuditEventKey.VideoCallStarted => "video_call_started",
@@ -447,6 +479,45 @@ internal class BotTriggerOnConverter : JsonConverter<BotTriggerOn>
     }
 }
 
+/// <summary>Источник входящего вебхука бота</summary>
+[JsonConverter(typeof(BotWebhookKindConverter))]
+public enum BotWebhookKind
+{
+    /// <summary>Свой формат: сообщение собирается из тела запроса по шаблону бота</summary>
+    Simple,
+    /// <summary>GitLab: Пачка сама разбирает запрос и собирает сообщение</summary>
+    Gitlab,
+    /// <summary>Grafana: Пачка сама разбирает запрос и собирает сообщение</summary>
+    Grafana,
+}
+
+internal class BotWebhookKindConverter : JsonConverter<BotWebhookKind>
+{
+    public override BotWebhookKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "simple" => BotWebhookKind.Simple,
+            "gitlab" => BotWebhookKind.Gitlab,
+            "grafana" => BotWebhookKind.Grafana,
+            _ => throw new JsonException($"Unknown BotWebhookKind value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, BotWebhookKind value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            BotWebhookKind.Simple => "simple",
+            BotWebhookKind.Gitlab => "gitlab",
+            BotWebhookKind.Grafana => "grafana",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Кто может добавлять бота в чаты</summary>
 [JsonConverter(typeof(BotWhoCanAddConverter))]
 public enum BotWhoCanAdd
@@ -457,7 +528,7 @@ public enum BotWhoCanAdd
     CreatorAdmin,
     /// <summary>Создатель, администраторы и участники компании</summary>
     CreatorAdminUser,
-    /// <summary>Любой пользователь, в том числе гости</summary>
+    /// <summary>Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей</summary>
     Anyone,
 }
 
@@ -1135,6 +1206,8 @@ public enum OAuthScope
     ChatsCreate,
     /// <summary>Изменение настроек чата</summary>
     ChatsUpdate,
+    /// <summary>Отметка чатов непрочитанными</summary>
+    ChatsMarkUnread,
     /// <summary>Архивация и разархивация чатов</summary>
     ChatsArchive,
     /// <summary>Выход из чатов</summary>
@@ -1255,6 +1328,7 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             "chats:read" => OAuthScope.ChatsRead,
             "chats:create" => OAuthScope.ChatsCreate,
             "chats:update" => OAuthScope.ChatsUpdate,
+            "chats:mark_unread" => OAuthScope.ChatsMarkUnread,
             "chats:archive" => OAuthScope.ChatsArchive,
             "chats:leave" => OAuthScope.ChatsLeave,
             "chat_members:read" => OAuthScope.ChatMembersRead,
@@ -1320,6 +1394,7 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             OAuthScope.ChatsRead => "chats:read",
             OAuthScope.ChatsCreate => "chats:create",
             OAuthScope.ChatsUpdate => "chats:update",
+            OAuthScope.ChatsMarkUnread => "chats:mark_unread",
             OAuthScope.ChatsArchive => "chats:archive",
             OAuthScope.ChatsLeave => "chats:leave",
             OAuthScope.ChatMembersRead => "chat_members:read",
@@ -1856,6 +1931,16 @@ public enum ValidationErrorCode
     ConfidentialDownloadDenied,
     /// <summary>Не удалось расшифровать файл</summary>
     DecryptionFailed,
+    /// <summary>Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`</summary>
+    BotAddDenied,
+    /// <summary>Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`</summary>
+    SingleChatBotOccupied,
+    /// <summary>Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег</summary>
+    SingleChatBotTagDenied,
+    /// <summary>Настройки бота изменились во время запроса: повторите его</summary>
+    BotChangedConcurrently,
+    /// <summary>Поиск не уложился по времени: сузьте запрос и повторите</summary>
+    Timeout,
     /// <summary>Недостаточно прав для выполнения действия (пояснения вы получите в поле message)</summary>
     Forbidden,
     /// <summary>Доступ запрещён (недостаточно прав)</summary>
@@ -1932,6 +2017,11 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             "draft_type_change_forbidden" => ValidationErrorCode.DraftTypeChangeForbidden,
             "confidential_download_denied" => ValidationErrorCode.ConfidentialDownloadDenied,
             "decryption_failed" => ValidationErrorCode.DecryptionFailed,
+            "bot_add_denied" => ValidationErrorCode.BotAddDenied,
+            "single_chat_bot_occupied" => ValidationErrorCode.SingleChatBotOccupied,
+            "single_chat_bot_tag_denied" => ValidationErrorCode.SingleChatBotTagDenied,
+            "bot_changed_concurrently" => ValidationErrorCode.BotChangedConcurrently,
+            "timeout" => ValidationErrorCode.Timeout,
             "forbidden" => ValidationErrorCode.Forbidden,
             "permission_denied" => ValidationErrorCode.PermissionDenied,
             "access_denied" => ValidationErrorCode.AccessDenied,
@@ -1991,6 +2081,11 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             ValidationErrorCode.DraftTypeChangeForbidden => "draft_type_change_forbidden",
             ValidationErrorCode.ConfidentialDownloadDenied => "confidential_download_denied",
             ValidationErrorCode.DecryptionFailed => "decryption_failed",
+            ValidationErrorCode.BotAddDenied => "bot_add_denied",
+            ValidationErrorCode.SingleChatBotOccupied => "single_chat_bot_occupied",
+            ValidationErrorCode.SingleChatBotTagDenied => "single_chat_bot_tag_denied",
+            ValidationErrorCode.BotChangedConcurrently => "bot_changed_concurrently",
+            ValidationErrorCode.Timeout => "timeout",
             ValidationErrorCode.Forbidden => "forbidden",
             ValidationErrorCode.PermissionDenied => "permission_denied",
             ValidationErrorCode.AccessDenied => "access_denied",
@@ -2118,16 +2213,20 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         (typeof(AuditDetailsDlp), new HashSet<string> { "dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched" }),
         (typeof(AuditDetailsSearch), new HashSet<string> { "search_type", "query_present", "cursor_present", "limit", "filters" }),
         (typeof(AuditDetailsBot), new HashSet<string> { "bot_id", "actor_id" }),
-        (typeof(AuditDetailsBotScopes), new HashSet<string> { "added_scopes", "removed_scopes" }),
-        (typeof(AuditDetailsBotWebhookSettings), new HashSet<string> { "changes" }),
-        (typeof(AuditDetailsBotOAuthClient), new HashSet<string> { "client_id", "changes" }),
+        (typeof(AuditDetailsBotScopes), new HashSet<string> { "bot_id", "actor_id", "added_scopes", "removed_scopes" }),
+        (typeof(AuditDetailsBotWebhookSettings), new HashSet<string> { "bot_id", "actor_id", "changes" }),
+        (typeof(AuditDetailsBotOAuthClient), new HashSet<string> { "bot_id", "actor_id", "client_id", "changes" }),
         (typeof(AuditDetailsOAuthAuthorizationGranted), new HashSet<string> { "client_id", "scopes" }),
-        (typeof(AuditDetailsOAuthAuthorizationRevoked), new HashSet<string> { "client_id", "revoked_tokens_count" }),
-        (typeof(AuditDetailsDeviceAuthorizationApproved), new HashSet<string> { "client_id", "scopes" }),
-        (typeof(AuditDetailsDeviceAuthorizationDenied), new HashSet<string> { "client_id", "scopes" }),
+        (typeof(AuditDetailsOAuthAuthorizationRevoked), new HashSet<string> { "client_id", "revoked_tokens_count", "user_id" }),
+        (typeof(AuditDetailsDeviceAuthorizationApproved), new HashSet<string> { "client_id", "scopes", "device_name" }),
+        (typeof(AuditDetailsDeviceAuthorizationDenied), new HashSet<string> { "client_id", "scopes", "device_name" }),
         (typeof(AuditDetailsVideoCallStarted), new HashSet<string> { "chat_id", "started_message_id" }),
         (typeof(AuditDetailsVideoCallFinished), new HashSet<string> { "chat_id", "started_message_id", "duration", "max_members_count" }),
         (typeof(AuditDetailsVideoCallRecording), new HashSet<string> { "chat_id", "started_message_id", "recording_id", "file_id", "duration", "size" }),
+        (typeof(AuditDetailsBotOAuthClientSecretRotated), new HashSet<string> { "bot_id", "actor_id", "client_id" }),
+        (typeof(AuditDetailsBotOAuthClientDisabled), new HashSet<string> { "bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count" }),
+        (typeof(AuditDetailsToken), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "scopes", "bot_id" }),
+        (typeof(AuditDetailsBotTokenUpdated), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id" }),
     };
 
     public override AuditEventDetailsUnion Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -2298,6 +2397,10 @@ public class AuditDetailsBot : AuditEventDetailsUnion
 
 public class AuditDetailsBotScopes : AuditEventDetailsUnion
 {
+    [JsonPropertyName("bot_id")]
+    public int BotId { get; set; } = default!;
+    [JsonPropertyName("actor_id")]
+    public int? ActorId { get; set; }
     [JsonPropertyName("added_scopes")]
     public List<string> AddedScopes { get; set; } = default!;
     [JsonPropertyName("removed_scopes")]
@@ -2306,12 +2409,20 @@ public class AuditDetailsBotScopes : AuditEventDetailsUnion
 
 public class AuditDetailsBotWebhookSettings : AuditEventDetailsUnion
 {
+    [JsonPropertyName("bot_id")]
+    public int BotId { get; set; } = default!;
+    [JsonPropertyName("actor_id")]
+    public int? ActorId { get; set; }
     [JsonPropertyName("changes")]
     public Dictionary<string, object> Changes { get; set; } = default!;
 }
 
 public class AuditDetailsBotOAuthClient : AuditEventDetailsUnion
 {
+    [JsonPropertyName("bot_id")]
+    public int BotId { get; set; } = default!;
+    [JsonPropertyName("actor_id")]
+    public int? ActorId { get; set; }
     [JsonPropertyName("client_id")]
     public string ClientId { get; set; } = default!;
     [JsonPropertyName("changes")]
@@ -2332,6 +2443,8 @@ public class AuditDetailsOAuthAuthorizationRevoked : AuditEventDetailsUnion
     public string ClientId { get; set; } = default!;
     [JsonPropertyName("revoked_tokens_count")]
     public int RevokedTokensCount { get; set; } = default!;
+    [JsonPropertyName("user_id")]
+    public int? UserId { get; set; }
 }
 
 public class AuditDetailsDeviceAuthorizationApproved : AuditEventDetailsUnion
@@ -2340,6 +2453,8 @@ public class AuditDetailsDeviceAuthorizationApproved : AuditEventDetailsUnion
     public string ClientId { get; set; } = default!;
     [JsonPropertyName("scopes")]
     public List<string> Scopes { get; set; } = default!;
+    [JsonPropertyName("device_name")]
+    public string? DeviceName { get; set; }
 }
 
 public class AuditDetailsDeviceAuthorizationDenied : AuditEventDetailsUnion
@@ -2348,6 +2463,8 @@ public class AuditDetailsDeviceAuthorizationDenied : AuditEventDetailsUnion
     public string ClientId { get; set; } = default!;
     [JsonPropertyName("scopes")]
     public List<string> Scopes { get; set; } = default!;
+    [JsonPropertyName("device_name")]
+    public string? DeviceName { get; set; }
 }
 
 public class AuditDetailsVideoCallStarted : AuditEventDetailsUnion
@@ -2384,6 +2501,60 @@ public class AuditDetailsVideoCallRecording : AuditEventDetailsUnion
     public int Duration { get; set; } = default!;
     [JsonPropertyName("size")]
     public long Size { get; set; } = default!;
+}
+
+public class AuditDetailsBotOAuthClientSecretRotated : AuditEventDetailsUnion
+{
+    [JsonPropertyName("bot_id")]
+    public int BotId { get; set; } = default!;
+    [JsonPropertyName("actor_id")]
+    public int? ActorId { get; set; }
+    [JsonPropertyName("client_id")]
+    public string ClientId { get; set; } = default!;
+}
+
+public class AuditDetailsBotOAuthClientDisabled : AuditEventDetailsUnion
+{
+    [JsonPropertyName("bot_id")]
+    public int BotId { get; set; } = default!;
+    [JsonPropertyName("actor_id")]
+    public int? ActorId { get; set; }
+    [JsonPropertyName("client_id")]
+    public string ClientId { get; set; } = default!;
+    [JsonPropertyName("deleted_access_tokens_count")]
+    public int DeletedAccessTokensCount { get; set; } = default!;
+    [JsonPropertyName("deleted_access_grants_count")]
+    public int DeletedAccessGrantsCount { get; set; } = default!;
+}
+
+public class AuditDetailsToken : AuditEventDetailsUnion
+{
+    [JsonPropertyName("token_kind")]
+    public string TokenKind { get; set; } = default!;
+    [JsonPropertyName("token_name")]
+    public string? TokenName { get; set; }
+    [JsonPropertyName("resource_owner_id")]
+    public int ResourceOwnerId { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string> Scopes { get; set; } = default!;
+    [JsonPropertyName("bot_id")]
+    public int? BotId { get; set; }
+}
+
+public class AuditDetailsBotTokenUpdated : AuditEventDetailsUnion
+{
+    [JsonPropertyName("token_kind")]
+    public string TokenKind { get; set; } = default!;
+    [JsonPropertyName("token_name")]
+    public string? TokenName { get; set; }
+    [JsonPropertyName("resource_owner_id")]
+    public int ResourceOwnerId { get; set; } = default!;
+    [JsonPropertyName("current_scopes")]
+    public List<string> CurrentScopes { get; set; } = default!;
+    [JsonPropertyName("bot_id")]
+    public int? BotId { get; set; }
+    [JsonPropertyName("actor_id")]
+    public int? ActorId { get; set; }
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
@@ -2736,6 +2907,12 @@ public class LinkSharedWebhookPayload : WebhookPayloadUnion
     public List<WebhookLink> Links { get; set; } = default!;
     [JsonPropertyName("user_id")]
     public int UserId { get; set; } = default!;
+    [JsonPropertyName("entity_type")]
+    public MessageEntityType EntityType { get; set; } = default!;
+    [JsonPropertyName("entity_id")]
+    public int? EntityId { get; set; }
+    [JsonPropertyName("thread")]
+    public WebhookMessageThread? Thread { get; set; }
     [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; } = default!;
     [JsonPropertyName("webhook_timestamp")]
@@ -2867,6 +3044,30 @@ public class AvatarData
     public string ImageUrl { get; set; } = default!;
 }
 
+public class BotAccessToken
+{
+    [JsonPropertyName("id")]
+    public long Id { get; set; } = default!;
+    [JsonPropertyName("token")]
+    public string Token { get; set; } = default!;
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+    [JsonPropertyName("user_id")]
+    public long UserId { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string> Scopes { get; set; } = default!;
+    [JsonPropertyName("created_at")]
+    public DateTimeOffset CreatedAt { get; set; } = default!;
+    [JsonPropertyName("revoked_at")]
+    public DateTimeOffset? RevokedAt { get; set; }
+    [JsonPropertyName("expires_in")]
+    public int? ExpiresIn { get; set; }
+    [JsonPropertyName("last_used_at")]
+    public DateTimeOffset? LastUsedAt { get; set; }
+    [JsonPropertyName("authorized_at")]
+    public DateTimeOffset? AuthorizedAt { get; set; }
+}
+
 public class BotCreateRequestWebhook
 {
     [JsonPropertyName("name")]
@@ -2901,30 +3102,264 @@ public class BotCreateRequestWebhook
     public List<BotCanEdit>? CanEdit { get; set; }
     [JsonPropertyName("single_chat")]
     public bool? SingleChat { get; set; }
+    [JsonPropertyName("kind")]
+    public BotWebhookKind? Kind { get; set; }
+    [JsonPropertyName("unfurl_domains")]
+    public List<string>? UnfurlDomains { get; set; }
 }
 
 public class BotCreateRequest
 {
+    [JsonPropertyName("empty")]
+    public bool? Empty { get; set; }
     [JsonPropertyName("webhook")]
     public BotCreateRequestWebhook Webhook { get; set; } = default!;
+    [JsonPropertyName("oauth_client")]
+    public BotOAuthClientRequest? OauthClient { get; set; }
+    [JsonPropertyName("promo")]
+    public BotPromoRequest? Promo { get; set; }
 }
 
 public class BotCreateResponse
 {
     [JsonPropertyName("id")]
     public int Id { get; set; } = default!;
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("nickname")]
+    public string Nickname { get; set; } = default!;
+    [JsonPropertyName("avatar_url")]
+    public string? AvatarUrl { get; set; }
+    [JsonPropertyName("creator_id")]
+    public int? CreatorId { get; set; }
+    [JsonPropertyName("created_at")]
+    public DateTimeOffset CreatedAt { get; set; } = default!;
+    [JsonPropertyName("authorized_users_count")]
+    public int AuthorizedUsersCount { get; set; } = default!;
+    [JsonPropertyName("last_used_at")]
+    public DateTimeOffset? LastUsedAt { get; set; }
     [JsonPropertyName("webhook")]
     public BotWebhook Webhook { get; set; } = default!;
+    [JsonPropertyName("oauth_client_enabled")]
+    public bool OauthClientEnabled { get; set; } = default!;
+    [JsonPropertyName("oauth_client")]
+    public BotOAuthClient? OauthClient { get; set; }
+    [JsonPropertyName("promo")]
+    public BotPromo? Promo { get; set; }
+    [JsonPropertyName("permissions")]
+    public BotPermissions Permissions { get; set; } = default!;
+    [JsonPropertyName("client_secret")]
+    public string? ClientSecret { get; set; }
     [JsonPropertyName("access_token")]
-    public string AccessToken { get; set; } = default!;
+    public string? AccessToken { get; set; }
+}
+
+public class BotOAuthClient
+{
+    [JsonPropertyName("client_id")]
+    public string ClientId { get; set; } = default!;
+    [JsonPropertyName("client_secret_preview")]
+    public string ClientSecretPreview { get; set; } = default!;
+    [JsonPropertyName("confidential")]
+    public bool Confidential { get; set; } = default!;
+    [JsonPropertyName("redirect_uris")]
+    public List<string> RedirectUris { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string> Scopes { get; set; } = default!;
+}
+
+public class BotOAuthClientRequest
+{
+    [JsonPropertyName("confidential")]
+    public bool? Confidential { get; set; }
+    [JsonPropertyName("redirect_uris")]
+    public List<string>? RedirectUris { get; set; }
+    [JsonPropertyName("scopes")]
+    public List<string>? Scopes { get; set; }
+}
+
+public class BotPermissions
+{
+    [JsonPropertyName("update_oauth_client")]
+    public bool UpdateOauthClient { get; set; } = default!;
+    [JsonPropertyName("recreate_token")]
+    public bool RecreateToken { get; set; } = default!;
+    [JsonPropertyName("destroy")]
+    public bool Destroy { get; set; } = default!;
+}
+
+public class BotPromo
+{
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+    [JsonPropertyName("published")]
+    public bool Published { get; set; } = default!;
+    [JsonPropertyName("promo_images")]
+    public List<BotPromoImage> PromoImages { get; set; } = default!;
+}
+
+public class BotPromoImage
+{
+    [JsonPropertyName("key")]
+    public string Key { get; set; } = default!;
+    [JsonPropertyName("url")]
+    public string Url { get; set; } = default!;
+}
+
+public class BotPromoRequest
+{
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+    [JsonPropertyName("published")]
+    public bool? Published { get; set; }
+    [JsonPropertyName("promo_images")]
+    public List<string>? PromoImages { get; set; }
 }
 
 public class BotResponse
 {
     [JsonPropertyName("id")]
     public int Id { get; set; } = default!;
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("nickname")]
+    public string Nickname { get; set; } = default!;
+    [JsonPropertyName("avatar_url")]
+    public string? AvatarUrl { get; set; }
+    [JsonPropertyName("creator_id")]
+    public int? CreatorId { get; set; }
+    [JsonPropertyName("created_at")]
+    public DateTimeOffset CreatedAt { get; set; } = default!;
+    [JsonPropertyName("authorized_users_count")]
+    public int AuthorizedUsersCount { get; set; } = default!;
+    [JsonPropertyName("last_used_at")]
+    public DateTimeOffset? LastUsedAt { get; set; }
     [JsonPropertyName("webhook")]
     public BotWebhook Webhook { get; set; } = default!;
+    [JsonPropertyName("oauth_client_enabled")]
+    public bool OauthClientEnabled { get; set; } = default!;
+    [JsonPropertyName("oauth_client")]
+    public BotOAuthClient? OauthClient { get; set; }
+    [JsonPropertyName("promo")]
+    public BotPromo? Promo { get; set; }
+    [JsonPropertyName("permissions")]
+    public BotPermissions Permissions { get; set; } = default!;
+    [JsonPropertyName("client_secret")]
+    public string? ClientSecret { get; set; }
+}
+
+public class BotScopeCatalog
+{
+    [JsonPropertyName("scopes")]
+    public List<BotScopeCatalogItem> Scopes { get; set; } = default!;
+    [JsonPropertyName("groups")]
+    public List<BotScopeCatalogGroup> Groups { get; set; } = default!;
+    [JsonPropertyName("presets")]
+    public List<BotScopeCatalogPreset> Presets { get; set; } = default!;
+}
+
+public class BotScopeCatalogGroup
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = default!;
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = default!;
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = default!;
+}
+
+public class BotScopeCatalogItem
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = default!;
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = default!;
+    [JsonPropertyName("group")]
+    public string Group { get; set; } = default!;
+    [JsonPropertyName("preset")]
+    public List<string> Preset { get; set; } = default!;
+}
+
+public class BotScopeCatalogPreset
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = default!;
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = default!;
+}
+
+public class BotSelfResponse
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
+    [JsonPropertyName("oauth_client")]
+    public BotOAuthClient? OauthClient { get; set; }
+    [JsonPropertyName("webhook")]
+    public BotSelfWebhook Webhook { get; set; } = default!;
+}
+
+public class BotSelfTokenResponse
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
+    [JsonPropertyName("oauth_client")]
+    public BotOAuthClient? OauthClient { get; set; }
+    [JsonPropertyName("webhook")]
+    public BotSelfWebhook Webhook { get; set; } = default!;
+    [JsonPropertyName("access_token")]
+    public string AccessToken { get; set; } = default!;
+}
+
+public class BotSelfWebhook
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("nickname")]
+    public string Nickname { get; set; } = default!;
+    [JsonPropertyName("outgoing_url")]
+    public string? OutgoingUrl { get; set; }
+    [JsonPropertyName("events")]
+    public List<BotEventName> Events { get; set; } = default!;
+    [JsonPropertyName("trigger_on")]
+    public BotTriggerOn TriggerOn { get; set; } = default!;
+    [JsonPropertyName("commands")]
+    public List<string> Commands { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string> Scopes { get; set; } = default!;
+    [JsonPropertyName("template")]
+    public string? Template { get; set; }
+    [JsonPropertyName("template_engine")]
+    public BotTemplateEngine TemplateEngine { get; set; } = default!;
+    [JsonPropertyName("challenge_key")]
+    public string? ChallengeKey { get; set; }
+    [JsonPropertyName("link_preview_enabled")]
+    public bool LinkPreviewEnabled { get; set; } = default!;
+    [JsonPropertyName("ignore_self_messages")]
+    public bool IgnoreSelfMessages { get; set; } = default!;
+    [JsonPropertyName("events_history_enabled")]
+    public bool EventsHistoryEnabled { get; set; } = default!;
+    [JsonPropertyName("single_chat")]
+    public bool SingleChat { get; set; } = default!;
+    [JsonPropertyName("can_edit")]
+    public List<BotCanEdit> CanEdit { get; set; } = default!;
+    [JsonPropertyName("who_can_add")]
+    public BotWhoCanAdd WhoCanAdd { get; set; } = default!;
+}
+
+public class BotTokenCreateRequest
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("scopes")]
+    public List<string>? Scopes { get; set; }
+}
+
+public class BotTokenUpdateRequest
+{
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+    [JsonPropertyName("scopes")]
+    public List<string>? Scopes { get; set; }
 }
 
 public class BotUpdateRequestWebhook
@@ -2959,12 +3394,22 @@ public class BotUpdateRequestWebhook
     public BotWhoCanAdd? WhoCanAdd { get; set; }
     [JsonPropertyName("can_edit")]
     public List<BotCanEdit>? CanEdit { get; set; }
+    [JsonPropertyName("single_chat")]
+    public bool? SingleChat { get; set; }
+    [JsonPropertyName("kind")]
+    public BotWebhookKind? Kind { get; set; }
+    [JsonPropertyName("unfurl_domains")]
+    public List<string>? UnfurlDomains { get; set; }
 }
 
 public class BotUpdateRequest
 {
     [JsonPropertyName("webhook")]
-    public BotUpdateRequestWebhook Webhook { get; set; } = default!;
+    public BotUpdateRequestWebhook? Webhook { get; set; }
+    [JsonPropertyName("oauth_client")]
+    public BotOAuthClientRequest? OauthClient { get; set; }
+    [JsonPropertyName("promo")]
+    public BotPromoRequest? Promo { get; set; }
 }
 
 public class BotWebhook
@@ -3001,6 +3446,12 @@ public class BotWebhook
     public List<BotCanEdit> CanEdit { get; set; } = default!;
     [JsonPropertyName("who_can_add")]
     public BotWhoCanAdd WhoCanAdd { get; set; } = default!;
+    [JsonPropertyName("kind")]
+    public BotWebhookKind? Kind { get; set; }
+    [JsonPropertyName("unfurl_domains")]
+    public List<string> UnfurlDomains { get; set; } = default!;
+    [JsonPropertyName("last_request_at")]
+    public DateTimeOffset? LastRequestAt { get; set; }
 }
 
 public class BotWebhookSelfUpdateRequestWebhook
@@ -3051,6 +3502,8 @@ public class Chat
     public DateTimeOffset LastMessageAt { get; set; } = default!;
     [JsonPropertyName("meet_room_url")]
     public string MeetRoomUrl { get; set; } = default!;
+    [JsonPropertyName("avatar_url")]
+    public string? AvatarUrl { get; set; }
 }
 
 public class ChatCreateRequestChat
@@ -3091,6 +3544,8 @@ public class CompanyBotResponse
 {
     [JsonPropertyName("id")]
     public int Id { get; set; } = default!;
+    [JsonPropertyName("oauth_client")]
+    public BotOAuthClient? OauthClient { get; set; }
     [JsonPropertyName("webhook")]
     public CompanyBotWebhook Webhook { get; set; } = default!;
 }
@@ -3405,6 +3860,12 @@ public class LinkPreviewsRequest
 {
     [JsonPropertyName("link_previews")]
     public Dictionary<string, LinkPreview> LinkPreviews { get; set; } = default!;
+}
+
+public class MarkChatUnreadRequest
+{
+    [JsonPropertyName("message_id")]
+    public int? MessageId { get; set; }
 }
 
 public class MessageThread
@@ -4071,6 +4532,12 @@ public class WebhookVideoCallThread
     public int? MessageChatId { get; set; }
 }
 
+public class UpdateChatAvatarRequest
+{
+    [JsonIgnore]
+    public byte[] Image { get; set; } = Array.Empty<byte>();
+}
+
 public class UpdateProfileAvatarRequest
 {
     [JsonIgnore]
@@ -4095,6 +4562,14 @@ public class ListBotsResponse
 {
     [JsonPropertyName("data")]
     public List<BotResponse> Data { get; set; } = new();
+    [JsonPropertyName("meta")]
+    public PaginationMeta Meta { get; set; } = default!;
+}
+
+public class ListBotTokensResponse
+{
+    [JsonPropertyName("data")]
+    public List<BotAccessToken> Data { get; set; } = new();
     [JsonPropertyName("meta")]
     public PaginationMeta Meta { get; set; } = default!;
 }
@@ -4239,16 +4714,40 @@ public class BotResponseDataWrapper
     public BotResponse Data { get; set; } = default!;
 }
 
+public class BotSelfTokenResponseDataWrapper
+{
+    [JsonPropertyName("data")]
+    public BotSelfTokenResponse Data { get; set; } = default!;
+}
+
 public class BotCreateResponseDataWrapper
 {
     [JsonPropertyName("data")]
     public BotCreateResponse Data { get; set; } = default!;
 }
 
+public class BotAccessTokenDataWrapper
+{
+    [JsonPropertyName("data")]
+    public BotAccessToken Data { get; set; } = default!;
+}
+
+public class BotSelfResponseDataWrapper
+{
+    [JsonPropertyName("data")]
+    public BotSelfResponse Data { get; set; } = default!;
+}
+
 public class ChatDataWrapper
 {
     [JsonPropertyName("data")]
     public Chat Data { get; set; } = default!;
+}
+
+public class AvatarDataDataWrapper
+{
+    [JsonPropertyName("data")]
+    public AvatarData Data { get; set; } = default!;
 }
 
 public class DraftDataWrapper
@@ -4291,12 +4790,6 @@ public class UserStatusDataWrapper
 {
     [JsonPropertyName("data")]
     public UserStatus Data { get; set; } = default!;
-}
-
-public class AvatarDataDataWrapper
-{
-    [JsonPropertyName("data")]
-    public AvatarData Data { get; set; } = default!;
 }
 
 public class TaskDataWrapper

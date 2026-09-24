@@ -115,10 +115,26 @@ enum class AuditEventKey(val value: String) {
     @SerialName("bot_deleted") BOT_DELETED("bot_deleted"),
     /** Изменены параметры OAuth-клиента бота */
     @SerialName("bot_oauth_client_updated") BOT_OAUTH_CLIENT_UPDATED("bot_oauth_client_updated"),
+    /** У бота выключена авторизация от имени сотрудника */
+    @SerialName("bot_oauth_client_disabled") BOT_OAUTH_CLIENT_DISABLED("bot_oauth_client_disabled"),
+    /** Обновлён секрет OAuth-клиента бота */
+    @SerialName("bot_oauth_client_secret_rotated") BOT_OAUTH_CLIENT_SECRET_ROTATED("bot_oauth_client_secret_rotated"),
+    /** Выпущен секрет OAuth-клиента бота */
+    @SerialName("bot_oauth_client_secret_issued") BOT_OAUTH_CLIENT_SECRET_ISSUED("bot_oauth_client_secret_issued"),
+    /** Выпущен токен бота */
+    @SerialName("bot_token_created") BOT_TOKEN_CREATED("bot_token_created"),
+    /** Изменены имя или скоупы токена бота */
+    @SerialName("bot_token_updated") BOT_TOKEN_UPDATED("bot_token_updated"),
+    /** Отдельный токен бота перевыпущен */
+    @SerialName("bot_token_reissued") BOT_TOKEN_REISSUED("bot_token_reissued"),
+    /** Токен бота удалён */
+    @SerialName("bot_token_deleted") BOT_TOKEN_DELETED("bot_token_deleted"),
     /** Пользователь выдал OAuth-клиенту доступ к своим данным */
     @SerialName("oauth_authorization_granted") OAUTH_AUTHORIZATION_GRANTED("oauth_authorization_granted"),
     /** Доступ OAuth-клиента к данным пользователя отозван */
     @SerialName("oauth_authorization_revoked") OAUTH_AUTHORIZATION_REVOKED("oauth_authorization_revoked"),
+    /** OAuth-клиент отозвал выданный ему токен */
+    @SerialName("oauth_token_revoked") OAUTH_TOKEN_REVOKED("oauth_token_revoked"),
     /** Сотрудник подтвердил вход приложения с устройства */
     @SerialName("oauth_device_authorization_approved") OAUTH_DEVICE_AUTHORIZATION_APPROVED("oauth_device_authorization_approved"),
     /** Сотрудник отклонил вход приложения с устройства */
@@ -203,6 +219,17 @@ enum class BotTriggerOn(val value: String) {
     @SerialName("unfurl") UNFURL("unfurl"),
 }
 
+/** Источник входящего вебхука бота */
+@Serializable
+enum class BotWebhookKind(val value: String) {
+    /** Свой формат: сообщение собирается из тела запроса по шаблону бота */
+    @SerialName("simple") SIMPLE("simple"),
+    /** GitLab: Пачка сама разбирает запрос и собирает сообщение */
+    @SerialName("gitlab") GITLAB("gitlab"),
+    /** Grafana: Пачка сама разбирает запрос и собирает сообщение */
+    @SerialName("grafana") GRAFANA("grafana"),
+}
+
 /** Кто может добавлять бота в чаты */
 @Serializable
 enum class BotWhoCanAdd(val value: String) {
@@ -212,7 +239,7 @@ enum class BotWhoCanAdd(val value: String) {
     @SerialName("creator_admin") CREATOR_ADMIN("creator_admin"),
     /** Создатель, администраторы и участники компании */
     @SerialName("creator_admin_user") CREATOR_ADMIN_USER("creator_admin_user"),
-    /** Любой пользователь, в том числе гости */
+    /** Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей */
     @SerialName("anyone") ANYONE("anyone"),
 }
 
@@ -406,6 +433,8 @@ enum class OAuthScope(val value: String) {
     @SerialName("chats:create") CHATS_CREATE("chats:create"),
     /** Изменение настроек чата */
     @SerialName("chats:update") CHATS_UPDATE("chats:update"),
+    /** Отметка чатов непрочитанными */
+    @SerialName("chats:mark_unread") CHATS_MARK_UNREAD("chats:mark_unread"),
     /** Архивация и разархивация чатов */
     @SerialName("chats:archive") CHATS_ARCHIVE("chats:archive"),
     /** Выход из чатов */
@@ -705,6 +734,16 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("confidential_download_denied") CONFIDENTIAL_DOWNLOAD_DENIED("confidential_download_denied"),
     /** Не удалось расшифровать файл */
     @SerialName("decryption_failed") DECRYPTION_FAILED("decryption_failed"),
+    /** Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value` */
+    @SerialName("bot_add_denied") BOT_ADD_DENIED("bot_add_denied"),
+    /** Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value` */
+    @SerialName("single_chat_bot_occupied") SINGLE_CHAT_BOT_OCCUPIED("single_chat_bot_occupied"),
+    /** Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег */
+    @SerialName("single_chat_bot_tag_denied") SINGLE_CHAT_BOT_TAG_DENIED("single_chat_bot_tag_denied"),
+    /** Настройки бота изменились во время запроса: повторите его */
+    @SerialName("bot_changed_concurrently") BOT_CHANGED_CONCURRENTLY("bot_changed_concurrently"),
+    /** Поиск не уложился по времени: сузьте запрос и повторите */
+    @SerialName("timeout") TIMEOUT("timeout"),
     /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
     @SerialName("forbidden") FORBIDDEN("forbidden"),
     /** Доступ запрещён (недостаточно прав) */
@@ -786,16 +825,20 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
         setOf("dlp_rule_id", "dlp_rule_name", "message_id", "chat_id", "user_id", "action_message", "conditions_matched") to { json, element -> json.decodeFromJsonElement(AuditDetailsDlp.serializer(), element) },
         setOf("search_type", "query_present", "cursor_present", "limit", "filters") to { json, element -> json.decodeFromJsonElement(AuditDetailsSearch.serializer(), element) },
         setOf("bot_id", "actor_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBot.serializer(), element) },
-        setOf("added_scopes", "removed_scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotScopes.serializer(), element) },
-        setOf("changes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotWebhookSettings.serializer(), element) },
-        setOf("client_id", "changes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClient.serializer(), element) },
+        setOf("bot_id", "actor_id", "added_scopes", "removed_scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotScopes.serializer(), element) },
+        setOf("bot_id", "actor_id", "changes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotWebhookSettings.serializer(), element) },
+        setOf("bot_id", "actor_id", "client_id", "changes") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClient.serializer(), element) },
         setOf("client_id", "scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsOAuthAuthorizationGranted.serializer(), element) },
-        setOf("client_id", "revoked_tokens_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsOAuthAuthorizationRevoked.serializer(), element) },
-        setOf("client_id", "scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsDeviceAuthorizationApproved.serializer(), element) },
-        setOf("client_id", "scopes") to { json, element -> json.decodeFromJsonElement(AuditDetailsDeviceAuthorizationDenied.serializer(), element) },
+        setOf("client_id", "revoked_tokens_count", "user_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsOAuthAuthorizationRevoked.serializer(), element) },
+        setOf("client_id", "scopes", "device_name") to { json, element -> json.decodeFromJsonElement(AuditDetailsDeviceAuthorizationApproved.serializer(), element) },
+        setOf("client_id", "scopes", "device_name") to { json, element -> json.decodeFromJsonElement(AuditDetailsDeviceAuthorizationDenied.serializer(), element) },
         setOf("chat_id", "started_message_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallStarted.serializer(), element) },
         setOf("chat_id", "started_message_id", "duration", "max_members_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallFinished.serializer(), element) },
         setOf("chat_id", "started_message_id", "recording_id", "file_id", "duration", "size") to { json, element -> json.decodeFromJsonElement(AuditDetailsVideoCallRecording.serializer(), element) },
+        setOf("bot_id", "actor_id", "client_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClientSecretRotated.serializer(), element) },
+        setOf("bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClientDisabled.serializer(), element) },
+        setOf("token_kind", "token_name", "resource_owner_id", "scopes", "bot_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsToken.serializer(), element) },
+        setOf("token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotTokenUpdated.serializer(), element) },
     )
 
     override fun serialize(encoder: Encoder, value: AuditEventDetailsUnion) {
@@ -826,6 +869,10 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
             is AuditDetailsVideoCallStarted -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallStarted.serializer(), value)
             is AuditDetailsVideoCallFinished -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallFinished.serializer(), value)
             is AuditDetailsVideoCallRecording -> jsonEncoder.encodeSerializableValue(AuditDetailsVideoCallRecording.serializer(), value)
+            is AuditDetailsBotOAuthClientSecretRotated -> jsonEncoder.encodeSerializableValue(AuditDetailsBotOAuthClientSecretRotated.serializer(), value)
+            is AuditDetailsBotOAuthClientDisabled -> jsonEncoder.encodeSerializableValue(AuditDetailsBotOAuthClientDisabled.serializer(), value)
+            is AuditDetailsToken -> jsonEncoder.encodeSerializableValue(AuditDetailsToken.serializer(), value)
+            is AuditDetailsBotTokenUpdated -> jsonEncoder.encodeSerializableValue(AuditDetailsBotTokenUpdated.serializer(), value)
         }
     }
 
@@ -950,17 +997,23 @@ data class AuditDetailsBot(
 
 @Serializable
 data class AuditDetailsBotScopes(
+    @SerialName("bot_id") val botId: Int,
+    @SerialName("actor_id") val actorId: Int,
     @SerialName("added_scopes") val addedScopes: List<String>,
     @SerialName("removed_scopes") val removedScopes: List<String>,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsBotWebhookSettings(
+    @SerialName("bot_id") val botId: Int,
+    @SerialName("actor_id") val actorId: Int,
     val changes: Map<String, JsonElement>,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsBotOAuthClient(
+    @SerialName("bot_id") val botId: Int,
+    @SerialName("actor_id") val actorId: Int,
     @SerialName("client_id") val clientId: String,
     val changes: Map<String, JsonElement>,
 ) : AuditEventDetailsUnion
@@ -975,18 +1028,21 @@ data class AuditDetailsOAuthAuthorizationGranted(
 data class AuditDetailsOAuthAuthorizationRevoked(
     @SerialName("client_id") val clientId: String,
     @SerialName("revoked_tokens_count") val revokedTokensCount: Int,
+    @SerialName("user_id") val userId: Int? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsDeviceAuthorizationApproved(
     @SerialName("client_id") val clientId: String,
     val scopes: List<String>,
+    @SerialName("device_name") val deviceName: String? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
 data class AuditDetailsDeviceAuthorizationDenied(
     @SerialName("client_id") val clientId: String,
     val scopes: List<String>,
+    @SerialName("device_name") val deviceName: String? = null,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1011,6 +1067,41 @@ data class AuditDetailsVideoCallRecording(
     @SerialName("file_id") val fileId: Int,
     val duration: Int,
     val size: Long,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsBotOAuthClientSecretRotated(
+    @SerialName("bot_id") val botId: Int,
+    @SerialName("actor_id") val actorId: Int,
+    @SerialName("client_id") val clientId: String,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsBotOAuthClientDisabled(
+    @SerialName("bot_id") val botId: Int,
+    @SerialName("actor_id") val actorId: Int,
+    @SerialName("client_id") val clientId: String,
+    @SerialName("deleted_access_tokens_count") val deletedAccessTokensCount: Int,
+    @SerialName("deleted_access_grants_count") val deletedAccessGrantsCount: Int,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsToken(
+    @SerialName("token_kind") val tokenKind: String,
+    @SerialName("token_name") val tokenName: String,
+    @SerialName("resource_owner_id") val resourceOwnerId: Int,
+    val scopes: List<String>,
+    @SerialName("bot_id") val botId: Int? = null,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsBotTokenUpdated(
+    @SerialName("token_kind") val tokenKind: String,
+    @SerialName("token_name") val tokenName: String,
+    @SerialName("resource_owner_id") val resourceOwnerId: Int,
+    @SerialName("current_scopes") val currentScopes: List<String>,
+    @SerialName("bot_id") val botId: Int? = null,
+    @SerialName("actor_id") val actorId: Int,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1261,6 +1352,9 @@ data class LinkSharedWebhookPayload(
     @SerialName("message_id") val messageId: Int,
     val links: List<WebhookLink>,
     @SerialName("user_id") val userId: Int,
+    @SerialName("entity_type") val entityType: MessageEntityType,
+    @SerialName("entity_id") val entityId: Int,
+    val thread: WebhookMessageThread,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion {
@@ -1353,6 +1447,20 @@ data class AvatarData(
 )
 
 @Serializable
+data class BotAccessToken(
+    val id: Long,
+    val token: String,
+    val name: String? = null,
+    @SerialName("user_id") val userId: Long,
+    val scopes: List<String>,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("revoked_at") val revokedAt: OffsetDateTime? = null,
+    @SerialName("expires_in") val expiresIn: Int? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_used_at") val lastUsedAt: OffsetDateTime? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("authorized_at") val authorizedAt: OffsetDateTime? = null,
+)
+
+@Serializable
 data class BotCreateRequestWebhook(
     val name: String,
     val nickname: String? = null,
@@ -1370,24 +1478,171 @@ data class BotCreateRequestWebhook(
     @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd? = BotWhoCanAdd.CREATOR,
     @SerialName("can_edit") val canEdit: List<BotCanEdit>? = null,
     @SerialName("single_chat") val singleChat: Boolean? = false,
+    val kind: BotWebhookKind? = null,
+    @SerialName("unfurl_domains") val unfurlDomains: List<String>? = null,
 )
 
 @Serializable
 data class BotCreateRequest(
+    val empty: Boolean? = false,
     val webhook: BotCreateRequestWebhook,
+    @SerialName("oauth_client") val oauthClient: BotOAuthClientRequest? = null,
+    val promo: BotPromoRequest? = null,
 )
 
 @Serializable
 data class BotCreateResponse(
     val id: Int,
+    val name: String,
+    val nickname: String,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    @SerialName("creator_id") val creatorId: Int? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
+    @SerialName("authorized_users_count") val authorizedUsersCount: Int,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_used_at") val lastUsedAt: OffsetDateTime? = null,
     val webhook: BotWebhook,
-    @SerialName("access_token") val accessToken: String,
+    @SerialName("oauth_client_enabled") val oauthClientEnabled: Boolean,
+    @SerialName("oauth_client") val oauthClient: BotOAuthClient? = null,
+    val promo: BotPromo? = null,
+    val permissions: BotPermissions,
+    @SerialName("client_secret") val clientSecret: String? = null,
+    @SerialName("access_token") val accessToken: String? = null,
+)
+
+@Serializable
+data class BotOAuthClient(
+    @SerialName("client_id") val clientId: String,
+    @SerialName("client_secret_preview") val clientSecretPreview: String,
+    val confidential: Boolean,
+    @SerialName("redirect_uris") val redirectUris: List<String>,
+    val scopes: List<String>,
+)
+
+@Serializable
+data class BotOAuthClientRequest(
+    val confidential: Boolean? = null,
+    @SerialName("redirect_uris") val redirectUris: List<String>? = null,
+    val scopes: List<String>? = null,
+)
+
+@Serializable
+data class BotPermissions(
+    @SerialName("update_oauth_client") val updateOauthClient: Boolean,
+    @SerialName("recreate_token") val recreateToken: Boolean,
+    val destroy: Boolean,
+)
+
+@Serializable
+data class BotPromo(
+    val description: String? = null,
+    val published: Boolean,
+    @SerialName("promo_images") val promoImages: List<BotPromoImage>,
+)
+
+@Serializable
+data class BotPromoImage(
+    val key: String,
+    val url: String,
+)
+
+@Serializable
+data class BotPromoRequest(
+    val description: String? = null,
+    val published: Boolean? = null,
+    @SerialName("promo_images") val promoImages: List<String>? = null,
 )
 
 @Serializable
 data class BotResponse(
     val id: Int,
+    val name: String,
+    val nickname: String,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    @SerialName("creator_id") val creatorId: Int? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
+    @SerialName("authorized_users_count") val authorizedUsersCount: Int,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_used_at") val lastUsedAt: OffsetDateTime? = null,
     val webhook: BotWebhook,
+    @SerialName("oauth_client_enabled") val oauthClientEnabled: Boolean,
+    @SerialName("oauth_client") val oauthClient: BotOAuthClient? = null,
+    val promo: BotPromo? = null,
+    val permissions: BotPermissions,
+    @SerialName("client_secret") val clientSecret: String? = null,
+)
+
+@Serializable
+data class BotScopeCatalog(
+    val scopes: List<BotScopeCatalogItem>,
+    val groups: List<BotScopeCatalogGroup>,
+    val presets: List<BotScopeCatalogPreset>,
+)
+
+@Serializable
+data class BotScopeCatalogGroup(
+    val id: String,
+    val title: String,
+    val description: String,
+)
+
+@Serializable
+data class BotScopeCatalogItem(
+    val id: String,
+    val title: String,
+    val group: String,
+    val preset: List<String>,
+)
+
+@Serializable
+data class BotScopeCatalogPreset(
+    val id: String,
+    val title: String,
+)
+
+@Serializable
+data class BotSelfResponse(
+    val id: Int,
+    @SerialName("oauth_client") val oauthClient: BotOAuthClient? = null,
+    val webhook: BotSelfWebhook,
+)
+
+@Serializable
+data class BotSelfTokenResponse(
+    val id: Int,
+    @SerialName("oauth_client") val oauthClient: BotOAuthClient? = null,
+    val webhook: BotSelfWebhook,
+    @SerialName("access_token") val accessToken: String,
+)
+
+@Serializable
+data class BotSelfWebhook(
+    val name: String,
+    val nickname: String,
+    @SerialName("outgoing_url") val outgoingUrl: String? = null,
+    val events: List<BotEventName>,
+    @SerialName("trigger_on") val triggerOn: BotTriggerOn,
+    val commands: List<String>,
+    val scopes: List<String>,
+    val template: String? = null,
+    @SerialName("template_engine") val templateEngine: BotTemplateEngine,
+    @SerialName("challenge_key") val challengeKey: String? = null,
+    @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean,
+    @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean,
+    @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean,
+    @SerialName("single_chat") val singleChat: Boolean,
+    @SerialName("can_edit") val canEdit: List<BotCanEdit>,
+    @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd,
+)
+
+@Serializable
+data class BotTokenCreateRequest(
+    val name: String,
+    val scopes: List<String>? = null,
+)
+
+@Serializable
+data class BotTokenUpdateRequest(
+    val name: String? = null,
+    val scopes: List<String>? = null,
 )
 
 @Serializable
@@ -1407,11 +1662,16 @@ data class BotUpdateRequestWebhook(
     @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean? = false,
     @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd? = BotWhoCanAdd.CREATOR,
     @SerialName("can_edit") val canEdit: List<BotCanEdit>? = null,
+    @SerialName("single_chat") val singleChat: Boolean? = null,
+    val kind: BotWebhookKind? = null,
+    @SerialName("unfurl_domains") val unfurlDomains: List<String>? = null,
 )
 
 @Serializable
 data class BotUpdateRequest(
-    val webhook: BotUpdateRequestWebhook,
+    val webhook: BotUpdateRequestWebhook? = null,
+    @SerialName("oauth_client") val oauthClient: BotOAuthClientRequest? = null,
+    val promo: BotPromoRequest? = null,
 )
 
 @Serializable
@@ -1432,6 +1692,9 @@ data class BotWebhook(
     @SerialName("single_chat") val singleChat: Boolean,
     @SerialName("can_edit") val canEdit: List<BotCanEdit>,
     @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd,
+    val kind: BotWebhookKind? = null,
+    @SerialName("unfurl_domains") val unfurlDomains: List<String>,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_request_at") val lastRequestAt: OffsetDateTime? = null,
 )
 
 @Serializable
@@ -1465,6 +1728,7 @@ data class Chat(
     val public: Boolean,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_message_at") val lastMessageAt: OffsetDateTime,
     @SerialName("meet_room_url") val meetRoomUrl: String,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
 )
 
 @Serializable
@@ -1495,6 +1759,7 @@ data class ChatUpdateRequest(
 @Serializable
 data class CompanyBotResponse(
     val id: Int,
+    @SerialName("oauth_client") val oauthClient: BotOAuthClient? = null,
     val webhook: CompanyBotWebhook,
 )
 
@@ -1698,6 +1963,11 @@ data class LinkPreview(
 @Serializable
 data class LinkPreviewsRequest(
     @SerialName("link_previews") val linkPreviews: Map<String, LinkPreview>,
+)
+
+@Serializable
+data class MarkChatUnreadRequest(
+    @SerialName("message_id") val messageId: Int? = null,
 )
 
 @Serializable
@@ -2135,6 +2405,11 @@ data class WebhookVideoCallThread(
 )
 
 @Serializable
+data class UpdateChatAvatarRequest(
+    @Transient val image: ByteArray = ByteArray(0),
+)
+
+@Serializable
 data class UpdateProfileAvatarRequest(
     @Transient val image: ByteArray = ByteArray(0),
 )
@@ -2153,6 +2428,12 @@ data class GetAuditEventsResponse(
 @Serializable
 data class ListBotsResponse(
     val data: List<BotResponse>,
+    val meta: PaginationMeta,
+)
+
+@Serializable
+data class ListBotTokensResponse(
+    val data: List<BotAccessToken>,
     val meta: PaginationMeta,
 )
 
@@ -2261,10 +2542,22 @@ data class GetWebhookEventsResponse(
 data class BotResponseDataWrapper(val data: BotResponse)
 
 @Serializable
+data class BotSelfTokenResponseDataWrapper(val data: BotSelfTokenResponse)
+
+@Serializable
 data class BotCreateResponseDataWrapper(val data: BotCreateResponse)
 
 @Serializable
+data class BotAccessTokenDataWrapper(val data: BotAccessToken)
+
+@Serializable
+data class BotSelfResponseDataWrapper(val data: BotSelfResponse)
+
+@Serializable
 data class ChatDataWrapper(val data: Chat)
+
+@Serializable
+data class AvatarDataDataWrapper(val data: AvatarData)
 
 @Serializable
 data class DraftDataWrapper(val data: Draft)
@@ -2286,9 +2579,6 @@ data class UserDataWrapper(val data: User)
 
 @Serializable
 data class UserStatusDataWrapper(val data: UserStatus)
-
-@Serializable
-data class AvatarDataDataWrapper(val data: AvatarData)
 
 @Serializable
 data class TaskDataWrapper(val data: Task)

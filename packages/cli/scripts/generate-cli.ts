@@ -806,7 +806,11 @@ function generateCommandCode(p: CommandGenParams): string {
     // Empty body warning for update commands
     if (p.endpoint.method === 'PUT' || p.endpoint.method === 'PATCH') {
       runBodyLines.push('');
-      if (wrapperKey) {
+      if (wrapperKey && siblingEntries.length > 0) {
+        // Обновление может прийти одними полями рядом с обёрткой (`bots update --oauth-client`),
+        // пустым считается только запрос, где кроме пустой обёртки ничего нет.
+        runBodyLines.push(`    if (Object.keys(inner).length === 0 && Object.keys(body).length === 1) {`);
+      } else if (wrapperKey) {
         runBodyLines.push(`    if (Object.keys(inner).length === 0) {`);
       } else {
         runBodyLines.push(`    if (Object.keys(body).length === 0) {`);

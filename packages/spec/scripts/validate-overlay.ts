@@ -169,6 +169,20 @@ function extractOverlayTargets(overlay: any): Set<string> {
 	return targets;
 }
 
+/**
+ * Check that an overlay target points to an existing node in the base spec.
+ * Examples and response headers are translated too, but not collected above.
+ */
+function existsInDoc(target: string, doc: any): boolean {
+	const tokens = [...target.slice(1).matchAll(/\.([^.[\]]+)|\['([^']+)'\]/g)].map((m) => m[1] ?? m[2]);
+	let current = doc;
+	for (const token of tokens) {
+		current = resolveRef(current, doc)?.[token];
+		if (current === undefined) return false;
+	}
+	return true;
+}
+
 // ---------------------------------------------------------------------------
 // Normalize targets for comparison
 // ---------------------------------------------------------------------------
@@ -220,7 +234,7 @@ function main() {
 
 	const stale: string[] = [];
 	for (const [norm, original] of normalizedOverlay) {
-		if (!normalizedTranslatable.has(norm)) {
+		if (!normalizedTranslatable.has(norm) && !existsInDoc(original, baseDoc)) {
 			stale.push(original);
 		}
 	}

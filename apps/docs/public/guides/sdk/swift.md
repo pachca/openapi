@@ -28,7 +28,7 @@ dependencies: [
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Настройки** > **Автоматизации** > **API** (подробнее — [Авторизация](/api/authorization)).
+Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
 
 ```swift
 import PachcaSDK
@@ -80,7 +80,10 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.chats.downloadExport()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.chats.updateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archiveChat()` | [Архивация чата](/api/chats/archive) |
+| `client.chats.updateChatAvatar()` | [Загрузка аватара чата](/api/chats/update-avatar) |
 | `client.chats.unarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
+| `client.chats.markChatUnread()` | [Отметка чата непрочитанным](/api/chats/mark-unread) |
+| `client.chats.deleteChatAvatar()` | [Удаление аватара чата](/api/chats/remove-avatar) |
 | `client.profile.getProfile()` | [Свой профиль](/api/profile/get) |
 | `client.profile.getStatus()` | [Свой статус](/api/profile/get-status) |
 | `client.profile.updateProfileAvatar()` | [Загрузка своего аватара](/api/profile/update-avatar) |
@@ -144,14 +147,21 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
 | `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.bots.rotateBotClientSecret()` | [Ротация секрета клиента](/api/bots/rotate-client-secret) |
+| `client.bots.createBotToken()` | [Новый токен бота](/api/bots/create-token) |
+| `client.bots.reissueBotToken()` | [Перевыпуск токена бота](/api/bots/reissue-token) |
 | `client.bots.listBots()` | [Список ботов](/api/bots/list) |
 | `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.listCompanyBots()` | [Список ботов пространства](/api/bots/list-company) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
+| `client.bots.getBotScopes()` | [Каталог прав бота](/api/bots/list-scopes) |
+| `client.bots.listBotTokens()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.updateBotToken()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.bots.deleteBot()` | [Удаление бота](/api/bots/delete) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
+| `client.bots.deleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |
@@ -190,7 +200,7 @@ let body = ChatCreateRequest(
     )
 )
 let response = try await client.chats.createChat(body: body)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String, avatarUrl: String?)
 ```
 
 
@@ -201,7 +211,7 @@ import PachcaSDK
 
 // Получение чата
 let response = try await client.chats.getChat(id: 334)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String, avatarUrl: String?)
 ```
 
 

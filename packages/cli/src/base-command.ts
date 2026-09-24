@@ -300,6 +300,41 @@ export abstract class BaseCommand extends Command {
   }
 
   /**
+   * What to do after a 401: the login was revoked, or the saved token no longer works.
+   *
+   * A browser login is fixed by logging in again, a saved token by saving a new one.
+   * The command carries the profile the call ran with, so it can be pasted as is.
+   * JSON output gets the bare command, like the other hints there.
+   */
+  private reloginHint(): string {
+    const format = this.getOutputFormat();
+    const human = format !== 'json' && process.stderr.isTTY;
+
+    let resolved: ReturnType<typeof resolveToken> | undefined;
+    try {
+      resolved = resolveToken({ token: this.parsedFlags.token, profile: this.parsedFlags.profile });
+    } catch {
+      // no profile resolved — the token came in from a flag or the environment
+    }
+
+    if (!resolved?.profile || !resolved.profileName) {
+      return human
+        ? 'Токен из --token или PACHCA_TOKEN недействителен или отозван.'
+        : 'token from --token or PACHCA_TOKEN is invalid or revoked';
+    }
+
+    const flag = resolved.profileName === 'default' ? '' : ` --profile ${resolved.profileName}`;
+    if (getAuthMethod(resolved.profile) === 'oauth') {
+      return human
+        ? `Вход завершён или отозван. Войдите заново: pachca auth login${flag}`
+        : `pachca auth login${flag}`;
+    }
+    return human
+      ? `Токен недействителен или отозван. Сохраните новый: pachca auth login${flag} --token <токен>`
+      : `pachca auth login${flag} --token <token>`;
+  }
+
+  /**
    * Handle errors with structured output.
    */
   protected override async catch(err: Error & { exitCode?: number }): Promise<void> {
@@ -308,6 +343,9 @@ export abstract class BaseCommand extends Command {
     }
 
     if (err instanceof ApiError) {
+      if (err.details.code === 401 && !err.details.hint) {
+        err.details.hint = this.reloginHint();
+      }
       outputError(err.details, this.getOutputFormat());
       this.exit(getExitCode(err));
     }

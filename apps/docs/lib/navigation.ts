@@ -304,7 +304,7 @@ export async function getAdjacentItems(currentHref: string) {
  * collapsible group than the current page, the title is shown composite
  * ("Группа: Страница", like the prev/next pager) so generic labels such as
  * "Создание и настройка" or "Обзор" aren't ambiguous out of context. The
- * prefix is the parent group ("Боты", "AI агенты", "Исходящие вебхуки"…) —
+ * prefix is the parent group ("Боты", "AI-агенты", "Исходящие вебхуки"…) —
  * NOT the top-level sidebar bucket ("Инструменты", "Боты и автоматизации"),
  * which is just an organisational heading, not a page parent. Standalone pages
  * (Треды, Пагинация…) already have self-explanatory titles, so they stay plain.

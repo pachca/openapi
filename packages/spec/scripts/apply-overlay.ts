@@ -187,6 +187,15 @@ const RU_TO_EN: Record<string, string> = {
 	'Бот релизов': 'Release bot',
 	'Заказ от {{ client }} на сумму {{ amount }} ₽': 'Order from {{ client }} for {{ amount }} ₽',
 	'Привет, посмотри пожалуйста последний отчёт': 'Hi, please take a look at the latest report',
+	// Bot tokens, catalog page and scope catalog examples
+	'Сервер уведомлений': 'Notification server',
+	'Собирает сводку по задачам и присылает её в чат': 'Collects a summary of tasks and sends it to the chat',
+	'Собирает сводку по задачам Jira и присылает её в чат': 'Collects a summary of Jira tasks and sends it to the chat',
+	'Отправка сообщений': 'Send messages',
+	'Сообщения': 'Messages',
+	'Работа с сообщениями': 'Working with messages',
+	'Только чтение': 'Read only',
+	'Администратор': 'Administrator',
 
 	// Response wrapper descriptions (inline schemas in response bodies)
 	'Обертка ответа с данными и пагинацией': 'Response wrapper with data and pagination',

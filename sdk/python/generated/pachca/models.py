@@ -51,8 +51,16 @@ class AuditEventKey(StrEnum):
     BOT_TOKEN_RECREATED = "bot_token_recreated"  # Токен бота перевыпущен (ротация)
     BOT_DELETED = "bot_deleted"  # Бот удалён
     BOT_OAUTH_CLIENT_UPDATED = "bot_oauth_client_updated"  # Изменены параметры OAuth-клиента бота
+    BOT_OAUTH_CLIENT_DISABLED = "bot_oauth_client_disabled"  # У бота выключена авторизация от имени сотрудника
+    BOT_OAUTH_CLIENT_SECRET_ROTATED = "bot_oauth_client_secret_rotated"  # Обновлён секрет OAuth-клиента бота
+    BOT_OAUTH_CLIENT_SECRET_ISSUED = "bot_oauth_client_secret_issued"  # Выпущен секрет OAuth-клиента бота
+    BOT_TOKEN_CREATED = "bot_token_created"  # Выпущен токен бота
+    BOT_TOKEN_UPDATED = "bot_token_updated"  # Изменены имя или скоупы токена бота
+    BOT_TOKEN_REISSUED = "bot_token_reissued"  # Отдельный токен бота перевыпущен
+    BOT_TOKEN_DELETED = "bot_token_deleted"  # Токен бота удалён
     OAUTH_AUTHORIZATION_GRANTED = "oauth_authorization_granted"  # Пользователь выдал OAuth-клиенту доступ к своим данным
     OAUTH_AUTHORIZATION_REVOKED = "oauth_authorization_revoked"  # Доступ OAuth-клиента к данным пользователя отозван
+    OAUTH_TOKEN_REVOKED = "oauth_token_revoked"  # OAuth-клиент отозвал выданный ему токен
     OAUTH_DEVICE_AUTHORIZATION_APPROVED = "oauth_device_authorization_approved"  # Сотрудник подтвердил вход приложения с устройства
     OAUTH_DEVICE_AUTHORIZATION_DENIED = "oauth_device_authorization_denied"  # Сотрудник отклонил вход приложения с устройства
     VIDEO_CALL_STARTED = "video_call_started"  # Видеозвонок начат
@@ -106,13 +114,21 @@ class BotTriggerOn(StrEnum):
     UNFURL = "unfurl"  # На развёртывание ссылок (link previews)
 
 
+class BotWebhookKind(StrEnum):
+    """Источник входящего вебхука бота"""
+
+    SIMPLE = "simple"  # Свой формат: сообщение собирается из тела запроса по шаблону бота
+    GITLAB = "gitlab"  # GitLab: Пачка сама разбирает запрос и собирает сообщение
+    GRAFANA = "grafana"  # Grafana: Пачка сама разбирает запрос и собирает сообщение
+
+
 class BotWhoCanAdd(StrEnum):
     """Кто может добавлять бота в чаты"""
 
     CREATOR = "creator"  # Только создатель бота
     CREATOR_ADMIN = "creator_admin"  # Создатель и администраторы компании
     CREATOR_ADMIN_USER = "creator_admin_user"  # Создатель, администраторы и участники компании
-    ANYONE = "anyone"  # Любой пользователь, в том числе гости
+    ANYONE = "anyone"  # Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей
 
 
 class ChatActivity(StrEnum):
@@ -250,6 +266,7 @@ class OAuthScope(StrEnum):
     CHATS_READ = "chats:read"  # Просмотр чатов и списка чатов
     CHATS_CREATE = "chats:create"  # Создание новых чатов
     CHATS_UPDATE = "chats:update"  # Изменение настроек чата
+    CHATS_MARK_UNREAD = "chats:mark_unread"  # Отметка чатов непрочитанными
     CHATS_ARCHIVE = "chats:archive"  # Архивация и разархивация чатов
     CHATS_LEAVE = "chats:leave"  # Выход из чатов
     CHAT_MEMBERS_READ = "chat_members:read"  # Просмотр участников чата
@@ -427,6 +444,11 @@ class ValidationErrorCode(StrEnum):
     DRAFT_TYPE_CHANGE_FORBIDDEN = "draft_type_change_forbidden"  # Отложенное сообщение нельзя превратить обратно в черновик
     CONFIDENTIAL_DOWNLOAD_DENIED = "confidential_download_denied"  # Скачивание файла запрещено: нужен запрос из безопасного контура
     DECRYPTION_FAILED = "decryption_failed"  # Не удалось расшифровать файл
+    BOT_ADD_DENIED = "bot_add_denied"  # Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
+    SINGLE_CHAT_BOT_OCCUPIED = "single_chat_bot_occupied"  # Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
+    SINGLE_CHAT_BOT_TAG_DENIED = "single_chat_bot_tag_denied"  # Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
+    BOT_CHANGED_CONCURRENTLY = "bot_changed_concurrently"  # Настройки бота изменились во время запроса: повторите его
+    TIMEOUT = "timeout"  # Поиск не уложился по времени: сузьте запрос и повторите
     FORBIDDEN = "forbidden"  # Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     PERMISSION_DENIED = "permission_denied"  # Доступ запрещён (недостаточно прав)
     ACCESS_DENIED = "access_denied"  # Доступ запрещён
@@ -514,19 +536,51 @@ class AuditDetailsBot:
 
 @dataclass
 class AuditDetailsBotOAuthClient:
+    bot_id: int
     client_id: str
     changes: dict[str, Any]
+    actor_id: int | None = None
+
+
+@dataclass
+class AuditDetailsBotOAuthClientDisabled:
+    bot_id: int
+    client_id: str
+    deleted_access_tokens_count: int
+    deleted_access_grants_count: int
+    actor_id: int | None = None
+
+
+@dataclass
+class AuditDetailsBotOAuthClientSecretRotated:
+    bot_id: int
+    client_id: str
+    actor_id: int | None = None
 
 
 @dataclass
 class AuditDetailsBotScopes:
+    bot_id: int
     added_scopes: list[str]
     removed_scopes: list[str]
+    actor_id: int | None = None
+
+
+@dataclass
+class AuditDetailsBotTokenUpdated:
+    token_kind: str
+    resource_owner_id: int
+    current_scopes: list[str]
+    token_name: str | None = None
+    bot_id: int | None = None
+    actor_id: int | None = None
 
 
 @dataclass
 class AuditDetailsBotWebhookSettings:
+    bot_id: int
     changes: dict[str, Any]
+    actor_id: int | None = None
 
 
 @dataclass
@@ -549,12 +603,14 @@ class AuditDetailsChatRenamed:
 class AuditDetailsDeviceAuthorizationApproved:
     client_id: str
     scopes: list[str]
+    device_name: str | None = None
 
 
 @dataclass
 class AuditDetailsDeviceAuthorizationDenied:
     client_id: str
     scopes: list[str]
+    device_name: str | None = None
 
 
 @dataclass
@@ -600,6 +656,7 @@ class AuditDetailsOAuthAuthorizationGranted:
 class AuditDetailsOAuthAuthorizationRevoked:
     client_id: str
     revoked_tokens_count: int
+    user_id: int | None = None
 
 
 @dataclass
@@ -627,6 +684,15 @@ class AuditDetailsTagChat:
 @dataclass
 class AuditDetailsTagName:
     name: str
+
+
+@dataclass
+class AuditDetailsToken:
+    token_kind: str
+    resource_owner_id: int
+    scopes: list[str]
+    token_name: str | None = None
+    bot_id: int | None = None
 
 
 @dataclass
@@ -684,6 +750,20 @@ class AvatarData:
 
 
 @dataclass
+class BotAccessToken:
+    id: int
+    token: str
+    user_id: int
+    scopes: list[str]
+    created_at: datetime
+    name: str | None = None
+    revoked_at: datetime | None = None
+    expires_in: int | None = None
+    last_used_at: datetime | None = None
+    authorized_at: datetime | None = None
+
+
+@dataclass
 class BotCreateRequestWebhook:
     name: str
     nickname: str | None = None
@@ -701,24 +781,171 @@ class BotCreateRequestWebhook:
     who_can_add: BotWhoCanAdd | None = BotWhoCanAdd.CREATOR
     can_edit: list[BotCanEdit] | None = None
     single_chat: bool | None = False
+    kind: BotWebhookKind | None = None
+    unfurl_domains: list[str] | None = None
 
 
 @dataclass
 class BotCreateRequest:
     webhook: BotCreateRequestWebhook
+    empty: bool | None = False
+    oauth_client: BotOAuthClientRequest | None = None
+    promo: BotPromoRequest | None = None
 
 
 @dataclass
 class BotCreateResponse:
     id: int
+    name: str
+    nickname: str
+    created_at: datetime
+    authorized_users_count: int
     webhook: BotWebhook
-    access_token: str
+    oauth_client_enabled: bool
+    permissions: BotPermissions
+    avatar_url: str | None = None
+    creator_id: int | None = None
+    last_used_at: datetime | None = None
+    oauth_client: BotOAuthClient | None = None
+    promo: BotPromo | None = None
+    client_secret: str | None = None
+    access_token: str | None = None
+
+
+@dataclass
+class BotOAuthClient:
+    client_id: str
+    client_secret_preview: str
+    confidential: bool
+    redirect_uris: list[str]
+    scopes: list[str]
+
+
+@dataclass
+class BotOAuthClientRequest:
+    confidential: bool | None = None
+    redirect_uris: list[str] | None = None
+    scopes: list[str] | None = None
+
+
+@dataclass
+class BotPermissions:
+    update_oauth_client: bool
+    recreate_token: bool
+    destroy: bool
+
+
+@dataclass
+class BotPromo:
+    published: bool
+    promo_images: list[BotPromoImage]
+    description: str | None = None
+
+
+@dataclass
+class BotPromoImage:
+    key: str
+    url: str
+
+
+@dataclass
+class BotPromoRequest:
+    description: str | None = None
+    published: bool | None = None
+    promo_images: list[str] | None = None
 
 
 @dataclass
 class BotResponse:
     id: int
+    name: str
+    nickname: str
+    created_at: datetime
+    authorized_users_count: int
     webhook: BotWebhook
+    oauth_client_enabled: bool
+    permissions: BotPermissions
+    avatar_url: str | None = None
+    creator_id: int | None = None
+    last_used_at: datetime | None = None
+    oauth_client: BotOAuthClient | None = None
+    promo: BotPromo | None = None
+    client_secret: str | None = None
+
+
+@dataclass
+class BotScopeCatalog:
+    scopes: list[BotScopeCatalogItem]
+    groups: list[BotScopeCatalogGroup]
+    presets: list[BotScopeCatalogPreset]
+
+
+@dataclass
+class BotScopeCatalogGroup:
+    id: str
+    title: str
+    description: str
+
+
+@dataclass
+class BotScopeCatalogItem:
+    id: str
+    title: str
+    group: str
+    preset: list[str]
+
+
+@dataclass
+class BotScopeCatalogPreset:
+    id: str
+    title: str
+
+
+@dataclass
+class BotSelfResponse:
+    id: int
+    webhook: BotSelfWebhook
+    oauth_client: BotOAuthClient | None = None
+
+
+@dataclass
+class BotSelfTokenResponse:
+    id: int
+    webhook: BotSelfWebhook
+    access_token: str
+    oauth_client: BotOAuthClient | None = None
+
+
+@dataclass
+class BotSelfWebhook:
+    name: str
+    nickname: str
+    events: list[BotEventName]
+    trigger_on: BotTriggerOn
+    commands: list[str]
+    scopes: list[str]
+    template_engine: BotTemplateEngine
+    link_preview_enabled: bool
+    ignore_self_messages: bool
+    events_history_enabled: bool
+    single_chat: bool
+    can_edit: list[BotCanEdit]
+    who_can_add: BotWhoCanAdd
+    outgoing_url: str | None = None
+    template: str | None = None
+    challenge_key: str | None = None
+
+
+@dataclass
+class BotTokenCreateRequest:
+    name: str
+    scopes: list[str] | None = None
+
+
+@dataclass
+class BotTokenUpdateRequest:
+    name: str | None = None
+    scopes: list[str] | None = None
 
 
 @dataclass
@@ -738,11 +965,16 @@ class BotUpdateRequestWebhook:
     events_history_enabled: bool | None = False
     who_can_add: BotWhoCanAdd | None = BotWhoCanAdd.CREATOR
     can_edit: list[BotCanEdit] | None = None
+    single_chat: bool | None = None
+    kind: BotWebhookKind | None = None
+    unfurl_domains: list[str] | None = None
 
 
 @dataclass
 class BotUpdateRequest:
-    webhook: BotUpdateRequestWebhook
+    webhook: BotUpdateRequestWebhook | None = None
+    oauth_client: BotOAuthClientRequest | None = None
+    promo: BotPromoRequest | None = None
 
 
 @dataclass
@@ -760,9 +992,12 @@ class BotWebhook:
     single_chat: bool
     can_edit: list[BotCanEdit]
     who_can_add: BotWhoCanAdd
+    unfurl_domains: list[str]
     outgoing_url: str | None = None
     template: str | None = None
     challenge_key: str | None = None
+    kind: BotWebhookKind | None = None
+    last_request_at: datetime | None = None
 
 
 @dataclass
@@ -808,6 +1043,7 @@ class Chat:
     public: bool
     last_message_at: datetime
     meet_room_url: str
+    avatar_url: str | None = None
 
 
 @dataclass
@@ -850,6 +1086,7 @@ class ChatUpdateRequest:
 class CompanyBotResponse:
     id: int
     webhook: CompanyBotWebhook
+    oauth_client: BotOAuthClient | None = None
 
 
 @dataclass
@@ -1071,8 +1308,16 @@ class LinkSharedWebhookPayload:
     message_id: int
     links: list[WebhookLink]
     user_id: int
+    entity_type: MessageEntityType
     created_at: datetime
     webhook_timestamp: int
+    entity_id: int | None = None
+    thread: WebhookMessageThread | None = None
+
+
+@dataclass
+class MarkChatUnreadRequest:
+    message_id: int | None = None
 
 
 @dataclass
@@ -1672,6 +1917,11 @@ class WebhookVideoCallThread:
 
 
 @dataclass
+class UpdateChatAvatarRequest:
+    image: bytes
+
+
+@dataclass
 class UpdateProfileAvatarRequest:
     image: bytes
 
@@ -1681,7 +1931,7 @@ class UpdateUserAvatarRequest:
     image: bytes
 
 
-AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked, AuditDetailsDeviceAuthorizationApproved, AuditDetailsDeviceAuthorizationDenied, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording]
+AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked, AuditDetailsDeviceAuthorizationApproved, AuditDetailsDeviceAuthorizationDenied, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled, AuditDetailsToken, AuditDetailsBotTokenUpdated]
 
 
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]
@@ -1706,6 +1956,12 @@ class GetAuditEventsParams:
 @dataclass
 class ListBotsParams:
     query: str | None = None
+    limit: int | None = None
+    cursor: str | None = None
+
+
+@dataclass
+class ListBotTokensParams:
     limit: int | None = None
     cursor: str | None = None
 
@@ -1882,6 +2138,12 @@ class GetAuditEventsResponse:
 @dataclass
 class ListBotsResponse:
     data: list[BotResponse]
+    meta: PaginationMeta
+
+
+@dataclass
+class ListBotTokensResponse:
+    data: list[BotAccessToken]
     meta: PaginationMeta
 
 

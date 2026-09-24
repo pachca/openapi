@@ -53,7 +53,7 @@ export default class UsersUpdate extends BaseCommand {
       allowNo: true,
     }),
     'list-tags': Flags.string({
-      description: "Массив тегов, привязываемых к сотруднику",
+      description: "Массив названий тегов, привязываемых к сотруднику. Список заменяет прежний целиком, пустой снимает все теги. Значение, которое не является массивом непустых строк, игнорируется: теги сотрудника не меняются.",
     }),
     'custom-properties': Flags.string({
       description: "Задаваемые дополнительные поля",

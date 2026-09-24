@@ -365,6 +365,28 @@ describe('generated commands — functional tests', () => {
       expect(stderr).toContain('PACHCA_AUTH_ERROR');
     });
 
+    it('401 с сохранённым токеном → подсказка сохранить новый в тот же профиль', async () => {
+      mockFetch({ status: 401, data: { error: 'invalid_token', error_description: 'Access token is invalid' } });
+      const { stderr } = await runCommand(['users', 'list'], { root: CLI_ROOT });
+      expect(JSON.parse(stderr.trim()).hint).toBe('pachca auth login --profile test --token <token>');
+    });
+
+    it('401 после входа через браузер → подсказка войти заново, без флага для default', async () => {
+      fs.writeFileSync(
+        path.join(tmpDir, 'pachca', 'config.toml'),
+        `active_profile = "default"\n\n[profiles.default]\ntype = "user"\nauth = "oauth"\ntoken = "test-token"\nuser = "Test User"\n`,
+      );
+      mockFetch({ status: 401, data: { error: 'invalid_token', error_description: 'Access token is invalid' } });
+      const { stderr } = await runCommand(['users', 'list'], { root: CLI_ROOT });
+      expect(JSON.parse(stderr.trim()).hint).toBe('pachca auth login');
+    });
+
+    it('401 с токеном из --token → подсказка про сам токен', async () => {
+      mockFetch({ status: 401, data: { error: 'invalid_token', error_description: 'Access token is invalid' } });
+      const { stderr } = await runCommand(['users', 'list', '--token', 'bad'], { root: CLI_ROOT });
+      expect(JSON.parse(stderr.trim()).hint).toBe('token from --token or PACHCA_TOKEN is invalid or revoked');
+    });
+
     it('404 → PACHCA_API_ERROR', async () => {
       mockFetch({
         status: 404,

@@ -7,14 +7,7 @@ import { MarkdownActions } from './markdown-actions';
 import { MethodBadge } from './method-badge';
 import { CopyButton } from './copy-button';
 import type { EndpointRequirements } from '@/lib/openapi/types';
-
-const ROLES = ['owner', 'admin', 'user', 'bot'] as const;
-const ROLE_LABELS: Record<string, string> = {
-  owner: 'Владелец',
-  admin: 'Администратор',
-  user: 'Сотрудник',
-  bot: 'Бот',
-};
+import { SCOPE_ROLES as ROLES, SCOPE_ROLE_LABELS as ROLE_LABELS } from '@/lib/scope-roles';
 
 const planNames: Record<string, string> = {
   corporation: 'Корпорация',

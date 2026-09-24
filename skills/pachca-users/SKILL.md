@@ -20,7 +20,7 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
+Ask the user for a Pachca token (bot: the API tab of the bot in Integrations → Bots, user: Integrations → API).
 
 Run commands via `npx -y @pachca/cli` with the `--token` flag:
 

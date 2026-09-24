@@ -17,7 +17,7 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
+Ask the user for a Pachca token (bot: the API tab of the bot in Integrations → Bots, user: Integrations → API).
 
 Run commands via `npx -y @pachca/cli` with the `--token` flag:
 
@@ -73,6 +73,22 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
    > Доступные поля: `name`, `public`
 
 > Для изменения состава участников используй POST/DELETE /chats/{id}/members.
+
+
+### Поставить или убрать аватар чата
+
+1. Загрузи аватар беседы или канала:
+   ```bash
+   pachca chats update-avatar <ID> --file=<путь_к_файлу>
+   ```
+   > Файл передается в формате multipart/form-data: jpg, jpeg, png или gif. У личного чата и треда аватара нет — ответ 403
+
+2. Чтобы убрать аватар, удали его:
+   ```bash
+   pachca chats remove-avatar <ID> --force
+   ```
+
+> Доступно тому же, кто может менять название чата. Ссылка на аватар приходит в поле `avatar_url` чата.
 
 
 ### Создать проектную беседу из шаблона
@@ -150,6 +166,8 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | GET | /chats/{id} | Информация о чате |
 | PUT | /chats/{id} | Редактирование чата |
 | PUT | /chats/{id}/archive | Архивация чата |
+| PUT | /chats/{id}/avatar | Загрузка аватара чата |
+| DELETE | /chats/{id}/avatar | Удаление аватара чата |
 | POST | /chats/{id}/group_tags | Добавление тегов |
 | DELETE | /chats/{id}/group_tags/{tag_id} | Исключение тега |
 | DELETE | /chats/{id}/leave | Выход из чата |
@@ -158,6 +176,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | DELETE | /chats/{id}/members/{user_id} | Исключение пользователя |
 | PUT | /chats/{id}/members/{user_id} | Редактирование роли |
 | PUT | /chats/{id}/unarchive | Разархивация чата |
+| PUT | /chats/{id}/unread | Отметка чата непрочитанным |
 | GET | /company/chats | Список чатов пространства |
 
 ## Advanced workflows

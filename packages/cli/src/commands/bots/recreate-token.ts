@@ -6,13 +6,13 @@ export default class BotsRecreateToken extends BaseCommand {
   static override description = "Ротация токена бота";
 
   static override examples = [
-      "Ротация токена бота — Пользовательским токеном (администратор, владелец компании или создатель бота) — перевыпусти токен по `id` бота. Прежний токен инвалидируется сразу:\n  $ pachca bots recreate-token"
+      "Ротация токена бота — Пользовательским токеном (создатель бота или администратор, если бот открыт администраторам) — перевыпусти основной токен по `id` бота: тот, что без имени, а если такого нет, самый старый. Прежнее значение инвалидируется сразу:\n  $ pachca bots recreate-token"
   ];
 
   static scope = "bots:write";
   static apiMethod = "POST";
   static apiPath = "/bots/{id}/recreate_token";
-  static defaultColumns = ["id","webhook","access_token"];
+  static defaultColumns = ["id","name","created_at","nickname","avatar_url"];
 
   static override args = {
     id: Args.integer({

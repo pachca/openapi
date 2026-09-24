@@ -39,10 +39,10 @@ content-length: 358
 
   ### Шаг 1. Проверьте подпись
 
-Для проверки подписи необходимо вычислить её самостоятельно, используя секрет вебхука `Signing secret`, который доступен в настройках бота во вкладке «Исходящий webhook». Рекомендуется использовать сырой (raw) контент тела запроса для вычисления хеша, так как при JSON-парсинге содержимое может быть изменено.
+Для проверки подписи необходимо вычислить её самостоятельно, используя секрет вебхука `Signing secret` с вкладки «Исходящий вебхук» в карточке бота. Рекомендуется использовать сырой (raw) контент тела запроса для вычисления хеша, так как при JSON-парсинге содержимое может быть изменено.
 
 ```javascript title="Вычисление и сравнение подписи"
-// WEBHOOK_SECRET - значение поля Signing secret во вкладке «Исходящий webhook» в настройках бота
+// WEBHOOK_SECRET - значение поля Signing secret на вкладке «Исходящий вебхук» в карточке бота
 
 const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
 if (signature !== request.headers['pachca-signature']) {
@@ -68,7 +68,7 @@ IP-адрес Пачки: `37.200.70.177`
 import express from "express"
 import crypto from "crypto"
 
-const SIGNING_SECRET = "your_signing_secret" // Из настроек бота → Исходящий Webhook → Signing Secret
+const SIGNING_SECRET = "your_signing_secret" // Карточка бота → Исходящий вебхук → Signing secret
 const app = express()
 
 // Важно: используем express.raw для получения сырого тела запроса (для корректной проверки HMAC)
@@ -122,7 +122,7 @@ app.listen(3000)
 import hmac, hashlib, json, time
 from flask import Flask, request, abort
 
-SIGNING_SECRET = "your_signing_secret"  # Из настроек бота → Исходящий Webhook → Signing Secret
+SIGNING_SECRET = "your_signing_secret"  # Карточка бота → Исходящий вебхук → Signing secret
 app = Flask(__name__)
 
 @app.route("/webhook", methods=["POST"])

@@ -333,7 +333,7 @@ function generateSkillMd(ctx: SkillContext): string {
   lines.push('## Quick start');
   lines.push('');
   lines.push(
-    'Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).'
+    'Ask the user for a Pachca token (bot: the API tab of the bot in Integrations → Bots, user: Integrations → API).'
   );
   if (config.botOnly) {
     lines.push('**Bot token only** — user tokens will not work.');

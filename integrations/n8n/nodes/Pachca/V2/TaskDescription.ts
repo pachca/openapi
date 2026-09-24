@@ -183,7 +183,7 @@ export const taskFields: INodeProperties[] = [
 		name: 'chatIds',
 		type: 'string',
 		default: "",
-		description: 'Filter by the chats the tasks are attached to. Accessible chats are the ones you are a member of, public conversations and channels of the workspace, and threads available to you through their parent chat. The remaining IDs are ignored without an error. Up to 100 IDs.',
+		description: 'Filter by the chats the tasks are attached to. Accessible chats are the ones you are a member of, public conversations and channels of the workspace, and threads available to you through their parent chat. For a multi-guest, public conversations and channels are accessible only if they are a member. The remaining IDs are ignored without an error. Up to 100 IDs.',
 		placeholder: '198,334',
 		displayOptions: { show: { resource: ['task'], operation: ['getAll'] } },
 	},

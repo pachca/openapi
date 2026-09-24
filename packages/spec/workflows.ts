@@ -1075,8 +1075,10 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       inline: false,
       steps: [
         {
-          description: 'Создай специального Unfurl-бота и укажи отслеживаемые домены',
-          descriptionEn: 'Create a special Unfurl bot and specify tracked domains',
+          description:
+            'В карточке бота на вкладке «Исходящий вебхук» включи событие «Отправка ссылок в сообщении (unfurl)» и укажи до 5 доменов — это может только администратор или владелец пространства',
+          descriptionEn:
+            'On the Outgoing webhook tab of the bot, enable the "Links shared in messages (unfurl)" event and list up to 5 domains — only a workspace admin or owner can do this',
         },
         {
           description:
@@ -1097,9 +1099,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
       notes:
-        'Эндпоинт привязан к конкретному сообщению. Необходим специальный Unfurl-бот с указанными доменами.',
+        'Эндпоинт привязан к конкретному сообщению. Боту нужно событие разворачивания ссылок с доменами: ссылки приходят из всех чатов пространства, добавлять бота в чаты не нужно.',
       notesEn:
-        'Endpoint is bound to a specific message. Requires a special Unfurl bot with specified domains.',
+        'Endpoint is bound to a specific message. The bot needs the link unfurling event with its domains: links arrive from every chat of the workspace, no need to add the bot to chats.',
     },
     {
       title: 'Обработать нажатие кнопки (callback)',
@@ -1206,8 +1208,12 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       steps: [
         {
           description:
-            'В настройках бота включи «Сохранять историю событий». Webhook URL указывать не обязательно.',
-          descriptionEn: 'In bot settings enable "Save event history". Webhook URL is optional.',
+            'Включи историю событий флагом `--events-history-enabled` (Webhook URL для этого не нужен) или настройкой «Сохранять историю событий» на вкладке «Исходящий вебхук» — в интерфейсе она появляется после включения вебхука',
+          descriptionEn:
+            'Enable the event history with `--events-history-enabled` (no Webhook URL needed) or with "Save event history" on the Outgoing webhook tab — in the UI it appears once the webhook is enabled',
+          command: 'pachca bots update <bot_id> --events-history-enabled',
+          apiMethod: 'PUT',
+          apiPath: '/bots/{id}',
         },
         {
           description: 'Получи накопленные события',

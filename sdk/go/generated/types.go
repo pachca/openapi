@@ -115,7 +115,7 @@ const (
 	BotWhoCanAddCreator          BotWhoCanAdd = "creator" // Только создатель бота
 	BotWhoCanAddCreatorAdmin     BotWhoCanAdd = "creator_admin" // Создатель и администраторы компании
 	BotWhoCanAddCreatorAdminUser BotWhoCanAdd = "creator_admin_user" // Создатель, администраторы и участники компании
-	BotWhoCanAddAnyone           BotWhoCanAdd = "anyone" // Любой пользователь, в том числе гости
+	BotWhoCanAddAnyone           BotWhoCanAdd = "anyone" // Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей
 )
 
 type ChatActivity string
@@ -432,6 +432,7 @@ const (
 	ValidationErrorCodeDraftTypeChangeForbidden   ValidationErrorCode = "draft_type_change_forbidden" // Отложенное сообщение нельзя превратить обратно в черновик
 	ValidationErrorCodeConfidentialDownloadDenied ValidationErrorCode = "confidential_download_denied" // Скачивание файла запрещено: нужен запрос из безопасного контура
 	ValidationErrorCodeDecryptionFailed           ValidationErrorCode = "decryption_failed" // Не удалось расшифровать файл
+	ValidationErrorCodeBotAddDenied               ValidationErrorCode = "bot_add_denied" // Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
 	ValidationErrorCodeForbidden                  ValidationErrorCode = "forbidden" // Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
 	ValidationErrorCodePermissionDenied           ValidationErrorCode = "permission_denied" // Доступ запрещён (недостаточно прав)
 	ValidationErrorCodeAccessDenied               ValidationErrorCode = "access_denied" // Доступ запрещён

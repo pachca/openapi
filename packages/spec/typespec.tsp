@@ -505,6 +505,7 @@ enum ChatSubtype {
   draft_type_change_forbidden: "Отложенное сообщение нельзя превратить обратно в черновик",
   confidential_download_denied: "Скачивание файла запрещено: нужен запрос из безопасного контура",
   decryption_failed: "Не удалось расшифровать файл",
+  bot_add_denied: "Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`",
 })
 enum ValidationErrorCode {
   @doc("Обязательное поле (не может быть пустым)")
@@ -611,6 +612,9 @@ enum ValidationErrorCode {
 
   @doc("Не удалось расшифровать файл")
   decryption_failed: "decryption_failed",
+
+  @doc("Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его")
+  bot_add_denied: "bot_add_denied",
 
   @doc("Недостаточно прав для выполнения действия (пояснения вы получите в поле message)")
   forbidden: "forbidden",
@@ -1071,12 +1075,12 @@ model User {
   @example("olegpetrov")
   nickname: string;
 
-  @doc("Электронная почта. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя — никогда. В своей карточке поле приходит всегда.")
+  @doc("Электронная почта. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя и мульти-гостя — никогда. В своей карточке поле приходит всегда.")
   @maxLength(255)
   @example("olegp@example.com")
   email: string | null;
 
-  @doc("Телефон. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя — никогда. В своей карточке поле приходит всегда.")
+  @doc("Телефон. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя и мульти-гостя — никогда. В своей карточке поле приходит всегда.")
   @maxLength(255)
   @example("+79001234567")
   phone_number: string | null;
@@ -1106,7 +1110,7 @@ model User {
   @example(185)
   inviter_id: int32 | null;
 
-  @doc("Массив тегов, привязанных к сотруднику")
+  @doc("Массив тегов, привязанных к сотруднику. Мульти-гостю в чужой карточке приходит пустым.")
   @example(#["Product", "Design"])
   list_tags: string[];
   
@@ -1641,63 +1645,63 @@ model AvatarData {
   drafts_write: "Создание, изменение и удаление черновиков и отложенных сообщений",
 })
 @extension("x-scope-roles", #{
-  chats_read: #["owner", "admin", "user", "bot"],
-  chats_create: #["owner", "admin", "user", "bot"],
-  chats_update: #["owner", "admin", "user", "bot"],
-  chats_archive: #["owner", "admin", "user", "bot"],
-  chats_leave: #["owner", "admin", "user", "bot"],
-  chat_members_read: #["owner", "admin", "user", "bot"],
-  chat_members_write: #["owner", "admin", "user", "bot"],
+  chats_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  chats_create: #["owner", "admin", "user", "multi_guest", "bot"],
+  chats_update: #["owner", "admin", "user", "multi_guest", "bot"],
+  chats_archive: #["owner", "admin", "user", "multi_guest", "bot"],
+  chats_leave: #["owner", "admin", "user", "multi_guest", "bot"],
+  chat_members_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  chat_members_write: #["owner", "admin", "user", "multi_guest", "bot"],
   chat_exports_read: #["owner"],
   chat_exports_write: #["owner"],
-  messages_read: #["owner", "admin", "user", "bot"],
-  messages_create: #["owner", "admin", "user", "bot"],
-  messages_update: #["owner", "admin", "user", "bot"],
-  messages_delete: #["owner", "admin", "user", "bot"],
-  reactions_read: #["owner", "admin", "user", "bot"],
-  reactions_write: #["owner", "admin", "user", "bot"],
-  pins_write: #["owner", "admin", "user", "bot"],
-  threads_read: #["owner", "admin", "user", "bot"],
-  threads_create: #["owner", "admin", "user", "bot"],
-  link_previews_write: #["owner", "admin", "user", "bot"],
-  views_write: #["owner", "admin", "user", "bot"],
-  users_read: #["owner", "admin", "user", "bot"],
+  messages_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  messages_create: #["owner", "admin", "user", "multi_guest", "bot"],
+  messages_update: #["owner", "admin", "user", "multi_guest", "bot"],
+  messages_delete: #["owner", "admin", "user", "multi_guest", "bot"],
+  reactions_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  reactions_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  pins_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  threads_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  threads_create: #["owner", "admin", "user", "multi_guest", "bot"],
+  link_previews_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  views_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  users_read: #["owner", "admin", "user", "multi_guest", "bot"],
   users_create: #["owner", "admin"],
   users_update: #["owner", "admin"],
   users_delete: #["owner", "admin"],
-  group_tags_read: #["owner", "admin", "user", "bot"],
+  group_tags_read: #["owner", "admin", "user", "multi_guest", "bot"],
   group_tags_write: #["owner", "admin"],
   bots_read: #["owner", "admin", "user"],
   bots_write: #["owner", "admin", "user"],
   bot_self_webhook_write: #["bot"],
   bot_self_write: #["bot"],
-  profile_read: #["owner", "admin", "user", "bot"],
-  profile_status_read: #["owner", "admin", "user", "bot"],
-  profile_status_write: #["owner", "admin", "user", "bot"],
-  profile_avatar_write: #["owner", "admin", "user", "bot"],
-  user_status_read: #["owner", "admin", "user", "bot"],
+  profile_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  profile_status_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  profile_status_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  profile_avatar_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  user_status_read: #["owner", "admin", "user", "multi_guest", "bot"],
   user_status_write: #["owner", "admin"],
   user_avatar_write: #["owner", "admin"],
-  custom_properties_read: #["owner", "admin", "user", "bot"],
+  custom_properties_read: #["owner", "admin", "user", "multi_guest", "bot"],
   audit_events_read: #["owner"],
   company_chats_read: #["owner"],
   company_bots_read: #["owner"],
-  tasks_read: #["owner", "admin", "user", "bot"],
-  tasks_create: #["owner", "admin", "user", "bot"],
-  tasks_update: #["owner", "admin", "user", "bot"],
-  tasks_delete: #["owner", "admin", "user", "bot"],
-  files_read: #["owner", "admin", "user", "bot"],
-  files_write: #["owner", "admin", "user", "bot"],
-  uploads_write: #["owner", "admin", "user", "bot"],
-  webhooks_read: #["owner", "admin", "user", "bot"],
-  webhooks_write: #["owner", "admin", "user", "bot"],
-  webhooks_events_read: #["owner", "admin", "user", "bot"],
-  webhooks_events_delete: #["owner", "admin", "user", "bot"],
-  search_users: #["owner", "admin", "user", "bot"],
-  search_chats: #["owner", "admin", "user", "bot"],
-  search_messages: #["owner", "admin", "user", "bot"],
-  drafts_read: #["owner", "admin", "user"],
-  drafts_write: #["owner", "admin", "user"],
+  tasks_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  tasks_create: #["owner", "admin", "user", "multi_guest", "bot"],
+  tasks_update: #["owner", "admin", "user", "multi_guest", "bot"],
+  tasks_delete: #["owner", "admin", "user", "multi_guest", "bot"],
+  files_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  files_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  uploads_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  webhooks_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  webhooks_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  webhooks_events_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  webhooks_events_delete: #["owner", "admin", "user", "multi_guest", "bot"],
+  search_users: #["owner", "admin", "user", "multi_guest", "bot"],
+  search_chats: #["owner", "admin", "user", "multi_guest", "bot"],
+  search_messages: #["owner", "admin", "user", "multi_guest", "bot"],
+  drafts_read: #["owner", "admin", "user", "multi_guest"],
+  drafts_write: #["owner", "admin", "user", "multi_guest"],
 })
 enum OAuthScope {
   @doc("Просмотр чатов и списка чатов")
@@ -2253,7 +2257,7 @@ model MessageCreateRequest {
     @example(334)
     entity_id: int32;
 
-    @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).")
+    @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть.")
     @example("Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)")
     content: string;
 
@@ -2329,7 +2333,7 @@ model MessageCreateRequest {
 model MessageUpdateRequest {
   @doc("Собранный объект параметров редактируемого сообщения")
   message: {
-    @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).")
+    @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть.")
     @example("Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.")
     content?: string;
     
@@ -3187,7 +3191,7 @@ enum BotEventName {
   creator: "Только создатель бота",
   creator_admin: "Создатель и администраторы компании",
   creator_admin_user: "Создатель, администраторы и участники компании",
-  anyone: "Любой пользователь, в том числе гости",
+  anyone: "Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей",
 })
 enum BotWhoCanAdd {
   creator: "creator",
@@ -4684,7 +4688,9 @@ interface UserOperations {
 
 Боты в пространстве — тоже сотрудники и приходят в общем списке с `bot: true`. Но из выдачи по `query` они исключены: чтобы найти бота по имени, перебирайте страницы без поискового запроса или пользуйтесь методом [Список ботов](GET /bots).
 
-Почта и телефон приходят `null`, если в пространстве выключен показ персональных данных, а вызывающий не администратор.
+Мульти-гостю метод отдаёт не всё пространство, а тех, кого он видит в интерфейсе: его самого, участников общих с ним чатов вместе с ботами и публичных ботов. Треды и архивные чаты общими не считаются.
+
+Почта и телефон приходят `null`, если в пространстве выключен показ персональных данных, а вызывающий не администратор. Мульти-гостю они всегда приходят `null`.
 
 Карточку одного сотрудника отдаёт [Информация о сотруднике](GET /users/{id}), свою — [Свой профиль](GET /profile).
 """)
@@ -4733,7 +4739,9 @@ interface UserOperations {
 
 Приостановленный сотрудник отдаётся с `suspended: true`, удалённый — `404`, как несуществующий. Бот тоже приходит сюда как сотрудник, с `bot: true`.
 
-Почта и телефон приходят `null`, если в пространстве выключен показ персональных данных, а вызывающий не администратор. Свою карточку сотрудник видит целиком — она же отдаётся методом [Свой профиль](GET /profile) и без скоупа `users:read`.
+Мульти-гостю метод отдаёт только тех, кто приходит ему в [Список сотрудников](GET /users), а на остальных отвечает `404`.
+
+Почта и телефон приходят `null`, если в пространстве выключен показ персональных данных, а вызывающий не администратор. Мульти-гостю они всегда приходят `null`. Свою карточку сотрудник видит целиком — она же отдаётся методом [Свой профиль](GET /profile) и без скоупа `users:read`.
 """)
   @route("/{id}")
   @get
@@ -4773,6 +4781,8 @@ interface UserOperations {
 Владельца пространства редактирует только он сам, а его роль меняется лишь на администратора. Перевести обычного сотрудника в гостя нельзя — в обоих случаях ответ `403`.
 
 Незнакомое значение роли метод молча пропускает: ответ приходит успешный, а роль остаётся прежней.
+
+У бота ник должен оканчиваться на `_bot` и быть уникальным в пространстве, иначе метод отвечает `422` с ошибкой на поле `nickname`: `invalid` или `already_exists`. Прежний ник бота проверяется, только когда его меняют.
 """)
   @put
   updateUser(
@@ -4858,6 +4868,8 @@ interface UserStatusOperations {
 Статус сотрудника
 
 Статус другого сотрудника: эмодзи, подпись, срок и режим «Нет на месте».
+
+Мульти-гостю метод отдаёт статусы только тех, кто приходит ему в [Список сотрудников](GET /users), а на остальных отвечает `404`.
 
 Если статус не установлен, метод возвращает `200` и `null` в теле ответа — без объекта-обёртки. Статус с истёкшим `expires_at` какое-то время ещё возвращается, пока не будет очищен, поэтому проверяйте `expires_at` на стороне клиента.
 """)
@@ -5090,6 +5102,8 @@ interface GroupTagOperations {
 Название тега и число сотрудников в нём.
 
 В `users_count` считаются только действующие сотрудники: приостановленные в счётчик не попадают, хотя в методе [Список сотрудников тега](GET /group_tags/{id}/users) остаются.
+
+Мульти-гостю доступны только теги, которые приходят ему в [Список тегов](GET /group_tags), а на остальные метод отвечает `404`.
 """)
   @route("/{id}")
   @get
@@ -5120,7 +5134,7 @@ interface GroupTagOperations {
   @doc("""
 Список тегов
 
-Все теги пространства с числом сотрудников в каждом. Видны они одинаково всем ролям, независимо от того, к каким чатам привязаны.
+Все теги пространства с числом сотрудников в каждом, независимо от того, к каким чатам они привязаны. Мульти-гостю приходят только теги активных бесед и каналов, где он участник.
 
 Параметр `names` ищет теги по названиям — это способ получить `id` по имени, известному из интерфейса. За один запрос он принимает не больше 100 имён.
 
@@ -5171,6 +5185,8 @@ interface GroupTagOperations {
 Кто состоит в теге. Приостановленные сотрудники в списке приходят, хотя в `users_count` самого тега они не учтены. Удалённые не приходят, а боты, помеченные тегом, в выдачу попадают.
 
 Состав тега меняют в карточке сотрудника — [Редактирование сотрудника](PUT /users/{id}) с полем `list_tags`, по одному сотруднику за раз.
+
+Мульти-гостю метод отвечает `403`: список сотрудников пространства ему закрыт, как и в интерфейсе.
 """)
   @extension("x-paginated", true)
   @route("/{id}/users")
@@ -5304,9 +5320,11 @@ interface ChatOperations {
 
 Создаёт беседу или канал. Владелец токена становится владельцем чата, и роль эта в дальнейшем не передаётся.
 
+Мульти-гость, как и в интерфейсе, создавать чаты не может: метод отвечает ему `403`.
+
 Для создания личной переписки 1 на 1 с пользователем пользуйтесь методом [Новое сообщение](POST /messages). Чтобы обсудить конкретное сообщение, чат заводить не нужно — под ним заводят тред методом [Новый тред](POST /messages/{id}/thread).
 
-Участников можно передать сразу: `member_ids` добавляет поимённо, `group_tag_ids` приводит всех, кто состоит в теге, и дальше поддерживает состав сам. Идентификаторы, которых в пространстве нет, а также приостановленные и удалённые сотрудники молча отбрасываются — ответ приходит успешным, а сотрудника в чате не оказывается, поэтому сверяйте состав в ответе.
+Участников можно передать сразу: `member_ids` добавляет поимённо, `group_tag_ids` приводит всех, кто состоит в теге, и дальше поддерживает состав сам. Идентификаторы, которых в пространстве нет, а также приостановленные и удалённые сотрудники молча отбрасываются — ответ приходит успешным, а сотрудника в чате не оказывается, поэтому сверяйте состав в ответе. С ботами строже: если настройка бота «Кто может добавлять бота в чаты» не разрешает вам его добавить, чат не создаётся, а метод отвечает `403` с кодом `bot_add_denied` и идентификаторами таких ботов в `value`.
 """)
   @post
   createChat(@body request: ChatCreateRequest): {
@@ -5317,7 +5335,7 @@ interface ChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ApiError | OAuthError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -5370,7 +5388,7 @@ interface ChatOperations {
   @doc("""
 Список чатов
 
-По умолчанию — беседы, каналы и личные переписки, где состоит владелец токена. С `availability=public` метод отдаёт вместо этого все открытые чаты пространства, включая те, куда вызывающий не вступал.
+По умолчанию — беседы, каналы и личные переписки, где состоит владелец токена. С `availability=public` метод отдаёт вместо этого все открытые чаты пространства, включая те, куда вызывающий не вступал. Мульти-гостю — только открытые чаты, где он участник.
 
 Треды в списке не приходят никогда, для них есть [Список тредов](GET /threads).
 
@@ -5606,6 +5624,8 @@ interface ChatMemberOperations {
 
 Тех, кто уже состоит в чате, метод пропускает молча и ошибкой это не считает. А вот неизвестный или неактивный идентификатор останавливает весь запрос: метод отвечает `404` и перечисляет такие значения, никто при этом не добавляется.
 
+Бота добавляет только тот, кому это разрешает настройка бота «Кто может добавлять бота в чаты» — подробнее в разделе [Настройки бота](/guides/bots/settings#kto-mozhet-dobavlyat-bota-v-chaty). Если в `member_ids` есть бот, которого вам добавлять нельзя, метод не добавляет никого и отвечает `403` с кодом `bot_add_denied` и идентификаторами таких ботов в `value`. Если в том же запросе есть и неизвестный идентификатор, ответ — `404` с обеими ошибками.
+
 Добавить сразу целый отдел удобнее тегом — [Добавление тегов](POST /chats/{id}/group_tags): тогда состав чата поддерживается сам.
 """)
   @route("/chats/{id}/members")
@@ -5624,7 +5644,7 @@ interface ChatMemberOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ApiError | OAuthError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6802,7 +6822,7 @@ interface TaskOperations {
     @doc("Фильтр по состоянию. Если параметр не указан, возвращаются напоминания в любом состоянии.")
     @extension("example", "undone")
     @query status?: TaskStatus,
-    @doc("Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов.")
+    @doc("Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Мульти-гостю открытые беседы и каналы доступны, только если он в них участник. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов.")
     @extension("example", #[198, 334])
     @maxItems(100)
     @query chat_ids?: int32[],

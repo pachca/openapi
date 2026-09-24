@@ -362,7 +362,7 @@ function generateLibraryRules(): string {
 - All requests require Bearer token in Authorization header: \`Authorization: Bearer <TOKEN>\`
 - Two token types: **personal** — acts as a person and sees exactly what that person sees; **bot** — acts as a service account, sees every open channel of the workspace plus the closed chats and threads the bot was added to
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
-- Get a personal token: Settings → Automations → API, choosing its scopes. Get a bot token: per-bot in Settings → Automations
+- Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
 - A personal token issued in the interface does not expire; one obtained by \`pachca auth login\` lives an hour and renews itself
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: \`const client = new PachcaClient("YOUR_TOKEN")\`
@@ -396,13 +396,13 @@ function generateLibraryRules(): string {
 - SDK (@pachca/sdk, pachca-sdk) handles retry automatically: 3 retries, respects Retry-After, exponential backoff for 5xx
 
 ## Webhooks (Real-time Events)
-- Create a bot in Pachca: Automations → Integrations → Bots
-- Set webhook URL in bot settings → Outgoing Webhook tab
+- Create a bot in Pachca: Integrations → Bots → Create bot
+- On the bot's Outgoing webhook tab, press Enable and give your URL
 - Events: \`new_message\`, \`edit_message\`, \`delete_message\`, \`new_reaction\`, \`delete_reaction\`, \`button_pressed\`, \`view_submit\`, \`chat_member_changed\`, \`company_member_changed\`, \`link_shared\`
 - Verify: HMAC-SHA256 of raw body with bot's Signing Secret
 - Header: \`Pachca-Signature\` contains hex digest
 - Replay protection: check \`webhook_timestamp\` within ±60 seconds of current time
-- Alternative to webhooks: polling via GET /webhooks/events (enable "Save event history" in bot settings)
+- Alternative to webhooks: polling via GET /webhooks/events (enable "Save event history" on the Outgoing webhook tab, or \`events_history_enabled\` via the API when there is no URL at all)
 - IP whitelist: Pachca webhook IP is \`37.200.70.177\`
 
 ## File Uploads (3-step process)
@@ -592,7 +592,7 @@ profile = await client.profile.get_profile()
 print(profile.id, profile.first_name)
 \`\`\`
 
-Token types: **admin** (full access, get in Settings → Automations → API), **bot** (messaging + webhooks, per-bot in Integrations), **user** (limited).
+Token types: **admin** (full access, get in Integrations → API), **bot** (messaging + webhooks, API tab of the bot in Integrations → Bots), **user** (limited).
 
 `;
 
@@ -730,18 +730,18 @@ Chat types: \`channel: true\` creates a channel (one-way announcements), \`chann
   content += `## How to set up webhooks for real-time updates
 
 ### Step-by-step setup
-1. Create a bot in Pachca: **Automations** → **Integrations** → **Bots**
-2. In bot settings, go to **Outgoing Webhook** tab and set your HTTPS URL
+1. Create a bot in Pachca: **Integrations** → **Bots** → **Create bot**
+2. On the bot's **Outgoing webhook** tab press **Enable** and set your HTTPS URL
 3. Copy the **Signing Secret** for signature verification
 4. Select event types: new messages, reactions, button presses, form submissions, etc.
-5. Add the bot to chats where you want to receive events (global events like company member changes work without adding to chat)
+5. Add the bot to chats where you want to receive events (company member changes and links on the bot's domains arrive without adding it to a chat)
 
 ### TypeScript webhook handler (Express.js)
 \`\`\`typescript
 import express from "express"
 import crypto from "crypto"
 
-const SIGNING_SECRET = "your_signing_secret" // From bot settings → Outgoing Webhook
+const SIGNING_SECRET = "your_signing_secret" // Bot card → Outgoing webhook → Signing secret
 const app = express()
 
 app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
@@ -787,7 +787,7 @@ app.listen(3000)
 import hmac, hashlib, json, time
 from flask import Flask, request, abort
 
-SIGNING_SECRET = "your_signing_secret"  # From bot settings → Outgoing Webhook
+SIGNING_SECRET = "your_signing_secret"  # Bot card → Outgoing webhook → Signing secret
 app = Flask(__name__)
 
 @app.route("/webhook", methods=["POST"])
@@ -824,10 +824,10 @@ def webhook():
 | view_submit | Form submitted | payload (form field values), user_id, trigger_id |
 | chat_member (new/delete) | Member added/removed from chat | chat_id, user_id, event |
 | company_member (new/update/delete) | Workspace member changes | user_id, event (no chat needed) |
-| link_shared | URL shared (unfurl bots) | url, message_id, chat_id |
+| link_shared | URL on one of the bot's domains shared anywhere in the workspace | url, message_id, chat_id |
 
 ### Alternative: Polling (when webhook URL is not available)
-Enable "Save event history" in bot settings, then poll:
+Enable "Save event history" on the bot's Outgoing webhook tab (or \`events_history_enabled\` via the API when there is no URL at all), then poll:
 \`\`\`typescript
 // Poll for events periodically
 const events = await client.bots.getWebhookEvents()
@@ -1472,9 +1472,9 @@ function generateWorkflowsSection(): string {
     {
       title: 'Set up a bot with outgoing webhook',
       steps: [
-        { desc: 'Create bot in Pachca UI: Automations → Integrations → Webhook' },
-        { desc: 'Get `access_token` from bot API settings tab' },
-        { desc: 'Set Webhook URL to receive events' },
+        { desc: 'Create bot in Pachca UI: Integrations → Bots → Create bot' },
+        { desc: 'Create a token on the API tab of the bot — its value is shown once' },
+        { desc: 'On the Outgoing webhook tab, press Enable, give the URL and pick the events' },
       ],
     },
     {
@@ -1573,8 +1573,8 @@ Authorization: Bearer <access_token>
 \`\`\`
 
 **Token types:**
-- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Settings → Automations → API, where you pick its scopes; also obtainable with \`pachca auth login\`, which takes the whole catalogue trimmed by your role.
-- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created per-bot in Settings → Automations.
+- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Integrations → API, where you pick its scopes; also obtainable with \`pachca auth login\`, which takes the whole catalogue trimmed by your role.
+- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created in the API tab of the bot, under Integrations → Bots; a bot can hold several tokens, each with its own scopes.
 
 Scopes decide which methods a token may call; they never widen the data beyond the boundary of the token type. What a token may do also follows the current role of its owner, and that is checked on every request — a lowered role starts answering 403 without the token being touched.
 

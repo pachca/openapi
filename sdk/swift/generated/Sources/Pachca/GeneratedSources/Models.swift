@@ -177,7 +177,7 @@ public enum BotWhoCanAdd: String, Codable, CaseIterable {
     case creatorAdmin = "creator_admin"
     /// Создатель, администраторы и участники компании
     case creatorAdminUser = "creator_admin_user"
-    /// Любой пользователь, в том числе гости
+    /// Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей
     case anyone
 }
 
@@ -615,6 +615,8 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case confidentialDownloadDenied = "confidential_download_denied"
     /// Не удалось расшифровать файл
     case decryptionFailed = "decryption_failed"
+    /// Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
+    case botAddDenied = "bot_add_denied"
     /// Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     case forbidden
     /// Доступ запрещён (недостаточно прав)

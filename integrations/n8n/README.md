@@ -91,8 +91,8 @@ Create a **Pachca API** credential with:
 
 **Where to get tokens:**
 
-- **Bot token** — Bot settings > API tab
-- **Personal token** — Settings > Automations > API
+- **Bot token** — Integrations > Bots, then the API tab of the bot. The value is shown once, when the token is created
+- **Personal token** — Integrations > API
 
 Credentials are tested by calling `GET /oauth/token/info`.
 
@@ -230,7 +230,7 @@ Set **Resource** = Search, **Operation** = Get Many Messages:
 
 ### 401 Unauthorized
 
-Token is invalid or expired. Check **Access Token** in Credentials. For bot tokens: Bot settings > API tab. For personal tokens: Settings > Automations > API.
+Token is invalid or expired. Check **Access Token** in Credentials. For bot tokens: reissue the token on the API tab of the bot. For personal tokens: create a new one in Integrations > API.
 
 ### 403 Forbidden
 

@@ -540,6 +540,10 @@
     "skill": "pachca-bots",
     "steps": [
       {
+        "description": "Включи историю событий флагом `--events-history-enabled` (Webhook URL для этого не нужен) или настройкой «Сохранять историю событий» на вкладке «Исходящий вебхук» — в интерфейсе она появляется после включения вебхука",
+        "command": "pachca bots update <bot_id> --events-history-enabled"
+      },
+      {
         "description": "Получи накопленные события",
         "command": "pachca bots list-events --all"
       },

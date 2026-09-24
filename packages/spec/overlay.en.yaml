@@ -117,15 +117,17 @@ actions:
 
         Creates a conversation or a channel. The token owner becomes the chat owner, and this role is not transferred later on.
 
+        A multi-guest cannot create chats, as in the interface: the method responds `403` to them.
+
         To create a one-on-one direct message with a user, use the [New message](POST /messages) method. To discuss a particular message there is no need to create a chat — a thread is started under it with the [New thread](POST /messages/{id}/thread) method.
 
-        Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, are silently dropped — the response is successful but the employee is not in the chat, so check the membership in the response.
+        Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, are silently dropped — the response is successful but the employee is not in the chat, so check the membership in the response. Bots are stricter: if a bot's "Who can add the bot to chats" setting does not let you add it, the chat is not created, and the method responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`.
   - target: $.paths['/chats'].get
     update:
       description: |-
         List chats
 
-        By default — the conversations, channels, and direct messages the token owner belongs to. With `availability=public` the method returns instead all public chats of the workspace, including the ones the caller has not joined.
+        By default — the conversations, channels, and direct messages the token owner belongs to. With `availability=public` the method returns instead all public chats of the workspace, including the ones the caller has not joined. For a multi-guest — only the public chats they are a member of.
 
         Threads never come in this list; for them there is [List threads](GET /threads).
 
@@ -326,6 +328,8 @@ actions:
 
         Those who already belong to the chat are silently skipped by the method, and this is not treated as an error. An unknown or inactive ID, however, stops the whole request: the method responds `404` and lists such values, and nobody is added.
 
+        A bot is added only by someone its "Who can add the bot to chats" setting allows — see [Bot settings](/guides/bots/settings#kto-mozhet-dobavlyat-bota-v-chaty). If `member_ids` contains a bot you are not allowed to add, the method adds nobody and responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. If the same request also has an unknown ID, the response is `404` with both errors.
+
         Adding a whole department at once is more convenient with a tag — [Add tags](POST /chats/{id}/group_tags): then the chat membership is maintained by itself.
   - target: $.paths['/chats/{id}/members'].post.parameters[?(@.name=='id')]
     update:
@@ -483,7 +487,7 @@ actions:
       description: |-
         List tags
 
-        All tags of the workspace with the number of employees in each. They are visible the same way to all roles, regardless of which chats they are linked to.
+        All tags of the workspace with the number of employees in each, regardless of which chats they are linked to. A multi-guest gets only the tags of active conversations and channels they are a member of.
 
         The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the interface. It accepts no more than 100 names per request.
 
@@ -505,6 +509,8 @@ actions:
         The tag name and the number of employees in it.
 
         Only active employees are counted in `users_count`: suspended ones do not make it into the counter, although they remain in [List tag employees](GET /group_tags/{id}/users).
+
+        Only the tags that come to a multi-guest in [List tags](GET /group_tags) are available to them; for the rest the method responds `404`.
   - target: $.paths['/group_tags/{id}'].get.parameters[?(@.name=='id')]
     update:
       description: Tag ID
@@ -540,6 +546,8 @@ actions:
         Who belongs to the tag. Suspended employees come in the list, although they are not counted in the tag's own `users_count`; deleted ones do not come. Bots marked with the tag also make it into the results.
 
         The membership of a tag is changed in an employee's profile — [Edit employee](PUT /users/{id}) with the `list_tags` field, one employee at a time.
+
+        For a multi-guest the method responds `403`: the list of workspace employees is closed to them, as in the interface.
   - target: $.paths['/group_tags/{id}/users'].get.parameters[?(@.name=='id')]
     update:
       description: Tag ID
@@ -961,7 +969,7 @@ actions:
       description: Filter by state. If the parameter is omitted, tasks in any state are returned.
   - target: $.paths['/tasks'].get.parameters[?(@.name=='chat_ids')]
     update:
-      description: Filter by the chats the tasks are attached to. Accessible chats are the ones you are a member of, public conversations and channels of the workspace, and threads available to you through their parent chat. The remaining IDs are ignored without an error. Up to 100 IDs.
+      description: Filter by the chats the tasks are attached to. Accessible chats are the ones you are a member of, public conversations and channels of the workspace, and threads available to you through their parent chat. For a multi-guest, public conversations and channels are accessible only if they are a member. The remaining IDs are ignored without an error. Up to 100 IDs.
   - target: $.paths['/tasks'].get.parameters[?(@.name=='performer_ids')]
     update:
       description: Filter by task performers. Up to 100 IDs.
@@ -1093,7 +1101,9 @@ actions:
 
         Bots in the workspace are employees too and come in the common list with `bot: true`. But they are excluded from the results for `query`: to find a bot by name, page through the list without a search query or use [List bots](GET /bots).
 
-        Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator.
+        For a multi-guest the method returns not the whole workspace but the people they see in the interface: themselves, members of their shared chats including bots, and public bots. Threads and archived chats do not count as shared.
+
+        Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. For a multi-guest they always come back as `null`.
 
         The profile of a single employee is returned by [Employee info](GET /users/{id}), and your own by [Own profile](GET /profile).
   - target: $.paths['/users'].get.parameters[?(@.name=='query')]
@@ -1116,7 +1126,9 @@ actions:
 
         A suspended employee is returned with `suspended: true`, a deleted one as `404`, like a non-existent one. A bot also comes here as an employee, with `bot: true`.
 
-        Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. An employee sees their own profile in full — the same one is returned by the [Own profile](GET /profile) method, and without the `users:read` scope.
+        For a multi-guest the method returns only those who come to them in [List employees](GET /users), and responds `404` for the rest.
+
+        Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. For a multi-guest they always come back as `null`. An employee sees their own profile in full — the same one is returned by the [Own profile](GET /profile) method, and without the `users:read` scope.
   - target: $.paths['/users/{id}'].get.parameters[?(@.name=='id')]
     update:
       description: User ID
@@ -1134,6 +1146,8 @@ actions:
         The workspace owner can be edited only by themselves, and their role can be changed only to administrator. Turning a regular employee into a guest is impossible — in both cases the response is `403`.
 
         An unknown role value is silently ignored by the method: the response is successful and the role stays as it was.
+
+        A bot's nickname must end with `_bot` and be unique in the workspace, otherwise the method responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. A bot's existing nickname is checked only when it is changed.
   - target: $.paths['/users/{id}'].put.parameters[?(@.name=='id')]
     update:
       description: User ID
@@ -1154,7 +1168,7 @@ actions:
       description: User ID
   - target: $.paths['/users/{user_id}/status'].get
     update:
-      description: "Employee status\n\nThe status of another employee: the emoji, the title, the expiry, and away mode.\n\nIf no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side."
+      description: "Employee status\n\nThe status of another employee: the emoji, the title, the expiry, and away mode.\n\nFor a multi-guest the method returns statuses only of those who come to them in [List employees](GET /users), and responds `404` for the rest.\n\nIf no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side."
   - target: $.paths['/users/{user_id}/status'].get.parameters[?(@.name=='user_id')]
     update:
       description: User ID
@@ -1871,7 +1885,7 @@ actions:
         creator: Only the bot creator
         creator_admin: The creator and company administrators
         creator_admin_user: The creator, administrators, and company members
-        anyone: Anyone, including guests
+        anyone: "Public bot: any employee except guests and multi-guests can add it"
   - target: $.components.schemas.BotCanEdit
     update:
       description: Role allowed to edit the bot settings
@@ -3107,7 +3121,7 @@ actions:
       description: "Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or an employee."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.content
     update:
-      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`)."
+      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files
     update:
       description: Files to attach
@@ -3166,7 +3180,7 @@ actions:
       description: Message parameters object to update
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.content
     update:
-      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`)."
+      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is."
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files
     update:
       description: Files to attach
@@ -3711,10 +3725,10 @@ actions:
       description: Username
   - target: $.components.schemas.User.properties.email
     update:
-      description: "Email. In someone else's card it comes as `null` if the caller has no right to see personal data: the workspace owner and an administrator always have it, an employee and a bot only when showing personal data is enabled in the workspace, and a guest never. In your own card the field always comes."
+      description: "Email. In someone else's card it comes as `null` if the caller has no right to see personal data: the workspace owner and an administrator always have it, an employee and a bot only when showing personal data is enabled in the workspace, and a guest or a multi-guest never. In your own card the field always comes."
   - target: $.components.schemas.User.properties.phone_number
     update:
-      description: "Phone number. In someone else's card it comes as `null` if the caller has no right to see personal data: the workspace owner and an administrator always have it, an employee and a bot only when showing personal data is enabled in the workspace, and a guest never. In your own card the field always comes."
+      description: "Phone number. In someone else's card it comes as `null` if the caller has no right to see personal data: the workspace owner and an administrator always have it, an employee and a bot only when showing personal data is enabled in the workspace, and a guest or a multi-guest never. In your own card the field always comes."
   - target: $.components.schemas.User.properties.department
     update:
       description: "Department. If not specified, `null` or an empty string is returned."
@@ -3735,7 +3749,7 @@ actions:
       description: ID of the employee who invited this user. Returns `null` if the user signed up themselves or if the inviter has been deleted.
   - target: $.components.schemas.User.properties.list_tags
     update:
-      description: Array of tags assigned to the employee
+      description: Array of tags assigned to the employee. For a multi-guest it comes empty in someone else's card.
   - target: $.components.schemas.User.properties.custom_properties
     update:
       description: Employee custom properties
@@ -3980,6 +3994,7 @@ actions:
         draft_type_change_forbidden: A scheduled message cannot be turned back into a draft
         confidential_download_denied: "Downloading the file is denied: the request has to come from the secure perimeter"
         decryption_failed: The file could not be decrypted
+        bot_add_denied: "The bot's \"Who can add the bot to chats\" setting does not let you add it: the IDs of such bots come in `value`"
   - target: $.components.schemas.ViewBlock
     update:
       description: View block for forms (base model, use specific block types)

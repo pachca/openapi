@@ -1,6 +1,55 @@
 [
   {
     "product": "n8n",
+    "version": "2.1.4",
+    "date": "2026-09-24",
+    "changes": [
+      {
+        "type": "-",
+        "description": "README: где взять токен бота и персональный токен — теперь раздел «Интеграции»: «Боты» для бота, «API» для персонального"
+      },
+      {
+        "type": "-",
+        "description": "`Bot`: значение `Anyone` поля `Who Can Add` описано как публичный бот, которого гости и мульти-гости не добавляют"
+      },
+      {
+        "type": "-",
+        "description": "`Message` и `Task`: подсказки к полю `Content` и к фильтру `Chat IDs` описывают, что меняется для мульти-гостя"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.9.2",
+    "date": "2026-09-24",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca auth login` — вход через браузер передаёт имя устройства, по которому вход узнаётся в списке токенов CLI"
+      },
+      {
+        "type": "-",
+        "description": "`pachca guide`: сценарии разворачивания ссылок и поллинга описывают раздел «Интеграции» — событие ссылок с доменами и история событий без Webhook URL"
+      },
+      {
+        "type": "-",
+        "description": "`pachca messages create`, `messages update` и `tasks list`: подсказки к `--content` и `--chat-ids` описывают, что меняется для мульти-гостя"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.4.1",
+    "date": "2026-09-24",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Значение `bot_add_denied` в `ValidationErrorCode` — так `Добавление пользователей` (`POST /chats/{id}/members`) и `Новый чат` (`POST /chats`) отвечают на бота, которого вам не разрешает добавить его настройка «Кто может добавлять бота в чаты»"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
     "version": "2.1.3",
     "date": "2026-09-20",
     "changes": [

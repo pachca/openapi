@@ -22,7 +22,7 @@ go get github.com/pachca/openapi/sdk/go/generated
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Настройки** > **Автоматизации** > **API** (подробнее — [Авторизация](/api/authorization)).
+Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
 
 ```go
 import pachca "github.com/pachca/openapi/sdk/go/generated"

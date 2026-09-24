@@ -2,6 +2,14 @@
 
 # Changelog
 
+## 2.1.4 (2026-09-24)
+
+### Improvements
+
+- README: where to get a bot token and a personal token now points to the Integrations section — Bots for the bot, API for the personal token
+- Bot: the `Anyone` value of `Who Can Add` is described as a public bot that guests and multi-guests cannot add
+- Message and Task: the hints for `Content` and the `Chat IDs` filter describe what changes for a multi-guest
+
 ## 2.1.3 (2026-09-16)
 
 ### Features

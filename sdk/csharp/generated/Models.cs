@@ -457,7 +457,7 @@ public enum BotWhoCanAdd
     CreatorAdmin,
     /// <summary>Создатель, администраторы и участники компании</summary>
     CreatorAdminUser,
-    /// <summary>Любой пользователь, в том числе гости</summary>
+    /// <summary>Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей</summary>
     Anyone,
 }
 
@@ -1856,6 +1856,8 @@ public enum ValidationErrorCode
     ConfidentialDownloadDenied,
     /// <summary>Не удалось расшифровать файл</summary>
     DecryptionFailed,
+    /// <summary>Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`</summary>
+    BotAddDenied,
     /// <summary>Недостаточно прав для выполнения действия (пояснения вы получите в поле message)</summary>
     Forbidden,
     /// <summary>Доступ запрещён (недостаточно прав)</summary>
@@ -1932,6 +1934,7 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             "draft_type_change_forbidden" => ValidationErrorCode.DraftTypeChangeForbidden,
             "confidential_download_denied" => ValidationErrorCode.ConfidentialDownloadDenied,
             "decryption_failed" => ValidationErrorCode.DecryptionFailed,
+            "bot_add_denied" => ValidationErrorCode.BotAddDenied,
             "forbidden" => ValidationErrorCode.Forbidden,
             "permission_denied" => ValidationErrorCode.PermissionDenied,
             "access_denied" => ValidationErrorCode.AccessDenied,
@@ -1991,6 +1994,7 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             ValidationErrorCode.DraftTypeChangeForbidden => "draft_type_change_forbidden",
             ValidationErrorCode.ConfidentialDownloadDenied => "confidential_download_denied",
             ValidationErrorCode.DecryptionFailed => "decryption_failed",
+            ValidationErrorCode.BotAddDenied => "bot_add_denied",
             ValidationErrorCode.Forbidden => "forbidden",
             ValidationErrorCode.PermissionDenied => "permission_denied",
             ValidationErrorCode.AccessDenied => "access_denied",

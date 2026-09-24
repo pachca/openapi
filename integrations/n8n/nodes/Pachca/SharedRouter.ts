@@ -127,6 +127,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/bots',
 			wrapperKey: 'webhook',
+			siblingFields: ['empty', 'oauth_client', 'promo'],
 			bodyMap: [
 				{ api: 'name', n8n: 'name' },
 			],
@@ -146,6 +147,11 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'who_can_add', n8n: 'whoCanAdd' },
 				{ api: 'can_edit', n8n: 'canEdit', isArray: true, arrayType: 'string' },
 				{ api: 'single_chat', n8n: 'singleChat' },
+				{ api: 'kind', n8n: 'kind' },
+				{ api: 'unfurl_domains', n8n: 'unfurlDomains', isArray: true, arrayType: 'string' },
+				{ api: 'empty', n8n: 'empty' },
+				{ api: 'oauth_client', n8n: 'oauthClient', isJson: true },
+				{ api: 'promo', n8n: 'promo', isJson: true },
 			],
 		},
 		get: {
@@ -158,6 +164,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/bots/{id}',
 			pathParams: [{ api: 'id', n8n: 'botId' }],
 			wrapperKey: 'webhook',
+			siblingFields: ['oauth_client', 'promo'],
 			special: 'botWebhook',
 			optionalBodyMap: [
 				{ api: 'name', n8n: 'name' },
@@ -175,6 +182,11 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'events_history_enabled', n8n: 'eventsHistoryEnabled' },
 				{ api: 'who_can_add', n8n: 'whoCanAdd' },
 				{ api: 'can_edit', n8n: 'canEdit', isArray: true, arrayType: 'string' },
+				{ api: 'single_chat', n8n: 'singleChat' },
+				{ api: 'kind', n8n: 'kind' },
+				{ api: 'unfurl_domains', n8n: 'unfurlDomains', isArray: true, arrayType: 'string' },
+				{ api: 'oauth_client', n8n: 'oauthClient', isJson: true },
+				{ api: 'promo', n8n: 'promo', isJson: true },
 			],
 		},
 		delete: {
@@ -186,6 +198,52 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/bots/{id}/recreate_token',
 			pathParams: [{ api: 'id', n8n: 'id' }],
+		},
+		rotateClientSecret: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/bots/{id}/rotate_client_secret',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+		},
+		getScopes: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/bots/{id}/scopes',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+		},
+		getAllTokens: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/bots/{id}/tokens',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+			paginated: true,
+		},
+		createToken: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/bots/{id}/tokens',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+			bodyMap: [
+				{ api: 'name', n8n: 'name' },
+			],
+			optionalBodyMap: [
+				{ api: 'scopes', n8n: 'scopes', isArray: true, arrayType: 'string' },
+			],
+		},
+		updateToken: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/bots/{id}/tokens/{token_id}',
+			pathParams: [{ api: 'id', n8n: 'id' }, { api: 'token_id', n8n: 'tokenId' }],
+			optionalBodyMap: [
+				{ api: 'name', n8n: 'name' },
+				{ api: 'scopes', n8n: 'scopes', isArray: true, arrayType: 'string' },
+			],
+		},
+		deleteToken: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/bots/{id}/tokens/{token_id}',
+			pathParams: [{ api: 'id', n8n: 'id' }, { api: 'token_id', n8n: 'tokenId' }],
+		},
+		reissueToken: {
+			method: 'POST' as IHttpRequestMethods,
+			path: '/bots/{id}/tokens/{token_id}/reissue',
+			pathParams: [{ api: 'id', n8n: 'id' }, { api: 'token_id', n8n: 'tokenId' }],
 		},
 		getAllCompanyBots: {
 			method: 'GET' as IHttpRequestMethods,
@@ -271,6 +329,14 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'PUT' as IHttpRequestMethods,
 			path: '/chats/{id}/unarchive',
 			pathParams: [{ api: 'id', n8n: 'id', locator: true, v1Fallback: 'chatId' }],
+		},
+		markUnread: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/chats/{id}/unread',
+			pathParams: [{ api: 'id', n8n: 'id', locator: true }],
+			optionalBodyMap: [
+				{ api: 'message_id', n8n: 'messageId' },
+			],
 		},
 		getAllCompanyChats: {
 			method: 'GET' as IHttpRequestMethods,

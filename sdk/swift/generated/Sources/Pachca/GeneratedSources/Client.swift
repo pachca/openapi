@@ -95,6 +95,18 @@ open class BotsService {
         throw pachcaNotImplemented("Bots.getBot")
     }
 
+    open func getBotScopes(id: Int) async throws -> BotScopeCatalog {
+        throw pachcaNotImplemented("Bots.getBotScopes")
+    }
+
+    open func listBotTokens(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> ListBotTokensResponse {
+        throw pachcaNotImplemented("Bots.listBotTokens")
+    }
+
+    open func listBotTokensAll(id: Int, limit: Int? = nil) async throws -> [BotAccessToken] {
+        throw pachcaNotImplemented("Bots.listBotTokensAll")
+    }
+
     open func listCompanyBots(query: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListCompanyBotsResponse {
         throw pachcaNotImplemented("Bots.listCompanyBots")
     }
@@ -195,7 +207,7 @@ open class BotsService {
         }
     }
 
-    open func selfRecreateBotToken() async throws -> BotCreateResponse {
+    open func selfRecreateBotToken() async throws -> BotSelfTokenResponse {
         throw pachcaNotImplemented("Bots.selfRecreateBotToken")
     }
 
@@ -207,7 +219,19 @@ open class BotsService {
         throw pachcaNotImplemented("Bots.recreateBotToken")
     }
 
-    open func selfUpdateBotWebhook(request body: BotWebhookSelfUpdateRequest) async throws -> BotResponse {
+    open func rotateBotClientSecret(id: Int) async throws -> BotResponse {
+        throw pachcaNotImplemented("Bots.rotateBotClientSecret")
+    }
+
+    open func createBotToken(id: Int, request body: BotTokenCreateRequest) async throws -> BotAccessToken {
+        throw pachcaNotImplemented("Bots.createBotToken")
+    }
+
+    open func reissueBotToken(id: Int, tokenId: Int64) async throws -> BotAccessToken {
+        throw pachcaNotImplemented("Bots.reissueBotToken")
+    }
+
+    open func selfUpdateBotWebhook(request body: BotWebhookSelfUpdateRequest) async throws -> BotSelfResponse {
         throw pachcaNotImplemented("Bots.selfUpdateBotWebhook")
     }
 
@@ -215,8 +239,16 @@ open class BotsService {
         throw pachcaNotImplemented("Bots.updateBot")
     }
 
+    open func updateBotToken(id: Int, tokenId: Int64, request body: BotTokenUpdateRequest) async throws -> BotAccessToken {
+        throw pachcaNotImplemented("Bots.updateBotToken")
+    }
+
     open func deleteBot(id: Int) async throws -> Void {
         throw pachcaNotImplemented("Bots.deleteBot")
+    }
+
+    open func deleteBotToken(id: Int, tokenId: Int64) async throws -> Void {
+        throw pachcaNotImplemented("Bots.deleteBotToken")
     }
 
     open func deleteWebhookEvent(id: String) async throws -> Void {
@@ -284,6 +316,55 @@ public final class BotsServiceImpl: BotsService {
         default:
             throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public override func getBotScopes(id: Int) async throws -> BotScopeCatalog {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/scopes")!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(BotScopeCatalog.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func listBotTokens(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> ListBotTokensResponse {
+        var components = URLComponents(string: "\(baseURL)/bots/\(id)/tokens")!
+        var queryItems: [URLQueryItem] = []
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ListBotTokensResponse.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func listBotTokensAll(id: Int, limit: Int? = nil) async throws -> [BotAccessToken] {
+        var items: [BotAccessToken] = []
+        var cursor: String? = nil
+        var hasNext = true
+        while hasNext {
+            let response = try await listBotTokens(id: id, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
+        return items
     }
 
     public override func listCompanyBots(query: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListCompanyBotsResponse {
@@ -355,7 +436,7 @@ public final class BotsServiceImpl: BotsService {
         return items
     }
 
-    public override func selfRecreateBotToken() async throws -> BotCreateResponse {
+    public override func selfRecreateBotToken() async throws -> BotSelfTokenResponse {
         var request = URLRequest(url: URL(string: "\(baseURL)/bot/recreate_token")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -363,7 +444,7 @@ public final class BotsServiceImpl: BotsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try deserialize(BotCreateResponseDataWrapper.self, from: data).data
+            return try deserialize(BotSelfTokenResponseDataWrapper.self, from: data).data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -405,7 +486,57 @@ public final class BotsServiceImpl: BotsService {
         }
     }
 
-    public override func selfUpdateBotWebhook(request body: BotWebhookSelfUpdateRequest) async throws -> BotResponse {
+    public override func rotateBotClientSecret(id: Int) async throws -> BotResponse {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/rotate_client_secret")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(BotResponseDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func createBotToken(id: Int, request body: BotTokenCreateRequest) async throws -> BotAccessToken {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/tokens")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 201:
+            return try deserialize(BotAccessTokenDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func reissueBotToken(id: Int, tokenId: Int64) async throws -> BotAccessToken {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/tokens/\(tokenId)/reissue")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(BotAccessTokenDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func selfUpdateBotWebhook(request body: BotWebhookSelfUpdateRequest) async throws -> BotSelfResponse {
         var request = URLRequest(url: URL(string: "\(baseURL)/bot/webhook")!)
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -415,7 +546,7 @@ public final class BotsServiceImpl: BotsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try deserialize(BotResponseDataWrapper.self, from: data).data
+            return try deserialize(BotSelfResponseDataWrapper.self, from: data).data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -441,8 +572,42 @@ public final class BotsServiceImpl: BotsService {
         }
     }
 
+    public override func updateBotToken(id: Int, tokenId: Int64, request body: BotTokenUpdateRequest) async throws -> BotAccessToken {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/tokens/\(tokenId)")!)
+        request.httpMethod = "PUT"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(BotAccessTokenDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
     public override func deleteBot(id: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)")!)
+        request.httpMethod = "DELETE"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func deleteBotToken(id: Int, tokenId: Int64) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/tokens/\(tokenId)")!)
         request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
@@ -519,6 +684,10 @@ open class ChatsService {
 
     open func unarchiveChat(id: Int) async throws -> Void {
         throw pachcaNotImplemented("Chats.unarchiveChat")
+    }
+
+    open func markChatUnread(id: Int, request body: MarkChatUnreadRequest) async throws -> Void {
+        throw pachcaNotImplemented("Chats.markChatUnread")
     }
 }
 
@@ -718,6 +887,24 @@ public final class ChatsServiceImpl: ChatsService {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/unarchive")!)
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func markChatUnread(id: Int, request body: MarkChatUnreadRequest) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/unread")!)
+        request.httpMethod = "PUT"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {

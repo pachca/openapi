@@ -39,6 +39,11 @@ export const chatOperations: INodeProperties[] = [
 				action: 'Get many workspace chats',
 			},
 			{
+				name: 'Mark Unread',
+				value: 'markUnread',
+				action: 'Mark a chat as unread',
+			},
+			{
 				name: 'Request Export',
 				value: 'requestExport',
 				action: 'Request a chat export',
@@ -458,6 +463,55 @@ export const chatFields: INodeProperties[] = [
 			},
 		],
 		displayOptions: { show: { resource: ['chat'], operation: ['unarchive'] } },
+	},
+	{
+		displayName: 'ID',
+		name: 'id',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		required: true,
+		description: 'Chat or thread ID',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: { searchListMethod: 'searchChats', searchable: true },
+			},
+			{
+				displayName: 'By ID',
+				name: 'id',
+				type: 'string',
+				placeholder: 'e.g. 334',
+			},
+			{
+				displayName: 'By URL',
+				name: 'url',
+				type: 'string',
+				placeholder: 'https://app.pachca.com/chats/12345',
+				extractValue: { type: 'regex', regex: 'https?://[^/]+/chats/(\\d+)' },
+				validation: [{ type: 'regex', properties: { regex: 'https?://[^/]+/chats/(\\d+)', errorMessage: 'Not a valid Pachca chat URL' } }],
+			},
+		],
+		displayOptions: { show: { resource: ['chat'], operation: ['markUnread'] } },
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: { show: { resource: ['chat'], operation: ['markUnread'] } },
+		options: [
+			{
+				displayName: 'Message ID',
+				name: 'messageId',
+				type: 'number',
+				default: 0,
+				description: 'ID of the message from which the chat becomes unread: this message and all messages after it. If omitted, the last message becomes unread.',
+				placeholder: '1194275',
+			},
+		],
 	},
 	{
 		displayName: 'Requires owner role and the "Corporation" plan',

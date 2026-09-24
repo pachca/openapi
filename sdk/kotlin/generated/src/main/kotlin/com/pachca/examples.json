@@ -18,7 +18,15 @@
   },
   "BotOperations_getBot": {
     "usage": "val response = client.bots.getBot(id = 1738816)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd))"
+    "output": "BotResponse(id: Int, name: String, nickname: String, avatarUrl: String?, creatorId: Int?, createdAt: OffsetDateTime, authorizedUsersCount: Int, lastUsedAt: OffsetDateTime?, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind?, unfurlDomains: List<String>, lastRequestAt: OffsetDateTime?), oauthClientEnabled: Boolean, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Boolean, redirectUris: List<String>, scopes: List<String>)?, promo: BotPromo(description: String?, published: Boolean, promoImages: List<BotPromoImage(key: String, url: String)>)?, permissions: BotPermissions(updateOauthClient: Boolean, recreateToken: Boolean, destroy: Boolean), clientSecret: String?)"
+  },
+  "BotOperations_getBotScopes": {
+    "usage": "val response = client.bots.getBotScopes(id = 1738816)",
+    "output": "BotScopeCatalog(scopes: List<BotScopeCatalogItem(id: String, title: String, group: String, preset: List<String>)>, groups: List<BotScopeCatalogGroup(id: String, title: String, description: String)>, presets: List<BotScopeCatalogPreset(id: String, title: String)>)"
+  },
+  "BotOperations_listBotTokens": {
+    "usage": "val response = client.bots.listBotTokens(id = 1738816, limit = 1, cursor = \"eyJpZCI6NDgyN30\")",
+    "output": "ListBotTokensResponse(data: List<BotAccessToken>, meta: PaginationMeta)"
   },
   "CompanyBotOperations_listCompanyBots": {
     "usage": "val response = client.bots.listCompanyBots(query = \"задач\", limit = 1, cursor = \"eyJpZCI6MTczODgxNn0\")",
@@ -43,48 +51,79 @@
   },
   "BotOperations_selfRecreateBotToken": {
     "usage": "val response = client.bots.selfRecreateBotToken()",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd), accessToken: String)"
+    "output": "BotSelfTokenResponse(id: Int, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Boolean, redirectUris: List<String>, scopes: List<String>)?, webhook: BotSelfWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd), accessToken: String)"
   },
   "BotOperations_createBot": {
-    "usage": "val request = BotCreateRequest(\n    webhook = BotCreateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true,\n        ignoreSelfMessages = false,\n        eventsHistoryEnabled = false,\n        whoCanAdd = BotWhoCanAdd.CREATOR,\n        canEdit = listOf(BotCanEdit.ADMIN),\n        singleChat = false\n    )\n)\nval response = client.bots.createBot(request = request)",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd), accessToken: String)",
+    "usage": "val request = BotCreateRequest(\n    empty = false,\n    webhook = BotCreateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true,\n        ignoreSelfMessages = false,\n        eventsHistoryEnabled = false,\n        whoCanAdd = BotWhoCanAdd.CREATOR,\n        canEdit = listOf(BotCanEdit.ADMIN),\n        singleChat = false,\n        kind = BotWebhookKind.SIMPLE,\n        unfurlDomains = listOf(\"example\")\n    ),\n    oauthClient = BotOAuthClientRequest(\n        confidential = true,\n        redirectUris = listOf(\"example\"),\n        scopes = listOf(\"example\")\n    ),\n    promo = BotPromoRequest(\n        description = \"Собирает сводку по задачам Jira и присылает её в чат\",\n        published = true,\n        promoImages = listOf(\"example\")\n    )\n)\nval response = client.bots.createBot(request = request)",
+    "output": "BotCreateResponse(id: Int, name: String, nickname: String, avatarUrl: String?, creatorId: Int?, createdAt: OffsetDateTime, authorizedUsersCount: Int, lastUsedAt: OffsetDateTime?, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind?, unfurlDomains: List<String>, lastRequestAt: OffsetDateTime?), oauthClientEnabled: Boolean, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Boolean, redirectUris: List<String>, scopes: List<String>)?, promo: BotPromo(description: String?, published: Boolean, promoImages: List<BotPromoImage(key: String, url: String)>)?, permissions: BotPermissions(updateOauthClient: Boolean, recreateToken: Boolean, destroy: Boolean), clientSecret: String?, accessToken: String?)",
     "imports": [
       "BotCanEdit",
       "BotCreateRequest",
       "BotCreateRequestWebhook",
       "BotEventName",
+      "BotOAuthClientRequest",
+      "BotPromoRequest",
       "BotTemplateEngine",
       "BotTriggerOn",
+      "BotWebhookKind",
       "BotWhoCanAdd"
     ]
   },
   "BotOperations_recreateBotToken": {
     "usage": "val response = client.bots.recreateBotToken(id = 1738816)",
-    "output": "BotCreateResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd), accessToken: String)"
+    "output": "BotCreateResponse(id: Int, name: String, nickname: String, avatarUrl: String?, creatorId: Int?, createdAt: OffsetDateTime, authorizedUsersCount: Int, lastUsedAt: OffsetDateTime?, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind?, unfurlDomains: List<String>, lastRequestAt: OffsetDateTime?), oauthClientEnabled: Boolean, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Boolean, redirectUris: List<String>, scopes: List<String>)?, promo: BotPromo(description: String?, published: Boolean, promoImages: List<BotPromoImage(key: String, url: String)>)?, permissions: BotPermissions(updateOauthClient: Boolean, recreateToken: Boolean, destroy: Boolean), clientSecret: String?, accessToken: String?)"
+  },
+  "BotOperations_rotateBotClientSecret": {
+    "usage": "val response = client.bots.rotateBotClientSecret(id = 1738816)",
+    "output": "BotResponse(id: Int, name: String, nickname: String, avatarUrl: String?, creatorId: Int?, createdAt: OffsetDateTime, authorizedUsersCount: Int, lastUsedAt: OffsetDateTime?, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind?, unfurlDomains: List<String>, lastRequestAt: OffsetDateTime?), oauthClientEnabled: Boolean, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Boolean, redirectUris: List<String>, scopes: List<String>)?, promo: BotPromo(description: String?, published: Boolean, promoImages: List<BotPromoImage(key: String, url: String)>)?, permissions: BotPermissions(updateOauthClient: Boolean, recreateToken: Boolean, destroy: Boolean), clientSecret: String?)"
+  },
+  "BotOperations_createBotToken": {
+    "usage": "val request = BotTokenCreateRequest(name = \"Сервер уведомлений\", scopes = listOf(\"example\"))\nval response = client.bots.createBotToken(id = 1738816, request = request)",
+    "output": "BotAccessToken(id: Long, token: String, name: String?, userId: Long, scopes: List<String>, createdAt: OffsetDateTime, revokedAt: OffsetDateTime?, expiresIn: Int?, lastUsedAt: OffsetDateTime?, authorizedAt: OffsetDateTime?)",
+    "imports": [
+      "BotTokenCreateRequest"
+    ]
+  },
+  "BotOperations_reissueBotToken": {
+    "usage": "val response = client.bots.reissueBotToken(id = 1738816, tokenId = 4827L)",
+    "output": "BotAccessToken(id: Long, token: String, name: String?, userId: Long, scopes: List<String>, createdAt: OffsetDateTime, revokedAt: OffsetDateTime?, expiresIn: Int?, lastUsedAt: OffsetDateTime?, authorizedAt: OffsetDateTime?)"
   },
   "BotOperations_selfUpdateBotWebhook": {
     "usage": "val request = BotWebhookSelfUpdateRequest(webhook = BotWebhookSelfUpdateRequestWebhook(outgoingUrl = \"https://www.website.com/tasks/new\"))\nval response = client.bots.selfUpdateBotWebhook(request = request)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd))",
+    "output": "BotSelfResponse(id: Int, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Boolean, redirectUris: List<String>, scopes: List<String>)?, webhook: BotSelfWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd))",
     "imports": [
       "BotWebhookSelfUpdateRequest",
       "BotWebhookSelfUpdateRequestWebhook"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "val request = BotUpdateRequest(\n    webhook = BotUpdateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true,\n        ignoreSelfMessages = false,\n        eventsHistoryEnabled = false,\n        whoCanAdd = BotWhoCanAdd.CREATOR,\n        canEdit = listOf(BotCanEdit.ADMIN)\n    )\n)\nval response = client.bots.updateBot(id = 1738816, request = request)",
-    "output": "BotResponse(id: Int, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd))",
+    "usage": "val request = BotUpdateRequest(\n    webhook = BotUpdateRequestWebhook(\n        name = \"Бот задач\",\n        nickname = \"tasks_bot\",\n        outgoingUrl = \"https://www.website.com/tasks/new\",\n        events = listOf(BotEventName.MESSAGE_NEW),\n        triggerOn = BotTriggerOn.COMMANDS,\n        commands = listOf(\"example\"),\n        scopes = listOf(\"example\"),\n        template = \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        templateEngine = BotTemplateEngine.LIQUID,\n        challengeKey = \"challenge\",\n        linkPreviewEnabled = true,\n        ignoreSelfMessages = false,\n        eventsHistoryEnabled = false,\n        whoCanAdd = BotWhoCanAdd.CREATOR,\n        canEdit = listOf(BotCanEdit.ADMIN),\n        singleChat = false,\n        kind = BotWebhookKind.SIMPLE,\n        unfurlDomains = listOf(\"example\")\n    ),\n    oauthClient = BotOAuthClientRequest(\n        confidential = true,\n        redirectUris = listOf(\"example\"),\n        scopes = listOf(\"example\")\n    ),\n    promo = BotPromoRequest(\n        description = \"Собирает сводку по задачам Jira и присылает её в чат\",\n        published = true,\n        promoImages = listOf(\"example\")\n    )\n)\nval response = client.bots.updateBot(id = 1738816, request = request)",
+    "output": "BotResponse(id: Int, name: String, nickname: String, avatarUrl: String?, creatorId: Int?, createdAt: OffsetDateTime, authorizedUsersCount: Int, lastUsedAt: OffsetDateTime?, webhook: BotWebhook(name: String, nickname: String, outgoingUrl: String?, events: List<BotEventName>, triggerOn: BotTriggerOn, commands: List<String>, scopes: List<String>, template: String?, templateEngine: BotTemplateEngine, challengeKey: String?, linkPreviewEnabled: Boolean, ignoreSelfMessages: Boolean, eventsHistoryEnabled: Boolean, singleChat: Boolean, canEdit: List<BotCanEdit>, whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind?, unfurlDomains: List<String>, lastRequestAt: OffsetDateTime?), oauthClientEnabled: Boolean, oauthClient: BotOAuthClient(clientId: String, clientSecretPreview: String, confidential: Boolean, redirectUris: List<String>, scopes: List<String>)?, promo: BotPromo(description: String?, published: Boolean, promoImages: List<BotPromoImage(key: String, url: String)>)?, permissions: BotPermissions(updateOauthClient: Boolean, recreateToken: Boolean, destroy: Boolean), clientSecret: String?)",
     "imports": [
       "BotCanEdit",
       "BotEventName",
+      "BotOAuthClientRequest",
+      "BotPromoRequest",
       "BotTemplateEngine",
       "BotTriggerOn",
       "BotUpdateRequest",
       "BotUpdateRequestWebhook",
+      "BotWebhookKind",
       "BotWhoCanAdd"
+    ]
+  },
+  "BotOperations_updateBotToken": {
+    "usage": "val request = BotTokenUpdateRequest(name = \"Сервер уведомлений\", scopes = listOf(\"example\"))\nval response = client.bots.updateBotToken(id = 1738816, tokenId = 4827L, request = request)",
+    "output": "BotAccessToken(id: Long, token: String, name: String?, userId: Long, scopes: List<String>, createdAt: OffsetDateTime, revokedAt: OffsetDateTime?, expiresIn: Int?, lastUsedAt: OffsetDateTime?, authorizedAt: OffsetDateTime?)",
+    "imports": [
+      "BotTokenUpdateRequest"
     ]
   },
   "BotOperations_deleteBot": {
     "usage": "client.bots.deleteBot(id = 1738816)"
+  },
+  "BotOperations_deleteBotToken": {
+    "usage": "client.bots.deleteBotToken(id = 1738816, tokenId = 4827L)"
   },
   "BotOperations_deleteWebhookEvent": {
     "usage": "client.bots.deleteWebhookEvent(id = \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
@@ -140,6 +179,12 @@
   },
   "ChatOperations_unarchiveChat": {
     "usage": "client.chats.unarchiveChat(id = 334)"
+  },
+  "ChatOperations_markChatUnread": {
+    "usage": "val request = MarkChatUnreadRequest(messageId = 1194275)\nclient.chats.markChatUnread(id = 334, request = request)",
+    "imports": [
+      "MarkChatUnreadRequest"
+    ]
   },
   "ChatMemberOperations_listMembers": {
     "usage": "val response = client.members.listMembers(id = 334, role = ChatMemberRoleFilter.ALL, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",

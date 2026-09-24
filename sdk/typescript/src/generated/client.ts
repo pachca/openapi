@@ -7,6 +7,10 @@ import {
   ListBotsParams,
   ListBotsResponse,
   BotResponse,
+  BotScopeCatalog,
+  ListBotTokensParams,
+  ListBotTokensResponse,
+  BotAccessToken,
   ListCompanyBotsParams,
   ListCompanyBotsResponse,
   CompanyBotResponse,
@@ -14,10 +18,14 @@ import {
   GetWebhookEventsResponse,
   WebhookEvent,
   WebhookPayloadUnion,
-  BotCreateResponse,
+  BotSelfTokenResponse,
   BotCreateRequest,
+  BotCreateResponse,
+  BotTokenCreateRequest,
   BotWebhookSelfUpdateRequest,
+  BotSelfResponse,
   BotUpdateRequest,
+  BotTokenUpdateRequest,
   ListChatsParams,
   ListChatsResponse,
   Chat,
@@ -26,6 +34,7 @@ import {
   ChatCreateRequest,
   ExportRequest,
   ChatUpdateRequest,
+  MarkChatUnreadRequest,
   ListMembersParams,
   ListMembersResponse,
   User,
@@ -177,6 +186,18 @@ export class BotsService {
     throw new Error("Bots.getBot is not implemented");
   }
 
+  async getBotScopes(id: number): Promise<BotScopeCatalog> {
+    throw new Error("Bots.getBotScopes is not implemented");
+  }
+
+  async listBotTokens(id: number, params?: ListBotTokensParams): Promise<ListBotTokensResponse> {
+    throw new Error("Bots.listBotTokens is not implemented");
+  }
+
+  async listBotTokensAll(id: number, params?: Omit<ListBotTokensParams, 'cursor'>): Promise<BotAccessToken[]> {
+    throw new Error("Bots.listBotTokensAll is not implemented");
+  }
+
   async listCompanyBots(params?: ListCompanyBotsParams): Promise<ListCompanyBotsResponse> {
     throw new Error("Bots.listCompanyBots is not implemented");
   }
@@ -240,7 +261,7 @@ export class BotsService {
     }
   }
 
-  async selfRecreateBotToken(): Promise<BotCreateResponse> {
+  async selfRecreateBotToken(): Promise<BotSelfTokenResponse> {
     throw new Error("Bots.selfRecreateBotToken is not implemented");
   }
 
@@ -252,7 +273,19 @@ export class BotsService {
     throw new Error("Bots.recreateBotToken is not implemented");
   }
 
-  async selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): Promise<BotResponse> {
+  async rotateBotClientSecret(id: number): Promise<BotResponse> {
+    throw new Error("Bots.rotateBotClientSecret is not implemented");
+  }
+
+  async createBotToken(id: number, request: BotTokenCreateRequest): Promise<BotAccessToken> {
+    throw new Error("Bots.createBotToken is not implemented");
+  }
+
+  async reissueBotToken(id: number, tokenId: number): Promise<BotAccessToken> {
+    throw new Error("Bots.reissueBotToken is not implemented");
+  }
+
+  async selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): Promise<BotSelfResponse> {
     throw new Error("Bots.selfUpdateBotWebhook is not implemented");
   }
 
@@ -260,8 +293,16 @@ export class BotsService {
     throw new Error("Bots.updateBot is not implemented");
   }
 
+  async updateBotToken(id: number, tokenId: number, request: BotTokenUpdateRequest): Promise<BotAccessToken> {
+    throw new Error("Bots.updateBotToken is not implemented");
+  }
+
   async deleteBot(id: number): Promise<void> {
     throw new Error("Bots.deleteBot is not implemented");
+  }
+
+  async deleteBotToken(id: number, tokenId: number): Promise<void> {
+    throw new Error("Bots.deleteBotToken is not implemented");
   }
 
   async deleteWebhookEvent(id: string): Promise<void> {
@@ -324,6 +365,54 @@ export class BotsServiceImpl extends BotsService {
       default:
         throw new ApiError(body.errors);
     }
+  }
+
+  async getBotScopes(id: number): Promise<BotScopeCatalog> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}/scopes`, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("BotScopeCatalog", body) as BotScopeCatalog;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async listBotTokens(id: number, params?: ListBotTokensParams): Promise<ListBotTokensResponse> {
+    const query = new URLSearchParams();
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
+    const url = `${this.baseUrl}/bots/${id}/tokens${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserialize(body) as ListBotTokensResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async listBotTokensAll(id: number, params?: Omit<ListBotTokensParams, 'cursor'>): Promise<BotAccessToken[]> {
+    const items: BotAccessToken[] = [];
+    let cursor: string | undefined;
+    let hasNext = true;
+    while (hasNext) {
+      const response = await this.listBotTokens(id, { ...params, cursor } as ListBotTokensParams);
+      items.push(...response.data);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
+    return items;
   }
 
   async listCompanyBots(params?: ListCompanyBotsParams): Promise<ListCompanyBotsResponse> {
@@ -393,7 +482,7 @@ export class BotsServiceImpl extends BotsService {
     return items;
   }
 
-  async selfRecreateBotToken(): Promise<BotCreateResponse> {
+  async selfRecreateBotToken(): Promise<BotSelfTokenResponse> {
     const response = await fetchWithRetry(`${this.baseUrl}/bot/recreate_token`, {
       method: "POST",
       headers: this.headers,
@@ -401,7 +490,7 @@ export class BotsServiceImpl extends BotsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserializeType("BotCreateResponse", body.data) as BotCreateResponse;
+        return deserializeType("BotSelfTokenResponse", body.data) as BotSelfTokenResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -442,7 +531,56 @@ export class BotsServiceImpl extends BotsService {
     }
   }
 
-  async selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): Promise<BotResponse> {
+  async rotateBotClientSecret(id: number): Promise<BotResponse> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}/rotate_client_secret`, {
+      method: "POST",
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("BotResponse", body.data) as BotResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async createBotToken(id: number, request: BotTokenCreateRequest): Promise<BotAccessToken> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}/tokens`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("BotTokenCreateRequest", request)),
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 201:
+        return deserializeType("BotAccessToken", body.data) as BotAccessToken;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async reissueBotToken(id: number, tokenId: number): Promise<BotAccessToken> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}/tokens/${tokenId}/reissue`, {
+      method: "POST",
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("BotAccessToken", body.data) as BotAccessToken;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): Promise<BotSelfResponse> {
     const response = await fetchWithRetry(`${this.baseUrl}/bot/webhook`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -451,7 +589,7 @@ export class BotsServiceImpl extends BotsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserializeType("BotResponse", body.data) as BotResponse;
+        return deserializeType("BotSelfResponse", body.data) as BotSelfResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -476,8 +614,40 @@ export class BotsServiceImpl extends BotsService {
     }
   }
 
+  async updateBotToken(id: number, tokenId: number, request: BotTokenUpdateRequest): Promise<BotAccessToken> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}/tokens/${tokenId}`, {
+      method: "PUT",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("BotTokenUpdateRequest", request)),
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("BotAccessToken", body.data) as BotAccessToken;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
   async deleteBot(id: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+
+  async deleteBotToken(id: number, tokenId: number): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}/tokens/${tokenId}`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -550,6 +720,10 @@ export class ChatsService {
 
   async unarchiveChat(id: number): Promise<void> {
     throw new Error("Chats.unarchiveChat is not implemented");
+  }
+
+  async markChatUnread(id: number, request: MarkChatUnreadRequest): Promise<void> {
+    throw new Error("Chats.markChatUnread is not implemented");
   }
 }
 
@@ -739,6 +913,22 @@ export class ChatsServiceImpl extends ChatsService {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/unarchive`, {
       method: "PUT",
       headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+
+  async markChatUnread(id: number, request: MarkChatUnreadRequest): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/unread`, {
+      method: "PUT",
+      headers: { ...this.headers, "Content-Type": "application/json" },
+      body: JSON.stringify(serializeType("MarkChatUnreadRequest", request)),
     });
     switch (response.status) {
       case 204:

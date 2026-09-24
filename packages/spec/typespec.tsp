@@ -505,6 +505,10 @@ enum ChatSubtype {
   draft_type_change_forbidden: "Отложенное сообщение нельзя превратить обратно в черновик",
   confidential_download_denied: "Скачивание файла запрещено: нужен запрос из безопасного контура",
   decryption_failed: "Не удалось расшифровать файл",
+  bot_add_denied: "Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`",
+  single_chat_bot_occupied: "Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`",
+  single_chat_bot_tag_denied: "Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег",
+  timeout: "Поиск не уложился по времени: сузьте запрос и повторите",
 })
 enum ValidationErrorCode {
   @doc("Обязательное поле (не может быть пустым)")
@@ -612,6 +616,18 @@ enum ValidationErrorCode {
   @doc("Не удалось расшифровать файл")
   decryption_failed: "decryption_failed",
 
+  @doc("Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его")
+  bot_add_denied: "bot_add_denied",
+
+  @doc("Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале")
+  single_chat_bot_occupied: "single_chat_bot_occupied",
+
+  @doc("Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег")
+  single_chat_bot_tag_denied: "single_chat_bot_tag_denied",
+
+  @doc("Поиск не уложился по времени")
+  timeout: "timeout",
+
   @doc("Недостаточно прав для выполнения действия (пояснения вы получите в поле message)")
   forbidden: "forbidden",
 
@@ -706,6 +722,11 @@ enum ValidationErrorCode {
   bot_token_recreated: "Токен бота перевыпущен (ротация)",
   bot_deleted: "Бот удалён",
   bot_oauth_client_updated: "Изменены параметры OAuth-клиента бота",
+  bot_oauth_client_disabled: "У бота выключена авторизация от имени сотрудника",
+  bot_oauth_client_secret_rotated: "Обновлён секрет OAuth-клиента бота",
+  bot_token_created: "Выпущен токен бота",
+  bot_token_updated: "Изменены имя или скоупы токена бота",
+  bot_token_reissued: "Отдельный токен бота перевыпущен",
   oauth_authorization_granted: "Пользователь выдал OAuth-клиенту доступ к своим данным",
   oauth_authorization_revoked: "Доступ OAuth-клиента к данным пользователя отозван",
   oauth_device_authorization_approved: "Сотрудник подтвердил вход приложения с устройства",
@@ -844,6 +865,21 @@ enum AuditEventKey {
 
   @doc("Изменены параметры OAuth-клиента бота")
   bot_oauth_client_updated: "bot_oauth_client_updated",
+
+  @doc("У бота выключена авторизация от имени сотрудника")
+  bot_oauth_client_disabled: "bot_oauth_client_disabled",
+
+  @doc("Обновлён секрет OAuth-клиента бота")
+  bot_oauth_client_secret_rotated: "bot_oauth_client_secret_rotated",
+
+  @doc("Выпущен токен бота")
+  bot_token_created: "bot_token_created",
+
+  @doc("Изменены имя или скоупы токена бота")
+  bot_token_updated: "bot_token_updated",
+
+  @doc("Отдельный токен бота перевыпущен")
+  bot_token_reissued: "bot_token_reissued",
 
   @doc("Пользователь выдал OAuth-клиенту доступ к своим данным")
   oauth_authorization_granted: "oauth_authorization_granted",
@@ -994,11 +1030,11 @@ model Button {
 
 @doc("Тред")
 model Thread {
-  @doc("Идентификатор созданного треда (в тред пишут методом [Новое сообщение](POST /messages))")
+  @doc("Идентификатор треда. Чтобы написать в тред, передайте его в `entity_id` метода [Новое сообщение](POST /messages) с `entity_type: \"thread\"`.")
   @example(265142)
   id: int64;
   
-  @doc("Идентификатор чата треда (по нему пишут в тред методом [Новое сообщение](POST /messages) и читают его методом [Список сообщений чата](GET /messages))")
+  @doc("Идентификатор чата треда. По нему читают сообщения треда методом [Список сообщений чата](GET /messages) и работают с его участниками.")
   @example(2637266155)
   chat_id: int64;
   
@@ -1071,12 +1107,12 @@ model User {
   @example("olegpetrov")
   nickname: string;
 
-  @doc("Электронная почта. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя — никогда. В своей карточке поле приходит всегда.")
+  @doc("Электронная почта. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя и мульти-гостя — никогда. В своей карточке поле приходит всегда.")
   @maxLength(255)
   @example("olegp@example.com")
   email: string | null;
 
-  @doc("Телефон. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя — никогда. В своей карточке поле приходит всегда.")
+  @doc("Телефон. В чужой карточке приходит `null`, если у вызывающего нет права видеть персональные данные: у владельца пространства и администратора оно есть всегда, у сотрудника и бота — только когда в пространстве включён показ персональных данных, у гостя и мульти-гостя — никогда. В своей карточке поле приходит всегда.")
   @maxLength(255)
   @example("+79001234567")
   phone_number: string | null;
@@ -1106,7 +1142,7 @@ model User {
   @example(185)
   inviter_id: int32 | null;
 
-  @doc("Массив тегов, привязанных к сотруднику")
+  @doc("Массив тегов, привязанных к сотруднику. Мульти-гостю в чужой карточке приходит пустым.")
   @example(#["Product", "Design"])
   list_tags: string[];
   
@@ -1258,11 +1294,11 @@ model Message {
   
   @doc("Тред, созданный к этому сообщению. `null`, если тред не создан, а также у сообщений, которые сами находятся внутри треда.")
   thread: {
-    @doc("Идентификатор треда")
+    @doc("Идентификатор треда. Чтобы написать в тред, передайте его в `entity_id` метода [Новое сообщение](POST /messages) с `entity_type: \"thread\"`.")
     @example(265142)
     id: int64;
 
-    @doc("Идентификатор чата треда")
+    @doc("Идентификатор чата треда. По нему читают сообщения треда методом [Список сообщений чата](GET /messages).")
     @example(2637266155)
     chat_id: int64;
   } | null;
@@ -1585,6 +1621,7 @@ model AvatarData {
   chats_read: "Просмотр чатов и списка чатов",
   chats_create: "Создание новых чатов",
   chats_update: "Изменение настроек чата",
+  chats_mark_unread: "Отметка чатов непрочитанными",
   chats_archive: "Архивация и разархивация чатов",
   chats_leave: "Выход из чатов",
   chat_members_read: "Просмотр участников чата",
@@ -1641,63 +1678,64 @@ model AvatarData {
   drafts_write: "Создание, изменение и удаление черновиков и отложенных сообщений",
 })
 @extension("x-scope-roles", #{
-  chats_read: #["owner", "admin", "user", "bot"],
+  chats_read: #["owner", "admin", "user", "multi_guest", "bot"],
   chats_create: #["owner", "admin", "user", "bot"],
-  chats_update: #["owner", "admin", "user", "bot"],
-  chats_archive: #["owner", "admin", "user", "bot"],
+  chats_update: #["owner", "admin", "user", "multi_guest", "bot"],
+  chats_mark_unread: #["owner", "admin", "user", "multi_guest", "bot"],
+  chats_archive: #["owner", "admin", "user", "multi_guest", "bot"],
   chats_leave: #["owner", "admin", "user", "bot"],
-  chat_members_read: #["owner", "admin", "user", "bot"],
-  chat_members_write: #["owner", "admin", "user", "bot"],
+  chat_members_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  chat_members_write: #["owner", "admin", "user", "multi_guest", "bot"],
   chat_exports_read: #["owner"],
   chat_exports_write: #["owner"],
-  messages_read: #["owner", "admin", "user", "bot"],
-  messages_create: #["owner", "admin", "user", "bot"],
-  messages_update: #["owner", "admin", "user", "bot"],
-  messages_delete: #["owner", "admin", "user", "bot"],
-  reactions_read: #["owner", "admin", "user", "bot"],
-  reactions_write: #["owner", "admin", "user", "bot"],
-  pins_write: #["owner", "admin", "user", "bot"],
-  threads_read: #["owner", "admin", "user", "bot"],
-  threads_create: #["owner", "admin", "user", "bot"],
+  messages_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  messages_create: #["owner", "admin", "user", "multi_guest", "bot"],
+  messages_update: #["owner", "admin", "user", "multi_guest", "bot"],
+  messages_delete: #["owner", "admin", "user", "multi_guest", "bot"],
+  reactions_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  reactions_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  pins_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  threads_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  threads_create: #["owner", "admin", "user", "multi_guest", "bot"],
   link_previews_write: #["owner", "admin", "user", "bot"],
-  views_write: #["owner", "admin", "user", "bot"],
-  users_read: #["owner", "admin", "user", "bot"],
+  views_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  users_read: #["owner", "admin", "user", "multi_guest", "bot"],
   users_create: #["owner", "admin"],
   users_update: #["owner", "admin"],
   users_delete: #["owner", "admin"],
-  group_tags_read: #["owner", "admin", "user", "bot"],
+  group_tags_read: #["owner", "admin", "user", "multi_guest", "bot"],
   group_tags_write: #["owner", "admin"],
   bots_read: #["owner", "admin", "user"],
   bots_write: #["owner", "admin", "user"],
   bot_self_webhook_write: #["bot"],
   bot_self_write: #["bot"],
-  profile_read: #["owner", "admin", "user", "bot"],
-  profile_status_read: #["owner", "admin", "user", "bot"],
-  profile_status_write: #["owner", "admin", "user", "bot"],
-  profile_avatar_write: #["owner", "admin", "user", "bot"],
-  user_status_read: #["owner", "admin", "user", "bot"],
+  profile_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  profile_status_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  profile_status_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  profile_avatar_write: #["owner", "admin", "user", "multi_guest", "bot"],
+  user_status_read: #["owner", "admin", "user", "multi_guest", "bot"],
   user_status_write: #["owner", "admin"],
   user_avatar_write: #["owner", "admin"],
-  custom_properties_read: #["owner", "admin", "user", "bot"],
+  custom_properties_read: #["owner", "admin", "user", "multi_guest", "bot"],
   audit_events_read: #["owner"],
   company_chats_read: #["owner"],
   company_bots_read: #["owner"],
-  tasks_read: #["owner", "admin", "user", "bot"],
-  tasks_create: #["owner", "admin", "user", "bot"],
-  tasks_update: #["owner", "admin", "user", "bot"],
-  tasks_delete: #["owner", "admin", "user", "bot"],
-  files_read: #["owner", "admin", "user", "bot"],
+  tasks_read: #["owner", "admin", "user", "multi_guest", "bot"],
+  tasks_create: #["owner", "admin", "user", "multi_guest", "bot"],
+  tasks_update: #["owner", "admin", "user", "multi_guest", "bot"],
+  tasks_delete: #["owner", "admin", "user", "multi_guest", "bot"],
+  files_read: #["owner", "admin", "user", "multi_guest", "bot"],
   files_write: #["owner", "admin", "user", "bot"],
-  uploads_write: #["owner", "admin", "user", "bot"],
+  uploads_write: #["owner", "admin", "user", "multi_guest", "bot"],
   webhooks_read: #["owner", "admin", "user", "bot"],
   webhooks_write: #["owner", "admin", "user", "bot"],
   webhooks_events_read: #["owner", "admin", "user", "bot"],
   webhooks_events_delete: #["owner", "admin", "user", "bot"],
-  search_users: #["owner", "admin", "user", "bot"],
-  search_chats: #["owner", "admin", "user", "bot"],
-  search_messages: #["owner", "admin", "user", "bot"],
-  drafts_read: #["owner", "admin", "user"],
-  drafts_write: #["owner", "admin", "user"],
+  search_users: #["owner", "admin", "user", "multi_guest", "bot"],
+  search_chats: #["owner", "admin", "user", "multi_guest", "bot"],
+  search_messages: #["owner", "admin", "user", "multi_guest", "bot"],
+  drafts_read: #["owner", "admin", "user", "multi_guest"],
+  drafts_write: #["owner", "admin", "user", "multi_guest"],
 })
 enum OAuthScope {
   @doc("Просмотр чатов и списка чатов")
@@ -1708,6 +1746,9 @@ enum OAuthScope {
 
   @doc("Изменение настроек чата")
   chats_update: "chats:update",
+
+  @doc("Отметка чатов непрочитанными")
+  chats_mark_unread: "chats:mark_unread",
 
   @doc("Архивация и разархивация чатов")
   chats_archive: "chats:archive",
@@ -1916,7 +1957,7 @@ model AccessTokenInfo {
 // ============================================================================
 
 @extension("x-error", true)
-@doc("Ошибка API (используется для 400, 402, 403, 404, 409, 410, 422)")
+@doc("Ошибка API (используется для 400, 402, 403, 404, 409, 410, 422, 429, 503, 504)")
 model ApiError {
   @doc("Массив ошибок")
   errors: ApiErrorItem[];
@@ -2047,7 +2088,7 @@ model UserCreateRequest {
     @example(false)
     suspended?: boolean = false;
 
-    @doc("Массив тегов, привязываемых к сотруднику")
+    @doc("Массив названий тегов, привязываемых к сотруднику. Значение, которое не является массивом непустых строк, игнорируется.")
     @example(#["Product", "Design"])
     list_tags?: string[];
 
@@ -2119,7 +2160,7 @@ model UserUpdateRequest {
     @example(false)
     suspended?: boolean = false;
 
-    @doc("Массив тегов, привязываемых к сотруднику")
+    @doc("Массив названий тегов, привязываемых к сотруднику. Список заменяет прежний целиком, пустой снимает все теги. Значение, которое не является массивом непустых строк, игнорируется: теги сотрудника не меняются.")
     @example(#["Product", "Design"])
     list_tags?: string[];
     
@@ -2216,6 +2257,14 @@ model ChatUpdateRequest {
   };
 }
 
+@doc("Запрос на отметку чата непрочитанным")
+model MarkChatUnreadRequest {
+  @doc("Идентификатор сообщения, с которого чат становится непрочитанным: оно и все сообщения после него. Если не передать, непрочитанным становится последнее сообщение.")
+  @example(1194275)
+  @minValue(1)
+  message_id?: int32;
+}
+
 @doc("Запрос на добавление участников в чат")
 model AddMembersRequest {
   @doc("Массив идентификаторов пользователей, которые станут участниками")
@@ -2253,7 +2302,7 @@ model MessageCreateRequest {
     @example(334)
     entity_id: int32;
 
-    @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).")
+    @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть.")
     @example("Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)")
     content: string;
 
@@ -2285,7 +2334,7 @@ model MessageCreateRequest {
       @example(600)
       height?: int32;
 
-      @doc("Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.")
+      @doc("Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.")
       @example(5400)
       @minValue(1)
       duration_ms?: int32;
@@ -2301,7 +2350,7 @@ model MessageCreateRequest {
     @example(#[#[#{ text: "Подробнее", url: "https://example.com/details" }, #{ text: "Отлично!", data: "awesome" }]])
     buttons?: Button[][];
 
-    @doc("Идентификатор сообщения, на которое отвечаете. Ответ появится прямо в ленте чата, а не в треде: для треда отправляйте сообщение с `entity_type: \"thread\"`.")
+    @doc("Идентификатор сообщения, на которое вы отвечаете с цитатой. Ответить можно на сообщение в любом чате, в том числе в треде: ответ отправляют в тот же чат или тред, где лежит это сообщение, иначе запрос вернёт ошибку `422`. Чтобы написать в тред под сообщением, укажите `entity_type: \"thread\"` и идентификатор треда в `entity_id`.")
     @example(194270)
     parent_message_id?: int32;
     
@@ -2329,7 +2378,7 @@ model MessageCreateRequest {
 model MessageUpdateRequest {
   @doc("Собранный объект параметров редактируемого сообщения")
   message: {
-    @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).")
+    @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть.")
     @example("Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.")
     content?: string;
     
@@ -2361,7 +2410,7 @@ model MessageUpdateRequest {
       @example(600)
       height?: int32;
 
-      @doc("Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется.")
+      @doc("Длительность в миллисекундах. Обязательно для голосовых сообщений (`file_type` — `voice`), для других типов не используется. Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.")
       @example(5400)
       @minValue(1)
       duration_ms?: int32;
@@ -2565,7 +2614,7 @@ model DraftFileRequest {
   @example(600)
   height?: int32;
 
-  @doc("Длительность в миллисекундах. Обязательна для голосового сообщения (`file_type` — `voice`).")
+  @doc("Длительность в миллисекундах. Обязательна для голосового сообщения (`file_type` — `voice`). Голосовое сообщение длиннее 30 минут (1 800 000 мс) отклоняется с `422`.")
   @example(5400)
   duration_ms?: int32;
 
@@ -2887,7 +2936,7 @@ model ViewBlockRadio {
   
   @doc("Массив радиокнопок")
   @minItems(1)
-  @maxItems(10)
+  @maxItems(20)
   options: ViewBlockSelectableOption[];
   
   @doc("Обязательность")
@@ -2921,7 +2970,7 @@ model ViewBlockCheckbox {
   
   @doc("Массив чекбоксов")
   @minItems(1)
-  @maxItems(10)
+  @maxItems(20)
   options: ViewBlockCheckboxOption[];
 
   @doc("Обязательность")
@@ -3187,7 +3236,7 @@ enum BotEventName {
   creator: "Только создатель бота",
   creator_admin: "Создатель и администраторы компании",
   creator_admin_user: "Создатель, администраторы и участники компании",
-  anyone: "Любой пользователь, в том числе гости",
+  anyone: "Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей",
 })
 enum BotWhoCanAdd {
   creator: "creator",
@@ -3206,8 +3255,24 @@ enum BotCanEdit {
   chat_owners: "chat_owners",
 }
 
+@doc("Источник входящего вебхука бота")
+@extension("x-enum-descriptions", #{
+  simple: "Свой формат: сообщение собирается из тела запроса по шаблону бота",
+  gitlab: "GitLab: Пачка сама разбирает запрос и собирает сообщение",
+  grafana: "Grafana: Пачка сама разбирает запрос и собирает сообщение",
+})
+enum BotWebhookKind {
+  simple: "simple",
+  gitlab: "gitlab",
+  grafana: "grafana",
+}
+
 @doc("Запрос на создание бота")
 model BotCreateRequest {
+  @doc("Создать пустого бота: без токена и без входящего вебхука. Без этого поля бот создаётся с входящим вебхуком в своём формате, а его токен приходит в `access_token`.")
+  @example(false)
+  empty?: boolean = false;
+
   @doc("Объект параметров вебхука создаваемого бота")
   webhook: {
     @doc("Имя бота")
@@ -3256,7 +3321,7 @@ model BotCreateRequest {
     @example(true)
     link_preview_enabled?: boolean = true;
 
-    @doc("Игнорировать входящие сообщения, отправленные самим ботом")
+    @doc("Не присылать боту события о его собственных сообщениях и реакциях")
     @example(false)
     ignore_self_messages?: boolean = false;
 
@@ -3272,17 +3337,30 @@ model BotCreateRequest {
     @example(#[BotCanEdit.admin])
     can_edit?: BotCanEdit[];
 
-    @doc("Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Задаётся только при создании, при редактировании не меняется.")
+    @doc("Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.")
     @example(false)
     single_chat?: boolean = false;
+
+    @doc("Источник входящего вебхука. Без `empty` по умолчанию `simple`, а у пустого бота входящий вебхук включается только этим полем.")
+    @example(BotWebhookKind.simple)
+    kind?: BotWebhookKind;
+
+    @doc("Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`.")
+    @example(#["example.com"])
+    unfurl_domains?: string[];
   };
 
+  @doc("Включить авторизацию от имени сотрудника сразу при создании")
+  oauth_client?: BotOAuthClientRequest;
+
+  @doc("Страница бота в витрине. Задаётся только вместе с `oauth_client`: без авторизации страницы у бота нет.")
+  promo?: BotPromoRequest;
 }
 
 @doc("Запрос на обновление бота")
 model BotUpdateRequest {
   @doc("Объект параметров вебхука редактируемого бота")
-  webhook: {
+  webhook?: {
     @doc("Имя бота")
     @maxLength(255)
     @example("Бот задач")
@@ -3329,7 +3407,7 @@ model BotUpdateRequest {
     @example(true)
     link_preview_enabled?: boolean = true;
 
-    @doc("Игнорировать входящие сообщения, отправленные самим ботом")
+    @doc("Не присылать боту события о его собственных сообщениях и реакциях")
     @example(false)
     ignore_self_messages?: boolean = false;
 
@@ -3344,14 +3422,122 @@ model BotUpdateRequest {
     @doc("Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.")
     @example(#[BotCanEdit.admin])
     can_edit?: BotCanEdit[];
+
+    @doc("Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.")
+    @example(false)
+    single_chat?: boolean;
+
+    @doc("Источник входящего вебхука. Если у бота входящего вебхука не было, он включается.")
+    @example(BotWebhookKind.simple)
+    kind?: BotWebhookKind;
+
+    @doc("Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`.")
+    @example(#["example.com"])
+    unfurl_domains?: string[];
   };
 
+  @doc("Настройки авторизации от имени сотрудника. Если авторизация выключена, объект её включает, а `null` выключает: выданные сотрудниками авторизации отзываются, страница в витрине удаляется.")
+  oauth_client?: BotOAuthClientRequest | null;
+
+  @doc("Страница бота в витрине. Доступна, только когда у бота включена авторизация.")
+  promo?: BotPromoRequest;
 }
 
+@doc("Настройки авторизации от имени сотрудника")
+model BotOAuthClientRequest {
+  @doc("Где хранится секрет: `true` — серверное приложение хранит `client_secret` и обменивает код у себя, `false` — приложение без секрета (браузер, мобильное, CLI) обменивает код по PKCE. Если не передать, значение не меняется, а у нового клиента — `true`.")
+  @example(true)
+  confidential?: boolean;
 
+  @doc("Адреса возврата после согласия. HTTPS обязателен, кроме адресов на этом же компьютере (`localhost`, `127.0.0.1`, `[::1]`). Адрес в ссылке авторизации должен совпадать с одним из списка точно, у адресов на этом же компьютере порт не сравнивается. При включении передайте хотя бы один адрес. Список заменяется целиком.")
+  @example(#["https://example.com/oauth/callback"])
+  redirect_uris?: string[];
 
-@doc("Параметры вебхука бота")
-model BotWebhook {
+  @doc("Права, которые бот запрашивает у сотрудника на экране согласия. Доступны только права, которые можно выдать самому боту. Если при включении поле не передать, запрашиваются все права бота. Список заменяется целиком.")
+  @example(#["messages:read", "messages:create"])
+  scopes?: string[];
+}
+
+@doc("Авторизация от имени сотрудника")
+model BotOAuthClient {
+  @doc("Идентификатор клиента для ссылки авторизации")
+  @example("aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY")
+  client_id: string;
+
+  @doc("Секрет клиента в маскированном виде. Полное значение приходит в `client_secret` один раз: при включении серверного клиента и при ротации секрета.")
+  @example("cH5kR9mN...x7Qp")
+  client_secret_preview: string;
+
+  @doc("Где хранится секрет: `true` — серверное приложение, `false` — приложение без секрета, обмен кода по PKCE")
+  @example(true)
+  confidential: boolean;
+
+  @doc("Адреса возврата после согласия")
+  @example(#["https://example.com/oauth/callback"])
+  redirect_uris: string[];
+
+  @doc("Права, которые бот запрашивает у сотрудника на экране согласия")
+  @example(#["messages:read", "messages:create"])
+  scopes: string[];
+}
+
+@doc("Страница бота в витрине")
+model BotPromoRequest {
+  @doc("Описание: чем бот занимается и зачем его подключать. Без описания бота нельзя опубликовать.")
+  @example("Собирает сводку по задачам Jira и присылает её в чат")
+  description?: string;
+
+  @doc("Опубликовать бота в витрине: он появится карточкой на вкладке «Обзор». Публикация требует описания.")
+  @example(true)
+  published?: boolean;
+
+  @doc("Скриншоты страницы бота, не больше 5: ключи загруженных изображений (`key` из [Получение подписи, ключа и других параметров](POST /uploads)). Список заменяется целиком, порядок сохраняется.")
+  @example(#["attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png"])
+  promo_images?: string[];
+}
+
+@doc("Скриншот страницы бота в витрине")
+model BotPromoImage {
+  @doc("Ключ изображения")
+  @example("attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png")
+  key: string;
+
+  @doc("Ссылка на изображение")
+  @example("https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png")
+  url: string;
+}
+
+@doc("Страница бота в витрине")
+model BotPromo {
+  @doc("Описание бота. `null`, если не задано.")
+  @example("Собирает сводку по задачам Jira и присылает её в чат")
+  description: string | null;
+
+  @doc("Опубликован ли бот в витрине")
+  @example(true)
+  published: boolean;
+
+  @doc("Скриншоты страницы бота")
+  promo_images: BotPromoImage[];
+}
+
+@doc("Что текущий пользователь может делать с ботом")
+model BotPermissions {
+  @doc("Менять авторизацию от имени сотрудника, страницу в витрине и имя бота")
+  @example(true)
+  update_oauth_client: boolean;
+
+  @doc("Выпускать, менять и удалять токены бота и обновлять секрет клиента")
+  @example(true)
+  recreate_token: boolean;
+
+  @doc("Удалить бота")
+  @example(true)
+  destroy: boolean;
+}
+
+@doc("Параметры вебхука бота в ответах методов самого бота")
+model BotSelfWebhook {
   @doc("Имя бота")
   @maxLength(255)
   @example("Бот задач")
@@ -3398,7 +3584,7 @@ model BotWebhook {
   @example(true)
   link_preview_enabled: boolean;
 
-  @doc("Игнорировать входящие сообщения, отправленные самим ботом")
+  @doc("Не присылать боту события о его собственных сообщениях и реакциях")
   @example(false)
   ignore_self_messages: boolean;
 
@@ -3419,6 +3605,23 @@ model BotWebhook {
   who_can_add: BotWhoCanAdd;
 }
 
+@doc("Параметры вебхука бота")
+model BotWebhook {
+  ...BotSelfWebhook;
+
+  @doc("Источник входящего вебхука. `null`, если входящий вебхук у бота выключен.")
+  @example(BotWebhookKind.simple)
+  kind: BotWebhookKind | null;
+
+  @doc("Домены, ссылки на которые бот разворачивает")
+  @example(#["example.com"])
+  unfurl_domains: string[];
+
+  @doc("Дата и время последнего запроса на входящий вебхук бота (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если запросов не было.")
+  @example(utcDateTime.fromISO("2025-05-15T14:30:00.000Z"))
+  last_request_at: utcDateTime | null;
+}
+
 @doc("Запрос на саморегистрацию вебхука бота")
 model BotWebhookSelfUpdateRequest {
   @doc("Объект параметров вебхука")
@@ -3435,19 +3638,208 @@ model BotResponse {
   @example(1738816)
   id: int32;
 
+  @doc("Имя бота")
+  @example("Бот задач")
+  name: string;
+
+  @doc("Никнейм бота")
+  @example("tasks_bot")
+  nickname: string;
+
+  @doc("Ссылка на аватар бота. `null`, если аватар не задан.")
+  @example("https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg")
+  avatar_url: string | null;
+
+  @doc("Идентификатор сотрудника, создавшего бота. `null`, если создатель не записан.")
+  @example(12)
+  creator_id: int32 | null;
+
+  @doc("Дата и время создания бота (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @example(utcDateTime.fromISO("2025-05-15T14:30:00.000Z"))
+  created_at: utcDateTime;
+
+  @doc("Сколько сотрудников авторизовали бота")
+  @example(3)
+  authorized_users_count: int32;
+
+  @doc("Дата и время, когда бот последний раз работал (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ: запрос на входящий вебхук или вызов API любым токеном бота, включая токены сотрудников. `null`, если такого не было. Использование токена учитывается не чаще раза в час.")
+  @example(utcDateTime.fromISO("2025-05-15T14:30:00.000Z"))
+  last_used_at: utcDateTime | null;
+
   @doc("Объект параметров вебхука")
   webhook: BotWebhook;
 
+  @doc("Включена ли у бота авторизация от имени сотрудника")
+  @example(true)
+  oauth_client_enabled: boolean;
+
+  @doc("Параметры авторизации от имени сотрудника. Может прийти и у бота с выключенной авторизацией, поэтому включена ли она, смотрите в `oauth_client_enabled`. У бота без токенов может прийти `null`.")
+  oauth_client: BotOAuthClient | null;
+
+  @doc("Страница бота в витрине. `null`, если авторизация у бота выключена.")
+  promo: BotPromo | null;
+
+  @doc("Что вы можете делать с этим ботом")
+  permissions: BotPermissions;
+
+  @doc("Секрет клиента. Приходит один раз: при включении серверного клиента, при переходе на него и при ротации секрета.")
+  @example("dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA")
+  client_secret?: string;
+}
+
+@doc("Параметры бота в ответах методов самого бота")
+model BotSelfResponse {
+  @doc("Идентификатор бота (совпадает с `user_id` бота)")
+  @example(1738816)
+  id: int32;
+
+  @doc("Параметры авторизации от имени сотрудника. Может прийти и у бота с выключенной авторизацией. У бота без токенов может прийти `null`.")
+  oauth_client: BotOAuthClient | null;
+
+  @doc("Объект параметров вебхука")
+  webhook: BotSelfWebhook;
+}
+
+@doc("Параметры бота с новым токеном")
+model BotSelfTokenResponse {
+  ...BotSelfResponse;
+
+  @doc("Новый токен бота. Возвращается один раз.")
+  @example("bm90X2FfcmVhbF90b2tlbg")
+  access_token: string;
 }
 
 @doc("Параметры созданного бота")
 model BotCreateResponse {
   ...BotResponse;
 
-  @doc("Токен доступа бота. Возвращается при создании бота и при ротации токена.")
+  @doc("Токен доступа бота. Возвращается при создании бота и при ротации токена. Не приходит, если бот создан с `empty: true`.")
   @example("bm90X2FfcmVhbF90b2tlbg")
-  access_token: string;
+  access_token?: string;
+}
 
+@doc("Токен бота")
+model BotAccessToken {
+  @doc("Идентификатор токена")
+  @example(4827)
+  id: int64;
+
+  @doc("Токен в маскированном виде (видны первые 8 и последние 4 символа). Полное значение приходит один раз: при выпуске и перевыпуске токена.")
+  @example("cH5kR9mN...x7Qp")
+  token: string;
+
+  @doc("Имя токена. `null` у токена, выпущенного без имени.")
+  @example("Сервер уведомлений")
+  name: string | null;
+
+  @doc("Идентификатор бота, которому принадлежит токен")
+  @example(1738816)
+  user_id: int64;
+
+  @doc("Права токена")
+  @example(#["messages:create", "chats:read"])
+  scopes: string[];
+
+  @doc("Дата и время выпуска токена (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @example(utcDateTime.fromISO("2025-01-15T10:30:00.000Z"))
+  created_at: utcDateTime;
+
+  @doc("Дата отзыва токена. Всегда `null`: отозванные токены в ответ не попадают.")
+  @example(null)
+  revoked_at: utcDateTime | null;
+
+  @doc("Время жизни токена в секундах. У токенов бота `null`: они бессрочные.")
+  @example(null)
+  expires_in: int32 | null;
+
+  @doc("Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать.")
+  @example(utcDateTime.fromISO("2025-02-24T14:20:00.000Z"))
+  last_used_at: utcDateTime | null;
+
+  @doc("Дата авторизации. У токенов бота `null`.")
+  @example(null)
+  authorized_at: utcDateTime | null;
+}
+
+@doc("Запрос на выпуск токена бота")
+model BotTokenCreateRequest {
+  @doc("Имя токена: по нему токены различают в списке")
+  @maxLength(255)
+  @example("Сервер уведомлений")
+  name: string;
+
+  @doc("Права токена. Доступны только права, которые можно выдать боту. Если не передать, токен выпускается без прав.")
+  @example(#["messages:create", "chats:read"])
+  scopes?: string[];
+}
+
+@doc("Запрос на изменение токена бота")
+model BotTokenUpdateRequest {
+  @doc("Новое имя токена")
+  @maxLength(255)
+  @example("Сервер уведомлений")
+  name?: string;
+
+  @doc("Новые права токена. Список заменяется целиком и действует сразу, перевыпускать токен не нужно.")
+  @example(#["messages:create", "chats:read"])
+  scopes?: string[];
+}
+
+@doc("Право в каталоге прав бота")
+model BotScopeCatalogItem {
+  @doc("Право")
+  @example("messages:create")
+  id: string;
+
+  @doc("Описание права")
+  @example("Отправка сообщений")
+  title: string;
+
+  @doc("Категория права, `id` из `groups`")
+  @example("messages")
+  group: string;
+
+  @doc("Наборы, в которые входит право, `id` из `presets`")
+  @example(#["admin"])
+  preset: string[];
+}
+
+@doc("Категория прав")
+model BotScopeCatalogGroup {
+  @doc("Идентификатор категории")
+  @example("messages")
+  id: string;
+
+  @doc("Название категории")
+  @example("Сообщения")
+  title: string;
+
+  @doc("Описание категории")
+  @example("Работа с сообщениями")
+  description: string;
+}
+
+@doc("Готовый набор прав")
+model BotScopeCatalogPreset {
+  @doc("Идентификатор набора: `read-only` или `admin`")
+  @example("read-only")
+  id: string;
+
+  @doc("Название набора")
+  @example("Только чтение")
+  title: string;
+}
+
+@doc("Каталог прав, которые можно выдать боту")
+model BotScopeCatalog {
+  @doc("Права, доступные боту")
+  scopes: BotScopeCatalogItem[];
+
+  @doc("Категории прав")
+  groups: BotScopeCatalogGroup[];
+
+  @doc("Готовые наборы прав")
+  presets: BotScopeCatalogPreset[];
 }
 
 @doc("Параметры вебхука бота пространства. Настройки бота, недоступного вам для редактирования, приходят как `null` — остаются только имя и никнейм.")
@@ -3498,7 +3890,7 @@ model CompanyBotWebhook {
   @example(true)
   link_preview_enabled: boolean | null;
 
-  @doc("Игнорировать входящие сообщения, отправленные самим ботом")
+  @doc("Не присылать боту события о его собственных сообщениях и реакциях")
   @example(false)
   ignore_self_messages: boolean | null;
 
@@ -3525,9 +3917,11 @@ model CompanyBotResponse {
   @example(1738816)
   id: int32;
 
+  @doc("Параметры авторизации от имени сотрудника. `null` у бота, недоступного вам для редактирования. Может прийти и у бота с выключенной авторизацией, а у бота без токенов может прийти `null`.")
+  oauth_client: BotOAuthClient | null;
+
   @doc("Объект параметров вебхука")
   webhook: CompanyBotWebhook;
-
 }
 
 @doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled.")
@@ -3645,7 +4039,7 @@ model AuditDetailsSearch {
   filters: Record<unknown>;
 }
 
-@doc("При: bot_deleted, bot_token_recreated")
+@doc("При: bot_deleted, bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued")
 model AuditDetailsBot {
   @doc("Идентификатор бота")
   bot_id: int32;
@@ -3655,6 +4049,10 @@ model AuditDetailsBot {
 
 @doc("При: bot_scopes_updated")
 model AuditDetailsBotScopes {
+  @doc("Идентификатор бота")
+  bot_id: int32;
+  @doc("Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.")
+  actor_id: int32 | null;
   @doc("Скоупы, добавленные токену бота")
   added_scopes: string[];
   @doc("Скоупы, отозванные у токена бота")
@@ -3663,16 +4061,48 @@ model AuditDetailsBotScopes {
 
 @doc("При: bot_webhook_settings_updated")
 model AuditDetailsBotWebhookSettings {
+  @doc("Идентификатор бота")
+  bot_id: int32;
+  @doc("Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.")
+  actor_id: int32 | null;
   @doc("Изменённые настройки вебхука. Ключ — имя настройки (outgoing_url, ignore_self_messages, events_history_enabled), значение — объект с полями previous (прежнее значение) и new (новое значение).")
   changes: Record<unknown>;
 }
 
 @doc("При: bot_oauth_client_updated")
 model AuditDetailsBotOAuthClient {
+  @doc("Идентификатор бота")
+  bot_id: int32;
+  @doc("Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.")
+  actor_id: int32 | null;
   @doc("Идентификатор OAuth-клиента бота")
   client_id: string;
   @doc("Изменённые параметры клиента. Ключ — имя параметра (confidential, redirect_uris, scopes), значение — объект с полями previous (прежнее значение) и new (новое значение).")
   changes: Record<unknown>;
+}
+
+@doc("При: bot_oauth_client_secret_rotated")
+model AuditDetailsBotOAuthClientSecretRotated {
+  @doc("Идентификатор бота")
+  bot_id: int32;
+  @doc("Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.")
+  actor_id: int32 | null;
+  @doc("Идентификатор OAuth-клиента бота")
+  client_id: string;
+}
+
+@doc("При: bot_oauth_client_disabled")
+model AuditDetailsBotOAuthClientDisabled {
+  @doc("Идентификатор бота")
+  bot_id: int32;
+  @doc("Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.")
+  actor_id: int32 | null;
+  @doc("Идентификатор OAuth-клиента бота")
+  client_id: string;
+  @doc("Сколько токенов сотрудников отозвано")
+  deleted_access_tokens_count: int32;
+  @doc("Сколько неиспользованных кодов авторизации отозвано")
+  deleted_access_grants_count: int32;
 }
 
 @doc("При: oauth_authorization_granted")
@@ -3770,6 +4200,8 @@ union AuditEventDetailsUnion {
   AuditDetailsVideoCallStarted,
   AuditDetailsVideoCallFinished,
   AuditDetailsVideoCallRecording,
+  AuditDetailsBotOAuthClientSecretRotated,
+  AuditDetailsBotOAuthClientDisabled,
 }
 
 @doc("Событие аудита")
@@ -3871,7 +4303,7 @@ model MessageWebhookPayload {
   changed_at?: utcDateTime | null;
 
   @doc("Прямая ссылка на сообщение")
-  @example("https://pachca.com/chats/1245817/messages/5678")
+  @example("https://app.pachca.com/chats/9012?message=1245817")
   url: string;
   
   @doc("Идентификатор чата, в котором находится сообщение")
@@ -3997,7 +4429,7 @@ model ViewSubmitWebhookPayload {
   @example("{\"timeoff_id\":4378}")
   private_metadata: string | null;
 
-  @doc("Идентификатор чата, в котором была нажата кнопка, открывшая форму. Поле может быть `null` для форм, открытых до выкатки этого поля.")
+  @doc("Идентификатор чата, в котором была нажата кнопка, открывшая форму. Фиксируется при открытии формы, а не при её отправке.")
   @example(9012)
   chat_id: int32 | null;
 
@@ -4126,6 +4558,17 @@ model LinkSharedWebhookPayload {
   @doc("Идентификатор отправителя сообщения")
   @example(2345)
   user_id: int32;
+
+  @doc("Тип сущности, к которой относится сообщение со ссылкой")
+  @example(MessageEntityType.discussion)
+  entity_type: MessageEntityType;
+
+  @doc("Идентификатор сущности: беседы или канала, треда. В личной переписке `null`: бот в ней не участвует, и собеседника ему не раскрывают.")
+  @example(23438)
+  entity_id: int32 | null;
+
+  @doc("Тред, в котором отправлено сообщение со ссылкой. `null`, если сообщение отправлено не в треде.")
+  thread: WebhookMessageThread | null;
 
   @doc("Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
   @example(utcDateTime.fromISO("2024-09-18T19:53:14.000Z"))
@@ -4684,7 +5127,11 @@ interface UserOperations {
 
 Боты в пространстве — тоже сотрудники и приходят в общем списке с `bot: true`. Но из выдачи по `query` они исключены: чтобы найти бота по имени, перебирайте страницы без поискового запроса или пользуйтесь методом [Список ботов](GET /bots).
 
-Почта и телефон приходят `null`, если в пространстве выключен показ персональных данных, а вызывающий не администратор.
+Мульти-гостю метод отдаёт не всё пространство, а тех, кого он видит в интерфейсе: его самого, участников общих с ним чатов вместе с ботами и публичных ботов. Треды и архивные чаты общими не считаются.
+
+Почта и телефон приходят `null`, если в пространстве выключен показ персональных данных, а вызывающий не администратор. Мульти-гостю они всегда приходят `null`.
+
+Поиск по `query` может не уложиться по времени: тогда метод отвечает `504` с кодом `timeout`, и запрос стоит сузить.
 
 Карточку одного сотрудника отдаёт [Информация о сотруднике](GET /users/{id}), свою — [Свой профиль](GET /profile).
 """)
@@ -4721,6 +5168,9 @@ interface UserOperations {
   } | {
     @statusCode _: 402;
     @body body: ApiError;
+  } | {
+    @statusCode _: 504;
+    @body body: ApiError;
   };
 
   @extension("x-requirements", #{
@@ -4733,7 +5183,9 @@ interface UserOperations {
 
 Приостановленный сотрудник отдаётся с `suspended: true`, удалённый — `404`, как несуществующий. Бот тоже приходит сюда как сотрудник, с `bot: true`.
 
-Почта и телефон приходят `null`, если в пространстве выключен показ персональных данных, а вызывающий не администратор. Свою карточку сотрудник видит целиком — она же отдаётся методом [Свой профиль](GET /profile) и без скоупа `users:read`.
+Мульти-гостю метод отдаёт только тех, кто приходит ему в [Список сотрудников](GET /users), а на остальных отвечает `404`.
+
+Почта и телефон приходят `null`, если в пространстве выключен показ персональных данных, а вызывающий не администратор. Мульти-гостю они всегда приходят `null`. Свою карточку сотрудник видит целиком — она же отдаётся методом [Свой профиль](GET /profile) и без скоупа `users:read`.
 """)
   @route("/{id}")
   @get
@@ -4773,6 +5225,8 @@ interface UserOperations {
 Владельца пространства редактирует только он сам, а его роль меняется лишь на администратора. Перевести обычного сотрудника в гостя нельзя — в обоих случаях ответ `403`.
 
 Незнакомое значение роли метод молча пропускает: ответ приходит успешный, а роль остаётся прежней.
+
+У бота ник должен оканчиваться на `_bot` и быть уникальным в пространстве, иначе метод отвечает `422` с ошибкой на поле `nickname`: `invalid` или `already_exists`. Прежний ник бота проверяется, только когда его меняют. Бота с настройкой «Ограничить одним чатом» в теги не добавить: если в `list_tags` есть тег, которого у бота ещё нет, метод отвечает `422` с кодом `single_chat_bot_tag_denied` на поле `group_tags` и ничего не меняет.
 """)
   @put
   updateUser(
@@ -4858,6 +5312,8 @@ interface UserStatusOperations {
 Статус сотрудника
 
 Статус другого сотрудника: эмодзи, подпись, срок и режим «Нет на месте».
+
+Мульти-гостю метод отдаёт статусы только тех, кто приходит ему в [Список сотрудников](GET /users), а на остальных отвечает `404`.
 
 Если статус не установлен, метод возвращает `200` и `null` в теле ответа — без объекта-обёртки. Статус с истёкшим `expires_at` какое-то время ещё возвращается, пока не будет очищен, поэтому проверяйте `expires_at` на стороне клиента.
 """)
@@ -5090,6 +5546,8 @@ interface GroupTagOperations {
 Название тега и число сотрудников в нём.
 
 В `users_count` считаются только действующие сотрудники: приостановленные в счётчик не попадают, хотя в методе [Список сотрудников тега](GET /group_tags/{id}/users) остаются.
+
+Мульти-гостю доступны только теги, которые приходят ему в [Список тегов](GET /group_tags), а на остальные метод отвечает `404`.
 """)
   @route("/{id}")
   @get
@@ -5120,9 +5578,9 @@ interface GroupTagOperations {
   @doc("""
 Список тегов
 
-Все теги пространства с числом сотрудников в каждом. Видны они одинаково всем ролям, независимо от того, к каким чатам привязаны.
+Все теги пространства с числом сотрудников в каждом, независимо от того, к каким чатам они привязаны. Мульти-гостю приходят только теги активных бесед и каналов, где он участник.
 
-Параметр `names` ищет теги по названиям — это способ получить `id` по имени, известному из интерфейса. За один запрос он принимает не больше 100 имён.
+Параметр `names` ищет теги по названиям — это способ получить `id` по имени, известному из интерфейса. За один запрос он принимает не больше 100 имён, на большее число метод отвечает `400` с кодом `too_long`.
 
 Кто состоит в конкретном теге, отдаёт [Список сотрудников тега](GET /group_tags/{id}/users).
 """)
@@ -5171,6 +5629,8 @@ interface GroupTagOperations {
 Кто состоит в теге. Приостановленные сотрудники в списке приходят, хотя в `users_count` самого тега они не учтены. Удалённые не приходят, а боты, помеченные тегом, в выдачу попадают.
 
 Состав тега меняют в карточке сотрудника — [Редактирование сотрудника](PUT /users/{id}) с полем `list_tags`, по одному сотруднику за раз.
+
+Мульти-гостю метод отвечает `403`: список сотрудников пространства ему закрыт, как и в интерфейсе.
 """)
   @extension("x-paginated", true)
   @route("/{id}/users")
@@ -5304,9 +5764,11 @@ interface ChatOperations {
 
 Создаёт беседу или канал. Владелец токена становится владельцем чата, и роль эта в дальнейшем не передаётся.
 
+Мульти-гость, как и в интерфейсе, создавать чаты не может: метод отвечает ему `403`.
+
 Для создания личной переписки 1 на 1 с пользователем пользуйтесь методом [Новое сообщение](POST /messages). Чтобы обсудить конкретное сообщение, чат заводить не нужно — под ним заводят тред методом [Новый тред](POST /messages/{id}/thread).
 
-Участников можно передать сразу: `member_ids` добавляет поимённо, `group_tag_ids` приводит всех, кто состоит в теге, и дальше поддерживает состав сам. Идентификаторы, которых в пространстве нет, а также приостановленные и удалённые сотрудники молча отбрасываются — ответ приходит успешным, а сотрудника в чате не оказывается, поэтому сверяйте состав в ответе.
+Участников можно передать сразу: `member_ids` добавляет поимённо, `group_tag_ids` приводит всех, кто состоит в теге, и дальше поддерживает состав сам. Идентификаторы, которых в пространстве нет, а также приостановленные и удалённые сотрудники молча отбрасываются — ответ приходит успешным, а сотрудника в чате не оказывается, поэтому сверяйте состав в ответе. С ботами строже: если настройка бота «Кто может добавлять бота в чаты» не разрешает вам его добавить, чат не создаётся, а метод отвечает `403` с кодом `bot_add_denied` и идентификаторами таких ботов в `value`. Бот с настройкой «Ограничить одним чатом», который уже состоит в другой беседе или канале, тоже останавливает запрос, если он есть в `member_ids` или создаёт чат сам: чат не создаётся, а метод отвечает `409` с кодом `single_chat_bot_occupied` и идентификаторами таких ботов в `value`.
 """)
   @post
   createChat(@body request: ChatCreateRequest): {
@@ -5317,7 +5779,10 @@ interface ChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 409;
+    @body body: ApiError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -5370,7 +5835,7 @@ interface ChatOperations {
   @doc("""
 Список чатов
 
-По умолчанию — беседы, каналы и личные переписки, где состоит владелец токена. С `availability=public` метод отдаёт вместо этого все открытые чаты пространства, включая те, куда вызывающий не вступал.
+По умолчанию — беседы, каналы и личные переписки, где состоит владелец токена. С `availability=public` метод отдаёт вместо этого все открытые чаты пространства, включая те, куда вызывающий не вступал. Мульти-гостю — только открытые чаты, где он участник.
 
 Треды в списке не приходят никогда, для них есть [Список тредов](GET /threads).
 
@@ -5535,6 +6000,55 @@ interface ChatOperations {
     @statusCode _: 404;
     @body body: ApiError;
   };
+
+  @extension("x-requirements", #{
+    scope: "chats:mark_unread",
+  })
+  @doc("""
+Отметка чата непрочитанным
+
+Помечает чат непрочитанным для владельца токена, как «Отметить непрочитанным» в интерфейсе. Меняется только его собственный счётчик, остальные участники ничего не замечают.
+
+Без `message_id` непрочитанным становится последнее сообщение чата, с `message_id` — это сообщение и все после него. Повторный запрос с тем же сообщением ничего не меняет, а в чате без сообщений метод отвечает успехом и ничего не делает.
+
+Работает в беседах, каналах, личных чатах и тредах, где владелец токена состоит. Скрытый личный чат снова появляется в списке. На чат, где владельца токена нет, и на сообщение из другого чата метод отвечает `404`.
+""")
+  @route("/{id}/unread")
+  @put
+  @opExample(#{
+    parameters: #{
+      id: 334,
+      request: #{
+        message_id: 1194275,
+      },
+    },
+    returnType: #{
+      _: 204,
+    },
+  })
+  markChatUnread(
+    @doc("Идентификатор чата или треда")
+    @extension("example", 334)
+    @path id: int32,
+    @body request?: MarkChatUnreadRequest
+  ): {
+    @statusCode _: 204;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
 }
 
 // ============================================================================
@@ -5606,6 +6120,10 @@ interface ChatMemberOperations {
 
 Тех, кто уже состоит в чате, метод пропускает молча и ошибкой это не считает. А вот неизвестный или неактивный идентификатор останавливает весь запрос: метод отвечает `404` и перечисляет такие значения, никто при этом не добавляется.
 
+Бота добавляет только тот, кому это разрешает настройка бота «Кто может добавлять бота в чаты» — подробнее в разделе [Настройки бота](/guides/bots/settings#kto-mozhet-dobavlyat-bota-v-chaty). Если в `member_ids` есть бот, которого вам добавлять нельзя, метод не добавляет никого и отвечает `403` с кодом `bot_add_denied` и идентификаторами таких ботов в `value`. Если в том же запросе есть и неизвестный идентификатор, ответ — `404` с обеими ошибками.
+
+Бота с настройкой «Ограничить одним чатом», который уже состоит в другой беседе или канале, метод тоже не добавляет: ответ `409` с кодом `single_chat_bot_occupied` и идентификаторами таких ботов в `value`, никто из запроса не добавляется. В треды такого бота добавлять можно.
+
 Добавить сразу целый отдел удобнее тегом — [Добавление тегов](POST /chats/{id}/group_tags): тогда состав чата поддерживается сам.
 """)
   @route("/chats/{id}/members")
@@ -5624,9 +6142,12 @@ interface ChatMemberOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ApiError | OAuthError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 409;
     @body body: ApiError;
   } | {
     @statusCode _: 400;
@@ -5921,7 +6442,7 @@ interface ThreadOperations {
   @doc("""
 Информация о треде
 
-Идентификаторы треда: его собственный `id`, `chat_id` для чтения и отправки сообщений и идентификаторы сообщения, под которым он висит. У самостоятельного треда `message_id` и `message_chat_id` приходят как `null`.
+Идентификаторы треда и сообщения, под которым он висит. По `id` в тред пишут методом [Новое сообщение](POST /messages) с `entity_type: "thread"`, а по `chat_id` читают его сообщения. У самостоятельного треда `message_id` и `message_chat_id` приходят как `null`.
 
 В ответе только идентификаторы: названия и счётчика сообщений у треда нет, о чём он — видно по переписке внутри. Сообщения треда читаются методом [Список сообщений чата](GET /messages), а состав участников — методом [Список участников чата](GET /chats/{id}/members), оба по `chat_id` треда.
 
@@ -6022,6 +6543,8 @@ interface MessageOperations {
 При использовании `entity_type: "discussion"` (или просто без указания `entity_type`) допускается отправка любого `chat_id` в поле `entity_id`. То есть сообщение можно отправить, зная только идентификатор чата. Сообщение в тред можно отправить и по идентификатору самого треда, а личное — по идентификатору сотрудника, но тогда нужно указать соответствующий `entity_type`: `thread` или `user`.
 
 Личный чат для этого создавать не требуется: он появится сам, если между вами ещё не было переписки. Между двумя сотрудниками может быть только один личный чат. Со своим собственным идентификатором сообщение уйдёт в чат с самим собой — туда же, куда сотрудник пишет заметки себе.
+
+Чтобы ответить на конкретное сообщение с цитатой, передайте его идентификатор в `parent_message_id`. Так отвечают в любом чате, в том числе в треде: ответ отправляют в тот же чат или тред, где лежит исходное сообщение.
 
 Текст в поле `content` разбирается как markdown: жирный, курсив, зачёркнутый, строчный код, блок кода и ссылки. Списки и таблицы не разбираются — `-`, `1.` и `|` остаются как есть, у цитаты пропадает `>`, а строка с решёткой и пробелом становится жирной. Подробности — в разделе [Форматирование текста](/guides/markdown).
 
@@ -6251,7 +6774,7 @@ interface ChatMessageOperations {
 
 Удалённые сообщения в список не попадают.
 
-Сообщения треда отдаются по `chat_id` самого треда, а не по чату, где висит родительское сообщение. Идентификатор треда приходит в поле `thread` родительского сообщения.
+Сообщения треда отдаются по `chat_id` самого треда, а не по чату, где висит родительское сообщение. Этот `chat_id` приходит в поле `thread.chat_id` родительского сообщения.
 """)
   @extension("x-paginated", true)
   @get
@@ -6562,6 +7085,8 @@ interface SearchOperations {
 По почте метод ищет лишь тем, кому в пространстве видны персональные данные. По телефону он не ищет вовсе — для этого есть [Список сотрудников](GET /users) с параметром `query`.
 
 Удалённые сотрудники не находятся никогда, приостановленные — только когда задан текстовый запрос, и стоят в выдаче ниже остальных. Из ботов находятся лишь публичные.
+
+Слишком тяжёлый запрос может не уложиться по времени: тогда метод отвечает `504` с кодом `timeout`, и запрос стоит сузить.
 """)
   @extension("x-paginated", true)
   @route("/users")
@@ -6607,6 +7132,9 @@ interface SearchOperations {
   } | {
     @statusCode _: 400;
     @body body: ApiError;
+  } | {
+    @statusCode _: 504;
+    @body body: ApiError;
   };
 
   @extension("x-requirements", #{
@@ -6620,6 +7148,8 @@ interface SearchOperations {
 Личные переписки по умолчанию не ищутся. Передайте `personal=true`, и поиск пойдёт по имени собеседника, а не по названию чата.
 
 Метод ищет по названиям, а не по содержанию. Если нужно найти, где что-то обсуждали или о чём договорились, это [Поиск сообщений](GET /search/messages).
+
+Слишком тяжёлый запрос может не уложиться по времени: тогда метод отвечает `504` с кодом `timeout`, и запрос стоит сузить.
 """)
   @extension("x-paginated", true)
   @route("/chats")
@@ -6668,6 +7198,9 @@ interface SearchOperations {
   } | {
     @statusCode _: 400;
     @body body: ApiError;
+  } | {
+    @statusCode _: 504;
+    @body body: ApiError;
   };
 
   @extension("x-requirements", #{
@@ -6681,6 +7214,8 @@ interface SearchOperations {
 Слова запроса ищутся по словоформам и по части слова, опечатки при этом не исправляются. Запрос в кавычках ищется строгой фразой, поиск по части слова в нём не работает.
 
 По умолчанию сообщения приходят от новых к старым. `sort=relevance` переключает выдачу на соответствие запросу, где свежие сообщения всё равно ценятся выше.
+
+Слишком тяжёлый запрос может не уложиться по времени: тогда метод отвечает `504` с кодом `timeout`, и запрос стоит сузить.
 """)
   @extension("x-paginated", true)
   @route("/messages")
@@ -6731,6 +7266,9 @@ interface SearchOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 504;
     @body body: ApiError;
   };
 }
@@ -6802,7 +7340,7 @@ interface TaskOperations {
     @doc("Фильтр по состоянию. Если параметр не указан, возвращаются напоминания в любом состоянии.")
     @extension("example", "undone")
     @query status?: TaskStatus,
-    @doc("Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов.")
+    @doc("Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Мульти-гостю открытые беседы и каналы доступны, только если он в них участник. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов.")
     @extension("example", #[198, 334])
     @maxItems(100)
     @query chat_ids?: int32[],
@@ -6847,7 +7385,7 @@ interface TaskOperations {
 
 Напоминание вместе с его автором, ответственными и чатом, к которому оно привязано.
 
-Напоминание видят его автор, ответственные и участники чата, к которому оно привязано. Участия в чате хватает, чтобы прочитать, но не чтобы изменить: править и удалять напоминание могут только автор и ответственные.
+Напоминание видят его автор, ответственные и все, кому доступен его чат. Правило то же, что у фильтра `chat_ids` в методе [Список напоминаний](GET /tasks): участники чата, а в открытых беседах и каналах — любой сотрудник пространства. Доступа к чату хватает, чтобы прочитать, но не чтобы изменить: править и удалять напоминание могут только автор и ответственные.
 """)
   @route("/{id}")
   @get
@@ -7289,7 +7827,7 @@ interface BotOperations {
 
 Боты, которых вызывающий вправе настраивать: созданные им самим и те, чьи настройки открывают ему доступ к редактированию.
 
-Параметр `query` отбирает ботов по части имени, без опечаток. Токены ботов в списке не приходят — их показывают один раз при создании и при ротации.
+Параметр `query` отбирает ботов по части имени, без опечаток. Токены ботов в списке не приходят: значение токена показывают один раз, а сами токены бота отдаёт [Список токенов бота](GET /bots/{id}/tokens).
 
 Перечень всех ботов пространства, включая чужих, доступен владельцу на тарифе «Корпорация» — [Список ботов пространства](GET /company/bots). Там чужие боты приходят с одними лишь именем и ником, остальные настройки скрыты.
 """)
@@ -7303,6 +7841,13 @@ interface BotOperations {
         data: #[
           #{
             id: 1738816,
+            name: "Бот задач",
+            nickname: "tasks_bot",
+            avatar_url: null,
+            creator_id: 12,
+            created_at: utcDateTime.fromISO("2025-05-15T14:30:00.000Z"),
+            authorized_users_count: 3,
+            last_used_at: utcDateTime.fromISO("2025-05-20T09:15:00.000Z"),
             webhook: #{
               name: "Бот задач",
               nickname: "tasks_bot",
@@ -7320,6 +7865,28 @@ interface BotOperations {
               single_chat: false,
               can_edit: #[BotCanEdit.admin],
               who_can_add: BotWhoCanAdd.creator,
+
+              kind: BotWebhookKind.simple,
+              unfurl_domains: #[],
+              last_request_at: utcDateTime.fromISO("2025-05-20T09:15:00.000Z"),
+            },
+            oauth_client_enabled: true,
+            oauth_client: #{
+              client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+              client_secret_preview: "dGhpc19p...ZWNy",
+              confidential: true,
+              redirect_uris: #["https://example.com/oauth/callback"],
+              scopes: #["messages:read", "messages:create"],
+            },
+            promo: #{
+              description: "Собирает сводку по задачам и присылает её в чат",
+              published: true,
+              promo_images: #[],
+            },
+            permissions: #{
+              update_oauth_client: true,
+              recreate_token: true,
+              destroy: true,
             },
           }
         ],
@@ -7364,13 +7931,17 @@ interface BotOperations {
   @doc("""
 Новый бот
 
-Создаёт бота в пространстве и сразу отдаёт его `access_token`. Сохраните токен при создании: тот же самый повторно не показывают, останется перевыпустить его методом [Ротация токена бота](POST /bots/{id}/recreate_token).
+Создаёт бота в пространстве. По умолчанию бот получает входящий вебхук в своём формате и сразу отдаёт свой `access_token`. Сохраните токен при создании: тот же самый повторно не показывают, останется перевыпустить его методом [Ротация токена бота](POST /bots/{id}/recreate_token).
+
+С `empty: true` создаётся пустой бот, как в интерфейсе: только имя и ник, без токена и без входящего вебхука. Токены ему выпускают методом [Новый токен бота](POST /bots/{id}/tokens), а входящий вебхук включают полем `kind` в объекте `webhook`.
 
 Созданный бот ещё никуда не пишет. В беседу и канал он пишет только как участник, а добавляют его как сотрудника — методом [Добавление пользователей](POST /chats/{id}/members), передав `id` бота. В канале бот получает роль редактора. Личные сообщения и треды в открытых чатах членства не требуют.
 
 Входящий вебхук бота отправляет сообщение сразу во все беседы и каналы, где бот состоит, поэтому набор его чатов и решает, куда оно попадёт. Токен для этого не нужен, достаточно адреса вебхука. Чтобы написать в один конкретный чат, берите метод [Новое сообщение](POST /messages) — вот там токен уже нужен.
 
-Ник обязан заканчиваться на `_bot` и быть свободным в пространстве. Ограничение `single_chat` задаётся только здесь: при редактировании бота оно уже не меняется.
+Авторизацию от имени сотрудника можно включить сразу, передав `oauth_client`, а страницу в витрине заполнить в `promo`. У серверного клиента секрет приходит в `client_secret` один раз. Подробнее — в разделе [Настройка авторизации](/guides/oauth/setup).
+
+Ник обязан заканчиваться на `_bot` и быть свободным в пространстве.
 """)
   @route("/bots")
   @post
@@ -7386,6 +7957,11 @@ interface BotOperations {
           commands: #["/task"],
           scopes: #["messages:create"],
         },
+        oauth_client: #{
+          confidential: true,
+          redirect_uris: #["https://example.com/oauth/callback"],
+          scopes: #["messages:read", "messages:create"],
+        },
       },
     },
     returnType: #{
@@ -7393,6 +7969,13 @@ interface BotOperations {
       body: #{
         data: #{
           id: 1738816,
+          name: "Бот задач",
+          nickname: "tasks_bot",
+          avatar_url: null,
+          creator_id: 12,
+          created_at: utcDateTime.fromISO("2025-05-15T14:30:00.000Z"),
+          authorized_users_count: 0,
+          last_used_at: null,
           webhook: #{
             name: "Бот задач",
             nickname: "tasks_bot",
@@ -7410,7 +7993,30 @@ interface BotOperations {
             single_chat: false,
             can_edit: #[BotCanEdit.admin],
             who_can_add: BotWhoCanAdd.creator,
+
+            kind: BotWebhookKind.simple,
+            unfurl_domains: #[],
+            last_request_at: null,
           },
+          oauth_client_enabled: true,
+          oauth_client: #{
+            client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+            client_secret_preview: "dGhpc19p...ZWNy",
+            confidential: true,
+            redirect_uris: #["https://example.com/oauth/callback"],
+            scopes: #["messages:read", "messages:create"],
+          },
+          promo: #{
+            description: null,
+            published: false,
+            promo_images: #[],
+          },
+          permissions: #{
+            update_oauth_client: true,
+            recreate_token: true,
+            destroy: true,
+          },
+          client_secret: "dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA",
           access_token: "bm90X2FfcmVhbF90b2tlbg",
         },
       },
@@ -7439,9 +8045,9 @@ interface BotOperations {
   @doc("""
 Информация о боте
 
-Настройки бота. Токен в ответе не приходит — его показывают один раз при создании бота и при вызове метода [Ротация токена бота](POST /bots/{id}/recreate_token).
+Настройки бота. Токен в ответе не приходит — его показывают один раз при создании бота и при вызове метода [Ротация токена бота](POST /bots/{id}/recreate_token). Токены бота отдаёт [Список токенов бота](GET /bots/{id}/tokens).
 
-Метод отдаёт только тех ботов, которых вызывающий вправе настраивать: своих, а также чужих, если настройки бота открывают доступ администратору пространства или владельцу чата, где бот состоит. На остальных метод ответит `403`.
+Метод отдаёт только тех ботов, которых вызывающий вправе настраивать: своих, а также чужих, если настройки бота открывают доступ администраторам пространства или руководителям чатов, где бот состоит. На остальных метод ответит `403`.
 
 Перечень всех ботов пространства, включая чужих, доступен владельцу на тарифе «Корпорация» — [Список ботов пространства](GET /company/bots).
 """)
@@ -7456,6 +8062,13 @@ interface BotOperations {
       body: #{
         data: #{
           id: 1738816,
+          name: "Бот задач",
+          nickname: "tasks_bot",
+          avatar_url: null,
+          creator_id: 12,
+          created_at: utcDateTime.fromISO("2025-05-15T14:30:00.000Z"),
+          authorized_users_count: 3,
+          last_used_at: utcDateTime.fromISO("2025-05-20T09:15:00.000Z"),
           webhook: #{
             name: "Бот задач",
             nickname: "tasks_bot",
@@ -7473,6 +8086,28 @@ interface BotOperations {
             single_chat: false,
             can_edit: #[BotCanEdit.admin],
             who_can_add: BotWhoCanAdd.creator,
+
+            kind: BotWebhookKind.simple,
+            unfurl_domains: #[],
+            last_request_at: utcDateTime.fromISO("2025-05-20T09:15:00.000Z"),
+          },
+          oauth_client_enabled: true,
+          oauth_client: #{
+            client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+            client_secret_preview: "dGhpc19p...ZWNy",
+            confidential: true,
+            redirect_uris: #["https://example.com/oauth/callback"],
+            scopes: #["messages:read", "messages:create"],
+          },
+          promo: #{
+            description: "Собирает сводку по задачам и присылает её в чат",
+            published: true,
+            promo_images: #[],
+          },
+          permissions: #{
+            update_oauth_client: true,
+            recreate_token: true,
+            destroy: true,
           },
         },
       },
@@ -7507,11 +8142,13 @@ interface BotOperations {
 
 Меняет настройки бота: перезаписываются только переданные поля.
 
-Поле `single_chat` принимается только при создании бота. В этом методе оно молча игнорируется: ответ приходит успешный, а режим бота не меняется.
+Ник обязан заканчиваться на `_bot` и быть свободным в пространстве, иначе метод отвечает ошибкой валидации. Команды и скоупы заменяются переданным списком целиком. Скоупы относятся к основному токену бота — тому, что без имени, а если такого нет, к самому старому — и применяются к нему сразу, перевыпускать его не нужно. Права отдельного токена меняет [Изменение токена бота](PUT /bots/{id}/tokens/{token_id}).
 
-Ник обязан заканчиваться на `_bot` и быть свободным в пространстве, иначе метод отвечает ошибкой валидации. Команды и скоупы заменяются переданным списком целиком, а новый набор скоупов сразу применяется к действующему токену бота — перевыпускать его не нужно.
+Объект `oauth_client` включает авторизацию от имени сотрудника или меняет её настройки, а `null` её выключает: авторизации, выданные сотрудниками, отзываются, страница в витрине удаляется, собственные токены бота продолжают работать. Когда клиент становится серверным, его секрет приходит в `client_secret` один раз. Страницу в витрине задаёт `promo`, пока авторизация включена.
 
-Вы не можете редактировать бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).
+Включать событие `message_link_shared`, а у бота с ним менять домены, адрес вебхука и историю событий может только администратор или владелец пространства.
+
+Имя бота, авторизацию от имени сотрудника и страницу в витрине меняют только его создатель и администратор пространства, если настройки бота открывают администраторам доступ к редактированию. Остальные настройки нельзя менять у бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).
 """)
   @route("/bots/{id}")
   @put
@@ -7528,7 +8165,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ApiError | OAuthError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7549,7 +8186,7 @@ interface BotOperations {
   @doc("""
 Удаление бота
 
-Убирает бота из пространства насовсем. Прежний `access_token` бота сразу инвалидируется, бот исключается из всех чатов, его исходящий вебхук удаляется.
+Убирает бота из пространства насовсем. Все токены бота сразу перестают работать, как и авторизации, выданные ему сотрудниками. Бот исключается из всех чатов, его вебхуки удаляются, страница в витрине тоже.
 
 Удаление доступно создателю бота, а также администратору пространства, если настройки бота открывают администраторам доступ к редактированию. Владельцы и администраторы чатов удалять бота не могут, даже если им разрешено его редактировать.
 """)
@@ -7598,6 +8235,13 @@ interface BotOperations {
       body: #{
         data: #{
           id: 1738816,
+          oauth_client: #{
+            client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+            client_secret_preview: "dGhpc19p...ZWNy",
+            confidential: true,
+            redirect_uris: #["https://example.com/oauth/callback"],
+            scopes: #["messages:read", "messages:create"],
+          },
           webhook: #{
             name: "Бот задач",
             nickname: "tasks_bot",
@@ -7622,7 +8266,7 @@ interface BotOperations {
   })
   selfUpdateBotWebhook(@body request: BotWebhookSelfUpdateRequest): {
     @statusCode _: 200;
-    @body body: DataResponse<BotResponse>;
+    @body body: DataResponse<BotSelfResponse>;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -7648,8 +8292,9 @@ interface BotOperations {
 
 Метод генерирует боту новый `access_token` и сразу инвалидирует прежний. Используйте его при компрометации токена или плановой ротации секрета в `CI`.
 
-Новый токен возвращается в ответе только один раз — сохраните его сразу. Права у него те же: скоупы переносятся с прежнего токена.
+Перевыпускается основной токен бота — тот, что без имени, а если такого нет, самый старый. Отдельный токен перевыпускает [Перевыпуск токена бота](POST /bots/{id}/tokens/{token_id}/reissue).
 
+Новый токен возвращается в ответе только один раз — сохраните его сразу. Права у него те же: скоупы переносятся с прежнего токена.
 
 Ротация доступна создателю бота, а также администратору пространства, если настройки бота открывают администраторам доступ к редактированию. Владелец чата, где состоит бот, ротировать токен не может, даже когда остальные настройки бота ему открыты.
 """)
@@ -7664,6 +8309,13 @@ interface BotOperations {
       body: #{
         data: #{
           id: 1738816,
+          name: "Бот задач",
+          nickname: "tasks_bot",
+          avatar_url: null,
+          creator_id: 12,
+          created_at: utcDateTime.fromISO("2025-05-15T14:30:00.000Z"),
+          authorized_users_count: 3,
+          last_used_at: utcDateTime.fromISO("2025-05-20T09:15:00.000Z"),
           webhook: #{
             name: "Бот задач",
             nickname: "tasks_bot",
@@ -7681,6 +8333,28 @@ interface BotOperations {
             single_chat: false,
             can_edit: #[BotCanEdit.admin],
             who_can_add: BotWhoCanAdd.creator,
+
+            kind: BotWebhookKind.simple,
+            unfurl_domains: #[],
+            last_request_at: utcDateTime.fromISO("2025-05-20T09:15:00.000Z"),
+          },
+          oauth_client_enabled: true,
+          oauth_client: #{
+            client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+            client_secret_preview: "dGhpc19p...ZWNy",
+            confidential: true,
+            redirect_uris: #["https://example.com/oauth/callback"],
+            scopes: #["messages:read", "messages:create"],
+          },
+          promo: #{
+            description: "Собирает сводку по задачам и присылает её в чат",
+            published: true,
+            promo_images: #[],
+          },
+          permissions: #{
+            update_oauth_client: true,
+            recreate_token: true,
+            destroy: true,
           },
           access_token: "bm90X2FfcmVhbF90b2tlbg",
         },
@@ -7716,7 +8390,7 @@ interface BotOperations {
 
 Метод позволяет боту сгенерировать себе новый `access_token` своим же токеном — без участия администратора и без знания собственного `id`.
 
-Ротируется тот самый токен, которым сделан запрос, и он инвалидируется сразу.
+Перевыпускается основной токен бота — тот, что без имени, а если такого нет, самый старый, и он инвалидируется сразу. Если бот ходит отдельным токеном, этот токен остаётся прежним.
 
 Новый токен возвращается в ответе один раз — обязательно сохраните его, иначе бот потеряет доступ к API. Скоупы переносятся с прежнего токена.
 """)
@@ -7728,6 +8402,13 @@ interface BotOperations {
       body: #{
         data: #{
           id: 1738816,
+          oauth_client: #{
+            client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+            client_secret_preview: "dGhpc19p...ZWNy",
+            confidential: true,
+            redirect_uris: #["https://example.com/oauth/callback"],
+            scopes: #["messages:read", "messages:create"],
+          },
           webhook: #{
             name: "Бот задач",
             nickname: "tasks_bot",
@@ -7753,13 +8434,485 @@ interface BotOperations {
   })
   selfRecreateBotToken(): {
     @statusCode _: 200;
-    @body body: DataResponse<BotCreateResponse>;
+    @body body: DataResponse<BotSelfTokenResponse>;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
     @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:read",
+  })
+  @doc("""
+Список токенов бота
+
+Действующие токены бота: основной, выпущенный вместе с ботом, и отдельные — со своим именем и правами. Значение токена здесь замаскировано: полностью его показывают один раз, при выпуске и перевыпуске.
+
+Работать с токенами бота могут только его создатель и администратор пространства, если настройки бота открывают администраторам доступ к редактированию. Владельцу чата с ботом метод отвечает `403`, даже когда остальные настройки бота ему открыты.
+""")
+  @extension("x-paginated", true)
+  @route("/bots/{id}/tokens")
+  @get
+  @opExample(#{
+    parameters: #{
+      id: 1738816,
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #[
+          #{
+            id: 4827,
+            token: "cH5kR9mN...x7Qp",
+            name: "Сервер уведомлений",
+            user_id: 1738816,
+            scopes: #["messages:create", "chats:read"],
+            created_at: utcDateTime.fromISO("2025-01-15T10:30:00.000Z"),
+            revoked_at: null,
+            expires_in: null,
+            last_used_at: utcDateTime.fromISO("2025-02-24T14:20:00.000Z"),
+            authorized_at: null,
+          }
+        ],
+        meta: #{
+          paginate: #{
+            next_page: "eyJpZCI6NDgyN30",
+          },
+        },
+      },
+    },
+  })
+  listBotTokens(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32,
+    @doc("Количество возвращаемых сущностей за один запрос")
+    @query
+    @extension("example", 1)
+    @minValue(1)
+    @maxValue(50)
+    limit?: int32 = 50,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @extension("example", "eyJpZCI6NDgyN30")
+    @query cursor?: string
+  ): {
+    @statusCode _: 200;
+    @body body: PaginatedDataResponse<BotAccessToken[]>;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:write",
+  })
+  @doc("""
+Новый токен бота
+
+Выпускает боту ещё один токен со своим именем и правами. Токенов у бота может быть несколько: например, отдельный на каждый сервис, чтобы отзывать их по одному.
+
+Значение токена приходит в ответе один раз — сохраните его сразу. Токен бессрочный и работает, пока его не удалят.
+
+Права выбирают из тех, что можно выдать боту: их перечисляет [Каталог прав бота](GET /bots/{id}/scopes). На право не из каталога метод отвечает `400`. Без `scopes` токен выпускается без прав.
+
+Работать с токенами бота могут только его создатель и администратор пространства, если настройки бота открывают администраторам доступ к редактированию. Владельцу чата с ботом метод отвечает `403`, даже когда остальные настройки бота ему открыты.
+""")
+  @route("/bots/{id}/tokens")
+  @post
+  @opExample(#{
+    parameters: #{
+      id: 1738816,
+      request: #{
+        name: "Сервер уведомлений",
+        scopes: #["messages:create", "chats:read"],
+      },
+    },
+    returnType: #{
+      _: 201,
+      body: #{
+        data: #{
+          id: 4827,
+          token: "bm90X2FfcmVhbF90b2tlbg",
+          name: "Сервер уведомлений",
+          user_id: 1738816,
+          scopes: #["messages:create", "chats:read"],
+          created_at: utcDateTime.fromISO("2025-01-15T10:30:00.000Z"),
+          revoked_at: null,
+          expires_in: null,
+          last_used_at: null,
+          authorized_at: null,
+        },
+      },
+    },
+  })
+  createBotToken(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32,
+    @body request: BotTokenCreateRequest
+  ): {
+    @statusCode _: 201;
+    @body body: DataResponse<BotAccessToken>;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:write",
+  })
+  @doc("""
+Изменение токена бота
+
+Меняет имя или права токена. Новые права действуют сразу: перевыпускать токен не нужно, его значение остаётся прежним. Права заменяются переданным списком целиком.
+
+Работать с токенами бота могут только его создатель и администратор пространства, если настройки бота открывают администраторам доступ к редактированию. Владельцу чата с ботом метод отвечает `403`, даже когда остальные настройки бота ему открыты.
+""")
+  @route("/bots/{id}/tokens/{token_id}")
+  @put
+  @opExample(#{
+    parameters: #{
+      id: 1738816,
+      token_id: 4827,
+      request: #{
+        name: "Сервер уведомлений",
+        scopes: #["messages:create", "chats:read"],
+      },
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          id: 4827,
+          token: "cH5kR9mN...x7Qp",
+          name: "Сервер уведомлений",
+          user_id: 1738816,
+          scopes: #["messages:create", "chats:read"],
+          created_at: utcDateTime.fromISO("2025-01-15T10:30:00.000Z"),
+          revoked_at: null,
+          expires_in: null,
+          last_used_at: utcDateTime.fromISO("2025-02-24T14:20:00.000Z"),
+          authorized_at: null,
+        },
+      },
+    },
+  })
+  updateBotToken(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32,
+    @doc("Идентификатор токена")
+    @extension("example", 4827)
+    @path token_id: int64,
+    @body request: BotTokenUpdateRequest
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<BotAccessToken>;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:write",
+  })
+  @doc("""
+Перевыпуск токена бота
+
+Заменяет значение токена новым: прежнее сразу перестаёт работать, имя и права остаются. Новое значение приходит в ответе один раз — сохраните его сразу.
+
+Метод нужен, когда токен утёк или его меняют по плану. Основной токен бота перевыпускает и [Ротация токена бота](POST /bots/{id}/recreate_token).
+
+Работать с токенами бота могут только его создатель и администратор пространства, если настройки бота открывают администраторам доступ к редактированию. Владельцу чата с ботом метод отвечает `403`, даже когда остальные настройки бота ему открыты.
+""")
+  @route("/bots/{id}/tokens/{token_id}/reissue")
+  @post
+  @opExample(#{
+    parameters: #{
+      id: 1738816,
+      token_id: 4827,
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          id: 4827,
+          token: "bm90X2FfcmVhbF90b2tlbg",
+          name: "Сервер уведомлений",
+          user_id: 1738816,
+          scopes: #["messages:create", "chats:read"],
+          created_at: utcDateTime.fromISO("2025-01-15T10:30:00.000Z"),
+          revoked_at: null,
+          expires_in: null,
+          last_used_at: utcDateTime.fromISO("2025-02-24T14:20:00.000Z"),
+          authorized_at: null,
+        },
+      },
+    },
+  })
+  reissueBotToken(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32,
+    @doc("Идентификатор токена")
+    @extension("example", 4827)
+    @path token_id: int64
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<BotAccessToken>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:write",
+  })
+  @doc("""
+Удаление токена бота
+
+Удаляет токен: запросы с ним сразу перестают проходить. Остальные токены бота продолжают работать.
+
+Работать с токенами бота могут только его создатель и администратор пространства, если настройки бота открывают администраторам доступ к редактированию. Владельцу чата с ботом метод отвечает `403`, даже когда остальные настройки бота ему открыты.
+""")
+  @route("/bots/{id}/tokens/{token_id}")
+  @delete
+  deleteBotToken(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32,
+    @doc("Идентификатор токена")
+    @extension("example", 4827)
+    @path token_id: int64
+  ): {
+    @statusCode _: 204;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:read",
+  })
+  @doc("""
+Каталог прав бота
+
+Права, которые можно выдать этому боту: его токенам и авторизации от имени сотрудника. У каждого права есть описание, категория и готовые наборы, в которые оно входит, как при выборе прав в интерфейсе.
+
+Каталог доступен тем же, кто видит токены бота: создателю бота, а также администратору пространства, если настройки бота открывают администраторам доступ к редактированию.
+""")
+  @route("/bots/{id}/scopes")
+  @get
+  @opExample(#{
+    parameters: #{
+      id: 1738816,
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        scopes: #[
+          #{
+            id: "messages:create",
+            title: "Отправка сообщений",
+            group: "messages",
+            preset: #["admin"],
+          }
+        ],
+        groups: #[
+          #{
+            id: "messages",
+            title: "Сообщения",
+            description: "Работа с сообщениями",
+          }
+        ],
+        presets: #[
+          #{
+            id: "read-only",
+            title: "Только чтение",
+          },
+          #{
+            id: "admin",
+            title: "Администратор",
+          }
+        ],
+      },
+    },
+  })
+  getBotScopes(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32
+  ): {
+    @statusCode _: 200;
+    @body body: BotScopeCatalog;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:write",
+  })
+  @doc("""
+Ротация секрета клиента
+
+Выпускает новый `client_secret` для авторизации от имени сотрудника. Прежний секрет перестаёт работать сразу, поэтому сначала подготовьте бота к замене. Уже выданные авторизации и полученные токены продолжают работать.
+
+Новый секрет приходит в `client_secret` один раз. Метод работает только у бота с включённой авторизацией и серверным клиентом (`confidential: true`), иначе отвечает `400`.
+
+Ротация доступна создателю бота, а также администратору пространства, если настройки бота открывают администраторам доступ к редактированию.
+""")
+  @route("/bots/{id}/rotate_client_secret")
+  @post
+  @opExample(#{
+    parameters: #{
+      id: 1738816,
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          id: 1738816,
+          name: "Бот задач",
+          nickname: "tasks_bot",
+          avatar_url: null,
+          creator_id: 12,
+          created_at: utcDateTime.fromISO("2025-05-15T14:30:00.000Z"),
+          authorized_users_count: 3,
+          last_used_at: utcDateTime.fromISO("2025-05-20T09:15:00.000Z"),
+          webhook: #{
+            name: "Бот задач",
+            nickname: "tasks_bot",
+            outgoing_url: "https://www.website.com/tasks/new",
+            events: #[BotEventName.message_new],
+            trigger_on: BotTriggerOn.commands,
+            commands: #["/task"],
+            scopes: #["messages:create"],
+            template: "Заказ от {{ client }} на сумму {{ amount }} ₽",
+            template_engine: BotTemplateEngine.liquid,
+            challenge_key: "challenge",
+            link_preview_enabled: true,
+            ignore_self_messages: false,
+            events_history_enabled: false,
+            single_chat: false,
+            can_edit: #[BotCanEdit.admin],
+            who_can_add: BotWhoCanAdd.creator,
+
+            kind: BotWebhookKind.simple,
+            unfurl_domains: #[],
+            last_request_at: utcDateTime.fromISO("2025-05-20T09:15:00.000Z"),
+          },
+          oauth_client_enabled: true,
+          oauth_client: #{
+            client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+            client_secret_preview: "dGhpc19p...ZWNy",
+            confidential: true,
+            redirect_uris: #["https://example.com/oauth/callback"],
+            scopes: #["messages:read", "messages:create"],
+          },
+          promo: #{
+            description: "Собирает сводку по задачам и присылает её в чат",
+            published: true,
+            promo_images: #[],
+          },
+          permissions: #{
+            update_oauth_client: true,
+            recreate_token: true,
+            destroy: true,
+          },
+          client_secret: "dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA",
+        },
+      },
+    },
+  })
+  rotateBotClientSecret(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<BotResponse>;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7776,7 +8929,7 @@ interface BotOperations {
 
 Журнал событий бота: то же самое, что уходит в исходящий вебхук, но забирается запросом. Метод нужен, когда принимать вебхуки на свой адрес нельзя — обработчик недоступен из интернета, поднимается не всегда или пишется прямо сейчас.
 
-Журнал ведётся, только когда в настройках бота включён пункт «Сохранять историю событий» во вкладке «Исходящий webhook». Адрес вебхука при этом можно не указывать вовсе, а если он указан, событие и уедет на него, и ляжет в журнал.
+Журнал ведётся, только когда в настройках бота включён пункт «Сохранять историю событий» на вкладке «Исходящий вебхук». Адрес вебхука при этом можно не указывать вовсе, а если он указан, событие и уедет на него, и ляжет в журнал.
 
 Метод работает только с токеном бота: у личного токена своего журнала нет. События отдаются от новых к старым, идентификатор события — строка, а не число.
 
@@ -7874,6 +9027,13 @@ interface CompanyBotOperations {
         data: #[
           #{
             id: 1738816,
+            oauth_client: #{
+              client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+              client_secret_preview: "dGhpc19p...ZWNy",
+              confidential: true,
+              redirect_uris: #["https://example.com/oauth/callback"],
+              scopes: #["messages:read", "messages:create"],
+            },
             webhook: #{
               name: "Бот задач",
               nickname: "tasks_bot",
@@ -7895,6 +9055,7 @@ interface CompanyBotOperations {
           },
           #{
             id: 1738817,
+            oauth_client: null,
             webhook: #{
               name: "Бот релизов",
               nickname: "release_bot",

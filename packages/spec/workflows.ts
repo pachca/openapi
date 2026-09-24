@@ -884,9 +884,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
       notes:
-        'Создавать ботов можно только пользовательским токеном — токеном бота нельзя. `access_token` отдаётся один раз при создании, дальше его можно посмотреть и скопировать в интерфейсе.',
+        'Создавать ботов можно только пользовательским токеном — токеном бота нельзя. `access_token` отдаётся один раз при создании, увидеть его снова нельзя, только перевыпустить. С флагом `--empty` бот создаётся без токена и входящего вебхука, как в интерфейсе, а токены ему выпускает `pachca bots create-token`.',
       notesEn:
-        'Bots can only be created with a user token, not a bot token. The `access_token` is returned once at creation; afterwards it can be viewed and copied in the interface.',
+        'Bots can only be created with a user token, not a bot token. The `access_token` is returned once at creation; it cannot be viewed again, only reissued. With `--empty` the bot is created without a token and an incoming webhook, as in the interface, and tokens are then issued with `pachca bots create-token`.',
     },
     {
       title: 'Настроить бота с исходящим вебхуком',
@@ -966,21 +966,30 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       steps: [
         {
           description:
-            'Пользовательским токеном (администратор, владелец компании или создатель бота) — перевыпусти токен по `id` бота. Прежний токен инвалидируется сразу',
+            'Пользовательским токеном (создатель бота или администратор, если бот открыт администраторам) — перевыпусти основной токен по `id` бота: тот, что без имени, а если такого нет, самый старый. Прежнее значение инвалидируется сразу',
           descriptionEn:
-            'With a user token (admin, company owner or bot creator) — rotate the token by bot `id`. The previous token is invalidated immediately',
+            'With a user token (the bot creator, or an admin if the bot is open to admins) — rotate the main token by bot `id`: the one without a name, or the oldest one if there is none. The previous value is invalidated immediately',
           command: 'pachca bots recreate-token <bot_id>',
           apiMethod: 'POST',
           apiPath: '/bots/{id}/recreate_token',
         },
         {
           description:
-            'Или: бот перевыпускает собственный токен своим же токеном (скоуп `bot_self:write`). Токен, которым выполнен запрос, инвалидируется сразу — обязательно сохрани новый `access_token` из ответа, иначе бот потеряет доступ к API',
+            'Или: бот перевыпускает свой основной токен сам (скоуп `bot_self:write`). Если запрос сделан основным токеном, он инвалидируется сразу — обязательно сохрани новый `access_token` из ответа, иначе бот потеряет доступ к API',
           descriptionEn:
-            'Or: the bot rotates its own token with its own token (scope `bot_self:write`). The token used for the request is invalidated immediately — be sure to save the new `access_token` from the response, otherwise the bot loses API access',
+            'Or: the bot rotates its own main token itself (scope `bot_self:write`). If the request is made with the main token, it is invalidated immediately — be sure to save the new `access_token` from the response, otherwise the bot loses API access',
           command: 'pachca bots recreate-token-self',
           apiMethod: 'POST',
           apiPath: '/bot/recreate_token',
+        },
+        {
+          description:
+            'Отдельный токен бота перевыпускай по его `id` из `pachca bots list-tokens`: значение меняется, имя и права остаются',
+          descriptionEn:
+            'Reissue an additional bot token by its `id` from `pachca bots list-tokens`: the value changes, the name and scopes stay',
+          command: 'pachca bots reissue-token <bot_id> <token_id>',
+          apiMethod: 'POST',
+          apiPath: '/bots/{id}/tokens/{token_id}/reissue',
         },
         {
           description:
@@ -990,9 +999,83 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
       notes:
-        'Новый токен возвращается один раз. Self-путь (`POST /bot/recreate_token`) инвалидирует именно тот токен, которым выполнен запрос, — захвати новый токен из ответа в той же операции.',
+        'Новое значение возвращается один раз. Self-путь (`POST /bot/recreate_token`) перевыпускает основной токен бота — если бот ходит им, захвати новый токен из ответа в той же операции.',
       notesEn:
-        'The new token is returned once. The self path (`POST /bot/recreate_token`) invalidates the very token used for the request — capture the new token from the response in the same operation.',
+        'The new value is returned once. The self path (`POST /bot/recreate_token`) rotates the bot main token — if the bot works with it, capture the new token from the response in the same operation.',
+    },
+    {
+      title: 'Выпустить боту отдельный токен',
+      titleEn: 'Issue an additional bot token',
+      related: ['Ротация токена бота', 'Создать бота через API и получить токен'],
+      relatedEn: ['Rotate a bot token', 'Create a bot via API and get its token'],
+      steps: [
+        {
+          description:
+            'Пользовательским токеном (создатель бота или администратор, если бот открыт администраторам) получи каталог прав, которые можно выдать этому боту',
+          descriptionEn:
+            'With a user token (the bot creator, or an admin if the bot is open to admins) get the catalog of scopes that can be granted to this bot',
+          command: 'pachca bots list-scopes <bot_id>',
+          apiMethod: 'GET',
+          apiPath: '/bots/{id}/scopes',
+        },
+        {
+          description:
+            'Выпусти токен с именем и правами из каталога. Без `--scopes` токен выпускается без прав, право не из каталога отклоняется с `400`',
+          descriptionEn:
+            'Issue a token with a name and scopes from the catalog. Without `--scopes` the token has no scopes, and a scope outside the catalog is rejected with `400`',
+          command:
+            'pachca bots create-token <bot_id> --name="Сервер уведомлений" --scopes=\'["messages:create"]\'',
+          apiMethod: 'POST',
+          apiPath: '/bots/{id}/tokens',
+        },
+        {
+          description:
+            'Сохрани `token` из ответа — полное значение возвращается единственный раз. Дальше в списке `pachca bots list-tokens` он приходит замаскированным',
+          descriptionEn:
+            'Save `token` from the response — the full value is returned only once. Afterwards `pachca bots list-tokens` returns it masked',
+        },
+      ],
+      notes:
+        'Отдельный токен удобен на каждый сервис, который работает от имени бота: его отзывают командой `pachca bots delete-token`, не трогая остальные. Права меняет `pachca bots update-token` — они действуют сразу, перевыпускать токен не нужно.',
+      notesEn:
+        'A separate token is handy for each service that works on behalf of the bot: it is revoked with `pachca bots delete-token` without touching the others. Scopes are changed with `pachca bots update-token` — they take effect immediately, no reissue needed.',
+    },
+    {
+      title: 'Включить боту авторизацию от имени сотрудника',
+      titleEn: 'Enable authorization on behalf of an employee for a bot',
+      related: ['Создать бота через API и получить токен', 'Выпустить боту отдельный токен'],
+      relatedEn: ['Create a bot via API and get its token', 'Issue an additional bot token'],
+      steps: [
+        {
+          description:
+            'Пользовательским токеном (создатель бота или администратор, если бот открыт администраторам) включи авторизацию: где хранится секрет, адреса возврата и права, которые бот попросит у сотрудника. Права бери из `pachca bots list-scopes`',
+          descriptionEn:
+            'With a user token (the bot creator, or an admin if the bot is open to admins) enable authorization: where the secret is stored, redirect URIs and the scopes the bot will request from an employee. Take the scopes from `pachca bots list-scopes`',
+          command:
+            'pachca bots update <bot_id> --oauth-client=\'{"confidential":true,"redirect_uris":["https://example.com/oauth/callback"],"scopes":["messages:read","messages:create"]}\'',
+          apiMethod: 'PUT',
+          apiPath: '/bots/{id}',
+        },
+        {
+          description:
+            'Сохрани `client_secret` из ответа серверного клиента — он возвращается единственный раз. `client_id` приходит в `oauth_client` и не секретный',
+          descriptionEn:
+            'Save `client_secret` from the server-side client response — it is returned only once. `client_id` comes in `oauth_client` and is not secret',
+        },
+        {
+          description:
+            'Чтобы бот появился в витрине, добавь описание и опубликуй страницу',
+          descriptionEn: 'To list the bot in the catalog, add a description and publish the page',
+          command:
+            'pachca bots update <bot_id> --promo=\'{"description":"Собирает сводку по задачам","published":true}\'',
+          apiMethod: 'PUT',
+          apiPath: '/bots/{id}',
+        },
+      ],
+      notes:
+        'Включена ли авторизация, показывает `oauth_client_enabled`: `oauth_client` может прийти и у бота с выключенной авторизацией. `--oauth-client=null` выключает её и отзывает выданные сотрудниками авторизации, новый секрет выпускает `pachca bots rotate-client-secret`.',
+      notesEn:
+        'Whether authorization is enabled is shown by `oauth_client_enabled`: `oauth_client` can come even for a bot with authorization disabled. `--oauth-client=null` disables it and revokes the authorizations granted by employees, and `pachca bots rotate-client-secret` issues a new secret.',
     },
     {
       title: 'Найти и удалить бота',
@@ -1011,9 +1094,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
         {
           description:
-            'Возьми `id` нужного бота из списка и удали его (скоуп `bots:write`). Доступно администратору, владельцу компании или создателю бота — владельцы чатов удалять бота не могут. Прежний токен инвалидируется сразу, бот исключается из всех чатов, его исходящий вебхук удаляется',
+            'Возьми `id` нужного бота из списка и удали его (скоуп `bots:write`). Доступно создателю бота и администратору, если бот открыт администраторам, — владельцы чатов удалять бота не могут. Все токены бота инвалидируются сразу, бот исключается из всех чатов, его вебхуки удаляются',
           descriptionEn:
-            'Take the target bot `id` from the list and delete it (scope `bots:write`). Available to an admin, the company owner or the bot creator — chat owners cannot delete a bot. The previous token is invalidated immediately, the bot is removed from all chats, and its outgoing webhook is deleted',
+            'Take the target bot `id` from the list and delete it (scope `bots:write`). Available to the bot creator, and to an admin if the bot is open to admins — chat owners cannot delete a bot. All bot tokens are invalidated immediately, the bot is removed from all chats, and its webhooks are deleted',
           command: 'pachca bots delete <bot_id>',
           apiMethod: 'DELETE',
           apiPath: '/bots/{id}',
@@ -1075,8 +1158,10 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       inline: false,
       steps: [
         {
-          description: 'Создай специального Unfurl-бота и укажи отслеживаемые домены',
-          descriptionEn: 'Create a special Unfurl bot and specify tracked domains',
+          description:
+            'В карточке бота на вкладке «Исходящий вебхук» включи событие «Отправка ссылок в сообщении (unfurl)» и укажи до 5 доменов — это может только администратор или владелец пространства',
+          descriptionEn:
+            'On the Outgoing webhook tab of the bot, enable the "Links shared in messages (unfurl)" event and list up to 5 domains — only a workspace admin or owner can do this',
         },
         {
           description:
@@ -1097,9 +1182,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
       notes:
-        'Эндпоинт привязан к конкретному сообщению. Необходим специальный Unfurl-бот с указанными доменами.',
+        'Эндпоинт привязан к конкретному сообщению. Боту нужно событие разворачивания ссылок с доменами: ссылки приходят из всех чатов пространства, добавлять бота в чаты не нужно.',
       notesEn:
-        'Endpoint is bound to a specific message. Requires a special Unfurl bot with specified domains.',
+        'Endpoint is bound to a specific message. The bot needs the link unfurling event with its domains: links arrive from every chat of the workspace, no need to add the bot to chats.',
     },
     {
       title: 'Обработать нажатие кнопки (callback)',
@@ -1206,8 +1291,12 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       steps: [
         {
           description:
-            'В настройках бота включи «Сохранять историю событий». Webhook URL указывать не обязательно.',
-          descriptionEn: 'In bot settings enable "Save event history". Webhook URL is optional.',
+            'Включи историю событий флагом `--events-history-enabled` (Webhook URL для этого не нужен) или настройкой «Сохранять историю событий» на вкладке «Исходящий вебхук» — в интерфейсе она появляется после включения вебхука',
+          descriptionEn:
+            'Enable the event history with `--events-history-enabled` (no Webhook URL needed) or with "Save event history" on the Outgoing webhook tab — in the UI it appears once the webhook is enabled',
+          command: 'pachca bots update <bot_id> --events-history-enabled',
+          apiMethod: 'PUT',
+          apiPath: '/bots/{id}',
         },
         {
           description: 'Получи накопленные события',

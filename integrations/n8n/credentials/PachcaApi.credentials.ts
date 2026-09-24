@@ -40,8 +40,8 @@ export class PachcaApi implements ICredentialType {
 			name: 'webhookAllowedIps',
 			type: 'string',
 			default: '',
-			description: 'Comma-separated list of IP addresses allowed to send webhooks. Pachca sends from 37.200.70.177. Leave empty to allow all.',
-			placeholder: '37.200.70.177',
+			description: 'Comma-separated list of IP addresses allowed to send webhooks. Pachca sends from 37.200.70.177, 185.209.115.174 and 135.106.159.61. Leave empty to allow all.',
+			placeholder: '37.200.70.177,185.209.115.174,135.106.159.61',
 			hint: 'Only used with the Pachca Trigger node',
 		},
 	];

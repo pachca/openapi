@@ -16,7 +16,7 @@ let package = Package(
                 "examples",
                 "package.json",
                 "README.md",
-                "Package.resolved",
+                "generated/examples.json",
             ],
             sources: ["generated/Sources/Pachca/GeneratedSources"]
         )

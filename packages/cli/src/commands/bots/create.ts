@@ -14,7 +14,7 @@ export default class BotsCreate extends BaseCommand {
   static scope = "bots:write";
   static apiMethod = "POST";
   static apiPath = "/bots";
-  static defaultColumns = ["id","webhook","access_token"];
+  static defaultColumns = ["id","name","created_at","nickname","avatar_url"];
   static requiredFlags = ["name"];
 
   static override args = {
@@ -58,7 +58,7 @@ export default class BotsCreate extends BaseCommand {
       allowNo: true,
     }),
     'ignore-self-messages': Flags.boolean({
-      description: "Игнорировать входящие сообщения, отправленные самим ботом",
+      description: "Не присылать боту события о его собственных сообщениях и реакциях",
       allowNo: true,
     }),
     'events-history-enabled': Flags.boolean({
@@ -72,8 +72,24 @@ export default class BotsCreate extends BaseCommand {
       description: "Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.",
     }),
     'single-chat': Flags.boolean({
-      description: "Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Задаётся только при создании, при редактировании не меняется.",
+      description: "Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.",
       allowNo: true,
+    }),
+    'kind': Flags.string({
+      description: "Источник входящего вебхука. Без `empty` по умолчанию `simple`, а у пустого бота входящий вебхук включается только этим полем.",
+    }),
+    'unfurl-domains': Flags.string({
+      description: "Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`.",
+    }),
+    'empty': Flags.boolean({
+      description: "Создать пустого бота: без токена и без входящего вебхука. Без этого поля бот создаётся с входящим вебхуком в своём формате, а его токен приходит в `access_token`.",
+      allowNo: true,
+    }),
+    'oauth-client': Flags.string({
+      description: "Включить авторизацию от имени сотрудника сразу при создании",
+    }),
+    'promo': Flags.string({
+      description: "Страница бота в витрине. Задаётся только вместе с `oauth_client`: без авторизации страницы у бота нет.",
     }),
   };
 
@@ -113,7 +129,8 @@ export default class BotsCreate extends BaseCommand {
       this.validationError(validationErrors);
     }
 
-    const body: Record<string, unknown> = { webhook: {
+    const body: Record<string, unknown> = {
+      webhook: {
       name: flags['name'],
       nickname: flags['nickname'],
       outgoing_url: flags['outgoing-url'],
@@ -130,10 +147,17 @@ export default class BotsCreate extends BaseCommand {
       who_can_add: flags['who-can-add'],
       can_edit: flags['can-edit'] ? this.parseJSON(flags['can-edit'], 'can-edit') : undefined,
       single_chat: flags['single-chat'],
-    } };
+      kind: flags['kind'],
+      unfurl_domains: flags['unfurl-domains'] ? this.parseJSON(flags['unfurl-domains'], 'unfurl-domains') : undefined,
+      },
+      empty: flags['empty'],
+      oauth_client: flags['oauth-client'] ? this.parseJSON(flags['oauth-client'], 'oauth-client') : undefined,
+      promo: flags['promo'] ? this.parseJSON(flags['promo'], 'promo') : undefined,
+    };
     // Clean undefined fields
     const inner = body['webhook'] as Record<string, unknown>;
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
+    for (const [k, v] of Object.entries(body)) { if (k !== 'webhook' && v === undefined) delete body[k]; }
 
     const { data } = await this.apiRequest({
       method: 'POST',

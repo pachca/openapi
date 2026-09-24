@@ -9,7 +9,7 @@
 - [Быстрый старт](/guides/quickstart)
 - [Авторизация](/api/authorization)
 - [Модели API](/api/models)
-- [AI агенты](/guides/ai-agents/overview)
+- [AI-агенты](/guides/ai-agents/overview)
 - [CLI](/guides/cli/overview)
 - [SDK](/guides/sdk/overview)
 - [n8n](/guides/n8n/overview)
@@ -58,9 +58,10 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 ## Боты и автоматизации
 
-Создавайте ботов, обрабатывайте команды, добавляйте кнопки и формы в сообщения, получайте события через вебхуки.
+Создавайте ботов, обрабатывайте команды, добавляйте кнопки и формы в сообщения, получайте события через вебхуки и работайте с данными сотрудников их правами.
 
 - [Боты](/guides/bots/overview) — Создание и настройка ботов
+- [От имени сотрудника](/guides/oauth/overview) — Бот работает правами сотрудника
 - [Кнопки](/guides/buttons) — Ссылки и действия в сообщениях
 - [Формы](/guides/forms/overview) — Модальные окна с полями ввода
 - [Входящие вебхуки](/guides/incoming-webhooks) — Сообщения по URL без кода

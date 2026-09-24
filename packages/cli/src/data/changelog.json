@@ -1,5 +1,100 @@
 [
   {
+    "version": "2026.10.0",
+    "date": "6 октября 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "bots list-tokens, bots create-token, bots update-token, bots reissue-token, bots delete-token",
+        "description": "Новые команды — токены бота: у бота может быть несколько токенов, у каждого своё имя и права. Значение токена показывается один раз, при выпуске и перевыпуске."
+      },
+      {
+        "type": "+",
+        "command": "bots list-scopes",
+        "description": "Новая команда — каталог прав, которые можно выдать боту: его токенам и авторизации от имени сотрудника"
+      },
+      {
+        "type": "+",
+        "command": "bots rotate-client-secret",
+        "description": "Новая команда — новый `client_secret` для авторизации от имени сотрудника. Прежний секрет перестаёт работать сразу."
+      },
+      {
+        "type": "+",
+        "command": "bots create, bots update",
+        "description": "Флаги `--oauth-client` и `--promo` включают авторизацию от имени сотрудника и заполняют страницу бота в витрине, `--kind` выбирает источник входящего вебхука, а `--unfurl-domains` задаёт домены для разворачивания ссылок. У `bots create` появился `--empty` для бота без токена, у `bots update` — `--single-chat`."
+      },
+      {
+        "type": "+",
+        "command": "chats mark-unread",
+        "description": "Новая команда — отметка чата непрочитанным для владельца токена"
+      },
+      {
+        "type": "+",
+        "command": "security list",
+        "description": "Флаг `--event-key` принимает значения `bot_token_created`, `bot_token_updated`, `bot_token_reissued`, `bot_oauth_client_secret_rotated` и `bot_oauth_client_disabled`"
+      },
+      {
+        "type": "-",
+        "command": "search users, search chats, search messages, users list",
+        "description": "В справке описан ответ `504` с кодом `timeout`, если поиск не уложился по времени"
+      },
+      {
+        "type": "-",
+        "command": "messages create, messages update, drafts create, drafts update",
+        "description": "У файлов в справке указан предел голосового сообщения в 30 минут"
+      },
+      {
+        "type": "+",
+        "command": "auth login",
+        "description": "Вход через браузер передаёт серверу имя устройства, по которому вход узнаётся в списке токенов CLI: имя машины, а у профиля не по умолчанию ещё и имя профиля в скобках, например `macbook (ci)`"
+      },
+      {
+        "type": "~",
+        "description": "После ответа `401` CLI подсказывает, что делать дальше: войти заново, если вход через браузер отозван или завершён, или сохранить новый токен. В подсказку подставлен профиль, с которым запускалась команда, например `pachca auth login --profile ci`"
+      },
+      {
+        "type": "-",
+        "command": "views open",
+        "description": "В справке у блоков `radio` и `checkbox` до 20 вариантов"
+      },
+      {
+        "type": "-",
+        "command": "bots create, bots update",
+        "description": "Справка к `--ignore-self-messages` говорит, что настройка не присылает боту и его собственные реакции"
+      },
+      {
+        "type": "-",
+        "command": "guide",
+        "description": "Сценарии разворачивания ссылок и поллинга описывают раздел «Интеграции»: событие ссылок с доменами вместо отдельного типа бота и история событий без Webhook URL флагом `--events-history-enabled`, который попал и в примеры `bots update`"
+      },
+      {
+        "type": "-",
+        "command": "messages create, messages update, tasks list",
+        "description": "Подсказки к `--content` и `--chat-ids` описывают, что меняется для мульти-гостя"
+      },
+      {
+        "type": "-",
+        "command": "messages create, threads add, threads create, threads get, threads list",
+        "description": "Подсказка к `--parent-message-id` описывает ответ с цитатой в любом чате, в том числе в треде. В описаниях тредов сказано, какой идентификатор куда передавать: `id` — чтобы написать в тред, `chat_id` — чтобы прочитать его сообщения."
+      },
+      {
+        "type": "-",
+        "command": "bots list-events",
+        "description": "В справке у события отправки формы сказано, что `chat_id` фиксируется при открытии формы, а не при её отправке"
+      },
+      {
+        "type": "-",
+        "command": "chats create, members add, users update",
+        "description": "В справке описаны отказы для бота с настройкой «Ограничить одним чатом» — `single_chat_bot_occupied`, если он уже состоит в другой беседе или канале, и `single_chat_bot_tag_denied` при добавлении в тег"
+      },
+      {
+        "type": "-",
+        "command": "tasks get",
+        "description": "В справке сказано, что напоминание видят все, кому доступен его чат, по тому же правилу, что у фильтра `--chat-ids` в `tasks list`"
+      }
+    ]
+  },
+  {
     "version": "2026.9.1",
     "date": "16 сентября 2026",
     "changes": [

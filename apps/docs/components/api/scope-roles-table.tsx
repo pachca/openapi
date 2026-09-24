@@ -7,13 +7,14 @@ import type { Schema } from '@/lib/openapi/types';
 import { CopyableCode } from './schema-tree';
 import { InlineCodeText } from './inline-code-text';
 
-const ROLES = ['owner', 'admin', 'user', 'bot'] as const;
+const ROLES = ['owner', 'admin', 'user', 'multi_guest', 'bot'] as const;
 type Role = (typeof ROLES)[number];
 
 const ROLE_LABELS: Record<Role, string> = {
   owner: 'Владелец',
   admin: 'Администратор',
   user: 'Сотрудник',
+  multi_guest: 'Мульти-гость',
   bot: 'Бот',
 };
 

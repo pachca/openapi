@@ -362,16 +362,18 @@ function generateLibraryRules(): string {
 - All requests require Bearer token in Authorization header: \`Authorization: Bearer <TOKEN>\`
 - Two token types: **personal** — acts as a person and sees exactly what that person sees; **bot** — acts as a service account, sees every open channel of the workspace plus the closed chats and threads the bot was added to
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
-- Get a personal token: Settings → Automations → API, choosing its scopes. Get a bot token: per-bot in Settings → Automations
+- Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
 - A personal token issued in the interface does not expire; one obtained by \`pachca auth login\` lives an hour and renews itself
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: \`const client = new PachcaClient("YOUR_TOKEN")\`
 - Python SDK: \`client = PachcaClient("YOUR_TOKEN")\`
 
 ## Rate limits
-- Messages: about 4 sends per second per chat, 30 requests per 5 seconds across all chats, and 7,500 messages per chat per rolling day from one sender. Hitting the daily cap pauses that chat for an hour and every further attempt doubles the pause
-- Reading messages: about 10 per second. Incoming webhooks: about 10 per second per webhook id
+- Sending messages (POST /messages): about 4 per second per chat, 30 requests per 5 seconds across all chats, and 7,500 messages per chat per rolling day from one sender. Hitting the daily cap pauses that chat for an hour and every further attempt doubles the pause. Editing and deleting messages fall under the general limit
+- Reading messages (GET methods under /messages): about 10 per second per token. Event history (GET /webhooks/events): about 5 per 2 seconds per token. Other endpoints: about 50 per second per token
+- Incoming webhooks: about 10 per second per webhook id (counted by the identifier in the path, e.g. \`/webhooks/user123\`)
 - A \`429\` body comes in two shapes: the daily cap answers with ordinary JSON carrying \`rate_limit\`, the per-second limit is refused before the method and answers with plain text. Check \`Content-Type\` before parsing. \`Retry-After\` is present in both
+- Retries: never wait less than \`Retry-After\` and add jitter upward only. Do not retry pauses longer than a minute (the daily cap, overload protection): return the error with \`Retry-After\` instead. Retry \`5xx\` with exponential backoff and jitter, at most 3 times. The SDK (@pachca/sdk, pachca-sdk), CLI and n8n node retry by themselves
 
 ## Pagination
 - Cursor-based: use \`limit\` (1–50, default 50) and \`cursor\` query parameters. Always set \`limit\` explicitly — do not rely on the default
@@ -385,25 +387,18 @@ function generateLibraryRules(): string {
 - Python auto-pagination: \`await client.users.list_users_all()\` returns list of all results
 - Available for: users, chats, messages, members, tags, reactions, tasks, audit events, webhook events
 
-## Rate Limiting
-- Messages (POST/PUT/DELETE /messages): ~4 req/sec per chat (burst: 30/sec for 5s)
-- Message read (GET /messages): ~10 req/sec per token
-- Other endpoints: ~50 req/sec per token
-- Webhook events read (GET /webhooks/events): ~5 req / 2 sec per token
-- Incoming webhooks: ~10 req/sec per webhook id (counted by the identifier in the path, e.g. \`/webhooks/user123\`)
-- On \`429 Too Many Requests\`: respect \`Retry-After\` header value (seconds)
-- Recommended retry strategy: exponential backoff with jitter — base delay × 2^attempt × random(0.5–1.5)
-- SDK (@pachca/sdk, pachca-sdk) handles retry automatically: 3 retries, respects Retry-After, exponential backoff for 5xx
-
 ## Webhooks (Real-time Events)
-- Create a bot in Pachca: Automations → Integrations → Bots
-- Set webhook URL in bot settings → Outgoing Webhook tab
-- Events: \`new_message\`, \`edit_message\`, \`delete_message\`, \`new_reaction\`, \`delete_reaction\`, \`button_pressed\`, \`view_submit\`, \`chat_member_changed\`, \`company_member_changed\`, \`link_shared\`
+- Create a bot in Pachca: Integrations → Bots → Create bot
+- On the bot's Outgoing webhook tab, press Enable and give your URL
+- Events (\`events\` values): \`message_new\`, \`message_update\`, \`message_delete\`, \`reaction_new\`, \`reaction_delete\`, \`button_click\` (also delivers form submissions to the bot that opened the form), \`chat_member_add\`, \`chat_member_remove\`, \`company_member_invite\`, \`company_member_confirm\`, \`company_member_suspend\`, \`company_member_activate\`, \`company_member_delete\`, \`company_member_update\`, \`message_link_shared\`, \`video_call_started\`, \`video_call_finished\`, \`video_call_recording_ready\`
+- Most events come only from chats and threads where the bot is a member. Workspace member changes and links to the bot's domains come from the whole workspace
+- New messages depend on \`trigger_on\`: \`all_messages\` or \`commands\` (the first word must equal one of \`commands\`). A new bot is in \`commands\` mode with an empty list and gets no messages until you change it. There is no mentions-only mode: take all messages and check for \`@bot_nickname\` in \`content\`
 - Verify: HMAC-SHA256 of raw body with bot's Signing Secret
 - Header: \`Pachca-Signature\` contains hex digest
 - Replay protection: check \`webhook_timestamp\` within ±60 seconds of current time
-- Alternative to webhooks: polling via GET /webhooks/events (enable "Save event history" in bot settings)
-- IP whitelist: Pachca webhook IP is \`37.200.70.177\`
+- Alternative to webhooks: polling via GET /webhooks/events (enable "Save event history" on the Outgoing webhook tab, or \`events_history_enabled\` via the API when there is no URL at all)
+- Delivery: Pachca waits 5 seconds for a response and retries (up to 3 times) only when it cannot connect. Error responses and timeouts are not retried — enable event history to pick up missed events
+- IP allowlist: Pachca sends webhooks from \`37.200.70.177\`, \`185.209.115.174\` and \`135.106.159.61\`
 
 ## File Uploads (3-step process)
 - Step 1: POST /uploads → get S3 presigned params (\`direct_url\`, \`key\`, \`policy\`, \`x-amz-signature\`, etc.)
@@ -421,7 +416,7 @@ function generateLibraryRules(): string {
 ## Error Handling
 - \`400\`: validation errors — \`{ errors: [{ key, value, message, code }] }\` with codes: \`blank\`, \`invalid\`, \`taken\`, \`too_short\`, \`too_long\`, \`not_a_number\`
 - \`401\`: unauthorized — \`{ error, error_description }\` (OAuthError)
-- \`403\`: forbidden — insufficient permissions. May return ApiError (business logic) or OAuthError (\`insufficient_scope\`). On \`insufficient_scope\` the missing scope is in the \`WWW-Authenticate\` response header (\`scope="…"\`, RFC 6750) — read it from there instead of parsing the message text
+- \`403\`: forbidden — insufficient permissions. May return ApiError (business logic) or OAuthError: \`insufficient_scope\` (the token lacks the scope) or \`role_forbidden\` (the token has the scope, but the owner's current role does not allow the action — re-authorization will not help). On \`insufficient_scope\` the missing scope is in the \`WWW-Authenticate\` response header (\`scope="…"\`, RFC 6750) — read it from there instead of parsing the message text
 - \`404\`: not found
 - \`409\`: conflict (duplicate)
 - \`422\`: unprocessable — \`{ errors: [{ key, value, message, code }] }\`
@@ -592,7 +587,7 @@ profile = await client.profile.get_profile()
 print(profile.id, profile.first_name)
 \`\`\`
 
-Token types: **admin** (full access, get in Settings → Automations → API), **bot** (messaging + webhooks, per-bot in Integrations), **user** (limited).
+Token types: **admin** (full access, get in Integrations → API), **bot** (messaging + webhooks, API tab of the bot in Integrations → Bots), **user** (limited).
 
 `;
 
@@ -730,18 +725,18 @@ Chat types: \`channel: true\` creates a channel (one-way announcements), \`chann
   content += `## How to set up webhooks for real-time updates
 
 ### Step-by-step setup
-1. Create a bot in Pachca: **Automations** → **Integrations** → **Bots**
-2. In bot settings, go to **Outgoing Webhook** tab and set your HTTPS URL
+1. Create a bot in Pachca: **Integrations** → **Bots** → **Create bot**
+2. On the bot's **Outgoing webhook** tab press **Enable** and set your HTTPS URL
 3. Copy the **Signing Secret** for signature verification
 4. Select event types: new messages, reactions, button presses, form submissions, etc.
-5. Add the bot to chats where you want to receive events (global events like company member changes work without adding to chat)
+5. Add the bot to chats where you want to receive events (company member changes and links on the bot's domains arrive without adding it to a chat)
 
 ### TypeScript webhook handler (Express.js)
 \`\`\`typescript
 import express from "express"
 import crypto from "crypto"
 
-const SIGNING_SECRET = "your_signing_secret" // From bot settings → Outgoing Webhook
+const SIGNING_SECRET = "your_signing_secret" // Bot card → Outgoing webhook → Signing secret
 const app = express()
 
 app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
@@ -787,7 +782,7 @@ app.listen(3000)
 import hmac, hashlib, json, time
 from flask import Flask, request, abort
 
-SIGNING_SECRET = "your_signing_secret"  # From bot settings → Outgoing Webhook
+SIGNING_SECRET = "your_signing_secret"  # Bot card → Outgoing webhook → Signing secret
 app = Flask(__name__)
 
 @app.route("/webhook", methods=["POST"])
@@ -824,10 +819,10 @@ def webhook():
 | view_submit | Form submitted | payload (form field values), user_id, trigger_id |
 | chat_member (new/delete) | Member added/removed from chat | chat_id, user_id, event |
 | company_member (new/update/delete) | Workspace member changes | user_id, event (no chat needed) |
-| link_shared | URL shared (unfurl bots) | url, message_id, chat_id |
+| link_shared | URL on one of the bot's domains shared anywhere in the workspace | url, message_id, chat_id |
 
 ### Alternative: Polling (when webhook URL is not available)
-Enable "Save event history" in bot settings, then poll:
+Enable "Save event history" on the bot's Outgoing webhook tab (or \`events_history_enabled\` via the API when there is no URL at all), then poll:
 \`\`\`typescript
 // Poll for events periodically
 const events = await client.bots.getWebhookEvents()
@@ -1472,9 +1467,9 @@ function generateWorkflowsSection(): string {
     {
       title: 'Set up a bot with outgoing webhook',
       steps: [
-        { desc: 'Create bot in Pachca UI: Automations → Integrations → Webhook' },
-        { desc: 'Get `access_token` from bot API settings tab' },
-        { desc: 'Set Webhook URL to receive events' },
+        { desc: 'Create bot in Pachca UI: Integrations → Bots → Create bot' },
+        { desc: 'Create a token on the API tab of the bot — its value is shown once' },
+        { desc: 'On the Outgoing webhook tab, press Enable, give the URL and pick the events' },
       ],
     },
     {
@@ -1573,8 +1568,8 @@ Authorization: Bearer <access_token>
 \`\`\`
 
 **Token types:**
-- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Settings → Automations → API, where you pick its scopes; also obtainable with \`pachca auth login\`, which takes the whole catalogue trimmed by your role.
-- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created per-bot in Settings → Automations.
+- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Integrations → API, where you pick its scopes; also obtainable with \`pachca auth login\`, which takes the whole catalogue trimmed by your role.
+- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created in the API tab of the bot, under Integrations → Bots; a bot can hold several tokens, each with its own scopes.
 
 Scopes decide which methods a token may call; they never widen the data beyond the boundary of the token type. What a token may do also follows the current role of its owner, and that is checked on every request — a lowered role starts answering 403 without the token being touched.
 

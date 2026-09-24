@@ -26,7 +26,7 @@ export default class MessagesUpdate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'content': Flags.string({
-      description: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).",
+      description: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть.",
     }),
     'files': Flags.string({
       description: "Прикрепляемые файлы",

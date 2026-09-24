@@ -17,6 +17,10 @@ from .models import (
     ListBotsParams,
     ListBotsResponse,
     BotResponse,
+    BotScopeCatalog,
+    ListBotTokensParams,
+    ListBotTokensResponse,
+    BotAccessToken,
     ListCompanyBotsParams,
     ListCompanyBotsResponse,
     CompanyBotResponse,
@@ -24,10 +28,14 @@ from .models import (
     GetWebhookEventsResponse,
     WebhookEvent,
     WebhookPayloadUnion,
-    BotCreateResponse,
+    BotSelfTokenResponse,
     BotCreateRequest,
+    BotCreateResponse,
+    BotTokenCreateRequest,
     BotWebhookSelfUpdateRequest,
+    BotSelfResponse,
     BotUpdateRequest,
+    BotTokenUpdateRequest,
     ListChatsParams,
     ListChatsResponse,
     Chat,
@@ -40,6 +48,7 @@ from .models import (
     ChatCreateRequest,
     ExportRequest,
     ChatUpdateRequest,
+    MarkChatUnreadRequest,
     ListMembersParams,
     ListMembersResponse,
     User,
@@ -207,6 +216,26 @@ class BotsService:
     ) -> BotResponse:
         raise NotImplementedError("Bots.getBot is not implemented")
 
+    async def get_bot_scopes(
+        self,
+        id: int,
+    ) -> BotScopeCatalog:
+        raise NotImplementedError("Bots.getBotScopes is not implemented")
+
+    async def list_bot_tokens(
+        self,
+        id: int,
+        params: ListBotTokensParams | None = None,
+    ) -> ListBotTokensResponse:
+        raise NotImplementedError("Bots.listBotTokens is not implemented")
+
+    async def list_bot_tokens_all(
+        self,
+        id: int,
+        params: ListBotTokensParams | None = None,
+    ) -> list[BotAccessToken]:
+        raise NotImplementedError("Bots.listBotTokensAll is not implemented")
+
     async def list_company_bots(
         self,
         params: ListCompanyBotsParams | None = None,
@@ -293,7 +322,7 @@ class BotsService:
                 yield event.payload
 
     async def self_recreate_bot_token(
-        self) -> BotCreateResponse:
+        self) -> BotSelfTokenResponse:
         raise NotImplementedError("Bots.selfRecreateBotToken is not implemented")
 
     async def create_bot(
@@ -308,10 +337,30 @@ class BotsService:
     ) -> BotCreateResponse:
         raise NotImplementedError("Bots.recreateBotToken is not implemented")
 
+    async def rotate_bot_client_secret(
+        self,
+        id: int,
+    ) -> BotResponse:
+        raise NotImplementedError("Bots.rotateBotClientSecret is not implemented")
+
+    async def create_bot_token(
+        self,
+        id: int,
+        request: BotTokenCreateRequest,
+    ) -> BotAccessToken:
+        raise NotImplementedError("Bots.createBotToken is not implemented")
+
+    async def reissue_bot_token(
+        self,
+        id: int,
+        token_id: int,
+    ) -> BotAccessToken:
+        raise NotImplementedError("Bots.reissueBotToken is not implemented")
+
     async def self_update_bot_webhook(
         self,
         request: BotWebhookSelfUpdateRequest,
-    ) -> BotResponse:
+    ) -> BotSelfResponse:
         raise NotImplementedError("Bots.selfUpdateBotWebhook is not implemented")
 
     async def update_bot(
@@ -321,11 +370,26 @@ class BotsService:
     ) -> BotResponse:
         raise NotImplementedError("Bots.updateBot is not implemented")
 
+    async def update_bot_token(
+        self,
+        id: int,
+        token_id: int,
+        request: BotTokenUpdateRequest,
+    ) -> BotAccessToken:
+        raise NotImplementedError("Bots.updateBotToken is not implemented")
+
     async def delete_bot(
         self,
         id: int,
     ) -> None:
         raise NotImplementedError("Bots.deleteBot is not implemented")
+
+    async def delete_bot_token(
+        self,
+        id: int,
+        token_id: int,
+    ) -> None:
+        raise NotImplementedError("Bots.deleteBotToken is not implemented")
 
     async def delete_webhook_event(
         self,
@@ -397,6 +461,66 @@ class BotsServiceImpl(BotsService):
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def get_bot_scopes(
+        self,
+        id: int,
+    ) -> BotScopeCatalog:
+        response = await self._client.get(
+            f"/bots/{id}/scopes",
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(BotScopeCatalog, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def list_bot_tokens(
+        self,
+        id: int,
+        params: ListBotTokensParams | None = None,
+    ) -> ListBotTokensResponse:
+        query: dict[str, str] = {}
+        if params is not None and params.limit is not None:
+            query["limit"] = str(params.limit)
+        if params is not None and params.cursor is not None:
+            query["cursor"] = params.cursor
+        response = await self._client.get(
+            f"/bots/{id}/tokens",
+            params=query,
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(ListBotTokensResponse, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def list_bot_tokens_all(
+        self,
+        id: int,
+        params: ListBotTokensParams | None = None,
+    ) -> list[BotAccessToken]:
+        items: list[BotAccessToken] = []
+        cursor: str | None = None
+        has_next = True
+        while has_next:
+            if params is None:
+                params = ListBotTokensParams()
+            params.cursor = cursor
+            response = await self.list_bot_tokens(id, params=params)
+            items.extend(response.data)
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
+        return items
 
     async def list_company_bots(
         self,
@@ -485,14 +609,14 @@ class BotsServiceImpl(BotsService):
         return items
 
     async def self_recreate_bot_token(
-        self) -> BotCreateResponse:
+        self) -> BotSelfTokenResponse:
         response = await self._client.post(
             "/bot/recreate_token",
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(BotCreateResponse, body["data"])
+                return deserialize(BotSelfTokenResponse, body["data"])
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -531,10 +655,61 @@ class BotsServiceImpl(BotsService):
             case _:
                 raise deserialize(ApiError, body)
 
+    async def rotate_bot_client_secret(
+        self,
+        id: int,
+    ) -> BotResponse:
+        response = await self._client.post(
+            f"/bots/{id}/rotate_client_secret",
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(BotResponse, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def create_bot_token(
+        self,
+        id: int,
+        request: BotTokenCreateRequest,
+    ) -> BotAccessToken:
+        response = await self._client.post(
+            f"/bots/{id}/tokens",
+            json=serialize(request),
+        )
+        body = response.json()
+        match response.status_code:
+            case 201:
+                return deserialize(BotAccessToken, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def reissue_bot_token(
+        self,
+        id: int,
+        token_id: int,
+    ) -> BotAccessToken:
+        response = await self._client.post(
+            f"/bots/{id}/tokens/{token_id}/reissue",
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(BotAccessToken, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
     async def self_update_bot_webhook(
         self,
         request: BotWebhookSelfUpdateRequest,
-    ) -> BotResponse:
+    ) -> BotSelfResponse:
         response = await self._client.put(
             "/bot/webhook",
             json=serialize(request),
@@ -542,7 +717,7 @@ class BotsServiceImpl(BotsService):
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(BotResponse, body["data"])
+                return deserialize(BotSelfResponse, body["data"])
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -566,12 +741,47 @@ class BotsServiceImpl(BotsService):
             case _:
                 raise deserialize(ApiError, body)
 
+    async def update_bot_token(
+        self,
+        id: int,
+        token_id: int,
+        request: BotTokenUpdateRequest,
+    ) -> BotAccessToken:
+        response = await self._client.put(
+            f"/bots/{id}/tokens/{token_id}",
+            json=serialize(request),
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(BotAccessToken, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
     async def delete_bot(
         self,
         id: int,
     ) -> None:
         response = await self._client.delete(
             f"/bots/{id}",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
+
+    async def delete_bot_token(
+        self,
+        id: int,
+        token_id: int,
+    ) -> None:
+        response = await self._client.delete(
+            f"/bots/{id}/tokens/{token_id}",
         )
         match response.status_code:
             case 204:
@@ -664,6 +874,13 @@ class ChatsService:
         id: int,
     ) -> None:
         raise NotImplementedError("Chats.unarchiveChat is not implemented")
+
+    async def mark_chat_unread(
+        self,
+        id: int,
+        request: MarkChatUnreadRequest,
+    ) -> None:
+        raise NotImplementedError("Chats.markChatUnread is not implemented")
 
 
 class ChatsServiceImpl(ChatsService):
@@ -879,6 +1096,23 @@ class ChatsServiceImpl(ChatsService):
     ) -> None:
         response = await self._client.put(
             f"/chats/{id}/unarchive",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
+
+    async def mark_chat_unread(
+        self,
+        id: int,
+        request: MarkChatUnreadRequest,
+    ) -> None:
+        response = await self._client.put(
+            f"/chats/{id}/unread",
+            json=serialize(request),
         )
         match response.status_code:
             case 204:

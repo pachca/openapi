@@ -96,7 +96,7 @@ export const messageFields: INodeProperties[] = [
 		required: true,
 		typeOptions: { rows: 4 },
 		default: "",
-		description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`).',
+		description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is.',
 		displayOptions: { show: { resource: ['message'], operation: ['create'] } },
 		placeholder: 'Yesterday we sold 756 t-shirts (10% more than last Sunday)',
 	},
@@ -138,7 +138,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'duration_ms',
 							type: 'number',
 							default: 0,
-							description: 'Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types.',
+							description: 'Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.',
 						},
 						{
 							displayName: 'File Type',
@@ -211,7 +211,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'parentMessageId',
 				type: 'number',
 				default: 0,
-				description: 'ID of the message you are replying to. The reply appears right in the chat feed rather than in a thread: to write into a thread, send the message with `entity_type: "thread"`.',
+				description: 'ID of the message you are replying to with a quote. You can reply to a message in any chat, including a thread: send the reply to the same chat or thread where that message is, otherwise the request returns a `422` error. To write into the thread under a message, set `entity_type: "thread"` and the thread ID in `entity_id`.',
 				placeholder: '194270',
 			},
 			{
@@ -413,7 +413,7 @@ export const messageFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 4 },
 				default: "",
-				description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`).',
+				description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is.',
 				placeholder: 'Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur, liaison, necessary, surveillance, questionnaire.',
 			},
 			{
@@ -446,7 +446,7 @@ export const messageFields: INodeProperties[] = [
 							name: 'duration_ms',
 							type: 'number',
 							default: 0,
-							description: 'Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types.',
+							description: 'Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.',
 						},
 						{
 							displayName: 'File Type',

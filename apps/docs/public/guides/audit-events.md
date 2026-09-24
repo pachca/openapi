@@ -101,6 +101,11 @@
 - `bot_token_recreated` — Токен бота перевыпущен (ротация)
 - `bot_deleted` — Бот удалён
 - `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота
+- `bot_oauth_client_disabled` — У бота выключена авторизация от имени сотрудника
+- `bot_oauth_client_secret_rotated` — Обновлён секрет OAuth-клиента бота
+- `bot_token_created` — Выпущен токен бота
+- `bot_token_updated` — Изменены имя или скоупы токена бота
+- `bot_token_reissued` — Отдельный токен бота перевыпущен
 - `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным
 - `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван
 - `oauth_device_authorization_approved` — Сотрудник подтвердил вход приложения с устройства

@@ -23,6 +23,15 @@ const OPERATION_OVERRIDES: Record<string, string> = {
   'GET /company/bots': '/api/bots/list-company',
   // Ответ на отправку формы: без пина POST даёт префикс add, и команда читается как создание.
   'POST /views/{view_id}/submit_response': '/api/views/submit-response',
+  // Токены, каталог прав и секрет клиента бота: вложенные пути под /bots/{id} дали бы безликие слаги.
+  'GET /bots/{id}/tokens': '/api/bots/list-tokens',
+  'POST /bots/{id}/tokens': '/api/bots/create-token',
+  'PUT /bots/{id}/tokens/{token_id}': '/api/bots/update-token',
+  'POST /bots/{id}/tokens/{token_id}/reissue': '/api/bots/reissue-token',
+  'DELETE /bots/{id}/tokens/{token_id}': '/api/bots/delete-token',
+  'GET /bots/{id}/scopes': '/api/bots/list-scopes',
+  'POST /bots/{id}/rotate_client_secret': '/api/bots/rotate-client-secret',
+  'PUT /chats/{id}/unread': '/api/chats/mark-unread',
 };
 
 export function generateUrlFromOperation(endpoint: Endpoint): string {

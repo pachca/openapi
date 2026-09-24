@@ -151,7 +151,7 @@ export const userFields: INodeProperties[] = [
 				name: 'listTags',
 				type: 'string',
 				default: "",
-				description: 'Array of tags to assign to the employee',
+				description: 'Array of tag names to assign to the employee. A value that is not an array of non-empty strings is ignored.',
 				placeholder: 'Product,Design',
 			},
 			{
@@ -385,7 +385,7 @@ export const userFields: INodeProperties[] = [
 				name: 'listTags',
 				type: 'string',
 				default: "",
-				description: 'Array of tags to assign to the employee',
+				description: 'Array of tag names to assign to the employee. The list replaces the previous one as a whole, an empty one removes all tags. A value that is not an array of non-empty strings is ignored: the employee\'s tags do not change.',
 				placeholder: 'Product,Design',
 			},
 			{

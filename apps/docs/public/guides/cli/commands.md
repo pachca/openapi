@@ -30,15 +30,22 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca auth status` | Статус текущего профиля |
 | `pachca auth switch` | Переключение активного профиля |
 | `pachca bots create` | `POST` Новый бот |
+| `pachca bots create-token` | `POST` Новый токен бота |
 | `pachca bots delete` | `DELETE` Удаление бота |
+| `pachca bots delete-token` | `DELETE` Удаление токена бота |
 | `pachca bots get` | `GET` Информация о боте |
 | `pachca bots list` | `GET` Список ботов |
 | `pachca bots list-company` | `GET` Список ботов пространства |
 | `pachca bots list-events` | `GET` История событий |
+| `pachca bots list-scopes` | `GET` Каталог прав бота |
+| `pachca bots list-tokens` | `GET` Список токенов бота |
 | `pachca bots recreate-token` | `POST` Ротация токена бота |
 | `pachca bots recreate-token-self` | `POST` Ротация собственного токена бота |
+| `pachca bots reissue-token` | `POST` Перевыпуск токена бота |
 | `pachca bots remove-event` | `DELETE` Удаление события |
+| `pachca bots rotate-client-secret` | `POST` Ротация секрета клиента |
 | `pachca bots update` | `PUT` Редактирование бота |
+| `pachca bots update-token` | `PUT` Изменение токена бота |
 | `pachca bots update-webhook` | `PUT` Саморегистрация вебхука бота |
 | `pachca changelog` | История изменений CLI |
 | `pachca chats archive` | `PUT` Архивация чата |
@@ -47,6 +54,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca chats get` | `GET` Информация о чате |
 | `pachca chats list` | `GET` Список чатов |
 | `pachca chats list-company` | `GET` Список чатов пространства |
+| `pachca chats mark-unread` | `PUT` Отметка чата непрочитанным |
 | `pachca chats request-export` | `POST` Экспорт сообщений |
 | `pachca chats unarchive` | `PUT` Разархивация чата |
 | `pachca chats update` | `PUT` Редактирование чата |

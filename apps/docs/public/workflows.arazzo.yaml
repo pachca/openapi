@@ -364,11 +364,12 @@ workflows:
     summary: Create a bot via API and get its token
     description: >-
       Bots can only be created with a user token, not a bot token. The `access_token` is returned
-      once at creation; afterwards it can be viewed and copied in the interface. Manual
-      prerequisites: Save `access_token` from the response — it is returned only once. It is never
-      shown again and can only be reissued with `pachca bots recreate-token <ID>`; The response also
-      includes the bot `id` (its `user_id`) — needed for further calls, e.g. adding the bot to a
-      chat.
+      once at creation; it cannot be viewed again, only reissued. With `--empty` the bot is created
+      without a token and an incoming webhook, as in the interface, and tokens are then issued with
+      `pachca bots create-token`. Manual prerequisites: Save `access_token` from the response — it
+      is returned only once. It is never shown again and can only be reissued with `pachca bots
+      recreate-token <ID>`; The response also includes the bot `id` (its `user_id`) — needed for
+      further calls, e.g. adding the bot to a chat.
     steps:
       - stepId: create-a-bot-via-api-and-get-its-token-1
         description: >-
@@ -407,22 +408,65 @@ workflows:
   - workflowId: rotate-a-bot-token
     summary: Rotate a bot token
     description: >-
-      The new token is returned once. The self path (`POST /bot/recreate_token`) invalidates the
-      very token used for the request — capture the new token from the response in the same
+      The new value is returned once. The self path (`POST /bot/recreate_token`) rotates the bot
+      main token — if the bot works with it, capture the new token from the response in the same
       operation. Manual prerequisites: Save the new `access_token` from the response — returned only
       once. Update the secret in CI or your secret store.
     steps:
       - stepId: rotate-a-bot-token-1
         description: >-
-          With a user token (admin, company owner or bot creator) — rotate the token by bot `id`.
-          The previous token is invalidated immediately
+          With a user token (the bot creator, or an admin if the bot is open to admins) — rotate the
+          main token by bot `id`: the one without a name, or the oldest one if there is none. The
+          previous value is invalidated immediately
         operationId: BotOperations_recreateBotToken
       - stepId: rotate-a-bot-token-2
         description: >-
-          Or: the bot rotates its own token with its own token (scope `bot_self:write`). The token
-          used for the request is invalidated immediately — be sure to save the new `access_token`
-          from the response, otherwise the bot loses API access
+          Or: the bot rotates its own main token itself (scope `bot_self:write`). If the request is
+          made with the main token, it is invalidated immediately — be sure to save the new
+          `access_token` from the response, otherwise the bot loses API access
         operationId: BotOperations_selfRecreateBotToken
+      - stepId: rotate-a-bot-token-3
+        description: >-
+          Reissue an additional bot token by its `id` from `pachca bots list-tokens`: the value
+          changes, the name and scopes stay
+        operationId: BotOperations_reissueBotToken
+  - workflowId: issue-an-additional-bot-token
+    summary: Issue an additional bot token
+    description: >-
+      A separate token is handy for each service that works on behalf of the bot: it is revoked with
+      `pachca bots delete-token` without touching the others. Scopes are changed with `pachca bots
+      update-token` — they take effect immediately, no reissue needed. Manual prerequisites: Save
+      `token` from the response — the full value is returned only once. Afterwards `pachca bots
+      list-tokens` returns it masked.
+    steps:
+      - stepId: issue-an-additional-bot-token-1
+        description: >-
+          With a user token (the bot creator, or an admin if the bot is open to admins) get the
+          catalog of scopes that can be granted to this bot
+        operationId: BotOperations_getBotScopes
+      - stepId: issue-an-additional-bot-token-2
+        description: >-
+          Issue a token with a name and scopes from the catalog. Without `--scopes` the token has no
+          scopes, and a scope outside the catalog is rejected with `400`
+        operationId: BotOperations_createBotToken
+  - workflowId: enable-authorization-on-behalf-of-an-employee-for-a-bot
+    summary: Enable authorization on behalf of an employee for a bot
+    description: >-
+      Whether authorization is enabled is shown by `oauth_client_enabled`: `oauth_client` can come
+      even for a bot with authorization disabled. `--oauth-client=null` disables it and revokes the
+      authorizations granted by employees, and `pachca bots rotate-client-secret` issues a new
+      secret. Manual prerequisites: Save `client_secret` from the server-side client response — it
+      is returned only once. `client_id` comes in `oauth_client` and is not secret.
+    steps:
+      - stepId: enable-authorization-on-behalf-of-an-employee-for-a-bot-1
+        description: >-
+          With a user token (the bot creator, or an admin if the bot is open to admins) enable
+          authorization: where the secret is stored, redirect URIs and the scopes the bot will
+          request from an employee. Take the scopes from `pachca bots list-scopes`
+        operationId: BotOperations_updateBot
+      - stepId: enable-authorization-on-behalf-of-an-employee-for-a-bot-2
+        description: To list the bot in the catalog, add a description and publish the page
+        operationId: BotOperations_updateBot
   - workflowId: find-and-delete-a-bot
     summary: Find and delete a bot
     description: >-
@@ -437,10 +481,10 @@ workflows:
         operationId: BotOperations_listBots
       - stepId: find-and-delete-a-bot-2
         description: >-
-          Take the target bot `id` from the list and delete it (scope `bots:write`). Available to an
-          admin, the company owner or the bot creator — chat owners cannot delete a bot. The
-          previous token is invalidated immediately, the bot is removed from all chats, and its
-          outgoing webhook is deleted
+          Take the target bot `id` from the list and delete it (scope `bots:write`). Available to
+          the bot creator, and to an admin if the bot is open to admins — chat owners cannot delete
+          a bot. All bot tokens are invalidated immediately, the bot is removed from all chats, and
+          its webhooks are deleted
         operationId: BotOperations_deleteBot
   - workflowId: handle-incoming-webhook-event
     summary: Handle incoming webhook event
@@ -457,12 +501,14 @@ workflows:
   - workflowId: link-unfurling
     summary: Link unfurling
     description: >-
-      Endpoint is bound to a specific message. Requires a special Unfurl bot with specified domains.
-      Manual prerequisites: Create a special Unfurl bot and specify tracked domains; When a link
-      appears, bot receives webhook `"event": "link_shared"` with `links` array. Each object has
-      `url`, `domain` and `skip: boolean` — if `skip` is `true`, the author hid the preview and the
-      bot must skip this link; Extract data from your system by URL from `links` (skipping objects
-      with `skip: true`).
+      Endpoint is bound to a specific message. The bot needs the link unfurling event with its
+      domains: links arrive from every chat of the workspace, no need to add the bot to chats.
+      Manual prerequisites: On the Outgoing webhook tab of the bot, enable the "Links shared in
+      messages (unfurl)" event and list up to 5 domains — only a workspace admin or owner can do
+      this; When a link appears, bot receives webhook `"event": "link_shared"` with `links` array.
+      Each object has `url`, `domain` and `skip: boolean` — if `skip` is `true`, the author hid the
+      preview and the bot must skip this link; Extract data from your system by URL from `links`
+      (skipping objects with `skip: true`).
     steps:
       - stepId: link-unfurling-1
         description: Send preview data
@@ -503,14 +549,19 @@ workflows:
   - workflowId: process-events-via-history-polling
     summary: Process events via history (polling)
     description: >-
-      Polling — alternative to real-time webhook if bot has no public URL. Manual prerequisites: In
-      bot settings enable "Save event history". Webhook URL is optional.; Process each event (same
-      format as real-time webhook).
+      Polling — alternative to real-time webhook if bot has no public URL. Manual prerequisites:
+      Process each event (same format as real-time webhook).
     steps:
       - stepId: process-events-via-history-polling-1
+        description: >-
+          Enable the event history with `--events-history-enabled` (no Webhook URL needed) or with
+          "Save event history" on the Outgoing webhook tab — in the UI it appears once the webhook
+          is enabled
+        operationId: BotOperations_updateBot
+      - stepId: process-events-via-history-polling-2
         description: Get accumulated events
         operationId: BotOperations_getWebhookEvents
-      - stepId: process-events-via-history-polling-2
+      - stepId: process-events-via-history-polling-3
         description: Delete processed event (Delete to avoid reprocessing)
         operationId: BotOperations_deleteWebhookEvent
   - workflowId: inventory-of-all-workspace-bots

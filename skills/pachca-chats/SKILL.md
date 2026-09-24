@@ -17,7 +17,7 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
+Ask the user for a Pachca token (bot: the API tab of the bot in Integrations → Bots, user: Integrations → API).
 
 Run commands via `npx -y @pachca/cli` with the `--token` flag:
 
@@ -158,6 +158,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | DELETE | /chats/{id}/members/{user_id} | Исключение пользователя |
 | PUT | /chats/{id}/members/{user_id} | Редактирование роли |
 | PUT | /chats/{id}/unarchive | Разархивация чата |
+| PUT | /chats/{id}/unread | Отметка чата непрочитанным |
 | GET | /company/chats | Список чатов пространства |
 
 ## Advanced workflows

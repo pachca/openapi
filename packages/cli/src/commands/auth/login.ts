@@ -15,6 +15,7 @@ import { outputError } from '../../output.js';
 import {
   OAuthError,
   copyToClipboard,
+  deviceName,
   openBrowser,
   pollForToken,
   requestDeviceCode,
@@ -107,7 +108,7 @@ export default class AuthLogin extends BaseCommand {
 
     const grant = flags.token
       ? { access_token: flags.token }
-      : await this.deviceLogin(!flags['no-browser'], flags.quiet);
+      : await this.deviceLogin(profileName, !flags['no-browser'], flags.quiet);
 
     const tokenInfo = await this.verifyToken(grant.access_token);
     const identity = await this.fetchIdentity(grant.access_token, tokenInfo.user_id);
@@ -152,10 +153,14 @@ export default class AuthLogin extends BaseCommand {
    * the code baked in is never shown — a link like that works as phishing when it
    * is forwarded to someone else's device.
    */
-  private async deviceLogin(useBrowser: boolean, quiet?: boolean): Promise<TokenGrant> {
+  private async deviceLogin(
+    profileName: string,
+    useBrowser: boolean,
+    quiet?: boolean,
+  ): Promise<TokenGrant> {
     let grant: DeviceCodeGrant;
     try {
-      grant = await requestDeviceCode();
+      grant = await requestDeviceCode(deviceName(profileName));
     } catch (error) {
       this.failOAuth(error, 'Не удалось начать вход');
     }

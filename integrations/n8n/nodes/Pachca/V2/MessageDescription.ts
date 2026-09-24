@@ -96,7 +96,7 @@ export const messageFields: INodeProperties[] = [
 		required: true,
 		typeOptions: { rows: 4 },
 		default: "",
-		description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`).',
+		description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is.',
 		displayOptions: { show: { resource: ['message'], operation: ['create'] } },
 		placeholder: 'Yesterday we sold 756 t-shirts (10% more than last Sunday)',
 	},
@@ -413,7 +413,7 @@ export const messageFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 4 },
 				default: "",
-				description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`).',
+				description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is.',
 				placeholder: 'Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur, liaison, necessary, surveillance, questionnaire.',
 			},
 			{

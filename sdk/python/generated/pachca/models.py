@@ -112,7 +112,7 @@ class BotWhoCanAdd(StrEnum):
     CREATOR = "creator"  # Только создатель бота
     CREATOR_ADMIN = "creator_admin"  # Создатель и администраторы компании
     CREATOR_ADMIN_USER = "creator_admin_user"  # Создатель, администраторы и участники компании
-    ANYONE = "anyone"  # Любой пользователь, в том числе гости
+    ANYONE = "anyone"  # Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей
 
 
 class ChatActivity(StrEnum):
@@ -427,6 +427,7 @@ class ValidationErrorCode(StrEnum):
     DRAFT_TYPE_CHANGE_FORBIDDEN = "draft_type_change_forbidden"  # Отложенное сообщение нельзя превратить обратно в черновик
     CONFIDENTIAL_DOWNLOAD_DENIED = "confidential_download_denied"  # Скачивание файла запрещено: нужен запрос из безопасного контура
     DECRYPTION_FAILED = "decryption_failed"  # Не удалось расшифровать файл
+    BOT_ADD_DENIED = "bot_add_denied"  # Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
     FORBIDDEN = "forbidden"  # Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     PERMISSION_DENIED = "permission_denied"  # Доступ запрещён (недостаточно прав)
     ACCESS_DENIED = "access_denied"  # Доступ запрещён

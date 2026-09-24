@@ -46,8 +46,8 @@ Authorization: Bearer <access_token>
 ```
 
 **Token types:**
-- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Settings → Automations → API, where you pick its scopes; also obtainable with `pachca auth login`, which takes the whole catalogue trimmed by your role.
-- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created per-bot in Settings → Automations.
+- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Integrations → API, where you pick its scopes; also obtainable with `pachca auth login`, which takes the whole catalogue trimmed by your role.
+- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created in the API tab of the bot, under Integrations → Bots; a bot can hold several tokens, each with its own scopes.
 
 Scopes decide which methods a token may call; they never widen the data beyond the boundary of the token type. What a token may do also follows the current role of its owner, and that is checked on every request — a lowered role starts answering 403 without the token being touched.
 
@@ -199,9 +199,9 @@ npx -y @pachca/cli <command> --token <TOKEN>
 
 ### Set up a bot with outgoing webhook
 
-1. Create bot in Pachca UI: Automations → Integrations → Webhook
-2. Get `access_token` from bot API settings tab
-3. Set Webhook URL to receive events
+1. Create bot in Pachca UI: Integrations → Bots → Create bot
+2. Create a token on the API tab of the bot — its value is shown once
+3. On the Outgoing webhook tab, press Enable, give the URL and pick the events
 
 ### Show interactive form to user
 
@@ -254,12 +254,20 @@ Detailed documentation on specific topics is available at:
 - [AI агенты, Оформление ответов](https://dev.pachca.com/guides/ai-agents/markdown) — Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чеклисты, подсветка кода, diff, диаграммы Mermaid. Файлы .html открываются просмотром прямо в переписке
 - [Треды](https://dev.pachca.com/guides/threads) — Треды в Пачке для разработчиков: сквозные и самостоятельные треды как уникальная особенность, создание у сообщения (POST /messages/{id}/thread) и без привязки к сообщению (POST /threads), отправка комментариев, добавление участников, видимость родительского чата, нюансы API и поля Message.thread/root_chat_id
 - [Теги](https://dev.pachca.com/guides/tags) — Теги в Пачке: тег как состав беседы или канала с автоматической синхронизацией участников, упоминание тега в сообщении и в треде, поле list_tags у сотрудника, правила названий, права и события журнала аудита
-- [Боты, Обзор](https://dev.pachca.com/guides/bots/overview) — Боты в Пачке: что это, типы ботов, доступность в чатах и подмена имени и аватара отправителя в сообщениях
-- [Боты, Создание и настройка](https://dev.pachca.com/guides/bots/setup) — Как создать бота в Пачке: выбор типа, копирование токена, настройка имени и аватара, настройка доступов и вкладок вебхуков и API
+- [Боты, Обзор](https://dev.pachca.com/guides/bots/overview) — Боты в Пачке: сервисный участник пространства, на котором строятся интеграции. Что умеет бот, с чего начать под вашу задачу, где бот находится в интерфейсе и подмена имени отправителя
+- [Боты, Создание бота](https://dev.pachca.com/guides/bots/setup) — Как создать бота в Пачке: в разделе «Интеграции» или методом API, что настроить сразу после создания, вкладка «Управление» и жизненный цикл бота через API
+- [Боты, Настройки бота](https://dev.pachca.com/guides/bots/settings) — Вкладка «Основное» в карточке бота: профиль, ограничение одним чатом, публичный бот, кто может добавлять бота в чаты и редактировать его настройки, удаление бота и те же настройки через API
+- [Боты, Токены бота](https://dev.pachca.com/guides/bots/tokens) — Токены бота в Пачке: несколько токенов со своими правами, выпуск, перевыпуск и удаление на вкладке «API», права самоуправления бота, токен при создании бота через API и что делать, если токен утёк
+- [Боты, Первый диалог с ботом](https://dev.pachca.com/guides/bots/first-contact) — Как сотрудник начинает разговор с ботом в Пачке и почему бот молчит: личный чат создаётся без события, новый бот слушает только команды. Что настроить заранее и как ответить на первое сообщение
 - [Боты, Доступы к чатам и сообщениям](https://dev.pachca.com/guides/bots/access) — Как бот получает доступ к закрытым каналам и беседам, тредам и личным сообщениям в Пачке
+- [Боты, Витрина](https://dev.pachca.com/guides/bots/showcase) — Витрина ботов в Пачке: каталог пространства на вкладке «Обзор» — публичные боты и боты с авторизацией. Как опубликовать бота, что на его странице и как сотрудник подключает бота сам
 - [Боты, Готовые примеры реализации](https://dev.pachca.com/guides/bots/examples) — Открытые примеры ботов для Пачки: Welcome Bot для приветствия новых сотрудников, Review Bot для интеграции с GitHub Pull Requests и Unfurl-бот для предпросмотра ссылок
+- [Авторизация от имени сотрудника, Обзор](https://dev.pachca.com/guides/oauth/overview) — Авторизация от имени сотрудника: сотрудник выдаёт боту свои права, и бот делает автоматизации в Пачке и связывает её с другими сервисами от его имени. Как это выглядит для сотрудника, где настраивается у бота и какие ограничения действуют
+- [Авторизация от имени сотрудника, Настройка бота](https://dev.pachca.com/guides/oauth/setup) — Как включить у бота авторизацию от имени сотрудника: где хранится секрет, адреса возврата, client_id и client_secret, запрашиваемый доступ, страница на витрине, отключение и чек-лист настроек, без которых авторизация не заработает
+- [Авторизация от имени сотрудника, Получение токена](https://dev.pachca.com/guides/oauth/flow) — Как бот получает токен сотрудника по шагам: ссылка авторизации с state и PKCE, кнопка в сообщении бота, возврат с кодом, обмен кода на токен, проверка сотрудника и обработка отказов. Пример на curl и TypeScript
+- [Авторизация от имени сотрудника, Согласие и отзыв](https://dev.pachca.com/guides/oauth/consent) — Экран согласия при авторизации бота: что видит сотрудник, кто не может выдать доступ, повторная авторизация, список «Авторизации» на странице «API», отзыв доступа и что после него происходит с ботом
 - [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks) — Входящие вебхуки в Пачке: отправка сообщений от имени бота одним HTTP POST без API, шаблонизатор для форматирования, интеграции с CI/CD и мониторингом
-- [Исходящие вебхуки, Обзор](https://dev.pachca.com/guides/webhook/overview) — Исходящие вебхуки в Пачке: что это, как настроить и какие настройки доступны на вкладке Исходящий Webhook в боте
+- [Исходящие вебхуки, Обзор](https://dev.pachca.com/guides/webhook/overview) — Исходящие вебхуки в Пачке: что это, как включить и какие настройки доступны на вкладке «Исходящий вебхук» в карточке бота
 - [Исходящие вебхуки, Настройка и типы событий](https://dev.pachca.com/guides/webhook/events) — Настройки исходящих вебхуков Пачки и список доступных типов событий: сообщения, реакции, нажатия кнопок, заполнение форм, изменение участников чатов и пространства, отправка ссылок
 - [Исходящие вебхуки, Безопасность и обработчик](https://dev.pachca.com/guides/webhook/handler) — Безопасность исходящих вебхуков Пачки: подпись HMAC-SHA256, проверка timestamp, IP-адрес отправителя, примеры обработчика на TypeScript и Python, идемпотентная обработка и доставка
 - [Исходящие вебхуки, Поллинг](https://dev.pachca.com/guides/webhook/polling) — Поллинг исходящих вебхуков Пачки через SDK: получение новых событий без публичного webhook URL, дедупликация доставок и пример воркера для локальной разработки

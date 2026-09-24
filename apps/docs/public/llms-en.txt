@@ -12,7 +12,7 @@
 - All requests require Bearer token in Authorization header: `Authorization: Bearer <TOKEN>`
 - Two token types: **personal** — acts as a person and sees exactly what that person sees; **bot** — acts as a service account, sees every open channel of the workspace plus the closed chats and threads the bot was added to
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
-- Get a personal token: Settings → Automations → API, choosing its scopes. Get a bot token: per-bot in Settings → Automations
+- Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
 - A personal token issued in the interface does not expire; one obtained by `pachca auth login` lives an hour and renews itself
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: `const client = new PachcaClient("YOUR_TOKEN")`
@@ -46,13 +46,13 @@
 - SDK (@pachca/sdk, pachca-sdk) handles retry automatically: 3 retries, respects Retry-After, exponential backoff for 5xx
 
 ## Webhooks (Real-time Events)
-- Create a bot in Pachca: Automations → Integrations → Bots
-- Set webhook URL in bot settings → Outgoing Webhook tab
+- Create a bot in Pachca: Integrations → Bots → Create bot
+- On the bot's Outgoing webhook tab, press Enable and give your URL
 - Events: `new_message`, `edit_message`, `delete_message`, `new_reaction`, `delete_reaction`, `button_pressed`, `view_submit`, `chat_member_changed`, `company_member_changed`, `link_shared`
 - Verify: HMAC-SHA256 of raw body with bot's Signing Secret
 - Header: `Pachca-Signature` contains hex digest
 - Replay protection: check `webhook_timestamp` within ±60 seconds of current time
-- Alternative to webhooks: polling via GET /webhooks/events (enable "Save event history" in bot settings)
+- Alternative to webhooks: polling via GET /webhooks/events (enable "Save event history" on the Outgoing webhook tab, or `events_history_enabled` via the API when there is no URL at all)
 - IP whitelist: Pachca webhook IP is `37.200.70.177`
 
 ## File Uploads (3-step process)
@@ -145,7 +145,7 @@ profile = await client.profile.get_profile()
 print(profile.id, profile.first_name)
 ```
 
-Token types: **admin** (full access, get in Settings → Automations → API), **bot** (messaging + webhooks, per-bot in Integrations), **user** (limited).
+Token types: **admin** (full access, get in Integrations → API), **bot** (messaging + webhooks, API tab of the bot in Integrations → Bots), **user** (limited).
 
 ## How to paginate through results
 
@@ -274,18 +274,18 @@ Chat types: `channel: true` creates a channel (one-way announcements), `channel:
 ## How to set up webhooks for real-time updates
 
 ### Step-by-step setup
-1. Create a bot in Pachca: **Automations** → **Integrations** → **Bots**
-2. In bot settings, go to **Outgoing Webhook** tab and set your HTTPS URL
+1. Create a bot in Pachca: **Integrations** → **Bots** → **Create bot**
+2. On the bot's **Outgoing webhook** tab press **Enable** and set your HTTPS URL
 3. Copy the **Signing Secret** for signature verification
 4. Select event types: new messages, reactions, button presses, form submissions, etc.
-5. Add the bot to chats where you want to receive events (global events like company member changes work without adding to chat)
+5. Add the bot to chats where you want to receive events (company member changes and links on the bot's domains arrive without adding it to a chat)
 
 ### TypeScript webhook handler (Express.js)
 ```typescript
 import express from "express"
 import crypto from "crypto"
 
-const SIGNING_SECRET = "your_signing_secret" // From bot settings → Outgoing Webhook
+const SIGNING_SECRET = "your_signing_secret" // Bot card → Outgoing webhook → Signing secret
 const app = express()
 
 app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
@@ -331,7 +331,7 @@ app.listen(3000)
 import hmac, hashlib, json, time
 from flask import Flask, request, abort
 
-SIGNING_SECRET = "your_signing_secret"  # From bot settings → Outgoing Webhook
+SIGNING_SECRET = "your_signing_secret"  # Bot card → Outgoing webhook → Signing secret
 app = Flask(__name__)
 
 @app.route("/webhook", methods=["POST"])
@@ -368,10 +368,10 @@ def webhook():
 | view_submit | Form submitted | payload (form field values), user_id, trigger_id |
 | chat_member (new/delete) | Member added/removed from chat | chat_id, user_id, event |
 | company_member (new/update/delete) | Workspace member changes | user_id, event (no chat needed) |
-| link_shared | URL shared (unfurl bots) | url, message_id, chat_id |
+| link_shared | URL on one of the bot's domains shared anywhere in the workspace | url, message_id, chat_id |
 
 ### Alternative: Polling (when webhook URL is not available)
-Enable "Save event history" in bot settings, then poll:
+Enable "Save event history" on the bot's Outgoing webhook tab (or `events_history_enabled` via the API when there is no URL at all), then poll:
 ```typescript
 // Poll for events periodically
 const events = await client.bots.getWebhookEvents()
@@ -816,11 +816,11 @@ Information about the token the request itself was made with: its scopes, its ow
 ## Chats
 
 ### GET /api/shared/v1/chats
-By default — the conversations, channels, and direct messages the token owner belongs to. With `availability=public` the method returns instead all public chats of the workspace, including the ones the caller has not joined. Threads never come in this list; for them there is [List threads](/api/threads/list). `archived=true` does not switch the results to the archive, it adds archived chats to the active ones.
+By default — the conversations, channels, and direct messages the token owner belongs to. With `availability=public` the method returns instead all public chats of the workspace, including the ones the caller has not joined. For a multi-guest — only the public chats they are a member of. Threads never come in this list; for them there is [List threads](/api/threads/list). `archived=true` does not switch the results to the archive, it adds archived chats to the active ones.
 Parameters: sort?, order?, availability?, archived?, last_message_at_after?, last_message_at_before?, personal?, limit?, cursor?
 
 ### POST /api/shared/v1/chats
-Creates a conversation or a channel. The token owner becomes the chat owner, and this role is not transferred later on. To create a one-on-one direct message with a user, use the [New message](/api/messages/create) method. To discuss a particular message there is no need to create a chat — a thread is started under it with the [New thread](/api/threads/add) method. Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, are silently dropped — the response is successful but the employee is not in the chat, so check the membership in the response.
+Creates a conversation or a channel. The token owner becomes the chat owner, and this role is not transferred later on. A multi-guest cannot create chats, as in the interface: the method responds `403` to them. To create a one-on-one direct message with a user, use the [New message](/api/messages/create) method. To discuss a particular message there is no need to create a chat — a thread is started under it with the [New thread](/api/threads/add) method. Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, are silently dropped — the response is successful but the employee is not in the chat, so check the membership in the response. Bots are stricter: if a bot's "Who can add the bot to chats" setting does not let you add it, the chat is not created, and the method responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`.
 Body: { chat: { name*, member_ids, group_tag_ids, channel, public } }
 
 ### POST /api/shared/v1/chats/exports
@@ -877,7 +877,7 @@ Removes the status from the token owner, along with away mode and its text. If t
 ## Users
 
 ### GET /api/shared/v1/users
-Every employee of the workspace except the deleted ones. Suspended employees come together with the rest and are distinguished by the `suspended` field. Bots in the workspace are employees too and come in the common list with `bot: true`. But they are excluded from the results for `query`: to find a bot by name, page through the list without a search query or use [List bots](/api/bots/list). Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. The profile of a single employee is returned by [Employee info](/api/users/get), and your own by [Own profile](/api/profile/get).
+Every employee of the workspace except the deleted ones. Suspended employees come together with the rest and are distinguished by the `suspended` field. Bots in the workspace are employees too and come in the common list with `bot: true`. But they are excluded from the results for `query`: to find a bot by name, page through the list without a search query or use [List bots](/api/bots/list). For a multi-guest the method returns not the whole workspace but the people they see in the interface: themselves, members of their shared chats including bots, and public bots. Threads and archived chats do not count as shared. Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. For a multi-guest they always come back as `null`. The profile of a single employee is returned by [Employee info](/api/users/get), and your own by [Own profile](/api/profile/get).
 Parameters: query?, limit?, cursor?
 
 ### POST /api/shared/v1/users
@@ -885,11 +885,11 @@ Creates an employee in the workspace and sends them an invitation by email. Avai
 Body: { user*, skip_email_notify }
 
 ### GET /api/shared/v1/users/{id}
-The employee's profile. A suspended employee is returned with `suspended: true`, a deleted one as `404`, like a non-existent one. A bot also comes here as an employee, with `bot: true`. Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. An employee sees their own profile in full — the same one is returned by the [Own profile](/api/profile/get) method, and without the `users:read` scope.
+The employee's profile. A suspended employee is returned with `suspended: true`, a deleted one as `404`, like a non-existent one. A bot also comes here as an employee, with `bot: true`. For a multi-guest the method returns only those who come to them in [List employees](/api/users/list), and responds `404` for the rest. Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. For a multi-guest they always come back as `null`. An employee sees their own profile in full — the same one is returned by the [Own profile](/api/profile/get) method, and without the `users:read` scope.
 Parameters: id
 
 ### PUT /api/shared/v1/users/{id}
-Changes the employee's profile: only the fields you pass are overwritten. Custom property IDs are returned by [List custom properties](/api/custom-properties/list). The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not exist in the workspace yet creates a new tag together with the assignment. `suspended: true` suspends the employee: they lose access but remain in chats, tags, and tasks, while `suspended: false` brings them back. An employee is removed for good by [Delete employee](/api/users/delete). The workspace owner can be edited only by themselves, and their role can be changed only to administrator. Turning a regular employee into a guest is impossible — in both cases the response is `403`. An unknown role value is silently ignored by the method: the response is successful and the role stays as it was.
+Changes the employee's profile: only the fields you pass are overwritten. Custom property IDs are returned by [List custom properties](/api/custom-properties/list). The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not exist in the workspace yet creates a new tag together with the assignment. `suspended: true` suspends the employee: they lose access but remain in chats, tags, and tasks, while `suspended: false` brings them back. An employee is removed for good by [Delete employee](/api/users/delete). The workspace owner can be edited only by themselves, and their role can be changed only to administrator. Turning a regular employee into a guest is impossible — in both cases the response is `403`. An unknown role value is silently ignored by the method: the response is successful and the role stays as it was. A bot's nickname must end with `_bot` and be unique in the workspace, otherwise the method responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. A bot's existing nickname is checked only when it is changed.
 Parameters: id
 Body: { user: { first_name, last_name, email, phone_number, nickname, department, title, role, suspended, list_tags, custom_properties } }
 
@@ -907,7 +907,7 @@ Removes the avatar of another employee; the interface then shows initials. Avail
 Parameters: user_id
 
 ### GET /api/shared/v1/users/{user_id}/status
-The status of another employee: the emoji, the title, the expiry, and away mode. If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side.
+The status of another employee: the emoji, the title, the expiry, and away mode. For a multi-guest the method returns statuses only of those who come to them in [List employees](/api/users/list), and responds `404` for the rest. If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side.
 Parameters: user_id
 
 ### PUT /api/shared/v1/users/{user_id}/status
@@ -922,7 +922,7 @@ Parameters: user_id
 ## Group tags
 
 ### GET /api/shared/v1/group_tags
-All tags of the workspace with the number of employees in each. They are visible the same way to all roles, regardless of which chats they are linked to. The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the interface. It accepts no more than 100 names per request. Who belongs to a particular tag is returned by [List tag employees](/api/group-tags/list-users).
+All tags of the workspace with the number of employees in each, regardless of which chats they are linked to. A multi-guest gets only the tags of active conversations and channels they are a member of. The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the interface. It accepts no more than 100 names per request. Who belongs to a particular tag is returned by [List tag employees](/api/group-tags/list-users).
 Parameters: names?, limit?, cursor?
 
 ### POST /api/shared/v1/group_tags
@@ -930,7 +930,7 @@ Creates a tag. A tag is a way to keep chat membership up to date by itself: it i
 Body: { group_tag: { name* } }
 
 ### GET /api/shared/v1/group_tags/{id}
-The tag name and the number of employees in it. Only active employees are counted in `users_count`: suspended ones do not make it into the counter, although they remain in [List tag employees](/api/group-tags/list-users).
+The tag name and the number of employees in it. Only active employees are counted in `users_count`: suspended ones do not make it into the counter, although they remain in [List tag employees](/api/group-tags/list-users). Only the tags that come to a multi-guest in [List tags](/api/group-tags/list) are available to them; for the rest the method responds `404`.
 Parameters: id
 
 ### PUT /api/shared/v1/group_tags/{id}
@@ -943,7 +943,7 @@ Removes a tag from the workspace: it is taken off every employee and unlinked fr
 Parameters: id
 
 ### GET /api/shared/v1/group_tags/{id}/users
-Who belongs to the tag. Suspended employees come in the list, although they are not counted in the tag's own `users_count`; deleted ones do not come. Bots marked with the tag also make it into the results. The membership of a tag is changed in an employee's profile — [Edit employee](/api/users/update) with the `list_tags` field, one employee at a time.
+Who belongs to the tag. Suspended employees come in the list, although they are not counted in the tag's own `users_count`; deleted ones do not come. Bots marked with the tag also make it into the results. The membership of a tag is changed in an employee's profile — [Edit employee](/api/users/update) with the `list_tags` field, one employee at a time. For a multi-guest the method responds `403`: the list of workspace employees is closed to them, as in the interface.
 Parameters: id, limit?, cursor?
 
 ## Members
@@ -966,7 +966,7 @@ Who belongs to a conversation, a channel, or a thread. Bots come on equal terms 
 Parameters: id, role?, limit?, cursor?
 
 ### POST /api/shared/v1/chats/{id}/members
-Adds employees and bots to a conversation, a channel, or a thread. A bot is added the same way as an employee: its `id` in `member_ids`. In a channel it receives the editor role, and in a conversation it becomes an ordinary member — and only after that can it write there. The role in the chat is assigned at the moment of adding: the workspace owner and an administrator become chat administrators, everyone else becomes an ordinary member. After that it is not recalculated by itself, and promoting an employee in the workspace changes nothing where they already belong. To change a role, use the [Edit role](/api/members/update) method. Those who already belong to the chat are silently skipped by the method, and this is not treated as an error. An unknown or inactive ID, however, stops the whole request: the method responds `404` and lists such values, and nobody is added. Adding a whole department at once is more convenient with a tag — [Add tags](/api/members/add-group-tags): then the chat membership is maintained by itself.
+Adds employees and bots to a conversation, a channel, or a thread. A bot is added the same way as an employee: its `id` in `member_ids`. In a channel it receives the editor role, and in a conversation it becomes an ordinary member — and only after that can it write there. The role in the chat is assigned at the moment of adding: the workspace owner and an administrator become chat administrators, everyone else becomes an ordinary member. After that it is not recalculated by itself, and promoting an employee in the workspace changes nothing where they already belong. To change a role, use the [Edit role](/api/members/update) method. Those who already belong to the chat are silently skipped by the method, and this is not treated as an error. An unknown or inactive ID, however, stops the whole request: the method responds `404` and lists such values, and nobody is added. A bot is added only by someone its "Who can add the bot to chats" setting allows — see [Bot settings](/guides/bots/settings#kto-mozhet-dobavlyat-bota-v-chaty). If `member_ids` contains a bot you are not allowed to add, the method adds nobody and responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. If the same request also has an unknown ID, the response is `404` with both errors. Adding a whole department at once is more convenient with a tag — [Add tags](/api/members/add-group-tags): then the chat membership is maintained by itself.
 Parameters: id
 Body: { member_ids*, silent }
 

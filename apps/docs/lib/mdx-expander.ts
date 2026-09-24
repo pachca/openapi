@@ -826,9 +826,10 @@ export async function expandMdxComponents(content: string): Promise<string> {
         owner: 'Владелец',
         admin: 'Администратор',
         user: 'Сотрудник',
+        multi_guest: 'Мульти-гость',
         bot: 'Бот',
       };
-      const ALL_ROLES = ['owner', 'admin', 'user', 'bot'];
+      const ALL_ROLES = ['owner', 'admin', 'user', 'multi_guest', 'bot'];
 
       let md = '| Скоуп | Описание | Роли |\n';
       md += '|-------|----------|------|\n';

@@ -178,7 +178,7 @@ export enum BotWhoCanAdd {
   CreatorAdmin = "creator_admin",
   /** Создатель, администраторы и участники компании */
   CreatorAdminUser = "creator_admin_user",
-  /** Любой пользователь, в том числе гости */
+  /** Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей */
   Anyone = "anyone",
 }
 
@@ -643,6 +643,8 @@ export enum ValidationErrorCode {
   ConfidentialDownloadDenied = "confidential_download_denied",
   /** Не удалось расшифровать файл */
   DecryptionFailed = "decryption_failed",
+  /** Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value` */
+  BotAddDenied = "bot_add_denied",
   /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
   Forbidden = "forbidden",
   /** Доступ запрещён (недостаточно прав) */

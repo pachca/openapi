@@ -40,13 +40,6 @@ export const draftOperations: INodeProperties[] = [
 
 export const draftFields: INodeProperties[] = [
 	{
-		displayName: 'Requires owner, admin, user roles',
-		name: 'draftCreateNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['draft'], operation: ['create'] } },
-	},
-	{
 		displayName: 'Entity Type',
 		name: 'entityType',
 		type: 'options',
@@ -184,13 +177,6 @@ export const draftFields: INodeProperties[] = [
 		],
 	},
 	{
-		displayName: 'Requires owner, admin, user roles',
-		name: 'draftGetAllNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['draft'], operation: ['getAll'] } },
-	},
-	{
 		displayName: 'Return All',
 		name: 'returnAll',
 		type: 'boolean',
@@ -256,13 +242,6 @@ export const draftFields: INodeProperties[] = [
 		description: 'Draft ID',
 	},
 	{
-		displayName: 'Requires owner, admin, user roles',
-		name: 'draftGetNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['draft'], operation: ['get'] } },
-	},
-	{
 		displayName: 'Simplify',
 		name: 'simplify',
 		type: 'boolean',
@@ -278,13 +257,6 @@ export const draftFields: INodeProperties[] = [
 		default: 0,
 		displayOptions: { show: { resource: ['draft'], operation: ['update'] } },
 		description: 'Draft ID',
-	},
-	{
-		displayName: 'Requires owner, admin, user roles',
-		name: 'draftUpdateNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['draft'], operation: ['update'] } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -409,12 +381,5 @@ export const draftFields: INodeProperties[] = [
 		default: 0,
 		displayOptions: { show: { resource: ['draft'], operation: ['delete'] } },
 		description: 'Draft ID',
-	},
-	{
-		displayName: 'Requires owner, admin, user roles',
-		name: 'draftDeleteNotice',
-		type: 'notice',
-		default: '',
-		displayOptions: { show: { resource: ['draft'], operation: ['delete'] } },
 	},
 ];

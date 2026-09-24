@@ -457,12 +457,14 @@ workflows:
   - workflowId: link-unfurling
     summary: Link unfurling
     description: >-
-      Endpoint is bound to a specific message. Requires a special Unfurl bot with specified domains.
-      Manual prerequisites: Create a special Unfurl bot and specify tracked domains; When a link
-      appears, bot receives webhook `"event": "link_shared"` with `links` array. Each object has
-      `url`, `domain` and `skip: boolean` — if `skip` is `true`, the author hid the preview and the
-      bot must skip this link; Extract data from your system by URL from `links` (skipping objects
-      with `skip: true`).
+      Endpoint is bound to a specific message. The bot needs the link unfurling event with its
+      domains: links arrive from every chat of the workspace, no need to add the bot to chats.
+      Manual prerequisites: On the Outgoing webhook tab of the bot, enable the "Links shared in
+      messages (unfurl)" event and list up to 5 domains — only a workspace admin or owner can do
+      this; When a link appears, bot receives webhook `"event": "link_shared"` with `links` array.
+      Each object has `url`, `domain` and `skip: boolean` — if `skip` is `true`, the author hid the
+      preview and the bot must skip this link; Extract data from your system by URL from `links`
+      (skipping objects with `skip: true`).
     steps:
       - stepId: link-unfurling-1
         description: Send preview data
@@ -503,14 +505,19 @@ workflows:
   - workflowId: process-events-via-history-polling
     summary: Process events via history (polling)
     description: >-
-      Polling — alternative to real-time webhook if bot has no public URL. Manual prerequisites: In
-      bot settings enable "Save event history". Webhook URL is optional.; Process each event (same
-      format as real-time webhook).
+      Polling — alternative to real-time webhook if bot has no public URL. Manual prerequisites:
+      Process each event (same format as real-time webhook).
     steps:
       - stepId: process-events-via-history-polling-1
+        description: >-
+          Enable the event history with `--events-history-enabled` (no Webhook URL needed) or with
+          "Save event history" on the Outgoing webhook tab — in the UI it appears once the webhook
+          is enabled
+        operationId: BotOperations_updateBot
+      - stepId: process-events-via-history-polling-2
         description: Get accumulated events
         operationId: BotOperations_getWebhookEvents
-      - stepId: process-events-via-history-polling-2
+      - stepId: process-events-via-history-polling-3
         description: Delete processed event (Delete to avoid reprocessing)
         operationId: BotOperations_deleteWebhookEvent
   - workflowId: inventory-of-all-workspace-bots

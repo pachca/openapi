@@ -17,7 +17,7 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
+Ask the user for a Pachca token (bot: the API tab of the bot in Integrations → Bots, user: Integrations → API).
 
 Run commands via `npx -y @pachca/cli` with the `--token` flag:
 
@@ -159,7 +159,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 - `webhook.nickname`: max 255 characters
 - `webhook.trigger_on`: allowed values — `commands` (Только на команды (триггер-слова) из commands), `all_messages` (На все сообщения в чатах, где есть бот), `unfurl` (На развёртывание ссылок (link previews))
 - `webhook.template_engine`: allowed values — `liquid` (Liquid — условия, циклы и фильтры), `mustache` (Mustache — простая подстановка без логики)
-- `webhook.who_can_add`: allowed values — `creator` (Только создатель бота), `creator_admin` (Создатель и администраторы компании), `creator_admin_user` (Создатель, администраторы и участники компании), `anyone` (Любой пользователь, в том числе гости)
+- `webhook.who_can_add`: allowed values — `creator` (Только создатель бота), `creator_admin` (Создатель и администраторы компании), `creator_admin_user` (Создатель, администраторы и участники компании), `anyone` (Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей)
 - `limit`: max 50
 - Pagination: cursor-based (limit + cursor)
 

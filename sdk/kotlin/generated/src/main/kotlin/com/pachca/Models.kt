@@ -212,7 +212,7 @@ enum class BotWhoCanAdd(val value: String) {
     @SerialName("creator_admin") CREATOR_ADMIN("creator_admin"),
     /** Создатель, администраторы и участники компании */
     @SerialName("creator_admin_user") CREATOR_ADMIN_USER("creator_admin_user"),
-    /** Любой пользователь, в том числе гости */
+    /** Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей */
     @SerialName("anyone") ANYONE("anyone"),
 }
 
@@ -705,6 +705,8 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("confidential_download_denied") CONFIDENTIAL_DOWNLOAD_DENIED("confidential_download_denied"),
     /** Не удалось расшифровать файл */
     @SerialName("decryption_failed") DECRYPTION_FAILED("decryption_failed"),
+    /** Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value` */
+    @SerialName("bot_add_denied") BOT_ADD_DENIED("bot_add_denied"),
     /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
     @SerialName("forbidden") FORBIDDEN("forbidden"),
     /** Доступ запрещён (недостаточно прав) */

@@ -22,7 +22,7 @@ pip install pachca-sdk
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Настройки** > **Автоматизации** > **API** (подробнее — [Авторизация](/api/authorization)).
+Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
 
 ```python
 from pachca.client import PachcaClient
@@ -80,6 +80,7 @@ await client.close()
 | `client.chats.update_chat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archive_chat()` | [Архивация чата](/api/chats/archive) |
 | `client.chats.unarchive_chat()` | [Разархивация чата](/api/chats/unarchive) |
+| `client.chats.mark_chat_unread()` | [Отметка чата непрочитанным](/api/chats/mark-unread) |
 | `client.profile.get_profile()` | [Свой профиль](/api/profile/get) |
 | `client.profile.get_status()` | [Свой статус](/api/profile/get-status) |
 | `client.profile.update_profile_avatar()` | [Загрузка своего аватара](/api/profile/update-avatar) |
@@ -143,14 +144,21 @@ await client.close()
 | `client.bots.create_bot()` | [Новый бот](/api/bots/create) |
 | `client.bots.self_recreate_bot_token()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreate_bot_token()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.bots.rotate_bot_client_secret()` | [Ротация секрета клиента](/api/bots/rotate-client-secret) |
+| `client.bots.create_bot_token()` | [Новый токен бота](/api/bots/create-token) |
+| `client.bots.reissue_bot_token()` | [Перевыпуск токена бота](/api/bots/reissue-token) |
 | `client.bots.list_bots()` | [Список ботов](/api/bots/list) |
 | `client.bots.get_bot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.list_company_bots()` | [Список ботов пространства](/api/bots/list-company) |
 | `client.bots.get_webhook_events()` | [История событий](/api/bots/list-events) |
+| `client.bots.get_bot_scopes()` | [Каталог прав бота](/api/bots/list-scopes) |
+| `client.bots.list_bot_tokens()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.bots.self_update_bot_webhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.update_bot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.update_bot_token()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.bots.delete_bot()` | [Удаление бота](/api/bots/delete) |
 | `client.bots.delete_webhook_event()` | [Удаление события](/api/bots/remove-event) |
+| `client.bots.delete_bot_token()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |
 | `client.custom_properties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.upload_file()` | [Загрузка файла](/api/files/direct-url) |

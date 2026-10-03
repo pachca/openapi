@@ -1,4 +1,5 @@
 import { spawn, spawnSync } from 'node:child_process';
+import * as os from 'node:os';
 import { getBaseUrl } from './client.js';
 
 /** Uses the global timer on purpose: `node:timers/promises` is not fakeable in tests. */
@@ -24,6 +25,9 @@ const MIN_POLL_INTERVAL_SECONDS = 5;
 
 /** RFC 8628: on `slow_down` the client raises its interval by 5 seconds. */
 const SLOW_DOWN_STEP_SECONDS = 5;
+
+/** The backend keeps a device name of at most this many characters. */
+const DEVICE_NAME_MAX_LENGTH = 255;
 
 export interface DeviceCodeGrant {
   device_code: string;
@@ -100,11 +104,32 @@ async function postForm(endpoint: string, params: Record<string, string>): Promi
   return body;
 }
 
-/** Step 1 — ask the server for a device code and the code the user types in. */
-export async function requestDeviceCode(): Promise<DeviceCodeGrant> {
-  const body = (await postForm('device_authorization', { client_id: CLI_CLIENT_ID })) as
-    | Partial<DeviceCodeGrant>
-    | null;
+/**
+ * What the token list on the «API» page calls this login.
+ *
+ * Every login is a row there, revoked one by one, so the rows have to tell
+ * machines apart: the machine name, plus the profile unless it is the default —
+ * two logins from one laptop differ by nothing else. The page joins a row's
+ * fields with « · », so the profile goes in parentheses rather than after one.
+ */
+export function deviceName(profile: string, hostname: string = os.hostname()): string | undefined {
+  const machine = hostname.trim().replace(/\.local$/i, '');
+  const name = profile === 'default' ? machine : machine ? `${machine} (${profile})` : profile;
+  // Counted in characters, as the backend counts them, so a cut never splits one.
+  return Array.from(name).slice(0, DEVICE_NAME_MAX_LENGTH).join('') || undefined;
+}
+
+/**
+ * Step 1 — ask the server for a device code and the code the user types in.
+ *
+ * A server older than device names drops the extra parameter without a word,
+ * so it is sent regardless of which server the CLI talks to.
+ */
+export async function requestDeviceCode(device?: string): Promise<DeviceCodeGrant> {
+  const params: Record<string, string> = { client_id: CLI_CLIENT_ID };
+  if (device) params.device_name = device;
+
+  const body = (await postForm('device_authorization', params)) as Partial<DeviceCodeGrant> | null;
 
   if (!body?.device_code || !body.user_code || !body.verification_uri) {
     throw new OAuthError('invalid_response', 'Сервер вернул неполный ответ на запрос кода');

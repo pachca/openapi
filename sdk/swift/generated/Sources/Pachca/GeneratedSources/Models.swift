@@ -90,6 +90,16 @@ public enum AuditEventKey: String, Codable, CaseIterable {
     case botDeleted = "bot_deleted"
     /// Изменены параметры OAuth-клиента бота
     case botOauthClientUpdated = "bot_oauth_client_updated"
+    /// У бота выключена авторизация от имени сотрудника
+    case botOauthClientDisabled = "bot_oauth_client_disabled"
+    /// Обновлён секрет OAuth-клиента бота
+    case botOauthClientSecretRotated = "bot_oauth_client_secret_rotated"
+    /// Выпущен токен бота
+    case botTokenCreated = "bot_token_created"
+    /// Изменены имя или скоупы токена бота
+    case botTokenUpdated = "bot_token_updated"
+    /// Отдельный токен бота перевыпущен
+    case botTokenReissued = "bot_token_reissued"
     /// Пользователь выдал OAuth-клиенту доступ к своим данным
     case oauthAuthorizationGranted = "oauth_authorization_granted"
     /// Доступ OAuth-клиента к данным пользователя отозван
@@ -170,6 +180,15 @@ public enum BotTriggerOn: String, Codable, CaseIterable {
     case unfurl
 }
 
+public enum BotWebhookKind: String, Codable, CaseIterable {
+    /// Свой формат: сообщение собирается из тела запроса по шаблону бота
+    case simple
+    /// GitLab: Пачка сама разбирает запрос и собирает сообщение
+    case gitlab
+    /// Grafana: Пачка сама разбирает запрос и собирает сообщение
+    case grafana
+}
+
 public enum BotWhoCanAdd: String, Codable, CaseIterable {
     /// Только создатель бота
     case creator
@@ -177,7 +196,7 @@ public enum BotWhoCanAdd: String, Codable, CaseIterable {
     case creatorAdmin = "creator_admin"
     /// Создатель, администраторы и участники компании
     case creatorAdminUser = "creator_admin_user"
-    /// Любой пользователь, в том числе гости
+    /// Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей
     case anyone
 }
 
@@ -338,6 +357,8 @@ public enum OAuthScope: String, Codable, CaseIterable {
     case chatsCreate = "chats:create"
     /// Изменение настроек чата
     case chatsUpdate = "chats:update"
+    /// Отметка чатов непрочитанными
+    case chatsMarkUnread = "chats:mark_unread"
     /// Архивация и разархивация чатов
     case chatsArchive = "chats:archive"
     /// Выход из чатов
@@ -615,6 +636,10 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case confidentialDownloadDenied = "confidential_download_denied"
     /// Не удалось расшифровать файл
     case decryptionFailed = "decryption_failed"
+    /// Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
+    case botAddDenied = "bot_add_denied"
+    /// Поиск не уложился по времени: сузьте запрос и повторите
+    case timeout
     /// Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     case forbidden
     /// Доступ запрещён (недостаточно прав)
@@ -776,40 +801,104 @@ public struct AuditDetailsBot: Codable {
 }
 
 public struct AuditDetailsBotOAuthClient: Codable {
+    public let botId: Int
+    public let actorId: Int?
     public let clientId: String
     public let changes: [String: AnyCodable]
 
-    public init(clientId: String, changes: [String: AnyCodable]) {
+    public init(botId: Int, actorId: Int? = nil, clientId: String, changes: [String: AnyCodable]) {
+        self.botId = botId
+        self.actorId = actorId
         self.clientId = clientId
         self.changes = changes
     }
 
     enum CodingKeys: String, CodingKey {
+        case botId = "bot_id"
+        case actorId = "actor_id"
         case clientId = "client_id"
         case changes
     }
 }
 
+public struct AuditDetailsBotOAuthClientDisabled: Codable {
+    public let botId: Int
+    public let actorId: Int?
+    public let clientId: String
+    public let deletedAccessTokensCount: Int
+    public let deletedAccessGrantsCount: Int
+
+    public init(botId: Int, actorId: Int? = nil, clientId: String, deletedAccessTokensCount: Int, deletedAccessGrantsCount: Int) {
+        self.botId = botId
+        self.actorId = actorId
+        self.clientId = clientId
+        self.deletedAccessTokensCount = deletedAccessTokensCount
+        self.deletedAccessGrantsCount = deletedAccessGrantsCount
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case botId = "bot_id"
+        case actorId = "actor_id"
+        case clientId = "client_id"
+        case deletedAccessTokensCount = "deleted_access_tokens_count"
+        case deletedAccessGrantsCount = "deleted_access_grants_count"
+    }
+}
+
+public struct AuditDetailsBotOAuthClientSecretRotated: Codable {
+    public let botId: Int
+    public let actorId: Int?
+    public let clientId: String
+
+    public init(botId: Int, actorId: Int? = nil, clientId: String) {
+        self.botId = botId
+        self.actorId = actorId
+        self.clientId = clientId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case botId = "bot_id"
+        case actorId = "actor_id"
+        case clientId = "client_id"
+    }
+}
+
 public struct AuditDetailsBotScopes: Codable {
+    public let botId: Int
+    public let actorId: Int?
     public let addedScopes: [String]
     public let removedScopes: [String]
 
-    public init(addedScopes: [String], removedScopes: [String]) {
+    public init(botId: Int, actorId: Int? = nil, addedScopes: [String], removedScopes: [String]) {
+        self.botId = botId
+        self.actorId = actorId
         self.addedScopes = addedScopes
         self.removedScopes = removedScopes
     }
 
     enum CodingKeys: String, CodingKey {
+        case botId = "bot_id"
+        case actorId = "actor_id"
         case addedScopes = "added_scopes"
         case removedScopes = "removed_scopes"
     }
 }
 
 public struct AuditDetailsBotWebhookSettings: Codable {
+    public let botId: Int
+    public let actorId: Int?
     public let changes: [String: AnyCodable]
 
-    public init(changes: [String: AnyCodable]) {
+    public init(botId: Int, actorId: Int? = nil, changes: [String: AnyCodable]) {
+        self.botId = botId
+        self.actorId = actorId
         self.changes = changes
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case botId = "bot_id"
+        case actorId = "actor_id"
+        case changes
     }
 }
 
@@ -1189,6 +1278,45 @@ public struct AvatarData: Codable {
     }
 }
 
+public struct BotAccessToken: Codable {
+    public let id: Int64
+    public let token: String
+    public let name: String?
+    public let userId: Int64
+    public let scopes: [String]
+    public let createdAt: String
+    public let revokedAt: String?
+    public let expiresIn: Int?
+    public let lastUsedAt: String?
+    public let authorizedAt: String?
+
+    public init(id: Int64, token: String, name: String? = nil, userId: Int64, scopes: [String], createdAt: String, revokedAt: String? = nil, expiresIn: Int? = nil, lastUsedAt: String? = nil, authorizedAt: String? = nil) {
+        self.id = id
+        self.token = token
+        self.name = name
+        self.userId = userId
+        self.scopes = scopes
+        self.createdAt = createdAt
+        self.revokedAt = revokedAt
+        self.expiresIn = expiresIn
+        self.lastUsedAt = lastUsedAt
+        self.authorizedAt = authorizedAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case token
+        case name
+        case userId = "user_id"
+        case scopes
+        case createdAt = "created_at"
+        case revokedAt = "revoked_at"
+        case expiresIn = "expires_in"
+        case lastUsedAt = "last_used_at"
+        case authorizedAt = "authorized_at"
+    }
+}
+
 public struct BotCreateRequestWebhook: Codable {
     public let name: String
     public let nickname: String?
@@ -1206,8 +1334,10 @@ public struct BotCreateRequestWebhook: Codable {
     public let whoCanAdd: BotWhoCanAdd?
     public let canEdit: [BotCanEdit]?
     public let singleChat: Bool?
+    public let kind: BotWebhookKind?
+    public let unfurlDomains: [String]?
 
-    public init(name: String, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil, ignoreSelfMessages: Bool? = nil, eventsHistoryEnabled: Bool? = nil, whoCanAdd: BotWhoCanAdd? = nil, canEdit: [BotCanEdit]? = nil, singleChat: Bool? = nil) {
+    public init(name: String, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil, ignoreSelfMessages: Bool? = nil, eventsHistoryEnabled: Bool? = nil, whoCanAdd: BotWhoCanAdd? = nil, canEdit: [BotCanEdit]? = nil, singleChat: Bool? = nil, kind: BotWebhookKind? = nil, unfurlDomains: [String]? = nil) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
@@ -1224,6 +1354,8 @@ public struct BotCreateRequestWebhook: Codable {
         self.whoCanAdd = whoCanAdd
         self.canEdit = canEdit
         self.singleChat = singleChat
+        self.kind = kind
+        self.unfurlDomains = unfurlDomains
     }
 
     enum CodingKeys: String, CodingKey {
@@ -1243,108 +1375,331 @@ public struct BotCreateRequestWebhook: Codable {
         case whoCanAdd = "who_can_add"
         case canEdit = "can_edit"
         case singleChat = "single_chat"
+        case kind
+        case unfurlDomains = "unfurl_domains"
     }
 }
 
 public struct BotCreateRequest: Codable {
+    public let empty: Bool?
     public let webhook: BotCreateRequestWebhook
+    public let oauthClient: BotOAuthClientRequest?
+    public let promo: BotPromoRequest?
 
-    public init(webhook: BotCreateRequestWebhook) {
+    public init(empty: Bool? = nil, webhook: BotCreateRequestWebhook, oauthClient: BotOAuthClientRequest? = nil, promo: BotPromoRequest? = nil) {
+        self.empty = empty
         self.webhook = webhook
+        self.oauthClient = oauthClient
+        self.promo = promo
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case empty
+        case webhook
+        case oauthClient = "oauth_client"
+        case promo
     }
 }
 
 public struct BotCreateResponse: Codable {
     public let id: Int
+    public let name: String
+    public let nickname: String
+    public let avatarUrl: String?
+    public let creatorId: Int?
+    public let createdAt: String
+    public let authorizedUsersCount: Int
+    public let lastUsedAt: String?
     public let webhook: BotWebhook
+    public let oauthClientEnabled: Bool
+    public let oauthClient: BotOAuthClient?
+    public let promo: BotPromo?
+    public let permissions: BotPermissions
+    public let clientSecret: String?
+    public let accessToken: String?
+
+    public init(id: Int, name: String, nickname: String, avatarUrl: String? = nil, creatorId: Int? = nil, createdAt: String, authorizedUsersCount: Int, lastUsedAt: String? = nil, webhook: BotWebhook, oauthClientEnabled: Bool, oauthClient: BotOAuthClient? = nil, promo: BotPromo? = nil, permissions: BotPermissions, clientSecret: String? = nil, accessToken: String? = nil) {
+        self.id = id
+        self.name = name
+        self.nickname = nickname
+        self.avatarUrl = avatarUrl
+        self.creatorId = creatorId
+        self.createdAt = createdAt
+        self.authorizedUsersCount = authorizedUsersCount
+        self.lastUsedAt = lastUsedAt
+        self.webhook = webhook
+        self.oauthClientEnabled = oauthClientEnabled
+        self.oauthClient = oauthClient
+        self.promo = promo
+        self.permissions = permissions
+        self.clientSecret = clientSecret
+        self.accessToken = accessToken
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case nickname
+        case avatarUrl = "avatar_url"
+        case creatorId = "creator_id"
+        case createdAt = "created_at"
+        case authorizedUsersCount = "authorized_users_count"
+        case lastUsedAt = "last_used_at"
+        case webhook
+        case oauthClientEnabled = "oauth_client_enabled"
+        case oauthClient = "oauth_client"
+        case promo
+        case permissions
+        case clientSecret = "client_secret"
+        case accessToken = "access_token"
+    }
+}
+
+public struct BotOAuthClient: Codable {
+    public let clientId: String
+    public let clientSecretPreview: String
+    public let confidential: Bool
+    public let redirectUris: [String]
+    public let scopes: [String]
+
+    public init(clientId: String, clientSecretPreview: String, confidential: Bool, redirectUris: [String], scopes: [String]) {
+        self.clientId = clientId
+        self.clientSecretPreview = clientSecretPreview
+        self.confidential = confidential
+        self.redirectUris = redirectUris
+        self.scopes = scopes
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case clientId = "client_id"
+        case clientSecretPreview = "client_secret_preview"
+        case confidential
+        case redirectUris = "redirect_uris"
+        case scopes
+    }
+}
+
+public struct BotOAuthClientRequest: Codable {
+    public let confidential: Bool?
+    public let redirectUris: [String]?
+    public let scopes: [String]?
+
+    public init(confidential: Bool? = nil, redirectUris: [String]? = nil, scopes: [String]? = nil) {
+        self.confidential = confidential
+        self.redirectUris = redirectUris
+        self.scopes = scopes
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case confidential
+        case redirectUris = "redirect_uris"
+        case scopes
+    }
+}
+
+public struct BotPermissions: Codable {
+    public let updateOauthClient: Bool
+    public let recreateToken: Bool
+    public let destroy: Bool
+
+    public init(updateOauthClient: Bool, recreateToken: Bool, destroy: Bool) {
+        self.updateOauthClient = updateOauthClient
+        self.recreateToken = recreateToken
+        self.destroy = destroy
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case updateOauthClient = "update_oauth_client"
+        case recreateToken = "recreate_token"
+        case destroy
+    }
+}
+
+public struct BotPromo: Codable {
+    public let description: String?
+    public let published: Bool
+    public let promoImages: [BotPromoImage]
+
+    public init(description: String? = nil, published: Bool, promoImages: [BotPromoImage]) {
+        self.description = description
+        self.published = published
+        self.promoImages = promoImages
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case description
+        case published
+        case promoImages = "promo_images"
+    }
+}
+
+public struct BotPromoImage: Codable {
+    public let key: String
+    public let url: String
+
+    public init(key: String, url: String) {
+        self.key = key
+        self.url = url
+    }
+}
+
+public struct BotPromoRequest: Codable {
+    public let description: String?
+    public let published: Bool?
+    public let promoImages: [String]?
+
+    public init(description: String? = nil, published: Bool? = nil, promoImages: [String]? = nil) {
+        self.description = description
+        self.published = published
+        self.promoImages = promoImages
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case description
+        case published
+        case promoImages = "promo_images"
+    }
+}
+
+public struct BotResponse: Codable {
+    public let id: Int
+    public let name: String
+    public let nickname: String
+    public let avatarUrl: String?
+    public let creatorId: Int?
+    public let createdAt: String
+    public let authorizedUsersCount: Int
+    public let lastUsedAt: String?
+    public let webhook: BotWebhook
+    public let oauthClientEnabled: Bool
+    public let oauthClient: BotOAuthClient?
+    public let promo: BotPromo?
+    public let permissions: BotPermissions
+    public let clientSecret: String?
+
+    public init(id: Int, name: String, nickname: String, avatarUrl: String? = nil, creatorId: Int? = nil, createdAt: String, authorizedUsersCount: Int, lastUsedAt: String? = nil, webhook: BotWebhook, oauthClientEnabled: Bool, oauthClient: BotOAuthClient? = nil, promo: BotPromo? = nil, permissions: BotPermissions, clientSecret: String? = nil) {
+        self.id = id
+        self.name = name
+        self.nickname = nickname
+        self.avatarUrl = avatarUrl
+        self.creatorId = creatorId
+        self.createdAt = createdAt
+        self.authorizedUsersCount = authorizedUsersCount
+        self.lastUsedAt = lastUsedAt
+        self.webhook = webhook
+        self.oauthClientEnabled = oauthClientEnabled
+        self.oauthClient = oauthClient
+        self.promo = promo
+        self.permissions = permissions
+        self.clientSecret = clientSecret
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case nickname
+        case avatarUrl = "avatar_url"
+        case creatorId = "creator_id"
+        case createdAt = "created_at"
+        case authorizedUsersCount = "authorized_users_count"
+        case lastUsedAt = "last_used_at"
+        case webhook
+        case oauthClientEnabled = "oauth_client_enabled"
+        case oauthClient = "oauth_client"
+        case promo
+        case permissions
+        case clientSecret = "client_secret"
+    }
+}
+
+public struct BotScopeCatalog: Codable {
+    public let scopes: [BotScopeCatalogItem]
+    public let groups: [BotScopeCatalogGroup]
+    public let presets: [BotScopeCatalogPreset]
+
+    public init(scopes: [BotScopeCatalogItem], groups: [BotScopeCatalogGroup], presets: [BotScopeCatalogPreset]) {
+        self.scopes = scopes
+        self.groups = groups
+        self.presets = presets
+    }
+}
+
+public struct BotScopeCatalogGroup: Codable {
+    public let id: String
+    public let title: String
+    public let description: String
+
+    public init(id: String, title: String, description: String) {
+        self.id = id
+        self.title = title
+        self.description = description
+    }
+}
+
+public struct BotScopeCatalogItem: Codable {
+    public let id: String
+    public let title: String
+    public let group: String
+    public let preset: [String]
+
+    public init(id: String, title: String, group: String, preset: [String]) {
+        self.id = id
+        self.title = title
+        self.group = group
+        self.preset = preset
+    }
+}
+
+public struct BotScopeCatalogPreset: Codable {
+    public let id: String
+    public let title: String
+
+    public init(id: String, title: String) {
+        self.id = id
+        self.title = title
+    }
+}
+
+public struct BotSelfResponse: Codable {
+    public let id: Int
+    public let oauthClient: BotOAuthClient?
+    public let webhook: BotSelfWebhook
+
+    public init(id: Int, oauthClient: BotOAuthClient? = nil, webhook: BotSelfWebhook) {
+        self.id = id
+        self.oauthClient = oauthClient
+        self.webhook = webhook
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case oauthClient = "oauth_client"
+        case webhook
+    }
+}
+
+public struct BotSelfTokenResponse: Codable {
+    public let id: Int
+    public let oauthClient: BotOAuthClient?
+    public let webhook: BotSelfWebhook
     public let accessToken: String
 
-    public init(id: Int, webhook: BotWebhook, accessToken: String) {
+    public init(id: Int, oauthClient: BotOAuthClient? = nil, webhook: BotSelfWebhook, accessToken: String) {
         self.id = id
+        self.oauthClient = oauthClient
         self.webhook = webhook
         self.accessToken = accessToken
     }
 
     enum CodingKeys: String, CodingKey {
         case id
+        case oauthClient = "oauth_client"
         case webhook
         case accessToken = "access_token"
     }
 }
 
-public struct BotResponse: Codable {
-    public let id: Int
-    public let webhook: BotWebhook
-
-    public init(id: Int, webhook: BotWebhook) {
-        self.id = id
-        self.webhook = webhook
-    }
-}
-
-public struct BotUpdateRequestWebhook: Codable {
-    public let name: String?
-    public let nickname: String?
-    public let outgoingUrl: String?
-    public let events: [BotEventName]?
-    public let triggerOn: BotTriggerOn?
-    public let commands: [String]?
-    public let scopes: [String]?
-    public let template: String?
-    public let templateEngine: BotTemplateEngine?
-    public let challengeKey: String?
-    public let linkPreviewEnabled: Bool?
-    public let ignoreSelfMessages: Bool?
-    public let eventsHistoryEnabled: Bool?
-    public let whoCanAdd: BotWhoCanAdd?
-    public let canEdit: [BotCanEdit]?
-
-    public init(name: String? = nil, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil, ignoreSelfMessages: Bool? = nil, eventsHistoryEnabled: Bool? = nil, whoCanAdd: BotWhoCanAdd? = nil, canEdit: [BotCanEdit]? = nil) {
-        self.name = name
-        self.nickname = nickname
-        self.outgoingUrl = outgoingUrl
-        self.events = events
-        self.triggerOn = triggerOn
-        self.commands = commands
-        self.scopes = scopes
-        self.template = template
-        self.templateEngine = templateEngine
-        self.challengeKey = challengeKey
-        self.linkPreviewEnabled = linkPreviewEnabled
-        self.ignoreSelfMessages = ignoreSelfMessages
-        self.eventsHistoryEnabled = eventsHistoryEnabled
-        self.whoCanAdd = whoCanAdd
-        self.canEdit = canEdit
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case name
-        case nickname
-        case outgoingUrl = "outgoing_url"
-        case events
-        case triggerOn = "trigger_on"
-        case commands
-        case scopes
-        case template
-        case templateEngine = "template_engine"
-        case challengeKey = "challenge_key"
-        case linkPreviewEnabled = "link_preview_enabled"
-        case ignoreSelfMessages = "ignore_self_messages"
-        case eventsHistoryEnabled = "events_history_enabled"
-        case whoCanAdd = "who_can_add"
-        case canEdit = "can_edit"
-    }
-}
-
-public struct BotUpdateRequest: Codable {
-    public let webhook: BotUpdateRequestWebhook
-
-    public init(webhook: BotUpdateRequestWebhook) {
-        self.webhook = webhook
-    }
-}
-
-public struct BotWebhook: Codable {
+public struct BotSelfWebhook: Codable {
     public let name: String
     public let nickname: String
     public let outgoingUrl: String?
@@ -1398,6 +1753,173 @@ public struct BotWebhook: Codable {
         case singleChat = "single_chat"
         case canEdit = "can_edit"
         case whoCanAdd = "who_can_add"
+    }
+}
+
+public struct BotTokenCreateRequest: Codable {
+    public let name: String
+    public let scopes: [String]?
+
+    public init(name: String, scopes: [String]? = nil) {
+        self.name = name
+        self.scopes = scopes
+    }
+}
+
+public struct BotTokenUpdateRequest: Codable {
+    public let name: String?
+    public let scopes: [String]?
+
+    public init(name: String? = nil, scopes: [String]? = nil) {
+        self.name = name
+        self.scopes = scopes
+    }
+}
+
+public struct BotUpdateRequestWebhook: Codable {
+    public let name: String?
+    public let nickname: String?
+    public let outgoingUrl: String?
+    public let events: [BotEventName]?
+    public let triggerOn: BotTriggerOn?
+    public let commands: [String]?
+    public let scopes: [String]?
+    public let template: String?
+    public let templateEngine: BotTemplateEngine?
+    public let challengeKey: String?
+    public let linkPreviewEnabled: Bool?
+    public let ignoreSelfMessages: Bool?
+    public let eventsHistoryEnabled: Bool?
+    public let whoCanAdd: BotWhoCanAdd?
+    public let canEdit: [BotCanEdit]?
+    public let singleChat: Bool?
+    public let kind: BotWebhookKind?
+    public let unfurlDomains: [String]?
+
+    public init(name: String? = nil, nickname: String? = nil, outgoingUrl: String? = nil, events: [BotEventName]? = nil, triggerOn: BotTriggerOn? = nil, commands: [String]? = nil, scopes: [String]? = nil, template: String? = nil, templateEngine: BotTemplateEngine? = nil, challengeKey: String? = nil, linkPreviewEnabled: Bool? = nil, ignoreSelfMessages: Bool? = nil, eventsHistoryEnabled: Bool? = nil, whoCanAdd: BotWhoCanAdd? = nil, canEdit: [BotCanEdit]? = nil, singleChat: Bool? = nil, kind: BotWebhookKind? = nil, unfurlDomains: [String]? = nil) {
+        self.name = name
+        self.nickname = nickname
+        self.outgoingUrl = outgoingUrl
+        self.events = events
+        self.triggerOn = triggerOn
+        self.commands = commands
+        self.scopes = scopes
+        self.template = template
+        self.templateEngine = templateEngine
+        self.challengeKey = challengeKey
+        self.linkPreviewEnabled = linkPreviewEnabled
+        self.ignoreSelfMessages = ignoreSelfMessages
+        self.eventsHistoryEnabled = eventsHistoryEnabled
+        self.whoCanAdd = whoCanAdd
+        self.canEdit = canEdit
+        self.singleChat = singleChat
+        self.kind = kind
+        self.unfurlDomains = unfurlDomains
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case nickname
+        case outgoingUrl = "outgoing_url"
+        case events
+        case triggerOn = "trigger_on"
+        case commands
+        case scopes
+        case template
+        case templateEngine = "template_engine"
+        case challengeKey = "challenge_key"
+        case linkPreviewEnabled = "link_preview_enabled"
+        case ignoreSelfMessages = "ignore_self_messages"
+        case eventsHistoryEnabled = "events_history_enabled"
+        case whoCanAdd = "who_can_add"
+        case canEdit = "can_edit"
+        case singleChat = "single_chat"
+        case kind
+        case unfurlDomains = "unfurl_domains"
+    }
+}
+
+public struct BotUpdateRequest: Codable {
+    public let webhook: BotUpdateRequestWebhook?
+    public let oauthClient: BotOAuthClientRequest?
+    public let promo: BotPromoRequest?
+
+    public init(webhook: BotUpdateRequestWebhook? = nil, oauthClient: BotOAuthClientRequest? = nil, promo: BotPromoRequest? = nil) {
+        self.webhook = webhook
+        self.oauthClient = oauthClient
+        self.promo = promo
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case webhook
+        case oauthClient = "oauth_client"
+        case promo
+    }
+}
+
+public struct BotWebhook: Codable {
+    public let name: String
+    public let nickname: String
+    public let outgoingUrl: String?
+    public let events: [BotEventName]
+    public let triggerOn: BotTriggerOn
+    public let commands: [String]
+    public let scopes: [String]
+    public let template: String?
+    public let templateEngine: BotTemplateEngine
+    public let challengeKey: String?
+    public let linkPreviewEnabled: Bool
+    public let ignoreSelfMessages: Bool
+    public let eventsHistoryEnabled: Bool
+    public let singleChat: Bool
+    public let canEdit: [BotCanEdit]
+    public let whoCanAdd: BotWhoCanAdd
+    public let kind: BotWebhookKind?
+    public let unfurlDomains: [String]
+    public let lastRequestAt: String?
+
+    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String? = nil, templateEngine: BotTemplateEngine, challengeKey: String? = nil, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind? = nil, unfurlDomains: [String], lastRequestAt: String? = nil) {
+        self.name = name
+        self.nickname = nickname
+        self.outgoingUrl = outgoingUrl
+        self.events = events
+        self.triggerOn = triggerOn
+        self.commands = commands
+        self.scopes = scopes
+        self.template = template
+        self.templateEngine = templateEngine
+        self.challengeKey = challengeKey
+        self.linkPreviewEnabled = linkPreviewEnabled
+        self.ignoreSelfMessages = ignoreSelfMessages
+        self.eventsHistoryEnabled = eventsHistoryEnabled
+        self.singleChat = singleChat
+        self.canEdit = canEdit
+        self.whoCanAdd = whoCanAdd
+        self.kind = kind
+        self.unfurlDomains = unfurlDomains
+        self.lastRequestAt = lastRequestAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case nickname
+        case outgoingUrl = "outgoing_url"
+        case events
+        case triggerOn = "trigger_on"
+        case commands
+        case scopes
+        case template
+        case templateEngine = "template_engine"
+        case challengeKey = "challenge_key"
+        case linkPreviewEnabled = "link_preview_enabled"
+        case ignoreSelfMessages = "ignore_self_messages"
+        case eventsHistoryEnabled = "events_history_enabled"
+        case singleChat = "single_chat"
+        case canEdit = "can_edit"
+        case whoCanAdd = "who_can_add"
+        case kind
+        case unfurlDomains = "unfurl_domains"
+        case lastRequestAt = "last_request_at"
     }
 }
 
@@ -1598,11 +2120,19 @@ public struct ChatUpdateRequest: Codable {
 
 public struct CompanyBotResponse: Codable {
     public let id: Int
+    public let oauthClient: BotOAuthClient?
     public let webhook: CompanyBotWebhook
 
-    public init(id: Int, webhook: CompanyBotWebhook) {
+    public init(id: Int, oauthClient: BotOAuthClient? = nil, webhook: CompanyBotWebhook) {
         self.id = id
+        self.oauthClient = oauthClient
         self.webhook = webhook
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case oauthClient = "oauth_client"
+        case webhook
     }
 }
 
@@ -2156,16 +2686,22 @@ public struct LinkSharedWebhookPayload: Codable {
     public let messageId: Int
     public let links: [WebhookLink]
     public let userId: Int
+    public let entityType: MessageEntityType
+    public let entityId: Int?
+    public let thread: WebhookMessageThread?
     public let createdAt: String
     public let webhookTimestamp: Int
 
-    public init(type: String, event: String, chatId: Int, messageId: Int, links: [WebhookLink], userId: Int, createdAt: String, webhookTimestamp: Int) {
+    public init(type: String, event: String, chatId: Int, messageId: Int, links: [WebhookLink], userId: Int, entityType: MessageEntityType, entityId: Int? = nil, thread: WebhookMessageThread? = nil, createdAt: String, webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.chatId = chatId
         self.messageId = messageId
         self.links = links
         self.userId = userId
+        self.entityType = entityType
+        self.entityId = entityId
+        self.thread = thread
         self.createdAt = createdAt
         self.webhookTimestamp = webhookTimestamp
     }
@@ -2177,8 +2713,23 @@ public struct LinkSharedWebhookPayload: Codable {
         case messageId = "message_id"
         case links
         case userId = "user_id"
+        case entityType = "entity_type"
+        case entityId = "entity_id"
+        case thread
         case createdAt = "created_at"
         case webhookTimestamp = "webhook_timestamp"
+    }
+}
+
+public struct MarkChatUnreadRequest: Codable {
+    public let messageId: Int?
+
+    public init(messageId: Int? = nil) {
+        self.messageId = messageId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case messageId = "message_id"
     }
 }
 
@@ -3671,6 +4222,8 @@ public enum AuditEventDetailsUnion: Codable {
     case auditDetailsVideoCallStarted(AuditDetailsVideoCallStarted)
     case auditDetailsVideoCallFinished(AuditDetailsVideoCallFinished)
     case auditDetailsVideoCallRecording(AuditDetailsVideoCallRecording)
+    case auditDetailsBotOAuthClientSecretRotated(AuditDetailsBotOAuthClientSecretRotated)
+    case auditDetailsBotOAuthClientDisabled(AuditDetailsBotOAuthClientDisabled)
 
     public init(from decoder: Decoder) throws {
         // AuditEventDetailsUnion carries no discriminator field: members are tried from most
@@ -3687,6 +4240,18 @@ public enum AuditEventDetailsUnion: Codable {
             self = .auditDetailsSearch(value)
             return
         }
+        if let value = try? AuditDetailsBotOAuthClientDisabled(from: decoder) {
+            self = .auditDetailsBotOAuthClientDisabled(value)
+            return
+        }
+        if let value = try? AuditDetailsBotOAuthClient(from: decoder) {
+            self = .auditDetailsBotOAuthClient(value)
+            return
+        }
+        if let value = try? AuditDetailsBotScopes(from: decoder) {
+            self = .auditDetailsBotScopes(value)
+            return
+        }
         if let value = try? AuditDetailsVideoCallFinished(from: decoder) {
             self = .auditDetailsVideoCallFinished(value)
             return
@@ -3699,12 +4264,12 @@ public enum AuditEventDetailsUnion: Codable {
             self = .auditDetailsRoleChanged(value)
             return
         }
-        if let value = try? AuditDetailsBotOAuthClient(from: decoder) {
-            self = .auditDetailsBotOAuthClient(value)
+        if let value = try? AuditDetailsBotOAuthClientSecretRotated(from: decoder) {
+            self = .auditDetailsBotOAuthClientSecretRotated(value)
             return
         }
-        if let value = try? AuditDetailsBotScopes(from: decoder) {
-            self = .auditDetailsBotScopes(value)
+        if let value = try? AuditDetailsBotWebhookSettings(from: decoder) {
+            self = .auditDetailsBotWebhookSettings(value)
             return
         }
         if let value = try? AuditDetailsChatRenamed(from: decoder) {
@@ -3741,10 +4306,6 @@ public enum AuditEventDetailsUnion: Codable {
         }
         if let value = try? AuditDetailsVideoCallStarted(from: decoder) {
             self = .auditDetailsVideoCallStarted(value)
-            return
-        }
-        if let value = try? AuditDetailsBotWebhookSettings(from: decoder) {
-            self = .auditDetailsBotWebhookSettings(value)
             return
         }
         if let value = try? AuditDetailsChatId(from: decoder) {
@@ -3831,6 +4392,10 @@ public enum AuditEventDetailsUnion: Codable {
         case .auditDetailsVideoCallFinished(let value):
             try value.encode(to: encoder)
         case .auditDetailsVideoCallRecording(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsBotOAuthClientSecretRotated(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsBotOAuthClientDisabled(let value):
             try value.encode(to: encoder)
         }
     }
@@ -3989,6 +4554,11 @@ public struct ListBotsResponse: Codable {
     public let meta: PaginationMeta
 }
 
+public struct ListBotTokensResponse: Codable {
+    public let data: [BotAccessToken]
+    public let meta: PaginationMeta
+}
+
 public struct ListChatsResponse: Codable {
     public let data: [Chat]
     public let meta: PaginationMeta
@@ -4077,8 +4647,20 @@ struct BotResponseDataWrapper: Codable {
     let data: BotResponse
 }
 
+struct BotSelfTokenResponseDataWrapper: Codable {
+    let data: BotSelfTokenResponse
+}
+
 struct BotCreateResponseDataWrapper: Codable {
     let data: BotCreateResponse
+}
+
+struct BotAccessTokenDataWrapper: Codable {
+    let data: BotAccessToken
+}
+
+struct BotSelfResponseDataWrapper: Codable {
+    let data: BotSelfResponse
 }
 
 struct ChatDataWrapper: Codable {

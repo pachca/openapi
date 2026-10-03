@@ -22,7 +22,7 @@ npm install @pachca/sdk
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Настройки** > **Автоматизации** > **API** (подробнее — [Авторизация](/api/authorization)).
+Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
 
 ```typescript
 import { PachcaClient } from "@pachca/sdk"
@@ -73,6 +73,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.chats.updateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.chats.archiveChat()` | [Архивация чата](/api/chats/archive) |
 | `client.chats.unarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
+| `client.chats.markChatUnread()` | [Отметка чата непрочитанным](/api/chats/mark-unread) |
 | `client.profile.getProfile()` | [Свой профиль](/api/profile/get) |
 | `client.profile.getStatus()` | [Свой статус](/api/profile/get-status) |
 | `client.profile.updateProfileAvatar()` | [Загрузка своего аватара](/api/profile/update-avatar) |
@@ -136,14 +137,21 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.bots.createBot()` | [Новый бот](/api/bots/create) |
 | `client.bots.selfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.bots.recreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.bots.rotateBotClientSecret()` | [Ротация секрета клиента](/api/bots/rotate-client-secret) |
+| `client.bots.createBotToken()` | [Новый токен бота](/api/bots/create-token) |
+| `client.bots.reissueBotToken()` | [Перевыпуск токена бота](/api/bots/reissue-token) |
 | `client.bots.listBots()` | [Список ботов](/api/bots/list) |
 | `client.bots.getBot()` | [Информация о боте](/api/bots/get) |
 | `client.bots.listCompanyBots()` | [Список ботов пространства](/api/bots/list-company) |
 | `client.bots.getWebhookEvents()` | [История событий](/api/bots/list-events) |
+| `client.bots.getBotScopes()` | [Каталог прав бота](/api/bots/list-scopes) |
+| `client.bots.listBotTokens()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.updateBotToken()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.bots.deleteBot()` | [Удаление бота](/api/bots/delete) |
 | `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
+| `client.bots.deleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.files.uploadFile()` | [Загрузка файла](/api/files/direct-url) |

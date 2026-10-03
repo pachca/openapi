@@ -6,6 +6,7 @@ import * as os from 'node:os';
 import {
   CLI_CLIENT_ID,
   OAuthError,
+  deviceName,
   pollForToken,
   refreshAccessToken,
   requestDeviceCode,
@@ -27,6 +28,35 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe('device name', () => {
+  it('is the machine name for the default profile', () => {
+    expect(deviceName('default', 'macbook')).toBe('macbook');
+  });
+
+  it('drops the .local suffix macOS adds', () => {
+    expect(deviceName('default', 'Office-MacBook-Pro.local')).toBe('Office-MacBook-Pro');
+  });
+
+  it('adds any other profile in parentheses', () => {
+    expect(deviceName('ci', 'macbook')).toBe('macbook (ci)');
+  });
+
+  it('falls back to the profile, then to nothing, without a machine name', () => {
+    expect(deviceName('ci', '  ')).toBe('ci');
+    expect(deviceName('default', '')).toBeUndefined();
+  });
+
+  it('keeps within the 255 characters the server stores', () => {
+    const name = deviceName('ci', 'ы'.repeat(300));
+    expect(name).toBeDefined();
+    expect(Array.from(name ?? '').length).toBe(255);
+  });
+
+  it('defaults to this machine', () => {
+    expect(deviceName('default')).toBe(os.hostname().trim().replace(/\.local$/i, '') || undefined);
+  });
+});
+
 describe('oauth device flow', () => {
   it('requests a device code with the CLI client id', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
@@ -46,6 +76,23 @@ describe('oauth device flow', () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(String(url)).toContain('/oauth/device_authorization');
     expect(init.body).toBe(`client_id=${CLI_CLIENT_ID}`);
+  });
+
+  it('names the device when asked to', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse(200, {
+        device_code: 'dev-code',
+        user_code: 'BCDF-GHJK',
+        verification_uri: 'https://app.pachca.com/apps/authorize',
+      }),
+    );
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    await requestDeviceCode('macbook (ci)');
+
+    const body = new URLSearchParams(fetchMock.mock.calls[0][1].body);
+    expect(body.get('client_id')).toBe(CLI_CLIENT_ID);
+    expect(body.get('device_name')).toBe('macbook (ci)');
   });
 
   it('raises the floor on a too-small interval from the server', async () => {

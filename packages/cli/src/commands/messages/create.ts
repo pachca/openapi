@@ -31,7 +31,7 @@ export default class MessagesCreate extends BaseCommand {
       description: "Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника. (pachca chats list | pachca users list)",
     }),
     'content': Flags.string({
-      description: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).",
+      description: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть.",
     }),
     'files': Flags.string({
       description: "Прикрепляемые файлы",
@@ -40,7 +40,7 @@ export default class MessagesCreate extends BaseCommand {
       description: "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.",
     }),
     'parent-message-id': Flags.integer({
-      description: "Идентификатор сообщения, на которое отвечаете. Ответ появится прямо в ленте чата, а не в треде: для треда отправляйте сообщение с `entity_type: \"thread\"`.",
+      description: "Идентификатор сообщения, на которое вы отвечаете с цитатой. Ответить можно на сообщение в любом чате, в том числе в треде: ответ отправляют в тот же чат или тред, где лежит это сообщение, иначе запрос вернёт ошибку `422`. Чтобы написать в тред под сообщением, укажите `entity_type: \"thread\"` и идентификатор треда в `entity_id`.",
     }),
     'display-avatar-url': Flags.string({
       description: "Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота. (макс. 255 символов)",
@@ -73,7 +73,7 @@ export default class MessagesCreate extends BaseCommand {
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
       { flag: 'entity-id', label: "Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника.", type: 'integer' },
-      { flag: 'content', label: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).", type: 'string' },
+      { flag: 'content', label: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть.", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {

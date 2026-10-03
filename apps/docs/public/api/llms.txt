@@ -10,7 +10,7 @@
 - [Запросы и ответы](https://dev.pachca.com/api/requests-responses.md): Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
 - [Пагинация](https://dev.pachca.com/api/pagination.md): Пагинация в API Пачки по курсору: две группы методов (списочные и поиск) с разной структурой meta, поля next_page, prev_page, has_next, has_prev, обход всех записей и polling новых данных через prev_page
 - [Загрузка файлов](https://dev.pachca.com/api/file-uploads.md): Файлы в API Пачки: трёхшаговая загрузка через presigned URL S3, типы вложений и их поля, ссылка на скачивание и когда она ведёт не в хранилище, а на адрес API
-- [Ошибки](https://dev.pachca.com/api/errors.md): Коды ошибок HTTP в API Пачки и структуры тела ответа: ApiError (400/402/403/404/409/410/422) и OAuthError (401/403) с описанием полей и кодов
+- [Ошибки](https://dev.pachca.com/api/errors.md): Коды ошибок HTTP в API Пачки и структуры тела ответа: ApiError (400/402/403/404/409/410/422/429/503/504) и OAuthError (401/403) с описанием полей и кодов
 - [Лимиты](https://dev.pachca.com/api/limits.md): Лимиты запросов (rate limits) в API Пачки: числа по типам операций, поведение ответа 429, заголовок Retry-After, готовые примеры экспоненциального backoff на TypeScript и Python
 - [Модели](https://dev.pachca.com/api/models.md): Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, черновики, задачи, теги, вебхуки и другие сущности
 
@@ -26,6 +26,7 @@
 - [Редактирование чата](https://dev.pachca.com/api/chats/update.md): PUT /chats/{id}
 - [Архивация чата](https://dev.pachca.com/api/chats/archive.md): PUT /chats/{id}/archive
 - [Разархивация чата](https://dev.pachca.com/api/chats/unarchive.md): PUT /chats/{id}/unarchive
+- [Отметка чата непрочитанным](https://dev.pachca.com/api/chats/mark-unread.md): PUT /chats/{id}/unread
 - [Список чатов пространства](https://dev.pachca.com/api/chats/list-company.md): GET /company/chats
 
 ## Profile
@@ -121,6 +122,13 @@
 - [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
 - [Удаление бота](https://dev.pachca.com/api/bots/delete.md): DELETE /bots/{id}
 - [Ротация токена бота](https://dev.pachca.com/api/bots/recreate-token.md): POST /bots/{id}/recreate_token
+- [Ротация секрета клиента](https://dev.pachca.com/api/bots/rotate-client-secret.md): POST /bots/{id}/rotate_client_secret
+- [Каталог прав бота](https://dev.pachca.com/api/bots/list-scopes.md): GET /bots/{id}/scopes
+- [Список токенов бота](https://dev.pachca.com/api/bots/list-tokens.md): GET /bots/{id}/tokens
+- [Новый токен бота](https://dev.pachca.com/api/bots/create-token.md): POST /bots/{id}/tokens
+- [Изменение токена бота](https://dev.pachca.com/api/bots/update-token.md): PUT /bots/{id}/tokens/{token_id}
+- [Удаление токена бота](https://dev.pachca.com/api/bots/delete-token.md): DELETE /bots/{id}/tokens/{token_id}
+- [Перевыпуск токена бота](https://dev.pachca.com/api/bots/reissue-token.md): POST /bots/{id}/tokens/{token_id}/reissue
 - [Список ботов пространства](https://dev.pachca.com/api/bots/list-company.md): GET /company/bots
 - [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
 - [Удаление события](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}

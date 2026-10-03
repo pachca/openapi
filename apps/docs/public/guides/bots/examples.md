@@ -9,7 +9,7 @@
 
 Автоматическое приветствие новых сотрудников в личных сообщениях. Три шаблона сообщений: `short`, `default`, `extended`. Развёртывание на Vercel или собственном сервере.
 
-> Подробнее — в статье [Welcome Bot](https://www.pachca.com/blog-posts/welcome-bot) и на [GitHub](https://github.com/pachca/public-integrations/tree/main/welcome-bot)
+> Подробнее — в статье [Welcome Bot](https://pachca.com/blog/welcome-bot) и на [GitHub](https://github.com/pachca/public-integrations/tree/main/welcome-bot)
 
 
 ## Review Bot
@@ -21,7 +21,7 @@
 
 ## Unfurl-бот
 
-Бот для создания превью ссылок из рабочих сервисов (Trello, Kaiten, Пачка) прямо в чате. Когда пользователь отправляет ссылку, вместо простого URL все видят информативное превью с заголовком, описанием и изображением.
+Бот для создания превью ссылок из рабочих сервисов (Trello, Kaiten, Пачка) прямо в чате. Когда сотрудник отправляет ссылку, вместо простого URL все видят информативное превью с заголовком, описанием и изображением.
 
 > Подробнее — в статье [Unfurl-бот](https://pachca.com/blog/unfurl-bot) и на [GitHub](https://github.com/pachca/public-integrations/tree/main/Unfurling-bot)
 

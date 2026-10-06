@@ -199,7 +199,8 @@ paths:
         without knowing its own `id`.
 
 
-        The very token the request was made with is rotated, and it is invalidated immediately.
+        The bot's main token is reissued — the one without a name, or the oldest one if there is none — and it is
+        invalidated immediately. If the bot works with an additional token, that token stays as it was.
 
 
         The new token is returned in the response once — be sure to save it, otherwise the bot loses access to the API.
@@ -216,11 +217,20 @@ paths:
                   - data
                 properties:
                   data:
-                    $ref: '#/components/schemas/BotCreateResponse'
+                    $ref: '#/components/schemas/BotSelfTokenResponse'
                 description: Response wrapper with data
               example:
                 data:
                   id: 1738816
+                  oauth_client:
+                    client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+                    client_secret_preview: dGhpc19p...ZWNy
+                    confidential: true
+                    redirect_uris:
+                      - https://example.com/oauth/callback
+                    scopes:
+                      - messages:read
+                      - messages:create
                   webhook:
                     name: Tasks bot
                     nickname: tasks_bot
@@ -293,11 +303,20 @@ paths:
                   - data
                 properties:
                   data:
-                    $ref: '#/components/schemas/BotResponse'
+                    $ref: '#/components/schemas/BotSelfResponse'
                 description: Response wrapper with data
               example:
                 data:
                   id: 1738816
+                  oauth_client:
+                    client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+                    client_secret_preview: dGhpc19p...ZWNy
+                    confidential: true
+                    redirect_uris:
+                      - https://example.com/oauth/callback
+                    scopes:
+                      - messages:read
+                      - messages:create
                   webhook:
                     name: Tasks bot
                     nickname: tasks_bot
@@ -373,8 +392,9 @@ paths:
         edit access.
 
 
-        The `query` parameter selects bots by part of the name, without typos. Bot tokens do not come in the list — they
-        are shown once at creation and at rotation.
+        The `query` parameter selects bots by part of the name, without typos. Bot tokens do not come in the list: a
+        token value is shown once, and the bot's tokens themselves are returned by [Bot token list](GET
+        /bots/{id}/tokens).
 
 
         The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation"
@@ -433,6 +453,13 @@ paths:
               example:
                 data:
                   - id: 1738816
+                    name: Tasks bot
+                    nickname: tasks_bot
+                    avatar_url: null
+                    creator_id: 12
+                    created_at: '2025-05-15T14:30:00.000Z'
+                    authorized_users_count: 3
+                    last_used_at: '2025-05-20T09:15:00.000Z'
                     webhook:
                       name: Tasks bot
                       nickname: tasks_bot
@@ -454,6 +481,27 @@ paths:
                       can_edit:
                         - admin
                       who_can_add: creator
+                      kind: simple
+                      unfurl_domains: []
+                      last_request_at: '2025-05-20T09:15:00.000Z'
+                    oauth_client_enabled: true
+                    oauth_client:
+                      client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+                      client_secret_preview: dGhpc19p...ZWNy
+                      confidential: true
+                      redirect_uris:
+                        - https://example.com/oauth/callback
+                      scopes:
+                        - messages:read
+                        - messages:create
+                    promo:
+                      description: Collects a summary of tasks and sends it to the chat
+                      published: true
+                      promo_images: []
+                    permissions:
+                      update_oauth_client: true
+                      recreate_token: true
+                      destroy: true
                 meta:
                   paginate:
                     next_page: eyJpZCI6MTczODgxNn0
@@ -486,9 +534,14 @@ paths:
         New bot
 
 
-        Creates a bot in the workspace and immediately returns its `access_token`. Save the token at creation: the same
-        one is not shown again, and what remains is to reissue it with [Bot token rotation](POST
-        /bots/{id}/recreate_token).
+        Creates a bot in the workspace. By default the bot gets an incoming webhook in its own format and immediately
+        returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to
+        reissue it with [Bot token rotation](POST /bots/{id}/recreate_token).
+
+
+        With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without a token and
+        without an incoming webhook. Tokens are issued to it with [New bot token](POST /bots/{id}/tokens), and the
+        incoming webhook is enabled with the `kind` field in the `webhook` object.
 
 
         A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member,
@@ -502,8 +555,12 @@ paths:
         To write into one particular chat, take the [New message](POST /messages) method — that one does need a token.
 
 
-        The nickname must end with `_bot` and be free in the workspace. The `single_chat` restriction is set only here:
-        when editing a bot it can no longer be changed.
+        Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page
+        can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. Learn more in
+        [Authorization setup](/guides/oauth/setup).
+
+
+        The nickname must end with `_bot` and be free in the workspace.
       parameters: []
       responses:
         '201':
@@ -521,6 +578,13 @@ paths:
               example:
                 data:
                   id: 1738816
+                  name: Tasks bot
+                  nickname: tasks_bot
+                  avatar_url: null
+                  creator_id: 12
+                  created_at: '2025-05-15T14:30:00.000Z'
+                  authorized_users_count: 0
+                  last_used_at: null
                   webhook:
                     name: Tasks bot
                     nickname: tasks_bot
@@ -542,6 +606,28 @@ paths:
                     can_edit:
                       - admin
                     who_can_add: creator
+                    kind: simple
+                    unfurl_domains: []
+                    last_request_at: null
+                  oauth_client_enabled: true
+                  oauth_client:
+                    client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+                    client_secret_preview: dGhpc19p...ZWNy
+                    confidential: true
+                    redirect_uris:
+                      - https://example.com/oauth/callback
+                    scopes:
+                      - messages:read
+                      - messages:create
+                  promo:
+                    description: null
+                    published: false
+                    promo_images: []
+                  permissions:
+                    update_oauth_client: true
+                    recreate_token: true
+                    destroy: true
+                  client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '400':
           description: The server could not understand the request due to invalid syntax.
@@ -587,6 +673,13 @@ paths:
                   - /task
                 scopes:
                   - messages:create
+              oauth_client:
+                confidential: true
+                redirect_uris:
+                  - https://example.com/oauth/callback
+                scopes:
+                  - messages:read
+                  - messages:create
       x-requirements:
         scope: bots:write
   /bots/{id}:
@@ -597,12 +690,13 @@ paths:
 
 
         The bot's settings. The token does not come in the response — it is shown once at the bot's creation and at [Bot
-        token rotation](POST /bots/{id}/recreate_token).
+        token rotation](POST /bots/{id}/recreate_token). The bot's tokens are returned by [Bot token list](GET
+        /bots/{id}/tokens).
 
 
         The method returns only the bots the caller is entitled to configure: their own, and, if the bot's settings
-        allow it, also as a workspace administrator or as the owner of a chat the bot belongs to. For someone else's bot
-        the method responds `403`.
+        allow it, also as a workspace administrator or as an owner or admin of a chat the bot belongs to. For someone
+        else's bot the method responds `403`.
 
 
         The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation"
@@ -633,6 +727,13 @@ paths:
               example:
                 data:
                   id: 1738816
+                  name: Tasks bot
+                  nickname: tasks_bot
+                  avatar_url: null
+                  creator_id: 12
+                  created_at: '2025-05-15T14:30:00.000Z'
+                  authorized_users_count: 3
+                  last_used_at: '2025-05-20T09:15:00.000Z'
                   webhook:
                     name: Tasks bot
                     nickname: tasks_bot
@@ -654,6 +755,27 @@ paths:
                     can_edit:
                       - admin
                     who_can_add: creator
+                    kind: simple
+                    unfurl_domains: []
+                    last_request_at: '2025-05-20T09:15:00.000Z'
+                  oauth_client_enabled: true
+                  oauth_client:
+                    client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+                    client_secret_preview: dGhpc19p...ZWNy
+                    confidential: true
+                    redirect_uris:
+                      - https://example.com/oauth/callback
+                    scopes:
+                      - messages:read
+                      - messages:create
+                  promo:
+                    description: Collects a summary of tasks and sends it to the chat
+                    published: true
+                    promo_images: []
+                  permissions:
+                    update_oauth_client: true
+                    recreate_token: true
+                    destroy: true
         '401':
           description: Access is unauthorized.
           content:
@@ -691,17 +813,27 @@ paths:
         Changes a bot's settings: only the fields you pass are overwritten.
 
 
-        The `single_chat` field is accepted only when a bot is created. In this method it is silently ignored: the
-        response is successful and the bot's mode does not change.
-
-
         The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation
-        error. Commands and scopes are replaced by the passed list as a whole, and the new set of scopes is applied to
-        the bot's current token right away — there is no need to reissue it.
+        error. Commands and scopes are replaced by the passed list as a whole. Scopes apply to the bot's main token —
+        the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need
+        to reissue it. The scopes of an additional token are changed by [Edit bot token](PUT
+        /bots/{id}/tokens/{token_id}).
 
 
-        You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located
-        on the "General" tab in the bot settings).
+        The `oauth_client` object enables authorization on behalf of an employee or changes its settings, and `null`
+        disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own
+        tokens keep working. When the client becomes server-side, its secret comes in `client_secret` once. The catalog
+        page is set by `promo` while authorization is enabled.
+
+
+        Only a workspace administrator or owner can enable the `message_link_shared` event, and for a bot with it change
+        the domains, the webhook address and the event history.
+
+
+        The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator,
+        and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be
+        changed for a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on
+        the "General" tab in the bot settings).
       parameters:
         - name: id
           in: path
@@ -748,7 +880,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -777,11 +911,12 @@ paths:
         Delete bot
 
 
-        Delete a bot. The bot's previous `access_token` is invalidated immediately, the bot is removed from all chats,
-        and its outgoing webhook is deleted.
+        Removes the bot from the workspace for good. All of the bot's tokens stop working at once, as do the
+        authorizations employees granted to it. The bot is removed from all chats, and its webhooks and catalog page are
+        deleted.
 
 
-        Deletion is available to the bot creator, and to a workspace administrator if the bot's settings grant
+        Deletion is available to the bot's creator, and a workspace administrator if the bot's settings grant
         administrators edit access. Chat owners and admins cannot delete a bot, even if they are allowed to edit it.
       parameters:
         - name: id
@@ -835,11 +970,15 @@ paths:
         compromised or for scheduled secret rotation in `CI`.
 
 
+        The bot's main token is reissued — the one without a name, or the oldest one if there is none. An additional
+        token is reissued by [Reissue bot token](POST /bots/{id}/tokens/{token_id}/reissue).
+
+
         The new token is returned in the response only once — save it right away. Its permissions are the same: the
         scopes are carried over from the previous token.
 
 
-        Rotation is available to the bot creator, and also to a workspace administrator if the bot's settings grant
+        Rotation is available to the bot's creator, and a workspace administrator if the bot's settings grant
         administrators edit access. The owner of a chat the bot belongs to cannot rotate the token, even when the rest
         of the bot's settings are open to them.
       parameters:
@@ -868,6 +1007,13 @@ paths:
               example:
                 data:
                   id: 1738816
+                  name: Tasks bot
+                  nickname: tasks_bot
+                  avatar_url: null
+                  creator_id: 12
+                  created_at: '2025-05-15T14:30:00.000Z'
+                  authorized_users_count: 3
+                  last_used_at: '2025-05-20T09:15:00.000Z'
                   webhook:
                     name: Tasks bot
                     nickname: tasks_bot
@@ -889,6 +1035,27 @@ paths:
                     can_edit:
                       - admin
                     who_can_add: creator
+                    kind: simple
+                    unfurl_domains: []
+                    last_request_at: '2025-05-20T09:15:00.000Z'
+                  oauth_client_enabled: true
+                  oauth_client:
+                    client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+                    client_secret_preview: dGhpc19p...ZWNy
+                    confidential: true
+                    redirect_uris:
+                      - https://example.com/oauth/callback
+                    scopes:
+                      - messages:read
+                      - messages:create
+                  promo:
+                    description: Collects a summary of tasks and sends it to the chat
+                    published: true
+                    promo_images: []
+                  permissions:
+                    update_oauth_client: true
+                    recreate_token: true
+                    destroy: true
                   access_token: bm90X2FfcmVhbF90b2tlbg
         '401':
           description: Access is unauthorized.
@@ -918,6 +1085,703 @@ paths:
         - Bots
       x-requirements:
         scope: bots:write
+  /bots/{id}/rotate_client_secret:
+    post:
+      operationId: BotOperations_rotateBotClientSecret
+      description: >-
+        Client secret rotation
+
+
+        Issues a new `client_secret` for authorization on behalf of an employee. The previous secret stops working at
+        once, so prepare the bot for the replacement first. Authorizations already granted and tokens already received
+        keep working.
+
+
+        The new secret comes in `client_secret` once. The method works only for a bot with authorization enabled and a
+        server-side client (`confidential: true`), otherwise it responds `400`.
+
+
+        Rotation is available to the bot's creator, and to a workspace administrator if the bot's settings give
+        administrators edit access.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Bot ID
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotResponse'
+                description: Response wrapper with data
+              example:
+                data:
+                  id: 1738816
+                  name: Tasks bot
+                  nickname: tasks_bot
+                  avatar_url: null
+                  creator_id: 12
+                  created_at: '2025-05-15T14:30:00.000Z'
+                  authorized_users_count: 3
+                  last_used_at: '2025-05-20T09:15:00.000Z'
+                  webhook:
+                    name: Tasks bot
+                    nickname: tasks_bot
+                    outgoing_url: https://www.website.com/tasks/new
+                    events:
+                      - message_new
+                    trigger_on: commands
+                    commands:
+                      - /task
+                    scopes:
+                      - messages:create
+                    template: Order from {{ client }} for {{ amount }} ₽
+                    template_engine: liquid
+                    challenge_key: challenge
+                    link_preview_enabled: true
+                    ignore_self_messages: false
+                    events_history_enabled: false
+                    single_chat: false
+                    can_edit:
+                      - admin
+                    who_can_add: creator
+                    kind: simple
+                    unfurl_domains: []
+                    last_request_at: '2025-05-20T09:15:00.000Z'
+                  oauth_client_enabled: true
+                  oauth_client:
+                    client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+                    client_secret_preview: dGhpc19p...ZWNy
+                    confidential: true
+                    redirect_uris:
+                      - https://example.com/oauth/callback
+                    scopes:
+                      - messages:read
+                      - messages:create
+                  promo:
+                    description: Collects a summary of tasks and sends it to the chat
+                    published: true
+                    promo_images: []
+                  permissions:
+                    update_oauth_client: true
+                    recreate_token: true
+                    destroy: true
+                  client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bots:write
+  /bots/{id}/scopes:
+    get:
+      operationId: BotOperations_getBotScopes
+      description: >-
+        Bot scope catalog
+
+
+        The scopes that can be granted to this bot: to its tokens and to authorization on behalf of an employee. Each
+        scope has a description, a category and the ready-made sets it belongs to, as when choosing scopes in the
+        interface.
+
+
+        The catalog is available to the same people who see the bot's tokens: the bot's creator, and a workspace
+        administrator if the bot's settings give administrators edit access.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Bot ID
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotScopeCatalog'
+              example:
+                scopes:
+                  - id: messages:create
+                    title: Send messages
+                    group: messages
+                    preset:
+                      - admin
+                groups:
+                  - id: messages
+                    title: Messages
+                    description: Working with messages
+                presets:
+                  - id: read-only
+                    title: Read only
+                  - id: admin
+                    title: Administrator
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bots:read
+  /bots/{id}/tokens:
+    get:
+      operationId: BotOperations_listBotTokens
+      description: >-
+        Bot token list
+
+
+        The bot's active tokens: the main one, issued together with the bot, and additional ones — each with its own
+        name and scopes. The token value is masked here: in full it is shown once, when the token is issued and when it
+        is reissued.
+
+
+        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can
+        work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's
+        other settings are open to them.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Bot ID
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+        - name: limit
+          in: query
+          required: false
+          description: Number of entities returned per request
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            example: 1
+            default: 50
+          example: 1
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Pagination cursor (from `meta.paginate.next_page`)
+          schema:
+            type: string
+            example: eyJpZCI6NDgyN30
+          example: eyJpZCI6NDgyN30
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BotAccessToken'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                description: Response wrapper with data and pagination
+              example:
+                data:
+                  - id: 4827
+                    token: cH5kR9mN...x7Qp
+                    name: Notification server
+                    user_id: 1738816
+                    scopes:
+                      - messages:create
+                      - chats:read
+                    created_at: '2025-01-15T10:30:00.000Z'
+                    revoked_at: null
+                    expires_in: null
+                    last_used_at: '2025-02-24T14:20:00.000Z'
+                    authorized_at: null
+                meta:
+                  paginate:
+                    next_page: eyJpZCI6NDgyN30
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-paginated: true
+      x-requirements:
+        scope: bots:read
+    post:
+      operationId: BotOperations_createBotToken
+      description: >-
+        New bot token
+
+
+        Issues one more token for the bot, with its own name and scopes. A bot can have several tokens: for example, a
+        separate one for each service, so that they can be revoked one by one.
+
+
+        The token value comes in the response once — save it right away. The token does not expire and works until it is
+        deleted.
+
+
+        Scopes are chosen from those that can be granted to a bot: they are listed by [Bot scope catalog](GET
+        /bots/{id}/scopes). For a scope that is not in the catalog the method responds `400`. Without `scopes` the token
+        is issued without scopes.
+
+
+        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can
+        work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's
+        other settings are open to them.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Bot ID
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotAccessToken'
+                description: Response wrapper with data
+              example:
+                data:
+                  id: 4827
+                  token: bm90X2FfcmVhbF90b2tlbg
+                  name: Notification server
+                  user_id: 1738816
+                  scopes:
+                    - messages:create
+                    - chats:read
+                  created_at: '2025-01-15T10:30:00.000Z'
+                  revoked_at: null
+                  expires_in: null
+                  last_used_at: null
+                  authorized_at: null
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotTokenCreateRequest'
+            example:
+              name: Notification server
+              scopes:
+                - messages:create
+                - chats:read
+      x-requirements:
+        scope: bots:write
+  /bots/{id}/tokens/{token_id}:
+    put:
+      operationId: BotOperations_updateBotToken
+      description: >-
+        Edit bot token
+
+
+        Changes the token's name or scopes. New scopes take effect immediately: there is no need to reissue the token,
+        and its value stays the same. Scopes are replaced by the passed list as a whole.
+
+
+        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can
+        work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's
+        other settings are open to them.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Bot ID
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+        - name: token_id
+          in: path
+          required: true
+          description: Token ID
+          schema:
+            type: integer
+            format: int64
+            example: 4827
+          example: 4827
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotAccessToken'
+                description: Response wrapper with data
+              example:
+                data:
+                  id: 4827
+                  token: cH5kR9mN...x7Qp
+                  name: Notification server
+                  user_id: 1738816
+                  scopes:
+                    - messages:create
+                    - chats:read
+                  created_at: '2025-01-15T10:30:00.000Z'
+                  revoked_at: null
+                  expires_in: null
+                  last_used_at: '2025-02-24T14:20:00.000Z'
+                  authorized_at: null
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotTokenUpdateRequest'
+            example:
+              name: Notification server
+              scopes:
+                - messages:create
+                - chats:read
+      x-requirements:
+        scope: bots:write
+    delete:
+      operationId: BotOperations_deleteBotToken
+      description: >-
+        Delete bot token
+
+
+        Deletes the token: requests with it stop passing at once. The bot's other tokens keep working.
+
+
+        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can
+        work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's
+        other settings are open to them.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Bot ID
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+        - name: token_id
+          in: path
+          required: true
+          description: Token ID
+          schema:
+            type: integer
+            format: int64
+            example: 4827
+          example: 4827
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bots:write
+  /bots/{id}/tokens/{token_id}/reissue:
+    post:
+      operationId: BotOperations_reissueBotToken
+      description: >-
+        Reissue bot token
+
+
+        Replaces the token value with a new one: the previous value stops working at once, the name and scopes stay. The
+        new value comes in the response once — save it right away.
+
+
+        The method is needed when a token has leaked or is changed on schedule. The bot's main token can also be
+        reissued with [Bot token rotation](POST /bots/{id}/recreate_token).
+
+
+        Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can
+        work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's
+        other settings are open to them.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Bot ID
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+        - name: token_id
+          in: path
+          required: true
+          description: Token ID
+          schema:
+            type: integer
+            format: int64
+            example: 4827
+          example: 4827
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BotAccessToken'
+                description: Response wrapper with data
+              example:
+                data:
+                  id: 4827
+                  token: bm90X2FfcmVhbF90b2tlbg
+                  name: Notification server
+                  user_id: 1738816
+                  scopes:
+                    - messages:create
+                    - chats:read
+                  created_at: '2025-01-15T10:30:00.000Z'
+                  revoked_at: null
+                  expires_in: null
+                  last_used_at: '2025-02-24T14:20:00.000Z'
+                  authorized_at: null
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bots:write
   /chats:
     post:
       operationId: ChatOperations_createChat
@@ -929,6 +1793,9 @@ paths:
         later on.
 
 
+        A multi-guest cannot create chats, as in the interface: the method responds `403` to them.
+
+
         To create a one-on-one direct message with a user, use the [New message](POST /messages) method. To discuss a
         particular message there is no need to create a chat — a thread is started under it with the [New thread](POST
         /messages/{id}/thread) method.
@@ -937,7 +1804,12 @@ paths:
         Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who
         belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as
         well as suspended and deleted employees, are silently dropped — the response is successful but the employee is
-        not in the chat, so check the membership in the response.
+        not in the chat, so check the membership in the response. Bots are stricter: if a bot's "Who can add the bot to
+        chats" setting does not let you add it, the chat is not created, and the method responds `403` with the
+        `bot_add_denied` code and the IDs of such bots in `value`. A bot with the "Restrict to a single chat" setting
+        that already belongs to another conversation or channel stops the request too if it is in `member_ids` or
+        creates the chat itself: the chat is not created, and the method responds `409` with the
+        `single_chat_bot_occupied` code and the IDs of such bots in `value`.
       parameters: []
       responses:
         '201':
@@ -975,7 +1847,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '422':
           description: Client error
           content:
@@ -1000,7 +1880,7 @@ paths:
 
         By default — the conversations, channels, and direct messages the token owner belongs to. With
         `availability=public` the method returns instead all public chats of the workspace, including the ones the
-        caller has not joined.
+        caller has not joined. For a multi-guest — only the public chats they are a member of.
 
 
         Threads never come in this list; for them there is [List threads](GET /threads).
@@ -1828,6 +2708,17 @@ paths:
         nobody is added.
 
 
+        A bot is added only by someone its "Who can add the bot to chats" setting allows — see [Bot
+        settings](/guides/bots/settings#kto-mozhet-dobavlyat-bota-v-chaty). If `member_ids` contains a bot you are not
+        allowed to add, the method adds nobody and responds `403` with the `bot_add_denied` code and the IDs of such
+        bots in `value`. If the same request also has an unknown ID, the response is `404` with both errors.
+
+
+        A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel is
+        not added either: the response is `409` with the `single_chat_bot_occupied` code and the IDs of such bots in
+        `value`, and nobody from the request is added. Such a bot can still be added to threads.
+
+
         Adding a whole department at once is more convenient with a tag — [Add tags](POST /chats/{id}/group_tags): then
         the chat membership is maintained by itself.
       parameters:
@@ -1860,9 +2751,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: The request conflicts with the current state of the server.
           content:
             application/json:
               schema:
@@ -2072,6 +2971,82 @@ paths:
         - Chats
       x-requirements:
         scope: chats:archive
+  /chats/{id}/unread:
+    put:
+      operationId: ChatOperations_markChatUnread
+      description: >-
+        Mark chat as unread
+
+
+        Marks a chat as unread for the token owner, like "Mark as unread" in the interface. Only their own counter
+        changes, the other members notice nothing.
+
+
+        Without `message_id` the last message of the chat becomes unread, with `message_id` — this message and all
+        messages after it. A repeated request with the same message changes nothing, and in a chat without messages the
+        method responds with success and does nothing.
+
+
+        Works in conversations, channels, direct chats and threads the token owner belongs to. A hidden direct chat
+        appears in the list again. For a chat the token owner is not in, and for a message from another chat, the method
+        responds `404`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Chat or thread ID
+          schema:
+            type: integer
+            format: int32
+            example: 334
+          example: 334
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Chats
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkChatUnreadRequest'
+            example:
+              message_id: 1194275
+      x-requirements:
+        scope: chats:mark_unread
   /company/bots:
     get:
       operationId: CompanyBotOperations_listCompanyBots
@@ -2138,6 +3113,15 @@ paths:
               example:
                 data:
                   - id: 1738816
+                    oauth_client:
+                      client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+                      client_secret_preview: dGhpc19p...ZWNy
+                      confidential: true
+                      redirect_uris:
+                        - https://example.com/oauth/callback
+                      scopes:
+                        - messages:read
+                        - messages:create
                     webhook:
                       name: Tasks bot
                       nickname: tasks_bot
@@ -2160,6 +3144,7 @@ paths:
                         - admin
                       who_can_add: creator
                   - id: 1738817
+                    oauth_client: null
                     webhook:
                       name: Release bot
                       nickname: release_bot
@@ -3023,12 +4008,13 @@ paths:
         List tags
 
 
-        All tags of the workspace with the number of employees in each. They are visible the same way to all roles,
-        regardless of which chats they are linked to.
+        All tags of the workspace with the number of employees in each, regardless of which chats they are linked to. A
+        multi-guest gets only the tags of active conversations and channels they are a member of.
 
 
         The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the
-        interface. It accepts no more than 100 names per request.
+        interface. It accepts no more than 100 names per request, and for more the method responds `400` with the
+        `too_long` code.
 
 
         Who belongs to a particular tag is returned by [List tag employees](GET /group_tags/{id}/users).
@@ -3132,6 +4118,10 @@ paths:
 
         Only active employees are counted in `users_count`: suspended ones do not make it into the counter, although
         they remain in [List tag employees](GET /group_tags/{id}/users).
+
+
+        Only the tags that come to a multi-guest in [List tags](GET /group_tags) are available to them; for the rest the
+        method responds `404`.
       parameters:
         - name: id
           in: path
@@ -3339,6 +4329,10 @@ paths:
 
         The membership of a tag is changed in an employee's profile — [Edit employee](PUT /users/{id}) with the
         `list_tags` field, one employee at a time.
+
+
+        For a multi-guest the method responds `403`: the list of workspace employees is closed to them, as in the
+        interface.
       parameters:
         - name: id
           in: path
@@ -3449,6 +4443,10 @@ paths:
         There is no need to create the direct chat for this: it appears by itself if there has been no prior
         conversation between you. Only one direct chat can exist between two employees. Your own ID writes to the chat
         with yourself — the same place where an employee sends notes to themselves.
+
+
+        To reply to a specific message with a quote, pass its ID in `parent_message_id`. This works in any chat,
+        including a thread: the reply is sent to the same chat or thread where the original message is.
 
 
         The text in the `content` field is parsed as markdown: bold, italic, strikethrough, inline code, code block, and
@@ -3568,7 +4566,7 @@ paths:
 
 
         The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent
-        message hangs. The thread identifier arrives in the `thread` field of the parent message.
+        message hangs. This `chat_id` arrives in the `thread.chat_id` field of the parent message.
       parameters:
         - name: chat_id
           in: query
@@ -4853,6 +5851,10 @@ paths:
 
         The method searches names, not content. To find where something was discussed or agreed, use [Search
         messages](GET /search/messages).
+
+
+        A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and
+        the query is worth narrowing.
       parameters:
         - name: query
           in: query
@@ -4982,6 +5984,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '504':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
       tags:
         - Search
       x-paginated: true
@@ -5005,6 +6013,10 @@ paths:
 
         By default messages come from newest to oldest. `sort=relevance` switches the results to how well they match the
         query, where recent messages are still valued higher.
+
+
+        A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and
+        the query is worth narrowing.
       parameters:
         - name: query
           in: query
@@ -5158,6 +6170,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '504':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
       tags:
         - Search
       x-paginated: true
@@ -5180,6 +6198,10 @@ paths:
 
         Deleted employees are never found; suspended ones only when a text query is given, and they stand below the rest
         in the results. Of the bots, only public ones are found.
+
+
+        A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and
+        the query is worth narrowing.
       parameters:
         - name: query
           in: query
@@ -5306,6 +6328,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '504':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
       tags:
         - Search
       x-paginated: true
@@ -5430,8 +6458,9 @@ paths:
           required: false
           description: >-
             Filter by the chats the tasks are attached to. Accessible chats are the ones you are a member of, public
-            conversations and channels of the workspace, and threads available to you through their parent chat. The
-            remaining IDs are ignored without an error. Up to 100 IDs.
+            conversations and channels of the workspace, and threads available to you through their parent chat. For a
+            multi-guest, public conversations and channels are accessible only if they are a member. The remaining IDs
+            are ignored without an error. Up to 100 IDs.
           schema:
             type: array
             items:
@@ -5551,8 +6580,10 @@ paths:
         The task together with its author, assignees, and the chat it is linked to.
 
 
-        A task is seen by its author, its assignees, and the members of the chat it is linked to. But membership in the
-        chat is enough only to read it: a task can be changed and deleted only by the author or one of the assignees.
+        A task is seen by its author, its assignees, and everyone who can access its chat. The rule is the same as for
+        the `chat_ids` filter of [List tasks](GET /tasks): the chat members, and in open conversations and channels —
+        any employee of the workspace. Access to the chat is enough only to read the task: it can be changed and deleted
+        only by the author or one of the assignees.
       parameters:
         - name: id
           in: path
@@ -5943,8 +6974,9 @@ paths:
         Thread info
 
 
-        The thread's identifiers: its own `id`, the `chat_id` for reading and sending messages, and the message it hangs
-        under. For a standalone thread `message_id` and `message_chat_id` come back as `null`.
+        The identifiers of the thread and of the message it hangs under. The thread's `id` is used to write to it with
+        the [New message](POST /messages) method with `entity_type: "thread"`, and its `chat_id` to read its messages.
+        For a standalone thread `message_id` and `message_chat_id` come back as `null`.
 
 
         The response carries identifiers only: a thread has no name and no message counter, and what it is about can be
@@ -6158,8 +7190,17 @@ paths:
         bots](GET /bots).
 
 
+        For a multi-guest the method returns not the whole workspace but the people they see in the interface:
+        themselves, members of their shared chats including bots, and public bots. Threads and archived chats do not
+        count as shared.
+
+
         Email and phone come back as `null` if the display of personal data is turned off in the workspace and the
-        caller is not an administrator.
+        caller is not an administrator. For a multi-guest they always come back as `null`.
+
+
+        A `query` search may not finish in time: then the method responds `504` with the `timeout` code, and the query
+        is worth narrowing.
 
 
         The profile of a single employee is returned by [Employee info](GET /users/{id}), and your own by [Own
@@ -6246,6 +7287,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
+        '504':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
       tags:
         - Users
       x-paginated: true
@@ -6265,9 +7312,14 @@ paths:
         also comes here as an employee, with `bot: true`.
 
 
+        For a multi-guest the method returns only those who come to them in [List employees](GET /users), and responds
+        `404` for the rest.
+
+
         Email and phone come back as `null` if the display of personal data is turned off in the workspace and the
-        caller is not an administrator. An employee sees their own profile in full — the same one is returned by the
-        [Own profile](GET /profile) method, and without the `users:read` scope.
+        caller is not an administrator. For a multi-guest they always come back as `null`. An employee sees their own
+        profile in full — the same one is returned by the [Own profile](GET /profile) method, and without the
+        `users:read` scope.
       parameters:
         - name: id
           in: path
@@ -6344,6 +7396,13 @@ paths:
 
         An unknown role value is silently ignored by the method: the response is successful and the role stays as it
         was.
+
+
+        A bot's nickname must end with `_bot` and be unique in the workspace, otherwise the method responds `422` with
+        an error on the `nickname` field: `invalid` or `already_exists`. A bot's existing nickname is checked only when
+        it is changed. A bot with the "Restrict to a single chat" setting cannot be added to tags: if `list_tags`
+        contains a tag the bot does not have yet, the method responds `422` with the `single_chat_bot_tag_denied` code
+        on the `group_tags` field and changes nothing.
       parameters:
         - name: id
           in: path
@@ -6633,6 +7692,10 @@ paths:
 
 
         The status of another employee: the emoji, the title, the expiry, and away mode.
+
+
+        For a multi-guest the method returns statuses only of those who come to them in [List employees](GET /users),
+        and responds `404` for the rest.
 
 
         If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status
@@ -7249,7 +8312,7 @@ components:
           items:
             $ref: '#/components/schemas/ApiErrorItem'
           description: Array of errors
-      description: API error (used for 400, 402, 403, 404, 409, 410, 422)
+      description: API error (used for 400, 402, 403, 404, 409, 410, 422, 429, 503, 504)
       x-error: true
     ApiErrorItem:
       type: object
@@ -7303,13 +8366,24 @@ components:
           format: int32
           nullable: true
           description: ID of the user who performed the action. `null` if the action was performed without an initiator.
-      description: 'For: bot_deleted, bot_token_recreated'
+      description: 'For: bot_deleted, bot_token_recreated, bot_token_created, bot_token_updated, bot_token_reissued'
     AuditDetailsBotOAuthClient:
       type: object
       required:
+        - bot_id
+        - actor_id
         - client_id
         - changes
       properties:
+        bot_id:
+          type: integer
+          format: int32
+          description: Bot ID
+        actor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
         client_id:
           type: string
           description: Bot OAuth client ID
@@ -7320,12 +8394,73 @@ components:
             Changed client settings. The key is the setting name (confidential, redirect_uris, scopes), the value is an
             object with previous and new fields.
       description: 'For: bot_oauth_client_updated'
+    AuditDetailsBotOAuthClientDisabled:
+      type: object
+      required:
+        - bot_id
+        - actor_id
+        - client_id
+        - deleted_access_tokens_count
+        - deleted_access_grants_count
+      properties:
+        bot_id:
+          type: integer
+          format: int32
+          description: Bot ID
+        actor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+        client_id:
+          type: string
+          description: Bot OAuth client ID
+        deleted_access_tokens_count:
+          type: integer
+          format: int32
+          description: Number of employee tokens revoked
+        deleted_access_grants_count:
+          type: integer
+          format: int32
+          description: Number of unused authorization codes revoked
+      description: 'For: bot_oauth_client_disabled'
+    AuditDetailsBotOAuthClientSecretRotated:
+      type: object
+      required:
+        - bot_id
+        - actor_id
+        - client_id
+      properties:
+        bot_id:
+          type: integer
+          format: int32
+          description: Bot ID
+        actor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
+        client_id:
+          type: string
+          description: Bot OAuth client ID
+      description: 'For: bot_oauth_client_secret_rotated'
     AuditDetailsBotScopes:
       type: object
       required:
+        - bot_id
+        - actor_id
         - added_scopes
         - removed_scopes
       properties:
+        bot_id:
+          type: integer
+          format: int32
+          description: Bot ID
+        actor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
         added_scopes:
           type: array
           items:
@@ -7340,8 +8475,19 @@ components:
     AuditDetailsBotWebhookSettings:
       type: object
       required:
+        - bot_id
+        - actor_id
         - changes
       properties:
+        bot_id:
+          type: integer
+          format: int32
+          description: Bot ID
+        actor_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the user who performed the action. `null` if the action was performed without an initiator.
         changes:
           type: object
           additionalProperties: {}
@@ -7786,6 +8932,8 @@ components:
         - $ref: '#/components/schemas/AuditDetailsVideoCallStarted'
         - $ref: '#/components/schemas/AuditDetailsVideoCallFinished'
         - $ref: '#/components/schemas/AuditDetailsVideoCallRecording'
+        - $ref: '#/components/schemas/AuditDetailsBotOAuthClientSecretRotated'
+        - $ref: '#/components/schemas/AuditDetailsBotOAuthClientDisabled'
       description: Additional audit event details. Structure depends on the event_key value.
     AuditEventKey:
       type: string
@@ -7833,6 +8981,11 @@ components:
         - bot_token_recreated
         - bot_deleted
         - bot_oauth_client_updated
+        - bot_oauth_client_disabled
+        - bot_oauth_client_secret_rotated
+        - bot_token_created
+        - bot_token_updated
+        - bot_token_reissued
         - oauth_authorization_granted
         - oauth_authorization_revoked
         - oauth_device_authorization_approved
@@ -7886,6 +9039,11 @@ components:
         bot_token_recreated: Bot token recreated (rotation)
         bot_deleted: Bot deleted
         bot_oauth_client_updated: Bot OAuth client settings changed
+        bot_oauth_client_disabled: Authorization on behalf of an employee disabled for the bot
+        bot_oauth_client_secret_rotated: Bot OAuth client secret rotated
+        bot_token_created: Bot token issued
+        bot_token_updated: Bot token name or scopes changed
+        bot_token_reissued: Additional bot token reissued
         oauth_authorization_granted: User granted an OAuth client access to their data
         oauth_authorization_revoked: An OAuth client's access to user data was revoked
         oauth_device_authorization_approved: Employee confirmed an app sign-in from a device
@@ -7904,6 +9062,81 @@ components:
           description: Avatar URL
           example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
       description: Avatar data
+    BotAccessToken:
+      type: object
+      required:
+        - id
+        - token
+        - name
+        - user_id
+        - scopes
+        - created_at
+        - revoked_at
+        - expires_in
+        - last_used_at
+        - authorized_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Token ID
+          example: 4827
+        token:
+          type: string
+          description: >-
+            Masked token (the first 8 and the last 4 characters are visible). The full value is returned once: when the
+            token is issued and when it is reissued.
+          example: cH5kR9mN...x7Qp
+        name:
+          type: string
+          nullable: true
+          description: Token name. `null` for a token issued without a name.
+          example: Notification server
+        user_id:
+          type: integer
+          format: int64
+          description: ID of the bot the token belongs to
+          example: 1738816
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Token scopes
+          example:
+            - messages:create
+            - chats:read
+        created_at:
+          type: string
+          format: date-time
+          description: Token issue date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          example: '2025-01-15T10:30:00.000Z'
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: 'Token revocation date. Always `null`: revoked tokens are not returned.'
+          example: null
+        expires_in:
+          type: integer
+          format: int32
+          nullable: true
+          description: 'Token lifetime in seconds. `null` for bot tokens: they do not expire.'
+          example: null
+        last_used_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Token last used date. `null` until the token has been used at least once. Updated at most once per hour, so
+            it may lag behind.
+          example: '2025-02-24T14:20:00.000Z'
+        authorized_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Authorization date. `null` for bot tokens.
+          example: null
+      description: Bot token
     BotCanEdit:
       type: string
       enum:
@@ -7918,6 +9151,13 @@ components:
       required:
         - webhook
       properties:
+        empty:
+          type: boolean
+          description: >-
+            Create an empty bot: without a token and without an incoming webhook. Without this field the bot is created
+            with an incoming webhook in its own format, and its token comes in `access_token`.
+          example: false
+          default: false
         webhook:
           type: object
           properties:
@@ -7989,7 +9229,7 @@ components:
               default: true
             ignore_self_messages:
               type: boolean
-              description: Ignore incoming messages sent by the bot itself
+              description: Skip events about the bot's own messages and reactions
               example: false
               default: false
             events_history_enabled:
@@ -8016,33 +9256,132 @@ components:
               type: boolean
               description: >-
                 Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel
-                only, `false` — to multiple. Personal chats and threads don't count toward this limit. Set only on
-                creation and not changed on update.
+                only, `false` — to multiple. Personal chats and threads don't count toward this limit.
               example: false
               default: false
+            kind:
+              allOf:
+                - $ref: '#/components/schemas/BotWebhookKind'
+              description: >-
+                Incoming webhook source. Without `empty` it defaults to `simple`, and an empty bot gets an incoming
+                webhook only through this field.
+              example: simple
+            unfurl_domains:
+              type: array
+              items:
+                type: string
+              description: Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event.
+              example:
+                - example.com
           required:
             - name
           description: Webhook parameters object of the bot to create
+        oauth_client:
+          allOf:
+            - $ref: '#/components/schemas/BotOAuthClientRequest'
+          description: Enable authorization on behalf of an employee right at creation
+        promo:
+          allOf:
+            - $ref: '#/components/schemas/BotPromoRequest'
+          description: 'The bot''s catalog page. Set only together with `oauth_client`: without authorization the bot has no page.'
       description: Bot creation request
     BotCreateResponse:
       type: object
       required:
         - id
+        - name
+        - nickname
+        - avatar_url
+        - creator_id
+        - created_at
+        - authorized_users_count
+        - last_used_at
         - webhook
-        - access_token
+        - oauth_client_enabled
+        - oauth_client
+        - promo
+        - permissions
       properties:
         id:
           type: integer
           format: int32
           description: Bot ID (same as the bot's `user_id`)
           example: 1738816
+        name:
+          type: string
+          description: Bot name
+          example: Tasks bot
+        nickname:
+          type: string
+          description: Bot nickname
+          example: tasks_bot
+        avatar_url:
+          type: string
+          nullable: true
+          description: Bot avatar URL. `null` if no avatar is set.
+          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+        creator_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the employee who created the bot. `null` if the creator is not recorded.
+          example: 12
+        created_at:
+          type: string
+          format: date-time
+          description: Bot creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          example: '2025-05-15T14:30:00.000Z'
+        authorized_users_count:
+          type: integer
+          format: int32
+          description: How many employees have authorized the bot
+          example: 3
+        last_used_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Date and time the bot last worked (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format: a request to the
+            incoming webhook or an API call with any of the bot's tokens, including employee tokens. `null` if there has
+            been none. Token use is recorded at most once an hour.
+          example: '2025-05-15T14:30:00.000Z'
         webhook:
           allOf:
             - $ref: '#/components/schemas/BotWebhook'
           description: Webhook parameters object
+        oauth_client_enabled:
+          type: boolean
+          description: Whether authorization on behalf of an employee is enabled for the bot
+          example: true
+        oauth_client:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/BotOAuthClient'
+          nullable: true
+          description: >-
+            Authorization on behalf of an employee. It can come even for a bot with authorization disabled, so check
+            `oauth_client_enabled` to see whether it is enabled. A bot without tokens may get `null`.
+        promo:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/BotPromo'
+          nullable: true
+          description: The bot's catalog page. `null` if authorization is disabled for the bot.
+        permissions:
+          allOf:
+            - $ref: '#/components/schemas/BotPermissions'
+          description: What you can do with this bot
+        client_secret:
+          type: string
+          description: >-
+            Client secret. Returned once: when a server-side client is enabled, when the client switches to server-side,
+            and when the secret is rotated.
+          example: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
         access_token:
           type: string
-          description: Bot access token. Returned when the bot is created and when the token is rotated.
+          description: >-
+            Bot access token. Returned when the bot is created and when the token is rotated. Not returned if the bot is
+            created with `empty: true`.
           example: bm90X2FfcmVhbF90b2tlbg
       description: Created bot parameters
     BotEventName:
@@ -8086,10 +9425,345 @@ components:
         video_call_started: Video call started
         video_call_finished: Video call finished
         video_call_recording_ready: Video call recording ready
+    BotOAuthClient:
+      type: object
+      required:
+        - client_id
+        - client_secret_preview
+        - confidential
+        - redirect_uris
+        - scopes
+      properties:
+        client_id:
+          type: string
+          description: Client ID for the authorization link
+          example: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+        client_secret_preview:
+          type: string
+          description: >-
+            Masked client secret. The full value comes in `client_secret` once: when a server-side client is enabled and
+            when the secret is rotated.
+          example: cH5kR9mN...x7Qp
+        confidential:
+          type: boolean
+          description: >-
+            Where the secret is stored: `true` — a server-side application, `false` — an application without a secret
+            that exchanges the code with PKCE
+          example: true
+        redirect_uris:
+          type: array
+          items:
+            type: string
+          description: Redirect URIs after consent
+          example:
+            - https://example.com/oauth/callback
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes the bot requests from an employee on the consent screen
+          example:
+            - messages:read
+            - messages:create
+      description: Authorization on behalf of an employee
+    BotOAuthClientRequest:
+      type: object
+      properties:
+        confidential:
+          type: boolean
+          description: >-
+            Where the secret is stored: `true` — a server-side application stores `client_secret` and exchanges the code
+            on its side, `false` — an application without a secret (browser, mobile, CLI) exchanges the code with PKCE.
+            If omitted, the value does not change, and a new client gets `true`.
+          example: true
+        redirect_uris:
+          type: array
+          items:
+            type: string
+          description: >-
+            Redirect URIs after consent. HTTPS is required, except for addresses on the same computer (`localhost`,
+            `127.0.0.1`, `[::1]`). The address in the authorization link must exactly match one from the list, except
+            that the port is not compared for addresses on the same computer. Pass at least one address when enabling.
+            The list is replaced as a whole.
+          example:
+            - https://example.com/oauth/callback
+        scopes:
+          type: array
+          items:
+            type: string
+          description: >-
+            Scopes the bot requests from an employee on the consent screen. Only scopes that can be granted to the bot
+            itself are available. If omitted when enabling, all bot scopes are requested. The list is replaced as a
+            whole.
+          example:
+            - messages:read
+            - messages:create
+      description: Settings of authorization on behalf of an employee
+    BotPermissions:
+      type: object
+      required:
+        - update_oauth_client
+        - recreate_token
+        - destroy
+      properties:
+        update_oauth_client:
+          type: boolean
+          description: Change authorization on behalf of an employee, the catalog page and the bot name
+          example: true
+        recreate_token:
+          type: boolean
+          description: Issue, change and delete the bot's tokens and rotate the client secret
+          example: true
+        destroy:
+          type: boolean
+          description: Delete the bot
+          example: true
+      description: What the current user can do with the bot
+    BotPromo:
+      type: object
+      required:
+        - description
+        - published
+        - promo_images
+      properties:
+        description:
+          type: string
+          nullable: true
+          description: Bot description. `null` if not set.
+          example: Collects a summary of Jira tasks and sends it to the chat
+        published:
+          type: boolean
+          description: Whether the bot is published in the catalog
+          example: true
+        promo_images:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotPromoImage'
+          description: Screenshots for the bot's page
+      description: The bot's catalog page
+    BotPromoImage:
+      type: object
+      required:
+        - key
+        - url
+      properties:
+        key:
+          type: string
+          description: Image key
+          example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png
+        url:
+          type: string
+          description: Image URL
+          example: >-
+            https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png
+      description: Screenshot for the bot's catalog page
+    BotPromoRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          description: 'Description: what the bot does and why to connect it. A bot cannot be published without a description.'
+          example: Collects a summary of Jira tasks and sends it to the chat
+        published:
+          type: boolean
+          description: >-
+            Publish the bot to the catalog: it appears as a card on the "Overview" tab. Publishing requires a
+            description.
+          example: true
+        promo_images:
+          type: array
+          items:
+            type: string
+          description: >-
+            Screenshots for the bot's page, up to 5: keys of uploaded images (`key` from [Get signature, key and other
+            parameters](POST /uploads)). The list is replaced as a whole, the order is kept.
+          example:
+            - attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png
+      description: The bot's catalog page
     BotResponse:
       type: object
       required:
         - id
+        - name
+        - nickname
+        - avatar_url
+        - creator_id
+        - created_at
+        - authorized_users_count
+        - last_used_at
+        - webhook
+        - oauth_client_enabled
+        - oauth_client
+        - promo
+        - permissions
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Bot ID
+          example: 1738816
+        name:
+          type: string
+          description: Bot name
+          example: Tasks bot
+        nickname:
+          type: string
+          description: Bot nickname
+          example: tasks_bot
+        avatar_url:
+          type: string
+          nullable: true
+          description: Bot avatar URL. `null` if no avatar is set.
+          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+        creator_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: ID of the employee who created the bot. `null` if the creator is not recorded.
+          example: 12
+        created_at:
+          type: string
+          format: date-time
+          description: Bot creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+          example: '2025-05-15T14:30:00.000Z'
+        authorized_users_count:
+          type: integer
+          format: int32
+          description: How many employees have authorized the bot
+          example: 3
+        last_used_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Date and time the bot last worked (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format: a request to the
+            incoming webhook or an API call with any of the bot's tokens, including employee tokens. `null` if there has
+            been none. Token use is recorded at most once an hour.
+          example: '2025-05-15T14:30:00.000Z'
+        webhook:
+          allOf:
+            - $ref: '#/components/schemas/BotWebhook'
+          description: Webhook parameters object
+        oauth_client_enabled:
+          type: boolean
+          description: Whether authorization on behalf of an employee is enabled for the bot
+          example: true
+        oauth_client:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/BotOAuthClient'
+          nullable: true
+          description: >-
+            Authorization on behalf of an employee. It can come even for a bot with authorization disabled, so check
+            `oauth_client_enabled` to see whether it is enabled. A bot without tokens may get `null`.
+        promo:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/BotPromo'
+          nullable: true
+          description: The bot's catalog page. `null` if authorization is disabled for the bot.
+        permissions:
+          allOf:
+            - $ref: '#/components/schemas/BotPermissions'
+          description: What you can do with this bot
+        client_secret:
+          type: string
+          description: >-
+            Client secret. Returned once: when a server-side client is enabled, when the client switches to server-side,
+            and when the secret is rotated.
+          example: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+      description: Bot parameters
+    BotScopeCatalog:
+      type: object
+      required:
+        - scopes
+        - groups
+        - presets
+      properties:
+        scopes:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotScopeCatalogItem'
+          description: Scopes available to the bot
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotScopeCatalogGroup'
+          description: Scope categories
+        presets:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotScopeCatalogPreset'
+          description: Ready-made scope sets
+      description: Catalog of scopes that can be granted to the bot
+    BotScopeCatalogGroup:
+      type: object
+      required:
+        - id
+        - title
+        - description
+      properties:
+        id:
+          type: string
+          description: Category ID
+          example: messages
+        title:
+          type: string
+          description: Category name
+          example: Messages
+        description:
+          type: string
+          description: Category description
+          example: Working with messages
+      description: Scope category
+    BotScopeCatalogItem:
+      type: object
+      required:
+        - id
+        - title
+        - group
+        - preset
+      properties:
+        id:
+          type: string
+          description: Scope
+          example: messages:create
+        title:
+          type: string
+          description: Scope description
+          example: Send messages
+        group:
+          type: string
+          description: Scope category, `id` from `groups`
+          example: messages
+        preset:
+          type: array
+          items:
+            type: string
+          description: Sets that include the scope, `id` from `presets`
+          example:
+            - admin
+      description: Scope in the bot scope catalog
+    BotScopeCatalogPreset:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: string
+          description: 'Set ID: `read-only` or `admin`'
+          example: read-only
+        title:
+          type: string
+          description: Set name
+          example: Read only
+      description: Ready-made scope set
+    BotSelfResponse:
+      type: object
+      required:
+        - id
+        - oauth_client
         - webhook
       properties:
         id:
@@ -8097,11 +9771,160 @@ components:
           format: int32
           description: Bot ID
           example: 1738816
+        oauth_client:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/BotOAuthClient'
+          nullable: true
+          description: >-
+            Authorization on behalf of an employee. It can come even for a bot with authorization disabled. A bot
+            without tokens may get `null`.
         webhook:
           allOf:
-            - $ref: '#/components/schemas/BotWebhook'
+            - $ref: '#/components/schemas/BotSelfWebhook'
           description: Webhook parameters object
-      description: Bot parameters
+      description: Bot parameters in the responses of the bot's own methods
+    BotSelfTokenResponse:
+      type: object
+      required:
+        - id
+        - oauth_client
+        - webhook
+        - access_token
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Bot ID
+          example: 1738816
+        oauth_client:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/BotOAuthClient'
+          nullable: true
+          description: >-
+            Authorization on behalf of an employee. It can come even for a bot with authorization disabled. A bot
+            without tokens may get `null`.
+        webhook:
+          allOf:
+            - $ref: '#/components/schemas/BotSelfWebhook'
+          description: Webhook parameters object
+        access_token:
+          type: string
+          description: New bot token. Returned once.
+          example: bm90X2FfcmVhbF90b2tlbg
+      description: Bot parameters with a new token
+    BotSelfWebhook:
+      type: object
+      required:
+        - name
+        - nickname
+        - outgoing_url
+        - events
+        - trigger_on
+        - commands
+        - scopes
+        - template
+        - template_engine
+        - challenge_key
+        - link_preview_enabled
+        - ignore_self_messages
+        - events_history_enabled
+        - single_chat
+        - can_edit
+        - who_can_add
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Bot name
+          example: Tasks bot
+        nickname:
+          type: string
+          maxLength: 255
+          description: Bot nickname
+          example: tasks_bot
+        outgoing_url:
+          type: string
+          nullable: true
+          description: Outgoing webhook URL
+          example: https://www.website.com/tasks/new
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotEventName'
+          description: Events the bot is subscribed to
+          example:
+            - message_new
+        trigger_on:
+          allOf:
+            - $ref: '#/components/schemas/BotTriggerOn'
+          description: Outgoing webhook trigger condition
+          example: commands
+        commands:
+          type: array
+          items:
+            type: string
+          description: Bot commands (trigger words)
+          example:
+            - /task
+        scopes:
+          type: array
+          items:
+            type: string
+          description: >-
+            Bot token scopes (permissions). The default set is broader than what can be assigned explicitly, so values
+            that cannot be set explicitly may appear here.
+          example:
+            - messages:create
+        template:
+          type: string
+          nullable: true
+          description: Template for formatting the incoming webhook. `null` if not set.
+          example: Order from {{ client }} for {{ amount }} ₽
+        template_engine:
+          allOf:
+            - $ref: '#/components/schemas/BotTemplateEngine'
+          description: Template engine used to process the incoming webhook template
+          example: liquid
+        challenge_key:
+          type: string
+          nullable: true
+          description: Verification field name for incoming webhook verification. `null` if not set.
+          example: challenge
+        link_preview_enabled:
+          type: boolean
+          description: Show link previews in incoming webhook messages
+          example: true
+        ignore_self_messages:
+          type: boolean
+          description: Skip events about the bot's own messages and reactions
+          example: false
+        events_history_enabled:
+          type: boolean
+          description: Save the bot's event history for later retrieval via the event history method
+          example: false
+        single_chat:
+          type: boolean
+          description: >-
+            Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel only,
+            `false` — to multiple. Personal chats and threads don't count toward this limit
+          example: false
+        can_edit:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotCanEdit'
+          description: >-
+            Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty
+            array means only the creator can edit.
+          example:
+            - admin
+        who_can_add:
+          allOf:
+            - $ref: '#/components/schemas/BotWhoCanAdd'
+          description: Who can add the bot to chats
+          example: creator
+      description: Bot webhook parameters in the responses of the bot's own methods
     BotTemplateEngine:
       type: string
       enum:
@@ -8111,6 +9934,46 @@ components:
       x-enum-descriptions:
         liquid: Liquid — conditions, loops, and filters
         mustache: Mustache — simple substitution without logic
+    BotTokenCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: 'Token name: tokens are told apart by it in the list'
+          example: Notification server
+        scopes:
+          type: array
+          items:
+            type: string
+          description: >-
+            Token scopes. Only scopes that can be granted to a bot are available. If omitted, the token is issued
+            without scopes.
+          example:
+            - messages:create
+            - chats:read
+      description: Bot token issue request
+    BotTokenUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: New token name
+          example: Notification server
+        scopes:
+          type: array
+          items:
+            type: string
+          description: >-
+            New token scopes. The list is replaced as a whole and takes effect immediately, there is no need to reissue
+            the token.
+          example:
+            - messages:create
+            - chats:read
+      description: Bot token update request
     BotTriggerOn:
       type: string
       enum:
@@ -8124,8 +9987,6 @@ components:
         unfurl: On link unfurling (link previews)
     BotUpdateRequest:
       type: object
-      required:
-        - webhook
       properties:
         webhook:
           type: object
@@ -8198,7 +10059,7 @@ components:
               default: true
             ignore_self_messages:
               type: boolean
-              description: Ignore incoming messages sent by the bot itself
+              description: Skip events about the bot's own messages and reactions
               example: false
               default: false
             events_history_enabled:
@@ -8221,7 +10082,37 @@ components:
                 array means only the creator can edit.
               example:
                 - admin
+            single_chat:
+              type: boolean
+              description: >-
+                Restricts the bot to a single group chat. `true` — the bot can be added to one discussion or channel
+                only, `false` — to multiple. Personal chats and threads don't count toward this limit
+              example: false
+            kind:
+              allOf:
+                - $ref: '#/components/schemas/BotWebhookKind'
+              description: Incoming webhook source. If the bot had no incoming webhook, it is enabled.
+              example: simple
+            unfurl_domains:
+              type: array
+              items:
+                type: string
+              description: Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event.
+              example:
+                - example.com
           description: Webhook parameters object of the bot to update
+        oauth_client:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/BotOAuthClientRequest'
+          nullable: true
+          description: >-
+            Settings of authorization on behalf of an employee. If authorization is disabled, the object enables it, and
+            `null` disables it: authorizations granted by employees are revoked and the catalog page is deleted.
+        promo:
+          allOf:
+            - $ref: '#/components/schemas/BotPromoRequest'
+          description: The bot's catalog page. Available only while authorization is enabled for the bot.
       description: Bot update request
     BotWebhook:
       type: object
@@ -8242,6 +10133,9 @@ components:
         - single_chat
         - can_edit
         - who_can_add
+        - kind
+        - unfurl_domains
+        - last_request_at
       properties:
         name:
           type: string
@@ -8307,7 +10201,7 @@ components:
           example: true
         ignore_self_messages:
           type: boolean
-          description: Ignore incoming messages sent by the bot itself
+          description: Skip events about the bot's own messages and reactions
           example: false
         events_history_enabled:
           type: boolean
@@ -8333,7 +10227,39 @@ components:
             - $ref: '#/components/schemas/BotWhoCanAdd'
           description: Who can add the bot to chats
           example: creator
+        kind:
+          allOf:
+            - $ref: '#/components/schemas/BotWebhookKind'
+          nullable: true
+          description: Incoming webhook source. `null` if the bot's incoming webhook is disabled.
+          example: simple
+        unfurl_domains:
+          type: array
+          items:
+            type: string
+          description: Domains whose links the bot unfurls
+          example:
+            - example.com
+        last_request_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Date and time of the last request to the bot's incoming webhook (ISO-8601, UTC+0) in
+            YYYY-MM-DDThh:mm:ss.sssZ format. `null` if there have been no requests.
+          example: '2025-05-15T14:30:00.000Z'
       description: Bot webhook parameters
+    BotWebhookKind:
+      type: string
+      enum:
+        - simple
+        - gitlab
+        - grafana
+      description: Incoming webhook source of the bot
+      x-enum-descriptions:
+        simple: 'Custom format: the message is built from the request body with the bot''s template'
+        gitlab: 'GitLab: Pachca parses the request and builds the message itself'
+        grafana: 'Grafana: Pachca parses the request and builds the message itself'
     BotWebhookSelfUpdateRequest:
       type: object
       required:
@@ -8362,7 +10288,7 @@ components:
         creator: Only the bot creator
         creator_admin: The creator and company administrators
         creator_admin_user: The creator, administrators, and company members
-        anyone: Anyone, including guests
+        anyone: 'Public bot: any employee except guests and multi-guests can add it'
     Button:
       type: object
       required:
@@ -8707,6 +10633,7 @@ components:
       type: object
       required:
         - id
+        - oauth_client
         - webhook
       properties:
         id:
@@ -8714,6 +10641,14 @@ components:
           format: int32
           description: Bot ID
           example: 1738816
+        oauth_client:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/BotOAuthClient'
+          nullable: true
+          description: >-
+            Authorization on behalf of an employee. `null` for a bot you cannot edit. It can also come for a bot with
+            authorization disabled, and a bot without tokens may get `null`.
         webhook:
           allOf:
             - $ref: '#/components/schemas/CompanyBotWebhook'
@@ -8808,7 +10743,7 @@ components:
         ignore_self_messages:
           type: boolean
           nullable: true
-          description: Ignore incoming messages sent by the bot itself
+          description: Skip events about the bot's own messages and reactions
           example: false
         events_history_enabled:
           type: boolean
@@ -9131,7 +11066,9 @@ components:
         duration_ms:
           type: integer
           format: int32
-          description: Duration in milliseconds. Required for a voice message (`file_type` is `voice`).
+          description: >-
+            Duration in milliseconds. Required for a voice message (`file_type` is `voice`). A voice message longer than
+            30 minutes (1,800,000 ms) is rejected with `422`.
           example: 5400
         waveform:
           type: string
@@ -9661,6 +11598,9 @@ components:
         - message_id
         - links
         - user_id
+        - entity_type
+        - entity_id
+        - thread
         - created_at
         - webhook_timestamp
       properties:
@@ -9700,6 +11640,25 @@ components:
           format: int32
           description: Message sender ID
           example: 2345
+        entity_type:
+          allOf:
+            - $ref: '#/components/schemas/MessageEntityType'
+          description: Type of the entity the message with the link belongs to
+          example: discussion
+        entity_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: >-
+            Entity ID: the conversation or channel, or the thread. `null` in a direct chat: the bot does not take part
+            in it, and the other participant is not disclosed to it.
+          example: 23438
+        thread:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/WebhookMessageThread'
+          nullable: true
+          description: Thread the message with the link was sent in. `null` if the message was not sent in a thread.
         created_at:
           type: string
           format: date-time
@@ -9711,6 +11670,18 @@ components:
           description: Webhook send date and time (UTC+0) in UNIX format
           example: 1726685594
       description: Outgoing webhook payload for link unfurling
+    MarkChatUnreadRequest:
+      type: object
+      properties:
+        message_id:
+          type: integer
+          format: int32
+          minimum: 1
+          description: >-
+            ID of the message from which the chat becomes unread: this message and all messages after it. If omitted,
+            the last message becomes unread.
+          example: 1194275
+      description: Request to mark a chat as unread
     MemberEventType:
       type: string
       enum:
@@ -9811,12 +11782,16 @@ components:
             id:
               type: integer
               format: int64
-              description: Thread ID
+              description: >-
+                Thread ID. To write to the thread, pass it in `entity_id` of the [New message](POST /messages) method
+                with `entity_type: "thread"`.
               example: 265142
             chat_id:
               type: integer
               format: int64
-              description: Thread chat ID
+              description: >-
+                Thread chat ID. It is used to read the thread's messages with the [List chat messages](GET /messages)
+                method.
               example: 2637266155
           required:
             - id
@@ -9891,7 +11866,9 @@ components:
               example: 334
             content:
               type: string
-              description: 'Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`).'
+              description: >-
+                Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`).
+                For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is.
               example: Yesterday we sold 756 t-shirts (10% more than last Sunday)
             files:
               type: array
@@ -9936,7 +11913,7 @@ components:
                     minimum: 1
                     description: >-
                       Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other
-                      types.
+                      types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.
                     example: 5400
                   waveform:
                     type: string
@@ -9970,8 +11947,10 @@ components:
               type: integer
               format: int32
               description: >-
-                ID of the message you are replying to. The reply appears right in the chat feed rather than in a thread:
-                to write into a thread, send the message with `entity_type: "thread"`.
+                ID of the message you are replying to with a quote. You can reply to a message in any chat, including a
+                thread: send the reply to the same chat or thread where that message is, otherwise the request returns a
+                `422` error. To write into the thread under a message, set `entity_type: "thread"` and the thread ID in
+                `entity_id`.
               example: 194270
             display_avatar_url:
               type: string
@@ -10035,7 +12014,9 @@ components:
           properties:
             content:
               type: string
-              description: 'Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`).'
+              description: >-
+                Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`).
+                For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is.
               example: >-
                 Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur,
                 liaison, necessary, surveillance, questionnaire.
@@ -10083,7 +12064,7 @@ components:
                     minimum: 1
                     description: >-
                       Duration in milliseconds. Required for voice messages (`file_type` is `voice`), not used for other
-                      types.
+                      types. A voice message longer than 30 minutes (1,800,000 ms) is rejected with `422`.
                     example: 5400
                   waveform:
                     type: string
@@ -10188,7 +12169,7 @@ components:
         url:
           type: string
           description: Direct link to the message
-          example: https://pachca.com/chats/1245817/messages/5678
+          example: https://app.pachca.com/chats/9012?message=1245817
         chat_id:
           type: integer
           format: int32
@@ -10236,6 +12217,7 @@ components:
         - chats:read
         - chats:create
         - chats:update
+        - chats:mark_unread
         - chats:archive
         - chats:leave
         - chat_members:read
@@ -10296,6 +12278,7 @@ components:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         chats_create:
           - owner
@@ -10306,11 +12289,19 @@ components:
           - owner
           - admin
           - user
+          - multi_guest
+          - bot
+        chats_mark_unread:
+          - owner
+          - admin
+          - user
+          - multi_guest
           - bot
         chats_archive:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         chats_leave:
           - owner
@@ -10321,11 +12312,13 @@ components:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         chat_members_write:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         chat_exports_read:
           - owner
@@ -10335,46 +12328,55 @@ components:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         messages_create:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         messages_update:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         messages_delete:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         reactions_read:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         reactions_write:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         pins_write:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         threads_read:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         threads_create:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         link_previews_write:
           - owner
@@ -10385,11 +12387,13 @@ components:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         users_read:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         users_create:
           - owner
@@ -10404,6 +12408,7 @@ components:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         group_tags_write:
           - owner
@@ -10424,26 +12429,31 @@ components:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         profile_status_read:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         profile_status_write:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         profile_avatar_write:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         user_status_read:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         user_status_write:
           - owner
@@ -10455,6 +12465,7 @@ components:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         audit_events_read:
           - owner
@@ -10466,26 +12477,31 @@ components:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         tasks_create:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         tasks_update:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         tasks_delete:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         files_read:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         files_write:
           - owner
@@ -10496,6 +12512,7 @@ components:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         webhooks_read:
           - owner
@@ -10521,29 +12538,35 @@ components:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         search_chats:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         search_messages:
           - owner
           - admin
           - user
+          - multi_guest
           - bot
         drafts_read:
           - owner
           - admin
           - user
+          - multi_guest
         drafts_write:
           - owner
           - admin
           - user
+          - multi_guest
       x-enum-descriptions:
         chats_read: View chats and chat list
         chats_create: Create new chats
         chats_update: Update chat settings
+        chats_mark_unread: Mark chats as unread
         chats_archive: Archive and unarchive chats
         chats_leave: Leave chats
         chat_members_read: View chat members
@@ -11201,14 +13224,16 @@ components:
         id:
           type: integer
           format: int64
-          description: Created thread ID (the thread is written to with the [New message](POST /messages) method)
+          description: >-
+            Thread ID. To write to the thread, pass it in `entity_id` of the [New message](POST /messages) method with
+            `entity_type: "thread"`.
           example: 265142
         chat_id:
           type: integer
           format: int64
           description: >-
-            Thread chat ID (it is used to write to the thread with the [New message](POST /messages) method and to read
-            it with the [List chat messages](GET /messages) method)
+            Thread chat ID. It is used to read the thread's messages with the [List chat messages](GET /messages) method
+            and to manage its members.
           example: 2637266155
         message_id:
           type: integer
@@ -11344,7 +13369,7 @@ components:
           description: >-
             Email. In someone else's card it comes as `null` if the caller has no right to see personal data: the
             workspace owner and an administrator always have it, an employee and a bot only when showing personal data
-            is enabled in the workspace, and a guest never. In your own card the field always comes.
+            is enabled in the workspace, and a guest or a multi-guest never. In your own card the field always comes.
           example: olegp@example.com
         phone_number:
           type: string
@@ -11353,7 +13378,7 @@ components:
           description: >-
             Phone number. In someone else's card it comes as `null` if the caller has no right to see personal data: the
             workspace owner and an administrator always have it, an employee and a bot only when showing personal data
-            is enabled in the workspace, and a guest never. In your own card the field always comes.
+            is enabled in the workspace, and a guest or a multi-guest never. In your own card the field always comes.
           example: '+79001234567'
         department:
           type: string
@@ -11392,7 +13417,7 @@ components:
           type: array
           items:
             type: string
-          description: Array of tags assigned to the employee
+          description: Array of tags assigned to the employee. For a multi-guest it comes empty in someone else's card.
           example:
             - Product
             - Design
@@ -11498,7 +13523,9 @@ components:
               type: array
               items:
                 type: string
-              description: Array of tags to assign to the employee
+              description: >-
+                Array of tag names to assign to the employee. A value that is not an array of non-empty strings is
+                ignored.
               example:
                 - Product
                 - Design
@@ -11700,7 +13727,10 @@ components:
               type: array
               items:
                 type: string
-              description: Array of tags to assign to the employee
+              description: >-
+                Array of tag names to assign to the employee. The list replaces the previous one as a whole, an empty
+                one removes all tags. A value that is not an array of non-empty strings is ignored: the employee's tags
+                do not change.
               example:
                 - Product
                 - Design
@@ -11763,6 +13793,10 @@ components:
         - draft_type_change_forbidden
         - confidential_download_denied
         - decryption_failed
+        - bot_add_denied
+        - single_chat_bot_occupied
+        - single_chat_bot_tag_denied
+        - timeout
         - forbidden
         - permission_denied
         - access_denied
@@ -11832,6 +13866,12 @@ components:
         draft_type_change_forbidden: A scheduled message cannot be turned back into a draft
         confidential_download_denied: 'Downloading the file is denied: the request has to come from the secure perimeter'
         decryption_failed: The file could not be decrypted
+        bot_add_denied: 'The bot''s "Who can add the bot to chats" setting does not let you add it: the IDs of such bots come in `value`'
+        single_chat_bot_occupied: >-
+          A bot with the "Restrict to a single chat" setting already belongs to another conversation or channel: the IDs
+          of such bots come in `value`
+        single_chat_bot_tag_denied: A bot with the "Restrict to a single chat" setting cannot be added to a tag
+        timeout: 'Search did not finish in time: narrow the query and retry'
     VideoCallEventType:
       type: string
       enum:
@@ -11990,7 +14030,7 @@ components:
           items:
             $ref: '#/components/schemas/ViewBlockCheckboxOption'
           minItems: 1
-          maxItems: 10
+          maxItems: 20
           description: Array of checkboxes
         required:
           type: boolean
@@ -12297,7 +14337,7 @@ components:
           items:
             $ref: '#/components/schemas/ViewBlockSelectableOption'
           minItems: 1
-          maxItems: 10
+          maxItems: 20
           description: Array of radio buttons
         required:
           type: boolean
@@ -12510,11 +14550,8 @@ components:
           format: int32
           nullable: true
           description: >-
-            ID of the chat in which the button that opened the form was clicked. The value is captured at the moment the
-            form was **opened**, not submitted — if the form stayed open for a long time, `chat_id` still points to the
-            chat where the button was clicked. The field is always present in the payload; for forms opened before this
-            change was rolled out, `chat_id` will be `null` — such forms will gradually phase out by the saved view TTL
-            (30 days).
+            ID of the chat in which the button that opened the form was clicked. Captured when the form is opened, not
+            when it is submitted.
           example: 9012
         user_id:
           type: integer

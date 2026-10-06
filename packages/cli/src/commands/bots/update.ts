@@ -6,13 +6,15 @@ export default class BotsUpdate extends BaseCommand {
   static override description = "Редактирование бота";
 
   static override examples = [
-      "Обновить Webhook URL бота — Пользовательским токеном (с правом редактировать бота) — обнови URL по `id` бота. Пустая строка отключает вебхук:\n  $ pachca bots update"
+      "Обновить Webhook URL бота — Пользовательским токеном (с правом редактировать бота) — обнови URL по `id` бота. Пустая строка отключает вебхук:\n  $ pachca bots update",
+      "Включить боту авторизацию от имени сотрудника — Пользовательским токеном (создатель бота или администратор, если бот открыт администраторам) включи авторизацию: где хранится секрет, адреса возврата и права, которые бот попросит у сотрудника. Права бери из `pachca bots list-scopes`:\n  $ pachca bots update",
+      "Включить боту авторизацию от имени сотрудника — Чтобы бот появился в витрине, добавь описание и опубликуй страницу:\n  $ pachca bots update"
   ];
 
   static scope = "bots:write";
   static apiMethod = "PUT";
   static apiPath = "/bots/{id}";
-  static defaultColumns = ["id","webhook"];
+  static defaultColumns = ["id","name","created_at","nickname","avatar_url"];
 
   static override args = {
     id: Args.integer({
@@ -58,7 +60,7 @@ export default class BotsUpdate extends BaseCommand {
       allowNo: true,
     }),
     'ignore-self-messages': Flags.boolean({
-      description: "Игнорировать входящие сообщения, отправленные самим ботом",
+      description: "Не присылать боту события о его собственных сообщениях и реакциях",
       allowNo: true,
     }),
     'events-history-enabled': Flags.boolean({
@@ -70,6 +72,22 @@ export default class BotsUpdate extends BaseCommand {
     }),
     'can-edit': Flags.string({
       description: "Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.",
+    }),
+    'single-chat': Flags.boolean({
+      description: "Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.",
+      allowNo: true,
+    }),
+    'kind': Flags.string({
+      description: "Источник входящего вебхука. Если у бота входящего вебхука не было, он включается.",
+    }),
+    'unfurl-domains': Flags.string({
+      description: "Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`.",
+    }),
+    'oauth-client': Flags.string({
+      description: "Настройки авторизации от имени сотрудника. Если авторизация выключена, объект её включает, а `null` выключает: выданные сотрудниками авторизации отзываются, страница в витрине удаляется.",
+    }),
+    'promo': Flags.string({
+      description: "Страница бота в витрине. Доступна, только когда у бота включена авторизация.",
     }),
   };
 
@@ -88,7 +106,8 @@ export default class BotsUpdate extends BaseCommand {
       this.validationError(validationErrors);
     }
 
-    const body: Record<string, unknown> = { webhook: {
+    const body: Record<string, unknown> = {
+      webhook: {
       name: flags['name'],
       nickname: flags['nickname'],
       outgoing_url: flags['outgoing-url'],
@@ -104,12 +123,19 @@ export default class BotsUpdate extends BaseCommand {
       events_history_enabled: flags['events-history-enabled'],
       who_can_add: flags['who-can-add'],
       can_edit: flags['can-edit'] ? this.parseJSON(flags['can-edit'], 'can-edit') : undefined,
-    } };
+      single_chat: flags['single-chat'],
+      kind: flags['kind'],
+      unfurl_domains: flags['unfurl-domains'] ? this.parseJSON(flags['unfurl-domains'], 'unfurl-domains') : undefined,
+      },
+      oauth_client: flags['oauth-client'] ? this.parseJSON(flags['oauth-client'], 'oauth-client') : undefined,
+      promo: flags['promo'] ? this.parseJSON(flags['promo'], 'promo') : undefined,
+    };
     // Clean undefined fields
     const inner = body['webhook'] as Record<string, unknown>;
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
+    for (const [k, v] of Object.entries(body)) { if (k !== 'webhook' && v === undefined) delete body[k]; }
 
-    if (Object.keys(inner).length === 0) {
+    if (Object.keys(inner).length === 0 && Object.keys(body).length === 1) {
       this.validationError(
         [{ message: 'Не указаны поля для обновления' }],
         { type: 'PACHCA_USAGE_ERROR' },

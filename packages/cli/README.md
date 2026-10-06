@@ -86,6 +86,13 @@ pachca guide            # список всех сценариев
 | `pachca bots update` | Редактирование бота |
 | `pachca bots delete` | Удаление бота |
 | `pachca bots recreate-token` | Ротация токена бота |
+| `pachca bots rotate-client-secret` | Ротация секрета клиента |
+| `pachca bots list-scopes` | Каталог прав бота |
+| `pachca bots list-tokens` | Список токенов бота |
+| `pachca bots create-token` | Новый токен бота |
+| `pachca bots update-token` | Изменение токена бота |
+| `pachca bots delete-token` | Удаление токена бота |
+| `pachca bots reissue-token` | Перевыпуск токена бота |
 | `pachca bots list-company` | Список ботов пространства |
 | `pachca bots list-events` | История событий |
 | `pachca bots remove-event` | Удаление события |
@@ -102,6 +109,7 @@ pachca guide            # список всех сценариев
 | `pachca chats update` | Редактирование чата |
 | `pachca chats archive` | Архивация чата |
 | `pachca chats unarchive` | Разархивация чата |
+| `pachca chats mark-unread` | Отметка чата непрочитанным |
 | `pachca chats list-company` | Список чатов пространства |
 
 ### members

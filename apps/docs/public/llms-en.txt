@@ -12,16 +12,18 @@
 - All requests require Bearer token in Authorization header: `Authorization: Bearer <TOKEN>`
 - Two token types: **personal** — acts as a person and sees exactly what that person sees; **bot** — acts as a service account, sees every open channel of the workspace plus the closed chats and threads the bot was added to
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
-- Get a personal token: Settings → Automations → API, choosing its scopes. Get a bot token: per-bot in Settings → Automations
+- Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
 - A personal token issued in the interface does not expire; one obtained by `pachca auth login` lives an hour and renews itself
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: `const client = new PachcaClient("YOUR_TOKEN")`
 - Python SDK: `client = PachcaClient("YOUR_TOKEN")`
 
 ## Rate limits
-- Messages: about 4 sends per second per chat, 30 requests per 5 seconds across all chats, and 7,500 messages per chat per rolling day from one sender. Hitting the daily cap pauses that chat for an hour and every further attempt doubles the pause
-- Reading messages: about 10 per second. Incoming webhooks: about 10 per second per webhook id
+- Sending messages (POST /messages): about 4 per second per chat, 30 requests per 5 seconds across all chats, and 7,500 messages per chat per rolling day from one sender. Hitting the daily cap pauses that chat for an hour and every further attempt doubles the pause. Editing and deleting messages fall under the general limit
+- Reading messages (GET methods under /messages): about 10 per second per token. Event history (GET /webhooks/events): about 5 per 2 seconds per token. Other endpoints: about 50 per second per token
+- Incoming webhooks: about 10 per second per webhook id (counted by the identifier in the path, e.g. `/webhooks/user123`)
 - A `429` body comes in two shapes: the daily cap answers with ordinary JSON carrying `rate_limit`, the per-second limit is refused before the method and answers with plain text. Check `Content-Type` before parsing. `Retry-After` is present in both
+- Retries: never wait less than `Retry-After` and add jitter upward only. Do not retry pauses longer than a minute (the daily cap, overload protection): return the error with `Retry-After` instead. Retry `5xx` with exponential backoff and jitter, at most 3 times. The SDK (@pachca/sdk, pachca-sdk), CLI and n8n node retry by themselves
 
 ## Pagination
 - Cursor-based: use `limit` (1–50, default 50) and `cursor` query parameters. Always set `limit` explicitly — do not rely on the default
@@ -35,25 +37,18 @@
 - Python auto-pagination: `await client.users.list_users_all()` returns list of all results
 - Available for: users, chats, messages, members, tags, reactions, tasks, audit events, webhook events
 
-## Rate Limiting
-- Messages (POST/PUT/DELETE /messages): ~4 req/sec per chat (burst: 30/sec for 5s)
-- Message read (GET /messages): ~10 req/sec per token
-- Other endpoints: ~50 req/sec per token
-- Webhook events read (GET /webhooks/events): ~5 req / 2 sec per token
-- Incoming webhooks: ~10 req/sec per webhook id (counted by the identifier in the path, e.g. `/webhooks/user123`)
-- On `429 Too Many Requests`: respect `Retry-After` header value (seconds)
-- Recommended retry strategy: exponential backoff with jitter — base delay × 2^attempt × random(0.5–1.5)
-- SDK (@pachca/sdk, pachca-sdk) handles retry automatically: 3 retries, respects Retry-After, exponential backoff for 5xx
-
 ## Webhooks (Real-time Events)
-- Create a bot in Pachca: Automations → Integrations → Bots
-- Set webhook URL in bot settings → Outgoing Webhook tab
-- Events: `new_message`, `edit_message`, `delete_message`, `new_reaction`, `delete_reaction`, `button_pressed`, `view_submit`, `chat_member_changed`, `company_member_changed`, `link_shared`
+- Create a bot in Pachca: Integrations → Bots → Create bot
+- On the bot's Outgoing webhook tab, press Enable and give your URL
+- Events (`events` values): `message_new`, `message_update`, `message_delete`, `reaction_new`, `reaction_delete`, `button_click` (also delivers form submissions to the bot that opened the form), `chat_member_add`, `chat_member_remove`, `company_member_invite`, `company_member_confirm`, `company_member_suspend`, `company_member_activate`, `company_member_delete`, `company_member_update`, `message_link_shared`, `video_call_started`, `video_call_finished`, `video_call_recording_ready`
+- Most events come only from chats and threads where the bot is a member. Workspace member changes and links to the bot's domains come from the whole workspace
+- New messages depend on `trigger_on`: `all_messages` or `commands` (the first word must equal one of `commands`). A new bot is in `commands` mode with an empty list and gets no messages until you change it. There is no mentions-only mode: take all messages and check for `@bot_nickname` in `content`
 - Verify: HMAC-SHA256 of raw body with bot's Signing Secret
 - Header: `Pachca-Signature` contains hex digest
 - Replay protection: check `webhook_timestamp` within ±60 seconds of current time
-- Alternative to webhooks: polling via GET /webhooks/events (enable "Save event history" in bot settings)
-- IP whitelist: Pachca webhook IP is `37.200.70.177`
+- Alternative to webhooks: polling via GET /webhooks/events (enable "Save event history" on the Outgoing webhook tab, or `events_history_enabled` via the API when there is no URL at all)
+- Delivery: Pachca waits 5 seconds for a response and retries (up to 3 times) only when it cannot connect. Error responses and timeouts are not retried — enable event history to pick up missed events
+- IP allowlist: Pachca sends webhooks from `37.200.70.177`, `185.209.115.174` and `135.106.159.61`
 
 ## File Uploads (3-step process)
 - Step 1: POST /uploads → get S3 presigned params (`direct_url`, `key`, `policy`, `x-amz-signature`, etc.)
@@ -71,7 +66,7 @@
 ## Error Handling
 - `400`: validation errors — `{ errors: [{ key, value, message, code }] }` with codes: `blank`, `invalid`, `taken`, `too_short`, `too_long`, `not_a_number`
 - `401`: unauthorized — `{ error, error_description }` (OAuthError)
-- `403`: forbidden — insufficient permissions. May return ApiError (business logic) or OAuthError (`insufficient_scope`). On `insufficient_scope` the missing scope is in the `WWW-Authenticate` response header (`scope="…"`, RFC 6750) — read it from there instead of parsing the message text
+- `403`: forbidden — insufficient permissions. May return ApiError (business logic) or OAuthError: `insufficient_scope` (the token lacks the scope) or `role_forbidden` (the token has the scope, but the owner's current role does not allow the action — re-authorization will not help). On `insufficient_scope` the missing scope is in the `WWW-Authenticate` response header (`scope="…"`, RFC 6750) — read it from there instead of parsing the message text
 - `404`: not found
 - `409`: conflict (duplicate)
 - `422`: unprocessable — `{ errors: [{ key, value, message, code }] }`
@@ -145,7 +140,7 @@ profile = await client.profile.get_profile()
 print(profile.id, profile.first_name)
 ```
 
-Token types: **admin** (full access, get in Settings → Automations → API), **bot** (messaging + webhooks, per-bot in Integrations), **user** (limited).
+Token types: **admin** (full access, get in Integrations → API), **bot** (messaging + webhooks, API tab of the bot in Integrations → Bots), **user** (limited).
 
 ## How to paginate through results
 
@@ -274,18 +269,18 @@ Chat types: `channel: true` creates a channel (one-way announcements), `channel:
 ## How to set up webhooks for real-time updates
 
 ### Step-by-step setup
-1. Create a bot in Pachca: **Automations** → **Integrations** → **Bots**
-2. In bot settings, go to **Outgoing Webhook** tab and set your HTTPS URL
+1. Create a bot in Pachca: **Integrations** → **Bots** → **Create bot**
+2. On the bot's **Outgoing webhook** tab press **Enable** and set your HTTPS URL
 3. Copy the **Signing Secret** for signature verification
 4. Select event types: new messages, reactions, button presses, form submissions, etc.
-5. Add the bot to chats where you want to receive events (global events like company member changes work without adding to chat)
+5. Add the bot to chats where you want to receive events (company member changes and links on the bot's domains arrive without adding it to a chat)
 
 ### TypeScript webhook handler (Express.js)
 ```typescript
 import express from "express"
 import crypto from "crypto"
 
-const SIGNING_SECRET = "your_signing_secret" // From bot settings → Outgoing Webhook
+const SIGNING_SECRET = "your_signing_secret" // Bot card → Outgoing webhook → Signing secret
 const app = express()
 
 app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
@@ -331,7 +326,7 @@ app.listen(3000)
 import hmac, hashlib, json, time
 from flask import Flask, request, abort
 
-SIGNING_SECRET = "your_signing_secret"  # From bot settings → Outgoing Webhook
+SIGNING_SECRET = "your_signing_secret"  # Bot card → Outgoing webhook → Signing secret
 app = Flask(__name__)
 
 @app.route("/webhook", methods=["POST"])
@@ -368,10 +363,10 @@ def webhook():
 | view_submit | Form submitted | payload (form field values), user_id, trigger_id |
 | chat_member (new/delete) | Member added/removed from chat | chat_id, user_id, event |
 | company_member (new/update/delete) | Workspace member changes | user_id, event (no chat needed) |
-| link_shared | URL shared (unfurl bots) | url, message_id, chat_id |
+| link_shared | URL on one of the bot's domains shared anywhere in the workspace | url, message_id, chat_id |
 
 ### Alternative: Polling (when webhook URL is not available)
-Enable "Save event history" in bot settings, then poll:
+Enable "Save event history" on the bot's Outgoing webhook tab (or `events_history_enabled` via the API when there is no URL at all), then poll:
 ```typescript
 // Poll for events periodically
 const events = await client.bots.getWebhookEvents()
@@ -816,11 +811,11 @@ Information about the token the request itself was made with: its scopes, its ow
 ## Chats
 
 ### GET /api/shared/v1/chats
-By default — the conversations, channels, and direct messages the token owner belongs to. With `availability=public` the method returns instead all public chats of the workspace, including the ones the caller has not joined. Threads never come in this list; for them there is [List threads](/api/threads/list). `archived=true` does not switch the results to the archive, it adds archived chats to the active ones.
+By default — the conversations, channels, and direct messages the token owner belongs to. With `availability=public` the method returns instead all public chats of the workspace, including the ones the caller has not joined. For a multi-guest — only the public chats they are a member of. Threads never come in this list; for them there is [List threads](/api/threads/list). `archived=true` does not switch the results to the archive, it adds archived chats to the active ones.
 Parameters: sort?, order?, availability?, archived?, last_message_at_after?, last_message_at_before?, personal?, limit?, cursor?
 
 ### POST /api/shared/v1/chats
-Creates a conversation or a channel. The token owner becomes the chat owner, and this role is not transferred later on. To create a one-on-one direct message with a user, use the [New message](/api/messages/create) method. To discuss a particular message there is no need to create a chat — a thread is started under it with the [New thread](/api/threads/add) method. Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, are silently dropped — the response is successful but the employee is not in the chat, so check the membership in the response.
+Creates a conversation or a channel. The token owner becomes the chat owner, and this role is not transferred later on. A multi-guest cannot create chats, as in the interface: the method responds `403` to them. To create a one-on-one direct message with a user, use the [New message](/api/messages/create) method. To discuss a particular message there is no need to create a chat — a thread is started under it with the [New thread](/api/threads/add) method. Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, are silently dropped — the response is successful but the employee is not in the chat, so check the membership in the response. Bots are stricter: if a bot's "Who can add the bot to chats" setting does not let you add it, the chat is not created, and the method responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel stops the request too if it is in `member_ids` or creates the chat itself: the chat is not created, and the method responds `409` with the `single_chat_bot_occupied` code and the IDs of such bots in `value`.
 Body: { chat: { name*, member_ids, group_tag_ids, channel, public } }
 
 ### POST /api/shared/v1/chats/exports
@@ -847,6 +842,11 @@ Parameters: id
 ### PUT /api/shared/v1/chats/{id}/unarchive
 Brings a conversation or a channel back from the archive: the chat appears in the lists again, and it becomes possible to write into it again. On a chat that is not in the archive anyway the method responds with success.
 Parameters: id
+
+### PUT /api/shared/v1/chats/{id}/unread
+Marks a chat as unread for the token owner, like "Mark as unread" in the interface. Only their own counter changes, the other members notice nothing. Without `message_id` the last message of the chat becomes unread, with `message_id` — this message and all messages after it. A repeated request with the same message changes nothing, and in a chat without messages the method responds with success and does nothing. Works in conversations, channels, direct chats and threads the token owner belongs to. A hidden direct chat appears in the list again. For a chat the token owner is not in, and for a message from another chat, the method responds `404`.
+Parameters: id
+Body: { message_id }
 
 ### GET /api/shared/v1/company/chats
 The conversations and channels of the whole workspace, including private ones you are not a member of. Direct messages and threads are not returned. Both active and archived chats are returned by default. The `activity` parameter keeps only one of the states in the selection. The method is available to the workspace owner. Every request is written to the [audit log](/guides/audit-events) with the `company_chats_accessed` key.
@@ -877,7 +877,7 @@ Removes the status from the token owner, along with away mode and its text. If t
 ## Users
 
 ### GET /api/shared/v1/users
-Every employee of the workspace except the deleted ones. Suspended employees come together with the rest and are distinguished by the `suspended` field. Bots in the workspace are employees too and come in the common list with `bot: true`. But they are excluded from the results for `query`: to find a bot by name, page through the list without a search query or use [List bots](/api/bots/list). Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. The profile of a single employee is returned by [Employee info](/api/users/get), and your own by [Own profile](/api/profile/get).
+Every employee of the workspace except the deleted ones. Suspended employees come together with the rest and are distinguished by the `suspended` field. Bots in the workspace are employees too and come in the common list with `bot: true`. But they are excluded from the results for `query`: to find a bot by name, page through the list without a search query or use [List bots](/api/bots/list). For a multi-guest the method returns not the whole workspace but the people they see in the interface: themselves, members of their shared chats including bots, and public bots. Threads and archived chats do not count as shared. Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. For a multi-guest they always come back as `null`. A `query` search may not finish in time: then the method responds `504` with the `timeout` code, and the query is worth narrowing. The profile of a single employee is returned by [Employee info](/api/users/get), and your own by [Own profile](/api/profile/get).
 Parameters: query?, limit?, cursor?
 
 ### POST /api/shared/v1/users
@@ -885,11 +885,11 @@ Creates an employee in the workspace and sends them an invitation by email. Avai
 Body: { user*, skip_email_notify }
 
 ### GET /api/shared/v1/users/{id}
-The employee's profile. A suspended employee is returned with `suspended: true`, a deleted one as `404`, like a non-existent one. A bot also comes here as an employee, with `bot: true`. Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. An employee sees their own profile in full — the same one is returned by the [Own profile](/api/profile/get) method, and without the `users:read` scope.
+The employee's profile. A suspended employee is returned with `suspended: true`, a deleted one as `404`, like a non-existent one. A bot also comes here as an employee, with `bot: true`. For a multi-guest the method returns only those who come to them in [List employees](/api/users/list), and responds `404` for the rest. Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. For a multi-guest they always come back as `null`. An employee sees their own profile in full — the same one is returned by the [Own profile](/api/profile/get) method, and without the `users:read` scope.
 Parameters: id
 
 ### PUT /api/shared/v1/users/{id}
-Changes the employee's profile: only the fields you pass are overwritten. Custom property IDs are returned by [List custom properties](/api/custom-properties/list). The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not exist in the workspace yet creates a new tag together with the assignment. `suspended: true` suspends the employee: they lose access but remain in chats, tags, and tasks, while `suspended: false` brings them back. An employee is removed for good by [Delete employee](/api/users/delete). The workspace owner can be edited only by themselves, and their role can be changed only to administrator. Turning a regular employee into a guest is impossible — in both cases the response is `403`. An unknown role value is silently ignored by the method: the response is successful and the role stays as it was.
+Changes the employee's profile: only the fields you pass are overwritten. Custom property IDs are returned by [List custom properties](/api/custom-properties/list). The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not exist in the workspace yet creates a new tag together with the assignment. `suspended: true` suspends the employee: they lose access but remain in chats, tags, and tasks, while `suspended: false` brings them back. An employee is removed for good by [Delete employee](/api/users/delete). The workspace owner can be edited only by themselves, and their role can be changed only to administrator. Turning a regular employee into a guest is impossible — in both cases the response is `403`. An unknown role value is silently ignored by the method: the response is successful and the role stays as it was. A bot's nickname must end with `_bot` and be unique in the workspace, otherwise the method responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. A bot's existing nickname is checked only when it is changed. A bot with the "Restrict to a single chat" setting cannot be added to tags: if `list_tags` contains a tag the bot does not have yet, the method responds `422` with the `single_chat_bot_tag_denied` code on the `group_tags` field and changes nothing.
 Parameters: id
 Body: { user: { first_name, last_name, email, phone_number, nickname, department, title, role, suspended, list_tags, custom_properties } }
 
@@ -907,7 +907,7 @@ Removes the avatar of another employee; the interface then shows initials. Avail
 Parameters: user_id
 
 ### GET /api/shared/v1/users/{user_id}/status
-The status of another employee: the emoji, the title, the expiry, and away mode. If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side.
+The status of another employee: the emoji, the title, the expiry, and away mode. For a multi-guest the method returns statuses only of those who come to them in [List employees](/api/users/list), and responds `404` for the rest. If no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side.
 Parameters: user_id
 
 ### PUT /api/shared/v1/users/{user_id}/status
@@ -922,7 +922,7 @@ Parameters: user_id
 ## Group tags
 
 ### GET /api/shared/v1/group_tags
-All tags of the workspace with the number of employees in each. They are visible the same way to all roles, regardless of which chats they are linked to. The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the interface. It accepts no more than 100 names per request. Who belongs to a particular tag is returned by [List tag employees](/api/group-tags/list-users).
+All tags of the workspace with the number of employees in each, regardless of which chats they are linked to. A multi-guest gets only the tags of active conversations and channels they are a member of. The `names` parameter looks tags up by name — this is the way to get an `id` from a name known from the interface. It accepts no more than 100 names per request, and for more the method responds `400` with the `too_long` code. Who belongs to a particular tag is returned by [List tag employees](/api/group-tags/list-users).
 Parameters: names?, limit?, cursor?
 
 ### POST /api/shared/v1/group_tags
@@ -930,7 +930,7 @@ Creates a tag. A tag is a way to keep chat membership up to date by itself: it i
 Body: { group_tag: { name* } }
 
 ### GET /api/shared/v1/group_tags/{id}
-The tag name and the number of employees in it. Only active employees are counted in `users_count`: suspended ones do not make it into the counter, although they remain in [List tag employees](/api/group-tags/list-users).
+The tag name and the number of employees in it. Only active employees are counted in `users_count`: suspended ones do not make it into the counter, although they remain in [List tag employees](/api/group-tags/list-users). Only the tags that come to a multi-guest in [List tags](/api/group-tags/list) are available to them; for the rest the method responds `404`.
 Parameters: id
 
 ### PUT /api/shared/v1/group_tags/{id}
@@ -943,7 +943,7 @@ Removes a tag from the workspace: it is taken off every employee and unlinked fr
 Parameters: id
 
 ### GET /api/shared/v1/group_tags/{id}/users
-Who belongs to the tag. Suspended employees come in the list, although they are not counted in the tag's own `users_count`; deleted ones do not come. Bots marked with the tag also make it into the results. The membership of a tag is changed in an employee's profile — [Edit employee](/api/users/update) with the `list_tags` field, one employee at a time.
+Who belongs to the tag. Suspended employees come in the list, although they are not counted in the tag's own `users_count`; deleted ones do not come. Bots marked with the tag also make it into the results. The membership of a tag is changed in an employee's profile — [Edit employee](/api/users/update) with the `list_tags` field, one employee at a time. For a multi-guest the method responds `403`: the list of workspace employees is closed to them, as in the interface.
 Parameters: id, limit?, cursor?
 
 ## Members
@@ -966,7 +966,7 @@ Who belongs to a conversation, a channel, or a thread. Bots come on equal terms 
 Parameters: id, role?, limit?, cursor?
 
 ### POST /api/shared/v1/chats/{id}/members
-Adds employees and bots to a conversation, a channel, or a thread. A bot is added the same way as an employee: its `id` in `member_ids`. In a channel it receives the editor role, and in a conversation it becomes an ordinary member — and only after that can it write there. The role in the chat is assigned at the moment of adding: the workspace owner and an administrator become chat administrators, everyone else becomes an ordinary member. After that it is not recalculated by itself, and promoting an employee in the workspace changes nothing where they already belong. To change a role, use the [Edit role](/api/members/update) method. Those who already belong to the chat are silently skipped by the method, and this is not treated as an error. An unknown or inactive ID, however, stops the whole request: the method responds `404` and lists such values, and nobody is added. Adding a whole department at once is more convenient with a tag — [Add tags](/api/members/add-group-tags): then the chat membership is maintained by itself.
+Adds employees and bots to a conversation, a channel, or a thread. A bot is added the same way as an employee: its `id` in `member_ids`. In a channel it receives the editor role, and in a conversation it becomes an ordinary member — and only after that can it write there. The role in the chat is assigned at the moment of adding: the workspace owner and an administrator become chat administrators, everyone else becomes an ordinary member. After that it is not recalculated by itself, and promoting an employee in the workspace changes nothing where they already belong. To change a role, use the [Edit role](/api/members/update) method. Those who already belong to the chat are silently skipped by the method, and this is not treated as an error. An unknown or inactive ID, however, stops the whole request: the method responds `404` and lists such values, and nobody is added. A bot is added only by someone its "Who can add the bot to chats" setting allows — see [Bot settings](/guides/bots/settings#kto-mozhet-dobavlyat-bota-v-chaty). If `member_ids` contains a bot you are not allowed to add, the method adds nobody and responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. If the same request also has an unknown ID, the response is `404` with both errors. A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel is not added either: the response is `409` with the `single_chat_bot_occupied` code and the IDs of such bots in `value`, and nobody from the request is added. Such a bot can still be added to threads. Adding a whole department at once is more convenient with a tag — [Add tags](/api/members/add-group-tags): then the chat membership is maintained by itself.
 Parameters: id
 Body: { member_ids*, silent }
 
@@ -993,17 +993,17 @@ Parameters: last_message_at_after?, last_message_at_before?, limit?, cursor?
 Creates a thread that is not linked to anything: a place for a conversation, a dialogue with an agent, or a call that needs no chat of its own. Any employees can be gathered in it. No request body is required. The thread creator becomes its only member, and the `message_id` and `message_chat_id` fields in the response are returned as `null`. The easiest way to add members to the thread is a mention: `@nickname` or `@tag` at the start or the end of the message text. The [Add users](/api/members/add) method by the `chat_id` of the thread works too. A thread has no name, so send the first message into it right away — that is how employees will understand what it is about. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a thread under it with the [New thread](/api/threads/add) method, and if a permanent place with a name is needed, use the [New chat](/api/chats/create) method.
 
 ### GET /api/shared/v1/threads/{id}
-The thread's identifiers: its own `id`, the `chat_id` for reading and sending messages, and the message it hangs under. For a standalone thread `message_id` and `message_chat_id` come back as `null`. The response carries identifiers only: a thread has no name and no message counter, and what it is about can be seen from the conversation inside. The messages of a thread are read with the [List chat messages](/api/messages/list) method, and its members with the [List chat members](/api/members/list) method, both by the `chat_id` of the thread. Access to a thread is broader than the results of [List threads](/api/threads/list): a thread that opens by `id` may well not appear in the list.
+The identifiers of the thread and of the message it hangs under. The thread's `id` is used to write to it with the [New message](/api/messages/create) method with `entity_type: "thread"`, and its `chat_id` to read its messages. For a standalone thread `message_id` and `message_chat_id` come back as `null`. The response carries identifiers only: a thread has no name and no message counter, and what it is about can be seen from the conversation inside. The messages of a thread are read with the [List chat messages](/api/messages/list) method, and its members with the [List chat members](/api/members/list) method, both by the `chat_id` of the thread. Access to a thread is broader than the results of [List threads](/api/threads/list): a thread that opens by `id` may well not appear in the list.
 Parameters: id
 
 ## Messages
 
 ### GET /api/shared/v1/messages
-The message feed of a conversation, a channel, a thread, or a direct message — by the `chat_id` of the chat in question. Messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the `limit` and `cursor` parameters. Deleted messages do not make it into the list. The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent message hangs. The thread identifier arrives in the `thread` field of the parent message.
+The message feed of a conversation, a channel, a thread, or a direct message — by the `chat_id` of the chat in question. Messages come newest first, that is, the most recent messages of the chat come first. For earlier ones, use the `limit` and `cursor` parameters. Deleted messages do not make it into the list. The messages of a thread are returned by the `chat_id` of the thread itself, not by the chat where the parent message hangs. This `chat_id` arrives in the `thread.chat_id` field of the parent message.
 Parameters: chat_id, sort?, order?, limit?, cursor?
 
 ### POST /api/shared/v1/messages
-Sends a message to a conversation or a channel, a direct message to an employee, or a comment to a thread. When using `entity_type: "discussion"` (or simply without specifying `entity_type`), any `chat_id` can be passed in the `entity_id` field. This means you can send a message knowing only the chat ID. A message can also be sent to a thread by the thread's own ID, and a direct message by the employee's ID, but then the matching `entity_type` must be given: `thread` or `user`. There is no need to create the direct chat for this: it appears by itself if there has been no prior conversation between you. Only one direct chat can exist between two employees. Your own ID writes to the chat with yourself — the same place where an employee sends notes to themselves. The text in the `content` field is parsed as markdown: bold, italic, strikethrough, inline code, code block, and links. Lists and tables are not parsed — `-`, `1.`, and `|` stay as they are, a quote loses its `>`, and a line with a hash and a space becomes bold. The details are in the [Text formatting](/guides/markdown) section. `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. To prevent that, pass `skip_invite_mentions: true`. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there. Buttons can be shown under the message text — the `buttons` array, where each nested array is a row. They only work on messages sent with a bot token: a click on a button with `data` arrives as a `button_click` event to that same bot, carrying a `trigger_id` — there are 3 seconds to open a form with it, the [Open view](/api/views/open) method. A button with `url` simply follows the link and creates no event. Details are in the [Buttons](/guides/buttons) section. A bot can sign a message with someone else's name and avatar: `display_name` and `display_avatar_url` change the sender for this message only. The **Bot** badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when a conversation is carried over from another system. With a personal token these fields are not available and the response is `403`. Details are in the [Bots](/guides/bots/overview) section. No more than 10 files can be attached to a message. A link preview is built only if `link_preview` is passed at the root of the request body. A daily limit applies to the number of messages into one chat from one sender. When it is exceeded the method responds `429`, and the `Retry-After` header carries the pause before the next attempt. The limit values are in the [Limits](/api/limits) section.
+Sends a message to a conversation or a channel, a direct message to an employee, or a comment to a thread. When using `entity_type: "discussion"` (or simply without specifying `entity_type`), any `chat_id` can be passed in the `entity_id` field. This means you can send a message knowing only the chat ID. A message can also be sent to a thread by the thread's own ID, and a direct message by the employee's ID, but then the matching `entity_type` must be given: `thread` or `user`. There is no need to create the direct chat for this: it appears by itself if there has been no prior conversation between you. Only one direct chat can exist between two employees. Your own ID writes to the chat with yourself — the same place where an employee sends notes to themselves. To reply to a specific message with a quote, pass its ID in `parent_message_id`. This works in any chat, including a thread: the reply is sent to the same chat or thread where the original message is. The text in the `content` field is parsed as markdown: bold, italic, strikethrough, inline code, code block, and links. Lists and tables are not parsed — `-`, `1.`, and `|` stay as they are, a quote loses its `>`, and a line with a hash and a space becomes bold. The details are in the [Text formatting](/guides/markdown) section. `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. To prevent that, pass `skip_invite_mentions: true`. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there. Buttons can be shown under the message text — the `buttons` array, where each nested array is a row. They only work on messages sent with a bot token: a click on a button with `data` arrives as a `button_click` event to that same bot, carrying a `trigger_id` — there are 3 seconds to open a form with it, the [Open view](/api/views/open) method. A button with `url` simply follows the link and creates no event. Details are in the [Buttons](/guides/buttons) section. A bot can sign a message with someone else's name and avatar: `display_name` and `display_avatar_url` change the sender for this message only. The **Bot** badge stays, and the sender's profile still shows the real bot. This is how the original author is shown when a conversation is carried over from another system. With a personal token these fields are not available and the response is `403`. Details are in the [Bots](/guides/bots/overview) section. No more than 10 files can be attached to a message. A link preview is built only if `link_preview` is passed at the root of the request body. A daily limit applies to the number of messages into one chat from one sender. When it is exceeded the method responds `429`, and the `Retry-After` header carries the pause before the next attempt. The limit values are in the [Limits](/api/limits) section.
 Body: { message*, link_preview }
 
 ### GET /api/shared/v1/messages/{id}
@@ -1056,15 +1056,15 @@ Parameters: id, code, name?
 ## Search
 
 ### GET /api/shared/v1/search/chats
-Searches for conversations and channels by name, forgiving typos. It also finds the public chats of the workspace the caller has not joined, and of the private ones only those they belong to. Direct messages are not searched by default. Pass `personal=true` and the search will go by the name of the other party rather than by the chat name. The method searches names, not content. To find where something was discussed or agreed, use [Search messages](/api/search/list-messages).
+Searches for conversations and channels by name, forgiving typos. It also finds the public chats of the workspace the caller has not joined, and of the private ones only those they belong to. Direct messages are not searched by default. Pass `personal=true` and the search will go by the name of the other party rather than by the chat name. The method searches names, not content. To find where something was discussed or agreed, use [Search messages](/api/search/list-messages). A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and the query is worth narrowing.
 Parameters: query?, limit?, cursor?, order?, created_from?, created_to?, active?, chat_subtype?, personal?
 
 ### GET /api/shared/v1/search/messages
-Searches by message text and by the names of attachments, but only in the chats the token owner belongs to. A public channel they have not joined does not make it into the search, even though its feed can be read. Thread messages are included in the results. The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query in quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it. By default messages come from newest to oldest. `sort=relevance` switches the results to how well they match the query, where recent messages are still valued higher.
+Searches by message text and by the names of attachments, but only in the chats the token owner belongs to. A public channel they have not joined does not make it into the search, even though its feed can be read. Thread messages are included in the results. The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query in quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it. By default messages come from newest to oldest. `sort=relevance` switches the results to how well they match the query, where recent messages are still valued higher. A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and the query is worth narrowing.
 Parameters: query?, limit?, cursor?, order?, sort?, created_from?, created_to?, chat_ids?, user_ids?, active?
 
 ### GET /api/shared/v1/search/users
-Searches for employees by first and last name, nickname, position, and department. Typos are forgiven only in the first and last name; the other fields need an exact word. The method searches by email only for those who can see personal data in the workspace. It does not search by phone at all — for that there is [List employees](/api/users/list) with the `query` parameter. Deleted employees are never found; suspended ones only when a text query is given, and they stand below the rest in the results. Of the bots, only public ones are found.
+Searches for employees by first and last name, nickname, position, and department. Typos are forgiven only in the first and last name; the other fields need an exact word. The method searches by email only for those who can see personal data in the workspace. It does not search by phone at all — for that there is [List employees](/api/users/list) with the `query` parameter. Deleted employees are never found; suspended ones only when a text query is given, and they stand below the rest in the results. Of the bots, only public ones are found. A query that is too heavy may not finish in time: then the method responds `504` with the `timeout` code, and the query is worth narrowing.
 Parameters: query?, limit?, cursor?, sort?, order?, created_from?, created_to?, company_roles?
 
 ## Tasks
@@ -1078,7 +1078,7 @@ Creates a task and assigns the employees responsible for it. When creating a tas
 Body: { task: { kind*, content, due_at, priority, performer_ids, chat_id, all_day, custom_properties } }
 
 ### GET /api/shared/v1/tasks/{id}
-The task together with its author, assignees, and the chat it is linked to. A task is seen by its author, its assignees, and the members of the chat it is linked to. But membership in the chat is enough only to read it: a task can be changed and deleted only by the author or one of the assignees.
+The task together with its author, assignees, and the chat it is linked to. A task is seen by its author, its assignees, and everyone who can access its chat. The rule is the same as for the `chat_ids` filter of [List tasks](/api/tasks/list): the chat members, and in open conversations and channels — any employee of the workspace. Access to the chat is enough only to read the task: it can be changed and deleted only by the author or one of the assignees.
 Parameters: id
 
 ### PUT /api/shared/v1/tasks/{id}
@@ -1127,36 +1127,66 @@ Body: { submit_id*, errors }
 ## Bots
 
 ### POST /api/shared/v1/bot/recreate_token
-Allows a bot to generate a new `access_token` for itself using its own token — without an administrator and without knowing its own `id`. The very token the request was made with is rotated, and it is invalidated immediately. The new token is returned in the response once — be sure to save it, otherwise the bot loses access to the API. The scopes are carried over from the previous token.
+Allows a bot to generate a new `access_token` for itself using its own token — without an administrator and without knowing its own `id`. The bot's main token is reissued — the one without a name, or the oldest one if there is none — and it is invalidated immediately. If the bot works with an additional token, that token stays as it was. The new token is returned in the response once — be sure to save it, otherwise the bot loses access to the API. The scopes are carried over from the previous token.
 
 ### PUT /api/shared/v1/bot/webhook
 Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without knowing its own `id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an empty string in `outgoing_url`.
 Body: { webhook: { outgoing_url* } }
 
 ### GET /api/shared/v1/bots
-The bots the caller is entitled to configure: those they created themselves and those whose settings grant them edit access. The `query` parameter selects bots by part of the name, without typos. Bot tokens do not come in the list — they are shown once at creation and at rotation. The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation" plan — [List workspace bots](/api/bots/list-company). There other people's bots come with only a name and a nickname, and the rest of the settings are hidden.
+The bots the caller is entitled to configure: those they created themselves and those whose settings grant them edit access. The `query` parameter selects bots by part of the name, without typos. Bot tokens do not come in the list: a token value is shown once, and the bot's tokens themselves are returned by [Bot token list](/api/bots/list-tokens). The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation" plan — [List workspace bots](/api/bots/list-company). There other people's bots come with only a name and a nickname, and the rest of the settings are hidden.
 Parameters: query?, limit?, cursor?
 
 ### POST /api/shared/v1/bots
-Creates a bot in the workspace and immediately returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to reissue it with [Bot token rotation](/api/bots/recreate-token). A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member, and it is added like an employee — with the [Add users](/api/members/add) method, passing the bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require membership. The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it is the set of its chats that decides where it lands. No token is needed for that, the webhook address is enough. To write into one particular chat, take the [New message](/api/messages/create) method — that one does need a token. The nickname must end with `_bot` and be free in the workspace. The `single_chat` restriction is set only here: when editing a bot it can no longer be changed.
-Body: { webhook: { name*, nickname, outgoing_url, events, trigger_on, commands, scopes, template, template_engine, challenge_key, link_preview_enabled, ignore_self_messages, events_history_enabled, who_can_add, can_edit, single_chat } }
+Creates a bot in the workspace. By default the bot gets an incoming webhook in its own format and immediately returns its `access_token`. Save the token at creation: the same one is not shown again, and what remains is to reissue it with [Bot token rotation](/api/bots/recreate-token). With `empty: true` an empty bot is created, as in the interface: only a name and a nickname, without a token and without an incoming webhook. Tokens are issued to it with [New bot token](/api/bots/create-token), and the incoming webhook is enabled with the `kind` field in the `webhook` object. A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member, and it is added like an employee — with the [Add users](/api/members/add) method, passing the bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require membership. The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it is the set of its chats that decides where it lands. No token is needed for that, the webhook address is enough. To write into one particular chat, take the [New message](/api/messages/create) method — that one does need a token. Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. Learn more in [Authorization setup](/guides/oauth/setup). The nickname must end with `_bot` and be free in the workspace.
+Body: { empty, webhook*, oauth_client, promo }
 
 ### GET /api/shared/v1/bots/{id}
-The bot's settings. The token does not come in the response — it is shown once at the bot's creation and at [Bot token rotation](/api/bots/recreate-token). The method returns only the bots the caller is entitled to configure: their own, and, if the bot's settings allow it, also as a workspace administrator or as the owner of a chat the bot belongs to. For someone else's bot the method responds `403`. The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation" plan — [List workspace bots](/api/bots/list-company).
+The bot's settings. The token does not come in the response — it is shown once at the bot's creation and at [Bot token rotation](/api/bots/recreate-token). The bot's tokens are returned by [Bot token list](/api/bots/list-tokens). The method returns only the bots the caller is entitled to configure: their own, and, if the bot's settings allow it, also as a workspace administrator or as an owner or admin of a chat the bot belongs to. For someone else's bot the method responds `403`. The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation" plan — [List workspace bots](/api/bots/list-company).
 Parameters: id
 
 ### PUT /api/shared/v1/bots/{id}
-Changes a bot's settings: only the fields you pass are overwritten. The `single_chat` field is accepted only when a bot is created. In this method it is silently ignored: the response is successful and the bot's mode does not change. The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation error. Commands and scopes are replaced by the passed list as a whole, and the new set of scopes is applied to the bot's current token right away — there is no need to reissue it. You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on the "General" tab in the bot settings).
+Changes a bot's settings: only the fields you pass are overwritten. The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation error. Commands and scopes are replaced by the passed list as a whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by [Edit bot token](/api/bots/update-token). The `oauth_client` object enables authorization on behalf of an employee or changes its settings, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own tokens keep working. When the client becomes server-side, its secret comes in `client_secret` once. The catalog page is set by `promo` while authorization is enabled. Only a workspace administrator or owner can enable the `message_link_shared` event, and for a bot with it change the domains, the webhook address and the event history. The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be changed for a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on the "General" tab in the bot settings).
 Parameters: id
-Body: { webhook: { name, nickname, outgoing_url, events, trigger_on, commands, scopes, template, template_engine, challenge_key, link_preview_enabled, ignore_self_messages, events_history_enabled, who_can_add, can_edit } }
+Body: { webhook, oauth_client, promo }
 
 ### DELETE /api/shared/v1/bots/{id}
-Delete a bot. The bot's previous `access_token` is invalidated immediately, the bot is removed from all chats, and its outgoing webhook is deleted. Deletion is available to the bot creator, and to a workspace administrator if the bot's settings grant administrators edit access. Chat owners and admins cannot delete a bot, even if they are allowed to edit it.
+Removes the bot from the workspace for good. All of the bot's tokens stop working at once, as do the authorizations employees granted to it. The bot is removed from all chats, and its webhooks and catalog page are deleted. Deletion is available to the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Chat owners and admins cannot delete a bot, even if they are allowed to edit it.
 Parameters: id
 
 ### POST /api/shared/v1/bots/{id}/recreate_token
-Generates a new `access_token` for the bot and immediately invalidates the previous one. Use it when a token is compromised or for scheduled secret rotation in `CI`. The new token is returned in the response only once — save it right away. Its permissions are the same: the scopes are carried over from the previous token. Rotation is available to the bot creator, and also to a workspace administrator if the bot's settings grant administrators edit access. The owner of a chat the bot belongs to cannot rotate the token, even when the rest of the bot's settings are open to them.
+Generates a new `access_token` for the bot and immediately invalidates the previous one. Use it when a token is compromised or for scheduled secret rotation in `CI`. The bot's main token is reissued — the one without a name, or the oldest one if there is none. An additional token is reissued by [Reissue bot token](/api/bots/reissue-token). The new token is returned in the response only once — save it right away. Its permissions are the same: the scopes are carried over from the previous token. Rotation is available to the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. The owner of a chat the bot belongs to cannot rotate the token, even when the rest of the bot's settings are open to them.
 Parameters: id
+
+### POST /api/shared/v1/bots/{id}/rotate_client_secret
+Issues a new `client_secret` for authorization on behalf of an employee. The previous secret stops working at once, so prepare the bot for the replacement first. Authorizations already granted and tokens already received keep working. The new secret comes in `client_secret` once. The method works only for a bot with authorization enabled and a server-side client (`confidential: true`), otherwise it responds `400`. Rotation is available to the bot's creator, and to a workspace administrator if the bot's settings give administrators edit access.
+Parameters: id
+
+### GET /api/shared/v1/bots/{id}/scopes
+The scopes that can be granted to this bot: to its tokens and to authorization on behalf of an employee. Each scope has a description, a category and the ready-made sets it belongs to, as when choosing scopes in the interface. The catalog is available to the same people who see the bot's tokens: the bot's creator, and a workspace administrator if the bot's settings give administrators edit access.
+Parameters: id
+
+### GET /api/shared/v1/bots/{id}/tokens
+The bot's active tokens: the main one, issued together with the bot, and additional ones — each with its own name and scopes. The token value is masked here: in full it is shown once, when the token is issued and when it is reissued. Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them.
+Parameters: id, limit?, cursor?
+
+### POST /api/shared/v1/bots/{id}/tokens
+Issues one more token for the bot, with its own name and scopes. A bot can have several tokens: for example, a separate one for each service, so that they can be revoked one by one. The token value comes in the response once — save it right away. The token does not expire and works until it is deleted. Scopes are chosen from those that can be granted to a bot: they are listed by [Bot scope catalog](/api/bots/list-scopes). For a scope that is not in the catalog the method responds `400`. Without `scopes` the token is issued without scopes. Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them.
+Parameters: id
+Body: { name*, scopes }
+
+### PUT /api/shared/v1/bots/{id}/tokens/{token_id}
+Changes the token's name or scopes. New scopes take effect immediately: there is no need to reissue the token, and its value stays the same. Scopes are replaced by the passed list as a whole. Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them.
+Parameters: id, token_id
+Body: { name, scopes }
+
+### DELETE /api/shared/v1/bots/{id}/tokens/{token_id}
+Deletes the token: requests with it stop passing at once. The bot's other tokens keep working. Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them.
+Parameters: id, token_id
+
+### POST /api/shared/v1/bots/{id}/tokens/{token_id}/reissue
+Replaces the token value with a new one: the previous value stops working at once, the name and scopes stay. The new value comes in the response once — save it right away. The method is needed when a token has leaked or is changed on schedule. The bot's main token can also be reissued with [Bot token rotation](/api/bots/recreate-token). Only the bot's creator and a workspace administrator, if the bot's settings give administrators edit access, can work with the bot's tokens. For the owner of a chat with the bot the method responds `403`, even when the bot's other settings are open to them.
+Parameters: id, token_id
 
 ### GET /api/shared/v1/company/bots
 Every bot in the workspace, including the ones you cannot edit. For those, only the name and the nickname are returned, the rest of the settings come as `null`. The method is available to the workspace owner. Every request is written to the [audit log](/guides/audit-events) with the `company_bots_accessed` key.

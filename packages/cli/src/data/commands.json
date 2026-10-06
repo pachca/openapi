@@ -233,7 +233,7 @@
             "name": "ignore-self-messages",
             "type": "boolean",
             "required": false,
-            "description": "Игнорировать входящие сообщения, отправленные самим ботом"
+            "description": "Не присылать боту события о его собственных сообщениях и реакциях"
           },
           {
             "name": "events-history-enabled",
@@ -257,7 +257,66 @@
             "name": "single-chat",
             "type": "boolean",
             "required": false,
-            "description": "Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят. Задаётся только при создании, при редактировании не меняется."
+            "description": "Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят."
+          },
+          {
+            "name": "kind",
+            "type": "option",
+            "required": false,
+            "description": "Источник входящего вебхука. Без `empty` по умолчанию `simple`, а у пустого бота входящий вебхук включается только этим полем."
+          },
+          {
+            "name": "unfurl-domains",
+            "type": "option",
+            "required": false,
+            "description": "Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`."
+          },
+          {
+            "name": "empty",
+            "type": "boolean",
+            "required": false,
+            "description": "Создать пустого бота: без токена и без входящего вебхука. Без этого поля бот создаётся с входящим вебхуком в своём формате, а его токен приходит в `access_token`."
+          },
+          {
+            "name": "oauth-client",
+            "type": "option",
+            "required": false,
+            "description": "Включить авторизацию от имени сотрудника сразу при создании"
+          },
+          {
+            "name": "promo",
+            "type": "option",
+            "required": false,
+            "description": "Страница бота в витрине. Задаётся только вместе с `oauth_client`: без авторизации страницы у бота нет."
+          }
+        ]
+      },
+      {
+        "command": "pachca bots create-token",
+        "summary": "Новый токен бота",
+        "method": "POST",
+        "path": "/bots/{id}/tokens",
+        "scope": "bots:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "name",
+            "type": "option",
+            "required": true,
+            "description": "Имя токена: по нему токены различают в списке (макс. 255 символов)"
+          },
+          {
+            "name": "scopes",
+            "type": "option",
+            "required": false,
+            "description": "Права токена. Доступны только права, которые можно выдать боту. Если не передать, токен выпускается без прав."
           }
         ]
       },
@@ -273,6 +332,34 @@
             "name": "id",
             "required": true,
             "description": "Идентификатор бота (pachca bots list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca bots delete-token",
+        "summary": "Удаление токена бота",
+        "method": "DELETE",
+        "path": "/bots/{id}/tokens/{token_id}",
+        "scope": "bots:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          },
+          {
+            "name": "token_id",
+            "required": true,
+            "description": "Идентификатор токена"
           }
         ],
         "flags": [
@@ -397,6 +484,57 @@
         ]
       },
       {
+        "command": "pachca bots list-scopes",
+        "summary": "Каталог прав бота",
+        "method": "GET",
+        "path": "/bots/{id}/scopes",
+        "scope": "bots:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca bots list-tokens",
+        "summary": "Список токенов бота",
+        "method": "GET",
+        "path": "/bots/{id}/tokens",
+        "scope": "bots:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
         "command": "pachca bots recreate-token",
         "summary": "Ротация токена бота",
         "method": "POST",
@@ -422,6 +560,27 @@
         "flags": []
       },
       {
+        "command": "pachca bots reissue-token",
+        "summary": "Перевыпуск токена бота",
+        "method": "POST",
+        "path": "/bots/{id}/tokens/{token_id}/reissue",
+        "scope": "bots:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          },
+          {
+            "name": "token_id",
+            "required": true,
+            "description": "Идентификатор токена"
+          }
+        ],
+        "flags": []
+      },
+      {
         "command": "pachca bots remove-event",
         "summary": "Удаление события",
         "method": "DELETE",
@@ -443,6 +602,22 @@
             "description": "Пропустить подтверждение"
           }
         ]
+      },
+      {
+        "command": "pachca bots rotate-client-secret",
+        "summary": "Ротация секрета клиента",
+        "method": "POST",
+        "path": "/bots/{id}/rotate_client_secret",
+        "scope": "bots:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          }
+        ],
+        "flags": []
       },
       {
         "command": "pachca bots update",
@@ -529,7 +704,7 @@
             "name": "ignore-self-messages",
             "type": "boolean",
             "required": false,
-            "description": "Игнорировать входящие сообщения, отправленные самим ботом"
+            "description": "Не присылать боту события о его собственных сообщениях и реакциях"
           },
           {
             "name": "events-history-enabled",
@@ -548,6 +723,70 @@
             "type": "option",
             "required": false,
             "description": "Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель."
+          },
+          {
+            "name": "single-chat",
+            "type": "boolean",
+            "required": false,
+            "description": "Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят."
+          },
+          {
+            "name": "kind",
+            "type": "option",
+            "required": false,
+            "description": "Источник входящего вебхука. Если у бота входящего вебхука не было, он включается."
+          },
+          {
+            "name": "unfurl-domains",
+            "type": "option",
+            "required": false,
+            "description": "Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`."
+          },
+          {
+            "name": "oauth-client",
+            "type": "option",
+            "required": false,
+            "description": "Настройки авторизации от имени сотрудника. Если авторизация выключена, объект её включает, а `null` выключает: выданные сотрудниками авторизации отзываются, страница в витрине удаляется."
+          },
+          {
+            "name": "promo",
+            "type": "option",
+            "required": false,
+            "description": "Страница бота в витрине. Доступна, только когда у бота включена авторизация."
+          }
+        ]
+      },
+      {
+        "command": "pachca bots update-token",
+        "summary": "Изменение токена бота",
+        "method": "PUT",
+        "path": "/bots/{id}/tokens/{token_id}",
+        "scope": "bots:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          },
+          {
+            "name": "token_id",
+            "required": true,
+            "description": "Идентификатор токена"
+          }
+        ],
+        "flags": [
+          {
+            "name": "name",
+            "type": "option",
+            "required": false,
+            "description": "Новое имя токена (макс. 255 символов)"
+          },
+          {
+            "name": "scopes",
+            "type": "option",
+            "required": false,
+            "description": "Новые права токена. Список заменяется целиком и действует сразу, перевыпускать токен не нужно."
           }
         ]
       },
@@ -798,6 +1037,29 @@
             "type": "boolean",
             "required": false,
             "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca chats mark-unread",
+        "summary": "Отметка чата непрочитанным",
+        "method": "PUT",
+        "path": "/chats/{id}/unread",
+        "scope": "chats:mark_unread",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата или треда (pachca chats list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "message-id",
+            "type": "option",
+            "required": false,
+            "description": "Идентификатор сообщения, с которого чат становится непрочитанным: оно и все сообщения после него. Если не передать, непрочитанным становится последнее сообщение. (pachca messages list)"
           }
         ]
       },
@@ -1738,7 +2000,7 @@
             "name": "content",
             "type": "option",
             "required": true,
-            "description": "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`)."
+            "description": "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть."
           },
           {
             "name": "files",
@@ -1756,7 +2018,7 @@
             "name": "parent-message-id",
             "type": "option",
             "required": false,
-            "description": "Идентификатор сообщения, на которое отвечаете. Ответ появится прямо в ленте чата, а не в треде: для треда отправляйте сообщение с `entity_type: \"thread\"`."
+            "description": "Идентификатор сообщения, на которое вы отвечаете с цитатой. Ответить можно на сообщение в любом чате, в том числе в треде: ответ отправляют в тот же чат или тред, где лежит это сообщение, иначе запрос вернёт ошибку `422`. Чтобы написать в тред под сообщением, укажите `entity_type: \"thread\"` и идентификатор треда в `entity_id`."
           },
           {
             "name": "display-avatar-url",
@@ -1964,7 +2226,7 @@
             "name": "content",
             "type": "option",
             "required": false,
-            "description": "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`)."
+            "description": "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть."
           },
           {
             "name": "files",
@@ -2575,6 +2837,11 @@
               "bot_token_recreated",
               "bot_deleted",
               "bot_oauth_client_updated",
+              "bot_oauth_client_disabled",
+              "bot_oauth_client_secret_rotated",
+              "bot_token_created",
+              "bot_token_updated",
+              "bot_token_reissued",
               "oauth_authorization_granted",
               "oauth_authorization_revoked",
               "oauth_device_authorization_approved",
@@ -2753,7 +3020,7 @@
             "name": "chat-ids",
             "type": "option",
             "required": false,
-            "description": "Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов. (через запятую)"
+            "description": "Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Мульти-гостю открытые беседы и каналы доступны, только если он в них участник. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов. (через запятую)"
           },
           {
             "name": "performer-ids",
@@ -3050,7 +3317,7 @@
             "name": "list-tags",
             "type": "option",
             "required": false,
-            "description": "Массив тегов, привязываемых к сотруднику"
+            "description": "Массив названий тегов, привязываемых к сотруднику. Значение, которое не является массивом непустых строк, игнорируется."
           },
           {
             "name": "chat-ids",
@@ -3280,7 +3547,7 @@
             "name": "list-tags",
             "type": "option",
             "required": false,
-            "description": "Массив тегов, привязываемых к сотруднику"
+            "description": "Массив названий тегов, привязываемых к сотруднику. Список заменяет прежний целиком, пустой снимает все теги. Значение, которое не является массивом непустых строк, игнорируется: теги сотрудника не меняются."
           },
           {
             "name": "custom-properties",

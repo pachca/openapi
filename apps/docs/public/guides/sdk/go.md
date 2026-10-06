@@ -22,7 +22,7 @@ go get github.com/pachca/openapi/sdk/go/generated
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Настройки** > **Автоматизации** > **API** (подробнее — [Авторизация](/api/authorization)).
+Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
 
 ```go
 import pachca "github.com/pachca/openapi/sdk/go/generated"
@@ -82,6 +82,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Chats.UpdateChat()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChat()` | [Архивация чата](/api/chats/archive) |
 | `client.Chats.UnarchiveChat()` | [Разархивация чата](/api/chats/unarchive) |
+| `client.Chats.MarkChatUnread()` | [Отметка чата непрочитанным](/api/chats/mark-unread) |
 | `client.Profile.GetProfile()` | [Свой профиль](/api/profile/get) |
 | `client.Profile.GetStatus()` | [Свой статус](/api/profile/get-status) |
 | `client.Profile.UpdateProfileAvatar()` | [Загрузка своего аватара](/api/profile/update-avatar) |
@@ -145,14 +146,21 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Bots.CreateBot()` | [Новый бот](/api/bots/create) |
 | `client.Bots.SelfRecreateBotToken()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.RecreateBotToken()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.Bots.RotateBotClientSecret()` | [Ротация секрета клиента](/api/bots/rotate-client-secret) |
+| `client.Bots.CreateBotToken()` | [Новый токен бота](/api/bots/create-token) |
+| `client.Bots.ReissueBotToken()` | [Перевыпуск токена бота](/api/bots/reissue-token) |
 | `client.Bots.ListBots()` | [Список ботов](/api/bots/list) |
 | `client.Bots.GetBot()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.ListCompanyBots()` | [Список ботов пространства](/api/bots/list-company) |
 | `client.Bots.GetWebhookEvents()` | [История событий](/api/bots/list-events) |
+| `client.Bots.GetBotScopes()` | [Каталог прав бота](/api/bots/list-scopes) |
+| `client.Bots.ListBotTokens()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.Bots.SelfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.Bots.UpdateBotToken()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.Bots.DeleteBot()` | [Удаление бота](/api/bots/delete) |
 | `client.Bots.DeleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
+| `client.Bots.DeleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.Security.GetAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.CustomProperties.ListProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFile()` | [Загрузка файла](/api/files/direct-url) |

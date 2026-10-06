@@ -539,6 +539,14 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
   if (ep.path === '/company/bots' && method === 'GET') return 'getAllCompanyBots';
   // Ответ на отправку формы: без пина POST даёт "addSubmitResponse" и читается как создание.
   if (ep.path === '/views/{view_id}/submit_response' && method === 'POST') return 'submitResponse';
+  // Токены и секрет бота: без пина вышли бы "addTokens", "removeTokens", "addReissue"
+  // и "addRotateClientSecret", а отметка чата непрочитанным — "updateUnread".
+  if (ep.path === '/bots/{id}/tokens' && method === 'POST') return 'createToken';
+  if (ep.path === '/bots/{id}/tokens/{token_id}' && method === 'PUT') return 'updateToken';
+  if (ep.path === '/bots/{id}/tokens/{token_id}' && method === 'DELETE') return 'deleteToken';
+  if (ep.path === '/bots/{id}/tokens/{token_id}/reissue' && method === 'POST') return 'reissueToken';
+  if (ep.path === '/bots/{id}/rotate_client_secret' && method === 'POST') return 'rotateClientSecret';
+  if (ep.path === '/chats/{id}/unread' && method === 'PUT') return 'markUnread';
 
   // Sub-resource action paths (e.g., /users/{id}/status → getStatus, updateStatus)
   // When last static segment differs from the resource root and is NOT a CRUD collection
@@ -609,6 +617,8 @@ function operationDisplayName(op: string): string {
     requestExport: 'Request Export', downloadExport: 'Download Export', unfurl: 'Unfurl',
     createStandalone: 'Create Standalone',
     getAllCompanyChats: 'Get Many Workspace Chats', getAllCompanyBots: 'Get Many Workspace Bots',
+    createToken: 'Create Token', updateToken: 'Update Token', deleteToken: 'Delete Token',
+    reissueToken: 'Reissue Token', rotateClientSecret: 'Rotate Client Secret', markUnread: 'Mark Unread',
   };
   if (MAP[op]) return MAP[op];
   // Sub-resource operations: "getAllStatus" → "Get Many Status", "updateMembers" → "Update Members"
@@ -676,6 +686,14 @@ function actionLabel(op: string, resourceName: string, resource?: string): strin
     getAllCompanyChats: 'Get many workspace chats',
     getAllCompanyBots: 'Get many workspace bots',
     submitResponse: 'Respond to a form submission',
+    getAllTokens: 'Get many bot tokens',
+    createToken: 'Create a bot token',
+    updateToken: 'Update a bot token',
+    deleteToken: 'Delete a bot token',
+    reissueToken: 'Reissue a bot token',
+    getScopes: 'Get bot scope catalog',
+    rotateClientSecret: 'Rotate bot client secret',
+    markUnread: 'Mark a chat as unread',
   };
   if (ALIAS_LABELS[op]) return ALIAS_LABELS[op];
 
@@ -2017,8 +2035,8 @@ export class PachcaApi implements ICredentialType {
 \t\t\tname: 'webhookAllowedIps',
 \t\t\ttype: 'string',
 \t\t\tdefault: '',
-\t\t\tdescription: 'Comma-separated list of IP addresses allowed to send webhooks. Pachca sends from 37.200.70.177. Leave empty to allow all.',
-\t\t\tplaceholder: '37.200.70.177',
+\t\t\tdescription: 'Comma-separated list of IP addresses allowed to send webhooks. Pachca sends from 37.200.70.177, 185.209.115.174 and 135.106.159.61. Leave empty to allow all.',
+\t\t\tplaceholder: '37.200.70.177,185.209.115.174,135.106.159.61',
 \t\t\thint: 'Only used with the Pachca Trigger node',
 \t\t},
 \t];

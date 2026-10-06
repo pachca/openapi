@@ -137,6 +137,22 @@ interface BotsService {
         throw NotImplementedError("Bots.getBot is not implemented")
     }
 
+    suspend fun getBotScopes(id: Int): BotScopeCatalog {
+        throw NotImplementedError("Bots.getBotScopes is not implemented")
+    }
+
+    suspend fun listBotTokens(
+        id: Int,
+        limit: Int? = null,
+        cursor: String? = null,
+    ): ListBotTokensResponse {
+        throw NotImplementedError("Bots.listBotTokens is not implemented")
+    }
+
+    suspend fun listBotTokensAll(id: Int, limit: Int? = null): List<BotAccessToken> {
+        throw NotImplementedError("Bots.listBotTokensAll is not implemented")
+    }
+
     suspend fun listCompanyBots(
         query: String? = null,
         limit: Int? = null,
@@ -157,7 +173,7 @@ interface BotsService {
         throw NotImplementedError("Bots.getWebhookEventsAll is not implemented")
     }
 
-    suspend fun selfRecreateBotToken(): BotCreateResponse {
+    suspend fun selfRecreateBotToken(): BotSelfTokenResponse {
         throw NotImplementedError("Bots.selfRecreateBotToken is not implemented")
     }
 
@@ -169,7 +185,19 @@ interface BotsService {
         throw NotImplementedError("Bots.recreateBotToken is not implemented")
     }
 
-    suspend fun selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): BotResponse {
+    suspend fun rotateBotClientSecret(id: Int): BotResponse {
+        throw NotImplementedError("Bots.rotateBotClientSecret is not implemented")
+    }
+
+    suspend fun createBotToken(id: Int, request: BotTokenCreateRequest): BotAccessToken {
+        throw NotImplementedError("Bots.createBotToken is not implemented")
+    }
+
+    suspend fun reissueBotToken(id: Int, tokenId: Long): BotAccessToken {
+        throw NotImplementedError("Bots.reissueBotToken is not implemented")
+    }
+
+    suspend fun selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): BotSelfResponse {
         throw NotImplementedError("Bots.selfUpdateBotWebhook is not implemented")
     }
 
@@ -177,8 +205,20 @@ interface BotsService {
         throw NotImplementedError("Bots.updateBot is not implemented")
     }
 
+    suspend fun updateBotToken(
+        id: Int,
+        tokenId: Long,
+        request: BotTokenUpdateRequest,
+    ): BotAccessToken {
+        throw NotImplementedError("Bots.updateBotToken is not implemented")
+    }
+
     suspend fun deleteBot(id: Int) {
         throw NotImplementedError("Bots.deleteBot is not implemented")
+    }
+
+    suspend fun deleteBotToken(id: Int, tokenId: Long) {
+        throw NotImplementedError("Bots.deleteBotToken is not implemented")
     }
 
     suspend fun deleteWebhookEvent(id: String) {
@@ -228,6 +268,45 @@ class BotsServiceImpl internal constructor(
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
+    }
+
+    override suspend fun getBotScopes(id: Int): BotScopeCatalog {
+        val response = client.get("$baseUrl/bots/$id/scopes")
+        return when (response.status.value) {
+            200 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun listBotTokens(
+        id: Int,
+        limit: Int?,
+        cursor: String?,
+    ): ListBotTokensResponse {
+        val response = client.get("$baseUrl/bots/$id/tokens") {
+            limit?.let { parameter("limit", it) }
+            cursor?.let { parameter("cursor", it) }
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun listBotTokensAll(id: Int, limit: Int?): List<BotAccessToken> {
+        val items = mutableListOf<BotAccessToken>()
+        var cursor: String? = null
+        var hasNext = true
+        while (hasNext) {
+            val response = listBotTokens(id = id, limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
+        return items
     }
 
     override suspend fun listCompanyBots(
@@ -287,10 +366,10 @@ class BotsServiceImpl internal constructor(
         return items
     }
 
-    override suspend fun selfRecreateBotToken(): BotCreateResponse {
+    override suspend fun selfRecreateBotToken(): BotSelfTokenResponse {
         val response = client.post("$baseUrl/bot/recreate_token")
         return when (response.status.value) {
-            200 -> response.body<BotCreateResponseDataWrapper>().data
+            200 -> response.body<BotSelfTokenResponseDataWrapper>().data
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -317,13 +396,43 @@ class BotsServiceImpl internal constructor(
         }
     }
 
-    override suspend fun selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): BotResponse {
+    override suspend fun rotateBotClientSecret(id: Int): BotResponse {
+        val response = client.post("$baseUrl/bots/$id/rotate_client_secret")
+        return when (response.status.value) {
+            200 -> response.body<BotResponseDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun createBotToken(id: Int, request: BotTokenCreateRequest): BotAccessToken {
+        val response = client.post("$baseUrl/bots/$id/tokens") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            201 -> response.body<BotAccessTokenDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun reissueBotToken(id: Int, tokenId: Long): BotAccessToken {
+        val response = client.post("$baseUrl/bots/$id/tokens/$tokenId/reissue")
+        return when (response.status.value) {
+            200 -> response.body<BotAccessTokenDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun selfUpdateBotWebhook(request: BotWebhookSelfUpdateRequest): BotSelfResponse {
         val response = client.put("$baseUrl/bot/webhook") {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
         return when (response.status.value) {
-            200 -> response.body<BotResponseDataWrapper>().data
+            200 -> response.body<BotSelfResponseDataWrapper>().data
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -341,8 +450,33 @@ class BotsServiceImpl internal constructor(
         }
     }
 
+    override suspend fun updateBotToken(
+        id: Int,
+        tokenId: Long,
+        request: BotTokenUpdateRequest,
+    ): BotAccessToken {
+        val response = client.put("$baseUrl/bots/$id/tokens/$tokenId") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return when (response.status.value) {
+            200 -> response.body<BotAccessTokenDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     override suspend fun deleteBot(id: Int) {
         val response = client.delete("$baseUrl/bots/$id")
+        when (response.status.value) {
+            204 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun deleteBotToken(id: Int, tokenId: Long) {
+        val response = client.delete("$baseUrl/bots/$id/tokens/$tokenId")
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
@@ -477,6 +611,10 @@ interface ChatsService {
 
     suspend fun unarchiveChat(id: Int) {
         throw NotImplementedError("Chats.unarchiveChat is not implemented")
+    }
+
+    suspend fun markChatUnread(id: Int, request: MarkChatUnreadRequest) {
+        throw NotImplementedError("Chats.markChatUnread is not implemented")
     }
 }
 
@@ -643,6 +781,18 @@ class ChatsServiceImpl internal constructor(
 
     override suspend fun unarchiveChat(id: Int) {
         val response = client.put("$baseUrl/chats/$id/unarchive")
+        when (response.status.value) {
+            204 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun markChatUnread(id: Int, request: MarkChatUnreadRequest) {
+        val response = client.put("$baseUrl/chats/$id/unread") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()

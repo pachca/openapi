@@ -25,6 +25,9 @@ hideTableOfContents: true
   <Card title="Черновик" href="#chernovik" methods="GET POST PUT DELETE" />
   <Card title="Представление" href="#predstavlenie" methods="POST" />
   <Card title="Параметры бота" href="#parametry-bota" methods="POST, GET, PUT, DELETE" />
+  <Card title="Бот в методах самого бота" href="#bot-v-metodah-samogo-bota" methods="PUT POST" />
+  <Card title="Токен бота" href="#token-bota" methods="GET POST PUT DELETE" />
+  <Card title="Каталог прав бота" href="#katalog-prav-bota" methods="GET" />
   <Card title="Параметры бота пространства" href="#parametry-bota-prostranstva" methods="GET" />
   <Card title="Событие исходящего вебхука" href="#sobytie-ishodyaschego-vebhuka" methods="GET DELETE" />
   <Card title="Событие аудита" href="#sobytie-audita" methods="GET" />
@@ -101,6 +104,7 @@ hideTableOfContents: true
 - [Редактирование чата](PUT /chats/{id})
 - [Архивация чата](PUT /chats/{id}/archive)
 - [Разархивация чата](PUT /chats/{id}/unarchive)
+- [Отметка чата непрочитанным](PUT /chats/{id}/unread)
 - [Редактирование роли](PUT /chats/{id}/members/{user_id})
 - [Выход из чата](DELETE /chats/{id}/leave)
 - [Исключение пользователя](DELETE /chats/{id}/members/{user_id})
@@ -173,11 +177,33 @@ hideTableOfContents: true
 - [Информация о боте](GET /bots/{id})
 - [Редактирование бота](PUT /bots/{id})
 - [Удаление бота](DELETE /bots/{id})
-- [Саморегистрация вебхука бота](PUT /bot/webhook)
 - [Ротация токена бота](POST /bots/{id}/recreate_token)
-- [Ротация собственного токена бота](POST /bot/recreate_token)
+- [Ротация секрета клиента](POST /bots/{id}/rotate_client_secret)
 
 <ModelSchema name="BotResponse" />
+
+## Бот в методах самого бота
+
+- [Саморегистрация вебхука бота](PUT /bot/webhook)
+- [Ротация собственного токена бота](POST /bot/recreate_token)
+
+<ModelSchema name="BotSelfResponse" />
+
+## Токен бота
+
+- [Список токенов бота](GET /bots/{id}/tokens)
+- [Новый токен бота](POST /bots/{id}/tokens)
+- [Изменение токена бота](PUT /bots/{id}/tokens/{token_id})
+- [Перевыпуск токена бота](POST /bots/{id}/tokens/{token_id}/reissue)
+- [Удаление токена бота](DELETE /bots/{id}/tokens/{token_id})
+
+<ModelSchema name="BotAccessToken" />
+
+## Каталог прав бота
+
+- [Каталог прав бота](GET /bots/{id}/scopes)
+
+<ModelSchema name="BotScopeCatalog" />
 
 ## Параметры бота пространства
 

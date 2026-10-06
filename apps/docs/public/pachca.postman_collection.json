@@ -260,6 +260,44 @@
           }
         },
         {
+          "name": "Отметка чата непрочитанным",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chats/:id/unread",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chats",
+                ":id",
+                "unread"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message_id\": 1194275\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
           "name": "Список чатов пространства",
           "request": {
             "method": "GET",
@@ -1992,7 +2030,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://www.website.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"trigger_on\": \"commands\",\n    \"commands\": [\n      \"/task\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ]\n  }\n}",
+              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://www.website.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"trigger_on\": \"commands\",\n    \"commands\": [\n      \"/task\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ]\n  },\n  \"oauth_client\": {\n    \"confidential\": true,\n    \"redirect_uris\": [\n      \"https://example.com/oauth/callback\"\n    ],\n    \"scopes\": [\n      \"messages:read\",\n      \"messages:create\"\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2052,7 +2090,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://www.website.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"commands\": [\n      \"/task\",\n      \"/help\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ],\n    \"template\": \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    \"challenge_key\": \"challenge\",\n    \"can_edit\": [\n      \"admin\"\n    ]\n  }\n}",
+              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://www.website.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"commands\": [\n      \"/task\",\n      \"/help\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ],\n    \"template\": \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    \"challenge_key\": \"challenge\",\n    \"can_edit\": [\n      \"admin\"\n    ],\n    \"single_chat\": false,\n    \"kind\": \"simple\",\n    \"unfurl_domains\": [\n      \"example.com\"\n    ]\n  },\n  \"oauth_client\": {\n    \"confidential\": true,\n    \"redirect_uris\": [\n      \"https://example.com/oauth/callback\"\n    ],\n    \"scopes\": [\n      \"messages:read\",\n      \"messages:create\"\n    ]\n  },\n  \"promo\": {\n    \"description\": \"Собирает сводку по задачам Jira и присылает её в чат\",\n    \"published\": true,\n    \"promo_images\": [\n      \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png\"\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2102,6 +2140,218 @@
               "variable": [
                 {
                   "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ротация секрета клиента",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bots/:id/rotate_client_secret",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bots",
+                ":id",
+                "rotate_client_secret"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Каталог прав бота",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bots/:id/scopes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bots",
+                ":id",
+                "scopes"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Список токенов бота",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bots/:id/tokens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bots",
+                ":id",
+                "tokens"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Новый токен бота",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bots/:id/tokens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bots",
+                ":id",
+                "tokens"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Сервер уведомлений\",\n  \"scopes\": [\n    \"messages:create\",\n    \"chats:read\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Изменение токена бота",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bots/:id/tokens/:token_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bots",
+                ":id",
+                "tokens",
+                ":token_id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                },
+                {
+                  "key": "token_id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Сервер уведомлений\",\n  \"scopes\": [\n    \"messages:create\",\n    \"chats:read\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Удаление токена бота",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bots/:id/tokens/:token_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bots",
+                ":id",
+                "tokens",
+                ":token_id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                },
+                {
+                  "key": "token_id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Перевыпуск токена бота",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bots/:id/tokens/:token_id/reissue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bots",
+                ":id",
+                "tokens",
+                ":token_id",
+                "reissue"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                },
+                {
+                  "key": "token_id",
                   "value": ""
                 }
               ]

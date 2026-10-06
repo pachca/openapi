@@ -95,7 +95,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
       { title: 'Главная', path: '/' },
       { title: 'Быстрый старт', path: '/guides/quickstart' },
       {
-        title: 'AI агенты',
+        title: 'AI-агенты',
         path: '/guides/ai-agents/overview',
         children: [
           { title: 'Обзор', path: '/guides/ai-agents/overview' },
@@ -116,8 +116,12 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
         path: '/guides/bots/overview',
         children: [
           { title: 'Обзор', path: '/guides/bots/overview' },
-          { title: 'Создание и настройка', path: '/guides/bots/setup' },
+          { title: 'Создание бота', path: '/guides/bots/setup' },
+          { title: 'Настройки бота', path: '/guides/bots/settings' },
+          { title: 'Токены бота', path: '/guides/bots/tokens' },
           { title: 'Доступы к чатам и сообщениям', path: '/guides/bots/access' },
+          { title: 'Общение с ботом', path: '/guides/bots/conversations' },
+          { title: 'Витрина', path: '/guides/bots/showcase' },
           { title: 'Готовые примеры', path: '/guides/bots/examples' },
         ],
       },
@@ -143,6 +147,17 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
         ],
       },
       { title: 'Разворачивание ссылок', path: '/guides/link-previews' },
+      {
+        title: 'Авторизация от имени сотрудника',
+        path: '/guides/oauth/overview',
+        children: [
+          { title: 'Обзор', path: '/guides/oauth/overview' },
+          { title: 'Чек-лист запуска', path: '/guides/oauth/checklist' },
+          { title: 'Настройка авторизации', path: '/guides/oauth/setup' },
+          { title: 'Получение токена', path: '/guides/oauth/flow' },
+          { title: 'Согласие и отзыв', path: '/guides/oauth/consent' },
+        ],
+      },
     ],
   },
   {

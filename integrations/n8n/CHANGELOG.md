@@ -2,6 +2,13 @@
 
 # Changelog
 
+## 2.1.5 (2026-10-13)
+
+### Improvements
+
+- Message: the `Entity ID` hint names a user rather than an employee — a direct message can go to a bot as well
+- Profile and User: the status `Expires At` hint describes only the date format and the offset
+
 ## 2.1.4 (2026-10-13)
 
 ### Features

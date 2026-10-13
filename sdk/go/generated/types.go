@@ -54,8 +54,16 @@ const (
 	AuditEventKeyBotTokenRecreated                AuditEventKey = "bot_token_recreated" // Токен бота перевыпущен (ротация)
 	AuditEventKeyBotDeleted                       AuditEventKey = "bot_deleted" // Бот удалён
 	AuditEventKeyBotOAuthClientUpdated            AuditEventKey = "bot_oauth_client_updated" // Изменены параметры OAuth-клиента бота
+	AuditEventKeyBotOAuthClientDisabled           AuditEventKey = "bot_oauth_client_disabled" // У бота выключена авторизация от имени сотрудника
+	AuditEventKeyBotOAuthClientSecretRotated      AuditEventKey = "bot_oauth_client_secret_rotated" // Обновлён секрет OAuth-клиента бота
+	AuditEventKeyBotOAuthClientSecretIssued       AuditEventKey = "bot_oauth_client_secret_issued" // Выпущен секрет OAuth-клиента бота
+	AuditEventKeyBotTokenCreated                  AuditEventKey = "bot_token_created" // Выпущен токен бота
+	AuditEventKeyBotTokenUpdated                  AuditEventKey = "bot_token_updated" // Изменены имя или скоупы токена бота
+	AuditEventKeyBotTokenReissued                 AuditEventKey = "bot_token_reissued" // Отдельный токен бота перевыпущен
+	AuditEventKeyBotTokenDeleted                  AuditEventKey = "bot_token_deleted" // Токен бота удалён
 	AuditEventKeyOAuthAuthorizationGranted        AuditEventKey = "oauth_authorization_granted" // Пользователь выдал OAuth-клиенту доступ к своим данным
 	AuditEventKeyOAuthAuthorizationRevoked        AuditEventKey = "oauth_authorization_revoked" // Доступ OAuth-клиента к данным пользователя отозван
+	AuditEventKeyOAuthTokenRevoked                AuditEventKey = "oauth_token_revoked" // OAuth-клиент отозвал выданный ему токен
 	AuditEventKeyOAuthDeviceAuthorizationApproved AuditEventKey = "oauth_device_authorization_approved" // Сотрудник подтвердил вход приложения с устройства
 	AuditEventKeyOAuthDeviceAuthorizationDenied   AuditEventKey = "oauth_device_authorization_denied" // Сотрудник отклонил вход приложения с устройства
 	AuditEventKeyVideoCallStarted                 AuditEventKey = "video_call_started" // Видеозвонок начат
@@ -109,13 +117,21 @@ const (
 	BotTriggerOnUnfurl      BotTriggerOn = "unfurl" // На развёртывание ссылок (link previews)
 )
 
+type BotWebhookKind string
+
+const (
+	BotWebhookKindSimple  BotWebhookKind = "simple" // Свой формат: сообщение собирается из тела запроса по шаблону бота
+	BotWebhookKindGitlab  BotWebhookKind = "gitlab" // GitLab: Пачка сама разбирает запрос и собирает сообщение
+	BotWebhookKindGrafana BotWebhookKind = "grafana" // Grafana: Пачка сама разбирает запрос и собирает сообщение
+)
+
 type BotWhoCanAdd string
 
 const (
 	BotWhoCanAddCreator          BotWhoCanAdd = "creator" // Только создатель бота
 	BotWhoCanAddCreatorAdmin     BotWhoCanAdd = "creator_admin" // Создатель и администраторы компании
 	BotWhoCanAddCreatorAdminUser BotWhoCanAdd = "creator_admin_user" // Создатель, администраторы и участники компании
-	BotWhoCanAddAnyone           BotWhoCanAdd = "anyone" // Любой пользователь, в том числе гости
+	BotWhoCanAddAnyone           BotWhoCanAdd = "anyone" // Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей
 )
 
 type ChatActivity string
@@ -255,6 +271,7 @@ const (
 	OAuthScopeChatsRead            OAuthScope = "chats:read" // Просмотр чатов и списка чатов
 	OAuthScopeChatsCreate          OAuthScope = "chats:create" // Создание новых чатов
 	OAuthScopeChatsUpdate          OAuthScope = "chats:update" // Изменение настроек чата
+	OAuthScopeChatsMarkUnread      OAuthScope = "chats:mark_unread" // Отметка чатов непрочитанными
 	OAuthScopeChatsArchive         OAuthScope = "chats:archive" // Архивация и разархивация чатов
 	OAuthScopeChatsLeave           OAuthScope = "chats:leave" // Выход из чатов
 	OAuthScopeChatMembersRead      OAuthScope = "chat_members:read" // Просмотр участников чата
@@ -432,6 +449,11 @@ const (
 	ValidationErrorCodeDraftTypeChangeForbidden   ValidationErrorCode = "draft_type_change_forbidden" // Отложенное сообщение нельзя превратить обратно в черновик
 	ValidationErrorCodeConfidentialDownloadDenied ValidationErrorCode = "confidential_download_denied" // Скачивание файла запрещено: нужен запрос из безопасного контура
 	ValidationErrorCodeDecryptionFailed           ValidationErrorCode = "decryption_failed" // Не удалось расшифровать файл
+	ValidationErrorCodeBotAddDenied               ValidationErrorCode = "bot_add_denied" // Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
+	ValidationErrorCodeSingleChatBotOccupied      ValidationErrorCode = "single_chat_bot_occupied" // Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
+	ValidationErrorCodeSingleChatBotTagDenied     ValidationErrorCode = "single_chat_bot_tag_denied" // Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
+	ValidationErrorCodeBotChangedConcurrently     ValidationErrorCode = "bot_changed_concurrently" // Настройки бота изменились во время запроса: повторите его
+	ValidationErrorCodeTimeout                    ValidationErrorCode = "timeout" // Поиск не уложился по времени: сузьте запрос и повторите
 	ValidationErrorCodeForbidden                  ValidationErrorCode = "forbidden" // Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
 	ValidationErrorCodePermissionDenied           ValidationErrorCode = "permission_denied" // Доступ запрещён (недостаточно прав)
 	ValidationErrorCodeAccessDenied               ValidationErrorCode = "access_denied" // Доступ запрещён
@@ -519,17 +541,46 @@ type AuditDetailsBot struct {
 }
 
 type AuditDetailsBotOAuthClient struct {
+	BotID    int32          `json:"bot_id"`
 	ClientID string         `json:"client_id"`
 	Changes  map[string]any `json:"changes"`
+	ActorID  *int32         `json:"actor_id"`
+}
+
+type AuditDetailsBotOAuthClientDisabled struct {
+	BotID                    int32  `json:"bot_id"`
+	ClientID                 string `json:"client_id"`
+	DeletedAccessTokensCount int32  `json:"deleted_access_tokens_count"`
+	DeletedAccessGrantsCount int32  `json:"deleted_access_grants_count"`
+	ActorID                  *int32 `json:"actor_id"`
+}
+
+type AuditDetailsBotOAuthClientSecretRotated struct {
+	BotID    int32  `json:"bot_id"`
+	ClientID string `json:"client_id"`
+	ActorID  *int32 `json:"actor_id"`
 }
 
 type AuditDetailsBotScopes struct {
+	BotID         int32    `json:"bot_id"`
 	AddedScopes   []string `json:"added_scopes"`
 	RemovedScopes []string `json:"removed_scopes"`
+	ActorID       *int32   `json:"actor_id"`
+}
+
+type AuditDetailsBotTokenUpdated struct {
+	TokenKind       string   `json:"token_kind"`
+	ResourceOwnerID int32    `json:"resource_owner_id"`
+	CurrentScopes   []string `json:"current_scopes"`
+	TokenName       *string  `json:"token_name"`
+	BotID           *int32   `json:"bot_id,omitempty"`
+	ActorID         *int32   `json:"actor_id"`
 }
 
 type AuditDetailsBotWebhookSettings struct {
+	BotID   int32          `json:"bot_id"`
 	Changes map[string]any `json:"changes"`
+	ActorID *int32         `json:"actor_id"`
 }
 
 type AuditDetailsChatId struct {
@@ -546,13 +597,15 @@ type AuditDetailsChatRenamed struct {
 }
 
 type AuditDetailsDeviceAuthorizationApproved struct {
-	ClientID string   `json:"client_id"`
-	Scopes   []string `json:"scopes"`
+	ClientID   string   `json:"client_id"`
+	Scopes     []string `json:"scopes"`
+	DeviceName *string  `json:"device_name"`
 }
 
 type AuditDetailsDeviceAuthorizationDenied struct {
-	ClientID string   `json:"client_id"`
-	Scopes   []string `json:"scopes"`
+	ClientID   string   `json:"client_id"`
+	Scopes     []string `json:"scopes"`
+	DeviceName *string  `json:"device_name"`
 }
 
 type AuditDetailsDlp struct {
@@ -590,6 +643,7 @@ type AuditDetailsOAuthAuthorizationGranted struct {
 type AuditDetailsOAuthAuthorizationRevoked struct {
 	ClientID           string `json:"client_id"`
 	RevokedTokensCount int32  `json:"revoked_tokens_count"`
+	UserID             *int32 `json:"user_id,omitempty"`
 }
 
 type AuditDetailsRoleChanged struct {
@@ -613,6 +667,14 @@ type AuditDetailsTagChat struct {
 
 type AuditDetailsTagName struct {
 	Name string `json:"name"`
+}
+
+type AuditDetailsToken struct {
+	TokenKind       string   `json:"token_kind"`
+	ResourceOwnerID int32    `json:"resource_owner_id"`
+	Scopes          []string `json:"scopes"`
+	TokenName       *string  `json:"token_name"`
+	BotID           *int32   `json:"bot_id,omitempty"`
 }
 
 type AuditDetailsTokenScopes struct {
@@ -662,6 +724,19 @@ type AvatarData struct {
 	ImageURL string `json:"image_url"`
 }
 
+type BotAccessToken struct {
+	ID           int64     `json:"id"`
+	Token        string    `json:"token"`
+	UserID       int64     `json:"user_id"`
+	Scopes       []string  `json:"scopes"`
+	CreatedAt    time.Time `json:"created_at"`
+	Name         *string   `json:"name"`
+	RevokedAt    *string   `json:"revoked_at"`
+	ExpiresIn    *int32    `json:"expires_in"`
+	LastUsedAt   *string   `json:"last_used_at"`
+	AuthorizedAt *string   `json:"authorized_at"`
+}
+
 type BotCreateRequestWebhook struct {
 	Name                 string             `json:"name"`
 	Nickname             *string            `json:"nickname,omitempty"`
@@ -679,6 +754,8 @@ type BotCreateRequestWebhook struct {
 	WhoCanAdd            *BotWhoCanAdd      `json:"who_can_add,omitempty"`
 	CanEdit              []BotCanEdit       `json:"can_edit,omitempty"`
 	SingleChat           *bool              `json:"single_chat,omitempty"`
+	Kind                 *BotWebhookKind    `json:"kind,omitempty"`
+	UnfurlDomains        []string           `json:"unfurl_domains,omitempty"`
 }
 
 func (m BotCreateRequestWebhook) MarshalJSON() ([]byte, error) {
@@ -703,22 +780,222 @@ func (m BotCreateRequestWebhook) MarshalJSON() ([]byte, error) {
 	if m.CanEdit != nil {
 		raw["can_edit"] = m.CanEdit
 	}
+	if m.UnfurlDomains != nil {
+		raw["unfurl_domains"] = m.UnfurlDomains
+	}
 	return json.Marshal(raw)
 }
 
 type BotCreateRequest struct {
-	Webhook BotCreateRequestWebhook `json:"webhook"`
+	Webhook     BotCreateRequestWebhook `json:"webhook"`
+	Empty       *bool                   `json:"empty,omitempty"`
+	OAuthClient *BotOAuthClientRequest  `json:"oauth_client,omitempty"`
+	Promo       *BotPromoRequest        `json:"promo,omitempty"`
 }
 
 type BotCreateResponse struct {
-	ID          int32      `json:"id"`
-	Webhook     BotWebhook `json:"webhook"`
-	AccessToken string     `json:"access_token"`
+	ID                   int32           `json:"id"`
+	Name                 string          `json:"name"`
+	Nickname             string          `json:"nickname"`
+	CreatedAt            time.Time       `json:"created_at"`
+	AuthorizedUsersCount int32           `json:"authorized_users_count"`
+	Webhook              BotWebhook      `json:"webhook"`
+	OAuthClientEnabled   bool            `json:"oauth_client_enabled"`
+	Permissions          BotPermissions  `json:"permissions"`
+	AvatarURL            *string         `json:"avatar_url"`
+	CreatorID            *int32          `json:"creator_id"`
+	LastUsedAt           *string         `json:"last_used_at"`
+	OAuthClient          *BotOAuthClient `json:"oauth_client"`
+	Promo                *BotPromo       `json:"promo"`
+	ClientSecret         *string         `json:"client_secret,omitempty"`
+	AccessToken          *string         `json:"access_token,omitempty"`
+}
+
+type BotOAuthClient struct {
+	ClientID            string   `json:"client_id"`
+	ClientSecretPreview string   `json:"client_secret_preview"`
+	Confidential        bool     `json:"confidential"`
+	RedirectUris        []string `json:"redirect_uris"`
+	Scopes              []string `json:"scopes"`
+}
+
+type BotOAuthClientRequest struct {
+	Confidential *bool    `json:"confidential,omitempty"`
+	RedirectUris []string `json:"redirect_uris,omitempty"`
+	Scopes       []string `json:"scopes,omitempty"`
+}
+
+func (m BotOAuthClientRequest) MarshalJSON() ([]byte, error) {
+	type Alias BotOAuthClientRequest
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.RedirectUris != nil {
+		raw["redirect_uris"] = m.RedirectUris
+	}
+	if m.Scopes != nil {
+		raw["scopes"] = m.Scopes
+	}
+	return json.Marshal(raw)
+}
+
+type BotPermissions struct {
+	UpdateOAuthClient bool `json:"update_oauth_client"`
+	RecreateToken     bool `json:"recreate_token"`
+	Destroy           bool `json:"destroy"`
+}
+
+type BotPromo struct {
+	Published   bool            `json:"published"`
+	PromoImages []BotPromoImage `json:"promo_images"`
+	Description *string         `json:"description"`
+}
+
+type BotPromoImage struct {
+	Key string `json:"key"`
+	URL string `json:"url"`
+}
+
+type BotPromoRequest struct {
+	Description *string  `json:"description,omitempty"`
+	Published   *bool    `json:"published,omitempty"`
+	PromoImages []string `json:"promo_images,omitempty"`
+}
+
+func (m BotPromoRequest) MarshalJSON() ([]byte, error) {
+	type Alias BotPromoRequest
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.PromoImages != nil {
+		raw["promo_images"] = m.PromoImages
+	}
+	return json.Marshal(raw)
 }
 
 type BotResponse struct {
-	ID      int32      `json:"id"`
-	Webhook BotWebhook `json:"webhook"`
+	ID                   int32           `json:"id"`
+	Name                 string          `json:"name"`
+	Nickname             string          `json:"nickname"`
+	CreatedAt            time.Time       `json:"created_at"`
+	AuthorizedUsersCount int32           `json:"authorized_users_count"`
+	Webhook              BotWebhook      `json:"webhook"`
+	OAuthClientEnabled   bool            `json:"oauth_client_enabled"`
+	Permissions          BotPermissions  `json:"permissions"`
+	AvatarURL            *string         `json:"avatar_url"`
+	CreatorID            *int32          `json:"creator_id"`
+	LastUsedAt           *string         `json:"last_used_at"`
+	OAuthClient          *BotOAuthClient `json:"oauth_client"`
+	Promo                *BotPromo       `json:"promo"`
+	ClientSecret         *string         `json:"client_secret,omitempty"`
+}
+
+type BotScopeCatalog struct {
+	Scopes  []BotScopeCatalogItem   `json:"scopes"`
+	Groups  []BotScopeCatalogGroup  `json:"groups"`
+	Presets []BotScopeCatalogPreset `json:"presets"`
+}
+
+type BotScopeCatalogGroup struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+}
+
+type BotScopeCatalogItem struct {
+	ID     string   `json:"id"`
+	Title  string   `json:"title"`
+	Group  string   `json:"group"`
+	Preset []string `json:"preset"`
+}
+
+type BotScopeCatalogPreset struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+}
+
+type BotSelfResponse struct {
+	ID          int32           `json:"id"`
+	Webhook     BotSelfWebhook  `json:"webhook"`
+	OAuthClient *BotOAuthClient `json:"oauth_client"`
+}
+
+type BotSelfTokenResponse struct {
+	ID          int32           `json:"id"`
+	Webhook     BotSelfWebhook  `json:"webhook"`
+	AccessToken string          `json:"access_token"`
+	OAuthClient *BotOAuthClient `json:"oauth_client"`
+}
+
+type BotSelfWebhook struct {
+	Name                 string            `json:"name"`
+	Nickname             string            `json:"nickname"`
+	Events               []BotEventName    `json:"events"`
+	TriggerOn            BotTriggerOn      `json:"trigger_on"`
+	Commands             []string          `json:"commands"`
+	Scopes               []string          `json:"scopes"`
+	TemplateEngine       BotTemplateEngine `json:"template_engine"`
+	LinkPreviewEnabled   bool              `json:"link_preview_enabled"`
+	IgnoreSelfMessages   bool              `json:"ignore_self_messages"`
+	EventsHistoryEnabled bool              `json:"events_history_enabled"`
+	SingleChat           bool              `json:"single_chat"`
+	CanEdit              []BotCanEdit      `json:"can_edit"`
+	WhoCanAdd            BotWhoCanAdd      `json:"who_can_add"`
+	OutgoingURL          *string           `json:"outgoing_url"`
+	Template             *string           `json:"template"`
+	ChallengeKey         *string           `json:"challenge_key"`
+}
+
+type BotTokenCreateRequest struct {
+	Name   string   `json:"name"`
+	Scopes []string `json:"scopes,omitempty"`
+}
+
+func (m BotTokenCreateRequest) MarshalJSON() ([]byte, error) {
+	type Alias BotTokenCreateRequest
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Scopes != nil {
+		raw["scopes"] = m.Scopes
+	}
+	return json.Marshal(raw)
+}
+
+type BotTokenUpdateRequest struct {
+	Name   *string  `json:"name,omitempty"`
+	Scopes []string `json:"scopes,omitempty"`
+}
+
+func (m BotTokenUpdateRequest) MarshalJSON() ([]byte, error) {
+	type Alias BotTokenUpdateRequest
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Scopes != nil {
+		raw["scopes"] = m.Scopes
+	}
+	return json.Marshal(raw)
 }
 
 type BotUpdateRequestWebhook struct {
@@ -737,6 +1014,9 @@ type BotUpdateRequestWebhook struct {
 	EventsHistoryEnabled *bool              `json:"events_history_enabled,omitempty"`
 	WhoCanAdd            *BotWhoCanAdd      `json:"who_can_add,omitempty"`
 	CanEdit              []BotCanEdit       `json:"can_edit,omitempty"`
+	SingleChat           *bool              `json:"single_chat,omitempty"`
+	Kind                 *BotWebhookKind    `json:"kind,omitempty"`
+	UnfurlDomains        []string           `json:"unfurl_domains,omitempty"`
 }
 
 func (m BotUpdateRequestWebhook) MarshalJSON() ([]byte, error) {
@@ -761,11 +1041,16 @@ func (m BotUpdateRequestWebhook) MarshalJSON() ([]byte, error) {
 	if m.CanEdit != nil {
 		raw["can_edit"] = m.CanEdit
 	}
+	if m.UnfurlDomains != nil {
+		raw["unfurl_domains"] = m.UnfurlDomains
+	}
 	return json.Marshal(raw)
 }
 
 type BotUpdateRequest struct {
-	Webhook BotUpdateRequestWebhook `json:"webhook"`
+	Webhook     *BotUpdateRequestWebhook `json:"webhook,omitempty"`
+	OAuthClient *BotOAuthClientRequest   `json:"oauth_client"`
+	Promo       *BotPromoRequest         `json:"promo,omitempty"`
 }
 
 type BotWebhook struct {
@@ -782,9 +1067,12 @@ type BotWebhook struct {
 	SingleChat           bool              `json:"single_chat"`
 	CanEdit              []BotCanEdit      `json:"can_edit"`
 	WhoCanAdd            BotWhoCanAdd      `json:"who_can_add"`
+	UnfurlDomains        []string          `json:"unfurl_domains"`
 	OutgoingURL          *string           `json:"outgoing_url"`
 	Template             *string           `json:"template"`
 	ChallengeKey         *string           `json:"challenge_key"`
+	Kind                 *BotWebhookKind   `json:"kind"`
+	LastRequestAt        *string           `json:"last_request_at"`
 }
 
 type BotWebhookSelfUpdateRequestWebhook struct {
@@ -825,6 +1113,7 @@ type Chat struct {
 	Public        bool      `json:"public"`
 	LastMessageAt time.Time `json:"last_message_at"`
 	MeetRoomURL   string    `json:"meet_room_url"`
+	AvatarURL     *string   `json:"avatar_url"`
 }
 
 type ChatCreateRequestChat struct {
@@ -878,8 +1167,9 @@ type ChatUpdateRequest struct {
 }
 
 type CompanyBotResponse struct {
-	ID      int32             `json:"id"`
-	Webhook CompanyBotWebhook `json:"webhook"`
+	ID          int32             `json:"id"`
+	Webhook     CompanyBotWebhook `json:"webhook"`
+	OAuthClient *BotOAuthClient   `json:"oauth_client"`
 }
 
 type CompanyBotWebhook struct {
@@ -1150,14 +1440,21 @@ type LinkPreviewsRequest struct {
 }
 
 type LinkSharedWebhookPayload struct {
-	Type             string        `json:"type"` // always "message"
-	Event            string        `json:"event"` // always "link_shared"
-	ChatID           int32         `json:"chat_id"`
-	MessageID        int32         `json:"message_id"`
-	Links            []WebhookLink `json:"links"`
-	UserID           int32         `json:"user_id"`
-	CreatedAt        time.Time     `json:"created_at"`
-	WebhookTimestamp int32         `json:"webhook_timestamp"`
+	Type             string                `json:"type"` // always "message"
+	Event            string                `json:"event"` // always "link_shared"
+	ChatID           int32                 `json:"chat_id"`
+	MessageID        int32                 `json:"message_id"`
+	Links            []WebhookLink         `json:"links"`
+	UserID           int32                 `json:"user_id"`
+	EntityType       MessageEntityType     `json:"entity_type"`
+	CreatedAt        time.Time             `json:"created_at"`
+	WebhookTimestamp int32                 `json:"webhook_timestamp"`
+	EntityID         *int32                `json:"entity_id"`
+	Thread           *WebhookMessageThread `json:"thread"`
+}
+
+type MarkChatUnreadRequest struct {
+	MessageID *int32 `json:"message_id,omitempty"`
 }
 
 type MessageThread struct {
@@ -1860,6 +2157,10 @@ type WebhookVideoCallThread struct {
 	MessageChatID *int32 `json:"message_chat_id"`
 }
 
+type UpdateChatAvatarRequest struct {
+	Image io.Reader `json:"image"`
+}
+
 type UpdateProfileAvatarRequest struct {
 	Image io.Reader `json:"image"`
 }
@@ -1929,6 +2230,10 @@ type AuditEventDetailsUnion struct {
 	AuditDetailsVideoCallStarted            *AuditDetailsVideoCallStarted
 	AuditDetailsVideoCallFinished           *AuditDetailsVideoCallFinished
 	AuditDetailsVideoCallRecording          *AuditDetailsVideoCallRecording
+	AuditDetailsBotOAuthClientSecretRotated *AuditDetailsBotOAuthClientSecretRotated
+	AuditDetailsBotOAuthClientDisabled      *AuditDetailsBotOAuthClientDisabled
+	AuditDetailsToken                       *AuditDetailsToken
+	AuditDetailsBotTokenUpdated             *AuditDetailsBotTokenUpdated
 	Raw                                     json.RawMessage
 }
 
@@ -1948,16 +2253,20 @@ var auditEventDetailsUnionShapes = []unionMemberShape{
 	{keys: map[string]struct{}{"dlp_rule_id": {}, "dlp_rule_name": {}, "message_id": {}, "chat_id": {}, "user_id": {}, "action_message": {}, "conditions_matched": {}}},
 	{keys: map[string]struct{}{"search_type": {}, "query_present": {}, "cursor_present": {}, "limit": {}, "filters": {}}},
 	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}}},
-	{keys: map[string]struct{}{"added_scopes": {}, "removed_scopes": {}}},
-	{keys: map[string]struct{}{"changes": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "changes": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "added_scopes": {}, "removed_scopes": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "changes": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "changes": {}}},
 	{keys: map[string]struct{}{"client_id": {}, "scopes": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "revoked_tokens_count": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "scopes": {}}},
-	{keys: map[string]struct{}{"client_id": {}, "scopes": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "revoked_tokens_count": {}, "user_id": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "scopes": {}, "device_name": {}}},
+	{keys: map[string]struct{}{"client_id": {}, "scopes": {}, "device_name": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "duration": {}, "max_members_count": {}}},
 	{keys: map[string]struct{}{"chat_id": {}, "started_message_id": {}, "recording_id": {}, "file_id": {}, "duration": {}, "size": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}}},
+	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "deleted_access_tokens_count": {}, "deleted_access_grants_count": {}}},
+	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "scopes": {}, "bot_id": {}}},
+	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "current_scopes": {}, "bot_id": {}, "actor_id": {}}},
 }
 
 // UnmarshalJSON decodes AuditEventDetailsUnion, which carries no discriminator field:
@@ -2041,6 +2350,18 @@ func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
 	case 24:
 		u.AuditDetailsVideoCallRecording = &AuditDetailsVideoCallRecording{}
 		return json.Unmarshal(data, u.AuditDetailsVideoCallRecording)
+	case 25:
+		u.AuditDetailsBotOAuthClientSecretRotated = &AuditDetailsBotOAuthClientSecretRotated{}
+		return json.Unmarshal(data, u.AuditDetailsBotOAuthClientSecretRotated)
+	case 26:
+		u.AuditDetailsBotOAuthClientDisabled = &AuditDetailsBotOAuthClientDisabled{}
+		return json.Unmarshal(data, u.AuditDetailsBotOAuthClientDisabled)
+	case 27:
+		u.AuditDetailsToken = &AuditDetailsToken{}
+		return json.Unmarshal(data, u.AuditDetailsToken)
+	case 28:
+		u.AuditDetailsBotTokenUpdated = &AuditDetailsBotTokenUpdated{}
+		return json.Unmarshal(data, u.AuditDetailsBotTokenUpdated)
 	}
 	return nil
 }
@@ -2120,6 +2441,18 @@ func (u AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {
 	}
 	if u.AuditDetailsVideoCallRecording != nil {
 		return json.Marshal(u.AuditDetailsVideoCallRecording)
+	}
+	if u.AuditDetailsBotOAuthClientSecretRotated != nil {
+		return json.Marshal(u.AuditDetailsBotOAuthClientSecretRotated)
+	}
+	if u.AuditDetailsBotOAuthClientDisabled != nil {
+		return json.Marshal(u.AuditDetailsBotOAuthClientDisabled)
+	}
+	if u.AuditDetailsToken != nil {
+		return json.Marshal(u.AuditDetailsToken)
+	}
+	if u.AuditDetailsBotTokenUpdated != nil {
+		return json.Marshal(u.AuditDetailsBotTokenUpdated)
 	}
 	if len(u.Raw) > 0 {
 		return u.Raw, nil
@@ -2319,6 +2652,11 @@ type ListBotsParams struct {
 	Cursor *string
 }
 
+type ListBotTokensParams struct {
+	Limit  *int32
+	Cursor *string
+}
+
 type ListChatsParams struct {
 	Sort                *ChatSortField
 	Order               *SortOrder
@@ -2470,6 +2808,11 @@ type GetAuditEventsResponse struct {
 type ListBotsResponse struct {
 	Data []BotResponse  `json:"data"`
 	Meta PaginationMeta `json:"meta"`
+}
+
+type ListBotTokensResponse struct {
+	Data []BotAccessToken `json:"data"`
+	Meta PaginationMeta   `json:"meta"`
 }
 
 type ListChatsResponse struct {

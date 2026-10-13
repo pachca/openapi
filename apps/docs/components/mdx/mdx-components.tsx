@@ -122,7 +122,7 @@ export async function ErrorSchema() {
       {apiError && (
         <WebhookSchemaSection
           schema={apiError}
-          title="ApiError (400, 402, 403, 404, 409, 410, 422)"
+          title="ApiError (400, 402, 403, 404, 409, 410, 422, 429, 503, 504)"
         />
       )}
       {oauthError && <WebhookSchemaSection schema={oauthError} title="OAuthError (401, 403)" />}
@@ -498,8 +498,8 @@ export async function ScopeRoles() {
 
 // Update manually when a new product release goes out
 const LATEST_PRODUCT_UPDATE = {
-  date: '27 августа 2026',
-  title: 'Теперь в видеочатах есть модераторы 🎙️',
+  date: '23 сентября 2026',
+  title: 'Транскрибация звонков: открываем бету 🎧',
 };
 
 export function ProductUpdatesLink() {

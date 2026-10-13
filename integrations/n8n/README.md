@@ -24,7 +24,7 @@ Or install from archive (Docker, custom n8n images):
 # Download from GitHub Releases
 # Find the latest n8n-nodes-pachca.tgz at:
 # https://github.com/pachca/openapi/releases?q=n8n
-wget https://github.com/pachca/openapi/releases/download/n8n-v2.1.1/n8n-nodes-pachca.tgz
+wget https://github.com/pachca/openapi/releases/download/n8n-v2.1.4/n8n-nodes-pachca.tgz
 
 # Via npm (recommended)
 cd ~/.n8n/nodes && npm install ./n8n-nodes-pachca.tgz
@@ -81,18 +81,18 @@ Automatic mode registers the webhook URL when the workflow is activated and clea
 
 Create a **Pachca API** credential with:
 
-| Field                   | Required | Description                                                                                                              |
-| ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Base URL**            | no       | Default: `https://api.pachca.com/api/shared/v1`. Change only for on-premise.                                             |
-| **Access Token**        | yes      | Bot or personal API token                                                                                                |
-| **Bot ID**              | no       | For automatic webhook registration in Trigger with a **personal token**. Not needed for bot tokens — they self-register. |
-| **Signing Secret**      | no       | For HMAC-SHA256 verification of incoming webhooks (`pachca-signature` header)                                            |
-| **Webhook Allowed IPs** | no       | Comma-separated IPs allowed to send webhooks. Pachca sends from `37.200.70.177`. Empty = allow all.                      |
+| Field                   | Required | Description                                                                                                                                 |
+| ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Base URL**            | no       | Default: `https://api.pachca.com/api/shared/v1`. Change only for on-premise.                                                                |
+| **Access Token**        | yes      | Bot or personal API token                                                                                                                   |
+| **Bot ID**              | no       | For automatic webhook registration in Trigger with a **personal token**. Not needed for bot tokens — they self-register.                    |
+| **Signing Secret**      | no       | For HMAC-SHA256 verification of incoming webhooks (`pachca-signature` header)                                                               |
+| **Webhook Allowed IPs** | no       | Comma-separated IPs allowed to send webhooks. Pachca sends from `37.200.70.177`, `185.209.115.174` and `135.106.159.61`. Empty = allow all. |
 
 **Where to get tokens:**
 
-- **Bot token** — Bot settings > API tab
-- **Personal token** — Settings > Automations > API
+- **Bot token** — Integrations > Bots, then the API tab of the bot. The value is shown once, when the token is created
+- **Personal token** — Integrations > API
 
 Credentials are tested by calling `GET /oauth/token/info`.
 
@@ -230,7 +230,7 @@ Set **Resource** = Search, **Operation** = Get Many Messages:
 
 ### 401 Unauthorized
 
-Token is invalid or expired. Check **Access Token** in Credentials. For bot tokens: Bot settings > API tab. For personal tokens: Settings > Automations > API.
+Token is invalid or expired. Check **Access Token** in Credentials. For bot tokens: reissue the token on the API tab of the bot. For personal tokens: create a new one in Integrations > API.
 
 ### 403 Forbidden
 

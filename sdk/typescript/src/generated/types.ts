@@ -86,10 +86,26 @@ export enum AuditEventKey {
   BotDeleted = "bot_deleted",
   /** Изменены параметры OAuth-клиента бота */
   BotOauthClientUpdated = "bot_oauth_client_updated",
+  /** У бота выключена авторизация от имени сотрудника */
+  BotOauthClientDisabled = "bot_oauth_client_disabled",
+  /** Обновлён секрет OAuth-клиента бота */
+  BotOauthClientSecretRotated = "bot_oauth_client_secret_rotated",
+  /** Выпущен секрет OAuth-клиента бота */
+  BotOauthClientSecretIssued = "bot_oauth_client_secret_issued",
+  /** Выпущен токен бота */
+  BotTokenCreated = "bot_token_created",
+  /** Изменены имя или скоупы токена бота */
+  BotTokenUpdated = "bot_token_updated",
+  /** Отдельный токен бота перевыпущен */
+  BotTokenReissued = "bot_token_reissued",
+  /** Токен бота удалён */
+  BotTokenDeleted = "bot_token_deleted",
   /** Пользователь выдал OAuth-клиенту доступ к своим данным */
   OauthAuthorizationGranted = "oauth_authorization_granted",
   /** Доступ OAuth-клиента к данным пользователя отозван */
   OauthAuthorizationRevoked = "oauth_authorization_revoked",
+  /** OAuth-клиент отозвал выданный ему токен */
+  OauthTokenRevoked = "oauth_token_revoked",
   /** Сотрудник подтвердил вход приложения с устройства */
   OauthDeviceAuthorizationApproved = "oauth_device_authorization_approved",
   /** Сотрудник отклонил вход приложения с устройства */
@@ -170,6 +186,16 @@ export enum BotTriggerOn {
   Unfurl = "unfurl",
 }
 
+/** Источник входящего вебхука бота */
+export enum BotWebhookKind {
+  /** Свой формат: сообщение собирается из тела запроса по шаблону бота */
+  Simple = "simple",
+  /** GitLab: Пачка сама разбирает запрос и собирает сообщение */
+  Gitlab = "gitlab",
+  /** Grafana: Пачка сама разбирает запрос и собирает сообщение */
+  Grafana = "grafana",
+}
+
 /** Кто может добавлять бота в чаты */
 export enum BotWhoCanAdd {
   /** Только создатель бота */
@@ -178,7 +204,7 @@ export enum BotWhoCanAdd {
   CreatorAdmin = "creator_admin",
   /** Создатель, администраторы и участники компании */
   CreatorAdminUser = "creator_admin_user",
-  /** Любой пользователь, в том числе гости */
+  /** Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей */
   Anyone = "anyone",
 }
 
@@ -355,6 +381,8 @@ export enum OAuthScope {
   ChatsCreate = "chats:create",
   /** Изменение настроек чата */
   ChatsUpdate = "chats:update",
+  /** Отметка чатов непрочитанными */
+  ChatsMarkUnread = "chats:mark_unread",
   /** Архивация и разархивация чатов */
   ChatsArchive = "chats:archive",
   /** Выход из чатов */
@@ -643,6 +671,16 @@ export enum ValidationErrorCode {
   ConfidentialDownloadDenied = "confidential_download_denied",
   /** Не удалось расшифровать файл */
   DecryptionFailed = "decryption_failed",
+  /** Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value` */
+  BotAddDenied = "bot_add_denied",
+  /** Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value` */
+  SingleChatBotOccupied = "single_chat_bot_occupied",
+  /** Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег */
+  SingleChatBotTagDenied = "single_chat_bot_tag_denied",
+  /** Настройки бота изменились во время запроса: повторите его */
+  BotChangedConcurrently = "bot_changed_concurrently",
+  /** Поиск не уложился по времени: сузьте запрос и повторите */
+  Timeout = "timeout",
   /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
   Forbidden = "forbidden",
   /** Доступ запрещён (недостаточно прав) */
@@ -740,16 +778,45 @@ export interface AuditDetailsBot {
 }
 
 export interface AuditDetailsBotOAuthClient {
+  botId: number;
+  actorId: number | null;
   clientId: string;
   changes: Record<string, unknown>;
 }
 
+export interface AuditDetailsBotOAuthClientDisabled {
+  botId: number;
+  actorId: number | null;
+  clientId: string;
+  deletedAccessTokensCount: number;
+  deletedAccessGrantsCount: number;
+}
+
+export interface AuditDetailsBotOAuthClientSecretRotated {
+  botId: number;
+  actorId: number | null;
+  clientId: string;
+}
+
 export interface AuditDetailsBotScopes {
+  botId: number;
+  actorId: number | null;
   addedScopes: string[];
   removedScopes: string[];
 }
 
+export interface AuditDetailsBotTokenUpdated {
+  tokenKind: string;
+  tokenName: string | null;
+  resourceOwnerId: number;
+  currentScopes: string[];
+  botId?: number;
+  actorId: number | null;
+}
+
 export interface AuditDetailsBotWebhookSettings {
+  botId: number;
+  actorId: number | null;
   changes: Record<string, unknown>;
 }
 
@@ -769,11 +836,13 @@ export interface AuditDetailsChatRenamed {
 export interface AuditDetailsDeviceAuthorizationApproved {
   clientId: string;
   scopes: string[];
+  deviceName?: string | null;
 }
 
 export interface AuditDetailsDeviceAuthorizationDenied {
   clientId: string;
   scopes: string[];
+  deviceName?: string | null;
 }
 
 export interface AuditDetailsDlp {
@@ -811,6 +880,7 @@ export interface AuditDetailsOAuthAuthorizationGranted {
 export interface AuditDetailsOAuthAuthorizationRevoked {
   clientId: string;
   revokedTokensCount: number;
+  userId?: number;
 }
 
 export interface AuditDetailsRoleChanged {
@@ -834,6 +904,14 @@ export interface AuditDetailsTagChat {
 
 export interface AuditDetailsTagName {
   name: string;
+}
+
+export interface AuditDetailsToken {
+  tokenKind: string;
+  tokenName: string | null;
+  resourceOwnerId: number;
+  scopes: string[];
+  botId?: number;
 }
 
 export interface AuditDetailsTokenScopes {
@@ -883,7 +961,22 @@ export interface AvatarData {
   imageUrl: string;
 }
 
+export interface BotAccessToken {
+  id: number;
+  token: string;
+  name: string | null;
+  userId: number;
+  scopes: string[];
+  createdAt: string;
+  revokedAt: string | null;
+  expiresIn: number | null;
+  lastUsedAt: string | null;
+  authorizedAt: string | null;
+}
+
 export interface BotCreateRequest {
+  /** @default false */
+  empty?: boolean;
   webhook: {
     name: string;
     nickname?: string;
@@ -908,22 +1001,153 @@ export interface BotCreateRequest {
     canEdit?: BotCanEdit[];
     /** @default false */
     singleChat?: boolean;
+    kind?: BotWebhookKind;
+    unfurlDomains?: string[];
   };
+  oauthClient?: BotOAuthClientRequest;
+  promo?: BotPromoRequest;
 }
 
 export interface BotCreateResponse {
   id: number;
+  name: string;
+  nickname: string;
+  avatarUrl: string | null;
+  creatorId: number | null;
+  createdAt: string;
+  authorizedUsersCount: number;
+  lastUsedAt: string | null;
   webhook: BotWebhook;
-  accessToken: string;
+  oauthClientEnabled: boolean;
+  oauthClient: BotOAuthClient | null;
+  promo: BotPromo | null;
+  permissions: BotPermissions;
+  clientSecret?: string;
+  accessToken?: string;
+}
+
+export interface BotOAuthClient {
+  clientId: string;
+  clientSecretPreview: string;
+  confidential: boolean;
+  redirectUris: string[];
+  scopes: string[];
+}
+
+export interface BotOAuthClientRequest {
+  confidential?: boolean;
+  redirectUris?: string[];
+  scopes?: string[];
+}
+
+export interface BotPermissions {
+  updateOauthClient: boolean;
+  recreateToken: boolean;
+  destroy: boolean;
+}
+
+export interface BotPromo {
+  description: string | null;
+  published: boolean;
+  promoImages: BotPromoImage[];
+}
+
+export interface BotPromoImage {
+  key: string;
+  url: string;
+}
+
+export interface BotPromoRequest {
+  description?: string;
+  published?: boolean;
+  promoImages?: string[];
 }
 
 export interface BotResponse {
   id: number;
+  name: string;
+  nickname: string;
+  avatarUrl: string | null;
+  creatorId: number | null;
+  createdAt: string;
+  authorizedUsersCount: number;
+  lastUsedAt: string | null;
   webhook: BotWebhook;
+  oauthClientEnabled: boolean;
+  oauthClient: BotOAuthClient | null;
+  promo: BotPromo | null;
+  permissions: BotPermissions;
+  clientSecret?: string;
+}
+
+export interface BotScopeCatalog {
+  scopes: BotScopeCatalogItem[];
+  groups: BotScopeCatalogGroup[];
+  presets: BotScopeCatalogPreset[];
+}
+
+export interface BotScopeCatalogGroup {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface BotScopeCatalogItem {
+  id: string;
+  title: string;
+  group: string;
+  preset: string[];
+}
+
+export interface BotScopeCatalogPreset {
+  id: string;
+  title: string;
+}
+
+export interface BotSelfResponse {
+  id: number;
+  oauthClient: BotOAuthClient | null;
+  webhook: BotSelfWebhook;
+}
+
+export interface BotSelfTokenResponse {
+  id: number;
+  oauthClient: BotOAuthClient | null;
+  webhook: BotSelfWebhook;
+  accessToken: string;
+}
+
+export interface BotSelfWebhook {
+  name: string;
+  nickname: string;
+  outgoingUrl: string | null;
+  events: BotEventName[];
+  triggerOn: BotTriggerOn;
+  commands: string[];
+  scopes: string[];
+  template: string | null;
+  templateEngine: BotTemplateEngine;
+  challengeKey: string | null;
+  linkPreviewEnabled: boolean;
+  ignoreSelfMessages: boolean;
+  eventsHistoryEnabled: boolean;
+  singleChat: boolean;
+  canEdit: BotCanEdit[];
+  whoCanAdd: BotWhoCanAdd;
+}
+
+export interface BotTokenCreateRequest {
+  name: string;
+  scopes?: string[];
+}
+
+export interface BotTokenUpdateRequest {
+  name?: string;
+  scopes?: string[];
 }
 
 export interface BotUpdateRequest {
-  webhook: {
+  webhook?: {
     name?: string;
     nickname?: string;
     outgoingUrl?: string;
@@ -945,7 +1169,12 @@ export interface BotUpdateRequest {
     /** @default creator */
     whoCanAdd?: BotWhoCanAdd;
     canEdit?: BotCanEdit[];
+    singleChat?: boolean;
+    kind?: BotWebhookKind;
+    unfurlDomains?: string[];
   };
+  oauthClient?: BotOAuthClientRequest | null;
+  promo?: BotPromoRequest;
 }
 
 export interface BotWebhook {
@@ -965,6 +1194,9 @@ export interface BotWebhook {
   singleChat: boolean;
   canEdit: BotCanEdit[];
   whoCanAdd: BotWhoCanAdd;
+  kind: BotWebhookKind | null;
+  unfurlDomains: string[];
+  lastRequestAt: string | null;
 }
 
 export interface BotWebhookSelfUpdateRequest {
@@ -1003,6 +1235,7 @@ export interface Chat {
   public: boolean;
   lastMessageAt: string;
   meetRoomUrl: string;
+  avatarUrl: string | null;
 }
 
 export interface ChatCreateRequest {
@@ -1036,6 +1269,7 @@ export interface ChatUpdateRequest {
 
 export interface CompanyBotResponse {
   id: number;
+  oauthClient: BotOAuthClient | null;
   webhook: CompanyBotWebhook;
 }
 
@@ -1226,8 +1460,15 @@ export interface LinkSharedWebhookPayload {
   messageId: number;
   links: WebhookLink[];
   userId: number;
+  entityType: MessageEntityType;
+  entityId: number | null;
+  thread: WebhookMessageThread | null;
   createdAt: string;
   webhookTimestamp: number;
+}
+
+export interface MarkChatUnreadRequest {
+  messageId?: number;
 }
 
 export interface Message {
@@ -1757,6 +1998,10 @@ export interface WebhookVideoCallThread {
   messageChatId: number | null;
 }
 
+export interface UpdateChatAvatarRequest {
+  image: Blob;
+}
+
 export interface UpdateProfileAvatarRequest {
   image: Blob;
 }
@@ -1765,7 +2010,7 @@ export interface UpdateUserAvatarRequest {
   image: Blob;
 }
 
-export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsBotOAuthClient | AuditDetailsOAuthAuthorizationGranted | AuditDetailsOAuthAuthorizationRevoked | AuditDetailsDeviceAuthorizationApproved | AuditDetailsDeviceAuthorizationDenied | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording;
+export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsBotOAuthClient | AuditDetailsOAuthAuthorizationGranted | AuditDetailsOAuthAuthorizationRevoked | AuditDetailsDeviceAuthorizationApproved | AuditDetailsDeviceAuthorizationDenied | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording | AuditDetailsBotOAuthClientSecretRotated | AuditDetailsBotOAuthClientDisabled | AuditDetailsToken | AuditDetailsBotTokenUpdated;
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 
@@ -1785,6 +2030,11 @@ export interface GetAuditEventsParams {
 
 export interface ListBotsParams {
   query?: string;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface ListBotTokensParams {
   limit?: number;
   cursor?: string;
 }
@@ -1939,6 +2189,11 @@ export interface GetAuditEventsResponse {
 
 export interface ListBotsResponse {
   data: BotResponse[];
+  meta: PaginationMeta;
+}
+
+export interface ListBotTokensResponse {
+  data: BotAccessToken[];
   meta: PaginationMeta;
 }
 

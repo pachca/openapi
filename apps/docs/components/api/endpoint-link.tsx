@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { SCOPE_ROLES as ROLES, SCOPE_ROLE_LABELS as ROLE_LABELS } from '@/lib/scope-roles';
 
 const ENDPOINT_METHOD_COLORS: Record<string, string> = {
   GET: 'bg-method-get/10 text-method-get',
@@ -9,14 +10,6 @@ const ENDPOINT_METHOD_COLORS: Record<string, string> = {
   PUT: 'bg-method-put/10 text-method-put',
   DELETE: 'bg-method-delete/10 text-method-delete',
   PATCH: 'bg-method-patch/10 text-method-patch',
-};
-
-const ROLES = ['owner', 'admin', 'user', 'bot'] as const;
-const ROLE_LABELS: Record<string, string> = {
-  owner: 'Владелец',
-  admin: 'Администратор',
-  user: 'Сотрудник',
-  bot: 'Бот',
 };
 
 const PLAN_NAMES: Record<string, string> = {

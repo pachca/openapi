@@ -460,18 +460,18 @@ typespec.tsp → openapi.yaml → generate.ts + config.ts + workflows.ts → SKI
 
 Привязка работает через OpenAPI-теги (`@tag` в TypeSpec) → `config.ts: SKILL_TAG_MAP[].tags` + исключения в `COMMON_ENDPOINT_MAP`.
 
-| Скилл             | Теги в config.ts                                   | Доп. маппинг (COMMON_ENDPOINT_MAP)          | Эндпоинты                                                                                        |
-| ----------------- | -------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `pachca-profile`  | `Profile`                                          | `/custom_properties` → pachca-profile       | GET /profile, GET/PUT/DELETE /profile/status, PUT/DELETE /profile/avatar, GET /custom_properties |
-| `pachca-oauth`    | `OAuth`                                            | —                                           | GET /oauth/token/info                                                                            |
-| `pachca-users`    | `Users`, `Group tags`                              | —                                           | CRUD /users, GET/PUT/DELETE /users/{id}/status, CRUD /group_tags, GET /group_tags/{id}/users     |
-| `pachca-chats`    | `Chats`, `Members`                                 | —                                           | CRUD /chats, archive/unarchive, CRUD members, tags, leave, exports, GET /company/chats           |
-| `pachca-messages` | `Messages`, `Threads`, `Reactions`, `Read members` | `/uploads`, `/direct_url` → pachca-messages | CRUD /messages, pin, reactions, read_members, threads, uploads, unfurl                           |
-| `pachca-bots`     | `Bots`                                             | —                                           | CRUD /bots, ротация токенов, PUT /bot/webhook, GET/DELETE /webhooks/events, GET /company/bots    |
-| `pachca-forms`    | `Views`                                            | —                                           | POST /views/open                                                                                 |
-| `pachca-tasks`    | `Tasks`                                            | —                                           | CRUD /tasks                                                                                      |
-| `pachca-search`   | `Search`                                           | —                                           | GET /search/users, GET /search/chats, GET /search/messages                                       |
-| `pachca-security` | `Security`                                         | —                                           | GET /audit_events                                                                                |
+| Скилл             | Теги в config.ts                                   | Доп. маппинг (COMMON_ENDPOINT_MAP)          | Эндпоинты                                                                                                                                     |
+| ----------------- | -------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pachca-profile`  | `Profile`                                          | `/custom_properties` → pachca-profile       | GET /profile, GET/PUT/DELETE /profile/status, PUT/DELETE /profile/avatar, GET /custom_properties                                              |
+| `pachca-oauth`    | `OAuth`                                            | —                                           | GET /oauth/token/info                                                                                                                         |
+| `pachca-users`    | `Users`, `Group tags`                              | —                                           | CRUD /users, GET/PUT/DELETE /users/{id}/status, CRUD /group_tags, GET /group_tags/{id}/users                                                  |
+| `pachca-chats`    | `Chats`, `Members`                                 | —                                           | CRUD /chats, archive/unarchive, CRUD members, tags, leave, exports, GET /company/chats, PUT /chats/{id}/unread, PUT/DELETE /chats/{id}/avatar |
+| `pachca-messages` | `Messages`, `Threads`, `Reactions`, `Read members` | `/uploads`, `/direct_url` → pachca-messages | CRUD /messages, pin, reactions, read_members, threads, uploads, unfurl                                                                        |
+| `pachca-bots`     | `Bots`                                             | —                                           | CRUD /bots, ротация токенов, PUT /bot/webhook, GET/DELETE /webhooks/events, GET /company/bots                                                 |
+| `pachca-forms`    | `Views`                                            | —                                           | POST /views/open                                                                                                                              |
+| `pachca-tasks`    | `Tasks`                                            | —                                           | CRUD /tasks                                                                                                                                   |
+| `pachca-search`   | `Search`                                           | —                                           | GET /search/users, GET /search/chats, GET /search/messages                                                                                    |
+| `pachca-security` | `Security`                                         | —                                           | GET /audit_events                                                                                                                             |
 
 #### Что обновлять при разных типах изменений бэкенда
 

@@ -20,6 +20,7 @@ import { HTTP_CODES } from './schemas/guide-schemas';
 import { getOrderedPages } from './ordered-pages';
 import { generateNavigation, compareEndpointsForNav } from './navigation';
 import { sortTagsByOrder } from './guides-config';
+import { SCOPE_ROLES, SCOPE_ROLE_LABELS } from './scope-roles';
 import { WORKFLOWS } from '@pachca/spec/workflows';
 import { SKILL_TAG_MAP } from '../scripts/skills/config';
 
@@ -286,7 +287,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
     if (apiError) {
       errorSchemaMarkdown += formatSchemaWithTitle(
         apiError,
-        'ApiError (400, 402, 403, 404, 409, 410, 422)'
+        'ApiError (400, 402, 403, 404, 409, 410, 422, 429, 503, 504)'
       );
       errorSchemaMarkdown += '\n';
     }
@@ -822,13 +823,8 @@ export async function expandMdxComponents(content: string): Promise<string> {
       const descriptions = (oauthScope['x-enum-descriptions'] as Record<string, string>) || {};
       const scopeRoles = (oauthScope['x-scope-roles'] as Record<string, string[]>) || {};
 
-      const ROLE_LABELS: Record<string, string> = {
-        owner: 'Владелец',
-        admin: 'Администратор',
-        user: 'Сотрудник',
-        bot: 'Бот',
-      };
-      const ALL_ROLES = ['owner', 'admin', 'user', 'bot'];
+      const ROLE_LABELS: Record<string, string> = SCOPE_ROLE_LABELS;
+      const ALL_ROLES = SCOPE_ROLES;
 
       let md = '| Скоуп | Описание | Роли |\n';
       md += '|-------|----------|------|\n';

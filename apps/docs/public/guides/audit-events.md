@@ -14,7 +14,7 @@
 ## Что попадает в журнал
 
 - События записываются только для пространств на тарифе **Корпорация**. Пока тариф не подключён, журнал не наполняется, и после подключения прошлые действия в нём не появятся.
-- У каждого события есть актор — сотрудник или бот, выполнивший действие. Действия без актора в журнал не попадают.
+- У каждого события есть актор — сотрудник или бот, выполнивший действие. Действия без актора в журнал не попадают. Исключение — событие `oauth_token_revoked`: его актор — приложение, которое отозвало свой токен.
 - Данные собираются с 12 мая 2025 года.
 - Чтение самого журнала тоже событие: каждый запрос к методу пишет `audit_events_accessed`.
 - Так же логируется инвентаризация пространства: [Список чатов пространства](/api/chats/list-company) пишет `company_chats_accessed`, [Список ботов пространства](/api/bots/list-company) — `company_bots_accessed`. В обоих случаях актором и объектом события выступает владелец токена.
@@ -27,7 +27,7 @@
 | `created_at` | string | Дата и время события (ISO-8601, UTC+0) |
 | `event_key` | string | Тип события. Полный список — ниже |
 | `actor_id` | string | Идентификатор сотрудника или бота, выполнившего действие |
-| `actor_type` | string | Тип актора, всегда `User` |
+| `actor_type` | string | Тип актора: `User`, а у события `oauth_token_revoked` — `Doorkeeper::Application` |
 | `entity_id` | string | Идентификатор объекта, которого касается событие |
 | `entity_type` | string | Тип этого объекта, например `User`, `Chat`, `Message`, `Reaction`, `GroupTag`, `TopicThread`, `VideoRoom` или `AccessToken` |
 | `details` | object | Подробности события, состав зависит от `event_key`. Для событий без подробностей — пустой объект |
@@ -101,8 +101,16 @@
 - `bot_token_recreated` — Токен бота перевыпущен (ротация)
 - `bot_deleted` — Бот удалён
 - `bot_oauth_client_updated` — Изменены параметры OAuth-клиента бота
+- `bot_oauth_client_disabled` — У бота выключена авторизация от имени сотрудника
+- `bot_oauth_client_secret_rotated` — Обновлён секрет OAuth-клиента бота
+- `bot_oauth_client_secret_issued` — Выпущен секрет OAuth-клиента бота
+- `bot_token_created` — Выпущен токен бота
+- `bot_token_updated` — Изменены имя или скоупы токена бота
+- `bot_token_reissued` — Отдельный токен бота перевыпущен
+- `bot_token_deleted` — Токен бота удалён
 - `oauth_authorization_granted` — Пользователь выдал OAuth-клиенту доступ к своим данным
 - `oauth_authorization_revoked` — Доступ OAuth-клиента к данным пользователя отозван
+- `oauth_token_revoked` — OAuth-клиент отозвал выданный ему токен
 - `oauth_device_authorization_approved` — Сотрудник подтвердил вход приложения с устройства
 - `oauth_device_authorization_denied` — Сотрудник отклонил вход приложения с устройства
 - `video_call_started` — Видеозвонок начат
@@ -110,6 +118,31 @@
 - `video_call_recording_ready` — Запись видеозвонка готова
 - `exchange_disabled` — Отключена интеграция с Exchange
 
+
+## Токены и авторизации в журнале
+
+Журнал записывает выдачу и отзыв каждого доступа к API. Вид доступа приходит в деталях в поле `token_kind`, а его владелец — в `resource_owner_id`.
+
+| Что произошло | Событие |
+| --- | --- |
+| Создан, изменён или удалён персональный токен | `access_token_created`, `access_token_updated`, `access_token_destroy` |
+| Сотрудник подтвердил или отклонил вход в CLI | `oauth_device_authorization_approved`, `oauth_device_authorization_denied` |
+| Вход в CLI завершён в интерфейсе | `access_token_destroy` |
+| Вход в CLI завершён командой `pachca auth logout` | `oauth_token_revoked` |
+| Боту выпущен токен, в том числе первый при создании бота | `bot_token_created` |
+| У токена бота изменены название или права | `bot_token_updated` |
+| Токен бота перевыпущен | `bot_token_reissued`, `bot_token_recreated` |
+| Токен бота удалён | `bot_token_deleted` |
+| Сотрудник разрешил боту действовать от своего имени | `oauth_authorization_granted` |
+| Доступ бота отозван в интерфейсе | `oauth_authorization_revoked` |
+| Бот сам отозвал выданный ему токен | `oauth_token_revoked` |
+| Боту выпущен или обновлён секрет клиента | `bot_oauth_client_secret_issued`, `bot_oauth_client_secret_rotated` |
+
+Отзыв в интерфейсе записывается от имени того, кто его выполнил. Когда чужой доступ закрывает администратор на вкладке [Все токены](/api/authorization#vse-tokeny-prostranstva), в `actor_id` приходит он, а владелец доступа остаётся в деталях: в `resource_owner_id` у токена и в `user_id` у авторизации бота.
+
+У события `oauth_token_revoked` актор — приложение, поэтому в `actor_id` приходит не идентификатор сотрудника. Сотрудник, чей токен отозван, указан в `resource_owner_id`.
+
+Обмен кода на токен и обновление токена отдельных записей не оставляют: выдачу фиксирует согласие сотрудника.
 
 ## Что приходит в деталях
 
@@ -126,19 +159,25 @@
 | `tag_created`, `tag_deleted` | `name` |
 | `tag_added_to_chat` | `chat_id`, `tag_name` |
 | `tag_removed_from_chat` | `chat_id` |
-| `access_token_created`, `access_token_updated`, `access_token_destroy` | `scopes` |
-| `bot_deleted`, `bot_token_recreated` | `bot_id`, `actor_id` |
+| `access_token_created`, `access_token_updated`, `access_token_destroy`, `bot_token_created`, `bot_token_reissued`, `bot_token_recreated`, `bot_token_deleted`, `oauth_token_revoked` | `token_kind`, `token_name`, `resource_owner_id`, `scopes`. `bot_id` — у токенов бота и токенов, которые сотрудник выдал боту |
+| `bot_token_updated` | `token_kind`, `token_name`, `resource_owner_id`, `current_scopes`, `bot_id`, `actor_id` |
+| `bot_deleted` | `bot_id`, `actor_id` |
 | `bot_scopes_updated` | `added_scopes`, `removed_scopes` |
 | `bot_webhook_settings_updated` | `changes` — объект, где ключ это имя настройки, а значение содержит `previous` и `new` |
 | `bot_oauth_client_updated` | `client_id`, `changes` — объект, где ключ это имя параметра клиента, а значение содержит `previous` и `new` |
 | `oauth_authorization_granted` | `client_id`, `scopes` |
-| `oauth_authorization_revoked` | `client_id`, `revoked_tokens_count` |
+| `bot_oauth_client_secret_issued`, `bot_oauth_client_secret_rotated` | `bot_id`, `actor_id`, `client_id` |
+| `bot_oauth_client_disabled` | `bot_id`, `actor_id`, `client_id`, `deleted_access_tokens_count`, `deleted_access_grants_count` |
+| `oauth_authorization_revoked` | `client_id`, `revoked_tokens_count`. `user_id` — когда доступ сотрудника отозвал администратор |
+| `oauth_device_authorization_approved`, `oauth_device_authorization_denied` | `client_id`, `scopes`, `device_name` |
 | `kms_encrypt`, `kms_decrypt` | `chat_id`, `message_id`, `reason` |
 | `dlp_violation_detected` | `dlp_rule_id`, `dlp_rule_name`, `message_id`, `chat_id`, `user_id`, `action_message`, `conditions_matched` |
 | `search_users_api`, `search_chats_api`, `search_messages_api` | `search_type`, `query_present`, `cursor_present`, `limit`, `filters` |
 | `video_call_started` | `chat_id`, `started_message_id` |
 | `video_call_finished` | `chat_id`, `started_message_id`, `duration`, `max_members_count` |
 | `video_call_recording_ready` | `chat_id`, `started_message_id`, `recording_id`, `file_id`, `duration`, `size` |
+
+В записях до 7 октября 2026 года у событий токенов деталей меньше: у персональных токенов только `scopes`, у токенов бота — `bot_id` и `actor_id`.
 
 Полные схемы с типами и описанием каждого поля — в разделе «Ответ» на странице метода [Журнал аудита событий](/api/security/list), в поле `details`.
 
@@ -196,6 +235,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 
 - Расследовать подозрительные попытки входа в систему
 - Отслеживать изменения прав доступа
+- Проверять, кто и когда выдавал и отзывал токены и доступы ботов
 - Отслеживать действия по удалению сообщений
 - Расследовать изменения ролей пользователей
 - Отслеживать изменения в составе участников чатов

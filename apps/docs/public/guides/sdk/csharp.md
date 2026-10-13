@@ -22,7 +22,7 @@ dotnet add package Pachca.Sdk
 
   ### Шаг 2. Создание клиента
 
-Получите API-токен в интерфейсе Пачки: **Настройки** > **Автоматизации** > **API** (подробнее — [Авторизация](/api/authorization)).
+Получите API-токен в интерфейсе Пачки: **Интеграции** > **API** (подробнее — [Авторизация](/api/authorization)).
 
 ```csharp
 using Pachca.Sdk;
@@ -74,7 +74,10 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Chats.DownloadExportAsync()` | [Скачать архив экспорта](/api/chats/download-export) |
 | `client.Chats.UpdateChatAsync()` | [Редактирование чата](/api/chats/update) |
 | `client.Chats.ArchiveChatAsync()` | [Архивация чата](/api/chats/archive) |
+| `client.Chats.UpdateChatAvatarAsync()` | [Загрузка аватара чата](/api/chats/update-avatar) |
 | `client.Chats.UnarchiveChatAsync()` | [Разархивация чата](/api/chats/unarchive) |
+| `client.Chats.MarkChatUnreadAsync()` | [Отметка чата непрочитанным](/api/chats/mark-unread) |
+| `client.Chats.DeleteChatAvatarAsync()` | [Удаление аватара чата](/api/chats/remove-avatar) |
 | `client.Profile.GetProfileAsync()` | [Свой профиль](/api/profile/get) |
 | `client.Profile.GetStatusAsync()` | [Свой статус](/api/profile/get-status) |
 | `client.Profile.UpdateProfileAvatarAsync()` | [Загрузка своего аватара](/api/profile/update-avatar) |
@@ -138,14 +141,21 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.CreateBotAsync()` | [Новый бот](/api/bots/create) |
 | `client.Bots.SelfRecreateBotTokenAsync()` | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | `client.Bots.RecreateBotTokenAsync()` | [Ротация токена бота](/api/bots/recreate-token) |
+| `client.Bots.RotateBotClientSecretAsync()` | [Ротация секрета клиента](/api/bots/rotate-client-secret) |
+| `client.Bots.CreateBotTokenAsync()` | [Новый токен бота](/api/bots/create-token) |
+| `client.Bots.ReissueBotTokenAsync()` | [Перевыпуск токена бота](/api/bots/reissue-token) |
 | `client.Bots.ListBotsAsync()` | [Список ботов](/api/bots/list) |
 | `client.Bots.GetBotAsync()` | [Информация о боте](/api/bots/get) |
 | `client.Bots.ListCompanyBotsAsync()` | [Список ботов пространства](/api/bots/list-company) |
 | `client.Bots.GetWebhookEventsAsync()` | [История событий](/api/bots/list-events) |
+| `client.Bots.GetBotScopesAsync()` | [Каталог прав бота](/api/bots/list-scopes) |
+| `client.Bots.ListBotTokensAsync()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.Bots.SelfUpdateBotWebhookAsync()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |
+| `client.Bots.UpdateBotTokenAsync()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.Bots.DeleteBotAsync()` | [Удаление бота](/api/bots/delete) |
 | `client.Bots.DeleteWebhookEventAsync()` | [Удаление события](/api/bots/remove-event) |
+| `client.Bots.DeleteBotTokenAsync()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |
 | `client.CustomProperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |
 | `client.Files.UploadFileAsync()` | [Загрузка файла](/api/files/direct-url) |
@@ -186,7 +196,7 @@ var request = new ChatCreateRequest
     }
 };
 var response = await client.Chats.CreateChatAsync(request);
-// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)
+// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?)
 ```
 
 
@@ -197,7 +207,7 @@ using Pachca.Sdk;
 
 // Получение чата
 var response = await client.Chats.GetChatAsync(334);
-// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)
+// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?)
 ```
 
 

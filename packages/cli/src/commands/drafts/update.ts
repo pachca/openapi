@@ -20,7 +20,7 @@ export default class DraftsUpdate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'content': Flags.string({
-      description: "Текст черновика",
+      description: "Текст черновика. До 40 000 байт в UTF-8, а у отложенного сообщения в пространстве с продвинутым шифрованием — до 27 000.",
     }),
     'parent-message-id': Flags.integer({
       description: "Идентификатор сообщения, ответом на которое уйдёт черновик. `null` снимает ответ.",

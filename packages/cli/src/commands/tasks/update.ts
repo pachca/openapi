@@ -28,7 +28,7 @@ export default class TasksUpdate extends BaseCommand {
       description: "Тип",
     }),
     'content': Flags.string({
-      description: "Описание",
+      description: "Описание. До 40 000 байт в UTF-8.",
     }),
     'due-at': Flags.string({
       description: "Срок выполнения напоминания (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Секунды отбрасываются: срок встаёт на начало минуты. Исключение — ровно 23:59:59: такое напоминание создаётся на весь день, без указания времени.",

@@ -141,6 +141,7 @@ const GUIDE_ICONS: Record<string, string> = {
   '/guides/workflows': 'Route',
   '/guides/webhook': 'Webhook',
   '/guides/webhook/overview': 'Webhook',
+  '/guides/oauth/overview': 'KeyRound',
   '/guides/export': 'Download',
   '/guides/forms/overview': 'LayoutList',
   '/guides/dlp': 'ShieldCheck',

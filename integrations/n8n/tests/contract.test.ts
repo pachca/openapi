@@ -70,6 +70,12 @@ function endpointToOperation(ep: Endpoint, resource: string): string {
 	if (ep.path === '/company/chats' && method === 'GET') return 'getAllCompanyChats';
 	if (ep.path === '/company/bots' && method === 'GET') return 'getAllCompanyBots';
 	if (ep.path === '/views/{view_id}/submit_response' && method === 'POST') return 'submitResponse';
+	if (ep.path === '/bots/{id}/tokens' && method === 'POST') return 'createToken';
+	if (ep.path === '/bots/{id}/tokens/{token_id}' && method === 'PUT') return 'updateToken';
+	if (ep.path === '/bots/{id}/tokens/{token_id}' && method === 'DELETE') return 'deleteToken';
+	if (ep.path === '/bots/{id}/tokens/{token_id}/reissue' && method === 'POST') return 'reissueToken';
+	if (ep.path === '/bots/{id}/rotate_client_secret' && method === 'POST') return 'rotateClientSecret';
+	if (ep.path === '/chats/{id}/unread' && method === 'PUT') return 'markUnread';
 
 	if (staticSegments.length > 1) {
 		const resourceRoot = staticSegments[0];

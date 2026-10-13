@@ -550,6 +550,24 @@ describe('Special: avatarUpload', () => {
 		spy.mockRestore();
 	});
 
+	it('chat.updateAvatar calls uploadAvatar with /chats/{id}/avatar', async () => {
+		const spy = vi.spyOn(GenericFunctions, 'uploadAvatar').mockResolvedValue({
+			image_url: 'https://example.com/chat-avatar.jpg',
+		});
+
+		const ctx = createMockContext({
+			resource: 'chat',
+			operation: 'updateAvatar',
+			params: { image: 'data', id: { __rl: true, mode: 'list', value: 334 } },
+		});
+		const result = await runRouter(ctx);
+		expect(result[0][0].json).toHaveProperty('image_url', 'https://example.com/chat-avatar.jpg');
+		expect(spy).toHaveBeenCalledTimes(1);
+		expect(spy.mock.calls[0][2]).toBe('/chats/334/avatar');
+
+		spy.mockRestore();
+	});
+
 	it('profile.deleteAvatar sends DELETE /profile/avatar', async () => {
 		const ctx = createMockContext({
 			resource: 'profile',

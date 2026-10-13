@@ -309,6 +309,12 @@ export async function getAdjacentItems(currentHref: string) {
  * which is just an organisational heading, not a page parent. Standalone pages
  * (Треды, Пагинация…) already have self-explanatory titles, so they stay plain.
  *
+ * One more case gets a prefix: the linked page is titled exactly like the
+ * current one ("Авторизация" in the CLI tab linking to "Авторизация" in the API
+ * tab). A bare title would read as a link to the page you are on, so it is
+ * shown as "Основы API: Авторизация" — the parent group, or for a top-level
+ * page its sidebar section.
+ *
  * Object entries with an explicit `title` are used verbatim (no prefix — the
  * author already chose the label), which covers anchor links
  * (`/guides/x#section`) and pages outside the sidebar. Anchors are stripped
@@ -324,22 +330,27 @@ export async function resolveRelatedItems(
   const sections = await generateFullNavigation();
   // Map each href to its title and its parent GROUP title — only set when the
   // page is a child of a collapsible group, never for top-level bucket items.
-  const navByHref = new Map<string, { title: string; groupTitle?: string }>();
+  const navByHref = new Map<string, { title: string; groupTitle?: string; sectionTitle: string }>();
   for (const section of sections) {
     for (const item of section.items) {
       if (item.children) {
         for (const child of item.children) {
           if (!navByHref.has(child.href)) {
-            navByHref.set(child.href, { title: child.title, groupTitle: item.title });
+            navByHref.set(child.href, {
+              title: child.title,
+              groupTitle: item.title,
+              sectionTitle: section.title,
+            });
           }
         }
       } else if (!navByHref.has(item.href)) {
-        navByHref.set(item.href, { title: item.title });
+        navByHref.set(item.href, { title: item.title, sectionTitle: section.title });
       }
     }
   }
 
-  const currentGroup = currentHref ? navByHref.get(currentHref)?.groupTitle : undefined;
+  const current = currentHref ? navByHref.get(currentHref) : undefined;
+  const currentGroup = current?.groupTitle;
 
   const result: RelatedItem[] = [];
   for (const entry of related) {
@@ -359,12 +370,16 @@ export async function resolveRelatedItems(
     }
 
     // Prefix with the parent group when the link points into a different group,
-    // so a bare "Обзор"/"Создание и настройка" reads unambiguously.
-    const title =
+    // so a bare "Обзор"/"Создание и настройка" reads unambiguously. A page named
+    // like the current one gets a prefix too, falling back to its sidebar section.
+    const sameTitleAsCurrent = base !== currentHref && nav.title === current?.title;
+    const prefix =
       nav.groupTitle && nav.groupTitle !== currentGroup
-        ? `${nav.groupTitle}: ${nav.title}`
-        : nav.title;
-    result.push({ title, href });
+        ? nav.groupTitle
+        : sameTitleAsCurrent
+          ? nav.groupTitle || nav.sectionTitle
+          : undefined;
+    result.push({ title: prefix ? `${prefix}: ${nav.title}` : nav.title, href });
   }
   return result;
 }

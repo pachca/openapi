@@ -250,7 +250,8 @@
     ]
   },
   "FileOperations_downloadFile": {
-    "usage": "params := &DownloadFileParams{\n\tTarget: Ptr(FileTargetThumb),\n}\nclient.Files.DownloadFile(ctx, int32(3560), params)",
+    "usage": "params := &DownloadFileParams{\n\tTarget: Ptr(FileTargetThumb),\n}\nresponse, err := client.Files.DownloadFile(ctx, int32(3560), params)",
+    "output": "[]byte",
     "imports": [
       "DownloadFileParams",
       "FileTarget"

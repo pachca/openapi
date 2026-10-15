@@ -1051,7 +1051,7 @@ class CustomPropertiesServiceImpl internal constructor(
 }
 
 interface FilesService {
-    suspend fun downloadFile(id: Int, target: FileTarget? = null) {
+    suspend fun downloadFile(id: Int, target: FileTarget? = null): ByteArray {
         throw NotImplementedError("Files.downloadFile is not implemented")
     }
 
@@ -1068,12 +1068,12 @@ class FilesServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) : FilesService {
-    override suspend fun downloadFile(id: Int, target: FileTarget?) {
+    override suspend fun downloadFile(id: Int, target: FileTarget?): ByteArray {
         val response = client.get("$baseUrl/files/$id") {
             target?.let { parameter("target", it.value) }
         }
-        when (response.status.value) {
-            200 -> return
+        return when (response.status.value) {
+            200 -> response.body<ByteArray>()
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }

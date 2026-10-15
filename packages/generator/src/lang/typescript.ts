@@ -338,6 +338,7 @@ function irParamTypeName(op: IROperation): string {
 
 function responseTypeName(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'string';
+  if (op.successResponse.isBinary) return 'Blob';
   if (!op.successResponse.hasBody) return 'void';
   if (op.successResponse.isList) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
@@ -878,6 +879,9 @@ function emitResponseSwitch(
     lines.push('        }');
     lines.push('        return location;');
     lines.push('      }');
+  } else if (op.successResponse.isBinary) {
+    lines.push(`      case ${op.successResponse.statusCode}:`);
+    lines.push('        return await response.blob();');
   } else if (!op.successResponse.hasBody) {
     lines.push(`      case ${op.successResponse.statusCode}:`);
     lines.push('        return;');
@@ -1311,6 +1315,7 @@ function tsBuildOutputFingerprint(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'string';
+  if (resp.isBinary) return 'Blob';
   if (!resp.hasBody) return null;
 
   if (resp.isList && resp.responseRef) {

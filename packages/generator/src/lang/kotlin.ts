@@ -886,6 +886,7 @@ function getReturnType(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'String';
+  if (resp.isBinary) return 'ByteArray';
   if (!resp.hasBody) return null;
   if (resp.isList) {
     const rt = ir.responses.find((r) => r.name === resp.responseRef);
@@ -1117,7 +1118,7 @@ function emitResponseHandling(
   const indent3 = '            ';
 
   const resp = op.successResponse;
-  const hasReturn = resp.hasBody || resp.isRedirect;
+  const hasReturn = resp.hasBody || resp.isRedirect || resp.isBinary;
   const keyword = hasReturn ? 'return when' : 'when';
 
   lines.push(`${indent2}${keyword} (response.status.value) {`);
@@ -1129,6 +1130,8 @@ function emitResponseHandling(
     lines.push(
       `${indent3}    ?: error("Missing Location header in redirect response")`,
     );
+  } else if (resp.isBinary) {
+    lines.push(`${indent3}${resp.statusCode} -> response.body<ByteArray>()`);
   } else if (!resp.hasBody) {
     lines.push(`${indent3}${resp.statusCode} -> return`);
   } else if (resp.isList) {
@@ -1460,6 +1463,7 @@ function buildOutputFingerprint(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'String';
+  if (resp.isBinary) return 'ByteArray';
   if (!resp.hasBody) return null;
 
   if (resp.isList && resp.responseRef) {

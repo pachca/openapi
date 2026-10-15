@@ -314,6 +314,7 @@ function generateModels(ir: IR): string {
 
 function opReturnType(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'str';
+  if (op.successResponse.isBinary) return 'bytes';
   if (!op.successResponse.hasBody) return 'None';
   if (op.successResponse.isList) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
@@ -609,6 +610,9 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     );
     lines.push('                    )');
     lines.push('                return location');
+  } else if (op.successResponse.isBinary) {
+    lines.push(`            case ${op.successResponse.statusCode}:`);
+    lines.push('                return response.content');
   } else if (!op.successResponse.hasBody) {
     lines.push(`            case ${op.successResponse.statusCode}:`);
     lines.push('                return');
@@ -1433,6 +1437,7 @@ function pyBuildOutputFingerprint(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'str';
+  if (resp.isBinary) return 'bytes';
   if (!resp.hasBody) return null;
 
   if (resp.isList && resp.responseRef) {

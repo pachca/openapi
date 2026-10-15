@@ -1258,7 +1258,7 @@ public final class CustomPropertiesServiceImpl: CustomPropertiesService {
 open class FilesService {
     public init() {}
 
-    open func downloadFile(id: Int, target: FileTarget? = nil) async throws -> Void {
+    open func downloadFile(id: Int, target: FileTarget? = nil) async throws -> Data {
         throw pachcaNotImplemented("Files.downloadFile")
     }
 
@@ -1283,7 +1283,7 @@ public final class FilesServiceImpl: FilesService {
         super.init()
     }
 
-    public override func downloadFile(id: Int, target: FileTarget? = nil) async throws -> Void {
+    public override func downloadFile(id: Int, target: FileTarget? = nil) async throws -> Data {
         var components = URLComponents(string: "\(baseURL)/files/\(id)")!
         var queryItems: [URLQueryItem] = []
         if let target { queryItems.append(URLQueryItem(name: "target", value: target.rawValue)) }
@@ -1294,7 +1294,7 @@ public final class FilesServiceImpl: FilesService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return
+            return data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:

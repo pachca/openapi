@@ -250,7 +250,8 @@
     ]
   },
   "FileOperations_downloadFile": {
-    "usage": "params = DownloadFileParams(target=FileTarget.THUMB)\nawait client.files.download_file(id=3560, params=params)",
+    "usage": "params = DownloadFileParams(target=FileTarget.THUMB)\nresponse = await client.files.download_file(id=3560, params=params)",
+    "output": "bytes",
     "imports": [
       "DownloadFileParams",
       "FileTarget"

@@ -1467,7 +1467,7 @@ class FilesService:
         self,
         id: int,
         params: DownloadFileParams | None = None,
-    ) -> None:
+    ) -> bytes:
         raise NotImplementedError("Files.downloadFile is not implemented")
 
     async def upload_file(
@@ -1490,7 +1490,7 @@ class FilesServiceImpl(FilesService):
         self,
         id: int,
         params: DownloadFileParams | None = None,
-    ) -> None:
+    ) -> bytes:
         query: dict[str, str] = {}
         if params is not None and params.target is not None:
             query["target"] = params.target
@@ -1500,7 +1500,7 @@ class FilesServiceImpl(FilesService):
         )
         match response.status_code:
             case 200:
-                return
+                return response.content
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:

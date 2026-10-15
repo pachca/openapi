@@ -1230,7 +1230,7 @@ export class CustomPropertiesServiceImpl extends CustomPropertiesService {
 }
 
 export class FilesService {
-  async downloadFile(id: number, params?: DownloadFileParams): Promise<void> {
+  async downloadFile(id: number, params?: DownloadFileParams): Promise<Blob> {
     throw new Error("Files.downloadFile is not implemented");
   }
 
@@ -1251,7 +1251,7 @@ export class FilesServiceImpl extends FilesService {
     super();
   }
 
-  async downloadFile(id: number, params?: DownloadFileParams): Promise<void> {
+  async downloadFile(id: number, params?: DownloadFileParams): Promise<Blob> {
     const query = new URLSearchParams();
     if (params?.target !== undefined) query.set("target", params.target);
     const url = `${this.baseUrl}/files/${id}${query.toString() ? `?${query}` : ""}`;
@@ -1260,7 +1260,7 @@ export class FilesServiceImpl extends FilesService {
     });
     switch (response.status) {
       case 200:
-        return;
+        return await response.blob();
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:

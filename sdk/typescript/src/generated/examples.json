@@ -233,7 +233,8 @@
     ]
   },
   "FileOperations_downloadFile": {
-    "usage": "client.files.downloadFile(3560, { target: FileTarget.Thumb })",
+    "usage": "const response = client.files.downloadFile(3560, { target: FileTarget.Thumb })",
+    "output": "Blob",
     "imports": [
       "FileTarget"
     ]

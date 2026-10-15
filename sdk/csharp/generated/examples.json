@@ -236,7 +236,8 @@
     ]
   },
   "FileOperations_downloadFile": {
-    "usage": "await client.Files.DownloadFileAsync(3560, FileTarget.Thumb);",
+    "usage": "var response = await client.Files.DownloadFileAsync(3560, FileTarget.Thumb);",
+    "output": "byte[]",
     "imports": [
       "FileTarget"
     ]

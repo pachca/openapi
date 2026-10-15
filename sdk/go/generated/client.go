@@ -2173,15 +2173,15 @@ func (s *CustomPropertiesServiceImpl) ListProperties(ctx context.Context, params
 }
 
 type FilesService interface {
-	DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) error
+	DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) ([]byte, error)
 	UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error
 	GetUploadParams(ctx context.Context) (*UploadParams, error)
 }
 
 type FilesServiceStub struct{}
 
-func (s *FilesServiceStub) DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) error {
-	return NotImplementedError{Method: "Files.downloadFile"}
+func (s *FilesServiceStub) DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) ([]byte, error) {
+	return nil, NotImplementedError{Method: "Files.downloadFile"}
 }
 
 func (s *FilesServiceStub) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
@@ -2197,10 +2197,10 @@ type FilesServiceImpl struct {
 	client  *http.Client
 }
 
-func (s *FilesServiceImpl) DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) error {
+func (s *FilesServiceImpl) DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) ([]byte, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/files/%v", s.baseURL, id))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	q := u.Query()
 	if params != nil && params.Target != nil {
@@ -2209,28 +2209,32 @@ func (s *FilesServiceImpl) DownloadFile(ctx context.Context, id int32, params *D
 	u.RawQuery = q.Encode()
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := doWithRetry(s.client, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK:
-		return nil
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return body, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			e.Err = fmt.Sprintf("HTTP 401: %v", err)
 		}
-		return &e
+		return nil, &e
 	default:
 		var e ApiError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
-		return &e
+		return nil, &e
 	}
 }
 

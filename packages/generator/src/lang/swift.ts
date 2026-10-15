@@ -344,6 +344,7 @@ function generateModels(ir: IR): string {
 
 function opReturn(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'String';
+  if (op.successResponse.isBinary) return 'Data';
   if (!op.successResponse.hasBody) return 'Void';
   if (op.successResponse.isList) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
@@ -508,7 +509,8 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
   lines.push('        switch statusCode {');
   const okCode = op.successResponse.statusCode;
   lines.push(`        case ${okCode}:`);
-  if (!op.successResponse.hasBody) lines.push('            return');
+  if (op.successResponse.isBinary) lines.push(`            return ${resVar}`);
+  else if (!op.successResponse.hasBody) lines.push('            return');
   else if (op.successResponse.isList) lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
   else if (op.successResponse.isUnwrap && op.successResponse.dataRef) lines.push(`            return try deserialize(${op.successResponse.dataRef}DataWrapper.self, from: ${resVar}).data`);
   else lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
@@ -1151,6 +1153,7 @@ function swiftBuildOutputFingerprint(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'String';
+  if (resp.isBinary) return 'Data';
   if (!resp.hasBody) return null;
 
   if (resp.isList && resp.responseRef) {

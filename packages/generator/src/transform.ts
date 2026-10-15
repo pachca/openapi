@@ -582,12 +582,14 @@ function transformSuccessResponse(endpoint: Endpoint): IRSuccessResponse {
 
   const mediaType = response.content['application/json'];
   if (!mediaType) {
+    // A body that is not JSON is the file itself (`GET /files/{id}`): the method returns its bytes.
     return {
       statusCode,
       hasBody: false,
       isList: false,
       isUnwrap: false,
       isRedirect: false,
+      isBinary: Object.keys(response.content).length > 0 || undefined,
     };
   }
 

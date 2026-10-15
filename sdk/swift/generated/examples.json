@@ -233,7 +233,8 @@
     ]
   },
   "FileOperations_downloadFile": {
-    "usage": "try await client.files.downloadFile(id: 3560, target: .thumb)",
+    "usage": "let response = try await client.files.downloadFile(id: 3560, target: .thumb)",
+    "output": "Data",
     "imports": [
       "FileTarget"
     ]

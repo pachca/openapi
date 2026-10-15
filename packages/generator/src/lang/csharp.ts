@@ -1031,6 +1031,7 @@ function getReturnType(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'string';
+  if (resp.isBinary) return 'byte[]';
   if (!resp.hasBody) return null;
   if (resp.isList) {
     const rt = ir.responses.find((r) => r.name === resp.responseRef);
@@ -1165,7 +1166,9 @@ function emitMethodBody(
 
   // Send request
   lines.push(`${indent2}using var response = await PachcaUtils.SendWithRetryAsync(_client, ${reqVar}, cancellationToken).ConfigureAwait(false);`);
-  lines.push(`${indent2}var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);`);
+  if (!op.successResponse.isBinary) {
+    lines.push(`${indent2}var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);`);
+  }
 
   emitResponseHandling(lines, op, ir, globalHasApiError);
 }
@@ -1229,7 +1232,9 @@ function emitMultipartBody(
     lines.push(`${indent2}httpRequest.Headers.Authorization = null;`);
   }
   lines.push(`${indent2}using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);`);
-  lines.push(`${indent2}var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);`);
+  if (!op.successResponse.isBinary) {
+    lines.push(`${indent2}var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);`);
+  }
 
   emitResponseHandling(lines, op, ir, globalHasApiError);
 }
@@ -1243,6 +1248,8 @@ function emitResponseHandling(
   const indent2 = '        ';
 
   const resp = op.successResponse;
+  // A file is read as bytes, so its error body is read as text only when it comes.
+  const json = resp.isBinary ? 'await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)' : 'json';
 
   lines.push(`${indent2}switch ((int)response.StatusCode)`);
   lines.push(`${indent2}{`);
@@ -1251,6 +1258,9 @@ function emitResponseHandling(
     lines.push(`${indent2}    case ${resp.statusCode}:`);
     lines.push(`${indent2}        return response.Headers.Location?.ToString()`);
     lines.push(`${indent2}            ?? throw new InvalidOperationException("Missing Location header in redirect response");`);
+  } else if (resp.isBinary) {
+    lines.push(`${indent2}    case ${resp.statusCode}:`);
+    lines.push(`${indent2}        return await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);`);
   } else if (!resp.hasBody) {
     lines.push(`${indent2}    case ${resp.statusCode}:`);
     lines.push(`${indent2}        return;`);
@@ -1270,12 +1280,12 @@ function emitResponseHandling(
 
   if (op.hasOAuthError) {
     lines.push(`${indent2}    case 401:`);
-    lines.push(`${indent2}        throw PachcaUtils.Deserialize<OAuthError>(json);`);
+    lines.push(`${indent2}        throw PachcaUtils.Deserialize<OAuthError>(${json});`);
   }
 
   if (op.hasApiError || globalHasApiError) {
     lines.push(`${indent2}    default:`);
-    lines.push(`${indent2}        throw PachcaUtils.Deserialize<ApiError>(json);`);
+    lines.push(`${indent2}        throw PachcaUtils.Deserialize<ApiError>(${json});`);
   } else {
     lines.push(`${indent2}    default:`);
     lines.push(`${indent2}        throw new InvalidOperationException($"Unexpected status code: {(int)response.StatusCode}");`);
@@ -1549,6 +1559,7 @@ function buildOutputFingerprint(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'string';
+  if (resp.isBinary) return 'byte[]';
   if (!resp.hasBody) return null;
 
   if (resp.isList && resp.responseRef) {

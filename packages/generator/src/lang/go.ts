@@ -490,6 +490,7 @@ function generateTypes(ir: IR): string {
 
 function goReturn(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return '(string, error)';
+  if (op.successResponse.isBinary) return '([]byte, error)';
   if (!op.successResponse.hasBody) return 'error';
   if (op.successResponse.isList) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
@@ -510,24 +511,26 @@ function goPathFormat(path: string, op: IROperation): { fmt: string; args: strin
 }
 
 function emitOp(lines: string[], op: IROperation, ir: IR): void {
+  // A file answers with its bytes, so it returns a value like a JSON body does.
+  const returnsValue = op.successResponse.hasBody || op.successResponse.isBinary;
   const retErr = (): string => {
     if (op.successResponse.isRedirect) return 'return "", err';
-    if (!op.successResponse.hasBody) return 'return err';
+    if (!returnsValue) return 'return err';
     return 'return nil, err';
   };
   const retOAuth = (): string => {
     if (op.successResponse.isRedirect) return 'return "", &e';
-    if (!op.successResponse.hasBody) return 'return &e';
+    if (!returnsValue) return 'return &e';
     return 'return nil, &e';
   };
   const retApi = (): string => {
     if (op.successResponse.isRedirect) return 'return "", &e';
-    if (!op.successResponse.hasBody) return 'return &e';
+    if (!returnsValue) return 'return &e';
     return 'return nil, &e';
   };
   const retUnexpected = (): string => {
     if (op.successResponse.isRedirect) return 'return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)';
-    if (op.successResponse.hasBody) return 'return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)';
+    if (returnsValue) return 'return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)';
     return 'return fmt.Errorf("unexpected status code: %d", resp.StatusCode)';
   };
 
@@ -689,6 +692,13 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\t\t\treturn "", errors.New("missing Location header in redirect response")');
     lines.push('\t\t}');
     lines.push('\t\treturn location, nil');
+  } else if (op.successResponse.isBinary) {
+    lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
+    lines.push('\t\tbody, err := io.ReadAll(resp.Body)');
+    lines.push('\t\tif err != nil {');
+    lines.push('\t\t\treturn nil, err');
+    lines.push('\t\t}');
+    lines.push('\t\treturn body, nil');
   } else if (!op.successResponse.hasBody) {
     lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
     lines.push('\t\treturn nil');
@@ -733,7 +743,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&e); err != nil {');
     const retFmt = op.successResponse.isRedirect
       ? 'return "", fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)'
-      : !op.successResponse.hasBody
+      : !returnsValue
         ? 'return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)'
         : 'return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)';
     lines.push(`\t\t\t${retFmt}`);
@@ -918,7 +928,7 @@ function emitStubMethod(lines: string[], op: IROperation, ir: IR): void {
   const methodRef = JSON.stringify(`${op.tag}.${op.methodName}`);
   lines.push(`func (s *${stubName}) ${goMethodName(op)}(${args.join(', ')}) ${goReturn(op, ir)} {`);
   if (op.successResponse.isRedirect) lines.push(`\treturn "", NotImplementedError{Method: ${methodRef}}`);
-  else if (!op.successResponse.hasBody) lines.push(`\treturn NotImplementedError{Method: ${methodRef}}`);
+  else if (!op.successResponse.hasBody && !op.successResponse.isBinary) lines.push(`\treturn NotImplementedError{Method: ${methodRef}}`);
   else lines.push(`\treturn nil, NotImplementedError{Method: ${methodRef}}`);
   lines.push('}');
 }
@@ -1053,14 +1063,13 @@ function generateClient(ir: IR): string {
   const needErrors = ir.services.some((s) => s.operations.some((o) => o.successResponse.isRedirect));
   const needPolling = ir.services.some(hasWebhookPolling);
   const needMultipart = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'multipart'));
+  const needIO = needMultipart || ir.services.some((s) => s.operations.some((o) => o.successResponse.isBinary));
   const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"net/http"', '"time"'];
   if (needBytes) imports.push('"bytes"');
   if (needURL) imports.push('"net/url"');
   if (needErrors || needPolling) imports.push('"errors"');
-  if (needMultipart) {
-    imports.push('"io"');
-    imports.push('"mime/multipart"');
-  }
+  if (needIO) imports.push('"io"');
+  if (needMultipart) imports.push('"mime/multipart"');
   imports.sort();
 
   lines.push('import (');
@@ -1478,6 +1487,7 @@ function goBuildOutputFingerprint(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'string';
+  if (resp.isBinary) return '[]byte';
   if (!resp.hasBody) return null;
 
   if (resp.isList && resp.responseRef) {

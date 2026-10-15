@@ -1583,7 +1583,7 @@ public sealed class CustomPropertiesServiceImpl : CustomPropertiesService
 public class FilesService
 {
 
-    public virtual async System.Threading.Tasks.Task DownloadFileAsync(
+    public virtual async System.Threading.Tasks.Task<byte[]> DownloadFileAsync(
         int id,
         FileTarget? target = null,
         CancellationToken cancellationToken = default)
@@ -1616,7 +1616,7 @@ public sealed class FilesServiceImpl : FilesService
         _client = client;
     }
 
-    public override async System.Threading.Tasks.Task DownloadFileAsync(
+    public override async System.Threading.Tasks.Task<byte[]> DownloadFileAsync(
         int id,
         FileTarget? target = null,
         CancellationToken cancellationToken = default)
@@ -1627,15 +1627,14 @@ public sealed class FilesServiceImpl : FilesService
         var url = $"{_baseUrl}/files/{id}" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         switch ((int)response.StatusCode)
         {
             case 200:
-                return;
+                return await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
             case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
+                throw PachcaUtils.Deserialize<OAuthError>(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.Deserialize<ApiError>(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
         }
     }
 

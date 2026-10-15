@@ -47,6 +47,10 @@
         "description": "Метод `Экспорт сообщений` (`POST /chats/exports`) возвращает модель `ChatExport` с идентификатором выгрузки: SDK передаёт заголовок `Prefer: return=representation`"
       },
       {
+        "type": "~",
+        "description": "Метод `Скачивание файла` (`GET /files/{id}`) возвращает содержимое файла: `Blob` в TypeScript, `bytes` в Python, `[]byte` в Go, `ByteArray` в Kotlin, `Data` в Swift и `byte[]` в C#"
+      },
+      {
         "type": "+",
         "description": "Методы `Загрузка аватара бота` (`PUT /bots/{id}/avatar`) и `Удаление аватара бота` (`DELETE /bots/{id}/avatar`)"
       },
@@ -57,10 +61,6 @@
       {
         "type": "+",
         "description": "Коды ошибок `daily_invites_limit` и `restricted_bot_tag_denied`"
-      },
-      {
-        "type": "-",
-        "description": "Go: метод `Скачивание файла` (`GET /files/{id}`) принимает ответ `200` как успешный"
       }
     ]
   },
@@ -72,6 +72,10 @@
       {
         "type": "+",
         "description": "Заголовок запроса с единственным допустимым значением, например `Prefer: return=representation`, сгенерированный метод передаёт сам, а ответ `202` с телом становится его результатом"
+      },
+      {
+        "type": "+",
+        "description": "Ответ с файлом (`application/octet-stream`) становится результатом метода: сгенерированный метод возвращает содержимое файла в типе своего языка"
       },
       {
         "type": "-",

@@ -240,7 +240,8 @@
     ]
   },
   "FileOperations_downloadFile": {
-    "usage": "client.files.downloadFile(id = 3560, target = FileTarget.THUMB)",
+    "usage": "val response = client.files.downloadFile(id = 3560, target = FileTarget.THUMB)",
+    "output": "ByteArray",
     "imports": [
       "FileTarget"
     ]

@@ -89,7 +89,7 @@
 | · Ошибки | 13391–13470 |
 | · Лимиты | 13471–13623 |
 | · Модели | 13624–14535 |
-| API-методы — все эндпоинты со схемами и примерами | 14536–38787 |
+| API-методы — все эндпоинты со схемами и примерами | 14536–38789 |
 | · OAuth | 14538–14641 |
 | · Chats | 14642–17240 |
 | · Profile | 17241–18162 |
@@ -107,7 +107,7 @@
 | · Bots | 32194–37729 |
 | · Security | 37730–38120 |
 | · Custom Properties | 38121–38330 |
-| · Files | 38331–38787 |
+| · Files | 38331–38789 |
 
 # LIBRARY RULES
 
@@ -38624,7 +38624,8 @@ import { FileTarget, PachcaClient } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
-client.files.downloadFile(3560, { target: FileTarget.Thumb })
+const response = client.files.downloadFile(3560, { target: FileTarget.Thumb })
+// → Blob
 ```
 
 ### Python
@@ -38636,7 +38637,8 @@ from pachca.models import DownloadFileParams, FileTarget
 client = PachcaClient("YOUR_TOKEN")
 
 params = DownloadFileParams(target=FileTarget.THUMB)
-await client.files.download_file(id=3560, params=params)
+response = await client.files.download_file(id=3560, params=params)
+# → bytes
 ```
 
 ---

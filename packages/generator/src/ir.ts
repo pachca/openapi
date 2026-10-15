@@ -120,6 +120,8 @@ export interface IRSuccessResponse {
   responseRef?: string;
   /** 302 redirect → return Location header */
   isRedirect: boolean;
+  /** A body that is not JSON (`application/octet-stream`) is the file itself → return its bytes */
+  isBinary?: boolean;
 }
 
 export interface IRErrorResponse {

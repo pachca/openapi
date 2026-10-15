@@ -51,6 +51,18 @@
         "description": "Метод `Скачивание файла` (`GET /files/{id}`) возвращает содержимое файла: `Blob` в TypeScript, `bytes` в Python, `[]byte` в Go, `ByteArray` в Kotlin, `Data` в Swift и `byte[]` в C#"
       },
       {
+        "type": "~",
+        "description": "Класс ошибки SDK выбирает по телу ответа: `ApiError` — для ответа с массивом `errors`, `OAuthError` — для ответа с кодом в поле `error`, в том числе `403` с `insufficient_scope` или `role_forbidden`"
+      },
+      {
+        "type": "+",
+        "description": "Методы `Обмен кода на токен` (`POST /oauth/token`) и `Отзыв токена` (`POST /oauth/revoke`) в сервисе `oauth` — для бота, который получает токен сотрудника"
+      },
+      {
+        "type": "+",
+        "description": "Функции для кнопки авторизации: ссылка на экран согласия и пара PKCE — `buildAuthorizeUrl` и `createPkce` в TypeScript, в остальных языках по их правилам"
+      },
+      {
         "type": "+",
         "description": "Методы `Загрузка аватара бота` (`PUT /bots/{id}/avatar`) и `Удаление аватара бота` (`DELETE /bots/{id}/avatar`)"
       },
@@ -79,7 +91,15 @@
       },
       {
         "type": "+",
-        "description": "Операция с `x-oauth-flow: true` в SDK не попадает: шаги OAuth выполняют библиотеки OAuth, а SDK работает с полученным токеном"
+        "description": "Тело `application/x-www-form-urlencoded`: сгенерированный метод передаёт поля запроса формой"
+      },
+      {
+        "type": "+",
+        "description": "Расширение `x-oauth-authorize-url` у операции: SDK получает функции, которые собирают ссылку авторизации и пару PKCE"
+      },
+      {
+        "type": "~",
+        "description": "Класс ошибки выбирается по телу ответа, если в спеке есть обе модели ошибок: `ApiError` для массива `errors`, `OAuthError` для кода в поле `error`"
       },
       {
         "type": "-",

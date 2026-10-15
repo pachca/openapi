@@ -65,6 +65,8 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 
 | Метод | Метод API |
 |-------|----------|
+| `client.Oauth.RevokeTokenAsync()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.Oauth.ExchangeTokenAsync()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.Oauth.GetTokenInfoAsync()` | [Информация о токене](/api/oauth/token-info) |
 | `client.Chats.CreateChatAsync()` | [Новый чат](/api/chats/create) |
 | `client.Chats.RequestExportAsync()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -272,7 +274,7 @@ SDK выбрасывает два типа исключений:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```csharp
 using Pachca.Sdk;
@@ -303,7 +305,7 @@ catch (ApiError e)
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```csharp
 using Pachca.Sdk;
@@ -314,7 +316,8 @@ try
 }
 catch (OAuthError e)
 {
-    Console.WriteLine(e.ErrorDescription); // "Token not found"
+    Console.WriteLine(e.Error);            // "insufficient_scope"
+    Console.WriteLine(e.ErrorDescription); // описание ошибки
 }
 ```
 

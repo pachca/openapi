@@ -156,7 +156,11 @@ export function generateAllSkills(api: ParsedAPI) {
         );
       }
       for (const step of wf.steps) {
-        if (step.apiMethod && !step.command) {
+        // A step of the OAuth flow has no CLI command by design: the CLI signs in with `auth login`
+        const oauthFlow = api.endpoints.some(
+          (ep) => ep.oauthFlow && ep.method === step.apiMethod && ep.path === step.apiPath
+        );
+        if (step.apiMethod && !step.command && !oauthFlow) {
           console.warn(
             `⚠ ${config.name}: step "${step.description.slice(0, 50)}" has API method but no command`
           );

@@ -71,6 +71,8 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 
 | Метод | Метод API |
 |-------|----------|
+| `client.oauth.revokeToken()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.oauth.exchangeToken()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.oauth.getTokenInfo()` | [Информация о токене](/api/oauth/token-info) |
 | `client.chats.createChat()` | [Новый чат](/api/chats/create) |
 | `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -275,7 +277,7 @@ SDK выбрасывает два типа ошибок (реализуют пр
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```swift
 do {
@@ -300,13 +302,13 @@ do {
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```swift
 do {
     try await client.profile.getProfile()
 } catch let error as OAuthError {
-    print(error.error)              // "Token not found"
+    print(error.error)              // "insufficient_scope"
     print(error.errorDescription)   // описание ошибки
 }
 ```

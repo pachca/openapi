@@ -331,10 +331,25 @@ function pyPath(path: string, op: IROperation): string {
   return p;
 }
 
+/** Both error models exist, so an error's class is read off its body. */
+function pyPicksErrorByBody(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+}
+
+/** A form body (`application/x-www-form-urlencoded`): httpx sends `data=` as one, empty fields left out. */
+function pyFormData(op: IROperation): string {
+  const rb = op.requestBody!;
+  if (shouldUnwrapBody(rb)) {
+    const f = rb.unwrapField!;
+    return `{${JSON.stringify(f.name)}: str(${pyFieldName(f)})}`;
+  }
+  return '_form_data(serialize(request))';
+}
+
 function needsAsdict(ir: IR): boolean {
   return ir.services.some((s) =>
     s.operations.some((op) => {
-      if (op.requestBody?.contentType !== 'json') return false;
+      if (op.requestBody?.contentType !== 'json' && op.requestBody?.contentType !== 'form') return false;
       return !shouldUnwrapBody(op.requestBody);
     }),
   );
@@ -559,7 +574,9 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       ? `headers={${op.requestHeaders.map((h) => `${JSON.stringify(h.name)}: ${JSON.stringify(h.value)}`).join(', ')}},`
       : undefined;
     if (op.noAuth) {
-      lines.push(`        async with httpx.AsyncClient() as _no_auth:`);
+      // An external address is absolute; an API path needs the client's base URL.
+      const noAuthClient = op.externalUrl ? 'httpx.AsyncClient()' : 'httpx.AsyncClient(base_url=self._client.base_url)';
+      lines.push(`        async with ${noAuthClient} as _no_auth:`);
       lines.push(`            response = await _no_auth.${method}(`);
       lines.push(`                ${pathStr},`);
       if (hasQuery) lines.push('                params=query,');
@@ -574,6 +591,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
           lines.push('                json=serialize(request),');
         }
       }
+      if (op.requestBody?.contentType === 'form') lines.push(`                data=${pyFormData(op)},`);
       lines.push('            )');
     } else {
       lines.push(`        response = await self._client.${method}(`);
@@ -590,6 +608,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
           lines.push('            json=serialize(request),');
         }
       }
+      if (op.requestBody?.contentType === 'form') lines.push(`            data=${pyFormData(op)},`);
       lines.push('        )');
     }
   }
@@ -635,7 +654,10 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     );
   }
 
-  if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
+  if (pyPicksErrorByBody(ir)) {
+    lines.push('            case _:');
+    lines.push(`                raise _error_from_body(${hasBody ? 'body' : 'response.json()'})`);
+  } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
     lines.push('            case _:');
     lines.push(
       `                raise deserialize(ApiError, ${hasBody ? 'body' : 'response.json()'})`,
@@ -870,6 +892,14 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     if (needPolling) lines.push('from datetime import datetime, timezone');
     if (needPolling) lines.push('from typing import AsyncIterator, TypeVar');
     if (needPolling) lines.push('');
+    if (ir.oauthAuthorizeUrl) {
+      lines.push('import base64');
+      lines.push('import hashlib');
+      lines.push('import secrets');
+      lines.push('from dataclasses import dataclass');
+      lines.push('from urllib.parse import urlencode');
+      lines.push('');
+    }
     lines.push('import httpx');
     lines.push('');
   }
@@ -891,6 +921,67 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
   if (needPolling) {
     lines.push('');
     lines.push('TPayload = TypeVar("TPayload", bound=WebhookPayloadUnion)');
+  }
+
+  if (ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'form' && !shouldUnwrapBody(o.requestBody)))) {
+    lines.push('');
+    lines.push('');
+    lines.push('def _form_data(fields: dict) -> dict[str, str]:');
+    lines.push('    # A form body (application/x-www-form-urlencoded): booleans go as true and false like in JSON.');
+    lines.push('    return {k: str(v).lower() if isinstance(v, bool) else str(v) for k, v in fields.items() if v is not None}');
+  }
+
+  if (ir.services.length > 0 && pyPicksErrorByBody(ir)) {
+    lines.push('');
+    lines.push('');
+    lines.push('def _error_from_body(body: object) -> Exception:');
+    lines.push('    # An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
+    lines.push('    # which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.');
+    lines.push('    if isinstance(body, dict) and isinstance(body.get("error"), str) and "errors" not in body:');
+    lines.push('        return OAuthError(body["error"], str(body.get("error_description") or ""))');
+    lines.push('    return deserialize(ApiError, body)');
+  }
+
+  if (ir.services.length > 0 && ir.oauthAuthorizeUrl) {
+    lines.push('');
+    lines.push('');
+    lines.push(`PACHCA_AUTHORIZE_URL = ${JSON.stringify(ir.oauthAuthorizeUrl)}`);
+    lines.push('');
+    lines.push('');
+    lines.push('@dataclass');
+    lines.push('class Pkce:');
+    lines.push('    # A PKCE pair: keep code_verifier until the code exchange, put code_challenge into the link.');
+    lines.push('    code_verifier: str');
+    lines.push('    code_challenge: str');
+    lines.push('');
+    lines.push('');
+    lines.push('def _base64_url(data: bytes) -> str:');
+    lines.push('    return base64.urlsafe_b64encode(data).rstrip(b"=").decode()');
+    lines.push('');
+    lines.push('');
+    lines.push('def create_pkce() -> Pkce:');
+    lines.push('    # A random code_verifier and its SHA-256 code_challenge.');
+    lines.push('    code_verifier = _base64_url(secrets.token_bytes(32))');
+    lines.push('    return Pkce(code_verifier, _base64_url(hashlib.sha256(code_verifier.encode()).digest()))');
+    lines.push('');
+    lines.push('');
+    lines.push('def build_authorize_url(');
+    lines.push('    client_id: str,');
+    lines.push('    redirect_uri: str,');
+    lines.push('    state: str,');
+    lines.push('    code_challenge: str,');
+    lines.push('    authorize_url: str = PACHCA_AUTHORIZE_URL,');
+    lines.push(') -> str:');
+    lines.push('    # The authorization link for a message button: the consent screen with PKCE (S256).');
+    lines.push('    query = urlencode({');
+    lines.push('        "client_id": client_id,');
+    lines.push('        "redirect_uri": redirect_uri,');
+    lines.push('        "response_type": "code",');
+    lines.push('        "state": state,');
+    lines.push('        "code_challenge": code_challenge,');
+    lines.push('        "code_challenge_method": "S256",');
+    lines.push('    })');
+    lines.push('    return f"{authorize_url}?{query}"');
   }
 
   if (ir.services.length === 0) {

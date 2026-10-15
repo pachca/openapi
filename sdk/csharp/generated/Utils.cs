@@ -113,4 +113,46 @@ internal static class PachcaUtils
 
     internal static string EnumToApiString<T>(T value) where T : struct, Enum =>
         JsonSerializer.Serialize(value, JsonOptions).Trim('"');
+
+    // A form body (application/x-www-form-urlencoded): the fields go by their wire names, empty ones are left out.
+    internal static FormUrlEncodedContent ToForm<T>(T value)
+    {
+        var pairs = new List<KeyValuePair<string, string>>();
+        using var document = JsonDocument.Parse(Serialize(value));
+        foreach (var property in document.RootElement.EnumerateObject())
+        {
+            if (property.Value.ValueKind == JsonValueKind.Null) continue;
+            var text = property.Value.ValueKind == JsonValueKind.String
+                ? property.Value.GetString()!
+                : property.Value.GetRawText();
+            pairs.Add(new KeyValuePair<string, string>(property.Name, text));
+        }
+        return new FormUrlEncodedContent(pairs);
+    }
+
+    // An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
+    // which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
+    internal static Exception ErrorFromJson(string json)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+            if (root.ValueKind == JsonValueKind.Object
+                && !root.TryGetProperty("errors", out _)
+                && root.TryGetProperty("error", out var code)
+                && code.ValueKind == JsonValueKind.String)
+            {
+                var description = root.TryGetProperty("error_description", out var text)
+                    && text.ValueKind == JsonValueKind.String
+                    ? text.GetString()!
+                    : "";
+                return new OAuthError { Error = code.GetString()!, ErrorDescription = description };
+            }
+        }
+        catch (JsonException)
+        {
+        }
+        return Deserialize<ApiError>(json);
+    }
 }

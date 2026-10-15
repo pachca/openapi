@@ -74,6 +74,9 @@ import {
   ListThreadsResponse,
   Thread,
   AccessTokenInfo,
+  OAuthRevokeRequest,
+  OAuthTokenRequest,
+  OAuthToken,
   UserStatus,
   StatusUpdateRequest,
   SearchChatsParams,
@@ -95,7 +98,7 @@ import {
   SubmitViewResponseResult,
   OpenViewRequest,
 } from "./types.js";
-import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
+import { deserialize, deserializeType, serializeType, fetchWithRetry, toFormBody } from "./utils.js";
 
 export interface PollWebhookEventsParams {
   limit?: number;
@@ -113,6 +116,64 @@ const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout
 function createdAtMatches(event: WebhookEvent, createdAfter: Date | string | null | undefined): boolean {
   if (createdAfter == null) return true;
   return new Date(event.createdAt).getTime() >= new Date(createdAfter).getTime();
+}
+
+/**
+ * An error body is either `{ errors: [...] }` or the OAuth form `{ error, error_description }`,
+ * which also comes with 400 and 403 (`insufficient_scope`, `invalid_grant`). The body decides the class.
+ */
+function errorFromBody(body: any): Error {
+  if (body && typeof body.error === "string" && body.errors === undefined) return new OAuthError(body.error);
+  return new ApiError(body?.errors);
+}
+
+export const PACHCA_AUTHORIZE_URL = "https://app.pachca.com/apps/authorize";
+
+export interface AuthorizeUrlParams {
+  /** Client ID of the bot */
+  clientId: string;
+  /** One of the bot's redirect addresses, matched exactly */
+  redirectUri: string;
+  /** A random value you keep to recognise the return; each one is valid once */
+  state: string;
+  /** `codeChallenge` of a pair from `createPkce()` */
+  codeChallenge: string;
+  /** The authorization page of another installation */
+  authorizeUrl?: string;
+}
+
+/** The authorization link for a message button: the consent screen with PKCE (S256). */
+export function buildAuthorizeUrl(params: AuthorizeUrlParams): string {
+  const url = new URL(params.authorizeUrl ?? PACHCA_AUTHORIZE_URL);
+  url.searchParams.set("client_id", params.clientId);
+  url.searchParams.set("redirect_uri", params.redirectUri);
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("state", params.state);
+  url.searchParams.set("code_challenge", params.codeChallenge);
+  url.searchParams.set("code_challenge_method", "S256");
+  return url.toString();
+}
+
+export interface Pkce {
+  /** Keep it until the code exchange */
+  codeVerifier: string;
+  /** Goes into the authorization link */
+  codeChallenge: string;
+}
+
+function base64Url(bytes: Uint8Array): string {
+  let binary = "";
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/** A PKCE pair: a random `codeVerifier` and its SHA-256 `codeChallenge`. */
+export async function createPkce(): Promise<Pkce> {
+  const webCrypto = globalThis.crypto;
+  if (!webCrypto?.subtle) throw new Error("createPkce needs the Web Crypto API: Node.js 20+ or a browser");
+  const codeVerifier = base64Url(webCrypto.getRandomValues(new Uint8Array(32)));
+  const digest = await webCrypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier));
+  return { codeVerifier, codeChallenge: base64Url(new Uint8Array(digest)) };
 }
 
 export class SecurityService {
@@ -155,7 +216,7 @@ export class SecurityServiceImpl extends SecurityService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -343,7 +404,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -372,7 +433,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -387,7 +448,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -406,7 +467,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -440,7 +501,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -473,7 +534,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -503,7 +564,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -520,7 +581,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -536,7 +597,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -552,7 +613,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -569,7 +630,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -585,7 +646,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -602,7 +663,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -619,7 +680,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -638,7 +699,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -655,7 +716,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -670,7 +731,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -685,7 +746,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -700,7 +761,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -715,7 +776,7 @@ export class BotsServiceImpl extends BotsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }
@@ -808,7 +869,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -837,7 +898,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -857,7 +918,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -877,7 +938,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -908,7 +969,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -925,7 +986,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -942,7 +1003,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -957,7 +1018,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -976,7 +1037,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -991,7 +1052,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1007,7 +1068,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1022,7 +1083,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }
@@ -1085,7 +1146,7 @@ export class MembersServiceImpl extends MembersService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1115,7 +1176,7 @@ export class MembersServiceImpl extends MembersService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1131,7 +1192,7 @@ export class MembersServiceImpl extends MembersService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1147,7 +1208,7 @@ export class MembersServiceImpl extends MembersService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1162,7 +1223,7 @@ export class MembersServiceImpl extends MembersService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1177,7 +1238,7 @@ export class MembersServiceImpl extends MembersService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1192,7 +1253,7 @@ export class MembersServiceImpl extends MembersService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }
@@ -1224,7 +1285,7 @@ export class CustomPropertiesServiceImpl extends CustomPropertiesService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 }
@@ -1264,7 +1325,7 @@ export class FilesServiceImpl extends FilesService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1287,7 +1348,7 @@ export class FilesServiceImpl extends FilesService {
       case 204:
         return;
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1303,7 +1364,7 @@ export class FilesServiceImpl extends FilesService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 }
@@ -1360,7 +1421,7 @@ export class DraftsServiceImpl extends DraftsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1389,7 +1450,7 @@ export class DraftsServiceImpl extends DraftsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1406,7 +1467,7 @@ export class DraftsServiceImpl extends DraftsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1423,7 +1484,7 @@ export class DraftsServiceImpl extends DraftsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1438,7 +1499,7 @@ export class DraftsServiceImpl extends DraftsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }
@@ -1503,7 +1564,7 @@ export class GroupTagsServiceImpl extends GroupTagsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1532,7 +1593,7 @@ export class GroupTagsServiceImpl extends GroupTagsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1551,7 +1612,7 @@ export class GroupTagsServiceImpl extends GroupTagsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1582,7 +1643,7 @@ export class GroupTagsServiceImpl extends GroupTagsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1599,7 +1660,7 @@ export class GroupTagsServiceImpl extends GroupTagsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1614,7 +1675,7 @@ export class GroupTagsServiceImpl extends GroupTagsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }
@@ -1682,7 +1743,7 @@ export class MessagesServiceImpl extends MessagesService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1711,7 +1772,7 @@ export class MessagesServiceImpl extends MessagesService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1728,7 +1789,7 @@ export class MessagesServiceImpl extends MessagesService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1744,7 +1805,7 @@ export class MessagesServiceImpl extends MessagesService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1759,7 +1820,7 @@ export class MessagesServiceImpl extends MessagesService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1776,7 +1837,7 @@ export class MessagesServiceImpl extends MessagesService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1791,7 +1852,7 @@ export class MessagesServiceImpl extends MessagesService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -1806,7 +1867,7 @@ export class MessagesServiceImpl extends MessagesService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }
@@ -1852,7 +1913,7 @@ export class ReactionsServiceImpl extends ReactionsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1883,7 +1944,7 @@ export class ReactionsServiceImpl extends ReactionsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -1901,7 +1962,7 @@ export class ReactionsServiceImpl extends ReactionsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }
@@ -1935,7 +1996,7 @@ export class ReadMembersServiceImpl extends ReadMembersService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 }
@@ -1987,7 +2048,7 @@ export class ThreadsServiceImpl extends ThreadsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2016,7 +2077,7 @@ export class ThreadsServiceImpl extends ThreadsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2032,7 +2093,7 @@ export class ThreadsServiceImpl extends ThreadsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2048,7 +2109,7 @@ export class ThreadsServiceImpl extends ThreadsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 }
@@ -2056,6 +2117,14 @@ export class ThreadsServiceImpl extends ThreadsService {
 export class OAuthService {
   async getTokenInfo(): Promise<AccessTokenInfo> {
     throw new Error("OAuth.getTokenInfo is not implemented");
+  }
+
+  async revokeToken(request: OAuthRevokeRequest): Promise<void> {
+    throw new Error("OAuth.revokeToken is not implemented");
+  }
+
+  async exchangeToken(request: OAuthTokenRequest): Promise<OAuthToken> {
+    throw new Error("OAuth.exchangeToken is not implemented");
   }
 }
 
@@ -2078,7 +2147,40 @@ export class OAuthServiceImpl extends OAuthService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
+    }
+  }
+
+  async revokeToken(request: OAuthRevokeRequest): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/oauth/revoke`, {
+      method: "POST",
+      headers: { ...this.headers, "Content-Type": "application/x-www-form-urlencoded" },
+      body: toFormBody(serializeType("OAuthRevokeRequest", request) as Record<string, unknown>),
+    });
+    switch (response.status) {
+      case 200:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw errorFromBody(await response.json());
+    }
+  }
+
+  async exchangeToken(request: OAuthTokenRequest): Promise<OAuthToken> {
+    const response = await fetchWithRetry(`${this.baseUrl}/oauth/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: toFormBody(serializeType("OAuthTokenRequest", request) as Record<string, unknown>),
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("OAuthToken", body) as OAuthToken;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw errorFromBody(body);
     }
   }
 }
@@ -2132,7 +2234,7 @@ export class ProfileServiceImpl extends ProfileService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2147,7 +2249,7 @@ export class ProfileServiceImpl extends ProfileService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2166,7 +2268,7 @@ export class ProfileServiceImpl extends ProfileService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2183,7 +2285,7 @@ export class ProfileServiceImpl extends ProfileService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2198,7 +2300,7 @@ export class ProfileServiceImpl extends ProfileService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -2213,7 +2315,7 @@ export class ProfileServiceImpl extends ProfileService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -2228,7 +2330,7 @@ export class ProfileServiceImpl extends ProfileService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 }
@@ -2289,7 +2391,7 @@ export class SearchServiceImpl extends SearchService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2332,7 +2434,7 @@ export class SearchServiceImpl extends SearchService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2371,7 +2473,7 @@ export class SearchServiceImpl extends SearchService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2445,7 +2547,7 @@ export class TasksServiceImpl extends TasksService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2474,7 +2576,7 @@ export class TasksServiceImpl extends TasksService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2491,7 +2593,7 @@ export class TasksServiceImpl extends TasksService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2508,7 +2610,7 @@ export class TasksServiceImpl extends TasksService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2523,7 +2625,7 @@ export class TasksServiceImpl extends TasksService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }
@@ -2598,7 +2700,7 @@ export class UsersServiceImpl extends UsersService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2627,7 +2729,7 @@ export class UsersServiceImpl extends UsersService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2642,7 +2744,7 @@ export class UsersServiceImpl extends UsersService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2659,7 +2761,7 @@ export class UsersServiceImpl extends UsersService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2676,7 +2778,7 @@ export class UsersServiceImpl extends UsersService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2695,7 +2797,7 @@ export class UsersServiceImpl extends UsersService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2712,7 +2814,7 @@ export class UsersServiceImpl extends UsersService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2727,7 +2829,7 @@ export class UsersServiceImpl extends UsersService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -2742,7 +2844,7 @@ export class UsersServiceImpl extends UsersService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -2757,7 +2859,7 @@ export class UsersServiceImpl extends UsersService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }
@@ -2793,7 +2895,7 @@ export class ViewsServiceImpl extends ViewsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2809,7 +2911,7 @@ export class ViewsServiceImpl extends ViewsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }
@@ -2856,7 +2958,7 @@ export class CommonServiceImpl extends CommonService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2879,7 +2981,7 @@ export class CommonServiceImpl extends CommonService {
       case 204:
         return;
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -2896,7 +2998,7 @@ export class CommonServiceImpl extends CommonService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2913,7 +3015,7 @@ export class CommonServiceImpl extends CommonService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -2933,7 +3035,7 @@ export class CommonServiceImpl extends CommonService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }
@@ -2964,7 +3066,7 @@ export class LinkPreviewsServiceImpl extends LinkPreviewsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }

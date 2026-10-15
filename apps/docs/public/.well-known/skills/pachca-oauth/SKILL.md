@@ -62,4 +62,9 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | POST | /oauth/token | Обмен кода на токен |
 | GET | /oauth/token/info | Информация о токене |
 
+## Advanced workflows
+
+For advanced workflows, read the files in references/:
+  references/get-an-employee-token-via-oauth.md — Get an employee token via OAuth
+
 > If unsure how to complete a task, read the corresponding file from references/.

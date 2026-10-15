@@ -5360,11 +5360,6 @@ paths:
       responses:
         '200':
           description: The request has succeeded.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EmptyObject'
-              example: {}
         '403':
           description: Access is forbidden.
           content:
@@ -5384,8 +5379,6 @@ paths:
               client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
               client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
       x-oauth-flow: true
-      x-requirements:
-        auth: false
   /oauth/token:
     post:
       operationId: OAuthFlowOperations_exchangeToken
@@ -5440,6 +5433,7 @@ paths:
               client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
               client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
               code_verifier: dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+      x-oauth-authorize-url: https://app.pachca.com/apps/authorize
       x-oauth-flow: true
       x-requirements:
         auth: false
@@ -10913,9 +10907,6 @@ components:
               description: 'Расписание отправки. У обычного черновика оно превращает его в отложенное сообщение. У отложенного расписание можно изменить, но не снять: `null` в ответ даст `422` с кодом `draft_type_change_forbidden`.'
           description: Собранный объект изменяемых параметров черновика
       description: Запрос на обновление черновика
-    EmptyObject:
-      type: object
-      description: Пустой объект
     ExportRequest:
       type: object
       required:

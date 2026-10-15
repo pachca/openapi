@@ -53,8 +53,10 @@ export function CodeExamples({
   className,
 }: CodeExamplesProps) {
   const allLangs = Object.keys(languageLabels) as Language[];
-  // A step of the OAuth flow has no CLI command and no SDK method — only the raw request.
-  const visibleLangs: Language[] = endpoint.oauthFlow ? ['curl'] : (langs ?? allLangs);
+  // A step of the OAuth flow has no CLI command: the CLI signs in with `pachca auth login`.
+  const visibleLangs: Language[] = (langs ?? allLangs).filter(
+    (l) => !(endpoint.oauthFlow && l === 'cli')
+  );
   const fallbackLang = visibleLangs[0];
 
   const [storedLang, setStoredLang] = useCodeLang(fallbackLang, defaultLangProp);

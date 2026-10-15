@@ -328,6 +328,13 @@ const (
 	OAuthScopeDraftsWrite          OAuthScope = "drafts:write" // Создание, изменение и удаление черновиков и отложенных сообщений
 )
 
+type OAuthTokenTypeHint string
+
+const (
+	OAuthTokenTypeHintAccessToken  OAuthTokenTypeHint = "access_token" // Токен сотрудника
+	OAuthTokenTypeHintRefreshToken OAuthTokenTypeHint = "refresh_token" // Токен обновления
+)
+
 type ReactionEventType string
 
 const (
@@ -1609,6 +1616,30 @@ func (e *OAuthError) Error() string {
 		return e.Err
 	}
 	return "oauth error"
+}
+
+type OAuthRevokeRequest struct {
+	Token         string              `json:"token"`
+	TokenTypeHint *OAuthTokenTypeHint `json:"token_type_hint,omitempty"`
+	ClientID      *string             `json:"client_id,omitempty"`
+	ClientSecret  *string             `json:"client_secret,omitempty"`
+}
+
+type OAuthToken struct {
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"` // always "Bearer"
+	RefreshToken string `json:"refresh_token"`
+	Scope        string `json:"scope"`
+	CreatedAt    int64  `json:"created_at"`
+}
+
+type OAuthTokenRequest struct {
+	GrantType    string  `json:"grant_type"` // always "authorization_code"
+	Code         string  `json:"code"`
+	RedirectUri  string  `json:"redirect_uri"`
+	ClientID     *string `json:"client_id,omitempty"`
+	ClientSecret *string `json:"client_secret,omitempty"`
+	CodeVerifier *string `json:"code_verifier,omitempty"`
 }
 
 type OpenViewRequestView struct {

@@ -997,7 +997,20 @@ function toPascalCase(str: string): string {
 
 // ----- Workflow & Alternative Data Generation -----
 
-async function generateWorkflowsData(): Promise<void> {
+/**
+ * A workflow with an OAuth flow step (`x-oauth-flow`) is not a CLI recipe: the CLI has no
+ * command for that step, and its other steps alone would look like the whole flow.
+ */
+function hasOAuthFlowStep(
+  workflow: { steps: { apiMethod?: string; apiPath?: string }[] },
+  endpoints: Endpoint[],
+): boolean {
+  return workflow.steps.some((step) =>
+    endpoints.some((ep) => ep.oauthFlow && ep.method === step.apiMethod && ep.path === step.apiPath),
+  );
+}
+
+async function generateWorkflowsData(endpoints: Endpoint[]): Promise<void> {
   try {
     // Dynamic import of workflows from packages/spec
     const workflowsPath = path.join(ROOT, 'packages', 'spec', 'workflows.ts');
@@ -1007,8 +1020,9 @@ async function generateWorkflowsData(): Promise<void> {
 
     const entries: { title: string; skill: string; steps: { description: string; command?: string; notes?: string }[] }[] = [];
 
-    for (const [skill, workflows] of Object.entries(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string; notes?: string }[] }[]>)) {
+    for (const [skill, workflows] of Object.entries(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string; notes?: string; apiMethod?: string; apiPath?: string }[] }[]>)) {
       for (const w of workflows) {
+        if (hasOAuthFlowStep(w, endpoints)) continue;
         // Only include steps that have a command (skip text-only steps for CLI)
         const cliSteps = w.steps
           .filter((step) => step.command)
@@ -1328,6 +1342,7 @@ async function loadWorkflowExamples(endpoints: Endpoint[]): Promise<Map<string, 
     const { WORKFLOWS } = await import(workflowsPath);
     for (const workflows of Object.values(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string; apiMethod?: string; apiPath?: string }[] }[]>)) {
       for (const w of workflows) {
+        if (hasOAuthFlowStep(w, endpoints)) continue;
         for (const step of w.steps) {
           // Key examples by "METHOD /path", not path alone — otherwise operations
           // sharing a path (e.g. GET and POST /threads) inherit each other's examples.
@@ -1423,7 +1438,7 @@ async function main(): Promise<void> {
   }
 
   // Generate data files
-  await generateWorkflowsData();
+  await generateWorkflowsData(endpoints);
   console.log('  Generated workflows.json');
 
   await generateAlternativesData(commands);

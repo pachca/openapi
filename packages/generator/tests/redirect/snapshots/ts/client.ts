@@ -1,6 +1,15 @@
 import { OAuthError, ApiError } from "./types.js";
 import { fetchWithRetry } from "./utils.js";
 
+/**
+ * An error body is either `{ errors: [...] }` or the OAuth form `{ error, error_description }`,
+ * which also comes with 400 and 403 (`insufficient_scope`, `invalid_grant`). The body decides the class.
+ */
+function errorFromBody(body: any): Error {
+  if (body && typeof body.error === "string" && body.errors === undefined) return new OAuthError(body.error);
+  return new ApiError(body?.errors);
+}
+
 export class CommonService {
   async downloadExport(id: number): Promise<string> {
     throw new Error("Common.downloadExport is not implemented");
@@ -31,7 +40,7 @@ export class CommonServiceImpl extends CommonService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }

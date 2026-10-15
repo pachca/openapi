@@ -99,7 +99,8 @@ export interface IRParam {
 export type UnwrapMode = 'none' | 'single' | 'full';
 
 export interface IRRequestBody {
-  contentType: 'json' | 'multipart';
+  /** form — `application/x-www-form-urlencoded`, as the OAuth flow requires */
+  contentType: 'json' | 'multipart' | 'form';
   /** Name of the request schema */
   schemaRef: string;
   unwrapMode: UnwrapMode;
@@ -219,4 +220,9 @@ export interface IR {
   services: IRService[];
   params: IRParamsType[];
   responses: IRResponseType[];
+  /**
+   * Where the authorization link of the OAuth flow points (`x-oauth-authorize-url`
+   * on the code exchange). The SDK builds the link and the PKCE pair for it.
+   */
+  oauthAuthorizeUrl?: string;
 }

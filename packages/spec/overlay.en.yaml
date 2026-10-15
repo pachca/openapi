@@ -1421,9 +1421,6 @@ actions:
   - target: $.components.schemas.OAuthRevokeRequest.properties.client_secret
     update:
       description: "Client secret of a server-side application. Together with `client_id` it can be passed in the `Authorization: Basic` header."
-  - target: $.components.schemas.EmptyObject
-    update:
-      description: Empty object
   - target: $.components.schemas.AddMembersRequest
     update:
       description: Request to add members to a chat

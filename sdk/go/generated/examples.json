@@ -450,6 +450,20 @@
     "usage": "response, err := client.Oauth.GetTokenInfo(ctx)",
     "output": "AccessTokenInfo{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []OAuthScope, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string}"
   },
+  "OAuthFlowOperations_revokeToken": {
+    "usage": "request := OAuthRevokeRequest{\n\tToken: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n\tTokenTypeHint: Ptr(OAuthTokenTypeHintAccessToken),\n\tClientID: Ptr(\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\"),\n\tClientSecret: Ptr(\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"),\n}\nclient.Oauth.RevokeToken(ctx, request)",
+    "imports": [
+      "OAuthRevokeRequest",
+      "OAuthTokenTypeHint"
+    ]
+  },
+  "OAuthFlowOperations_exchangeToken": {
+    "usage": "request := OAuthTokenRequest{\n\tGrantType: \"authorization_code\",\n\tCode: \"ZmFrZV9hdXRoX2NvZGU\",\n\tRedirectUri: \"https://bot.example.com/oauth/callback\",\n\tClientID: Ptr(\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\"),\n\tClientSecret: Ptr(\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"),\n\tCodeVerifier: Ptr(\"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"),\n}\nresponse, err := client.Oauth.ExchangeToken(ctx, request)",
+    "output": "OAuthToken{AccessToken: string, TokenType: string, RefreshToken: string, Scope: string, CreatedAt: int64}",
+    "imports": [
+      "OAuthTokenRequest"
+    ]
+  },
   "ProfileOperations_getProfile": {
     "usage": "response, err := client.Profile.GetProfile(ctx)",
     "output": "User{ID: int32, FirstName: *string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: *string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}"

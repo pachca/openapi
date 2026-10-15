@@ -424,10 +424,9 @@ workflows:
   - workflowId: rotate-a-bot-token
     summary: Rotate a bot token
     description: >-
-      The new value is returned once. The self path (`POST /bot/recreate_token`) rotates the bot
-      main token — if the bot works with it, capture the new token from the response in the same
-      operation. Manual prerequisites: Save the new `access_token` from the response — returned only
-      once. Update the secret in CI or your secret store.
+      The new value is returned once: save `access_token` from the response and update the secret in
+      CI or your secret store. The self path (`POST /bot/recreate_token`) rotates the bot main token
+      — if the bot works with it, capture the new token from the response in the same operation.
     steps:
       - stepId: rotate-a-bot-token-1
         description: >-
@@ -831,6 +830,35 @@ workflows:
       - stepId: create-series-of-reminders-1
         description: 'For each date: create task'
         operationId: TaskOperations_createTask
+  - workflowId: get-an-employee-token-via-oauth
+    summary: Get an employee token via OAuth
+    description: >-
+      The token does not expire and works until the employee revokes access: keep it like a
+      password. The bot revokes a token itself with `POST /oauth/revoke`, in the SDK it is
+      `client.oauth.revokeToken()`. Manual prerequisites: Create a random `state` and a PKCE pair: a
+      random `code_verifier` and `code_challenge`, its SHA-256 in base64url without the trailing
+      `=`. Store them with the `id` of the employee you send the button to. In the SDK,
+      `createPkce()` creates the pair; Build a link to `https://app.pachca.com/apps/authorize` with
+      `client_id`, `redirect_uri`, `response_type=code`, `state`, `code_challenge` and
+      `code_challenge_method=S256`. In the SDK, `buildAuthorizeUrl()` builds it; After consent the
+      browser returns to `redirect_uri` with `code` and `state`. Find the stored `state` and delete
+      it: each one is valid once.
+    steps:
+      - stepId: get-an-employee-token-via-oauth-1
+        description: Send the link to the employee as a URL button in a direct message
+        operationId: MessageOperations_createMessage
+      - stepId: get-an-employee-token-via-oauth-2
+        description: >-
+          Exchange the code for a token: `grant_type=authorization_code`, `code`, `redirect_uri`,
+          `client_id`, `client_secret` and `code_verifier` as a form body. The code lives 10 minutes
+          and is exchanged once. In the SDK, it is `client.oauth.exchangeToken()`
+        operationId: OAuthFlowOperations_exchangeToken
+      - stepId: get-an-employee-token-via-oauth-3
+        description: >-
+          Check whose token it is: `data.user_id` is the employee who gave consent (The button may
+          have been forwarded: store the token for the one who gave consent, and send the button
+          again to the employee you sent it to)
+        operationId: OAuthOperations_getTokenInfo
   - workflowId: get-own-profile
     summary: Get own profile
     description: >-

@@ -1455,6 +1455,41 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
     }
 }
 
+/// <summary>Что передано в запросе на отзыв токена</summary>
+[JsonConverter(typeof(OAuthTokenTypeHintConverter))]
+public enum OAuthTokenTypeHint
+{
+    /// <summary>Токен сотрудника</summary>
+    AccessToken,
+    /// <summary>Токен обновления</summary>
+    RefreshToken,
+}
+
+internal class OAuthTokenTypeHintConverter : JsonConverter<OAuthTokenTypeHint>
+{
+    public override OAuthTokenTypeHint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "access_token" => OAuthTokenTypeHint.AccessToken,
+            "refresh_token" => OAuthTokenTypeHint.RefreshToken,
+            _ => throw new JsonException($"Unknown OAuthTokenTypeHint value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, OAuthTokenTypeHint value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            OAuthTokenTypeHint.AccessToken => "access_token",
+            OAuthTokenTypeHint.RefreshToken => "refresh_token",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Тип события webhook для реакций</summary>
 [JsonConverter(typeof(ReactionEventTypeConverter))]
 public enum ReactionEventType
@@ -4036,6 +4071,48 @@ public class OAuthError : Exception
     public string ErrorDescription { get; set; } = default!;
 
     public override string Message => Error ?? "oauth error";
+}
+
+public class OAuthRevokeRequest
+{
+    [JsonPropertyName("token")]
+    public string Token { get; set; } = default!;
+    [JsonPropertyName("token_type_hint")]
+    public OAuthTokenTypeHint? TokenTypeHint { get; set; }
+    [JsonPropertyName("client_id")]
+    public string? ClientId { get; set; }
+    [JsonPropertyName("client_secret")]
+    public string? ClientSecret { get; set; }
+}
+
+public class OAuthToken
+{
+    [JsonPropertyName("access_token")]
+    public string AccessToken { get; set; } = default!;
+    [JsonPropertyName("token_type")]
+    public string TokenType { get; set; } = default!;
+    [JsonPropertyName("refresh_token")]
+    public string RefreshToken { get; set; } = default!;
+    [JsonPropertyName("scope")]
+    public string Scope { get; set; } = default!;
+    [JsonPropertyName("created_at")]
+    public long CreatedAt { get; set; } = default!;
+}
+
+public class OAuthTokenRequest
+{
+    [JsonPropertyName("grant_type")]
+    public string GrantType { get; set; } = default!;
+    [JsonPropertyName("code")]
+    public string Code { get; set; } = default!;
+    [JsonPropertyName("redirect_uri")]
+    public string RedirectUri { get; set; } = default!;
+    [JsonPropertyName("client_id")]
+    public string? ClientId { get; set; }
+    [JsonPropertyName("client_secret")]
+    public string? ClientSecret { get; set; }
+    [JsonPropertyName("code_verifier")]
+    public string? CodeVerifier { get; set; }
 }
 
 public class OpenViewRequestView

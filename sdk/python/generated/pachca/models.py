@@ -323,6 +323,13 @@ class OAuthScope(StrEnum):
     DRAFTS_WRITE = "drafts:write"  # Создание, изменение и удаление черновиков и отложенных сообщений
 
 
+class OAuthTokenTypeHint(StrEnum):
+    """Что передано в запросе на отзыв токена"""
+
+    ACCESS_TOKEN = "access_token"  # Токен сотрудника
+    REFRESH_TOKEN = "refresh_token"  # Токен обновления
+
+
 class ReactionEventType(StrEnum):
     """Тип события webhook для реакций"""
 
@@ -1441,6 +1448,33 @@ class OAuthError(Exception):
 
     def __str__(self) -> str:
         return self.error
+
+
+@dataclass
+class OAuthRevokeRequest:
+    token: str
+    token_type_hint: OAuthTokenTypeHint | None = None
+    client_id: str | None = None
+    client_secret: str | None = None
+
+
+@dataclass
+class OAuthToken:
+    access_token: str
+    token_type: str  # literal "Bearer"
+    refresh_token: str
+    scope: str
+    created_at: int
+
+
+@dataclass
+class OAuthTokenRequest:
+    grant_type: str  # literal "authorization_code"
+    code: str
+    redirect_uri: str
+    client_id: str | None = None
+    client_secret: str | None = None
+    code_verifier: str | None = None
 
 
 @dataclass

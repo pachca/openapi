@@ -545,6 +545,15 @@ enum class OAuthScope(val value: String) {
     @SerialName("drafts:write") DRAFTS_WRITE("drafts:write"),
 }
 
+/** Что передано в запросе на отзыв токена */
+@Serializable
+enum class OAuthTokenTypeHint(val value: String) {
+    /** Токен сотрудника */
+    @SerialName("access_token") ACCESS_TOKEN("access_token"),
+    /** Токен обновления */
+    @SerialName("refresh_token") REFRESH_TOKEN("refresh_token"),
+}
+
 /** Тип события webhook для реакций */
 @Serializable
 enum class ReactionEventType(val value: String) {
@@ -2076,6 +2085,33 @@ data class OAuthError(
  {
     override val message: String get() = error
 }
+
+@Serializable
+data class OAuthRevokeRequest(
+    val token: String,
+    @SerialName("token_type_hint") val tokenTypeHint: OAuthTokenTypeHint? = null,
+    @SerialName("client_id") val clientId: String? = null,
+    @SerialName("client_secret") val clientSecret: String? = null,
+)
+
+@Serializable
+data class OAuthToken(
+    @SerialName("access_token") val accessToken: String,
+    @SerialName("token_type") val tokenType: String,
+    @SerialName("refresh_token") val refreshToken: String,
+    val scope: String,
+    @SerialName("created_at") val createdAt: Long,
+)
+
+@Serializable
+data class OAuthTokenRequest(
+    @SerialName("grant_type") val grantType: String,
+    val code: String,
+    @SerialName("redirect_uri") val redirectUri: String,
+    @SerialName("client_id") val clientId: String? = null,
+    @SerialName("client_secret") val clientSecret: String? = null,
+    @SerialName("code_verifier") val codeVerifier: String? = null,
+)
 
 @Serializable
 data class OpenViewRequestView(

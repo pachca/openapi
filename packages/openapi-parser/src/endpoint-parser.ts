@@ -59,6 +59,12 @@ export function parseEndpoint(
     endpoint.oauthFlow = true;
   }
 
+  // x-oauth-authorize-url
+  const oauthAuthorizeUrl = getString(operation, 'x-oauth-authorize-url');
+  if (oauthAuthorizeUrl) {
+    endpoint.oauthAuthorizeUrl = oauthAuthorizeUrl;
+  }
+
   // deprecated
   if (getBoolean(operation, 'deprecated')) {
     endpoint.deprecated = true;

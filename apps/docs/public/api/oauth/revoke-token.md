@@ -8,8 +8,6 @@
 
 **Путь**: `/oauth/revoke`
 
-> Авторизация не требуется
-
 Отзывает токен сотрудника, выданный боту, по стандарту OAuth 2.0 ([RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009)). Так бот отключает доступ сам, например когда сотрудник выключает интеграцию в вашем сервисе. В `token` можно передать и токен сотрудника, и его токен обновления: перестают работать оба.
 
 Тело передаётся в формате `application/x-www-form-urlencoded`. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета отзывает только сам токен: передаёт его и в теле, и в заголовке `Authorization: Bearer`.
@@ -44,6 +42,7 @@
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/oauth/revoke" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -d 'token=pato_bm90X2FfcmVhbF90b2tlbg' \
   -d 'client_id=aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY' \
   -d 'client_secret=dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA'
@@ -52,14 +51,6 @@ curl "https://api.pachca.com/api/shared/v1/oauth/revoke" \
 ## Ответы
 
 ### 200: The request has succeeded.
-
-**Схема ответа:**
-
-**Пример ответа:**
-
-```json
-{}
-```
 
 ### 403: Access is forbidden.
 

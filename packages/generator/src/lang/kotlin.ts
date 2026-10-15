@@ -108,6 +108,50 @@ function ktDefaultValue(
 }
 
 /** Check if ApiError model exists in IR */
+/** Both error models exist, so an error's class is read off its body. */
+function ktPicksErrorByBody(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+}
+
+/** The authorization link and the PKCE pair for the OAuth flow (`x-oauth-authorize-url`). */
+function emitKotlinOAuthHelpers(lines: string[], authorizeUrl: string): void {
+  lines.push('/** The authorization link and the PKCE pair of the OAuth flow. */');
+  lines.push('object PachcaOAuth {');
+  lines.push(`    const val AUTHORIZE_URL = ${JSON.stringify(authorizeUrl)}`);
+  lines.push('');
+  lines.push('    /** Keep [codeVerifier] until the code exchange, put [codeChallenge] into the link. */');
+  lines.push('    data class Pkce(val codeVerifier: String, val codeChallenge: String)');
+  lines.push('');
+  lines.push('    /** A random code verifier and its SHA-256 challenge. */');
+  lines.push('    fun createPkce(): Pkce {');
+  lines.push('        val bytes = ByteArray(32).also { java.security.SecureRandom().nextBytes(it) }');
+  lines.push('        val encoder = java.util.Base64.getUrlEncoder().withoutPadding()');
+  lines.push('        val verifier = encoder.encodeToString(bytes)');
+  lines.push('        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray(Charsets.US_ASCII))');
+  lines.push('        return Pkce(verifier, encoder.encodeToString(digest))');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    /** The authorization link for a message button: the consent screen with PKCE (S256). */');
+  lines.push('    fun buildAuthorizeUrl(');
+  lines.push('        clientId: String,');
+  lines.push('        redirectUri: String,');
+  lines.push('        state: String,');
+  lines.push('        codeChallenge: String,');
+  lines.push('        authorizeUrl: String = AUTHORIZE_URL,');
+  lines.push('    ): String {');
+  lines.push('        val query = listOf(');
+  lines.push('            "client_id" to clientId,');
+  lines.push('            "redirect_uri" to redirectUri,');
+  lines.push('            "response_type" to "code",');
+  lines.push('            "state" to state,');
+  lines.push('            "code_challenge" to codeChallenge,');
+  lines.push('            "code_challenge_method" to "S256",');
+  lines.push('        ).joinToString("&") { (key, value) -> "$key=${java.net.URLEncoder.encode(value, "UTF-8")}" }');
+  lines.push('        return "$authorizeUrl?$query"');
+  lines.push('    }');
+  lines.push('}');
+}
+
 function hasApiErrorModel(ir: IR): boolean {
   return ir.models.some((m) => m.name === 'ApiError');
 }
@@ -565,6 +609,8 @@ function generateClient(ir: IR): string {
   const hasMultipart = ir.services.some((s) =>
     s.operations.some((op) => op.requestBody?.contentType === 'multipart'),
   );
+  const hasForm = ir.services.some((s) => s.operations.some((op) => op.requestBody?.contentType === 'form'));
+  const errorByBody = ktPicksErrorByBody(ir);
   const hasRedirect = ir.services.some((s) =>
     s.operations.some((op) => op.successResponse.isRedirect),
   );
@@ -582,7 +628,7 @@ function generateClient(ir: IR): string {
   lines.push('import io.ktor.client.plugins.auth.providers.*');
   lines.push('import io.ktor.client.plugins.contentnegotiation.*');
   lines.push('import io.ktor.client.request.*');
-  if (hasMultipart) {
+  if (hasMultipart || hasForm) {
     lines.push('import io.ktor.client.request.forms.*');
   }
   lines.push('import io.ktor.client.statement.*');
@@ -599,6 +645,12 @@ function generateClient(ir: IR): string {
     lines.push('import kotlinx.coroutines.flow.mapNotNull');
   }
   lines.push('import kotlinx.serialization.json.Json');
+  if (hasForm) lines.push('import kotlinx.serialization.json.JsonElement');
+  if (hasForm || errorByBody) {
+    lines.push('import kotlinx.serialization.json.JsonNull');
+    lines.push('import kotlinx.serialization.json.JsonObject');
+    lines.push('import kotlinx.serialization.json.JsonPrimitive');
+  }
   lines.push('import java.io.Closeable');
   if (clientNeedDateTime) {
     lines.push('import java.time.OffsetDateTime');
@@ -606,6 +658,41 @@ function generateClient(ir: IR): string {
   if (needPolling) {
     lines.push('import kotlin.time.Duration');
     lines.push('import kotlin.time.Duration.Companion.seconds');
+  }
+
+  if (hasForm || errorByBody) {
+    lines.push('');
+    lines.push('internal val pachcaJson = Json { explicitNulls = false; ignoreUnknownKeys = true }');
+  }
+  if (hasForm) {
+    lines.push('');
+    lines.push('/** A form body (application/x-www-form-urlencoded): the fields go by their wire names, empty ones are left out. */');
+    lines.push('internal fun formParameters(element: JsonElement): Parameters = Parameters.build {');
+    lines.push('    (element as? JsonObject)?.forEach { (key, value) ->');
+    lines.push('        if (value is JsonPrimitive && value !is JsonNull) append(key, value.content)');
+    lines.push('    }');
+    lines.push('}');
+  }
+  if (errorByBody) {
+    lines.push('');
+    lines.push('/**');
+    lines.push(' * An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
+    lines.push(' * which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.');
+    lines.push(' */');
+    lines.push('internal suspend fun errorFromResponse(response: HttpResponse): Exception {');
+    lines.push('    val text = response.bodyAsText()');
+    lines.push('    val element = runCatching { pachcaJson.parseToJsonElement(text) }.getOrNull()');
+    lines.push('    val code = (element as? JsonObject)?.get("error") as? JsonPrimitive');
+    lines.push('    if (element is JsonObject && element["errors"] == null && code != null && code.isString) {');
+    lines.push('        val description = element["error_description"] as? JsonPrimitive');
+    lines.push('        return OAuthError(error = code.content, errorDescription = description?.content ?: "")');
+    lines.push('    }');
+    lines.push('    return pachcaJson.decodeFromString(ApiError.serializer(), text)');
+    lines.push('}');
+  }
+  if (ir.oauthAuthorizeUrl) {
+    lines.push('');
+    emitKotlinOAuthHelpers(lines, ir.oauthAuthorizeUrl);
   }
 
   // Services
@@ -961,7 +1048,8 @@ function emitMethodBody(
   const hasJsonBody =
     op.requestBody && op.requestBody.contentType === 'json';
   const fixedHeaders = op.requestHeaders ?? [];
-  const needsBlock = hasQueryParams || hasJsonBody || fixedHeaders.length > 0;
+  const hasFormBody = op.requestBody?.contentType === 'form';
+  const needsBlock = hasQueryParams || hasJsonBody || hasFormBody || fixedHeaders.length > 0;
 
   const urlExpr = op.externalUrl ? op.externalUrl : `"$baseUrl${urlPath}"`;
 
@@ -1010,6 +1098,15 @@ function emitMethodBody(
         );
       } else {
         lines.push(`${indent3}setBody(request)`);
+      }
+    }
+    if (hasFormBody) {
+      const rb = op.requestBody!;
+      if (shouldUnwrapBody(rb)) {
+        const f = rb.unwrapField!;
+        lines.push(`${indent3}setBody(FormDataContent(Parameters.build { append("${f.name}", ${snakeToCamel(f.name)}.toString()) }))`);
+      } else {
+        lines.push(`${indent3}setBody(FormDataContent(formParameters(pachcaJson.encodeToJsonElement(${rb.schemaRef}.serializer(), request))))`);
       }
     }
     for (const h of fixedHeaders) lines.push(`${indent3}header(${JSON.stringify(h.name)}, ${JSON.stringify(h.value)})`);
@@ -1151,7 +1248,9 @@ function emitResponseHandling(
     );
   }
   // Use ApiError if the operation declares it OR if ApiError exists in the spec
-  if (op.hasApiError || globalHasApiError) {
+  if (globalHasApiError && op.hasOAuthError) {
+    lines.push(`${indent3}else -> throw errorFromResponse(response)`);
+  } else if (op.hasApiError || globalHasApiError) {
     lines.push(
       `${indent3}else -> throw response.body<ApiError>()`,
     );

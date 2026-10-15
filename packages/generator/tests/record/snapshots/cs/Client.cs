@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 
+#pragma warning disable CS1998
 namespace Pachca.Sdk;
 
 public class LinkPreviewsService
@@ -51,7 +52,7 @@ public sealed class LinkPreviewsServiceImpl : LinkPreviewsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }

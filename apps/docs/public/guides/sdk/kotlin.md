@@ -80,6 +80,8 @@ client.close()
 
 | Метод | Метод API |
 |-------|----------|
+| `client.oauth.revokeToken()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.oauth.exchangeToken()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.oauth.getTokenInfo()` | [Информация о токене](/api/oauth/token-info) |
 | `client.chats.createChat()` | [Новый чат](/api/chats/create) |
 | `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -287,7 +289,7 @@ SDK выбрасывает два типа исключений:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```kotlin
 import com.pachca.sdk.ApiError
@@ -314,7 +316,7 @@ try {
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```kotlin
 import com.pachca.sdk.OAuthError
@@ -322,7 +324,7 @@ import com.pachca.sdk.OAuthError
 try {
     client.profile.getProfile()
 } catch (error: OAuthError) {
-    println(error.error)              // "Token not found"
+    println(error.error)              // "insufficient_scope"
     println(error.errorDescription)   // описание ошибки
 }
 ```

@@ -475,6 +475,13 @@ public enum OAuthScope: String, Codable, CaseIterable {
     case draftsWrite = "drafts:write"
 }
 
+public enum OAuthTokenTypeHint: String, Codable, CaseIterable {
+    /// Токен сотрудника
+    case accessToken = "access_token"
+    /// Токен обновления
+    case refreshToken = "refresh_token"
+}
+
 public enum ReactionEventType: String, Codable, CaseIterable {
     /// Создание
     case new
@@ -3124,6 +3131,78 @@ public struct OAuthError: Codable, Error {
     enum CodingKeys: String, CodingKey {
         case error
         case errorDescription = "error_description"
+    }
+}
+
+public struct OAuthRevokeRequest: Codable {
+    public let token: String
+    public let tokenTypeHint: OAuthTokenTypeHint?
+    public let clientId: String?
+    public let clientSecret: String?
+
+    public init(token: String, tokenTypeHint: OAuthTokenTypeHint? = nil, clientId: String? = nil, clientSecret: String? = nil) {
+        self.token = token
+        self.tokenTypeHint = tokenTypeHint
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case token
+        case tokenTypeHint = "token_type_hint"
+        case clientId = "client_id"
+        case clientSecret = "client_secret"
+    }
+}
+
+public struct OAuthToken: Codable {
+    public let accessToken: String
+    public let tokenType: String
+    public let refreshToken: String
+    public let scope: String
+    public let createdAt: Int64
+
+    public init(accessToken: String, tokenType: String, refreshToken: String, scope: String, createdAt: Int64) {
+        self.accessToken = accessToken
+        self.tokenType = tokenType
+        self.refreshToken = refreshToken
+        self.scope = scope
+        self.createdAt = createdAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+        case tokenType = "token_type"
+        case refreshToken = "refresh_token"
+        case scope
+        case createdAt = "created_at"
+    }
+}
+
+public struct OAuthTokenRequest: Codable {
+    public let grantType: String
+    public let code: String
+    public let redirectUri: String
+    public let clientId: String?
+    public let clientSecret: String?
+    public let codeVerifier: String?
+
+    public init(grantType: String, code: String, redirectUri: String, clientId: String? = nil, clientSecret: String? = nil, codeVerifier: String? = nil) {
+        self.grantType = grantType
+        self.code = code
+        self.redirectUri = redirectUri
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+        self.codeVerifier = codeVerifier
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case grantType = "grant_type"
+        case code
+        case redirectUri = "redirect_uri"
+        case clientId = "client_id"
+        case clientSecret = "client_secret"
+        case codeVerifier = "code_verifier"
     }
 }
 

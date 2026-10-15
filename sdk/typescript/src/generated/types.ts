@@ -493,6 +493,14 @@ export enum OAuthScope {
   DraftsWrite = "drafts:write",
 }
 
+/** Что передано в запросе на отзыв токена */
+export enum OAuthTokenTypeHint {
+  /** Токен сотрудника */
+  AccessToken = "access_token",
+  /** Токен обновления */
+  RefreshToken = "refresh_token",
+}
+
 /** Тип события webhook для реакций */
 export enum ReactionEventType {
   /** Создание */
@@ -1581,6 +1589,30 @@ export class OAuthError extends Error {
     super(error);
     this.error = error;
   }
+}
+
+export interface OAuthRevokeRequest {
+  token: string;
+  tokenTypeHint?: OAuthTokenTypeHint;
+  clientId?: string;
+  clientSecret?: string;
+}
+
+export interface OAuthToken {
+  accessToken: string;
+  tokenType: "Bearer";
+  refreshToken: string;
+  scope: string;
+  createdAt: number;
+}
+
+export interface OAuthTokenRequest {
+  grantType: "authorization_code";
+  code: string;
+  redirectUri: string;
+  clientId?: string;
+  clientSecret?: string;
+  codeVerifier?: string;
 }
 
 export interface OpenViewRequest {

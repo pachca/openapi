@@ -43,8 +43,10 @@ export interface Endpoint {
   externalUrl?: string;
   paginated?: boolean;
   deprecated?: boolean;
-  /** Step of the OAuth flow (`x-oauth-flow`): documented, but no client method, command or tool is made for it */
+  /** Step of the OAuth flow (`x-oauth-flow`): documented and made an SDK method, but no CLI command, n8n operation or MCP tool */
   oauthFlow?: boolean;
+  /** Authorization link of the OAuth flow (`x-oauth-authorize-url`), declared on the code exchange */
+  oauthAuthorizeUrl?: string;
 }
 
 export interface Parameter {

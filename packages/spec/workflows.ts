@@ -1017,17 +1017,11 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           apiMethod: 'POST',
           apiPath: '/bots/{id}/tokens/{token_id}/reissue',
         },
-        {
-          description:
-            'Сохрани новый `access_token` из ответа — он возвращается единственный раз. Обнови секрет в CI или хранилище секретов',
-          descriptionEn:
-            'Save the new `access_token` from the response — returned only once. Update the secret in CI or your secret store',
-        },
       ],
       notes:
-        'Новое значение возвращается один раз. Self-путь (`POST /bot/recreate_token`) перевыпускает основной токен бота — если бот ходит им, захвати новый токен из ответа в той же операции.',
+        'Новое значение возвращается один раз: сохрани `access_token` из ответа и обнови секрет в CI или хранилище секретов. Self-путь (`POST /bot/recreate_token`) перевыпускает основной токен бота — если бот ходит им, захвати новый токен из ответа в той же операции.',
       notesEn:
-        'The new value is returned once. The self path (`POST /bot/recreate_token`) rotates the bot main token — if the bot works with it, capture the new token from the response in the same operation.',
+        'The new value is returned once: save `access_token` from the response and update the secret in CI or your secret store. The self path (`POST /bot/recreate_token`) rotates the bot main token — if the bot works with it, capture the new token from the response in the same operation.',
     },
     {
       title: 'Выпустить боту отдельный токен',
@@ -1998,6 +1992,66 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           apiPath: '/tasks',
         },
       ],
+    },
+  ],
+  'pachca-oauth': [
+    {
+      title: 'Получить токен сотрудника по OAuth',
+      titleEn: 'Get an employee token via OAuth',
+      inline: false,
+      related: ['Включить боту авторизацию от имени сотрудника', 'Отправить сообщение с кнопками'],
+      relatedEn: ['Enable authorization on behalf of an employee for a bot', 'Send message with buttons'],
+      steps: [
+        {
+          description:
+            'Создай случайный `state` и пару PKCE: случайный `code_verifier` и `code_challenge` — его SHA-256 в base64url без `=` на конце. Сохрани их вместе с `id` сотрудника, которому отправишь кнопку. В SDK пару создаёт `createPkce()`',
+          descriptionEn:
+            'Create a random `state` and a PKCE pair: a random `code_verifier` and `code_challenge`, its SHA-256 in base64url without the trailing `=`. Store them with the `id` of the employee you send the button to. In the SDK, `createPkce()` creates the pair',
+        },
+        {
+          description:
+            'Собери ссылку на `https://app.pachca.com/apps/authorize` с параметрами `client_id`, `redirect_uri`, `response_type=code`, `state`, `code_challenge` и `code_challenge_method=S256`. В SDK её собирает `buildAuthorizeUrl()`',
+          descriptionEn:
+            'Build a link to `https://app.pachca.com/apps/authorize` with `client_id`, `redirect_uri`, `response_type=code`, `state`, `code_challenge` and `code_challenge_method=S256`. In the SDK, `buildAuthorizeUrl()` builds it',
+        },
+        {
+          description: 'Отправь ссылку сотруднику URL-кнопкой в личные сообщения',
+          descriptionEn: 'Send the link to the employee as a URL button in a direct message',
+          command:
+            'pachca messages create --entity-type=user --entity-id=<user_id> --content="Разрешите доступ к задачам" --buttons=\'[[{"text":"Предоставить доступ","url":"<authorize_url>"}]]\'',
+          apiMethod: 'POST',
+          apiPath: '/messages',
+        },
+        {
+          description:
+            'После согласия браузер вернётся на `redirect_uri` с `code` и `state`. Найди сохранённый `state` и удали его: каждый действует один раз',
+          descriptionEn:
+            'After consent the browser returns to `redirect_uri` with `code` and `state`. Find the stored `state` and delete it: each one is valid once',
+        },
+        {
+          description:
+            'Обменяй код на токен: `grant_type=authorization_code`, `code`, `redirect_uri`, `client_id`, `client_secret` и `code_verifier` формой в теле запроса. Код живёт 10 минут и обменивается один раз. В SDK это `client.oauth.exchangeToken()`',
+          descriptionEn:
+            'Exchange the code for a token: `grant_type=authorization_code`, `code`, `redirect_uri`, `client_id`, `client_secret` and `code_verifier` as a form body. The code lives 10 minutes and is exchanged once. In the SDK, it is `client.oauth.exchangeToken()`',
+          apiMethod: 'POST',
+          apiPath: '/oauth/token',
+        },
+        {
+          description: 'Проверь, чей это токен: в `data.user_id` придёт сотрудник, который дал согласие',
+          descriptionEn: 'Check whose token it is: `data.user_id` is the employee who gave consent',
+          command: 'pachca oauth token-info --token <access_token>',
+          apiMethod: 'GET',
+          apiPath: '/oauth/token/info',
+          notes:
+            'Кнопку могли переслать: сохрани токен за тем, кто дал согласие, а сотруднику, которому отправлял кнопку, пришли её снова',
+          notesEn:
+            'The button may have been forwarded: store the token for the one who gave consent, and send the button again to the employee you sent it to',
+        },
+      ],
+      notes:
+        'Токен бессрочный и действует, пока сотрудник не отзовёт доступ: храни его как пароль. Бот отзывает токен сам методом `POST /oauth/revoke`, в SDK это `client.oauth.revokeToken()`.',
+      notesEn:
+        'The token does not expire and works until the employee revokes access: keep it like a password. The bot revokes a token itself with `POST /oauth/revoke`, in the SDK it is `client.oauth.revokeToken()`.',
     },
   ],
   'pachca-profile': [

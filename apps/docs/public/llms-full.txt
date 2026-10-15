@@ -16,7 +16,7 @@
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 112–216 |
 | How-to Guides — рецепты задач с кодом TS/Python | 217–900 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 901–14549 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 901–14591 |
 | · Обзор | 906–1010 |
 | · Быстрый старт | 1011–1100 |
 | · AI-агенты | 1101–1242 |
@@ -46,68 +46,68 @@
 | · Авторизация от имени сотрудника | 4150–4220 |
 | · Чек-лист запуска | 4221–4273 |
 | · Настройка авторизации | 4274–4394 |
-| · Получение токена сотрудника | 4395–4637 |
-| · Согласие и отзыв | 4638–4712 |
-| · Экспорт сообщений | 4713–4859 |
-| · DLP-система | 4860–5064 |
-| · Шифрование и безопасный контур | 5065–5159 |
-| · Журнал аудита событий | 5160–5412 |
-| · Права и роли | 5413–5692 |
-| · Форматирование текста | 5693–5790 |
-| · Сценарии | 5791–6356 |
-| · CLI | 6357–6452 |
-| · Установка | 6453–6560 |
-| · Авторизация | 6561–6801 |
-| · Вывод | 6802–6905 |
-| · Флаги и скрипты | 6906–7134 |
-| · Сценарии | 7135–7182 |
-| · Файлы | 7183–7233 |
-| · Прямые запросы | 7234–7344 |
-| · Команды | 7345–7508 |
-| · SDK и генератор | 7509–7601 |
-| · TypeScript | 7602–8046 |
-| · Python | 8047–8485 |
-| · Go | 8486–8949 |
-| · Kotlin | 8950–9404 |
-| · Swift | 9405–9828 |
-| · C# | 9829–10313 |
-| · n8n | 10314–10389 |
-| · Начало работы | 10390–10621 |
-| · Ресурсы и операции | 10622–11036 |
-| · Триггер | 11037–11288 |
-| · Тестирование | 11289–11562 |
-| · Примеры workflow | 11563–11777 |
-| · Продвинутые функции | 11778–12014 |
-| · Устранение ошибок | 12015–12196 |
-| · Миграция с v1 | 12197–12317 |
-| · Последние обновления | 12318–12327 |
-| · Обзор | 12328–12429 |
-| · Авторизация | 12430–12711 |
-| · Запросы и ответы | 12712–12904 |
-| · Пагинация | 12905–13141 |
-| · Загрузка файлов | 13142–13390 |
-| · Ошибки | 13391–13470 |
-| · Лимиты | 13471–13623 |
-| · Модели | 13624–14549 |
-| API-методы — все эндпоинты со схемами и примерами | 14550–39002 |
-| · OAuth | 14552–14854 |
-| · Chats | 14855–17453 |
-| · Profile | 17454–18375 |
-| · Users | 18376–20901 |
-| · Group tags | 20902–22325 |
-| · Members | 22326–23744 |
-| · Threads | 23745–24449 |
-| · Messages | 24450–26678 |
-| · Read members | 26679–26929 |
-| · Reactions | 26930–27578 |
-| · Search | 27579–28505 |
-| · Tasks | 28506–29826 |
-| · Drafts | 29827–31547 |
-| · Views | 31548–32406 |
-| · Bots | 32407–37942 |
-| · Security | 37943–38333 |
-| · Custom Properties | 38334–38543 |
-| · Files | 38544–39002 |
+| · Получение токена сотрудника | 4395–4639 |
+| · Согласие и отзыв | 4640–4714 |
+| · Экспорт сообщений | 4715–4861 |
+| · DLP-система | 4862–5066 |
+| · Шифрование и безопасный контур | 5067–5161 |
+| · Журнал аудита событий | 5162–5414 |
+| · Права и роли | 5415–5694 |
+| · Форматирование текста | 5695–5792 |
+| · Сценарии | 5793–6370 |
+| · CLI | 6371–6466 |
+| · Установка | 6467–6574 |
+| · Авторизация | 6575–6815 |
+| · Вывод | 6816–6919 |
+| · Флаги и скрипты | 6920–7148 |
+| · Сценарии | 7149–7196 |
+| · Файлы | 7197–7247 |
+| · Прямые запросы | 7248–7358 |
+| · Команды | 7359–7522 |
+| · SDK и генератор | 7523–7630 |
+| · TypeScript | 7631–8077 |
+| · Python | 8078–8518 |
+| · Go | 8519–8984 |
+| · Kotlin | 8985–9441 |
+| · Swift | 9442–9867 |
+| · C# | 9868–10355 |
+| · n8n | 10356–10431 |
+| · Начало работы | 10432–10663 |
+| · Ресурсы и операции | 10664–11078 |
+| · Триггер | 11079–11330 |
+| · Тестирование | 11331–11604 |
+| · Примеры workflow | 11605–11819 |
+| · Продвинутые функции | 11820–12056 |
+| · Устранение ошибок | 12057–12238 |
+| · Миграция с v1 | 12239–12359 |
+| · Последние обновления | 12360–12369 |
+| · Обзор | 12370–12471 |
+| · Авторизация | 12472–12753 |
+| · Запросы и ответы | 12754–12946 |
+| · Пагинация | 12947–13183 |
+| · Загрузка файлов | 13184–13432 |
+| · Ошибки | 13433–13512 |
+| · Лимиты | 13513–13665 |
+| · Модели | 13666–14591 |
+| API-методы — все эндпоинты со схемами и примерами | 14592–39111 |
+| · OAuth | 14594–14963 |
+| · Chats | 14964–17562 |
+| · Profile | 17563–18484 |
+| · Users | 18485–21010 |
+| · Group tags | 21011–22434 |
+| · Members | 22435–23853 |
+| · Threads | 23854–24558 |
+| · Messages | 24559–26787 |
+| · Read members | 26788–27038 |
+| · Reactions | 27039–27687 |
+| · Search | 27688–28614 |
+| · Tasks | 28615–29935 |
+| · Drafts | 29936–31656 |
+| · Views | 31657–32515 |
+| · Bots | 32516–38051 |
+| · Security | 38052–38442 |
+| · Custom Properties | 38443–38652 |
+| · Files | 38653–39111 |
 
 # LIBRARY RULES
 
@@ -4519,48 +4519,45 @@ curl -X POST https://api.pachca.com/api/shared/v1/oauth/token \
 
 ## Пример на TypeScript
 
-Серверное приложение на Express: кнопка в ответ на сообщение сотрудника и обработчик возврата.
+Серверное приложение на Express с [TypeScript SDK](/guides/sdk/typescript): кнопка в ответ на сообщение сотрудника и обработчик возврата. Ссылку и пару PKCE собирают функции SDK, в других языках они называются по-своему — список в разделе [SDK](/guides/sdk/overview#token-sotrudnika).
 
 ```typescript title="oauth.ts"
 import crypto from "node:crypto"
 import express from "express"
+import {
+  MessageEntityType,
+  PachcaClient,
+  buildAuthorizeUrl,
+  createPkce,
+} from "@pachca/sdk"
 
-const API = "https://api.pachca.com/api/shared/v1"
 const CLIENT_ID = process.env.PACHCA_CLIENT_ID!
 const CLIENT_SECRET = process.env.PACHCA_CLIENT_SECRET!
-const BOT_TOKEN = process.env.PACHCA_BOT_TOKEN!
 const REDIRECT_URI = "https://bot.example.com/oauth/callback"
+
+const bot = new PachcaClient(process.env.PACHCA_BOT_TOKEN!)
 
 // state → кому отправлена кнопка и проверочный код PKCE
 const pending = new Map<string, { userId: number; verifier: string }>()
 
 export async function sendAuthButton(userId: number) {
   const state = crypto.randomBytes(16).toString("hex")
-  const verifier = crypto.randomBytes(32).toString("base64url")
-  const challenge = crypto.createHash("sha256").update(verifier).digest("base64url")
-  pending.set(state, { userId, verifier })
+  const { codeVerifier, codeChallenge } = await createPkce()
+  pending.set(state, { userId, verifier: codeVerifier })
 
-  const url = new URL("https://app.pachca.com/apps/authorize")
-  url.search = new URLSearchParams({
-    client_id: CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
-    response_type: "code",
+  const url = buildAuthorizeUrl({
+    clientId: CLIENT_ID,
+    redirectUri: REDIRECT_URI,
     state,
-    code_challenge: challenge,
-    code_challenge_method: "S256",
-  }).toString()
-
-  await fetch(`${API}/messages`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${BOT_TOKEN}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message: {
-        entity_type: "user",
-        entity_id: userId,
-        content: "Чтобы я мог работать с вашими задачами, разрешите доступ.",
-        buttons: [[{ text: "Предоставить доступ", url: url.toString() }]],
-      },
-    }),
+    codeChallenge,
+  })
+  await bot.messages.createMessage({
+    message: {
+      entityType: MessageEntityType.User,
+      entityId: userId,
+      content: "Чтобы я мог работать с вашими задачами, разрешите доступ.",
+      buttons: [[{ text: "Предоставить доступ", url }]],
+    },
   })
 }
 
@@ -4573,33 +4570,30 @@ app.get("/oauth/callback", async (req, res) => {
   pending.delete(state)
   if (error || !code) return res.status(400).send("Доступ не выдан, запросите новую ссылку у бота")
 
-  const tokenResponse = await fetch(`${API}/oauth/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "authorization_code",
+  const token = await bot.oauth
+    .exchangeToken({
+      grantType: "authorization_code",
       code,
-      redirect_uri: REDIRECT_URI,
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      code_verifier: entry.verifier,
-    }),
-  })
-  if (!tokenResponse.ok) return res.status(502).send("Не удалось получить токен")
-  const { access_token } = await tokenResponse.json()
+      redirectUri: REDIRECT_URI,
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
+      codeVerifier: entry.verifier,
+    })
+    .catch(() => null)
+  if (!token) return res.status(502).send("Не удалось получить токен")
 
-  const infoResponse = await fetch(`${API}/oauth/token/info`, {
-    headers: { Authorization: `Bearer ${access_token}` },
-  })
-  if (!infoResponse.ok) return res.status(502).send("Не удалось проверить токен")
-  const { data } = await infoResponse.json()
+  const employee = new PachcaClient(token.accessToken)
+  const info = await employee.oauth.getTokenInfo().catch(() => null)
+  if (!info) return res.status(502).send("Не удалось проверить токен")
 
   // Токен принадлежит тому, кто дал согласие, даже если кнопку ему переслали
-  await saveToken(data.user_id, access_token) // ваше хранилище токенов
-  if (data.user_id !== entry.userId) await sendAuthButton(entry.userId)
+  await saveToken(info.userId, token.accessToken) // ваше хранилище токенов
+  if (info.userId !== entry.userId) await sendAuthButton(entry.userId)
   res.send("Готово, можно вернуться в Пачку")
 })
 ```
+
+Ошибку обмена SDK выбрасывает как `OAuthError` с кодом в поле `error`, коды перечислены ниже.
 
 ## Ошибки и отказы
 
@@ -4620,6 +4614,14 @@ app.get("/oauth/callback", async (req, res) => {
 ## Отзыв токена ботом
 
 Бот может сам отозвать токен сотрудника методом [Отзыв токена](/api/oauth/revoke-token), например когда тот отключает интеграцию в вашем сервисе. Серверное приложение отправляет `token` вместе с `client_id` и `client_secret`, приложение без секрета — сам токен в теле запроса и в заголовке `Authorization: Bearer`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
+
+```typescript title="Отзыв токена"
+await bot.oauth.revokeToken({
+  token: accessToken,
+  clientId: CLIENT_ID,
+  clientSecret: CLIENT_SECRET,
+})
+```
 
 
 ## Связанные разделы
@@ -5834,6 +5836,19 @@ GET /api/shared/v1/company/bots
 
 1. Удали аватар
 
+### pachca-oauth
+
+**Получить токен сотрудника по OAuth**
+
+1. Создай случайный `state` и пару PKCE: случайный `code_verifier` и `code_challenge` — его SHA-256 в base64url без `=` на конце. Сохрани их вместе с `id` сотрудника, которому отправишь кнопку. В SDK пару создаёт `createPkce()`
+2. Собери ссылку на `https://app.pachca.com/apps/authorize` с параметрами `client_id`, `redirect_uri`, `response_type=code`, `state`, `code_challenge` и `code_challenge_method=S256`. В SDK её собирает `buildAuthorizeUrl()`
+3. Отправь ссылку сотруднику URL-кнопкой в личные сообщения
+4. После согласия браузер вернётся на `redirect_uri` с `code` и `state`. Найди сохранённый `state` и удали его: каждый действует один раз
+5. Обменяй код на токен: `grant_type=authorization_code`, `code`, `redirect_uri`, `client_id`, `client_secret` и `code_verifier` формой в теле запроса. Код живёт 10 минут и обменивается один раз. В SDK это `client.oauth.exchangeToken()`
+6. Проверь, чей это токен: в `data.user_id` придёт сотрудник, который дал согласие
+
+> Токен бессрочный и действует, пока сотрудник не отзовёт доступ: храни его как пароль. Бот отзывает токен сам методом `POST /oauth/revoke`, в SDK это `client.oauth.revokeToken()`.
+
 ### pachca-users
 
 **Получить сотрудника по ID**
@@ -6133,9 +6148,8 @@ GET /api/shared/v1/company/bots
 1. Пользовательским токеном (создатель бота или администратор, если бот открыт администраторам) — перевыпусти основной токен по `id` бота: тот, что без имени, а если такого нет, самый старый. Прежнее значение инвалидируется сразу
 2. Или: бот перевыпускает свой основной токен сам (скоуп `bot_self:write`). Если запрос сделан основным токеном, он инвалидируется сразу — обязательно сохрани новый `access_token` из ответа, иначе бот потеряет доступ к API
 3. Отдельный токен бота перевыпускай по его `id` из `pachca bots list-tokens`: значение меняется, имя и права остаются
-4. Сохрани новый `access_token` из ответа — он возвращается единственный раз. Обнови секрет в CI или хранилище секретов
 
-> Новое значение возвращается один раз. Self-путь (`POST /bot/recreate_token`) перевыпускает основной токен бота — если бот ходит им, захвати новый токен из ответа в той же операции.
+> Новое значение возвращается один раз: сохрани `access_token` из ответа и обнови секрет в CI или хранилище секретов. Self-путь (`POST /bot/recreate_token`) перевыпускает основной токен бота — если бот ходит им, захвати новый токен из ответа в той же операции.
 
 **Выпустить боту отдельный токен**
 
@@ -7557,7 +7571,7 @@ npx -y @pachca/generator --spec https://example.com/openapi.yaml --output ./gene
 
 | Возможность | Описание |
 |-------------|----------|
-| **16 сервисов** | Типизированные методы для каждого API-эндпоинта |
+| **Все методы API** | Типизированный метод на каждый метод API |
 | **Автопагинация** | Методы `*All()` для автоматического обхода всех страниц |
 | **Повторные запросы** | Автоматический retry при `429` и `5xx` с экспоненциальным backoff — подробнее на странице [Лимиты](/api/limits) |
 | **Обработка ошибок** | Типизированные `ApiError` и `OAuthError` |
@@ -7573,6 +7587,21 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
+
+## Токен сотрудника
+
+Бот, который действует от имени сотрудника, получает его токен по OAuth: схема по шагам — в разделе [Получение токена](/guides/oauth/flow). Обмен кода на токен и отзыв токена — методы `exchangeToken` и `revokeToken` сервиса `oauth`, а ссылку для кнопки и пару PKCE собирают функции SDK:
+
+| Язык | Ссылка авторизации | Пара PKCE |
+|---|---|---|
+| TypeScript | `buildAuthorizeUrl()` | `await createPkce()` |
+| Python | `build_authorize_url()` | `create_pkce()` |
+| Go | `pachca.BuildAuthorizeURL()` | `pachca.CreatePKCE()` |
+| Kotlin | `PachcaOAuth.buildAuthorizeUrl()` | `PachcaOAuth.createPkce()` |
+| Swift | `PachcaOAuth.buildAuthorizeURL()` | `PachcaOAuth.createPKCE()` |
+| C# | `PachcaOAuth.BuildAuthorizeUrl()` | `PachcaOAuth.CreatePkce()` |
+
+Ссылка принимает `client_id` и адрес возврата бота, `state` и `code_challenge` из пары, имена параметров — по правилам языка. Она ведёт на экран согласия `https://app.pachca.com/apps/authorize`, для on-premise передайте адрес экрана своей установки необязательным параметром `authorizeUrl`. В Python функции импортируются из `pachca.client`, в TypeScript `createPkce()` работает в Node.js 20+ и в браузере.
 
 ## Сравнение языков
 
@@ -7659,6 +7688,8 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 
 | Метод | Метод API |
 |-------|----------|
+| `client.oauth.revokeToken()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.oauth.exchangeToken()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.oauth.getTokenInfo()` | [Информация о токене](/api/oauth/token-info) |
 | `client.chats.createChat()` | [Новый чат](/api/chats/create) |
 | `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -7872,7 +7903,7 @@ SDK выбрасывает два типа ошибок:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```typescript
 import { PachcaClient, ApiError } from "@pachca/sdk"
@@ -7901,7 +7932,7 @@ try {
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```typescript
 import { OAuthError } from "@pachca/sdk"
@@ -7910,7 +7941,7 @@ try {
   await client.profile.getProfile()
 } catch (error) {
   if (error instanceof OAuthError) {
-    console.log(error.message) // "Token not found"
+    console.log(error.error) // "insufficient_scope"
   }
 }
 ```
@@ -8111,6 +8142,8 @@ await client.close()
 
 | Метод | Метод API |
 |-------|----------|
+| `client.oauth.revoke_token()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.oauth.exchange_token()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.oauth.get_token_info()` | [Информация о токене](/api/oauth/token-info) |
 | `client.chats.create_chat()` | [Новый чат](/api/chats/create) |
 | `client.chats.request_export()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -8324,7 +8357,7 @@ SDK выбрасывает два типа исключений:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```python
 from pachca.models import ApiError
@@ -8349,7 +8382,7 @@ except ApiError as error:
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```python
 from pachca.models import OAuthError
@@ -8357,7 +8390,7 @@ from pachca.models import OAuthError
 try:
     await client.profile.get_profile()
 except OAuthError as error:
-    print(error.error)              # "Token not found"
+    print(error.error)              # "insufficient_scope"
     print(error.error_description)  # описание ошибки
 ```
 
@@ -8552,6 +8585,8 @@ user, err := client.Profile.GetProfile(ctx)
 
 | Метод | Метод API |
 |-------|----------|
+| `client.Oauth.RevokeToken()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.Oauth.ExchangeToken()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.Oauth.GetTokenInfo()` | [Информация о токене](/api/oauth/token-info) |
 | `client.Chats.CreateChat()` | [Новый чат](/api/chats/create) |
 | `client.Chats.RequestExport()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -8788,7 +8823,7 @@ SDK возвращает два типа ошибок (реализуют инт
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```go
 chat, err := client.Chats.CreateChat(ctx, request)
@@ -8815,14 +8850,14 @@ if err != nil {
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```go
 user, err := client.Profile.GetProfile(ctx)
 if err != nil {
     var oauthErr *pachca.OAuthError
     if errors.As(err, &oauthErr) {
-        fmt.Println(oauthErr.Err)              // "Token not found"
+        fmt.Println(oauthErr.Err)              // "insufficient_scope"
         fmt.Println(oauthErr.ErrorDescription)  // описание ошибки
     }
 }
@@ -9024,6 +9059,8 @@ client.close()
 
 | Метод | Метод API |
 |-------|----------|
+| `client.oauth.revokeToken()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.oauth.exchangeToken()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.oauth.getTokenInfo()` | [Информация о токене](/api/oauth/token-info) |
 | `client.chats.createChat()` | [Новый чат](/api/chats/create) |
 | `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -9231,7 +9268,7 @@ SDK выбрасывает два типа исключений:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```kotlin
 import com.pachca.sdk.ApiError
@@ -9258,7 +9295,7 @@ try {
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```kotlin
 import com.pachca.sdk.OAuthError
@@ -9266,7 +9303,7 @@ import com.pachca.sdk.OAuthError
 try {
     client.profile.getProfile()
 } catch (error: OAuthError) {
-    println(error.error)              // "Token not found"
+    println(error.error)              // "insufficient_scope"
     println(error.errorDescription)   // описание ошибки
 }
 ```
@@ -9470,6 +9507,8 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 
 | Метод | Метод API |
 |-------|----------|
+| `client.oauth.revokeToken()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.oauth.exchangeToken()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.oauth.getTokenInfo()` | [Информация о токене](/api/oauth/token-info) |
 | `client.chats.createChat()` | [Новый чат](/api/chats/create) |
 | `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -9674,7 +9713,7 @@ SDK выбрасывает два типа ошибок (реализуют пр
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```swift
 do {
@@ -9699,13 +9738,13 @@ do {
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```swift
 do {
     try await client.profile.getProfile()
 } catch let error as OAuthError {
-    print(error.error)              // "Token not found"
+    print(error.error)              // "insufficient_scope"
     print(error.errorDescription)   // описание ошибки
 }
 ```
@@ -9888,6 +9927,8 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 
 | Метод | Метод API |
 |-------|----------|
+| `client.Oauth.RevokeTokenAsync()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.Oauth.ExchangeTokenAsync()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.Oauth.GetTokenInfoAsync()` | [Информация о токене](/api/oauth/token-info) |
 | `client.Chats.CreateChatAsync()` | [Новый чат](/api/chats/create) |
 | `client.Chats.RequestExportAsync()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -10095,7 +10136,7 @@ SDK выбрасывает два типа исключений:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```csharp
 using Pachca.Sdk;
@@ -10126,7 +10167,7 @@ catch (ApiError e)
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```csharp
 using Pachca.Sdk;
@@ -10137,7 +10178,8 @@ try
 }
 catch (OAuthError e)
 {
-    Console.WriteLine(e.ErrorDescription); // "Token not found"
+    Console.WriteLine(e.Error);            // "insufficient_scope"
+    Console.WriteLine(e.ErrorDescription); // описание ошибки
 }
 ```
 
@@ -14559,8 +14601,6 @@ users = await with_retry(lambda: client.users.list_users())
 
 **Путь**: `/oauth/revoke`
 
-> Авторизация не требуется
-
 Отзывает токен сотрудника, выданный боту, по стандарту OAuth 2.0 ([RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009)). Так бот отключает доступ сам, например когда сотрудник выключает интеграцию в вашем сервисе. В `token` можно передать и токен сотрудника, и его токен обновления: перестают работать оба.
 
 Тело передаётся в формате `application/x-www-form-urlencoded`. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета отзывает только сам токен: передаёт его и в теле, и в заголовке `Authorization: Bearer`.
@@ -14595,6 +14635,7 @@ users = await with_retry(lambda: client.users.list_users())
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/oauth/revoke" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -d 'token=pato_bm90X2FfcmVhbF90b2tlbg' \
   -d 'client_id=aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY' \
   -d 'client_secret=dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA'
@@ -14603,14 +14644,6 @@ curl "https://api.pachca.com/api/shared/v1/oauth/revoke" \
 ## Ответы
 
 ### 200: The request has succeeded.
-
-**Схема ответа:**
-
-**Пример ответа:**
-
-```json
-{}
-```
 
 ### 403: Access is forbidden.
 
@@ -14628,6 +14661,41 @@ curl "https://api.pachca.com/api/shared/v1/oauth/revoke" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { OAuthRevokeRequest, OAuthTokenTypeHint, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: OAuthRevokeRequest = {
+  token: "pato_bm90X2FfcmVhbF90b2tlbg",
+  tokenTypeHint: OAuthTokenTypeHint.AccessToken,
+  clientId: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+  clientSecret: "dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA"
+}
+client.oauth.revokeToken(request)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import OAuthRevokeRequest, OAuthTokenTypeHint
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = OAuthRevokeRequest(
+    token="pato_bm90X2FfcmVhbF90b2tlbg",
+    token_type_hint=OAuthTokenTypeHint.ACCESS_TOKEN,
+    client_id="aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+    client_secret="dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA"
+)
+await client.oauth.revoke_token(request=request)
+```
 
 ---
 
@@ -14747,6 +14815,47 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { OAuthTokenRequest, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: OAuthTokenRequest = {
+  grantType: "authorization_code",
+  code: "ZmFrZV9hdXRoX2NvZGU",
+  redirectUri: "https://bot.example.com/oauth/callback",
+  clientId: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+  clientSecret: "dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA",
+  codeVerifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+}
+const response = client.oauth.exchangeToken(request)
+// → OAuthToken({ accessToken: string, tokenType: string, refreshToken: string, scope: string, createdAt: number })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import OAuthTokenRequest
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = OAuthTokenRequest(
+    grant_type="authorization_code",
+    code="ZmFrZV9hdXRoX2NvZGU",
+    redirect_uri="https://bot.example.com/oauth/callback",
+    client_id="aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+    client_secret="dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA",
+    code_verifier="dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+)
+response = await client.oauth.exchange_token(request=request)
+# → OAuthToken(access_token: str, token_type: str, refresh_token: str, scope: str, created_at: int)
+```
 
 ---
 

@@ -627,8 +627,6 @@ export async function expandMdxComponents(content: string): Promise<string> {
         const endpoints = grouped.get(tag)!;
         endpoints.sort(compareEndpointsForNav);
         for (const ep of endpoints) {
-          // A step of the OAuth flow has no SDK method
-          if (ep.oauthFlow) continue;
           const call = formatCall(tag, ep.id);
           const href = generateUrlFromOperation(ep);
           const epTitle = generateTitle(ep);

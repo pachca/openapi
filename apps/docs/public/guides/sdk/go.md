@@ -72,6 +72,8 @@ user, err := client.Profile.GetProfile(ctx)
 
 | Метод | Метод API |
 |-------|----------|
+| `client.Oauth.RevokeToken()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.Oauth.ExchangeToken()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.Oauth.GetTokenInfo()` | [Информация о токене](/api/oauth/token-info) |
 | `client.Chats.CreateChat()` | [Новый чат](/api/chats/create) |
 | `client.Chats.RequestExport()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -308,7 +310,7 @@ SDK возвращает два типа ошибок (реализуют инт
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```go
 chat, err := client.Chats.CreateChat(ctx, request)
@@ -335,14 +337,14 @@ if err != nil {
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```go
 user, err := client.Profile.GetProfile(ctx)
 if err != nil {
     var oauthErr *pachca.OAuthError
     if errors.As(err, &oauthErr) {
-        fmt.Println(oauthErr.Err)              // "Token not found"
+        fmt.Println(oauthErr.Err)              // "insufficient_scope"
         fmt.Println(oauthErr.ErrorDescription)  // описание ошибки
     }
 }

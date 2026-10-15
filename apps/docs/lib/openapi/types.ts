@@ -47,7 +47,7 @@ export interface Endpoint {
   requirements?: EndpointRequirements;
   externalUrl?: string;
   paginated?: boolean;
-  /** Step of the OAuth flow (`x-oauth-flow`): documented, but no client method, command or tool is made for it */
+  /** Step of the OAuth flow (`x-oauth-flow`): documented and made an SDK method, but no CLI command, n8n operation or MCP tool */
   oauthFlow?: boolean;
 }
 

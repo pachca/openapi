@@ -2059,9 +2059,6 @@ model OAuthRevokeRequest {
   client_secret?: string;
 }
 
-@doc("Пустой объект")
-model EmptyObject {}
-
 // ============================================================================
 // Error Models
 // ============================================================================
@@ -4922,6 +4919,7 @@ interface OAuthFlowOperations {
     auth: false,
   })
   @extension("x-oauth-flow", true)
+  @extension("x-oauth-authorize-url", "https://app.pachca.com/apps/authorize")
   @doc("""
 Обмен кода на токен
 
@@ -4972,9 +4970,6 @@ interface OAuthFlowOperations {
     @body body: OAuthError;
   };
 
-  @extension("x-requirements", #{
-    auth: false,
-  })
   @extension("x-oauth-flow", true)
   @doc("""
 Отзыв токена
@@ -4998,7 +4993,6 @@ interface OAuthFlowOperations {
     },
     returnType: #{
       _: 200,
-      body: #{},
     },
   })
   revokeToken(
@@ -5006,7 +5000,6 @@ interface OAuthFlowOperations {
     @body request: OAuthRevokeRequest
   ): {
     @statusCode _: 200;
-    @body body: EmptyObject;
   } | {
     @statusCode _: 403;
     @body body: OAuthError;

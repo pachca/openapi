@@ -555,7 +555,7 @@ function emitResponseType(lines: string[], rt: IRResponseType): void {
 
 // ── Utils.cs ─────────────────────────────────────────────────────────
 
-function generateUtils(): string {
+function generateUtils(ir: IR): string {
   return `#nullable enable
 
 using System;
@@ -671,9 +671,64 @@ internal static class PachcaUtils
 
     internal static string EnumToApiString<T>(T value) where T : struct, Enum =>
         JsonSerializer.Serialize(value, JsonOptions).Trim('"');
-}
+${csHasFormBody(ir) ? CS_FORM_HELPER : ''}${ir.services.length > 0 && csPicksErrorByBody(ir) ? CS_ERROR_HELPER : ''}}
 `;
 }
+
+/** Both error models exist, so an error's class is read off its body. */
+function csPicksErrorByBody(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+}
+
+function csHasFormBody(ir: IR): boolean {
+  return ir.services.some((s) => s.operations.some((op) => op.requestBody?.contentType === 'form'));
+}
+
+const CS_FORM_HELPER = `
+    // A form body (application/x-www-form-urlencoded): the fields go by their wire names, empty ones are left out.
+    internal static FormUrlEncodedContent ToForm<T>(T value)
+    {
+        var pairs = new List<KeyValuePair<string, string>>();
+        using var document = JsonDocument.Parse(Serialize(value));
+        foreach (var property in document.RootElement.EnumerateObject())
+        {
+            if (property.Value.ValueKind == JsonValueKind.Null) continue;
+            var text = property.Value.ValueKind == JsonValueKind.String
+                ? property.Value.GetString()!
+                : property.Value.GetRawText();
+            pairs.Add(new KeyValuePair<string, string>(property.Name, text));
+        }
+        return new FormUrlEncodedContent(pairs);
+    }
+`;
+
+const CS_ERROR_HELPER = `
+    // An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
+    // which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
+    internal static Exception ErrorFromJson(string json)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+            if (root.ValueKind == JsonValueKind.Object
+                && !root.TryGetProperty("errors", out _)
+                && root.TryGetProperty("error", out var code)
+                && code.ValueKind == JsonValueKind.String)
+            {
+                var description = root.TryGetProperty("error_description", out var text)
+                    && text.ValueKind == JsonValueKind.String
+                    ? text.GetString()!
+                    : "";
+                return new OAuthError { Error = code.GetString()!, ErrorDescription = description };
+            }
+        }
+        catch (JsonException)
+        {
+        }
+        return Deserialize<ApiError>(json);
+    }
+`;
 
 // ── Client.cs ────────────────────────────────────────────────────────
 
@@ -715,6 +770,9 @@ function generateClient(ir: IR): string {
   // The client internally wires up backward-compat alias services that are [Obsolete];
   // suppress that here so the generated file is clean (external callers still get the warning).
   if (ir.services.some((s) => s.deprecated)) lines.push('#pragma warning disable CS0618');
+  // The base service methods are async without an await on purpose: an override replaces them,
+  // and the stub's NotImplementedException comes through the returned task, not synchronously.
+  lines.push('#pragma warning disable CS1998');
   lines.push('namespace Pachca.Sdk;');
 
   // Services
@@ -1151,6 +1209,15 @@ function emitMethodBody(
   }
 
   // Set body
+  if (op.requestBody?.contentType === 'form') {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb)) {
+      const f = rb.unwrapField!;
+      lines.push(`${indent2}${reqVar}.Content = new FormUrlEncodedContent(new[] { new KeyValuePair<string, string>("${f.name}", $"{${paramSdkName(f.name)}}") });`);
+    } else {
+      lines.push(`${indent2}${reqVar}.Content = PachcaUtils.ToForm(request);`);
+    }
+  }
   const hasJsonBody = op.requestBody && op.requestBody.contentType === 'json';
   if (hasJsonBody) {
     const rb = op.requestBody!;
@@ -1283,7 +1350,10 @@ function emitResponseHandling(
     lines.push(`${indent2}        throw PachcaUtils.Deserialize<OAuthError>(${json});`);
   }
 
-  if (op.hasApiError || globalHasApiError) {
+  if (csPicksErrorByBody(ir)) {
+    lines.push(`${indent2}    default:`);
+    lines.push(`${indent2}        throw PachcaUtils.ErrorFromJson(${json});`);
+  } else if (op.hasApiError || globalHasApiError) {
     lines.push(`${indent2}    default:`);
     lines.push(`${indent2}        throw PachcaUtils.Deserialize<ApiError>(${json});`);
   } else {
@@ -1294,11 +1364,53 @@ function emitResponseHandling(
   lines.push(`${indent2}}`);
 }
 
+/** The authorization link and the PKCE pair for the OAuth flow (`x-oauth-authorize-url`). */
+function emitCsOAuthHelpers(lines: string[], authorizeUrl: string): void {
+  lines.push('/// <summary>The authorization link and the PKCE pair of the OAuth flow.</summary>');
+  lines.push('public static class PachcaOAuth');
+  lines.push('{');
+  lines.push(`    public const string AuthorizeUrl = ${JSON.stringify(authorizeUrl)};`);
+  lines.push('');
+  lines.push('    /// <summary>Keep CodeVerifier until the code exchange, put CodeChallenge into the link.</summary>');
+  lines.push('    public sealed record Pkce(string CodeVerifier, string CodeChallenge);');
+  lines.push('');
+  lines.push('    /// <summary>A random code verifier and its SHA-256 challenge.</summary>');
+  lines.push('    public static Pkce CreatePkce()');
+  lines.push('    {');
+  lines.push('        var verifier = Base64Url(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));');
+  lines.push('        var digest = System.Security.Cryptography.SHA256.HashData(Encoding.ASCII.GetBytes(verifier));');
+  lines.push('        return new Pkce(verifier, Base64Url(digest));');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    /// <summary>The authorization link for a message button: the consent screen with PKCE (S256).</summary>');
+  lines.push('    public static string BuildAuthorizeUrl(');
+  lines.push('        string clientId,');
+  lines.push('        string redirectUri,');
+  lines.push('        string state,');
+  lines.push('        string codeChallenge,');
+  lines.push('        string authorizeUrl = AuthorizeUrl)');
+  lines.push('    {');
+  lines.push('        return authorizeUrl');
+  lines.push('            + "?client_id=" + Uri.EscapeDataString(clientId)');
+  lines.push('            + "&redirect_uri=" + Uri.EscapeDataString(redirectUri)');
+  lines.push('            + "&response_type=code"');
+  lines.push('            + "&state=" + Uri.EscapeDataString(state)');
+  lines.push('            + "&code_challenge=" + Uri.EscapeDataString(codeChallenge)');
+  lines.push('            + "&code_challenge_method=S256";');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    private static string Base64Url(byte[] data) =>');
+  lines.push("        Convert.ToBase64String(data).TrimEnd('=').Replace('+', '-').Replace('/', '_');");
+  lines.push('}');
+  lines.push('');
+}
+
 function emitPachcaClient(
   lines: string[],
   ir: IR,
   hasRedirect: boolean,
 ): void {
+  if (ir.oauthAuthorizeUrl) emitCsOAuthHelpers(lines, ir.oauthAuthorizeUrl);
   if (ir.baseUrl) {
     lines.push(`public static class PachcaConstants`);
     lines.push('{');
@@ -1685,7 +1797,7 @@ export class CSharpGenerator implements LanguageGenerator {
     const files: GeneratedFile[] = [
       { path: 'Models.cs', content: generateModels(ir) },
       { path: 'Client.cs', content: generateClient(ir) },
-      { path: 'Utils.cs', content: generateUtils() },
+      { path: 'Utils.cs', content: generateUtils(ir) },
     ];
 
     if (options?.examples) {

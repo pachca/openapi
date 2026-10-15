@@ -336,6 +336,68 @@ function irParamTypeName(op: IROperation): string {
   return `${pascal}Params`;
 }
 
+/** Whether any operation sends a form body (`application/x-www-form-urlencoded`). */
+function hasFormBody(ir: IR): boolean {
+  return ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'form'));
+}
+
+/** Both error models exist, so an error's class is read off its body. */
+function picksErrorByBody(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+}
+
+/** The authorization link and the PKCE pair for the OAuth flow (`x-oauth-authorize-url`). */
+function emitOAuthHelpers(lines: string[], authorizeUrl: string): void {
+  lines.push(`export const PACHCA_AUTHORIZE_URL = ${JSON.stringify(authorizeUrl)};`);
+  lines.push('');
+  lines.push('export interface AuthorizeUrlParams {');
+  lines.push('  /** Client ID of the bot */');
+  lines.push('  clientId: string;');
+  lines.push('  /** One of the bot\'s redirect addresses, matched exactly */');
+  lines.push('  redirectUri: string;');
+  lines.push('  /** A random value you keep to recognise the return; each one is valid once */');
+  lines.push('  state: string;');
+  lines.push('  /** `codeChallenge` of a pair from `createPkce()` */');
+  lines.push('  codeChallenge: string;');
+  lines.push('  /** The authorization page of another installation */');
+  lines.push('  authorizeUrl?: string;');
+  lines.push('}');
+  lines.push('');
+  lines.push('/** The authorization link for a message button: the consent screen with PKCE (S256). */');
+  lines.push('export function buildAuthorizeUrl(params: AuthorizeUrlParams): string {');
+  lines.push('  const url = new URL(params.authorizeUrl ?? PACHCA_AUTHORIZE_URL);');
+  lines.push('  url.searchParams.set("client_id", params.clientId);');
+  lines.push('  url.searchParams.set("redirect_uri", params.redirectUri);');
+  lines.push('  url.searchParams.set("response_type", "code");');
+  lines.push('  url.searchParams.set("state", params.state);');
+  lines.push('  url.searchParams.set("code_challenge", params.codeChallenge);');
+  lines.push('  url.searchParams.set("code_challenge_method", "S256");');
+  lines.push('  return url.toString();');
+  lines.push('}');
+  lines.push('');
+  lines.push('export interface Pkce {');
+  lines.push('  /** Keep it until the code exchange */');
+  lines.push('  codeVerifier: string;');
+  lines.push('  /** Goes into the authorization link */');
+  lines.push('  codeChallenge: string;');
+  lines.push('}');
+  lines.push('');
+  lines.push('function base64Url(bytes: Uint8Array): string {');
+  lines.push('  let binary = "";');
+  lines.push('  for (const b of bytes) binary += String.fromCharCode(b);');
+  lines.push('  return btoa(binary).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/, "");');
+  lines.push('}');
+  lines.push('');
+  lines.push('/** A PKCE pair: a random `codeVerifier` and its SHA-256 `codeChallenge`. */');
+  lines.push('export async function createPkce(): Promise<Pkce> {');
+  lines.push('  const webCrypto = globalThis.crypto;');
+  lines.push('  if (!webCrypto?.subtle) throw new Error("createPkce needs the Web Crypto API: Node.js 20+ or a browser");');
+  lines.push('  const codeVerifier = base64Url(webCrypto.getRandomValues(new Uint8Array(32)));');
+  lines.push('  const digest = await webCrypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier));');
+  lines.push('  return { codeVerifier, codeChallenge: base64Url(new Uint8Array(digest)) };');
+  lines.push('}');
+}
+
 function responseTypeName(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'string';
   if (op.successResponse.isBinary) return 'Blob';
@@ -398,7 +460,7 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
           } else {
             addImport(rb.schemaRef);
           }
-          if (!shouldUnwrapBody(rb) && rb.contentType === 'json') needsSerialize = true;
+          if (!shouldUnwrapBody(rb) && (rb.contentType === 'json' || rb.contentType === 'form')) needsSerialize = true;
         }
         if (op.queryParams.length > 0) addImport(irParamTypeName(op));
         if (op.successResponse.hasBody && !op.successResponse.isRedirect) {
@@ -453,6 +515,7 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
       needsDeserialize ? 'deserializeType' : null,
       needsSerialize ? 'serializeType' : null,
       hasServices ? 'fetchWithRetry' : null,
+      hasFormBody(ir) ? 'toFormBody' : null,
     ]
       .filter((x): x is string => !!x)
       .join(', ');
@@ -462,6 +525,23 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
   if (ir.services.some(hasWebhookPolling)) {
     lines.push('');
     emitWebhookPollingPrelude(lines);
+  }
+
+  if (hasServices && picksErrorByBody(ir)) {
+    lines.push('');
+    lines.push('/**');
+    lines.push(' * An error body is either `{ errors: [...] }` or the OAuth form `{ error, error_description }`,');
+    lines.push(' * which also comes with 400 and 403 (`insufficient_scope`, `invalid_grant`). The body decides the class.');
+    lines.push(' */');
+    lines.push('function errorFromBody(body: any): Error {');
+    lines.push('  if (body && typeof body.error === "string" && body.errors === undefined) return new OAuthError(body.error);');
+    lines.push('  return new ApiError(body?.errors);');
+    lines.push('}');
+  }
+
+  if (hasServices && ir.oauthAuthorizeUrl) {
+    lines.push('');
+    emitOAuthHelpers(lines, ir.oauthAuthorizeUrl);
   }
 
   if (hasServices) lines.push('');
@@ -773,6 +853,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   if (op.method !== 'GET') lines.push(`      method: ${JSON.stringify(op.method)},`);
   const ownHeaders = [
     ...(op.requestBody?.contentType === 'json' ? ['"Content-Type": "application/json"'] : []),
+    ...(op.requestBody?.contentType === 'form' ? ['"Content-Type": "application/x-www-form-urlencoded"'] : []),
     ...(op.requestHeaders ?? []).map((h) => `${JSON.stringify(h.name)}: ${JSON.stringify(h.value)}`),
   ];
   if (op.noAuth) {
@@ -793,6 +874,14 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       lines.push(`      body: JSON.stringify({ ${f.name}: ${sdk} }),`);
     } else {
       lines.push(`      body: JSON.stringify(serializeType(${JSON.stringify(rb.schemaRef)}, request)),`);
+    }
+  } else if (op.requestBody?.contentType === 'form') {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb)) {
+      const f = rb.unwrapField!;
+      lines.push(`      body: toFormBody({ ${f.name}: ${snakeToCamel(f.name)} }),`);
+    } else {
+      lines.push(`      body: toFormBody(serializeType(${JSON.stringify(rb.schemaRef)}, request) as Record<string, unknown>),`);
     }
   }
   lines.push('    });');
@@ -909,7 +998,9 @@ function emitResponseSwitch(
 
   const hasApiError = op.hasApiError || ir.models.some((m) => m.name === 'ApiError');
   lines.push('      default:');
-  if (hasApiError) {
+  if (picksErrorByBody(ir)) {
+    lines.push(`        throw errorFromBody(${preloadBody ? 'body' : 'await response.json()'});`);
+  } else if (hasApiError) {
     lines.push(
       `        throw new ApiError(${preloadBody ? 'body.errors' : '((await response.json()) as any).errors'});`,
     );
@@ -1114,6 +1205,17 @@ function generateUtils(ir: IR): string {
   lines.push('export function serializeType(_type: string, obj: unknown): unknown {');
   lines.push('  return serialize(obj);');
   lines.push('}');
+  if (hasFormBody(ir)) {
+    lines.push('');
+    lines.push('/** A form body (`application/x-www-form-urlencoded`) from a serialized request: empty fields are left out. */');
+    lines.push('export function toFormBody(value: Record<string, unknown>): URLSearchParams {');
+    lines.push('  const form = new URLSearchParams();');
+    lines.push('  for (const [key, item] of Object.entries(value)) {');
+    lines.push('    if (item !== undefined && item !== null) form.set(key, String(item));');
+    lines.push('  }');
+    lines.push('  return form;');
+    lines.push('}');
+  }
 
   return [...lines,
     '',

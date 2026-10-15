@@ -609,6 +609,19 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\treq.Header.Set("Content-Type", writer.FormDataContentType())');
   } else {
     const hasJSON = op.requestBody?.contentType === 'json';
+    const hasForm = op.requestBody?.contentType === 'form';
+    if (hasForm) {
+      const rb = op.requestBody!;
+      if (shouldUnwrapBody(rb)) {
+        const f = rb.unwrapField!;
+        lines.push(`\tform, err := formValues(map[string]any{${JSON.stringify(f.name)}: ${snakeToCamel(f.name)}})`);
+      } else {
+        lines.push('\tform, err := formValues(request)');
+      }
+      lines.push('\tif err != nil {');
+      lines.push(`\t\t${retErr()}`);
+      lines.push('\t}');
+    }
     if (hasJSON) {
       const rb = op.requestBody!;
       if (shouldUnwrapBody(rb)) {
@@ -660,13 +673,13 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
       lines.push('\tu.RawQuery = q.Encode()');
       lines.push(
         `\treq, err := http.NewRequestWithContext(ctx, "${op.method}", u.String(), ${
-          hasJSON ? 'bytes.NewReader(body)' : 'nil'
+          hasJSON ? 'bytes.NewReader(body)' : hasForm ? 'strings.NewReader(form.Encode())' : 'nil'
         })`,
       );
     } else {
       lines.push(
         `\treq, err := http.NewRequestWithContext(ctx, "${op.method}", ${urlExpr}, ${
-          hasJSON ? 'bytes.NewReader(body)' : 'nil'
+          hasJSON ? 'bytes.NewReader(body)' : hasForm ? 'strings.NewReader(form.Encode())' : 'nil'
         })`,
       );
     }
@@ -674,6 +687,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push(`\t\t${retErr()}`);
     lines.push('\t}');
     if (hasJSON) lines.push('\treq.Header.Set("Content-Type", "application/json")');
+    if (hasForm) lines.push('\treq.Header.Set("Content-Type", "application/x-www-form-urlencoded")');
     for (const h of op.requestHeaders ?? []) lines.push(`\treq.Header.Set(${JSON.stringify(h.name)}, ${JSON.stringify(h.value)})`);
   }
 
@@ -737,7 +751,12 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push(`\t\t${retOAuth()}`);
   }
 
-  if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
+  if (goPicksErrorByBody(ir)) {
+    lines.push('\tdefault:');
+    if (op.successResponse.isRedirect) lines.push('\t\treturn "", errorFromBody(resp)');
+    else if (!returnsValue) lines.push('\t\treturn errorFromBody(resp)');
+    else lines.push('\t\treturn nil, errorFromBody(resp)');
+  } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
     lines.push('\tdefault:');
     lines.push('\t\tvar e ApiError');
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&e); err != nil {');
@@ -756,6 +775,114 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
 
   lines.push('\t}');
   lines.push('}');
+}
+
+/** Both error models exist, so an error's class is read off its body. */
+function goPicksErrorByBody(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+}
+
+function emitGoFormValues(lines: string[]): void {
+  lines.push('// formValues turns a request into a form body (application/x-www-form-urlencoded):');
+  lines.push('// the fields go by their JSON names, empty ones are left out.');
+  lines.push('func formValues(v any) (url.Values, error) {');
+  lines.push('\tdata, err := json.Marshal(v)');
+  lines.push('\tif err != nil {');
+  lines.push('\t\treturn nil, err');
+  lines.push('\t}');
+  lines.push('\tvar fields map[string]any');
+  lines.push('\tif err := json.Unmarshal(data, &fields); err != nil {');
+  lines.push('\t\treturn nil, err');
+  lines.push('\t}');
+  lines.push('\tform := url.Values{}');
+  lines.push('\tfor key, value := range fields {');
+  lines.push('\t\tif value != nil {');
+  lines.push('\t\t\tform.Set(key, fmt.Sprintf("%v", value))');
+  lines.push('\t\t}');
+  lines.push('\t}');
+  lines.push('\treturn form, nil');
+  lines.push('}');
+  lines.push('');
+}
+
+function emitGoErrorFromBody(lines: string[]): void {
+  lines.push('// errorFromBody reads an error answer. Its body is either {"errors": [...]} or the');
+  lines.push('// OAuth form {"error", "error_description"}, which also comes with 400 and 403');
+  lines.push('// (insufficient_scope, invalid_grant): the body decides the type.');
+  lines.push('func errorFromBody(resp *http.Response) error {');
+  lines.push('\tdata, err := io.ReadAll(resp.Body)');
+  lines.push('\tif err != nil {');
+  lines.push('\t\treturn fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)');
+  lines.push('\t}');
+  lines.push('\tvar probe struct {');
+  lines.push('\t\tErrors json.RawMessage `json:"errors"`');
+  lines.push('\t\tError  *string         `json:"error"`');
+  lines.push('\t}');
+  lines.push('\tif json.Unmarshal(data, &probe) == nil && probe.Errors == nil && probe.Error != nil {');
+  lines.push('\t\tvar e OAuthError');
+  lines.push('\t\tif err := json.Unmarshal(data, &e); err == nil {');
+  lines.push('\t\t\treturn &e');
+  lines.push('\t\t}');
+  lines.push('\t}');
+  lines.push('\tvar e ApiError');
+  lines.push('\tif err := json.Unmarshal(data, &e); err != nil {');
+  lines.push('\t\treturn fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)');
+  lines.push('\t}');
+  lines.push('\treturn &e');
+  lines.push('}');
+  lines.push('');
+}
+
+function emitGoOAuthHelpers(lines: string[], authorizeUrl: string): void {
+  lines.push(`const PachcaAuthorizeURL = ${JSON.stringify(authorizeUrl)}`);
+  lines.push('');
+  lines.push('// AuthorizeURLParams describes the authorization link of the OAuth flow.');
+  lines.push('type AuthorizeURLParams struct {');
+  lines.push('\t// ClientID of the bot');
+  lines.push('\tClientID string');
+  lines.push("\t// RedirectURI is one of the bot's redirect addresses, matched exactly");
+  lines.push('\tRedirectURI string');
+  lines.push('\t// State is a random value you keep to recognise the return; each one is valid once');
+  lines.push('\tState string');
+  lines.push('\t// CodeChallenge of a pair from CreatePKCE');
+  lines.push('\tCodeChallenge string');
+  lines.push('\t// AuthorizeURL of another installation; PachcaAuthorizeURL when empty');
+  lines.push('\tAuthorizeURL string');
+  lines.push('}');
+  lines.push('');
+  lines.push('// BuildAuthorizeURL returns the authorization link for a message button: the consent screen with PKCE (S256).');
+  lines.push('func BuildAuthorizeURL(p AuthorizeURLParams) string {');
+  lines.push('\tbase := p.AuthorizeURL');
+  lines.push('\tif base == "" {');
+  lines.push('\t\tbase = PachcaAuthorizeURL');
+  lines.push('\t}');
+  lines.push('\tquery := url.Values{}');
+  lines.push('\tquery.Set("client_id", p.ClientID)');
+  lines.push('\tquery.Set("redirect_uri", p.RedirectURI)');
+  lines.push('\tquery.Set("response_type", "code")');
+  lines.push('\tquery.Set("state", p.State)');
+  lines.push('\tquery.Set("code_challenge", p.CodeChallenge)');
+  lines.push('\tquery.Set("code_challenge_method", "S256")');
+  lines.push('\treturn base + "?" + query.Encode()');
+  lines.push('}');
+  lines.push('');
+  lines.push('// PKCE is a pair for the OAuth flow: keep CodeVerifier until the code exchange, put CodeChallenge into the link.');
+  lines.push('type PKCE struct {');
+  lines.push('\tCodeVerifier  string');
+  lines.push('\tCodeChallenge string');
+  lines.push('}');
+  lines.push('');
+  lines.push('// CreatePKCE returns a random code verifier and its SHA-256 challenge.');
+  lines.push('func CreatePKCE() (PKCE, error) {');
+  lines.push('\tbuf := make([]byte, 32)');
+  lines.push('\tif _, err := rand.Read(buf); err != nil {');
+  lines.push('\t\treturn PKCE{}, err');
+  lines.push('\t}');
+  lines.push('\tverifier := base64.RawURLEncoding.EncodeToString(buf)');
+  lines.push('\tsum := sha256.Sum256([]byte(verifier))');
+  lines.push('\treturn PKCE{CodeVerifier: verifier, CodeChallenge: base64.RawURLEncoding.EncodeToString(sum[:])}, nil');
+  lines.push('}');
+  lines.push('');
 }
 
 /** The net/http constant for a success status the spec declares. */
@@ -1063,10 +1190,14 @@ function generateClient(ir: IR): string {
   const needErrors = ir.services.some((s) => s.operations.some((o) => o.successResponse.isRedirect));
   const needPolling = ir.services.some(hasWebhookPolling);
   const needMultipart = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'multipart'));
-  const needIO = needMultipart || ir.services.some((s) => s.operations.some((o) => o.successResponse.isBinary));
+  const needForm = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'form'));
+  const needIO =
+    needMultipart || goPicksErrorByBody(ir) || ir.services.some((s) => s.operations.some((o) => o.successResponse.isBinary));
   const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"net/http"', '"time"'];
   if (needBytes) imports.push('"bytes"');
-  if (needURL) imports.push('"net/url"');
+  if (needURL || needForm || ir.oauthAuthorizeUrl) imports.push('"net/url"');
+  if (needForm) imports.push('"strings"');
+  if (ir.oauthAuthorizeUrl) imports.push('"crypto/rand"', '"crypto/sha256"', '"encoding/base64"');
   if (needErrors || needPolling) imports.push('"errors"');
   if (needIO) imports.push('"io"');
   if (needMultipart) imports.push('"mime/multipart"');
@@ -1076,6 +1207,10 @@ function generateClient(ir: IR): string {
   for (const imp of imports) lines.push(`\t${imp}`);
   lines.push(')');
   lines.push('');
+
+  if (needForm) emitGoFormValues(lines);
+  if (goPicksErrorByBody(ir)) emitGoErrorFromBody(lines);
+  if (ir.oauthAuthorizeUrl) emitGoOAuthHelpers(lines, ir.oauthAuthorizeUrl);
 
   lines.push('type authTransport struct {');
   lines.push('\ttoken string');

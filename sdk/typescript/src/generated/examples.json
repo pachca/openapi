@@ -412,6 +412,20 @@
     "usage": "const response = client.oauth.getTokenInfo()",
     "output": "AccessTokenInfo({ id: number, token: string, name: string | null, userId: number, scopes: OAuthScope[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null })"
   },
+  "OAuthFlowOperations_revokeToken": {
+    "usage": "const request: OAuthRevokeRequest = {\n  token: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n  tokenTypeHint: OAuthTokenTypeHint.AccessToken,\n  clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n  clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n}\nclient.oauth.revokeToken(request)",
+    "imports": [
+      "OAuthRevokeRequest",
+      "OAuthTokenTypeHint"
+    ]
+  },
+  "OAuthFlowOperations_exchangeToken": {
+    "usage": "const request: OAuthTokenRequest = {\n  grantType: \"authorization_code\",\n  code: \"ZmFrZV9hdXRoX2NvZGU\",\n  redirectUri: \"https://bot.example.com/oauth/callback\",\n  clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n  clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\",\n  codeVerifier: \"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"\n}\nconst response = client.oauth.exchangeToken(request)",
+    "output": "OAuthToken({ accessToken: string, tokenType: string, refreshToken: string, scope: string, createdAt: number })",
+    "imports": [
+      "OAuthTokenRequest"
+    ]
+  },
   "ProfileOperations_getProfile": {
     "usage": "const response = client.profile.getProfile()",
     "output": "User({ id: number, firstName: string | null, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string | null })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })"

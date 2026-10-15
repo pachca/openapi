@@ -19,10 +19,74 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import java.io.Closeable
 import java.time.OffsetDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+
+internal val pachcaJson = Json { explicitNulls = false; ignoreUnknownKeys = true }
+
+/** A form body (application/x-www-form-urlencoded): the fields go by their wire names, empty ones are left out. */
+internal fun formParameters(element: JsonElement): Parameters = Parameters.build {
+    (element as? JsonObject)?.forEach { (key, value) ->
+        if (value is JsonPrimitive && value !is JsonNull) append(key, value.content)
+    }
+}
+
+/**
+ * An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
+ * which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
+ */
+internal suspend fun errorFromResponse(response: HttpResponse): Exception {
+    val text = response.bodyAsText()
+    val element = runCatching { pachcaJson.parseToJsonElement(text) }.getOrNull()
+    val code = (element as? JsonObject)?.get("error") as? JsonPrimitive
+    if (element is JsonObject && element["errors"] == null && code != null && code.isString) {
+        val description = element["error_description"] as? JsonPrimitive
+        return OAuthError(error = code.content, errorDescription = description?.content ?: "")
+    }
+    return pachcaJson.decodeFromString(ApiError.serializer(), text)
+}
+
+/** The authorization link and the PKCE pair of the OAuth flow. */
+object PachcaOAuth {
+    const val AUTHORIZE_URL = "https://app.pachca.com/apps/authorize"
+
+    /** Keep [codeVerifier] until the code exchange, put [codeChallenge] into the link. */
+    data class Pkce(val codeVerifier: String, val codeChallenge: String)
+
+    /** A random code verifier and its SHA-256 challenge. */
+    fun createPkce(): Pkce {
+        val bytes = ByteArray(32).also { java.security.SecureRandom().nextBytes(it) }
+        val encoder = java.util.Base64.getUrlEncoder().withoutPadding()
+        val verifier = encoder.encodeToString(bytes)
+        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray(Charsets.US_ASCII))
+        return Pkce(verifier, encoder.encodeToString(digest))
+    }
+
+    /** The authorization link for a message button: the consent screen with PKCE (S256). */
+    fun buildAuthorizeUrl(
+        clientId: String,
+        redirectUri: String,
+        state: String,
+        codeChallenge: String,
+        authorizeUrl: String = AUTHORIZE_URL,
+    ): String {
+        val query = listOf(
+            "client_id" to clientId,
+            "redirect_uri" to redirectUri,
+            "response_type" to "code",
+            "state" to state,
+            "code_challenge" to codeChallenge,
+            "code_challenge_method" to "S256",
+        ).joinToString("&") { (key, value) -> "$key=${java.net.URLEncoder.encode(value, "UTF-8")}" }
+        return "$authorizeUrl?$query"
+    }
+}
 
 interface SecurityService {
     suspend fun getAuditEvents(
@@ -82,7 +146,7 @@ class SecurityServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -251,7 +315,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -274,7 +338,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<BotResponseDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -283,7 +347,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -299,7 +363,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -330,7 +394,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -356,7 +420,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -379,7 +443,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<BotSelfTokenResponseDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -391,7 +455,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body<BotCreateResponseDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -400,7 +464,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<BotCreateResponseDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -409,7 +473,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<BotResponseDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -421,7 +485,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body<BotAccessTokenDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -430,7 +494,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<BotAccessTokenDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -442,7 +506,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<BotSelfResponseDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -454,7 +518,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<BotResponseDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -470,7 +534,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<AvatarDataDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -486,7 +550,7 @@ class BotsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<BotAccessTokenDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -495,7 +559,7 @@ class BotsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -504,7 +568,7 @@ class BotsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -513,7 +577,7 @@ class BotsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -522,7 +586,7 @@ class BotsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -688,7 +752,7 @@ class ChatsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -730,7 +794,7 @@ class ChatsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<ChatDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -740,7 +804,7 @@ class ChatsServiceImpl internal constructor(
             302 -> response.headers[HttpHeaders.Location]
                 ?: error("Missing Location header in redirect response")
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -757,7 +821,7 @@ class ChatsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -783,7 +847,7 @@ class ChatsServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body<ChatDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -796,7 +860,7 @@ class ChatsServiceImpl internal constructor(
         return when (response.status.value) {
             202 -> response.body<ChatExportDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -808,7 +872,7 @@ class ChatsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<ChatDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -817,7 +881,7 @@ class ChatsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -833,7 +897,7 @@ class ChatsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<AvatarDataDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -842,7 +906,7 @@ class ChatsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -854,7 +918,7 @@ class ChatsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -863,7 +927,7 @@ class ChatsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -933,7 +997,7 @@ class MembersServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -968,7 +1032,7 @@ class MembersServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -980,7 +1044,7 @@ class MembersServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -996,7 +1060,7 @@ class MembersServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1005,7 +1069,7 @@ class MembersServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1014,7 +1078,7 @@ class MembersServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1023,7 +1087,7 @@ class MembersServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -1045,7 +1109,7 @@ class CustomPropertiesServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -1075,7 +1139,7 @@ class FilesServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<ByteArray>()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1109,7 +1173,7 @@ class FilesServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -1172,7 +1236,7 @@ class DraftsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1206,7 +1270,7 @@ class DraftsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<DraftDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1218,7 +1282,7 @@ class DraftsServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body<DraftDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1230,7 +1294,7 @@ class DraftsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<DraftDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1239,7 +1303,7 @@ class DraftsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -1303,7 +1367,7 @@ class GroupTagsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1326,7 +1390,7 @@ class GroupTagsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<GroupTagDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1342,7 +1406,7 @@ class GroupTagsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1368,7 +1432,7 @@ class GroupTagsServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body<GroupTagDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1380,7 +1444,7 @@ class GroupTagsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<GroupTagDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1389,7 +1453,7 @@ class GroupTagsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -1464,7 +1528,7 @@ class MessagesServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1498,7 +1562,7 @@ class MessagesServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<MessageDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1510,7 +1574,7 @@ class MessagesServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body<MessageDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1522,7 +1586,7 @@ class MessagesServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1531,7 +1595,7 @@ class MessagesServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1543,7 +1607,7 @@ class MessagesServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<MessageDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1552,7 +1616,7 @@ class MessagesServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1561,7 +1625,7 @@ class MessagesServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -1608,7 +1672,7 @@ class ReactionsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1634,7 +1698,7 @@ class ReactionsServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1650,7 +1714,7 @@ class ReactionsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -1681,7 +1745,7 @@ class ReadMembersServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -1736,7 +1800,7 @@ class ThreadsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1768,7 +1832,7 @@ class ThreadsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<ThreadDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1777,7 +1841,7 @@ class ThreadsServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body<ThreadDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1786,7 +1850,7 @@ class ThreadsServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body<ThreadDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -1794,6 +1858,14 @@ class ThreadsServiceImpl internal constructor(
 interface OAuthService {
     suspend fun getTokenInfo(): AccessTokenInfo {
         throw NotImplementedError("OAuth.getTokenInfo is not implemented")
+    }
+
+    suspend fun revokeToken(request: OAuthRevokeRequest) {
+        throw NotImplementedError("OAuth.revokeToken is not implemented")
+    }
+
+    suspend fun exchangeToken(request: OAuthTokenRequest): OAuthToken {
+        throw NotImplementedError("OAuth.exchangeToken is not implemented")
     }
 }
 
@@ -1806,7 +1878,30 @@ class OAuthServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<AccessTokenInfoDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun revokeToken(request: OAuthRevokeRequest) {
+        val response = client.post("$baseUrl/oauth/revoke") {
+            setBody(FormDataContent(formParameters(pachcaJson.encodeToJsonElement(OAuthRevokeRequest.serializer(), request))))
+        }
+        when (response.status.value) {
+            200 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw errorFromResponse(response)
+        }
+    }
+
+    override suspend fun exchangeToken(request: OAuthTokenRequest): OAuthToken {
+        val response = client.post("$baseUrl/oauth/token") {
+            setBody(FormDataContent(formParameters(pachcaJson.encodeToJsonElement(OAuthTokenRequest.serializer(), request))))
+            headers.remove(HttpHeaders.Authorization)
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -1850,7 +1945,7 @@ class ProfileServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<UserDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1859,7 +1954,7 @@ class ProfileServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<UserStatusDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1875,7 +1970,7 @@ class ProfileServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<AvatarDataDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1887,7 +1982,7 @@ class ProfileServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<UserStatusDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1896,7 +1991,7 @@ class ProfileServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1905,7 +2000,7 @@ class ProfileServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -1914,7 +2009,7 @@ class ProfileServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<AccessTokenInfoDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -2031,7 +2126,7 @@ class SearchServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2093,7 +2188,7 @@ class SearchServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2153,7 +2248,7 @@ class SearchServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2249,7 +2344,7 @@ class TasksServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2285,7 +2380,7 @@ class TasksServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<TaskDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2297,7 +2392,7 @@ class TasksServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body<TaskDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2309,7 +2404,7 @@ class TasksServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<TaskDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2318,7 +2413,7 @@ class TasksServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -2390,7 +2485,7 @@ class UsersServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2413,7 +2508,7 @@ class UsersServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<UserDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2422,7 +2517,7 @@ class UsersServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<UserStatusDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2434,7 +2529,7 @@ class UsersServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body<UserDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2446,7 +2541,7 @@ class UsersServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<UserDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2462,7 +2557,7 @@ class UsersServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<AvatarDataDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2474,7 +2569,7 @@ class UsersServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body<UserStatusDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2483,7 +2578,7 @@ class UsersServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2492,7 +2587,7 @@ class UsersServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2501,7 +2596,7 @@ class UsersServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -2528,7 +2623,7 @@ class ViewsServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2540,7 +2635,7 @@ class ViewsServiceImpl internal constructor(
         when (response.status.value) {
             201 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -2577,7 +2672,7 @@ class CommonServiceImpl internal constructor(
         return when (response.status.value) {
             201 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2613,7 +2708,7 @@ class CommonServiceImpl internal constructor(
         return when (response.status.value) {
             200 -> response.body()
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2626,7 +2721,7 @@ class CommonServiceImpl internal constructor(
         return when (response.status.value) {
             202 -> response.body<ChatExportDataWrapper>().data
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 
@@ -2636,7 +2731,7 @@ class CommonServiceImpl internal constructor(
             302 -> response.headers[HttpHeaders.Location]
                 ?: error("Missing Location header in redirect response")
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }
@@ -2660,7 +2755,7 @@ class LinkPreviewsServiceImpl internal constructor(
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }

@@ -10,6 +10,14 @@ from .models import (
 )
 from .utils import deserialize, serialize, RetryTransport
 
+
+def _error_from_body(body: object) -> Exception:
+    # An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
+    # which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
+    if isinstance(body, dict) and isinstance(body.get("error"), str) and "errors" not in body:
+        return OAuthError(body["error"], str(body.get("error_description") or ""))
+    return deserialize(ApiError, body)
+
 class MembersService:
     async def add_members(
         self,
@@ -38,7 +46,7 @@ class MembersServiceImpl(MembersService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 class ChatsService:
@@ -74,7 +82,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def archive_chat(
         self,
@@ -89,7 +97,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"

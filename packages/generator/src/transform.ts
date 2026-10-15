@@ -483,10 +483,12 @@ function transformRequestBody(
 
   const contentTypes = Object.keys(endpoint.requestBody.content);
   const isMultipart = contentTypes.some((ct) => ct.includes('multipart'));
-  const contentType: 'json' | 'multipart' = isMultipart ? 'multipart' : 'json';
+  const isForm = !isMultipart && contentTypes.includes('application/x-www-form-urlencoded');
+  const contentType: IRRequestBody['contentType'] = isMultipart ? 'multipart' : isForm ? 'form' : 'json';
 
   const mediaType =
     endpoint.requestBody.content['multipart/form-data'] ||
+    endpoint.requestBody.content['application/x-www-form-urlencoded'] ||
     endpoint.requestBody.content['application/json'];
   if (!mediaType) return undefined;
 
@@ -757,51 +759,13 @@ function generateResponseType(
 
 // ----- Main transform -----
 
-/** Names of the schemas these parts of the spec reach through `$ref`, transitively. */
-function reachableSchemas(roots: unknown[], schemas: Record<string, Schema>): Set<string> {
-  const seen = new Set<string>();
-  const walk = (node: unknown): void => {
-    if (!node || typeof node !== 'object') return;
-    if (Array.isArray(node)) {
-      node.forEach(walk);
-      return;
-    }
-    const ref = (node as { $ref?: unknown }).$ref;
-    if (typeof ref === 'string') {
-      const name = refName(ref);
-      if (!seen.has(name)) {
-        seen.add(name);
-        walk(schemas[name]);
-      }
-    }
-    for (const value of Object.values(node)) walk(value);
-  };
-  roots.forEach(walk);
-  return seen;
-}
-
-/**
- * Schemas only the OAuth flow uses — its requests and answers. The SDK has no
- * method for those steps (`x-oauth-flow`), so their types would only be noise.
- */
-function oauthFlowOnlySchemas(spec: ParsedAPI): Set<string> {
-  const parts = (endpoints: Endpoint[]): unknown[] =>
-    endpoints.flatMap((e) => [e.parameters, e.requestBody, e.responses]);
-  const flow = reachableSchemas(parts(spec.endpoints.filter((e) => e.oauthFlow)), spec.schemas);
-  if (flow.size === 0) return flow;
-  const rest = reachableSchemas(parts(spec.endpoints.filter((e) => !e.oauthFlow)), spec.schemas);
-  return new Set([...flow].filter((name) => !rest.has(name)));
-}
-
 export function transform(spec: ParsedAPI): IR {
   const enums: IREnum[] = [];
   const models: IRModel[] = [];
   const unions: IRUnion[] = [];
-  const flowOnly = oauthFlowOnlySchemas(spec);
 
   // Classify and transform schemas
   for (const [name, schema] of Object.entries(spec.schemas)) {
-    if (flowOnly.has(name)) continue;
     if (isUnion(schema)) {
       unions.push(transformUnion(name, schema, spec.schemas));
     } else if (isEnumSchema(schema)) {
@@ -820,8 +784,6 @@ export function transform(spec: ParsedAPI): IR {
   const responses: IRResponseType[] = [];
 
   for (const endpoint of spec.endpoints) {
-    // A step of the OAuth flow is served by OAuth libraries; the SDK authenticates with the token it yields.
-    if (endpoint.oauthFlow) continue;
     const op = transformOperation(endpoint, spec.schemas, models);
     const tag = op.tag;
 
@@ -904,11 +866,13 @@ export function transform(spec: ParsedAPI): IR {
   }
 
   const baseUrl = spec.servers[0]?.url;
+  const oauthAuthorizeUrl = spec.endpoints.find((e) => e.oauthAuthorizeUrl)?.oauthAuthorizeUrl;
 
   return {
     title: spec.info.title,
     version: spec.info.version,
     baseUrl,
+    oauthAuthorizeUrl,
     enums,
     models,
     unions,

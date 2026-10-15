@@ -25,6 +25,7 @@ import {
   BotWebhookSelfUpdateRequest,
   BotSelfResponse,
   BotUpdateRequest,
+  AvatarData,
   BotTokenUpdateRequest,
   ListChatsParams,
   ListChatsResponse,
@@ -33,8 +34,8 @@ import {
   ListCompanyChatsResponse,
   ChatCreateRequest,
   ExportRequest,
+  ChatExport,
   ChatUpdateRequest,
-  AvatarData,
   MarkChatUnreadRequest,
   ListMembersParams,
   ListMembersResponse,
@@ -293,12 +294,20 @@ export class BotsService {
     throw new Error("Bots.updateBot is not implemented");
   }
 
+  async updateBotAvatar(id: number, image: Blob): Promise<AvatarData> {
+    throw new Error("Bots.updateBotAvatar is not implemented");
+  }
+
   async updateBotToken(id: number, tokenId: number, request: BotTokenUpdateRequest): Promise<BotAccessToken> {
     throw new Error("Bots.updateBotToken is not implemented");
   }
 
   async deleteBot(id: number): Promise<void> {
     throw new Error("Bots.deleteBot is not implemented");
+  }
+
+  async deleteBotAvatar(id: number): Promise<void> {
+    throw new Error("Bots.deleteBotAvatar is not implemented");
   }
 
   async deleteBotToken(id: number, tokenId: number): Promise<void> {
@@ -614,6 +623,25 @@ export class BotsServiceImpl extends BotsService {
     }
   }
 
+  async updateBotAvatar(id: number, image: Blob): Promise<AvatarData> {
+    const form = new FormData();
+    form.set("image", image, "upload");
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}/avatar`, {
+      method: "PUT",
+      headers: this.headers,
+      body: form,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserializeType("AvatarData", body.data) as AvatarData;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
   async updateBotToken(id: number, tokenId: number, request: BotTokenUpdateRequest): Promise<BotAccessToken> {
     const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}/tokens/${tokenId}`, {
       method: "PUT",
@@ -633,6 +661,21 @@ export class BotsServiceImpl extends BotsService {
 
   async deleteBot(id: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+
+  async deleteBotAvatar(id: number): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}/avatar`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -706,7 +749,7 @@ export class ChatsService {
     throw new Error("Chats.createChat is not implemented");
   }
 
-  async requestExport(request: ExportRequest): Promise<void> {
+  async requestExport(request: ExportRequest): Promise<ChatExport> {
     throw new Error("Chats.requestExport is not implemented");
   }
 
@@ -869,19 +912,20 @@ export class ChatsServiceImpl extends ChatsService {
     }
   }
 
-  async requestExport(request: ExportRequest): Promise<void> {
+  async requestExport(request: ExportRequest): Promise<ChatExport> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/exports`, {
       method: "POST",
-      headers: { ...this.headers, "Content-Type": "application/json" },
+      headers: { ...this.headers, "Content-Type": "application/json", "Prefer": "return=representation" },
       body: JSON.stringify(serializeType("ExportRequest", request)),
     });
+    const body = await response.json();
     switch (response.status) {
-      case 204:
-        return;
+      case 202:
+        return deserializeType("ChatExport", body.data) as ChatExport;
       case 401:
-        throw new OAuthError(((await response.json()) as any).error);
+        throw new OAuthError(body.error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw new ApiError(body.errors);
     }
   }
 
@@ -2783,7 +2827,7 @@ export class CommonService {
     throw new Error("Common.listProperties is not implemented");
   }
 
-  async requestExport(request: ExportRequest): Promise<void> {
+  async requestExport(request: ExportRequest): Promise<ChatExport> {
     throw new Error("Common.requestExport is not implemented");
   }
 
@@ -2856,19 +2900,20 @@ export class CommonServiceImpl extends CommonService {
     }
   }
 
-  async requestExport(request: ExportRequest): Promise<void> {
+  async requestExport(request: ExportRequest): Promise<ChatExport> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/exports`, {
       method: "POST",
-      headers: { ...this.headers, "Content-Type": "application/json" },
+      headers: { ...this.headers, "Content-Type": "application/json", "Prefer": "return=representation" },
       body: JSON.stringify(serializeType("ExportRequest", request)),
     });
+    const body = await response.json();
     switch (response.status) {
-      case 204:
-        return;
+      case 202:
+        return deserializeType("ChatExport", body.data) as ChatExport;
       case 401:
-        throw new OAuthError(((await response.json()) as any).error);
+        throw new OAuthError(body.error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw new ApiError(body.errors);
     }
   }
 

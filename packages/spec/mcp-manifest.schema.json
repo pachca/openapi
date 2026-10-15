@@ -346,6 +346,13 @@
             "multipart/form-data"
           ]
         },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Headers the server sends with every call of the tool: a header the API allows only one value of is a choice already made, not an argument. Prefer: return=representation makes the answer carry the record the call made."
+        },
         "arguments": {
           "type": "object",
           "additionalProperties": {

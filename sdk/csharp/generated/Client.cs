@@ -326,6 +326,14 @@ public class BotsService
         throw new NotImplementedException("Bots.updateBot is not implemented");
     }
 
+    public virtual async System.Threading.Tasks.Task<AvatarData> UpdateBotAvatarAsync(
+        int id,
+        byte[] image,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.updateBotAvatar is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<BotAccessToken> UpdateBotTokenAsync(
         int id,
         long tokenId,
@@ -338,6 +346,11 @@ public class BotsService
     public virtual async System.Threading.Tasks.Task DeleteBotAsync(int id, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Bots.deleteBot is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteBotAvatarAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.deleteBotAvatar is not implemented");
     }
 
     public virtual async System.Threading.Tasks.Task DeleteBotTokenAsync(
@@ -730,6 +743,29 @@ public sealed class BotsServiceImpl : BotsService
         }
     }
 
+    public override async System.Threading.Tasks.Task<AvatarData> UpdateBotAvatarAsync(
+        int id,
+        byte[] image,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/bots/{id}/avatar";
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(image), "image", "image");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = content;
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AvatarDataDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
     public override async System.Threading.Tasks.Task<BotAccessToken> UpdateBotTokenAsync(
         int id,
         long tokenId,
@@ -755,6 +791,23 @@ public sealed class BotsServiceImpl : BotsService
     public override async System.Threading.Tasks.Task DeleteBotAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/bots/{id}";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task DeleteBotAvatarAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/bots/{id}/avatar";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -871,7 +924,7 @@ public class ChatsService
         throw new NotImplementedException("Chats.createChat is not implemented");
     }
 
-    public virtual async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    public virtual async System.Threading.Tasks.Task<ChatExport> RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Chats.requestExport is not implemented");
     }
@@ -1098,17 +1151,18 @@ public sealed class ChatsServiceImpl : ChatsService
         }
     }
 
-    public override async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<ChatExport> RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/exports";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Headers.TryAddWithoutValidation("Prefer", "return=representation");
         httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
         using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         switch ((int)response.StatusCode)
         {
-            case 204:
-                return;
+            case 202:
+                return PachcaUtils.Deserialize<ChatExportDataWrapper>(json).Data;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -3777,7 +3831,7 @@ public class CommonService
         throw new NotImplementedException("Common.listProperties is not implemented");
     }
 
-    public virtual async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    public virtual async System.Threading.Tasks.Task<ChatExport> RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Common.requestExport is not implemented");
     }
@@ -3865,17 +3919,18 @@ public sealed class CommonServiceImpl : CommonService
         }
     }
 
-    public override async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<ChatExport> RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/exports";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Headers.TryAddWithoutValidation("Prefer", "return=representation");
         httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
         using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         switch ((int)response.StatusCode)
         {
-            case 204:
-                return;
+            case 202:
+                return PachcaUtils.Deserialize<ChatExportDataWrapper>(json).Data;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:

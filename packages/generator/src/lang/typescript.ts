@@ -770,18 +770,14 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
 
   lines.push(`    const response = await fetchWithRetry(${fetchTarget}, {`);
   if (op.method !== 'GET') lines.push(`      method: ${JSON.stringify(op.method)},`);
+  const ownHeaders = [
+    ...(op.requestBody?.contentType === 'json' ? ['"Content-Type": "application/json"'] : []),
+    ...(op.requestHeaders ?? []).map((h) => `${JSON.stringify(h.name)}: ${JSON.stringify(h.value)}`),
+  ];
   if (op.noAuth) {
-    if (op.requestBody?.contentType === 'json') {
-      lines.push('      headers: { "Content-Type": "application/json" },');
-    }
+    if (ownHeaders.length > 0) lines.push(`      headers: { ${ownHeaders.join(', ')} },`);
   } else {
-    lines.push(
-      `      headers: ${
-        op.requestBody?.contentType === 'json'
-          ? '{ ...this.headers, "Content-Type": "application/json" }'
-          : 'this.headers'
-      },`,
-    );
+    lines.push(`      headers: ${ownHeaders.length > 0 ? `{ ...this.headers, ${ownHeaders.join(', ')} }` : 'this.headers'},`);
   }
 
   if (op.successResponse.isRedirect) {

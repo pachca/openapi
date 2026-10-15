@@ -164,6 +164,8 @@ A personal token issued in the interface does not expire. One obtained by `pachc
 - `GET /bots/{id}` — Get bot
 - `PUT /bots/{id}` — Update bot
 - `DELETE /bots/{id}` — Delete bot
+- `PUT /bots/{id}/avatar` — Update bot avatar
+- `DELETE /bots/{id}/avatar` — Delete bot avatar
 - `POST /bots/{id}/recreate_token` — Recreate bot token
 - `POST /bots/{id}/rotate_client_secret` — Rotate bot client secret
 - `GET /bots/{id}/scopes` — Get bot scopes

@@ -275,7 +275,7 @@ export const chatFields: INodeProperties[] = [
 				name: 'webhookUrl',
 				type: 'string',
 				default: "",
-				description: 'Address that the webhook with the number of the finished export arrives at. Without it there is nowhere to take the number from: the person who ordered it gets an email and a notification, and the calling program gets nothing.',
+				description: 'Address that the webhook with the number of the finished export arrives at once the archive is assembled',
 				placeholder: 'https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2',
 			},
 		],

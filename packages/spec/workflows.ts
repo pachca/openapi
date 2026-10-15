@@ -767,27 +767,26 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       inline: false,
       steps: [
         {
-          description: 'Запроси экспорт',
-          descriptionEn: 'Request export',
-          command:
-            'pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>',
+          description: 'Запроси экспорт и возьми номер выгрузки из `data.id`',
+          descriptionEn: 'Request export and take the export id from `data.id`',
+          command: 'pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD>',
           apiMethod: 'POST',
           apiPath: '/chats/exports',
           notes:
-            '`start_at`, `end_at` (YYYY-MM-DD). Запрос асинхронный: ответ приходит пустым, без номера выгрузки. `webhook_url` формально не обязателен, но без него номер взять неоткуда — присылай его всегда',
+            '`start_at`, `end_at` (YYYY-MM-DD). Номер приходит с заголовком `Prefer: return=representation` и ответом `202`, CLI и SDK шлют его сами. Без заголовка ответ `204` без тела',
           notesEn:
-            '`start_at`, `end_at` (YYYY-MM-DD). The request is async: the response is empty and carries no export id. `webhook_url` is not formally required, but without it there is nowhere to get the id — always send it',
+            '`start_at`, `end_at` (YYYY-MM-DD). The id comes with the `Prefer: return=representation` header and a `202` response, the CLI and SDK send it themselves. Without the header the response is `204` with no body',
         },
         {
           description:
-            'Дождись вебхука: придёт JSON с `"type": "export"`, `"event": "ready"` и `export_id`',
+            'Дождись готовности архива: пока он собирается, скачивание отвечает `404` с кодом `export_file_not_found`. О готовности сообщает и вебхук на `webhook_url` с `"event": "ready"` и `export_id`',
           descriptionEn:
-            'Wait for webhook: JSON with `"type": "export"`, `"event": "ready"` and `export_id`',
+            'Wait for the archive: while it is being assembled, the download responds `404` with the `export_file_not_found` code. A webhook to `webhook_url` with `"event": "ready"` and `export_id` also reports readiness',
         },
         {
           description: 'Скачай файл экспорта',
           descriptionEn: 'Download export file',
-          command: 'pachca chats download-export <export_id>',
+          command: 'pachca chats download-export <id>',
           apiMethod: 'GET',
           apiPath: '/chats/exports/{id}',
           notes: 'Сервер вернёт 302, HTTP-клиент скачает файл автоматически',
@@ -795,9 +794,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
       notes:
-        '`webhook_url` обязателен — POST не возвращает id в ответе. Экспорт доступен только Владельцу на тарифе «Корпорация». Макс период: 45 дней (366 при указании конкретных чатов).',
+        'Экспорт доступен только Владельцу на тарифе «Корпорация». Макс период: 45 дней (366 при указании конкретных чатов). Следующий экспорт пространство может заказать через 90 секунд после предыдущего.',
       notesEn:
-        '`webhook_url` required — POST does not return id in response. Export available only to Owner on "Corporation" plan. Max period: 45 days (366 when specific chats are specified).',
+        'Export available only to Owner on "Corporation" plan. Max period: 45 days (366 when specific chats are specified). The workspace can order the next export 90 seconds after the previous one.',
     },
     {
       title: 'Найти активные чаты за период',
@@ -1650,9 +1649,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
       notes:
-        'Создание доступно только администраторам и владельцам (не ботам). Нет отдельного эндпоинта "добавить юзера в тег".',
+        'Создание доступно только администраторам и владельцам (не ботам). Нет отдельного эндпоинта "добавить юзера в тег". Бесплатное пространство отправляет не больше 50 писем-приглашений за сутки: сверх лимита `422` с кодом `daily_invites_limit`, время сброса — в `payload.reset_at`. С `--skip-email-notify` письмо не уходит и в лимит не идёт.',
       notesEn:
-        'Creation available only to admins and owners (not bots). No separate "add user to tag" endpoint.',
+        'Creation available only to admins and owners (not bots). No separate "add user to tag" endpoint. A free workspace sends no more than 50 invitation emails per day: beyond the limit `422` with the `daily_invites_limit` code, the reset time is in `payload.reset_at`. With `--skip-email-notify` no email is sent and nothing counts towards the limit.',
     },
     {
       title: 'Создать гостя в чат',

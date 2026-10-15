@@ -152,8 +152,10 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.ListBotTokensAsync()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.Bots.SelfUpdateBotWebhookAsync()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |
+| `client.Bots.UpdateBotAvatarAsync()` | [Загрузка аватара бота](/api/bots/update-avatar) |
 | `client.Bots.UpdateBotTokenAsync()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.Bots.DeleteBotAsync()` | [Удаление бота](/api/bots/delete) |
+| `client.Bots.DeleteBotAvatarAsync()` | [Удаление аватара бота](/api/bots/remove-avatar) |
 | `client.Bots.DeleteWebhookEventAsync()` | [Удаление события](/api/bots/remove-event) |
 | `client.Bots.DeleteBotTokenAsync()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |

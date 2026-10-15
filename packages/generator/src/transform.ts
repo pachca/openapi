@@ -17,6 +17,7 @@ import type {
   IROperation,
   IRParam,
   IRRequestBody,
+  IRRequestHeader,
   IRSuccessResponse,
   IRErrorResponse,
   IRParamsType,
@@ -663,9 +664,14 @@ function transformOperation(
   const methodName = operationIdToMethod(endpoint.id);
   const tag = endpoint.tags[0] || 'Common';
 
-  // Warn about unsupported parameter locations
+  // A header that allows exactly one value is sent as is; any other header or
+  // cookie parameter is not supported and skipped.
+  const requestHeaders: IRRequestHeader[] = [];
   for (const p of endpoint.parameters) {
-    if (p.in === 'header' || p.in === 'cookie') {
+    const only = p.in === 'header' && p.schema.enum?.length === 1 ? p.schema.enum[0] : undefined;
+    if (typeof only === 'string') {
+      requestHeaders.push({ name: p.name, value: only });
+    } else if (p.in === 'header' || p.in === 'cookie') {
       console.warn(`Warning: ${endpoint.id} — ${p.in} parameter "${p.name}" is not supported by the generator and will be skipped`);
     }
   }
@@ -679,6 +685,9 @@ function transformOperation(
     .map(transformParam);
 
   const requestBody = transformRequestBody(endpoint, schemas, models);
+  if (requestHeaders.length > 0 && requestBody?.contentType === 'multipart') {
+    throw new Error(`${endpoint.id}: a fixed request header on a multipart body is not supported by the generator`);
+  }
   const successResponse = transformSuccessResponse(endpoint);
   const errorResponses = transformErrorResponses(endpoint);
 
@@ -703,6 +712,7 @@ function transformOperation(
     noAuth: endpoint.requirements?.auth === false ? true : undefined,
     isPaginated: endpoint.paginated || undefined,
     deprecated: endpoint.deprecated || undefined,
+    requestHeaders: requestHeaders.length > 0 ? requestHeaders : undefined,
   };
 }
 

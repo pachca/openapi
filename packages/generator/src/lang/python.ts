@@ -554,11 +554,15 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     const pathStr = op.externalUrl
       ? camelToSnake(op.externalUrl)
       : path.includes('{') ? `f"${path}"` : `"${path}"`;
+    const headersArg = op.requestHeaders?.length
+      ? `headers={${op.requestHeaders.map((h) => `${JSON.stringify(h.name)}: ${JSON.stringify(h.value)}`).join(', ')}},`
+      : undefined;
     if (op.noAuth) {
       lines.push(`        async with httpx.AsyncClient() as _no_auth:`);
       lines.push(`            response = await _no_auth.${method}(`);
       lines.push(`                ${pathStr},`);
       if (hasQuery) lines.push('                params=query,');
+      if (headersArg) lines.push(`                ${headersArg}`);
       if (op.successResponse.isRedirect) lines.push('                follow_redirects=False,');
       if (hasBody) {
         const rb = op.requestBody!;
@@ -574,6 +578,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       lines.push(`        response = await self._client.${method}(`);
       lines.push(`            ${pathStr},`);
       if (hasQuery) lines.push('            params=query,');
+      if (headersArg) lines.push(`            ${headersArg}`);
       if (op.successResponse.isRedirect) lines.push('            follow_redirects=False,');
       if (hasBody) {
         const rb = op.requestBody!;

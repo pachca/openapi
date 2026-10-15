@@ -64,6 +64,7 @@ interface RouteConfig {
 	optionalQueryMap?: QueryMap[];
 	v1Collection?: string;
 	special?: string;
+	headers?: Record<string, string>;
 }
 
 // ============================================================================
@@ -194,6 +195,17 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/bots/{id}',
 			pathParams: [{ api: 'id', n8n: 'id' }],
 		},
+		updateAvatar: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/bots/{id}/avatar',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+			special: 'avatarUpload',
+		},
+		deleteAvatar: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/bots/{id}/avatar',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+		},
 		recreateToken: {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/bots/{id}/recreate_token',
@@ -287,7 +299,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 		requestExport: {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/chats/exports',
-			noDataWrapper: true,
+			headers: { 'Prefer': 'return=representation' },
 			bodyMap: [
 				{ api: 'start_at', n8n: 'startAt' },
 				{ api: 'end_at', n8n: 'endAt' },
@@ -1286,7 +1298,7 @@ async function executeRoute(
 
 	const response = await makeApiRequest.call(
 		this, route.method, url, finalBody,
-		Object.keys(qs).length > 0 ? qs : undefined, i,
+		Object.keys(qs).length > 0 ? qs : undefined, i, route.headers,
 	);
 
 	// === Handle response ===

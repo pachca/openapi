@@ -66,6 +66,8 @@
 - [Удаление аватара сотрудника](/api/users/remove-avatar)
 - [Загрузка аватара чата](/api/chats/update-avatar)
 - [Удаление аватара чата](/api/chats/remove-avatar)
+- [Загрузка аватара бота](/api/bots/update-avatar)
+- [Удаление аватара бота](/api/bots/remove-avatar)
 
 Данные аватара
 
@@ -143,12 +145,10 @@
 
 - [Новый чат](/api/chats/create)
 - [Добавление пользователей](/api/members/add)
-- [Экспорт сообщений](/api/chats/request-export)
 - [Информация о чате](/api/chats/get)
 - [Список чатов](/api/chats/list)
 - [Список чатов пространства](/api/chats/list-company)
 - [Поиск чатов](/api/search/list-chats)
-- [Скачать архив экспорта](/api/chats/download-export)
 - [Редактирование чата](/api/chats/update)
 - [Архивация чата](/api/chats/archive)
 - [Разархивация чата](/api/chats/unarchive)
@@ -172,6 +172,16 @@
 - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
 - `meet_room_url: string` (required) — Ссылка на Видеочат. Пример: `"https://meet.pachca.com/aqua-94bb21b5"`
 - `avatar_url: string` (required, nullable) — Ссылка на аватар чата. `null`, если аватар не задан. Пример: `"https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg"`
+
+
+## Экспорт сообщений
+
+- [Экспорт сообщений](/api/chats/request-export)
+- [Скачать архив экспорта](/api/chats/download-export)
+
+Заказанный экспорт сообщений
+
+- `id: integer, int32` (required) — Идентификатор экспорта. Пример: `22322`
 
 
 ## Тред
@@ -490,6 +500,9 @@
     Значения: `simple` — Свой формат: сообщение собирается из тела запроса по шаблону бота, `gitlab` — GitLab: Пачка сама разбирает запрос и собирает сообщение, `grafana` — Grafana: Пачка сама разбирает запрос и собирает сообщение
   - `unfurl_domains: array of string` (required) — Домены, ссылки на которые бот разворачивает. Пример: `["example.com"]`
   - `last_request_at: date-time` (required, nullable) — Дата и время последнего запроса на входящий вебхук бота (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если запросов не было. Пример: `"2025-05-15T14:30:00.000Z"`
+  - `url: string` (nullable) — Адрес входящего вебхука. `null`, если входящий вебхук у бота выключен. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M"`
+  - `secret_token: string` — Секрет подписи исходящего вебхука: им подписан заголовок `Pachca-Signature`. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA"`
+  - `last_request_body: string` (nullable) — Тело последнего запроса на входящий вебхук бота. Длиннее 128 КБ обрезается и заканчивается на `...[truncated]`. `null`, если запросов не было. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"{\"client\": \"ООО Ромашка\", \"amount\": 15000}"`
 - `oauth_client_enabled: boolean` (required) — Включена ли у бота авторизация от имени сотрудника. Пример: `true`
 - `oauth_client: object` (required) — Параметры авторизации от имени сотрудника. Может прийти и у бота с выключенной авторизацией, поэтому включена ли она, смотрите в `oauth_client_enabled`. У бота без токенов может прийти `null`.
   - `client_id: string` (required) — Идентификатор клиента для ссылки авторизации. Пример: `"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY"`

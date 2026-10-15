@@ -959,7 +959,8 @@ function emitMethodBody(
   const hasQueryParams = op.queryParams.length > 0;
   const hasJsonBody =
     op.requestBody && op.requestBody.contentType === 'json';
-  const needsBlock = hasQueryParams || hasJsonBody;
+  const fixedHeaders = op.requestHeaders ?? [];
+  const needsBlock = hasQueryParams || hasJsonBody || fixedHeaders.length > 0;
 
   const urlExpr = op.externalUrl ? op.externalUrl : `"$baseUrl${urlPath}"`;
 
@@ -1010,6 +1011,7 @@ function emitMethodBody(
         lines.push(`${indent3}setBody(request)`);
       }
     }
+    for (const h of fixedHeaders) lines.push(`${indent3}header(${JSON.stringify(h.name)}, ${JSON.stringify(h.value)})`);
     if (op.noAuth) lines.push(`${indent3}headers.remove(HttpHeaders.Authorization)`);
     lines.push(`${indent2}}`);
   } else {

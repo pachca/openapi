@@ -186,6 +186,7 @@ const RU_TO_EN: Record<string, string> = {
 	'Бот задач': 'Tasks bot',
 	'Бот релизов': 'Release bot',
 	'Заказ от {{ client }} на сумму {{ amount }} ₽': 'Order from {{ client }} for {{ amount }} ₽',
+	'{"client": "ООО Ромашка", "amount": 15000}': '{"client": "Acme Corp", "amount": 15000}',
 	'Привет, посмотри пожалуйста последний отчёт': 'Hi, please take a look at the latest report',
 	// Bot tokens, catalog page and scope catalog examples
 	'Сервер уведомлений': 'Notification server',

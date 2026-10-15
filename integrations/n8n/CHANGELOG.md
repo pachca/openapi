@@ -2,12 +2,13 @@
 
 # Changelog
 
-## 2.1.5 (2026-10-13)
+## 2.2.0 (2026-10-15)
 
-### Improvements
+### Features
 
-- Message: the `Entity ID` hint names a user rather than an employee — a direct message can go to a bot as well
-- Profile and User: the status `Expires At` hint describes only the date format and the offset
+- Chat: `Request Export` returns the export number in `id` right away — `Download Export` fetches the archive with it once it is assembled
+- Bot: new `Update Avatar` and `Delete Avatar` operations — the bot's avatar
+- Bot: `Get` returns the incoming webhook address, the signing secret and the body of the last request in `Webhook` when the token has the `bots:write` scope and you can manage the bot's tokens
 
 ## 2.1.4 (2026-10-13)
 

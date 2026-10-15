@@ -35,6 +35,7 @@ from .models import (
     BotWebhookSelfUpdateRequest,
     BotSelfResponse,
     BotUpdateRequest,
+    AvatarData,
     BotTokenUpdateRequest,
     ListChatsParams,
     ListChatsResponse,
@@ -47,8 +48,8 @@ from .models import (
     ChatActivity,
     ChatCreateRequest,
     ExportRequest,
+    ChatExport,
     ChatUpdateRequest,
-    AvatarData,
     MarkChatUnreadRequest,
     ListMembersParams,
     ListMembersResponse,
@@ -370,6 +371,13 @@ class BotsService:
     ) -> BotResponse:
         raise NotImplementedError("Bots.updateBot is not implemented")
 
+    async def update_bot_avatar(
+        self,
+        id: int,
+        image: bytes,
+    ) -> AvatarData:
+        raise NotImplementedError("Bots.updateBotAvatar is not implemented")
+
     async def update_bot_token(
         self,
         id: int,
@@ -383,6 +391,12 @@ class BotsService:
         id: int,
     ) -> None:
         raise NotImplementedError("Bots.deleteBot is not implemented")
+
+    async def delete_bot_avatar(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Bots.deleteBotAvatar is not implemented")
 
     async def delete_bot_token(
         self,
@@ -741,6 +755,26 @@ class BotsServiceImpl(BotsService):
             case _:
                 raise deserialize(ApiError, body)
 
+    async def update_bot_avatar(
+        self,
+        id: int,
+        image: bytes,
+    ) -> AvatarData:
+        data: dict[str, str] = {}
+        response = await self._client.post(
+            f"/bots/{id}/avatar",
+            data=data,
+            files={"image": image},
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(AvatarData, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
     async def update_bot_token(
         self,
         id: int,
@@ -766,6 +800,21 @@ class BotsServiceImpl(BotsService):
     ) -> None:
         response = await self._client.delete(
             f"/bots/{id}",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
+
+    async def delete_bot_avatar(
+        self,
+        id: int,
+    ) -> None:
+        response = await self._client.delete(
+            f"/bots/{id}/avatar",
         )
         match response.status_code:
             case 204:
@@ -853,7 +902,7 @@ class ChatsService:
     async def request_export(
         self,
         request: ExportRequest,
-    ) -> None:
+    ) -> ChatExport:
         raise NotImplementedError("Chats.requestExport is not implemented")
 
     async def update_chat(
@@ -1057,18 +1106,20 @@ class ChatsServiceImpl(ChatsService):
     async def request_export(
         self,
         request: ExportRequest,
-    ) -> None:
+    ) -> ChatExport:
         response = await self._client.post(
             "/chats/exports",
+            headers={"Prefer": "return=representation"},
             json=serialize(request),
         )
+        body = response.json()
         match response.status_code:
-            case 204:
-                return
+            case 202:
+                return deserialize(ChatExport, body["data"])
             case 401:
-                raise deserialize(OAuthError, response.json())
+                raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, response.json())
+                raise deserialize(ApiError, body)
 
     async def update_chat(
         self,
@@ -3253,7 +3304,7 @@ class CommonService:
     async def request_export(
         self,
         request: ExportRequest,
-    ) -> None:
+    ) -> ChatExport:
         raise NotImplementedError("Common.requestExport is not implemented")
 
     async def download_export(
@@ -3329,18 +3380,20 @@ class CommonServiceImpl(CommonService):
     async def request_export(
         self,
         request: ExportRequest,
-    ) -> None:
+    ) -> ChatExport:
         response = await self._client.post(
             "/chats/exports",
+            headers={"Prefer": "return=representation"},
             json=serialize(request),
         )
+        body = response.json()
         match response.status_code:
-            case 204:
-                return
+            case 202:
+                return deserialize(ChatExport, body["data"])
             case 401:
-                raise deserialize(OAuthError, response.json())
+                raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, response.json())
+                raise deserialize(ApiError, body)
 
     async def download_export(
         self,

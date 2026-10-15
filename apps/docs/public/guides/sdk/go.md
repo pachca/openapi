@@ -159,8 +159,10 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Bots.ListBotTokens()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.Bots.SelfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.Bots.UpdateBotAvatar()` | [Загрузка аватара бота](/api/bots/update-avatar) |
 | `client.Bots.UpdateBotToken()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.Bots.DeleteBot()` | [Удаление бота](/api/bots/delete) |
+| `client.Bots.DeleteBotAvatar()` | [Удаление аватара бота](/api/bots/remove-avatar) |
 | `client.Bots.DeleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
 | `client.Bots.DeleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.Security.GetAuditEvents()` | [Журнал аудита событий](/api/security/list) |

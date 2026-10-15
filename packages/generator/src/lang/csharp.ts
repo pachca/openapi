@@ -1145,6 +1145,9 @@ function emitMethodBody(
   if (op.noAuth) {
     lines.push(`${indent2}${reqVar}.Headers.Authorization = null;`);
   }
+  for (const h of op.requestHeaders ?? []) {
+    lines.push(`${indent2}${reqVar}.Headers.TryAddWithoutValidation(${JSON.stringify(h.name)}, ${JSON.stringify(h.value)});`);
+  }
 
   // Set body
   const hasJsonBody = op.requestBody && op.requestBody.contentType === 'json';

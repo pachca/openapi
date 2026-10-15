@@ -467,7 +467,7 @@ typespec.tsp → openapi.yaml → generate.ts + config.ts + workflows.ts → SKI
 | `pachca-users`    | `Users`, `Group tags`                              | —                                           | CRUD /users, GET/PUT/DELETE /users/{id}/status, CRUD /group_tags, GET /group_tags/{id}/users                                                  |
 | `pachca-chats`    | `Chats`, `Members`                                 | —                                           | CRUD /chats, archive/unarchive, CRUD members, tags, leave, exports, GET /company/chats, PUT /chats/{id}/unread, PUT/DELETE /chats/{id}/avatar |
 | `pachca-messages` | `Messages`, `Threads`, `Reactions`, `Read members` | `/uploads`, `/direct_url` → pachca-messages | CRUD /messages, pin, reactions, read_members, threads, uploads, unfurl                                                                        |
-| `pachca-bots`     | `Bots`                                             | —                                           | CRUD /bots, ротация токенов, PUT /bot/webhook, GET/DELETE /webhooks/events, GET /company/bots                                                 |
+| `pachca-bots`     | `Bots`                                             | —                                           | CRUD /bots, аватар, ротация токенов, PUT /bot/webhook, GET/DELETE /webhooks/events, GET /company/bots                                         |
 | `pachca-forms`    | `Views`                                            | —                                           | POST /views/open                                                                                                                              |
 | `pachca-tasks`    | `Tasks`                                            | —                                           | CRUD /tasks                                                                                                                                   |
 | `pachca-search`   | `Search`                                           | —                                           | GET /search/users, GET /search/chats, GET /search/messages                                                                                    |
@@ -1025,6 +1025,33 @@ interface EntityOperations {
 - Массив (page/per): `DataResponse<Entity[]>`
 - Массив (cursor): `PaginatedDataResponse<Entity[]>`
 - Пустой ответ (204): `EmptyResponse`
+
+### Ответ по заголовку `Prefer`
+
+Бэкенд может отдавать тело только по просьбе клиента: без заголовка прежний
+пустой `204`, с `Prefer: return=representation` — `202` с объектом (так
+устроен [Экспорт сообщений](POST /chats/exports)). В спеке это заголовок-литерал
+и два успешных ответа:
+
+```typespec
+  requestExport(
+    @header("Prefer") prefer?: "return=representation",
+    @body request: ExportRequest
+  ): {
+    @statusCode _: 202;
+    @header("Preference-Applied") preferenceApplied: "return=representation";
+    @body body: DataResponse<ChatExport>;
+  } | {
+    @statusCode _: 204;
+  } | { ... };
+```
+
+Заголовок с единственным допустимым значением генераторы считают уже сделанным
+выбором: SDK, CLI и нода n8n шлют его всегда и возвращают тело `202`, а в
+манифесте MCP он уходит в `request.headers`, а не в аргументы модели. Любой
+другой заголовок генераторы не поддерживают, а генератор MCP на нём падает. В
+английском описании метода фразы про заголовок и `204` для MCP переписываются
+через `HTTP_REWRITES` в `generate-mcp-manifest.ts`.
 
 ### Запись в «Последние обновления»
 

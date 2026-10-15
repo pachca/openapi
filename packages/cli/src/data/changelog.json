@@ -1,42 +1,22 @@
 [
   {
     "version": "2026.10.1",
-    "date": "13 октября 2026",
+    "date": "15 октября 2026",
     "changes": [
       {
-        "type": "-",
-        "command": "api",
-        "description": "`api POST /messages --describe`: личное сообщение адресуется идентификатором пользователя, в том числе бота, а имя без `@` и упоминание внутри кода упоминанием не считаются"
+        "type": "~",
+        "command": "chats request-export",
+        "description": "Команда выводит номер выгрузки `id`: с ним `pachca chats download-export` забирает архив, когда тот соберётся"
       },
       {
-        "type": "-",
-        "command": "api",
-        "description": "`api POST /messages --describe`: тред под сообщением, у которого его ещё нет, сначала создают, а таблицу, чек-лист или диаграмму прикладывают файлом `.md`"
+        "type": "+",
+        "command": "bots update-avatar, bots remove-avatar",
+        "description": "Новые команды — аватар бота: загрузка файла флагом `--file` и удаление"
       },
       {
-        "type": "-",
-        "command": "api",
-        "description": "`api POST /drafts --describe`: отправка сообщения черновик не удаляет — через API его убирают отдельным вызовом"
-      },
-      {
-        "type": "-",
-        "command": "api",
-        "description": "`api POST /chats --describe` и `api POST /messages/{id}/thread --describe`: для разговора на одну тему указан самостоятельный тред"
-      },
-      {
-        "type": "-",
-        "command": "messages",
-        "description": "`pachca messages create`: подсказка к `--entity-id` называет пользователя, а не сотрудника — личное сообщение можно отправить и боту"
-      },
-      {
-        "type": "-",
-        "command": "api",
-        "description": "`api POST /messages/{id}/thread` и `api GET /chats/{id} --describe`: прочитать существующий тред можно без создания, а переписку чата возвращает список сообщений"
-      },
-      {
-        "type": "-",
-        "command": "profile update-status, users update-status",
-        "description": "`pachca profile update-status` и `pachca users update-status`: подсказка к `--expires-at` описывает только формат даты и смещение"
+        "type": "+",
+        "command": "bots get",
+        "description": "В `webhook` приходят адрес входящего вебхука `url`, секрет подписи `secret_token` и тело последнего запроса `last_request_body`, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота"
       }
     ]
   },

@@ -205,6 +205,10 @@ interface BotsService {
         throw NotImplementedError("Bots.updateBot is not implemented")
     }
 
+    suspend fun updateBotAvatar(id: Int, image: ByteArray): AvatarData {
+        throw NotImplementedError("Bots.updateBotAvatar is not implemented")
+    }
+
     suspend fun updateBotToken(
         id: Int,
         tokenId: Long,
@@ -215,6 +219,10 @@ interface BotsService {
 
     suspend fun deleteBot(id: Int) {
         throw NotImplementedError("Bots.deleteBot is not implemented")
+    }
+
+    suspend fun deleteBotAvatar(id: Int) {
+        throw NotImplementedError("Bots.deleteBotAvatar is not implemented")
     }
 
     suspend fun deleteBotToken(id: Int, tokenId: Long) {
@@ -450,6 +458,22 @@ class BotsServiceImpl internal constructor(
         }
     }
 
+    override suspend fun updateBotAvatar(id: Int, image: ByteArray): AvatarData {
+        val response = client.submitFormWithBinaryData(
+            "$baseUrl/bots/$id/avatar",
+            formData {
+                append("image", image, Headers.build {
+                    append(HttpHeaders.ContentDisposition, "filename=\"image\"")
+                })
+            },
+        )
+        return when (response.status.value) {
+            200 -> response.body<AvatarDataDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     override suspend fun updateBotToken(
         id: Int,
         tokenId: Long,
@@ -468,6 +492,15 @@ class BotsServiceImpl internal constructor(
 
     override suspend fun deleteBot(id: Int) {
         val response = client.delete("$baseUrl/bots/$id")
+        when (response.status.value) {
+            204 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun deleteBotAvatar(id: Int) {
+        val response = client.delete("$baseUrl/bots/$id/avatar")
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
@@ -597,7 +630,7 @@ interface ChatsService {
         throw NotImplementedError("Chats.createChat is not implemented")
     }
 
-    suspend fun requestExport(request: ExportRequest) {
+    suspend fun requestExport(request: ExportRequest): ChatExport {
         throw NotImplementedError("Chats.requestExport is not implemented")
     }
 
@@ -754,13 +787,14 @@ class ChatsServiceImpl internal constructor(
         }
     }
 
-    override suspend fun requestExport(request: ExportRequest) {
+    override suspend fun requestExport(request: ExportRequest): ChatExport {
         val response = client.post("$baseUrl/chats/exports") {
             contentType(ContentType.Application.Json)
             setBody(request)
+            header("Prefer", "return=representation")
         }
-        when (response.status.value) {
-            204 -> return
+        return when (response.status.value) {
+            202 -> response.body<ChatExportDataWrapper>().data
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -2525,7 +2559,7 @@ interface CommonService {
         throw NotImplementedError("Common.listProperties is not implemented")
     }
 
-    suspend fun requestExport(request: ExportRequest) {
+    suspend fun requestExport(request: ExportRequest): ChatExport {
         throw NotImplementedError("Common.requestExport is not implemented")
     }
 
@@ -2583,13 +2617,14 @@ class CommonServiceImpl internal constructor(
         }
     }
 
-    override suspend fun requestExport(request: ExportRequest) {
+    override suspend fun requestExport(request: ExportRequest): ChatExport {
         val response = client.post("$baseUrl/chats/exports") {
             contentType(ContentType.Application.Json)
             setBody(request)
+            header("Prefer", "return=representation")
         }
-        when (response.status.value) {
-            204 -> return
+        return when (response.status.value) {
+            202 -> response.body<ChatExportDataWrapper>().data
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }

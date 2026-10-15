@@ -247,7 +247,7 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
 
 function computeDefaultColumns(endpoint: Endpoint): string[] {
   // Find response schema properties
-  const okResponse = endpoint.responses['200'] || endpoint.responses['201'];
+  const okResponse = endpoint.responses['200'] || endpoint.responses['201'] || endpoint.responses['202'];
   if (!okResponse?.content?.['application/json']) return [];
 
   const schema = okResponse.content['application/json'].schema;
@@ -310,7 +310,24 @@ interface CommandGenParams {
   examples?: string[];
 }
 
+/**
+ * Заголовок с единственным допустимым значением (`Prefer: return=representation`)
+ * — выбор уже сделан, флагом он не становится: команда шлёт его всегда.
+ */
+function fixedHeadersLine(endpoint: Endpoint): string | undefined {
+  const headers: string[] = [];
+  for (const param of endpoint.parameters) {
+    const only = param.in === 'header' && param.schema.enum?.length === 1 ? param.schema.enum[0] : undefined;
+    if (typeof only === 'string') headers.push(`${JSON.stringify(param.name)}: ${JSON.stringify(only)}`);
+  }
+  return headers.length > 0 ? `      headers: { ${headers.join(', ')} },` : undefined;
+}
+
 function generateCommandCode(p: CommandGenParams): string {
+  const headersLine = fixedHeadersLine(p.endpoint);
+  if (headersLine && p.hasPagination) {
+    throw new Error(`${p.endpoint.method} ${p.endpoint.path}: постраничный обход не умеет слать заголовки запроса`);
+  }
   // Collect required flags for interactive prompting
   const requiredQueryFlags: { flagName: string; description: string; type: string }[] = [];
   for (const param of p.queryParams) {
@@ -774,6 +791,7 @@ function generateCommandCode(p: CommandGenParams): string {
       runBodyLines.push(`      },`);
     }
     runBodyLines.push(`      formData,`);
+    if (headersLine) runBodyLines.push(headersLine);
     if (p.endpoint.externalUrl) {
       runBodyLines.push(`      noAuth: true,`);
     }
@@ -827,6 +845,7 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`      method: '${p.endpoint.method}',`);
     runBodyLines.push(`      path: ${apiPath},`);
     runBodyLines.push(`      body,`);
+    if (headersLine) runBodyLines.push(headersLine);
     if (queryEntries.length > 0) {
       runBodyLines.push(`      query: {`);
       runBodyLines.push(...queryEntries);
@@ -848,6 +867,7 @@ function generateCommandCode(p: CommandGenParams): string {
     if (p.isBinaryResponse) {
       runBodyLines.push(`      isBinary: true,`);
     }
+    if (headersLine) runBodyLines.push(headersLine);
     runBodyLines.push(`    });`);
   }
 

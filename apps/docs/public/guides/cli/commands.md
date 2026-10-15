@@ -42,9 +42,11 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca bots recreate-token` | `POST` Ротация токена бота |
 | `pachca bots recreate-token-self` | `POST` Ротация собственного токена бота |
 | `pachca bots reissue-token` | `POST` Перевыпуск токена бота |
+| `pachca bots remove-avatar` | `DELETE` Удаление аватара бота |
 | `pachca bots remove-event` | `DELETE` Удаление события |
 | `pachca bots rotate-client-secret` | `POST` Ротация секрета клиента |
 | `pachca bots update` | `PUT` Редактирование бота |
+| `pachca bots update-avatar` | `PUT` Загрузка аватара бота |
 | `pachca bots update-token` | `PUT` Изменение токена бота |
 | `pachca bots update-webhook` | `PUT` Саморегистрация вебхука бота |
 | `pachca changelog` | История изменений CLI |

@@ -1,58 +1,81 @@
 [
   {
     "product": "n8n",
-    "version": "2.1.5",
-    "date": "2026-10-13",
+    "version": "2.2.0",
+    "date": "2026-10-15",
     "changes": [
       {
-        "type": "-",
-        "description": "`Message`: подсказка к полю `Entity ID` называет пользователя, а не сотрудника — личное сообщение можно отправить и боту"
+        "type": "~",
+        "description": "`Chat`: операция `Request Export` сразу возвращает номер выгрузки в `id` — с ним `Download Export` забирает архив, когда тот соберётся"
       },
       {
-        "type": "-",
-        "description": "`Profile` и `User`: подсказка к полю `Expires At` статуса описывает только формат даты и смещение"
+        "type": "+",
+        "description": "`Bot`: операции `Update Avatar` и `Delete Avatar` — аватар бота"
+      },
+      {
+        "type": "+",
+        "description": "`Bot`: операция `Get` отдаёт в `Webhook` адрес входящего вебхука, секрет подписи и тело последнего запроса, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота"
       }
     ]
   },
   {
     "product": "cli",
     "version": "2026.10.1",
-    "date": "2026-10-13",
+    "date": "2026-10-15",
     "changes": [
       {
-        "type": "-",
-        "command": "api",
-        "description": "`api POST /messages --describe`: личное сообщение адресуется идентификатором пользователя, в том числе бота, а имя без `@` и упоминание внутри кода упоминанием не считаются"
+        "type": "~",
+        "description": "`pachca chats request-export` выводит номер выгрузки `id`: с ним `pachca chats download-export` забирает архив, когда тот соберётся"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots update-avatar` и `bots remove-avatar` — аватар бота"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots get`: в `webhook` приходят адрес входящего вебхука `url`, секрет подписи `secret_token` и тело последнего запроса `last_request_body`, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.6.0",
+    "date": "2026-10-15",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Метод `Экспорт сообщений` (`POST /chats/exports`) возвращает модель `ChatExport` с идентификатором выгрузки: SDK передаёт заголовок `Prefer: return=representation`"
+      },
+      {
+        "type": "+",
+        "description": "Методы `Загрузка аватара бота` (`PUT /bots/{id}/avatar`) и `Удаление аватара бота` (`DELETE /bots/{id}/avatar`)"
+      },
+      {
+        "type": "+",
+        "description": "Поля `url`, `secret_token` и `last_request_body` в объекте `webhook` бота — приходят в методе `Информация о боте` (`GET /bots/{id}`)"
+      },
+      {
+        "type": "+",
+        "description": "Коды ошибок `daily_invites_limit` и `restricted_bot_tag_denied`"
       },
       {
         "type": "-",
-        "command": "api",
-        "description": "`api POST /messages --describe`: тред под сообщением, у которого его ещё нет, сначала создают, а таблицу, чек-лист или диаграмму прикладывают файлом `.md`"
+        "description": "Go: метод `Скачивание файла` (`GET /files/{id}`) принимает ответ `200` как успешный"
+      }
+    ]
+  },
+  {
+    "product": "generator",
+    "version": "1.3.0",
+    "date": "2026-10-15",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Заголовок запроса с единственным допустимым значением, например `Prefer: return=representation`, сгенерированный метод передаёт сам, а ответ `202` с телом становится его результатом"
       },
       {
         "type": "-",
-        "command": "api",
-        "description": "`api POST /drafts --describe`: отправка сообщения черновик не удаляет — через API его убирают отдельным вызовом"
-      },
-      {
-        "type": "-",
-        "command": "api",
-        "description": "`api POST /chats --describe` и `api POST /messages/{id}/thread --describe`: для разговора на одну тему указан самостоятельный тред"
-      },
-      {
-        "type": "-",
-        "command": "messages",
-        "description": "`pachca messages create`: подсказка к `--entity-id` называет пользователя, а не сотрудника — личное сообщение можно отправить и боту"
-      },
-      {
-        "type": "-",
-        "command": "api",
-        "description": "`api POST /messages/{id}/thread` и `api GET /chats/{id} --describe`: прочитать существующий тред можно без создания, а переписку чата возвращает список сообщений"
-      },
-      {
-        "type": "-",
-        "command": "profile update-status, users update-status",
-        "description": "`pachca profile update-status` и `pachca users update-status`: подсказка к `--expires-at` описывает только формат даты и смещение"
+        "description": "Go: код успешного ответа берётся из спеки — `200`, `201`, `202` или `204`"
       }
     ]
   },

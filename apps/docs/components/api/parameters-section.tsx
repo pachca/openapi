@@ -37,7 +37,7 @@ export function ParametersSection({ endpoint }: ParametersSectionProps) {
 
       {headerParams.length > 0 && (
         <div className="py-6">
-          <SectionHeader title="Headers" />
+          <SectionHeader title="Заголовки запроса" />
           <ParametersList parameters={headerParams} />
         </div>
       )}

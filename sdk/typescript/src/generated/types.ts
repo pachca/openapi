@@ -677,10 +677,14 @@ export enum ValidationErrorCode {
   SingleChatBotOccupied = "single_chat_bot_occupied",
   /** Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег */
   SingleChatBotTagDenied = "single_chat_bot_tag_denied",
+  /** В тег можно добавить только бота, которого может добавить в чат любой сотрудник */
+  RestrictedBotTagDenied = "restricted_bot_tag_denied",
   /** Настройки бота изменились во время запроса: повторите его */
   BotChangedConcurrently = "bot_changed_concurrently",
   /** Поиск не уложился по времени: сузьте запрос и повторите */
   Timeout = "timeout",
+  /** Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload` */
+  DailyInvitesLimit = "daily_invites_limit",
   /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
   Forbidden = "forbidden",
   /** Доступ запрещён (недостаточно прав) */
@@ -1197,6 +1201,9 @@ export interface BotWebhook {
   kind: BotWebhookKind | null;
   unfurlDomains: string[];
   lastRequestAt: string | null;
+  url?: string | null;
+  secretToken?: string;
+  lastRequestBody?: string | null;
 }
 
 export interface BotWebhookSelfUpdateRequest {
@@ -1248,6 +1255,10 @@ export interface ChatCreateRequest {
     /** @default false */
     public?: boolean;
   };
+}
+
+export interface ChatExport {
+  id: number;
 }
 
 export interface ChatMemberWebhookPayload {
@@ -1996,6 +2007,10 @@ export interface WebhookVideoCallThread {
   chatId: number;
   messageId: number | null;
   messageChatId: number | null;
+}
+
+export interface UpdateBotAvatarRequest {
+  image: Blob;
 }
 
 export interface UpdateChatAvatarRequest {

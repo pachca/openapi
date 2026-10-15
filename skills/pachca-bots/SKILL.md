@@ -215,6 +215,8 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | GET | /bots/{id} | Информация о боте |
 | PUT | /bots/{id} | Редактирование бота |
 | DELETE | /bots/{id} | Удаление бота |
+| PUT | /bots/{id}/avatar | Загрузка аватара бота |
+| DELETE | /bots/{id}/avatar | Удаление аватара бота |
 | POST | /bots/{id}/recreate_token | Ротация токена бота |
 | POST | /bots/{id}/rotate_client_secret | Ротация секрета клиента |
 | GET | /bots/{id}/scopes | Каталог прав бота |

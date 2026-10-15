@@ -460,7 +460,7 @@ interface ArgumentPlace {
 
 interface BuiltInput {
   schema: JsonSchema;
-  request: { media_type?: string; arguments: Record<string, ArgumentPlace> };
+  request: { media_type?: string; headers?: Record<string, string>; arguments: Record<string, ArgumentPlace> };
   /** Names that two places of the request both claim. */
   clashes: string[];
 }
@@ -482,8 +482,20 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
     places[name] = place;
     properties[name] = schema;
   };
+  // A header the API allows only one value of is a choice already made, not an
+  // argument: the server sends it with every call. `Prefer: return=representation`
+  // is what makes an export answer with its id instead of an empty 204.
+  const headers: Record<string, string> = {};
   for (const raw of op.nodeEn?.parameters ?? []) {
     const param = flatten(raw, docEn);
+    if (param.in === 'header') {
+      const only = flatten(param.schema, docEn)?.enum;
+      if (only?.length !== 1 || typeof only[0] !== 'string') {
+        throw new Error(`${op.key}: the header ${param.name} is not a single fixed value, and a model has no way to send a header`);
+      }
+      headers[param.name] = only[0];
+      continue;
+    }
     // The parameter's own wording leads, and what the values of its schema mean
     // still follows it.
     const worded = param.description ? { ...flatten(param.schema, docEn), description: param.description } : param.schema;
@@ -588,7 +600,11 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
       ...(required.length ? { required: [...new Set(required)] } : {}),
       additionalProperties: false,
     },
-    request: { ...(mediaType ? { media_type: mediaType } : {}), arguments: places },
+    request: {
+      ...(mediaType ? { media_type: mediaType } : {}),
+      ...(Object.keys(headers).length ? { headers } : {}),
+      arguments: places,
+    },
     clashes,
   };
 }
@@ -797,12 +813,17 @@ const HTTP_REWRITES: Array<[RegExp, string]> = [
   // Where a field sits in the HTTP body is the client's business; the tool takes
   // an argument, and the fact worth keeping is that the preview needs asking for.
   [/ at the root of the request body\./g, '.'],
-  // Which field of a webhook payload carries the number is for whoever receives
-  // the webhook. A model receives none — what it needs is that the number comes
-  // later and not from this answer.
+  // The server sends the preference with every call (`request.headers`), so a
+  // model always gets the identifier: the header and the empty 204 are plumbing.
   [
-    /The number of the finished export arrives in the `export_id` field of the webhook sent to the address from\s+`webhook_url`\./g,
-    'The number of the finished export arrives in the webhook sent to `webhook_url`.',
+    /With the `Prefer: return=representation` header the response comes with status `202` and the export identifier in `data\.id`\. Without the header the response is empty, with status `204`\./g,
+    'The answer carries the export identifier in `data.id`.',
+  ],
+  // Which field of a webhook payload carries the number is for whoever receives
+  // the webhook. A model receives none.
+  [
+    /When the archive is ready, a webhook with the identifier in the `export_id` field arrives at the address from\s+`webhook_url`\./g,
+    'When the archive is ready, a webhook arrives at the address from `webhook_url`.',
   ],
 ];
 
@@ -1024,6 +1045,11 @@ function build(): void {
     const op = byKey.get(tool.operation)!;
     for (const raw of op.nodeEn?.parameters ?? []) {
       const param = flatten(raw, docEn);
+      // A header is the server's to send, not the model's to pass.
+      if (param.in === 'header') {
+        if (tool.request.headers?.[param.name] === undefined) problems.push(`${tool.name}: the header ${param.name} is not sent`);
+        continue;
+      }
       problems.push(...lostFields(tool.name, param.name, param.schema, tool.inputSchema.properties?.[param.name], docEn));
     }
     const body = flatten(requestBodySchema(op), docEn);

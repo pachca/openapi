@@ -85,6 +85,8 @@ pachca guide            # список всех сценариев
 | `pachca bots get` | Информация о боте |
 | `pachca bots update` | Редактирование бота |
 | `pachca bots delete` | Удаление бота |
+| `pachca bots update-avatar` | Загрузка аватара бота |
+| `pachca bots remove-avatar` | Удаление аватара бота |
 | `pachca bots recreate-token` | Ротация токена бота |
 | `pachca bots rotate-client-secret` | Ротация секрета клиента |
 | `pachca bots list-scopes` | Каталог прав бота |

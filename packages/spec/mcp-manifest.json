@@ -2,7 +2,7 @@
   "schema_version": "2.0.0",
   "generated_from": {
     "spec": "openapi.yaml",
-    "digest": "65b20b5806869f3f"
+    "digest": "f7c583bdcda7a791"
   },
   "server": {
     "name": "pachca",
@@ -1469,6 +1469,24 @@
                       ],
                       "description": "Date and time of the last request to the bot's incoming webhook (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if there have been no requests.",
                       "format": "date-time"
+                    },
+                    "url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Incoming webhook address. `null` if the bot's incoming webhook is off. Comes only in the `get_bot` method."
+                    },
+                    "secret_token": {
+                      "type": "string",
+                      "description": "Signing secret of the outgoing webhook: the `Pachca-Signature` header is signed with it. Comes only in the `get_bot` method."
+                    },
+                    "last_request_body": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Body of the last request to the bot's incoming webhook. A body longer than 128 KB is cut off and ends with `...[truncated]`. `null` if there have been no requests. Comes only in the `get_bot` method."
                     }
                   }
                 },
@@ -2171,6 +2189,24 @@
                     ],
                     "description": "Date and time of the last request to the bot's incoming webhook (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if there have been no requests.",
                     "format": "date-time"
+                  },
+                  "url": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Incoming webhook address. `null` if the bot's incoming webhook is off. Comes only in the `get_bot` method."
+                  },
+                  "secret_token": {
+                    "type": "string",
+                    "description": "Signing secret of the outgoing webhook: the `Pachca-Signature` header is signed with it. Comes only in the `get_bot` method."
+                  },
+                  "last_request_body": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Body of the last request to the bot's incoming webhook. A body longer than 128 KB is cut off and ends with `...[truncated]`. `null` if there have been no requests. Comes only in the `get_bot` method."
                   }
                 }
               },
@@ -2294,7 +2330,7 @@
         "user"
       ],
       "bot_token_only": false,
-      "description": "Bot info. The bot's settings. The token does not come in the response — it is shown once at the bot's creation and at `recreate_bot_token`. The bot's tokens are returned by `list_bot_tokens`. The method returns only the bots the caller is entitled to configure: their own, and, if the bot's settings allow it, also as a workspace administrator or as an owner or admin of a chat the bot belongs to. For someone else's bot the method responds `403`. The list of all bots in the workspace, including other people's, is available to the owner on the \"Corporation\" plan — `list_company_bots`.",
+      "description": "Bot info. The bot's settings. The token does not come in the response — it is shown once at the bot's creation and at `recreate_bot_token`. The bot's tokens are returned by `list_bot_tokens`. The method returns only the bots the caller is entitled to configure: their own, and, if the bot's settings allow it, also as a workspace administrator or as an owner or admin of a chat the bot belongs to. For someone else's bot the method responds `403`. The method also answers a token with the `bots:write` scope and no `bots:read`. If you can also manage the bot's tokens (`permissions.recreate_token`), `webhook` carries the incoming webhook address `url`, the signing secret `secret_token` and the body of the last request to the incoming webhook `last_request_body`. The list of all bots in the workspace, including other people's, is available to the owner on the \"Corporation\" plan — `list_company_bots`.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -2553,6 +2589,24 @@
                     ],
                     "description": "Date and time of the last request to the bot's incoming webhook (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if there have been no requests.",
                     "format": "date-time"
+                  },
+                  "url": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Incoming webhook address. `null` if the bot's incoming webhook is off. Comes only in the `get_bot` method."
+                  },
+                  "secret_token": {
+                    "type": "string",
+                    "description": "Signing secret of the outgoing webhook: the `Pachca-Signature` header is signed with it. Comes only in the `get_bot` method."
+                  },
+                  "last_request_body": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Body of the last request to the bot's incoming webhook. A body longer than 128 KB is cut off and ends with `...[truncated]`. `null` if there have been no requests. Comes only in the `get_bot` method."
                   }
                 }
               },
@@ -2672,7 +2726,7 @@
         "user"
       ],
       "bot_token_only": false,
-      "description": "Edit bot. Changes a bot's settings: only the fields you pass are overwritten. The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation error. Commands and scopes are replaced by the passed list as a whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by `update_bot_token`. The `oauth_client` object enables authorization on behalf of an employee or changes its settings, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own tokens keep working. When the client becomes server-side, its secret comes in `client_secret` once. The catalog page is set by `promo` while authorization is enabled. Only a workspace administrator or owner can enable the `message_link_shared` event, and for a bot with it change the domains, the webhook address and the event history. The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be changed for a bot whose settings are not accessible to you (the \"Who can edit bot settings\" field is located on the \"General\" tab in the bot settings).",
+      "description": "Edit bot. Changes a bot's settings: only the fields you pass are overwritten. The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation error. Commands and scopes are replaced by the passed list as a whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by `update_bot_token`. The `oauth_client` object enables authorization on behalf of an employee or changes its settings, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own tokens keep working. When the client becomes server-side, its secret comes in `client_secret` once. The catalog page is set by `promo` while authorization is enabled. Only a workspace administrator or owner can enable the `message_link_shared` event, and for a bot with it change the domains, the webhook address and the event history. If a change takes away the bot's right to be in tags (`single_chat: true` or `who_can_add` set to `creator` or `creator_admin`), it leaves all tags and the chats it got into through them, and stays in the chats it was added to directly. More in the \"Bot in tags\" (https://dev.pachca.com/guides/bots/settings) section. The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be changed for a bot whose settings are not accessible to you (the \"Who can edit bot settings\" field is located on the \"General\" tab in the bot settings).",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -3227,6 +3281,24 @@
                     ],
                     "description": "Date and time of the last request to the bot's incoming webhook (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if there have been no requests.",
                     "format": "date-time"
+                  },
+                  "url": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Incoming webhook address. `null` if the bot's incoming webhook is off. Comes only in the `get_bot` method."
+                  },
+                  "secret_token": {
+                    "type": "string",
+                    "description": "Signing secret of the outgoing webhook: the `Pachca-Signature` header is signed with it. Comes only in the `get_bot` method."
+                  },
+                  "last_request_body": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Body of the last request to the bot's incoming webhook. A body longer than 128 KB is cut off and ends with `...[truncated]`. `null` if there have been no requests. Comes only in the `get_bot` method."
                   }
                 }
               },
@@ -3350,6 +3422,118 @@
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Bot ID",
+            "format": "int32",
+            "example": 1738816
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "request": {
+        "arguments": {
+          "id": {
+            "in": "path"
+          }
+        }
+      }
+    },
+    {
+      "name": "pachca_update_bot_avatar",
+      "operation": "PUT /bots/{id}/avatar",
+      "kind": "write",
+      "scope": "bots:write",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin",
+        "user"
+      ],
+      "bot_token_only": false,
+      "description": "Upload bot avatar. Sets or replaces the bot's avatar. It can be changed by anyone who has access to `update_bot`. The file is sent in `multipart/form-data` format, and the response contains only a link to the new image. `jpg`, `jpeg`, `png`, and `gif` are accepted, an animated `gif` must be no larger than 2 MB, and the image is scaled down to 1024 by 1024 pixels. A scaled-down copy comes in the bot's `avatar_url` field, for example in the `get_bot` method.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Bot ID",
+            "format": "int32",
+            "example": 1738816
+          },
+          "image": {
+            "type": "string",
+            "description": "Avatar image file. The file contents, base64-encoded.",
+            "format": "binary"
+          }
+        },
+        "required": [
+          "id",
+          "image"
+        ],
+        "additionalProperties": false
+      },
+      "request": {
+        "media_type": "multipart/form-data",
+        "arguments": {
+          "id": {
+            "in": "path"
+          },
+          "image": {
+            "in": "body",
+            "at": "image"
+          }
+        }
+      },
+      "entity": "AvatarData",
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Avatar data",
+            "properties": {
+              "image_url": {
+                "type": "string",
+                "description": "Avatar URL"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "pachca_delete_bot_avatar",
+      "operation": "DELETE /bots/{id}/avatar",
+      "kind": "write",
+      "scope": "bots:write",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin",
+        "user"
+      ],
+      "bot_token_only": false,
+      "description": "Delete bot avatar. Removes the bot's avatar. Available to the same people who have access to `update_bot_avatar`. If there was no avatar, the response is still `204`.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": true
       },
@@ -3631,6 +3815,24 @@
                     ],
                     "description": "Date and time of the last request to the bot's incoming webhook (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if there have been no requests.",
                     "format": "date-time"
+                  },
+                  "url": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Incoming webhook address. `null` if the bot's incoming webhook is off. Comes only in the `get_bot` method."
+                  },
+                  "secret_token": {
+                    "type": "string",
+                    "description": "Signing secret of the outgoing webhook: the `Pachca-Signature` header is signed with it. Comes only in the `get_bot` method."
+                  },
+                  "last_request_body": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Body of the last request to the bot's incoming webhook. A body longer than 128 KB is cut off and ends with `...[truncated]`. `null` if there have been no requests. Comes only in the `get_bot` method."
                   }
                 }
               },
@@ -3997,6 +4199,24 @@
                     ],
                     "description": "Date and time of the last request to the bot's incoming webhook (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. `null` if there have been no requests.",
                     "format": "date-time"
+                  },
+                  "url": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Incoming webhook address. `null` if the bot's incoming webhook is off. Comes only in the `get_bot` method."
+                  },
+                  "secret_token": {
+                    "type": "string",
+                    "description": "Signing secret of the outgoing webhook: the `Pachca-Signature` header is signed with it. Comes only in the `get_bot` method."
+                  },
+                  "last_request_body": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Body of the last request to the bot's incoming webhook. A body longer than 128 KB is cut off and ends with `...[truncated]`. `null` if there have been no requests. Comes only in the `get_bot` method."
                   }
                 }
               },
@@ -5317,7 +5537,7 @@
         "owner"
       ],
       "bot_token_only": false,
-      "description": "Export messages. Order an export of the workspace messages for a period. The archive is prepared in the background, so the response comes back empty and contains no export identifier. The number of the finished export arrives in the webhook sent to `webhook_url`. The employee who ordered it also receives an email and a notification in Pachca with a link of the form `/full_exports/{id}` — the number in it is the identifier. The webhook address is optional, but without it a program has nowhere to take the number from: only the email and the notification to whoever ordered it are left. With that identifier the archive is fetched by the `download_export` method.",
+      "description": "Export messages. Order an export of the workspace messages for a period. The archive is prepared in the background. The answer carries the export identifier in `data.id`. By the identifier the archive is served by the `download_export` method once it is assembled. When the archive is ready, a webhook arrives at the address from `webhook_url`. The employee who ordered it receives an email and a notification in Pachca with a link of the form `/full_exports/{id}` — the number in it is the identifier. The workspace can order the next export 90 seconds after the previous one, even if that one is still being assembled. An earlier request responds `422` with the `rate_limit` code.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -5341,7 +5561,7 @@
           },
           "webhook_url": {
             "type": "string",
-            "description": "Address that the webhook with the number of the finished export arrives at. Without it there is nowhere to take the number from: the person who ordered it gets an email and a notification, and the calling program gets nothing.",
+            "description": "Address that the webhook with the number of the finished export arrives at once the archive is assembled",
             "example": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2"
           },
           "chat_ids": {
@@ -5370,6 +5590,9 @@
       },
       "request": {
         "media_type": "application/json",
+        "headers": {
+          "Prefer": "return=representation"
+        },
         "arguments": {
           "start_at": {
             "in": "body",
@@ -5392,6 +5615,24 @@
             "at": "skip_chats_file"
           }
         }
+      },
+      "entity": "ChatExport",
+      "outputSchema": {
+        "type": "object",
+        "description": "Response wrapper with data",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Ordered message export",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "Export ID",
+                "format": "int32"
+              }
+            }
+          }
+        }
       }
     },
     {
@@ -5404,7 +5645,7 @@
         "owner"
       ],
       "bot_token_only": false,
-      "description": "Download export archive. The answer is a temporary download link for the file. The link is valid for 5 minutes, so download the archive right after the request. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission.",
+      "description": "Download export archive. The answer is a temporary download link for the file. The link is valid for 5 minutes, so download the archive right after the request. The archive itself is stored for 7 days, and only the employee who ordered the export can download it — the method refuses another employee holding the same permission. While the archive is being assembled, the method responds `404` with the `export_file_not_found` code.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -5903,7 +6144,7 @@
         "bot"
       ],
       "bot_token_only": false,
-      "description": "Add tags. Links tags to a conversation or a channel so that the chat membership keeps itself up to date. After adding a tag, all its members automatically become members of the chat. The tag and chat member lists are synchronized automatically: when a new member is added to the tag, they immediately appear in the chat; when removed from the tag, they are removed from the chat. If at least one of the tags passed is not found, the method responds `404` and links none of them. A tag already linked to the chat is not linked again, but its members are still pulled into the chat. A tag can be linked by a member of a private conversation and by any employee of the workspace in an open chat, while taking it off is available only to the chat owner or a chat administrator through the `remove_tag_from_chat` method.",
+      "description": "Add tags. Links tags to a conversation or a channel so that the chat membership keeps itself up to date. After adding a tag, all its members automatically become members of the chat. The tag and chat member lists are synchronized automatically: when a new member is added to the tag, they immediately appear in the chat; when removed from the tag, they are removed from the chat. If at least one of the tags passed is not found, the method responds `404` and links none of them. A tag already linked to the chat is not linked again, but its members are still pulled into the chat. A bot that may not be in tags does not come into the chat through a tag. A tag can be linked by a member of a private conversation and by any employee of the workspace in an open chat, while taking it off is available only to the chat owner or a chat administrator through the `remove_tag_from_chat` method.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -15778,7 +16019,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "New employee. Creates an employee in the workspace and sends them an invitation by email. Available to the workspace owner and an administrator; the method is not available to a bot. If an employee with this email address already exists in the workspace, the response is `409`. A nickname that is already taken is not treated as an error: random characters are silently appended to it, and the response comes back with the modified one. You can fill in custom properties for the employee that have been created in your workspace. You can get the current list of employee custom property IDs using the `list_custom_fields` method. The `list_tags` field puts the employee into tags right away, and together with the tags into the chats those tags are linked to. For a guest no tags are assigned at all: the response is successful and `list_tags` in it is empty. Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a guest, pass `role: \"guest\"` — for this role `chat_ids` is required and must contain exactly one active chat the token has permission to add members to. Violating the guest access rules returns `400` with an error on the `chat_ids` field.",
+      "description": "New employee. Creates an employee in the workspace and sends them an invitation by email. Available to the workspace owner and an administrator; the method is not available to a bot. If an employee with this email address already exists in the workspace, the response is `409`. A nickname that is already taken is not treated as an error: random characters are silently appended to it, and the response comes back with the modified one. A free workspace, including one on a trial, can send a limited number of emails per day: invitations and email-change letters are counted together, and the limit is given on the \"Limits\" (https://dev.pachca.com/api/limits) page. Beyond it the method responds `422` with the `daily_invites_limit` code and does not create the employee, while the remainder and the reset time come in `payload`. With `skip_email_notify: true` no email is sent and nothing counts towards the limit. You can fill in custom properties for the employee that have been created in your workspace. You can get the current list of employee custom property IDs using the `list_custom_fields` method. The `list_tags` field puts the employee into tags right away, and together with the tags into the chats those tags are linked to. For a guest no tags are assigned at all: the response is successful and `list_tags` in it is empty. Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a guest, pass `role: \"guest\"` — for this role `chat_ids` is required and must contain exactly one active chat the token has permission to add members to. Violating the guest access rules returns `400` with an error on the `chat_ids` field.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -16484,7 +16725,7 @@
         "admin"
       ],
       "bot_token_only": false,
-      "description": "Edit employee. Changes the employee's profile: only the fields you pass are overwritten. Custom property IDs are returned by `list_custom_fields`. The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not exist in the workspace yet creates a new tag together with the assignment. `suspended: true` suspends the employee: they lose access but remain in chats, tags, and tasks, while `suspended: false` brings them back. An employee is removed for good by `delete_user`. The workspace owner can be edited only by themselves, and their role can be changed only to administrator. Turning a regular employee into a guest is impossible — in both cases the response is `403`. An unknown role value is silently ignored by the method: the response is successful and the role stays as it was. For a bot the method changes only the name (`first_name`), nickname, tags and `suspended`, and skips the other fields in the request. A bot's nickname must end with `_bot` and be unique in the workspace, otherwise the method responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. A bot's existing nickname is checked only when it is changed. A bot with the \"Restrict to a single chat\" setting cannot be added to tags: if `list_tags` contains a tag the bot does not have yet, the method responds `422` with the `single_chat_bot_tag_denied` code on the `group_tags` field and changes nothing. If the bot's settings changed during the request, the `422` response comes with the `bot_changed_concurrently` code: retry the request.",
+      "description": "Edit employee. Changes the employee's profile: only the fields you pass are overwritten. Custom property IDs are returned by `list_custom_fields`. The request is applied as a whole: if any field fails validation, for example the new `email` is already taken, nothing changes. Changing the email sends letters to the old and the new address. In a free workspace they count towards the same daily limit as invitations from `create_user`, and beyond it the response is `422` with the `daily_invites_limit` code. The `list_tags` field replaces the whole set of tags, so send the tags that are being kept along with the new one. A removed tag takes the employee out of the chats this tag brought them into, and a name that does not exist in the workspace yet creates a new tag together with the assignment. `suspended: true` suspends the employee: they lose access but remain in chats, tags, and tasks, while `suspended: false` brings them back. An employee is removed for good by `delete_user`. The workspace owner can be edited only by themselves, and their role can be changed only to administrator. Turning a regular employee into a guest is impossible — in both cases the response is `403`. An unknown role value is silently ignored by the method: the response is successful and the role stays as it was. For a bot the method changes only the name (`first_name`), nickname, tags and `suspended`, and skips the other fields in the request. A bot's nickname must end with `_bot` and be unique in the workspace, otherwise the method responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. A bot's existing nickname is checked only when it is changed. Only a bot that any employee can add to a chat and that has the \"Restrict to a single chat\" setting turned off can be added to a tag. If the bot does not meet these conditions and `list_tags` contains a tag it does not have yet, the method responds `422` on the `group_tags` field and changes nothing: with the `single_chat_bot_tag_denied` code when the bot is restricted to a single chat, and `restricted_bot_tag_denied` when not everyone can add it to chats. More in the \"Bot in tags\" (https://dev.pachca.com/guides/bots/settings) section. If the bot's settings changed during the request, the `422` response comes with the `bot_changed_concurrently` code: retry the request.",
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -18218,6 +18459,8 @@
         "pachca_get_bot",
         "pachca_update_bot",
         "pachca_delete_bot",
+        "pachca_update_bot_avatar",
+        "pachca_delete_bot_avatar",
         "pachca_recreate_bot_token",
         "pachca_rotate_bot_client_secret",
         "pachca_get_bot_scopes",
@@ -18300,7 +18543,7 @@
         "pachca_update_user_status",
         "pachca_delete_user_status"
       ],
-      "model_tokens": 38173
+      "model_tokens": 38973
     },
     "owner": {
       "role": "owner",
@@ -18311,6 +18554,8 @@
         "pachca_get_bot",
         "pachca_update_bot",
         "pachca_delete_bot",
+        "pachca_update_bot_avatar",
+        "pachca_delete_bot_avatar",
         "pachca_recreate_bot_token",
         "pachca_rotate_bot_client_secret",
         "pachca_get_bot_scopes",
@@ -18389,7 +18634,7 @@
         "pachca_update_user_status",
         "pachca_delete_user_status"
       ],
-      "model_tokens": 35154
+      "model_tokens": 35954
     },
     "admin": {
       "role": "admin",
@@ -18400,6 +18645,8 @@
         "pachca_get_bot",
         "pachca_update_bot",
         "pachca_delete_bot",
+        "pachca_update_bot_avatar",
+        "pachca_delete_bot_avatar",
         "pachca_recreate_bot_token",
         "pachca_rotate_bot_client_secret",
         "pachca_get_bot_scopes",
@@ -18478,7 +18725,7 @@
         "pachca_update_user_status",
         "pachca_delete_user_status"
       ],
-      "model_tokens": 35154
+      "model_tokens": 35954
     },
     "user": {
       "role": "user",
@@ -18489,6 +18736,8 @@
         "pachca_get_bot",
         "pachca_update_bot",
         "pachca_delete_bot",
+        "pachca_update_bot_avatar",
+        "pachca_delete_bot_avatar",
         "pachca_recreate_bot_token",
         "pachca_rotate_bot_client_secret",
         "pachca_get_bot_scopes",
@@ -18557,7 +18806,7 @@
         "pachca_get_user",
         "pachca_get_user_status"
       ],
-      "model_tokens": 31520
+      "model_tokens": 32014
     },
     "multi_guest": {
       "role": "multi_guest",
@@ -18621,7 +18870,7 @@
         "pachca_get_user",
         "pachca_get_user_status"
       ],
-      "model_tokens": 22924
+      "model_tokens": 22944
     },
     "bot": {
       "role": "bot",
@@ -18689,7 +18938,7 @@
         "pachca_get_webhook_events",
         "pachca_delete_webhook_event"
       ],
-      "model_tokens": 23935
+      "model_tokens": 23955
     }
   }
 }

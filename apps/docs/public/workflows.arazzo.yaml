@@ -322,16 +322,17 @@ workflows:
   - workflowId: export-chat-history
     summary: Export chat history
     description: >-
-      `webhook_url` required — POST does not return id in response. Export available only to Owner
-      on "Corporation" plan. Max period: 45 days (366 when specific chats are specified). Manual
-      prerequisites: Wait for webhook: JSON with `"type": "export"`, `"event": "ready"` and
-      `export_id`.
+      Export available only to Owner on "Corporation" plan. Max period: 45 days (366 when specific
+      chats are specified). The workspace can order the next export 90 seconds after the previous
+      one. Manual prerequisites: Wait for the archive: while it is being assembled, the download
+      responds `404` with the `export_file_not_found` code. A webhook to `webhook_url` with
+      `"event": "ready"` and `export_id` also reports readiness.
     steps:
       - stepId: export-chat-history-1
         description: >-
-          Request export (`start_at`, `end_at` (YYYY-MM-DD). The request is async: the response is
-          empty and carries no export id. `webhook_url` is not formally required, but without it
-          there is nowhere to get the id — always send it)
+          Request export and take the export id from `data.id` (`start_at`, `end_at` (YYYY-MM-DD).
+          The id comes with the `Prefer: return=representation` header and a `202` response, the CLI
+          and SDK send it themselves. Without the header the response is `204` with no body)
         operationId: ExportOperations_requestExport
       - stepId: export-chat-history-2
         description: Download export file (Server returns 302, HTTP client downloads file automatically)
@@ -667,7 +668,9 @@ workflows:
     summary: Bulk create employees with tags
     description: >-
       Creation available only to admins and owners (not bots). No separate "add user to tag"
-      endpoint.
+      endpoint. A free workspace sends no more than 50 invitation emails per day: beyond the limit
+      `422` with the `daily_invites_limit` code, the reset time is in `payload.reset_at`. With
+      `--skip-email-notify` no email is sent and nothing counts towards the limit.
     steps:
       - stepId: bulk-create-employees-with-tags-1
         description: Create tag (if needed)

@@ -155,8 +155,10 @@ type BotsService interface {
 	ReissueBotToken(ctx context.Context, id int32, tokenId int64) (*BotAccessToken, error)
 	SelfUpdateBotWebhook(ctx context.Context, request BotWebhookSelfUpdateRequest) (*BotSelfResponse, error)
 	UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error)
+	UpdateBotAvatar(ctx context.Context, id int32, image io.Reader) (*AvatarData, error)
 	UpdateBotToken(ctx context.Context, id int32, tokenId int64, request BotTokenUpdateRequest) (*BotAccessToken, error)
 	DeleteBot(ctx context.Context, id int32) error
+	DeleteBotAvatar(ctx context.Context, id int32) error
 	DeleteBotToken(ctx context.Context, id int32, tokenId int64) error
 	DeleteWebhookEvent(ctx context.Context, id string) error
 }
@@ -250,12 +252,20 @@ func (s *BotsServiceStub) UpdateBot(ctx context.Context, id int32, request BotUp
 	return nil, NotImplementedError{Method: "Bots.updateBot"}
 }
 
+func (s *BotsServiceStub) UpdateBotAvatar(ctx context.Context, id int32, image io.Reader) (*AvatarData, error) {
+	return nil, NotImplementedError{Method: "Bots.updateBotAvatar"}
+}
+
 func (s *BotsServiceStub) UpdateBotToken(ctx context.Context, id int32, tokenId int64, request BotTokenUpdateRequest) (*BotAccessToken, error) {
 	return nil, NotImplementedError{Method: "Bots.updateBotToken"}
 }
 
 func (s *BotsServiceStub) DeleteBot(ctx context.Context, id int32) error {
 	return NotImplementedError{Method: "Bots.deleteBot"}
+}
+
+func (s *BotsServiceStub) DeleteBotAvatar(ctx context.Context, id int32) error {
+	return NotImplementedError{Method: "Bots.deleteBotAvatar"}
 }
 
 func (s *BotsServiceStub) DeleteBotToken(ctx context.Context, id int32, tokenId int64) error {
@@ -1006,6 +1016,56 @@ func (s *BotsServiceImpl) UpdateBot(ctx context.Context, id int32, request BotUp
 	}
 }
 
+func (s *BotsServiceImpl) UpdateBotAvatar(ctx context.Context, id int32, image io.Reader) (*AvatarData, error) {
+	pr, pw := io.Pipe()
+	writer := multipart.NewWriter(pw)
+	go func() {
+		defer pw.Close()
+		defer writer.Close()
+		part, err := writer.CreateFormFile("image", "upload")
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		if _, err := io.Copy(part, image); err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+	}()
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/bots/%v/avatar", s.baseURL, id), pr)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data AvatarData `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
 func (s *BotsServiceImpl) UpdateBotToken(ctx context.Context, id int32, tokenId int64, request BotTokenUpdateRequest) (*BotAccessToken, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
@@ -1047,6 +1107,34 @@ func (s *BotsServiceImpl) UpdateBotToken(ctx context.Context, id int32, tokenId 
 
 func (s *BotsServiceImpl) DeleteBot(ctx context.Context, id int32) error {
 	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/bots/%v", s.baseURL, id), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
+	}
+}
+
+func (s *BotsServiceImpl) DeleteBotAvatar(ctx context.Context, id int32) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/bots/%v/avatar", s.baseURL, id), nil)
 	if err != nil {
 		return err
 	}
@@ -1137,7 +1225,7 @@ type ChatsService interface {
 	ListCompanyChats(ctx context.Context, params *ListCompanyChatsParams) (*ListCompanyChatsResponse, error)
 	ListCompanyChatsAll(ctx context.Context, params *ListCompanyChatsParams) ([]Chat, error)
 	CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error)
-	RequestExport(ctx context.Context, request ExportRequest) error
+	RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error)
 	UpdateChat(ctx context.Context, id int32, request ChatUpdateRequest) (*Chat, error)
 	ArchiveChat(ctx context.Context, id int32) error
 	UpdateChatAvatar(ctx context.Context, id int32, image io.Reader) (*AvatarData, error)
@@ -1176,8 +1264,8 @@ func (s *ChatsServiceStub) CreateChat(ctx context.Context, request ChatCreateReq
 	return nil, NotImplementedError{Method: "Chats.createChat"}
 }
 
-func (s *ChatsServiceStub) RequestExport(ctx context.Context, request ExportRequest) error {
-	return NotImplementedError{Method: "Chats.requestExport"}
+func (s *ChatsServiceStub) RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error) {
+	return nil, NotImplementedError{Method: "Chats.requestExport"}
 }
 
 func (s *ChatsServiceStub) UpdateChat(ctx context.Context, id int32, request ChatUpdateRequest) (*Chat, error) {
@@ -1478,36 +1566,43 @@ func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateReq
 	}
 }
 
-func (s *ChatsServiceImpl) RequestExport(ctx context.Context, request ExportRequest) error {
+func (s *ChatsServiceImpl) RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/chats/exports", s.baseURL), bytes.NewReader(body))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Prefer", "return=representation")
 	resp, err := doWithRetry(s.client, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
+	case http.StatusAccepted:
+		var result struct {
+			Data ChatExport `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			e.Err = fmt.Sprintf("HTTP 401: %v", err)
 		}
-		return &e
+		return nil, &e
 	default:
 		var e ApiError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
-		return &e
+		return nil, &e
 	}
 }
 
@@ -2122,7 +2217,7 @@ func (s *FilesServiceImpl) DownloadFile(ctx context.Context, id int32, params *D
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case http.StatusNoContent:
+	case http.StatusOK:
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
@@ -5082,7 +5177,7 @@ type CommonService interface {
 	GetUploadParams(ctx context.Context) (*UploadParams, error)
 	UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error
 	ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error)
-	RequestExport(ctx context.Context, request ExportRequest) error
+	RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error)
 	DownloadExport(ctx context.Context, id int32) (string, error)
 }
 
@@ -5100,8 +5195,8 @@ func (s *CommonServiceStub) ListProperties(ctx context.Context, params ListPrope
 	return nil, NotImplementedError{Method: "Common.listProperties"}
 }
 
-func (s *CommonServiceStub) RequestExport(ctx context.Context, request ExportRequest) error {
-	return NotImplementedError{Method: "Common.requestExport"}
+func (s *CommonServiceStub) RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error) {
+	return nil, NotImplementedError{Method: "Common.requestExport"}
 }
 
 func (s *CommonServiceStub) DownloadExport(ctx context.Context, id int32) (string, error) {
@@ -5230,36 +5325,43 @@ func (s *CommonServiceImpl) ListProperties(ctx context.Context, params ListPrope
 	}
 }
 
-func (s *CommonServiceImpl) RequestExport(ctx context.Context, request ExportRequest) error {
+func (s *CommonServiceImpl) RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/chats/exports", s.baseURL), bytes.NewReader(body))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Prefer", "return=representation")
 	resp, err := doWithRetry(s.client, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
+	case http.StatusAccepted:
+		var result struct {
+			Data ChatExport `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			e.Err = fmt.Sprintf("HTTP 401: %v", err)
 		}
-		return &e
+		return nil, &e
 	default:
 		var e ApiError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
-		return &e
+		return nil, &e
 	}
 }
 

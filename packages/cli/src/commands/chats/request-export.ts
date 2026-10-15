@@ -7,7 +7,7 @@ export default class ChatsRequestExport extends BaseCommand {
   static override description = "Экспорт сообщений";
 
   static override examples = [
-      "Экспорт истории чата — Запроси экспорт:\n  $ pachca chats request-export"
+      "Экспорт истории чата — Запроси экспорт и возьми номер выгрузки из `data.id`:\n  $ pachca chats request-export"
   ];
 
   static override hiddenAliases = ["common:request-export"];
@@ -15,6 +15,7 @@ export default class ChatsRequestExport extends BaseCommand {
   static plan = "corporation";
   static apiMethod = "POST";
   static apiPath = "/chats/exports";
+  static defaultColumns = ["id"];
   static requiredFlags = ["start-at","end-at"];
 
   static override args = {
@@ -30,7 +31,7 @@ export default class ChatsRequestExport extends BaseCommand {
       description: "Дата окончания для экспорта в формате YYYY-MM-DD, включительно. Если прислать дату со временем, время молча отбрасывается.",
     }),
     'webhook-url': Flags.string({
-      description: "Адрес, на который придёт вебхук с номером готовой выгрузки. Без него узнать номер неоткуда: заказавший получит письмо и уведомление, а вызывающая программа — ничего.",
+      description: "Адрес, на который придёт вебхук с номером готовой выгрузки, когда архив будет собран",
     }),
     'chat-ids': Flags.string({
       description: "Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов.",
@@ -81,6 +82,7 @@ export default class ChatsRequestExport extends BaseCommand {
       method: 'POST',
       path: '/chats/exports',
       body,
+      headers: { "Prefer": "return=representation" },
     });
 
     const responseBody = (data ?? {}) as Record<string, unknown>;

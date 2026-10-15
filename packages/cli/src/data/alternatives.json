@@ -7,6 +7,8 @@
   "bots:get": "Информация о боте",
   "bots:update": "Редактирование бота",
   "bots:delete": "Удаление бота",
+  "bots:update-avatar": "Загрузка аватара бота",
+  "bots:remove-avatar": "Удаление аватара бота",
   "bots:recreate-token": "Ротация токена бота",
   "bots:rotate-client-secret": "Ротация секрета клиента",
   "bots:list-scopes": "Каталог прав бота",

@@ -123,6 +123,8 @@
 - [Информация о боте](https://dev.pachca.com/api/bots/get.md): GET /bots/{id}
 - [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
 - [Удаление бота](https://dev.pachca.com/api/bots/delete.md): DELETE /bots/{id}
+- [Загрузка аватара бота](https://dev.pachca.com/api/bots/update-avatar.md): PUT /bots/{id}/avatar
+- [Удаление аватара бота](https://dev.pachca.com/api/bots/remove-avatar.md): DELETE /bots/{id}/avatar
 - [Ротация токена бота](https://dev.pachca.com/api/bots/recreate-token.md): POST /bots/{id}/recreate_token
 - [Ротация секрета клиента](https://dev.pachca.com/api/bots/rotate-client-secret.md): POST /bots/{id}/rotate_client_secret
 - [Каталог прав бота](https://dev.pachca.com/api/bots/list-scopes.md): GET /bots/{id}/scopes

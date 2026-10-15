@@ -345,6 +345,9 @@ function formatParameters(endpoint: Endpoint): string {
       content += `- \`${param.name}: ${type}\`${meta}`;
       if (description) content += ` — ${description}`;
       content += '\n';
+      if (param.schema?.enum) {
+        content += `  Значения: ${param.schema.enum.map((v: unknown) => `\`${String(v)}\``).join(', ')}\n`;
+      }
     }
     content += '\n';
   }

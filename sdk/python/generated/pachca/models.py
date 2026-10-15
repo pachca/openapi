@@ -447,8 +447,10 @@ class ValidationErrorCode(StrEnum):
     BOT_ADD_DENIED = "bot_add_denied"  # Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
     SINGLE_CHAT_BOT_OCCUPIED = "single_chat_bot_occupied"  # Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
     SINGLE_CHAT_BOT_TAG_DENIED = "single_chat_bot_tag_denied"  # Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
+    RESTRICTED_BOT_TAG_DENIED = "restricted_bot_tag_denied"  # В тег можно добавить только бота, которого может добавить в чат любой сотрудник
     BOT_CHANGED_CONCURRENTLY = "bot_changed_concurrently"  # Настройки бота изменились во время запроса: повторите его
     TIMEOUT = "timeout"  # Поиск не уложился по времени: сузьте запрос и повторите
+    DAILY_INVITES_LIMIT = "daily_invites_limit"  # Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`
     FORBIDDEN = "forbidden"  # Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     PERMISSION_DENIED = "permission_denied"  # Доступ запрещён (недостаточно прав)
     ACCESS_DENIED = "access_denied"  # Доступ запрещён
@@ -998,6 +1000,9 @@ class BotWebhook:
     challenge_key: str | None = None
     kind: BotWebhookKind | None = None
     last_request_at: datetime | None = None
+    url: str | None = None
+    secret_token: str | None = None
+    last_request_body: str | None = None
 
 
 @dataclass
@@ -1058,6 +1063,11 @@ class ChatCreateRequestChat:
 @dataclass
 class ChatCreateRequest:
     chat: ChatCreateRequestChat
+
+
+@dataclass
+class ChatExport:
+    id: int
 
 
 @dataclass
@@ -1914,6 +1924,11 @@ class WebhookVideoCallThread:
     chat_id: int
     message_id: int | None = None
     message_chat_id: int | None = None
+
+
+@dataclass
+class UpdateBotAvatarRequest:
+    image: bytes
 
 
 @dataclass

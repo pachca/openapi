@@ -18,6 +18,7 @@ hideTableOfContents: true
   <Card title="Сотрудник" href="#sotrudnik" methods="GET POST PUT DELETE" />
   <Card title="Тег" href="#teg" methods="GET POST PUT DELETE" />
   <Card title="Чат" href="#chat" methods="GET POST PUT DELETE" />
+  <Card title="Экспорт сообщений" href="#eksport-soobscheniy" methods="POST GET" />
   <Card title="Тред" href="#tred" methods="GET POST" />
   <Card title="Сообщение" href="#soobschenie" methods="GET POST PUT DELETE" />
   <Card title="Реакция на сообщение" href="#reaktsiya-na-soobschenie" methods="GET POST DELETE" />
@@ -64,6 +65,8 @@ hideTableOfContents: true
 - [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar)
 - [Загрузка аватара чата](PUT /chats/{id}/avatar)
 - [Удаление аватара чата](DELETE /chats/{id}/avatar)
+- [Загрузка аватара бота](PUT /bots/{id}/avatar)
+- [Удаление аватара бота](DELETE /bots/{id}/avatar)
 
 <ModelSchema name="AvatarData" />
 
@@ -97,12 +100,10 @@ hideTableOfContents: true
 
 - [Новый чат](POST /chats)
 - [Добавление пользователей](POST /chats/{id}/members)
-- [Экспорт сообщений](POST /chats/exports)
 - [Информация о чате](GET /chats/{id})
 - [Список чатов](GET /chats)
 - [Список чатов пространства](GET /company/chats)
 - [Поиск чатов](GET /search/chats)
-- [Скачать архив экспорта](GET /chats/exports/{id})
 - [Редактирование чата](PUT /chats/{id})
 - [Архивация чата](PUT /chats/{id}/archive)
 - [Разархивация чата](PUT /chats/{id}/unarchive)
@@ -112,6 +113,13 @@ hideTableOfContents: true
 - [Исключение пользователя](DELETE /chats/{id}/members/{user_id})
 
 <ModelSchema name="Chat" />
+
+## Экспорт сообщений
+
+- [Экспорт сообщений](POST /chats/exports)
+- [Скачать архив экспорта](GET /chats/exports/{id})
+
+<ModelSchema name="ChatExport" />
 
 ## Тред
 

@@ -740,10 +740,14 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("single_chat_bot_occupied") SINGLE_CHAT_BOT_OCCUPIED("single_chat_bot_occupied"),
     /** Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег */
     @SerialName("single_chat_bot_tag_denied") SINGLE_CHAT_BOT_TAG_DENIED("single_chat_bot_tag_denied"),
+    /** В тег можно добавить только бота, которого может добавить в чат любой сотрудник */
+    @SerialName("restricted_bot_tag_denied") RESTRICTED_BOT_TAG_DENIED("restricted_bot_tag_denied"),
     /** Настройки бота изменились во время запроса: повторите его */
     @SerialName("bot_changed_concurrently") BOT_CHANGED_CONCURRENTLY("bot_changed_concurrently"),
     /** Поиск не уложился по времени: сузьте запрос и повторите */
     @SerialName("timeout") TIMEOUT("timeout"),
+    /** Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload` */
+    @SerialName("daily_invites_limit") DAILY_INVITES_LIMIT("daily_invites_limit"),
     /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
     @SerialName("forbidden") FORBIDDEN("forbidden"),
     /** Доступ запрещён (недостаточно прав) */
@@ -1695,6 +1699,9 @@ data class BotWebhook(
     val kind: BotWebhookKind? = null,
     @SerialName("unfurl_domains") val unfurlDomains: List<String>,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_request_at") val lastRequestAt: OffsetDateTime? = null,
+    val url: String? = null,
+    @SerialName("secret_token") val secretToken: String? = null,
+    @SerialName("last_request_body") val lastRequestBody: String? = null,
 )
 
 @Serializable
@@ -1743,6 +1750,11 @@ data class ChatCreateRequestChat(
 @Serializable
 data class ChatCreateRequest(
     val chat: ChatCreateRequestChat,
+)
+
+@Serializable
+data class ChatExport(
+    val id: Int,
 )
 
 @Serializable
@@ -2405,6 +2417,11 @@ data class WebhookVideoCallThread(
 )
 
 @Serializable
+data class UpdateBotAvatarRequest(
+    @Transient val image: ByteArray = ByteArray(0),
+)
+
+@Serializable
 data class UpdateChatAvatarRequest(
     @Transient val image: ByteArray = ByteArray(0),
 )
@@ -2554,10 +2571,13 @@ data class BotAccessTokenDataWrapper(val data: BotAccessToken)
 data class BotSelfResponseDataWrapper(val data: BotSelfResponse)
 
 @Serializable
+data class AvatarDataDataWrapper(val data: AvatarData)
+
+@Serializable
 data class ChatDataWrapper(val data: Chat)
 
 @Serializable
-data class AvatarDataDataWrapper(val data: AvatarData)
+data class ChatExportDataWrapper(val data: ChatExport)
 
 @Serializable
 data class DraftDataWrapper(val data: Draft)

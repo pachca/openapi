@@ -239,12 +239,20 @@ open class BotsService {
         throw pachcaNotImplemented("Bots.updateBot")
     }
 
+    open func updateBotAvatar(id: Int, image: Data) async throws -> AvatarData {
+        throw pachcaNotImplemented("Bots.updateBotAvatar")
+    }
+
     open func updateBotToken(id: Int, tokenId: Int64, request body: BotTokenUpdateRequest) async throws -> BotAccessToken {
         throw pachcaNotImplemented("Bots.updateBotToken")
     }
 
     open func deleteBot(id: Int) async throws -> Void {
         throw pachcaNotImplemented("Bots.deleteBot")
+    }
+
+    open func deleteBotAvatar(id: Int) async throws -> Void {
+        throw pachcaNotImplemented("Bots.deleteBotAvatar")
     }
 
     open func deleteBotToken(id: Int, tokenId: Int64) async throws -> Void {
@@ -572,6 +580,37 @@ public final class BotsServiceImpl: BotsService {
         }
     }
 
+    public override func updateBotAvatar(id: Int, image: Data) async throws -> AvatarData {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/avatar")!)
+        request.httpMethod = "PUT"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        var data = Data()
+        func appendField(_ name: String, _ value: String) {
+            data.append("--\(boundary)\r\n".data(using: .utf8)!)
+            data.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            data.append("\(value)\r\n".data(using: .utf8)!)
+        }
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"image\"; filename=\"upload\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        data.append(image)
+        data.append("\r\n".data(using: .utf8)!)
+        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = data
+        let (responseData, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(AvatarDataDataWrapper.self, from: responseData).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: responseData)
+        default:
+            throw try deserialize(ApiError.self, from: responseData)
+        }
+    }
+
     public override func updateBotToken(id: Int, tokenId: Int64, request body: BotTokenUpdateRequest) async throws -> BotAccessToken {
         var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/tokens/\(tokenId)")!)
         request.httpMethod = "PUT"
@@ -592,6 +631,22 @@ public final class BotsServiceImpl: BotsService {
 
     public override func deleteBot(id: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)")!)
+        request.httpMethod = "DELETE"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func deleteBotAvatar(id: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/avatar")!)
         request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
@@ -670,7 +725,7 @@ open class ChatsService {
         throw pachcaNotImplemented("Chats.createChat")
     }
 
-    open func requestExport(request body: ExportRequest) async throws -> Void {
+    open func requestExport(request body: ExportRequest) async throws -> ChatExport {
         throw pachcaNotImplemented("Chats.requestExport")
     }
 
@@ -839,17 +894,18 @@ public final class ChatsServiceImpl: ChatsService {
         }
     }
 
-    public override func requestExport(request body: ExportRequest) async throws -> Void {
+    public override func requestExport(request body: ExportRequest) async throws -> ChatExport {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/exports")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("return=representation", forHTTPHeaderField: "Prefer")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try serialize(body)
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
-        case 204:
-            return
+        case 202:
+            return try deserialize(ChatExportDataWrapper.self, from: data).data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -2949,7 +3005,7 @@ open class CommonService {
         throw pachcaNotImplemented("Common.listProperties")
     }
 
-    open func requestExport(request body: ExportRequest) async throws -> Void {
+    open func requestExport(request body: ExportRequest) async throws -> ChatExport {
         throw pachcaNotImplemented("Common.requestExport")
     }
 
@@ -3041,17 +3097,18 @@ public final class CommonServiceImpl: CommonService {
         }
     }
 
-    public override func requestExport(request body: ExportRequest) async throws -> Void {
+    public override func requestExport(request body: ExportRequest) async throws -> ChatExport {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/exports")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("return=representation", forHTTPHeaderField: "Prefer")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try serialize(body)
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
-        case 204:
-            return
+        case 202:
+            return try deserialize(ChatExportDataWrapper.self, from: data).data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:

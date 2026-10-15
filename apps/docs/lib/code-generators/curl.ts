@@ -47,6 +47,13 @@ export function generateCurl(
     curl += ` \\\n  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"`;
   }
 
+  // Header parameters with a known value, e.g. `Prefer: return=representation`
+  for (const param of endpoint.parameters.filter((p) => p.in === 'header')) {
+    const only = param.schema?.enum?.length === 1 ? param.schema.enum[0] : undefined;
+    const value = param.example ?? only;
+    if (value !== undefined) curl += ` \\\n  -H ${shellQuote(`${param.name}: ${String(value)}`)}`;
+  }
+
   // Multipart form-data
   if (['POST', 'PUT', 'PATCH'].includes(method) && hasMultipartContent(endpoint)) {
     const fields = generateMultipartExample(endpoint.requestBody);

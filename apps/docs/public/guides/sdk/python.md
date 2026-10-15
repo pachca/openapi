@@ -157,8 +157,10 @@ await client.close()
 | `client.bots.list_bot_tokens()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.bots.self_update_bot_webhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.update_bot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.update_bot_avatar()` | [Загрузка аватара бота](/api/bots/update-avatar) |
 | `client.bots.update_bot_token()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.bots.delete_bot()` | [Удаление бота](/api/bots/delete) |
+| `client.bots.delete_bot_avatar()` | [Удаление аватара бота](/api/bots/remove-avatar) |
 | `client.bots.delete_webhook_event()` | [Удаление события](/api/bots/remove-event) |
 | `client.bots.delete_bot_token()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |

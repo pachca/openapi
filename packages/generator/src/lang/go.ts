@@ -671,6 +671,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push(`\t\t${retErr()}`);
     lines.push('\t}');
     if (hasJSON) lines.push('\treq.Header.Set("Content-Type", "application/json")');
+    for (const h of op.requestHeaders ?? []) lines.push(`\treq.Header.Set(${JSON.stringify(h.name)}, ${JSON.stringify(h.value)})`);
   }
 
   const goClient = op.noAuth ? 'http.DefaultClient' : 's.client';
@@ -689,18 +690,18 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\t\t}');
     lines.push('\t\treturn location, nil');
   } else if (!op.successResponse.hasBody) {
-    lines.push(`\tcase ${op.successResponse.statusCode === 201 ? 'http.StatusCreated' : 'http.StatusNoContent'}:`);
+    lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
     lines.push('\t\treturn nil');
   } else if (op.successResponse.isList) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-    lines.push(`\tcase ${op.successResponse.statusCode === 201 ? 'http.StatusCreated' : 'http.StatusOK'}:`);
+    lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
     lines.push(`\t\tvar result ${rt?.name ?? 'any'}`);
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&result); err != nil {');
     lines.push('\t\t\treturn nil, err');
     lines.push('\t\t}');
     lines.push('\t\treturn &result, nil');
   } else if (op.successResponse.isUnwrap && op.successResponse.dataRef) {
-    lines.push(`\tcase ${op.successResponse.statusCode === 201 ? 'http.StatusCreated' : 'http.StatusOK'}:`);
+    lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
     lines.push('\t\tvar result struct {');
     lines.push(`\t\t\tData ${op.successResponse.dataRef} \`json:"data"\``);
     lines.push('\t\t}');
@@ -709,7 +710,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\t\t}');
     lines.push('\t\treturn &result.Data, nil');
   } else {
-    lines.push(`\tcase ${op.successResponse.statusCode === 201 ? 'http.StatusCreated' : 'http.StatusOK'}:`);
+    lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
     lines.push(`\t\tvar result ${op.successResponse.dataRef ?? 'any'}`);
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&result); err != nil {');
     lines.push('\t\t\treturn nil, err');
@@ -745,6 +746,19 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
 
   lines.push('\t}');
   lines.push('}');
+}
+
+/** The net/http constant for a success status the spec declares. */
+function goStatus(code: number): string {
+  const names: Record<number, string> = {
+    200: 'http.StatusOK',
+    201: 'http.StatusCreated',
+    202: 'http.StatusAccepted',
+    204: 'http.StatusNoContent',
+  };
+  const name = names[code];
+  if (!name) throw new Error(`Go: no net/http constant for success status ${code}`);
+  return name;
 }
 
 function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {

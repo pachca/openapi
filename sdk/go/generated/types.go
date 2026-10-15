@@ -452,8 +452,10 @@ const (
 	ValidationErrorCodeBotAddDenied               ValidationErrorCode = "bot_add_denied" // Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
 	ValidationErrorCodeSingleChatBotOccupied      ValidationErrorCode = "single_chat_bot_occupied" // Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
 	ValidationErrorCodeSingleChatBotTagDenied     ValidationErrorCode = "single_chat_bot_tag_denied" // Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
+	ValidationErrorCodeRestrictedBotTagDenied     ValidationErrorCode = "restricted_bot_tag_denied" // В тег можно добавить только бота, которого может добавить в чат любой сотрудник
 	ValidationErrorCodeBotChangedConcurrently     ValidationErrorCode = "bot_changed_concurrently" // Настройки бота изменились во время запроса: повторите его
 	ValidationErrorCodeTimeout                    ValidationErrorCode = "timeout" // Поиск не уложился по времени: сузьте запрос и повторите
+	ValidationErrorCodeDailyInvitesLimit          ValidationErrorCode = "daily_invites_limit" // Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`
 	ValidationErrorCodeForbidden                  ValidationErrorCode = "forbidden" // Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
 	ValidationErrorCodePermissionDenied           ValidationErrorCode = "permission_denied" // Доступ запрещён (недостаточно прав)
 	ValidationErrorCodeAccessDenied               ValidationErrorCode = "access_denied" // Доступ запрещён
@@ -1073,6 +1075,9 @@ type BotWebhook struct {
 	ChallengeKey         *string           `json:"challenge_key"`
 	Kind                 *BotWebhookKind   `json:"kind"`
 	LastRequestAt        *string           `json:"last_request_at"`
+	URL                  *string           `json:"url"`
+	SecretToken          *string           `json:"secret_token,omitempty"`
+	LastRequestBody      *string           `json:"last_request_body"`
 }
 
 type BotWebhookSelfUpdateRequestWebhook struct {
@@ -1145,6 +1150,10 @@ func (m ChatCreateRequestChat) MarshalJSON() ([]byte, error) {
 
 type ChatCreateRequest struct {
 	Chat ChatCreateRequestChat `json:"chat"`
+}
+
+type ChatExport struct {
+	ID int32 `json:"id"`
 }
 
 type ChatMemberWebhookPayload struct {
@@ -2155,6 +2164,10 @@ type WebhookVideoCallThread struct {
 	ChatID        int32  `json:"chat_id"`
 	MessageID     *int32 `json:"message_id"`
 	MessageChatID *int32 `json:"message_chat_id"`
+}
+
+type UpdateBotAvatarRequest struct {
+	Image io.Reader `json:"image"`
 }
 
 type UpdateChatAvatarRequest struct {

@@ -156,6 +156,16 @@ export interface IROperation {
   noAuth?: boolean;
   /** Generate *All pagination helper (from x-paginated: true) */
   isPaginated?: boolean;
+  /**
+   * Headers the SDK always sends: a header parameter that allows exactly one value
+   * (`Prefer: return=representation`) is a choice already made, not an argument.
+   */
+  requestHeaders?: IRRequestHeader[];
+}
+
+export interface IRRequestHeader {
+  name: string;
+  value: string;
 }
 
 export interface IRService {

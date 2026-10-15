@@ -581,6 +581,29 @@
         "flags": []
       },
       {
+        "command": "pachca bots remove-avatar",
+        "summary": "Удаление аватара бота",
+        "method": "DELETE",
+        "path": "/bots/{id}/avatar",
+        "scope": "bots:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
         "command": "pachca bots remove-event",
         "summary": "Удаление события",
         "method": "DELETE",
@@ -753,6 +776,29 @@
             "type": "option",
             "required": false,
             "description": "Страница бота в витрине. Доступна, только когда у бота включена авторизация."
+          }
+        ]
+      },
+      {
+        "command": "pachca bots update-avatar",
+        "summary": "Загрузка аватара бота",
+        "method": "PUT",
+        "path": "/bots/{id}/avatar",
+        "scope": "bots:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "file",
+            "type": "option",
+            "required": false,
+            "description": "Файл изображения для аватара"
           }
         ]
       },
@@ -1110,7 +1156,7 @@
             "name": "webhook-url",
             "type": "option",
             "required": false,
-            "description": "Адрес, на который придёт вебхук с номером готовой выгрузки. Без него узнать номер неоткуда: заказавший получит письмо и уведомление, а вызывающая программа — ничего."
+            "description": "Адрес, на который придёт вебхук с номером готовой выгрузки, когда архив будет собран"
           },
           {
             "name": "chat-ids",

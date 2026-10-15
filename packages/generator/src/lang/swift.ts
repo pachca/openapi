@@ -421,6 +421,9 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
   }
   if (op.method !== 'GET') lines.push(`        request.httpMethod = ${JSON.stringify(op.method)}`);
   if (!op.noAuth) lines.push('        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }');
+  for (const h of op.requestHeaders ?? []) {
+    lines.push(`        request.setValue(${JSON.stringify(h.value)}, forHTTPHeaderField: ${JSON.stringify(h.name)})`);
+  }
 
   if (op.requestBody?.contentType === 'json') {
     const rb = op.requestBody!;

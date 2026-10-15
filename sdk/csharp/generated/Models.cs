@@ -1937,10 +1937,14 @@ public enum ValidationErrorCode
     SingleChatBotOccupied,
     /// <summary>Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег</summary>
     SingleChatBotTagDenied,
+    /// <summary>В тег можно добавить только бота, которого может добавить в чат любой сотрудник</summary>
+    RestrictedBotTagDenied,
     /// <summary>Настройки бота изменились во время запроса: повторите его</summary>
     BotChangedConcurrently,
     /// <summary>Поиск не уложился по времени: сузьте запрос и повторите</summary>
     Timeout,
+    /// <summary>Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`</summary>
+    DailyInvitesLimit,
     /// <summary>Недостаточно прав для выполнения действия (пояснения вы получите в поле message)</summary>
     Forbidden,
     /// <summary>Доступ запрещён (недостаточно прав)</summary>
@@ -2020,8 +2024,10 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             "bot_add_denied" => ValidationErrorCode.BotAddDenied,
             "single_chat_bot_occupied" => ValidationErrorCode.SingleChatBotOccupied,
             "single_chat_bot_tag_denied" => ValidationErrorCode.SingleChatBotTagDenied,
+            "restricted_bot_tag_denied" => ValidationErrorCode.RestrictedBotTagDenied,
             "bot_changed_concurrently" => ValidationErrorCode.BotChangedConcurrently,
             "timeout" => ValidationErrorCode.Timeout,
+            "daily_invites_limit" => ValidationErrorCode.DailyInvitesLimit,
             "forbidden" => ValidationErrorCode.Forbidden,
             "permission_denied" => ValidationErrorCode.PermissionDenied,
             "access_denied" => ValidationErrorCode.AccessDenied,
@@ -2084,8 +2090,10 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             ValidationErrorCode.BotAddDenied => "bot_add_denied",
             ValidationErrorCode.SingleChatBotOccupied => "single_chat_bot_occupied",
             ValidationErrorCode.SingleChatBotTagDenied => "single_chat_bot_tag_denied",
+            ValidationErrorCode.RestrictedBotTagDenied => "restricted_bot_tag_denied",
             ValidationErrorCode.BotChangedConcurrently => "bot_changed_concurrently",
             ValidationErrorCode.Timeout => "timeout",
+            ValidationErrorCode.DailyInvitesLimit => "daily_invites_limit",
             ValidationErrorCode.Forbidden => "forbidden",
             ValidationErrorCode.PermissionDenied => "permission_denied",
             ValidationErrorCode.AccessDenied => "access_denied",
@@ -3452,6 +3460,12 @@ public class BotWebhook
     public List<string> UnfurlDomains { get; set; } = default!;
     [JsonPropertyName("last_request_at")]
     public DateTimeOffset? LastRequestAt { get; set; }
+    [JsonPropertyName("url")]
+    public string? Url { get; set; }
+    [JsonPropertyName("secret_token")]
+    public string? SecretToken { get; set; }
+    [JsonPropertyName("last_request_body")]
+    public string? LastRequestBody { get; set; }
 }
 
 public class BotWebhookSelfUpdateRequestWebhook
@@ -3524,6 +3538,12 @@ public class ChatCreateRequest
 {
     [JsonPropertyName("chat")]
     public ChatCreateRequestChat Chat { get; set; } = default!;
+}
+
+public class ChatExport
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
 }
 
 public class ChatUpdateRequestChat
@@ -4532,6 +4552,12 @@ public class WebhookVideoCallThread
     public int? MessageChatId { get; set; }
 }
 
+public class UpdateBotAvatarRequest
+{
+    [JsonIgnore]
+    public byte[] Image { get; set; } = Array.Empty<byte>();
+}
+
 public class UpdateChatAvatarRequest
 {
     [JsonIgnore]
@@ -4738,16 +4764,22 @@ public class BotSelfResponseDataWrapper
     public BotSelfResponse Data { get; set; } = default!;
 }
 
+public class AvatarDataDataWrapper
+{
+    [JsonPropertyName("data")]
+    public AvatarData Data { get; set; } = default!;
+}
+
 public class ChatDataWrapper
 {
     [JsonPropertyName("data")]
     public Chat Data { get; set; } = default!;
 }
 
-public class AvatarDataDataWrapper
+public class ChatExportDataWrapper
 {
     [JsonPropertyName("data")]
-    public AvatarData Data { get; set; } = default!;
+    public ChatExport Data { get; set; } = default!;
 }
 
 public class DraftDataWrapper

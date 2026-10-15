@@ -644,6 +644,8 @@ paths:
 
         Метод отдаёт только тех ботов, которых вызывающий вправе настраивать: своих, а также чужих, если настройки бота открывают доступ администраторам пространства или руководителям чатов, где бот состоит. На остальных метод ответит `403`.
 
+        Токену со скоупом `bots:write` метод отвечает и без `bots:read`. Если при этом вы можете управлять токенами бота (`permissions.recreate_token`), в `webhook` приходят адрес входящего вебхука `url`, секрет подписи `secret_token` и тело последнего запроса на входящий вебхук `last_request_body`.
+
         Перечень всех ботов пространства, включая чужих, доступен владельцу на тарифе «Корпорация» — [Список ботов пространства](GET /company/bots).
       parameters:
         - name: id
@@ -702,6 +704,9 @@ paths:
                     kind: simple
                     unfurl_domains: []
                     last_request_at: '2025-05-20T09:15:00.000Z'
+                    url: https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M
+                    secret_token: pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA
+                    last_request_body: '{"client": "ООО Ромашка", "amount": 15000}'
                   oauth_client_enabled: true
                   oauth_client:
                     client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
@@ -760,6 +765,8 @@ paths:
         Объект `oauth_client` включает авторизацию от имени сотрудника или меняет её настройки, а `null` её выключает: авторизации, выданные сотрудниками, отзываются, страница в витрине удаляется, собственные токены бота продолжают работать. Когда клиент становится серверным, его секрет приходит в `client_secret` один раз. Страницу в витрине задаёт `promo`, пока авторизация включена.
 
         Включать событие `message_link_shared`, а у бота с ним менять домены, адрес вебхука и историю событий может только администратор или владелец пространства.
+
+        Если изменение лишает бота права состоять в тегах (`single_chat: true` или `who_can_add` со значением `creator` или `creator_admin`), он выходит из всех тегов и из чатов, куда попал через них, а в чатах, куда его добавили напрямую, остаётся. Подробнее — в разделе [Бот в тегах](/guides/bots/settings#bot-v-tegah).
 
         Имя бота, авторизацию от имени сотрудника и страницу в витрине меняют только его создатель и администратор пространства, если настройки бота открывают администраторам доступ к редактированию. Остальные настройки нельзя менять у бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).
       parameters:
@@ -872,6 +879,152 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bots:write
+  /bots/{id}/avatar:
+    put:
+      operationId: BotOperations_updateBotAvatar
+      description: |-
+        Загрузка аватара бота
+
+        Ставит или заменяет аватар бота. Менять его может тот, кому доступно [Редактирование бота](PUT /bots/{id}).
+
+        Файл передаётся в формате `multipart/form-data`, в ответе приходит только ссылка на новое изображение. Принимаются `jpg`, `jpeg`, `png` и `gif`, анимированный `gif` — не больше 2 МБ, картинка уменьшается до 1024 на 1024 пикселя.
+
+        Уменьшенная копия приходит в поле `avatar_url` бота, например в методе [Информация о боте](GET /bots/{id}).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор бота
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AvatarData'
+                description: Обертка ответа с данными
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Файл изображения для аватара
+              required:
+                - image
+      x-requirements:
+        scope: bots:write
+    delete:
+      operationId: BotOperations_deleteBotAvatar
+      description: |-
+        Удаление аватара бота
+
+        Убирает аватар бота. Доступно тому же, кому доступна [Загрузка аватара бота](PUT /bots/{id}/avatar).
+
+        Если аватара не было, ответ всё равно `204`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор бота
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -1888,13 +2041,47 @@ paths:
       description: |-
         Экспорт сообщений
 
-        Заказ выгрузки сообщений пространства за период. Архив готовится в фоне, поэтому ответ приходит пустым и идентификатора выгрузки не содержит.
+        Заказ выгрузки сообщений пространства за период. Архив готовится в фоне.
 
-        Номер готовой выгрузки приходит в поле `export_id` вебхука на адрес из `webhook_url`. Заказавший дополнительно получает письмо и уведомление в Пачке со ссылкой вида `/full_exports/{id}` — число в ней и есть идентификатор. Адрес вебхука необязателен, но без него программе номер взять неоткуда: остаются только письмо и уведомление заказавшему.
+        С заголовком `Prefer: return=representation` ответ приходит со статусом `202` и идентификатором экспорта в `data.id`. Без заголовка ответ пустой, со статусом `204`. По идентификатору архив отдаёт метод [Скачать архив экспорта](GET /chats/exports/{id}), когда сборка закончится.
 
-        С этим идентификатором архив забирают методом [Скачать архив экспорта](GET /chats/exports/{id}).
-      parameters: []
+        Когда архив готов, на адрес из `webhook_url` приходит вебхук с идентификатором в поле `export_id`. Заказавший получает письмо и уведомление в Пачке со ссылкой вида `/full_exports/{id}` — число в ней и есть идентификатор.
+
+        Следующую выгрузку пространство может заказать через 90 секунд после предыдущей, даже если та ещё собирается. Более ранний запрос отвечает `422` с кодом `rate_limit`.
+      parameters:
+        - name: Prefer
+          in: header
+          required: false
+          description: Просьба вернуть идентификатор экспорта в ответе. Без заголовка ответ приходит пустым, со статусом `204`.
+          schema:
+            type: string
+            enum:
+              - return=representation
+          example: return=representation
       responses:
+        '202':
+          description: The request has been accepted for processing, but processing has not yet completed.
+          headers:
+            Preference-Applied:
+              required: true
+              description: Применённое предпочтение
+              schema:
+                type: string
+                enum:
+                  - return=representation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ChatExport'
+                description: Обертка ответа с данными
+              example:
+                data:
+                  id: 22322
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
         '400':
@@ -1931,6 +2118,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ExportRequest'
+            example:
+              start_at: '2025-03-01'
+              end_at: '2025-03-20'
+              chat_ids:
+                - 1381521
       x-requirements:
         scope: chat_exports:write
         plan: corporation
@@ -1943,6 +2135,8 @@ paths:
         В ответ на запрос сервер вернёт `302 Found` с заголовком `Location`, содержащим временную ссылку на скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.
 
         Ссылка действует 5 минут, поэтому скачивайте архив сразу после запроса. Сам архив хранится 7 дней, а скачать его может только тот, кто заказал выгрузку. Другому сотруднику с тем же правом метод откажет.
+
+        Пока архив собирается, метод отвечает `404` с кодом `export_file_not_found`.
       parameters:
         - name: id
           in: path
@@ -2323,7 +2517,7 @@ paths:
 
         После добавления тега все его участники автоматически становятся участниками чата. Состав участников тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу появляется в чате, при удалении из тега — удаляется из чата.
 
-        Если хотя бы один из переданных тегов не найден, метод отвечает `404` и не привязывает ни одного. Тег, который к чату уже привязан, повторно не привязывается, а его участники всё равно догружаются в чат.
+        Если хотя бы один из переданных тегов не найден, метод отвечает `404` и не привязывает ни одного. Тег, который к чату уже привязан, повторно не привязывается, а его участники всё равно догружаются в чат. Бот, которому нельзя состоять в тегах, по тегу в чат не приходит.
 
         Привязать тег может участник закрытой беседы и любой сотрудник пространства в открытом чате, а отцепить — только владелец или администратор чата методом [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id}).
       parameters:
@@ -6612,6 +6806,8 @@ paths:
 
         Если сотрудник с этим адресом уже есть в пространстве, метод отвечает `409`. Занятый ник ошибкой не считается: к нему молча дописываются случайные символы, и в ответе приходит уже изменённый.
 
+        Бесплатное пространство, в том числе на пробном периоде, может отправить за сутки ограниченное число писем: приглашения и письма о смене почты считаются вместе, а предел указан на странице [Лимиты](/api/limits). Сверх него метод отвечает `422` с кодом `daily_invites_limit` и сотрудника не заводит, а остаток и время сброса приходят в `payload`. С `skip_email_notify: true` письмо не отправляется и в лимит не идёт.
+
         Вы можете заполнять дополнительные поля сотрудника, которые созданы в вашей компании. Получить актуальный список идентификаторов дополнительных полей сотрудника вы можете в методе [Список дополнительных полей](GET /custom_properties).
 
         Поле `list_tags` сразу заводит сотрудника в теги, а вместе с тегами — и в чаты, к которым эти теги привязаны. У гостя теги не назначаются вовсе: ответ приходит успешный, а `list_tags` в нём пустой.
@@ -6855,6 +7051,8 @@ paths:
 
         Меняет карточку сотрудника: перезаписываются только переданные поля. Идентификаторы дополнительных полей отдаёт [Список дополнительных полей](GET /custom_properties).
 
+        Запрос применяется целиком: если какое-то поле не прошло проверку, например новый `email` уже занят, не меняется ничего. Смена почты отправляет письма на прежний и новый адрес. В бесплатном пространстве они идут в тот же суточный лимит, что и приглашения из метода [Новый сотрудник](POST /users), и сверх него ответ `422` с кодом `daily_invites_limit`.
+
         Поле `list_tags` заменяет набор тегов целиком, поэтому присылайте вместе с новым тегом и те, что сохраняются. Снятый тег выводит сотрудника из чатов, куда его привёл этот тег, а имя, которого в пространстве ещё нет, создаёт новый тег вместе с назначением.
 
         `suspended: true` приостанавливает сотрудника: он теряет доступ, но остаётся в чатах, тегах и задачах, а `suspended: false` возвращает его обратно. Насовсем убирает сотрудника [Удаление сотрудника](DELETE /users/{id}).
@@ -6863,7 +7061,7 @@ paths:
 
         Незнакомое значение роли метод молча пропускает: ответ приходит успешный, а роль остаётся прежней.
 
-        У бота метод меняет только имя (`first_name`), ник, теги и `suspended`, остальные поля в запросе пропускает. Ник бота должен оканчиваться на `_bot` и быть уникальным в пространстве, иначе метод отвечает `422` с ошибкой на поле `nickname`: `invalid` или `already_exists`. Прежний ник бота проверяется, только когда его меняют. Бота с настройкой «Ограничить одним чатом» в теги не добавить: если в `list_tags` есть тег, которого у бота ещё нет, метод отвечает `422` с кодом `single_chat_bot_tag_denied` на поле `group_tags` и ничего не меняет. Если настройки бота поменялись во время запроса, ответ `422` приходит с кодом `bot_changed_concurrently`: повторите запрос.
+        У бота метод меняет только имя (`first_name`), ник, теги и `suspended`, остальные поля в запросе пропускает. Ник бота должен оканчиваться на `_bot` и быть уникальным в пространстве, иначе метод отвечает `422` с ошибкой на поле `nickname`: `invalid` или `already_exists`. Прежний ник бота проверяется, только когда его меняют. В тег можно добавить только бота, которого может добавить в чат любой сотрудник и у которого выключена настройка «Ограничить одним чатом». Если бот этим условиям не отвечает, а в `list_tags` есть тег, которого у него ещё нет, метод отвечает `422` на поле `group_tags` и ничего не меняет: с кодом `single_chat_bot_tag_denied`, когда бот ограничен одним чатом, и `restricted_bot_tag_denied`, когда добавлять его в чаты могут не все. Подробнее — в разделе [Бот в тегах](/guides/bots/settings#bot-v-tegah). Если настройки бота поменялись во время запроса, ответ `422` приходит с кодом `bot_changed_concurrently`: повторите запрос.
       parameters:
         - name: id
           in: path
@@ -7728,7 +7926,7 @@ components:
           type: object
           additionalProperties: {}
           nullable: true
-          description: 'Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть. В большинстве случаев `null`.'
+          description: 'Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть, `{limit: number, remaining: number, reset_at: string}` — при исчерпанном суточном лимите писем-приглашений (`reset_at` — когда в окне освободится место). В большинстве случаев `null`.'
           example: null
       description: Детальная информация об ошибке
     AuditDetailsBot:
@@ -9614,6 +9812,20 @@ components:
           nullable: true
           description: Дата и время последнего запроса на входящий вебхук бота (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если запросов не было.
           example: '2025-05-15T14:30:00.000Z'
+        url:
+          type: string
+          nullable: true
+          description: Адрес входящего вебхука. `null`, если входящий вебхук у бота выключен. Приходит только в методе [Информация о боте](GET /bots/{id}).
+          example: https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M
+        secret_token:
+          type: string
+          description: 'Секрет подписи исходящего вебхука: им подписан заголовок `Pachca-Signature`. Приходит только в методе [Информация о боте](GET /bots/{id}).'
+          example: pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA
+        last_request_body:
+          type: string
+          nullable: true
+          description: Тело последнего запроса на входящий вебхук бота. Длиннее 128 КБ обрезается и заканчивается на `...[truncated]`. `null`, если запросов не было. Приходит только в методе [Информация о боте](GET /bots/{id}).
+          example: '{"client": "ООО Ромашка", "amount": 15000}'
       description: Параметры вебхука бота
     BotWebhookKind:
       type: string
@@ -9882,6 +10094,17 @@ components:
             - name
           description: Собранный объект параметров создаваемого чата
       description: Запрос на создание чата
+    ChatExport:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор экспорта
+          example: 22322
+      description: Заказанный экспорт сообщений
     ChatMemberRole:
       type: string
       enum:
@@ -10610,7 +10833,7 @@ components:
           example: '2025-03-20'
         webhook_url:
           type: string
-          description: 'Адрес, на который придёт вебхук с номером готовой выгрузки. Без него узнать номер неоткуда: заказавший получит письмо и уведомление, а вызывающая программа — ничего.'
+          description: Адрес, на который придёт вебхук с номером готовой выгрузки, когда архив будет собран
           example: https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2
         chat_ids:
           type: array
@@ -12990,8 +13213,10 @@ components:
         - bot_add_denied
         - single_chat_bot_occupied
         - single_chat_bot_tag_denied
+        - restricted_bot_tag_denied
         - bot_changed_concurrently
         - timeout
+        - daily_invites_limit
         - forbidden
         - permission_denied
         - access_denied
@@ -13064,8 +13289,10 @@ components:
         bot_add_denied: 'Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`'
         single_chat_bot_occupied: 'Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`'
         single_chat_bot_tag_denied: Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
+        restricted_bot_tag_denied: В тег можно добавить только бота, которого может добавить в чат любой сотрудник
         bot_changed_concurrently: 'Настройки бота изменились во время запроса: повторите его'
         timeout: 'Поиск не уложился по времени: сузьте запрос и повторите'
+        daily_invites_limit: 'Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`'
     VideoCallEventType:
       type: string
       enum:

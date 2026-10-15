@@ -648,10 +648,14 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case singleChatBotOccupied = "single_chat_bot_occupied"
     /// Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
     case singleChatBotTagDenied = "single_chat_bot_tag_denied"
+    /// В тег можно добавить только бота, которого может добавить в чат любой сотрудник
+    case restrictedBotTagDenied = "restricted_bot_tag_denied"
     /// Настройки бота изменились во время запроса: повторите его
     case botChangedConcurrently = "bot_changed_concurrently"
     /// Поиск не уложился по времени: сузьте запрос и повторите
     case timeout
+    /// Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`
+    case dailyInvitesLimit = "daily_invites_limit"
     /// Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     case forbidden
     /// Доступ запрещён (недостаточно прав)
@@ -1949,8 +1953,11 @@ public struct BotWebhook: Codable {
     public let kind: BotWebhookKind?
     public let unfurlDomains: [String]
     public let lastRequestAt: String?
+    public let url: String?
+    public let secretToken: String?
+    public let lastRequestBody: String?
 
-    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String? = nil, templateEngine: BotTemplateEngine, challengeKey: String? = nil, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind? = nil, unfurlDomains: [String], lastRequestAt: String? = nil) {
+    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String? = nil, templateEngine: BotTemplateEngine, challengeKey: String? = nil, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind? = nil, unfurlDomains: [String], lastRequestAt: String? = nil, url: String? = nil, secretToken: String? = nil, lastRequestBody: String? = nil) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
@@ -1970,6 +1977,9 @@ public struct BotWebhook: Codable {
         self.kind = kind
         self.unfurlDomains = unfurlDomains
         self.lastRequestAt = lastRequestAt
+        self.url = url
+        self.secretToken = secretToken
+        self.lastRequestBody = lastRequestBody
     }
 
     enum CodingKeys: String, CodingKey {
@@ -1992,6 +2002,9 @@ public struct BotWebhook: Codable {
         case kind
         case unfurlDomains = "unfurl_domains"
         case lastRequestAt = "last_request_at"
+        case url
+        case secretToken = "secret_token"
+        case lastRequestBody = "last_request_body"
     }
 }
 
@@ -2137,6 +2150,14 @@ public struct ChatCreateRequest: Codable {
 
     public init(chat: ChatCreateRequestChat) {
         self.chat = chat
+    }
+}
+
+public struct ChatExport: Codable {
+    public let id: Int
+
+    public init(id: Int) {
+        self.id = id
     }
 }
 
@@ -4255,6 +4276,14 @@ public struct WebhookVideoCallThread: Codable {
     }
 }
 
+public struct UpdateBotAvatarRequest: Codable {
+    public var image: Data
+
+    public init(image: Data) {
+        self.image = image
+    }
+}
+
 public struct UpdateChatAvatarRequest: Codable {
     public var image: Data
 
@@ -4760,12 +4789,16 @@ struct BotSelfResponseDataWrapper: Codable {
     let data: BotSelfResponse
 }
 
+struct AvatarDataDataWrapper: Codable {
+    let data: AvatarData
+}
+
 struct ChatDataWrapper: Codable {
     let data: Chat
 }
 
-struct AvatarDataDataWrapper: Codable {
-    let data: AvatarData
+struct ChatExportDataWrapper: Codable {
+    let data: ChatExport
 }
 
 struct DraftDataWrapper: Codable {

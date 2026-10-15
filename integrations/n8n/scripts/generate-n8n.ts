@@ -2745,7 +2745,7 @@ function getSpecialHandler(resource: string, v2Op: string): string | null {
   if (resource === 'bot' && v2Op === 'update') return 'botWebhook';
   if (resource === 'user' && v2Op === 'getAll') return 'userGetAllFilters';
   if (resource === 'chat' && v2Op === 'downloadExport') return 'exportDownload';
-  if ((resource === 'profile' || resource === 'user' || resource === 'chat') && v2Op === 'updateAvatar') return 'avatarUpload';
+  if ((resource === 'profile' || resource === 'user' || resource === 'chat' || resource === 'bot') && v2Op === 'updateAvatar') return 'avatarUpload';
   return null;
 }
 
@@ -2817,8 +2817,17 @@ function buildRouteEntry(resource: string, op: OperationInfo): string {
   if (siblingFields.length) parts.push(`siblingFields: [${siblingFields.map(f => `'${f}'`).join(', ')}]`);
 
   if (hasPagination) parts.push('paginated: true');
-  // Chat export endpoints return raw payloads (no { data } wrapper).
-  if (resource === 'chat' && (v2Op === 'requestExport' || v2Op === 'downloadExport')) parts.push('noDataWrapper: true');
+  // Скачивание архива отдаёт ссылку, а не { data }.
+  if (resource === 'chat' && v2Op === 'downloadExport') parts.push('noDataWrapper: true');
+
+  // Заголовок с единственным допустимым значением (`Prefer: return=representation`)
+  // — выбор уже сделан, полем ноды он не становится: операция шлёт его всегда.
+  const fixedHeaders: string[] = [];
+  for (const param of endpoint.parameters) {
+    const only = param.in === 'header' && param.schema.enum?.length === 1 ? param.schema.enum[0] : undefined;
+    if (typeof only === 'string') fixedHeaders.push(`'${param.name}': '${only}'`);
+  }
+  if (fixedHeaders.length) parts.push(`headers: { ${fixedHeaders.join(', ')} }`);
 
   const special = getSpecialHandler(resource, v2Op);
   if (special) parts.push(`special: '${special}'`);
@@ -3096,6 +3105,7 @@ interface RouteConfig {
 \toptionalQueryMap?: QueryMap[];
 \tv1Collection?: string;
 \tspecial?: string;
+\theaders?: Record<string, string>;
 }
 
 // ============================================================================
@@ -3463,7 +3473,7 @@ async function executeRoute(
 
 \tconst response = await makeApiRequest.call(
 \t\tthis, route.method, url, finalBody,
-\t\tObject.keys(qs).length > 0 ? qs : undefined, i,
+\t\tObject.keys(qs).length > 0 ? qs : undefined, i, route.headers,
 \t);
 
 \t// === Handle response ===

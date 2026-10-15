@@ -746,3 +746,17 @@ main {
 .wp-message .wp-code-block {
   @apply bg-glass rounded-lg p-3 text-[13px] font-mono my-2 whitespace-pre-wrap;
 }
+
+/* Значок внешней ссылки. Рисуется маской на неразрывном пробеле, а не отдельным
+   SVG: пробел по правилам переноса склеен и с последним словом ссылки, и со
+   знаком после неё, а SVG браузер мог отделить — скобка уходила на новую строку одна. */
+.external-link::after {
+  content: '\00a0';
+  margin-left: 0.1em;
+  padding-right: 0.875em;
+  background-color: currentColor;
+  -webkit-mask: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M15 3h6v6%22/%3E%3Cpath d=%22M10 14 21 3%22/%3E%3Cpath d=%22M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6%22/%3E%3C/svg%3E')
+    no-repeat right center / 0.875em 0.875em;
+  mask: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M15 3h6v6%22/%3E%3Cpath d=%22M10 14 21 3%22/%3E%3Cpath d=%22M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6%22/%3E%3C/svg%3E')
+    no-repeat right center / 0.875em 0.875em;
+}

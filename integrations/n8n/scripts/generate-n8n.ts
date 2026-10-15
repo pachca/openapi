@@ -2155,6 +2155,8 @@ function getSchemaDefault(schema: Schema | undefined): unknown {
 function groupEndpointsByTag(endpoints: Endpoint[]): Map<string, Endpoint[]> {
   const groups = new Map<string, Endpoint[]>();
   for (const endpoint of endpoints) {
+    // A step of the OAuth flow (`x-oauth-flow`) is not an operation: n8n credentials handle OAuth.
+    if (endpoint.oauthFlow) continue;
     const tag = endpoint.tags[0] || 'Common';
     if (!groups.has(tag)) groups.set(tag, []);
     groups.get(tag)!.push(endpoint);

@@ -56,6 +56,8 @@ A personal token issued in the interface does not expire. One obtained by `pachc
 ## Capabilities
 
 ### OAuth
+- `POST /oauth/revoke` — Revoke token
+- `POST /oauth/token` — Exchange token
 - `GET /oauth/token/info` — Get token info
 
 ### Chats

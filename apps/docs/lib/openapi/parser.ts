@@ -113,6 +113,7 @@ function parseEndpoint(
   const externalUrl = getString(operation, 'x-external-url');
   if (externalUrl) endpoint.externalUrl = externalUrl;
   if (getBoolean(operation, 'x-paginated')) endpoint.paginated = true;
+  if (getBoolean(operation, 'x-oauth-flow')) endpoint.oauthFlow = true;
 
   // Parse parameters
   const parameters = getArray(operation, 'parameters');

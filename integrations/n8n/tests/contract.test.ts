@@ -220,6 +220,8 @@ interface SpecOperation {
 function groupEndpointsByTag(endpoints: Endpoint[]): Map<string, Endpoint[]> {
 	const groups = new Map<string, Endpoint[]>();
 	for (const endpoint of endpoints) {
+		// Mirrors the generator: a step of the OAuth flow (`x-oauth-flow`) has no n8n operation.
+		if (endpoint.oauthFlow) continue;
 		const tag = endpoint.tags[0] || 'Common';
 		if (!groups.has(tag)) groups.set(tag, []);
 		groups.get(tag)!.push(endpoint);

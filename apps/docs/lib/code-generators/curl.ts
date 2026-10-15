@@ -7,6 +7,7 @@ import {
 import {
   requiresAuth,
   hasJsonContent,
+  hasFormContent,
   hasMultipartContent,
   resolveUrl,
   buildQueryString,
@@ -64,6 +65,14 @@ export function generateCurl(
         // inside double quotes — silently truncating the upload path.
         const prefix = field.isFile ? '@' : '';
         curl += ` \\\n  -F ${shellQuote(`${field.name}=${prefix}${field.value}`)}`;
+      }
+    }
+  } else if (['POST', 'PUT', 'PATCH'].includes(method) && hasFormContent(endpoint)) {
+    // A form body (the OAuth flow): `-d name=value` per field, curl sets the Content-Type itself
+    const fields = generateRequestExample(endpoint.requestBody, options);
+    if (fields && typeof fields === 'object') {
+      for (const [name, value] of Object.entries(fields as Record<string, unknown>)) {
+        curl += ` \\\n  -d ${shellQuote(`${name}=${String(value)}`)}`;
       }
     }
   } else {

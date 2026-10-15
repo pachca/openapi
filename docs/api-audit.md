@@ -463,7 +463,7 @@ typespec.tsp → openapi.yaml → generate.ts + config.ts + workflows.ts → SKI
 | Скилл             | Теги в config.ts                                   | Доп. маппинг (COMMON_ENDPOINT_MAP)          | Эндпоинты                                                                                                                                     |
 | ----------------- | -------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pachca-profile`  | `Profile`                                          | `/custom_properties` → pachca-profile       | GET /profile, GET/PUT/DELETE /profile/status, PUT/DELETE /profile/avatar, GET /custom_properties                                              |
-| `pachca-oauth`    | `OAuth`                                            | —                                           | GET /oauth/token/info                                                                                                                         |
+| `pachca-oauth`    | `OAuth`                                            | —                                           | GET /oauth/token/info, POST /oauth/token, POST /oauth/revoke                                                                                  |
 | `pachca-users`    | `Users`, `Group tags`                              | —                                           | CRUD /users, GET/PUT/DELETE /users/{id}/status, CRUD /group_tags, GET /group_tags/{id}/users                                                  |
 | `pachca-chats`    | `Chats`, `Members`                                 | —                                           | CRUD /chats, archive/unarchive, CRUD members, tags, leave, exports, GET /company/chats, PUT /chats/{id}/unread, PUT/DELETE /chats/{id}/avatar |
 | `pachca-messages` | `Messages`, `Threads`, `Reactions`, `Read members` | `/uploads`, `/direct_url` → pachca-messages | CRUD /messages, pin, reactions, read_members, threads, uploads, unfurl                                                                        |
@@ -1052,6 +1052,15 @@ interface EntityOperations {
 другой заголовок генераторы не поддерживают, а генератор MCP на нём падает. В
 английском описании метода фразы про заголовок и `204` для MCP переписываются
 через `HTTP_REWRITES` в `generate-mcp-manifest.ts`.
+
+### Шаги OAuth: `x-oauth-flow`
+
+[Обмен кода на токен](POST /oauth/token) и [Отзыв токена](POST /oauth/revoke) — шаги
+OAuth, а не методы, которые клиент вызывает с токеном. Они описаны в справочнике
+с телом `application/x-www-form-urlencoded` и помечены
+`@extension("x-oauth-flow", true)`: SDK, команды CLI, нода n8n и манифест MCP
+такие операции пропускают, а SDK не выпускает и модели, которые нужны только им.
+Новый шаг OAuth (например, интроспекция токена) описывать так же.
 
 ### Запись в «Последние обновления»
 

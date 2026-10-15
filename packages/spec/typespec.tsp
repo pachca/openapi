@@ -1980,6 +1980,88 @@ model AccessTokenInfo {
   last_used_at: utcDateTime | null;
 }
 
+@doc("Токен сотрудника, выданный боту в обмен на код авторизации")
+model OAuthToken {
+  @doc("Токен сотрудника. Передаётся в заголовке `Authorization: Bearer` при запросах от его имени.")
+  @example("pato_bm90X2FfcmVhbF90b2tlbg")
+  access_token: string;
+
+  @doc("Тип токена, всегда `Bearer`")
+  @example("Bearer")
+  token_type: "Bearer";
+
+  @doc("Токен обновления. Токен сотрудника бессрочный, поэтому обновлять его не нужно.")
+  @example("cmVmcmVzaF9ub3RfcmVhbA")
+  refresh_token: string;
+
+  @doc("Выданные права через пробел. Набор берётся из настроек бота.")
+  @example("chats:read messages:read tasks:read tasks:create")
+  scope: string;
+
+  @doc("Время выдачи токена в формате Unix time, в секундах")
+  @example(1790242260)
+  created_at: int64;
+}
+
+@doc("Запрос на обмен кода авторизации на токен")
+model OAuthTokenRequest {
+  @doc("Тип запроса, всегда `authorization_code`")
+  @example("authorization_code")
+  grant_type: "authorization_code";
+
+  @doc("Код авторизации из адреса возврата")
+  @example("ZmFrZV9hdXRoX2NvZGU")
+  code: string;
+
+  @doc("Адрес возврата — тот же, что в ссылке авторизации")
+  @example("https://bot.example.com/oauth/callback")
+  redirect_uri: string;
+
+  @doc("Идентификатор клиента с вкладки «OAuth» в карточке бота. Не нужен, если клиент передаёт его заголовком `Authorization: Basic`.")
+  @example("aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY")
+  client_id?: string;
+
+  @doc("Секрет клиента серверного приложения. Вместе с `client_id` его можно передать заголовком `Authorization: Basic`.")
+  @example("dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA")
+  client_secret?: string;
+
+  @doc("Проверочный код PKCE, из которого получен `code_challenge` ссылки авторизации. Обязателен для приложения без секрета.")
+  @example("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
+  code_verifier?: string;
+}
+
+@doc("Что передано в запросе на отзыв токена")
+@extension("x-enum-descriptions", #{
+  access_token: "Токен сотрудника",
+  refresh_token: "Токен обновления",
+})
+enum OAuthTokenTypeHint {
+  access_token: "access_token",
+  refresh_token: "refresh_token",
+}
+
+@doc("Запрос на отзыв токена")
+model OAuthRevokeRequest {
+  @doc("Токен сотрудника или его токен обновления")
+  @example("pato_bm90X2FfcmVhbF90b2tlbg")
+  token: string;
+
+  @doc("Что передано в `token`. Без подсказки сервер определит сам.")
+  @example(OAuthTokenTypeHint.access_token)
+  token_type_hint?: OAuthTokenTypeHint;
+
+  @doc("Идентификатор клиента серверного приложения")
+  @example("aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY")
+  client_id?: string;
+
+  @doc("Секрет клиента серверного приложения. Вместе с `client_id` его можно передать заголовком `Authorization: Basic`.")
+  @example("dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA")
+  client_secret?: string;
+}
+
+@doc("Пустой объект")
+model EmptyObject {}
+
 // ============================================================================
 // Error Models
 // ============================================================================
@@ -4831,6 +4913,104 @@ model ChatExport {
   @doc("Идентификатор экспорта")
   @example(22322)
   id: int32;
+}
+
+@route("/oauth")
+@tag("OAuth")
+interface OAuthFlowOperations {
+  @extension("x-requirements", #{
+    auth: false,
+  })
+  @extension("x-oauth-flow", true)
+  @doc("""
+Обмен кода на токен
+
+Второй шаг авторизации от имени сотрудника: код из адреса возврата меняется на токен этого сотрудника. Код действует 10 минут и обменивается один раз. Как получить код и проверить, чей токен пришёл, — в разделе [Получение токена](/guides/oauth/flow).
+
+Тело передаётся в формате `application/x-www-form-urlencoded`, как требует OAuth 2.0. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета передаёт `client_id` и `code_verifier` — проверочный код PKCE, из которого получен `code_challenge` ссылки авторизации.
+
+Токен бессрочный: `expires_in` в ответе нет, и работает токен, пока сотрудник не отзовёт доступ. Если сотрудник уже авторизовал бота раньше, приходит его прежний токен. Чей это токен, показывает [Информация о токене](GET /oauth/token/info).
+
+Ошибки приходят в формате OAuth: `invalid_grant` — код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, а `invalid_client` — неверный `client_id` или `client_secret`. У обмена свой [лимит](/api/limits).
+""")
+  @route("/token")
+  @post
+  @opExample(#{
+    parameters: #{
+      contentType: "application/x-www-form-urlencoded",
+      request: #{
+        grant_type: "authorization_code",
+        code: "ZmFrZV9hdXRoX2NvZGU",
+        redirect_uri: "https://bot.example.com/oauth/callback",
+        client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+        client_secret: "dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA",
+        code_verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+      },
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        access_token: "pato_bm90X2FfcmVhbF90b2tlbg",
+        token_type: "Bearer",
+        refresh_token: "cmVmcmVzaF9ub3RfcmVhbA",
+        scope: "chats:read messages:read tasks:read tasks:create",
+        created_at: 1790242260,
+      },
+    },
+  })
+  exchangeToken(
+    @header("Content-Type") contentType: "application/x-www-form-urlencoded",
+    @body request: OAuthTokenRequest
+  ): {
+    @statusCode _: 200;
+    @body body: OAuthToken;
+  } | {
+    @statusCode _: 400;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  };
+
+  @extension("x-requirements", #{
+    auth: false,
+  })
+  @extension("x-oauth-flow", true)
+  @doc("""
+Отзыв токена
+
+Отзывает токен сотрудника, выданный боту, по стандарту OAuth 2.0 ([RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009)). Так бот отключает доступ сам, например когда сотрудник выключает интеграцию в вашем сервисе. В `token` можно передать и токен сотрудника, и его токен обновления: перестают работать оба.
+
+Тело передаётся в формате `application/x-www-form-urlencoded`. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета отзывает только сам токен: передаёт его и в теле, и в заголовке `Authorization: Bearer`.
+
+Ответ `200` с пустым объектом приходит и тогда, когда токен уже отозван или не найден. Токен другого бота метод не отзывает и отвечает `403` с кодом `unauthorized_client`. Отзыв записывается в [журнал аудита событий](/guides/audit-events) с типом `oauth_token_revoked`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
+""")
+  @route("/revoke")
+  @post
+  @opExample(#{
+    parameters: #{
+      contentType: "application/x-www-form-urlencoded",
+      request: #{
+        token: "pato_bm90X2FfcmVhbF90b2tlbg",
+        client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+        client_secret: "dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA",
+      },
+    },
+    returnType: #{
+      _: 200,
+      body: #{},
+    },
+  })
+  revokeToken(
+    @header("Content-Type") contentType: "application/x-www-form-urlencoded",
+    @body request: OAuthRevokeRequest
+  ): {
+    @statusCode _: 200;
+    @body body: EmptyObject;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  };
 }
 
 @route("/oauth/token/info")

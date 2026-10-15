@@ -2,7 +2,7 @@
   "schema_version": "2.0.0",
   "generated_from": {
     "spec": "openapi.yaml",
-    "digest": "f7c583bdcda7a791"
+    "digest": "d50821d24ecd87a1"
   },
   "server": {
     "name": "pachca",

@@ -54,6 +54,11 @@ export function parseEndpoint(
     endpoint.paginated = true;
   }
 
+  // x-oauth-flow
+  if (getBoolean(operation, 'x-oauth-flow')) {
+    endpoint.oauthFlow = true;
+  }
+
   // deprecated
   if (getBoolean(operation, 'deprecated')) {
     endpoint.deprecated = true;

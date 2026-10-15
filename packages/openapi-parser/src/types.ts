@@ -43,6 +43,8 @@ export interface Endpoint {
   externalUrl?: string;
   paginated?: boolean;
   deprecated?: boolean;
+  /** Step of the OAuth flow (`x-oauth-flow`): documented, but no client method, command or tool is made for it */
+  oauthFlow?: boolean;
 }
 
 export interface Parameter {

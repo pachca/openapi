@@ -28,6 +28,68 @@
       "name": "OAuth",
       "item": [
         {
+          "name": "Отзыв токена",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/oauth/revoke",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "oauth",
+                "revoke"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"pato_bm90X2FfcmVhbF90b2tlbg\",\n  \"client_id\": \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n  \"client_secret\": \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Обмен кода на токен",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/oauth/token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "oauth",
+                "token"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grant_type\": \"authorization_code\",\n  \"code\": \"ZmFrZV9hdXRoX2NvZGU\",\n  \"redirect_uri\": \"https://bot.example.com/oauth/callback\",\n  \"client_id\": \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n  \"client_secret\": \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\",\n  \"code_verifier\": \"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
           "name": "Информация о токене",
           "request": {
             "method": "GET",

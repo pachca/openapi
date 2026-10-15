@@ -15,6 +15,8 @@
 - [Модели](https://dev.pachca.com/api/models.md): Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, черновики, задачи, теги, вебхуки и другие сущности
 
 ## OAuth
+- [Отзыв токена](https://dev.pachca.com/api/oauth/revoke-token.md): POST /oauth/revoke
+- [Обмен кода на токен](https://dev.pachca.com/api/oauth/exchange-token.md): POST /oauth/token
 - [Информация о токене](https://dev.pachca.com/api/oauth/token-info.md): GET /oauth/token/info
 
 ## Chats

@@ -30,8 +30,8 @@ sequenceDiagram
 | Адрес | Назначение |
 | --- | --- |
 | `https://app.pachca.com/apps/authorize` | Экран согласия, на него ведёт кнопка |
-| `https://api.pachca.com/api/shared/v1/oauth/token` | Обмен кода на токен |
-| `https://api.pachca.com/api/shared/v1/oauth/revoke` | Отзыв токена |
+| `https://api.pachca.com/api/shared/v1/oauth/token` | [Обмен кода на токен](/api/oauth/exchange-token) |
+| `https://api.pachca.com/api/shared/v1/oauth/revoke` | [Отзыв токена](/api/oauth/revoke-token) |
 
 Те же адреса публикуются в метаданных сервера авторизации по [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414): `https://api.pachca.com/.well-known/oauth-authorization-server`.
 
@@ -91,7 +91,7 @@ https://bot.example.com/oauth/callback?code=AUTH_CODE&state=STATE&iss=https%3A%2
 
   ### Шаг 5. Обменяйте код на токен
 
-Код живёт 10 минут и обменивается один раз. Серверное приложение передаёт `client_secret` в теле запроса или в заголовке `Authorization: Basic`, приложение без секрета — только `code_verifier`.
+Код живёт 10 минут и обменивается один раз. Серверное приложение передаёт `client_secret` в теле запроса или в заголовке `Authorization: Basic`, приложение без секрета — только `code_verifier`. Поля запроса и ответа — на странице метода [Обмен кода на токен](/api/oauth/exchange-token).
 
 ```bash title="Обмен кода на токен"
 curl -X POST https://api.pachca.com/api/shared/v1/oauth/token \
@@ -230,7 +230,7 @@ app.get("/oauth/callback", async (req, res) => {
 
 ## Отзыв токена ботом
 
-Бот может сам отозвать токен сотрудника, например когда тот отключает интеграцию в вашем сервисе. Серверное приложение отправляет на адрес отзыва `token` вместе с `client_id` и `client_secret`, приложение без секрета — сам токен в теле запроса и в заголовке `Authorization: Bearer`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
+Бот может сам отозвать токен сотрудника методом [Отзыв токена](/api/oauth/revoke-token), например когда тот отключает интеграцию в вашем сервисе. Серверное приложение отправляет `token` вместе с `client_id` и `client_secret`, приложение без секрета — сам токен в теле запроса и в заголовке `Authorization: Bearer`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
 
 
 ## Связанные разделы

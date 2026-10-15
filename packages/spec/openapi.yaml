@@ -5345,6 +5345,104 @@ paths:
         - Threads
       x-requirements:
         scope: threads:create
+  /oauth/revoke:
+    post:
+      operationId: OAuthFlowOperations_revokeToken
+      description: |-
+        Отзыв токена
+
+        Отзывает токен сотрудника, выданный боту, по стандарту OAuth 2.0 ([RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009)). Так бот отключает доступ сам, например когда сотрудник выключает интеграцию в вашем сервисе. В `token` можно передать и токен сотрудника, и его токен обновления: перестают работать оба.
+
+        Тело передаётся в формате `application/x-www-form-urlencoded`. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета отзывает только сам токен: передаёт его и в теле, и в заголовке `Authorization: Bearer`.
+
+        Ответ `200` с пустым объектом приходит и тогда, когда токен уже отозван или не найден. Токен другого бота метод не отзывает и отвечает `403` с кодом `unauthorized_client`. Отзыв записывается в [журнал аудита событий](/guides/audit-events) с типом `oauth_token_revoked`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyObject'
+              example: {}
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - OAuth
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OAuthRevokeRequest'
+            example:
+              token: pato_bm90X2FfcmVhbF90b2tlbg
+              client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+              client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+      x-oauth-flow: true
+      x-requirements:
+        auth: false
+  /oauth/token:
+    post:
+      operationId: OAuthFlowOperations_exchangeToken
+      description: |-
+        Обмен кода на токен
+
+        Второй шаг авторизации от имени сотрудника: код из адреса возврата меняется на токен этого сотрудника. Код действует 10 минут и обменивается один раз. Как получить код и проверить, чей токен пришёл, — в разделе [Получение токена](/guides/oauth/flow).
+
+        Тело передаётся в формате `application/x-www-form-urlencoded`, как требует OAuth 2.0. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета передаёт `client_id` и `code_verifier` — проверочный код PKCE, из которого получен `code_challenge` ссылки авторизации.
+
+        Токен бессрочный: `expires_in` в ответе нет, и работает токен, пока сотрудник не отзовёт доступ. Если сотрудник уже авторизовал бота раньше, приходит его прежний токен. Чей это токен, показывает [Информация о токене](GET /oauth/token/info).
+
+        Ошибки приходят в формате OAuth: `invalid_grant` — код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, а `invalid_client` — неверный `client_id` или `client_secret`. У обмена свой [лимит](/api/limits).
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthToken'
+              example:
+                access_token: pato_bm90X2FfcmVhbF90b2tlbg
+                token_type: Bearer
+                refresh_token: cmVmcmVzaF9ub3RfcmVhbA
+                scope: chats:read messages:read tasks:read tasks:create
+                created_at: 1790242260
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - OAuth
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OAuthTokenRequest'
+            example:
+              grant_type: authorization_code
+              code: ZmFrZV9hdXRoX2NvZGU
+              redirect_uri: https://bot.example.com/oauth/callback
+              client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+              client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+              code_verifier: dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+      x-oauth-flow: true
+      x-requirements:
+        auth: false
   /oauth/token/info:
     get:
       operationId: OAuthOperations_getTokenInfo
@@ -10815,6 +10913,9 @@ components:
               description: 'Расписание отправки. У обычного черновика оно превращает его в отложенное сообщение. У отложенного расписание можно изменить, но не снять: `null` в ответ даст `422` с кодом `draft_type_change_forbidden`.'
           description: Собранный объект изменяемых параметров черновика
       description: Запрос на обновление черновика
+    EmptyObject:
+      type: object
+      description: Пустой объект
     ExportRequest:
       type: object
       required:
@@ -11686,6 +11787,29 @@ components:
           example: Access token is missing
       description: Ошибка OAuth авторизации (используется для 401 и 403)
       x-error: true
+    OAuthRevokeRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Токен сотрудника или его токен обновления
+          example: pato_bm90X2FfcmVhbF90b2tlbg
+        token_type_hint:
+          allOf:
+            - $ref: '#/components/schemas/OAuthTokenTypeHint'
+          description: Что передано в `token`. Без подсказки сервер определит сам.
+          example: access_token
+        client_id:
+          type: string
+          description: Идентификатор клиента серверного приложения
+          example: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+        client_secret:
+          type: string
+          description: 'Секрет клиента серверного приложения. Вместе с `client_id` его можно передать заголовком `Authorization: Basic`.'
+          example: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+      description: Запрос на отзыв токена
     OAuthScope:
       type: string
       enum:
@@ -12096,6 +12220,82 @@ components:
         search_messages: Поиск сообщений
         drafts_read: Просмотр черновиков и отложенных сообщений
         drafts_write: Создание, изменение и удаление черновиков и отложенных сообщений
+    OAuthToken:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - refresh_token
+        - scope
+        - created_at
+      properties:
+        access_token:
+          type: string
+          description: 'Токен сотрудника. Передаётся в заголовке `Authorization: Bearer` при запросах от его имени.'
+          example: pato_bm90X2FfcmVhbF90b2tlbg
+        token_type:
+          type: string
+          enum:
+            - Bearer
+          description: Тип токена, всегда `Bearer`
+          example: Bearer
+        refresh_token:
+          type: string
+          description: Токен обновления. Токен сотрудника бессрочный, поэтому обновлять его не нужно.
+          example: cmVmcmVzaF9ub3RfcmVhbA
+        scope:
+          type: string
+          description: Выданные права через пробел. Набор берётся из настроек бота.
+          example: chats:read messages:read tasks:read tasks:create
+        created_at:
+          type: integer
+          format: int64
+          description: Время выдачи токена в формате Unix time, в секундах
+          example: 1790242260
+      description: Токен сотрудника, выданный боту в обмен на код авторизации
+    OAuthTokenRequest:
+      type: object
+      required:
+        - grant_type
+        - code
+        - redirect_uri
+      properties:
+        grant_type:
+          type: string
+          enum:
+            - authorization_code
+          description: Тип запроса, всегда `authorization_code`
+          example: authorization_code
+        code:
+          type: string
+          description: Код авторизации из адреса возврата
+          example: ZmFrZV9hdXRoX2NvZGU
+        redirect_uri:
+          type: string
+          description: Адрес возврата — тот же, что в ссылке авторизации
+          example: https://bot.example.com/oauth/callback
+        client_id:
+          type: string
+          description: 'Идентификатор клиента с вкладки «OAuth» в карточке бота. Не нужен, если клиент передаёт его заголовком `Authorization: Basic`.'
+          example: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+        client_secret:
+          type: string
+          description: 'Секрет клиента серверного приложения. Вместе с `client_id` его можно передать заголовком `Authorization: Basic`.'
+          example: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+        code_verifier:
+          type: string
+          description: Проверочный код PKCE, из которого получен `code_challenge` ссылки авторизации. Обязателен для приложения без секрета.
+          example: dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+      description: Запрос на обмен кода авторизации на токен
+    OAuthTokenTypeHint:
+      type: string
+      enum:
+        - access_token
+        - refresh_token
+      description: Что передано в запросе на отзыв токена
+      x-enum-descriptions:
+        access_token: Токен сотрудника
+        refresh_token: Токен обновления
     OpenViewRequest:
       type: object
       required:

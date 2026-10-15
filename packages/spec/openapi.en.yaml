@@ -5860,6 +5860,129 @@ paths:
         - Threads
       x-requirements:
         scope: threads:create
+  /oauth/revoke:
+    post:
+      operationId: OAuthFlowOperations_revokeToken
+      description: >-
+        Revoke token
+
+
+        Revokes an employee's token issued to the bot, following the OAuth 2.0 standard ([RFC
+        7009](https://datatracker.ietf.org/doc/html/rfc7009)). This is how the bot turns access off by itself, for
+        example when the employee disables the integration in your service. `token` can carry either the employee's
+        token or its refresh token: both stop working.
+
+
+        The body is sent as `application/x-www-form-urlencoded`. A server-side application authenticates with the client
+        secret: with the `client_id` and `client_secret` fields or with the `Authorization: Basic` header. An
+        application without a secret can revoke only the token itself: it passes the token both in the body and in the
+        `Authorization: Bearer` header.
+
+
+        A `200` response with an empty object comes even when the token has already been revoked or is not found. The
+        method does not revoke another bot's token and responds `403` with the `unauthorized_client` code. The
+        revocation is recorded in the [audit event log](/guides/audit-events) with the `oauth_token_revoked` type. How
+        an employee revokes access themselves is covered in [Consent and revocation](/guides/oauth/consent).
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyObject'
+              example: {}
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - OAuth
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OAuthRevokeRequest'
+            example:
+              token: pato_bm90X2FfcmVhbF90b2tlbg
+              client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+              client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+      x-oauth-flow: true
+      x-requirements:
+        auth: false
+  /oauth/token:
+    post:
+      operationId: OAuthFlowOperations_exchangeToken
+      description: >-
+        Exchange code for token
+
+
+        The second step of authorization on behalf of an employee: the code from the redirect address is exchanged for
+        that employee's token. The code is valid for 10 minutes and can be exchanged once. How to get the code and check
+        whose token arrived is covered in [Getting a token](/guides/oauth/flow).
+
+
+        The body is sent as `application/x-www-form-urlencoded`, as OAuth 2.0 requires. A server-side application
+        authenticates with the client secret: with the `client_id` and `client_secret` fields or with the
+        `Authorization: Basic` header. An application without a secret passes `client_id` and `code_verifier` — the PKCE
+        verifier the `code_challenge` of the authorization link was made from.
+
+
+        The token does not expire: there is no `expires_in` in the response, and the token works until the employee
+        revokes access. If the employee has already authorized the bot before, their existing token comes back. Whose
+        token it is, [Token info](GET /oauth/token/info) shows.
+
+
+        Errors come in the OAuth format: `invalid_grant` — the code has expired, has already been used, was issued for a
+        different `redirect_uri`, or the `code_verifier` does not match, and `invalid_client` — a wrong `client_id` or
+        `client_secret`. The exchange has its own [limit](/api/limits).
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthToken'
+              example:
+                access_token: pato_bm90X2FfcmVhbF90b2tlbg
+                token_type: Bearer
+                refresh_token: cmVmcmVzaF9ub3RfcmVhbA
+                scope: chats:read messages:read tasks:read tasks:create
+                created_at: 1790242260
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - OAuth
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OAuthTokenRequest'
+            example:
+              grant_type: authorization_code
+              code: ZmFrZV9hdXRoX2NvZGU
+              redirect_uri: https://bot.example.com/oauth/callback
+              client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+              client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+              code_verifier: dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+      x-oauth-flow: true
+      x-requirements:
+        auth: false
   /oauth/token/info:
     get:
       operationId: OAuthOperations_getTokenInfo
@@ -11779,6 +11902,9 @@ components:
                 `draft_type_change_forbidden` code in response.
           description: Object of the draft parameters being changed
       description: Draft update request
+    EmptyObject:
+      type: object
+      description: Empty object
     ExportRequest:
       type: object
       required:
@@ -12730,6 +12856,31 @@ components:
           example: Access token is missing
       description: OAuth authorization error (used for 401 and 403)
       x-error: true
+    OAuthRevokeRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: The employee's token or its refresh token
+          example: pato_bm90X2FfcmVhbF90b2tlbg
+        token_type_hint:
+          allOf:
+            - $ref: '#/components/schemas/OAuthTokenTypeHint'
+          description: What is passed in `token`. Without the hint the server works it out itself.
+          example: access_token
+        client_id:
+          type: string
+          description: Client ID of a server-side application
+          example: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+        client_secret:
+          type: string
+          description: >-
+            Client secret of a server-side application. Together with `client_id` it can be passed in the
+            `Authorization: Basic` header.
+          example: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+      description: Token revocation request
     OAuthScope:
       type: string
       enum:
@@ -13140,6 +13291,88 @@ components:
         search_messages: Search messages
         drafts_read: View drafts and scheduled messages
         drafts_write: Create, edit, and delete drafts and scheduled messages
+    OAuthToken:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - refresh_token
+        - scope
+        - created_at
+      properties:
+        access_token:
+          type: string
+          description: 'The employee''s token. Passed in the `Authorization: Bearer` header in requests on their behalf.'
+          example: pato_bm90X2FfcmVhbF90b2tlbg
+        token_type:
+          type: string
+          enum:
+            - Bearer
+          description: Token type, always `Bearer`
+          example: Bearer
+        refresh_token:
+          type: string
+          description: Refresh token. The employee's token does not expire, so there is no need to refresh it.
+          example: cmVmcmVzaF9ub3RfcmVhbA
+        scope:
+          type: string
+          description: Granted scopes separated by spaces. The set comes from the bot's settings.
+          example: chats:read messages:read tasks:read tasks:create
+        created_at:
+          type: integer
+          format: int64
+          description: Token issue time in Unix time, in seconds
+          example: 1790242260
+      description: An employee's token issued to the bot in exchange for an authorization code
+    OAuthTokenRequest:
+      type: object
+      required:
+        - grant_type
+        - code
+        - redirect_uri
+      properties:
+        grant_type:
+          type: string
+          enum:
+            - authorization_code
+          description: Request type, always `authorization_code`
+          example: authorization_code
+        code:
+          type: string
+          description: Authorization code from the redirect address
+          example: ZmFrZV9hdXRoX2NvZGU
+        redirect_uri:
+          type: string
+          description: Redirect address — the same as in the authorization link
+          example: https://bot.example.com/oauth/callback
+        client_id:
+          type: string
+          description: >-
+            Client ID from the "OAuth" tab of the bot card. Not needed if the client passes it in the `Authorization:
+            Basic` header.
+          example: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+        client_secret:
+          type: string
+          description: >-
+            Client secret of a server-side application. Together with `client_id` it can be passed in the
+            `Authorization: Basic` header.
+          example: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+        code_verifier:
+          type: string
+          description: >-
+            PKCE verifier the `code_challenge` of the authorization link was made from. Required for an application
+            without a secret.
+          example: dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+      description: Request to exchange an authorization code for a token
+    OAuthTokenTypeHint:
+      type: string
+      enum:
+        - access_token
+        - refresh_token
+      description: What is passed in a token revocation request
+      x-enum-descriptions:
+        access_token: The employee's token
+        refresh_token: Refresh token
     OpenViewRequest:
       type: object
       required:

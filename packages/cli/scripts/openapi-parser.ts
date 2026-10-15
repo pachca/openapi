@@ -72,6 +72,8 @@ export interface Endpoint {
   security?: Record<string, string[]>[];
   requirements?: { scope?: string; plan?: string; auth?: boolean };
   paginated?: boolean;
+  /** Шаг OAuth (`x-oauth-flow`): описан в справке, но команды под него нет */
+  oauthFlow?: boolean;
   externalUrl?: string;
 }
 
@@ -219,6 +221,7 @@ export function parseOpenAPI(): Endpoint[] {
 
       // Parse x-paginated and x-external-url
       const paginated = op['x-paginated'] === true ? true : undefined;
+      const oauthFlow = op['x-oauth-flow'] === true ? true : undefined;
       const externalUrl = typeof op['x-external-url'] === 'string' ? (op['x-external-url'] as string) : undefined;
 
       endpoints.push({
@@ -234,6 +237,7 @@ export function parseOpenAPI(): Endpoint[] {
         security: op.security as Endpoint['security'],
         requirements,
         paginated,
+        oauthFlow,
         externalUrl,
       });
     }

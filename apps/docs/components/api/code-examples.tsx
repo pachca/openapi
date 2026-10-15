@@ -53,7 +53,8 @@ export function CodeExamples({
   className,
 }: CodeExamplesProps) {
   const allLangs = Object.keys(languageLabels) as Language[];
-  const visibleLangs = langs ?? allLangs;
+  // A step of the OAuth flow has no CLI command and no SDK method — only the raw request.
+  const visibleLangs: Language[] = endpoint.oauthFlow ? ['curl'] : (langs ?? allLangs);
   const fallbackLang = visibleLangs[0];
 
   const [storedLang, setStoredLang] = useCodeLang(fallbackLang, defaultLangProp);
@@ -139,39 +140,46 @@ export function CodeExamples({
             </span>
 
             <div className="flex items-center gap-0 shrink-0">
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger asChild>
-                  <button className="flex items-center gap-1 px-2 h-7 rounded-md text-[13px] font-medium text-text-secondary hover:text-text-primary transition-all outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 select-none cursor-pointer group">
-                    {languages[activeTab]}
-                    <ChevronDown
-                      className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-colors"
-                      strokeWidth={2.5}
-                    />
-                  </button>
-                </DropdownMenu.Trigger>
+              {Object.keys(languages).length === 1 ? (
+                // One language has nothing to choose from: a label, not a menu
+                <span className="flex items-center px-2 h-7 text-[13px] font-medium text-text-secondary select-none">
+                  {languages[activeTab]}
+                </span>
+              ) : (
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger asChild>
+                    <button className="flex items-center gap-1 px-2 h-7 rounded-md text-[13px] font-medium text-text-secondary hover:text-text-primary transition-all outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 select-none cursor-pointer group">
+                      {languages[activeTab]}
+                      <ChevronDown
+                        className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-colors"
+                        strokeWidth={2.5}
+                      />
+                    </button>
+                  </DropdownMenu.Trigger>
 
-                <DropdownMenu.Portal>
-                  <DropdownMenu.Content
-                    className="z-50 min-w-[140px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
-                    align="end"
-                    collisionPadding={16}
-                  >
-                    {(Object.keys(languages) as Language[]).map((lang) => (
-                      <DropdownMenu.Item
-                        key={lang}
-                        onClick={() => handleTabChange(lang)}
-                        className={`flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
-                          activeTab === lang
-                            ? 'bg-primary/15 text-primary'
-                            : 'text-text-primary hover:bg-glass-hover'
-                        }`}
-                      >
-                        {languages[lang]}
-                      </DropdownMenu.Item>
-                    ))}
-                  </DropdownMenu.Content>
-                </DropdownMenu.Portal>
-              </DropdownMenu.Root>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content
+                      className="z-50 min-w-[140px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
+                      align="end"
+                      collisionPadding={16}
+                    >
+                      {(Object.keys(languages) as Language[]).map((lang) => (
+                        <DropdownMenu.Item
+                          key={lang}
+                          onClick={() => handleTabChange(lang)}
+                          className={`flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
+                            activeTab === lang
+                              ? 'bg-primary/15 text-primary'
+                              : 'text-text-primary hover:bg-glass-hover'
+                          }`}
+                        >
+                          {languages[lang]}
+                        </DropdownMenu.Item>
+                      ))}
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
+              )}
 
               <CopyButton text={code} />
             </div>

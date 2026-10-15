@@ -366,11 +366,14 @@ function formatRequestBody(endpoint: Endpoint): string {
   let content = '\n## Тело запроса\n\n';
 
   // Prefer application/json, fall back to multipart/form-data (e.g. avatar upload)
+  // and to a form body (the OAuth flow)
   const contentType = endpoint.requestBody.content?.['application/json']
     ? 'application/json'
     : endpoint.requestBody.content?.['multipart/form-data']
       ? 'multipart/form-data'
-      : null;
+      : endpoint.requestBody.content?.['application/x-www-form-urlencoded']
+        ? 'application/x-www-form-urlencoded'
+        : null;
   if (!contentType) return content;
 
   const mediaContent = endpoint.requestBody.content?.[contentType];
@@ -397,8 +400,9 @@ function formatRequestBody(endpoint: Endpoint): string {
       content += '\n';
     }
 
-    // Generate JSON example (skip for multipart — binary blob makes no sense as JSON)
-    if (contentType === 'application/json') {
+    // Generate JSON example (skip for multipart — binary blob makes no sense as JSON).
+    // A form body shows its fields the same way; the curl example sends them as `-d name=value`.
+    if (contentType !== 'multipart/form-data') {
       const example = generateRequestExample(endpoint.requestBody);
       if (example) {
         content += '### Пример\n\n';

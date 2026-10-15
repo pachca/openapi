@@ -386,6 +386,9 @@ function readOperations(): Operation[] {
     for (const method of HTTP_METHODS) {
       const node = item[method];
       if (!node) continue;
+      // A step of the OAuth flow (`x-oauth-flow`) is the client's to run: a model
+      // never holds a client secret or exchanges a code, so it is no tool at all.
+      if (node['x-oauth-flow'] === true) continue;
       const k = key(method, p);
       const scope: string | null = node['x-requirements']?.scope ?? null;
       const botTokenOnly = BOT_TOKEN_ONLY.has(k);

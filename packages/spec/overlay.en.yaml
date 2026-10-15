@@ -781,6 +781,28 @@ actions:
   - target: $.paths['/messages/{id}/thread'].post.parameters[?(@.name=='id')]
     update:
       description: Message ID
+  - target: $.paths['/oauth/token'].post
+    update:
+      description: |-
+        Exchange code for token
+
+        The second step of authorization on behalf of an employee: the code from the redirect address is exchanged for that employee's token. The code is valid for 10 minutes and can be exchanged once. How to get the code and check whose token arrived is covered in [Getting a token](/guides/oauth/flow).
+
+        The body is sent as `application/x-www-form-urlencoded`, as OAuth 2.0 requires. A server-side application authenticates with the client secret: with the `client_id` and `client_secret` fields or with the `Authorization: Basic` header. An application without a secret passes `client_id` and `code_verifier` — the PKCE verifier the `code_challenge` of the authorization link was made from.
+
+        The token does not expire: there is no `expires_in` in the response, and the token works until the employee revokes access. If the employee has already authorized the bot before, their existing token comes back. Whose token it is, [Token info](GET /oauth/token/info) shows.
+
+        Errors come in the OAuth format: `invalid_grant` — the code has expired, has already been used, was issued for a different `redirect_uri`, or the `code_verifier` does not match, and `invalid_client` — a wrong `client_id` or `client_secret`. The exchange has its own [limit](/api/limits).
+  - target: $.paths['/oauth/revoke'].post
+    update:
+      description: |-
+        Revoke token
+
+        Revokes an employee's token issued to the bot, following the OAuth 2.0 standard ([RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009)). This is how the bot turns access off by itself, for example when the employee disables the integration in your service. `token` can carry either the employee's token or its refresh token: both stop working.
+
+        The body is sent as `application/x-www-form-urlencoded`. A server-side application authenticates with the client secret: with the `client_id` and `client_secret` fields or with the `Authorization: Basic` header. An application without a secret can revoke only the token itself: it passes the token both in the body and in the `Authorization: Bearer` header.
+
+        A `200` response with an empty object comes even when the token has already been revoked or is not found. The method does not revoke another bot's token and responds `403` with the `unauthorized_client` code. The revocation is recorded in the [audit event log](/guides/audit-events) with the `oauth_token_revoked` type. How an employee revokes access themselves is covered in [Consent and revocation](/guides/oauth/consent).
   - target: $.paths['/oauth/token/info'].get
     update:
       description: |-
@@ -1339,6 +1361,69 @@ actions:
   - target: $.components.schemas.AccessTokenInfo.properties.last_used_at
     update:
       description: "Token last used date. `null` until the token has been used at least once. Updated at most once per hour, so it may lag behind."
+  - target: $.components.schemas.OAuthToken
+    update:
+      description: An employee's token issued to the bot in exchange for an authorization code
+  - target: $.components.schemas.OAuthToken.properties.access_token
+    update:
+      description: "The employee's token. Passed in the `Authorization: Bearer` header in requests on their behalf."
+  - target: $.components.schemas.OAuthToken.properties.token_type
+    update:
+      description: "Token type, always `Bearer`"
+  - target: $.components.schemas.OAuthToken.properties.refresh_token
+    update:
+      description: "Refresh token. The employee's token does not expire, so there is no need to refresh it."
+  - target: $.components.schemas.OAuthToken.properties.scope
+    update:
+      description: "Granted scopes separated by spaces. The set comes from the bot's settings."
+  - target: $.components.schemas.OAuthToken.properties.created_at
+    update:
+      description: Token issue time in Unix time, in seconds
+  - target: $.components.schemas.OAuthTokenRequest
+    update:
+      description: Request to exchange an authorization code for a token
+  - target: $.components.schemas.OAuthTokenRequest.properties.grant_type
+    update:
+      description: "Request type, always `authorization_code`"
+  - target: $.components.schemas.OAuthTokenRequest.properties.code
+    update:
+      description: Authorization code from the redirect address
+  - target: $.components.schemas.OAuthTokenRequest.properties.redirect_uri
+    update:
+      description: Redirect address — the same as in the authorization link
+  - target: $.components.schemas.OAuthTokenRequest.properties.client_id
+    update:
+      description: "Client ID from the \"OAuth\" tab of the bot card. Not needed if the client passes it in the `Authorization: Basic` header."
+  - target: $.components.schemas.OAuthTokenRequest.properties.client_secret
+    update:
+      description: "Client secret of a server-side application. Together with `client_id` it can be passed in the `Authorization: Basic` header."
+  - target: $.components.schemas.OAuthTokenRequest.properties.code_verifier
+    update:
+      description: "PKCE verifier the `code_challenge` of the authorization link was made from. Required for an application without a secret."
+  - target: $.components.schemas.OAuthTokenTypeHint
+    update:
+      description: What is passed in a token revocation request
+      x-enum-descriptions:
+        access_token: The employee's token
+        refresh_token: Refresh token
+  - target: $.components.schemas.OAuthRevokeRequest
+    update:
+      description: Token revocation request
+  - target: $.components.schemas.OAuthRevokeRequest.properties.token
+    update:
+      description: The employee's token or its refresh token
+  - target: $.components.schemas.OAuthRevokeRequest.properties.token_type_hint
+    update:
+      description: "What is passed in `token`. Without the hint the server works it out itself."
+  - target: $.components.schemas.OAuthRevokeRequest.properties.client_id
+    update:
+      description: Client ID of a server-side application
+  - target: $.components.schemas.OAuthRevokeRequest.properties.client_secret
+    update:
+      description: "Client secret of a server-side application. Together with `client_id` it can be passed in the `Authorization: Basic` header."
+  - target: $.components.schemas.EmptyObject
+    update:
+      description: Empty object
   - target: $.components.schemas.AddMembersRequest
     update:
       description: Request to add members to a chat

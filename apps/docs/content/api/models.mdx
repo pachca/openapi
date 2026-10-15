@@ -8,11 +8,12 @@ hideTableOfContents: true
 
 Все модели данных, возвращаемые в ответах API. Каждая модель содержит связанные методы и таблицу свойств.
 
-<Info>Методы [Получение подписи, ключа и других параметров](POST /uploads), [Загрузка файла](POST /direct_url) и [Скачивание файла](GET /files/{id}) не возвращают модели данных: первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом.</Info>
+<Info>Методы [Получение подписи, ключа и других параметров](POST /uploads), [Загрузка файла](POST /direct_url), [Скачивание файла](GET /files/{id}) и [Отзыв токена](POST /oauth/revoke) не возвращают модели данных: первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом, а отзыв — пустым объектом.</Info>
 
 <CardGroup>
   <Card title="Дополнительное поле" href="#dopolnitelnoe-pole" methods="GET" />
   <Card title="Токен доступа" href="#token-dostupa" methods="GET" />
+  <Card title="Токен сотрудника" href="#token-sotrudnika" methods="POST" />
   <Card title="Статус пользователя" href="#status-polzovatelya" methods="GET PUT DELETE" />
   <Card title="Аватар" href="#avatar" methods="PUT DELETE" />
   <Card title="Сотрудник" href="#sotrudnik" methods="GET POST PUT DELETE" />
@@ -45,6 +46,12 @@ hideTableOfContents: true
 - [Информация о токене](GET /oauth/token/info)
 
 <ModelSchema name="AccessTokenInfo" />
+
+## Токен сотрудника
+
+- [Обмен кода на токен](POST /oauth/token)
+
+<ModelSchema name="OAuthToken" />
 
 ## Статус пользователя
 

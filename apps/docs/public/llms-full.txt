@@ -16,7 +16,7 @@
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 112–216 |
 | How-to Guides — рецепты задач с кодом TS/Python | 217–900 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 901–14535 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 901–14549 |
 | · Обзор | 906–1010 |
 | · Быстрый старт | 1011–1100 |
 | · AI-агенты | 1101–1242 |
@@ -88,26 +88,26 @@
 | · Загрузка файлов | 13142–13390 |
 | · Ошибки | 13391–13470 |
 | · Лимиты | 13471–13623 |
-| · Модели | 13624–14535 |
-| API-методы — все эндпоинты со схемами и примерами | 14536–38789 |
-| · OAuth | 14538–14641 |
-| · Chats | 14642–17240 |
-| · Profile | 17241–18162 |
-| · Users | 18163–20688 |
-| · Group tags | 20689–22112 |
-| · Members | 22113–23531 |
-| · Threads | 23532–24236 |
-| · Messages | 24237–26465 |
-| · Read members | 26466–26716 |
-| · Reactions | 26717–27365 |
-| · Search | 27366–28292 |
-| · Tasks | 28293–29613 |
-| · Drafts | 29614–31334 |
-| · Views | 31335–32193 |
-| · Bots | 32194–37729 |
-| · Security | 37730–38120 |
-| · Custom Properties | 38121–38330 |
-| · Files | 38331–38789 |
+| · Модели | 13624–14549 |
+| API-методы — все эндпоинты со схемами и примерами | 14550–39002 |
+| · OAuth | 14552–14854 |
+| · Chats | 14855–17453 |
+| · Profile | 17454–18375 |
+| · Users | 18376–20901 |
+| · Group tags | 20902–22325 |
+| · Members | 22326–23744 |
+| · Threads | 23745–24449 |
+| · Messages | 24450–26678 |
+| · Read members | 26679–26929 |
+| · Reactions | 26930–27578 |
+| · Search | 27579–28505 |
+| · Tasks | 28506–29826 |
+| · Drafts | 29827–31547 |
+| · Views | 31548–32406 |
+| · Bots | 32407–37942 |
+| · Security | 37943–38333 |
+| · Custom Properties | 38334–38543 |
+| · Files | 38544–39002 |
 
 # LIBRARY RULES
 
@@ -4419,8 +4419,8 @@ sequenceDiagram
 | Адрес | Назначение |
 | --- | --- |
 | `https://app.pachca.com/apps/authorize` | Экран согласия, на него ведёт кнопка |
-| `https://api.pachca.com/api/shared/v1/oauth/token` | Обмен кода на токен |
-| `https://api.pachca.com/api/shared/v1/oauth/revoke` | Отзыв токена |
+| `https://api.pachca.com/api/shared/v1/oauth/token` | [Обмен кода на токен](/api/oauth/exchange-token) |
+| `https://api.pachca.com/api/shared/v1/oauth/revoke` | [Отзыв токена](/api/oauth/revoke-token) |
 
 Те же адреса публикуются в метаданных сервера авторизации по [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414): `https://api.pachca.com/.well-known/oauth-authorization-server`.
 
@@ -4480,7 +4480,7 @@ https://bot.example.com/oauth/callback?code=AUTH_CODE&state=STATE&iss=https%3A%2
 
   ### Шаг 5. Обменяйте код на токен
 
-Код живёт 10 минут и обменивается один раз. Серверное приложение передаёт `client_secret` в теле запроса или в заголовке `Authorization: Basic`, приложение без секрета — только `code_verifier`.
+Код живёт 10 минут и обменивается один раз. Серверное приложение передаёт `client_secret` в теле запроса или в заголовке `Authorization: Basic`, приложение без секрета — только `code_verifier`. Поля запроса и ответа — на странице метода [Обмен кода на токен](/api/oauth/exchange-token).
 
 ```bash title="Обмен кода на токен"
 curl -X POST https://api.pachca.com/api/shared/v1/oauth/token \
@@ -4619,7 +4619,7 @@ app.get("/oauth/callback", async (req, res) => {
 
 ## Отзыв токена ботом
 
-Бот может сам отозвать токен сотрудника, например когда тот отключает интеграцию в вашем сервисе. Серверное приложение отправляет на адрес отзыва `token` вместе с `client_id` и `client_secret`, приложение без секрета — сам токен в теле запроса и в заголовке `Authorization: Bearer`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
+Бот может сам отозвать токен сотрудника методом [Отзыв токена](/api/oauth/revoke-token), например когда тот отключает интеграцию в вашем сервисе. Серверное приложение отправляет `token` вместе с `client_id` и `client_secret`, приложение без секрета — сам токен в теле запроса и в заголовке `Authorization: Bearer`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
 
 
 ## Связанные разделы
@@ -13625,7 +13625,7 @@ users = await with_retry(lambda: client.users.list_users())
 
 Все модели данных, возвращаемые в ответах API. Каждая модель содержит связанные методы и таблицу свойств.
 
-> Методы [Получение подписи, ключа и других параметров](/api/files/uploads), [Загрузка файла](/api/files/direct-url) и [Скачивание файла](/api/files/get) не возвращают модели данных: первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом.
+> Методы [Получение подписи, ключа и других параметров](/api/files/uploads), [Загрузка файла](/api/files/direct-url), [Скачивание файла](/api/files/get) и [Отзыв токена](/api/oauth/revoke-token) не возвращают модели данных: первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом, а отзыв — пустым объектом.
 
 
 ## Дополнительное поле
@@ -13655,6 +13655,20 @@ users = await with_retry(lambda: client.users.list_users())
 - `revoked_at: date-time` (required, nullable) — Дата отзыва токена. Всегда `null`: по отозванному токену метод возвращает 401. Пример: `null`
 - `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. `null` у бессрочного токена — такие выдаёт интерфейс. У токена, полученного входом из CLI, здесь `3600`: он живёт час и продлевается сам. Пример: `null`
 - `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать. Пример: `"2025-02-24T14:20:00.000Z"`
+
+
+## Токен сотрудника
+
+- [Обмен кода на токен](/api/oauth/exchange-token)
+
+Токен сотрудника, выданный боту в обмен на код авторизации
+
+- `access_token: string` (required) — Токен сотрудника. Передаётся в заголовке `Authorization: Bearer` при запросах от его имени. Пример: `"pato_bm90X2FfcmVhbF90b2tlbg"`
+- `token_type: string` (required) — Тип токена, всегда `Bearer`. Пример: `"Bearer"`
+  Значения: `Bearer`
+- `refresh_token: string` (required) — Токен обновления. Токен сотрудника бессрочный, поэтому обновлять его не нужно. Пример: `"cmVmcmVzaF9ub3RfcmVhbA"`
+- `scope: string` (required) — Выданные права через пробел. Набор берётся из настроек бота. Пример: `"chats:read messages:read tasks:read tasks:create"`
+- `created_at: integer, int64` (required) — Время выдачи токена в формате Unix time, в секундах. Пример: `1790242260`
 
 
 ## Статус пользователя
@@ -14536,6 +14550,205 @@ users = await with_retry(lambda: client.users.list_users())
 # API Методы
 
 ## API: OAuth
+
+--- [Document source](https://dev.pachca.com/api/oauth/revoke-token.md) ---
+
+# Отзыв токена
+
+**Метод**: `POST`
+
+**Путь**: `/oauth/revoke`
+
+> Авторизация не требуется
+
+Отзывает токен сотрудника, выданный боту, по стандарту OAuth 2.0 ([RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009)). Так бот отключает доступ сам, например когда сотрудник выключает интеграцию в вашем сервисе. В `token` можно передать и токен сотрудника, и его токен обновления: перестают работать оба.
+
+Тело передаётся в формате `application/x-www-form-urlencoded`. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета отзывает только сам токен: передаёт его и в теле, и в заголовке `Authorization: Bearer`.
+
+Ответ `200` с пустым объектом приходит и тогда, когда токен уже отозван или не найден. Токен другого бота метод не отзывает и отвечает `403` с кодом `unauthorized_client`. Отзыв записывается в [журнал аудита событий](/guides/audit-events) с типом `oauth_token_revoked`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
+
+## Тело запроса
+
+**Обязательно**
+
+Формат: `application/x-www-form-urlencoded`
+
+### Схема
+
+- `token: string` (required) — Токен сотрудника или его токен обновления. Пример: `"pato_bm90X2FfcmVhbF90b2tlbg"`
+- `token_type_hint: string` — Что передано в `token`. Без подсказки сервер определит сам.
+  Значения: `access_token` — Токен сотрудника, `refresh_token` — Токен обновления
+- `client_id: string` — Идентификатор клиента серверного приложения. Пример: `"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY"`
+- `client_secret: string` — Секрет клиента серверного приложения. Вместе с `client_id` его можно передать заголовком `Authorization: Basic`. Пример: `"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA"`
+
+### Пример
+
+```json
+{
+  "token": "pato_bm90X2FfcmVhbF90b2tlbg",
+  "client_id": "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+  "client_secret": "dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA"
+}
+```
+
+## Пример запроса
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/oauth/revoke" \
+  -d 'token=pato_bm90X2FfcmVhbF90b2tlbg' \
+  -d 'client_id=aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY' \
+  -d 'client_secret=dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA'
+```
+
+## Ответы
+
+### 200: The request has succeeded.
+
+**Схема ответа:**
+
+**Пример ответа:**
+
+```json
+{}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:**
+
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+
+---
+
+--- [Document source](https://dev.pachca.com/api/oauth/exchange-token.md) ---
+
+# Обмен кода на токен
+
+**Метод**: `POST`
+
+**Путь**: `/oauth/token`
+
+> Авторизация не требуется
+
+Второй шаг авторизации от имени сотрудника: код из адреса возврата меняется на токен этого сотрудника. Код действует 10 минут и обменивается один раз. Как получить код и проверить, чей токен пришёл, — в разделе [Получение токена](/guides/oauth/flow).
+
+Тело передаётся в формате `application/x-www-form-urlencoded`, как требует OAuth 2.0. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета передаёт `client_id` и `code_verifier` — проверочный код PKCE, из которого получен `code_challenge` ссылки авторизации.
+
+Токен бессрочный: `expires_in` в ответе нет, и работает токен, пока сотрудник не отзовёт доступ. Если сотрудник уже авторизовал бота раньше, приходит его прежний токен. Чей это токен, показывает [Информация о токене](/api/oauth/token-info).
+
+Ошибки приходят в формате OAuth: `invalid_grant` — код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, а `invalid_client` — неверный `client_id` или `client_secret`. У обмена свой [лимит](/api/limits).
+
+## Тело запроса
+
+**Обязательно**
+
+Формат: `application/x-www-form-urlencoded`
+
+### Схема
+
+- `grant_type: string` (required) — Тип запроса, всегда `authorization_code`. Пример: `"authorization_code"`
+  Значения: `authorization_code`
+- `code: string` (required) — Код авторизации из адреса возврата. Пример: `"ZmFrZV9hdXRoX2NvZGU"`
+- `redirect_uri: string` (required) — Адрес возврата — тот же, что в ссылке авторизации. Пример: `"https://bot.example.com/oauth/callback"`
+- `client_id: string` — Идентификатор клиента с вкладки «OAuth» в карточке бота. Не нужен, если клиент передаёт его заголовком `Authorization: Basic`. Пример: `"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY"`
+- `client_secret: string` — Секрет клиента серверного приложения. Вместе с `client_id` его можно передать заголовком `Authorization: Basic`. Пример: `"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA"`
+- `code_verifier: string` — Проверочный код PKCE, из которого получен `code_challenge` ссылки авторизации. Обязателен для приложения без секрета. Пример: `"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"`
+
+### Пример
+
+```json
+{
+  "grant_type": "authorization_code",
+  "code": "ZmFrZV9hdXRoX2NvZGU",
+  "redirect_uri": "https://bot.example.com/oauth/callback",
+  "client_id": "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+  "client_secret": "dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA",
+  "code_verifier": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+}
+```
+
+## Пример запроса
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/oauth/token" \
+  -d 'grant_type=authorization_code' \
+  -d 'code=ZmFrZV9hdXRoX2NvZGU' \
+  -d 'redirect_uri=https://bot.example.com/oauth/callback' \
+  -d 'client_id=aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY' \
+  -d 'client_secret=dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA' \
+  -d 'code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk'
+```
+
+## Ответы
+
+### 200: The request has succeeded.
+
+**Схема ответа:**
+
+- `access_token: string` (required) — Токен сотрудника. Передаётся в заголовке `Authorization: Bearer` при запросах от его имени. Пример: `"pato_bm90X2FfcmVhbF90b2tlbg"`
+- `token_type: string` (required) — Тип токена, всегда `Bearer`. Пример: `"Bearer"`
+  Значения: `Bearer`
+- `refresh_token: string` (required) — Токен обновления. Токен сотрудника бессрочный, поэтому обновлять его не нужно. Пример: `"cmVmcmVzaF9ub3RfcmVhbA"`
+- `scope: string` (required) — Выданные права через пробел. Набор берётся из настроек бота. Пример: `"chats:read messages:read tasks:read tasks:create"`
+- `created_at: integer, int64` (required) — Время выдачи токена в формате Unix time, в секундах. Пример: `1790242260`
+
+**Пример ответа:**
+
+```json
+{
+  "access_token": "pato_bm90X2FfcmVhbF90b2tlbg",
+  "token_type": "Bearer",
+  "refresh_token": "cmVmcmVzaF9ub3RfcmVhbA",
+  "scope": "chats:read messages:read tasks:read tasks:create",
+  "created_at": 1790242260
+}
+```
+
+### 400: The server could not understand the request due to invalid syntax.
+
+**Схема ответа при ошибке:**
+
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+### 401: Access is unauthorized.
+
+**Схема ответа при ошибке:**
+
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
+
+
+---
 
 --- [Document source](https://dev.pachca.com/api/oauth/token-info.md) ---
 

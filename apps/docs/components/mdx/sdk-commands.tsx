@@ -76,6 +76,8 @@ export async function SdkCommands({ lang }: SdkCommandsProps) {
     endpoints.sort((a, b) => (METHOD_ORDER[a.method] ?? 99) - (METHOD_ORDER[b.method] ?? 99));
 
     for (const endpoint of endpoints) {
+      // A step of the OAuth flow has no SDK method
+      if (endpoint.oauthFlow) continue;
       rows.push({
         sdkCall: formatMethodCall(tag, endpoint.id, lang),
         method: endpoint.method,

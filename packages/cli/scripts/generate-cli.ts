@@ -1087,6 +1087,7 @@ async function generateEndpointsData(): Promise<void> {
       '../../../apps/docs/lib/markdown-generator.js'
     );
     const { generateCLI } = await import('../../../apps/docs/lib/code-generators/cli.js');
+    const { generateCurl } = await import('../../../apps/docs/lib/code-generators/curl.js');
 
     const SITE_URL = 'https://dev.pachca.com';
     const api = await parseDocsOpenAPI();
@@ -1096,7 +1097,8 @@ async function generateEndpointsData(): Promise<void> {
       const segments = url.split('/');
       const section = segments[2] ?? '';
       const action = segments[3] ?? '';
-      const command = `pachca ${section} ${action}`.trim();
+      // Шаг OAuth команды не имеет: его делают библиотеки OAuth, а CLI входит через `auth login`.
+      const command = ep.oauthFlow ? '' : `pachca ${section} ${action}`.trim();
       const docLink = `${SITE_URL}${url}`;
 
       const req = (ep.requirements ?? {}) as { scope?: string; plan?: string; auth?: boolean };
@@ -1107,9 +1109,10 @@ async function generateEndpointsData(): Promise<void> {
       const paginated = ep.paginated ?? false;
 
       const docs = generateEndpointMarkdown(ep);
-      const equivalentCmd = generateCLI(ep);
+      const equivalentCmd = ep.oauthFlow ? '' : generateCLI(ep);
+      const curlExample = ep.oauthFlow ? generateCurl(ep) : '';
       const describe = buildDescribe(ep, {
-        summary, scope, plan, auth, paginated, command, docLink, equivalentCmd, schemaToMarkdown,
+        summary, scope, plan, auth, paginated, command, docLink, equivalentCmd, curlExample, schemaToMarkdown,
       });
 
       const spec = {
@@ -1153,6 +1156,7 @@ function buildDescribe(
     command: string;
     docLink: string;
     equivalentCmd: string;
+    curlExample: string;
     schemaToMarkdown: (s: unknown, depth?: number, required?: string[], examples?: boolean) => string;
   },
 ): string {
@@ -1184,7 +1188,8 @@ function buildDescribe(
     if (bodyMd) md += `## Тело запроса\n\n${bodyMd}\n\n`;
   }
 
-  md += `## Эквивалентная команда\n\n\`\`\`bash\n${ctx.equivalentCmd}\n\`\`\`\n\n`;
+  if (ctx.equivalentCmd) md += `## Эквивалентная команда\n\n\`\`\`bash\n${ctx.equivalentCmd}\n\`\`\`\n\n`;
+  else if (ctx.curlExample) md += `## Пример запроса\n\n\`\`\`bash\n${ctx.curlExample}\n\`\`\`\n\n`;
   md += `Документация: ${ctx.docLink}\n`;
   md += `Полная справка: \`pachca api ${ep.method} ${ep.path} --docs\` · схема: \`--spec\`\n`;
   return md;
@@ -1362,6 +1367,8 @@ async function main(): Promise<void> {
   const commands: GeneratedCommand[] = [];
 
   for (const endpoint of endpoints) {
+    // Шаг OAuth (`x-oauth-flow`) описан в справке, но команды под него нет: вход в CLI — `auth login`.
+    if (endpoint.oauthFlow) continue;
     const examples = workflowExamples.get(`${endpoint.method} ${endpoint.path}`)?.slice(0, 3);
     const cmd = generateCommand(endpoint, examples);
     commands.push(cmd);

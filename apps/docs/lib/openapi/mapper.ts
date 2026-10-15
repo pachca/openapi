@@ -17,6 +17,9 @@ const OPERATION_OVERRIDES: Record<string, string> = {
   'POST /direct_url': '/api/files/direct-url',
   'GET /custom_properties': '/api/custom-properties/list',
   'GET /oauth/token/info': '/api/oauth/token-info',
+  // Шаги OAuth: без пина обмен кода дал бы слаг create, а отзыв — безликий по пути.
+  'POST /oauth/token': '/api/oauth/exchange-token',
+  'POST /oauth/revoke': '/api/oauth/revoke-token',
   'POST /messages/{id}/link_previews': '/api/messages/unfurl',
   // Инвентаризация пространства: без пина слаг совпал бы со списками своих чатов и ботов.
   'GET /company/chats': '/api/chats/list-company',

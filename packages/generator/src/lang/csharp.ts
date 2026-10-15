@@ -671,13 +671,32 @@ internal static class PachcaUtils
 
     internal static string EnumToApiString<T>(T value) where T : struct, Enum =>
         JsonSerializer.Serialize(value, JsonOptions).Trim('"');
-${csHasFormBody(ir) ? CS_FORM_HELPER : ''}${ir.services.length > 0 && csPicksErrorByBody(ir) ? CS_ERROR_HELPER : ''}}
+${csHasFormBody(ir) ? CS_FORM_HELPER : ''}${ir.services.length > 0 && csPicksErrorByBody(ir) ? CS_ERROR_HELPER : ''}${csNoAuthHelper(ir)}}
 `;
 }
 
 /** Both error models exist, so an error's class is read off its body. */
 function csPicksErrorByBody(ir: IR): boolean {
   return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+}
+
+/**
+ * A default header can't be taken off a single request, so a request that takes no token goes
+ * through a client without it when the given one carries the token in its default headers.
+ */
+function csNoAuthHelper(ir: IR): string {
+  if (!ir.services.some((s) => s.operations.some((op) => op.noAuth))) return '';
+  const hasRedirect = ir.services.some((s) => s.operations.some((op) => op.successResponse.isRedirect));
+  const handler = hasRedirect ? 'new SocketsHttpHandler { AllowAutoRedirect = false }' : '';
+  return `
+    // A request that takes no token (the upload to storage, the code exchange) goes without it. A default
+    // header can't be taken off a single request, so a client that carries the token in DefaultRequestHeaders
+    // hands such a request to a client set up like the SDK's own, without the token.
+    private static readonly HttpClient NoAuthClient = new(${handler});
+
+    internal static HttpClient WithoutToken(HttpClient client) =>
+        client.DefaultRequestHeaders.Authorization is null ? client : NoAuthClient;
+`;
 }
 
 function csHasFormBody(ir: IR): boolean {
@@ -1201,9 +1220,6 @@ function emitMethodBody(
   const reqVar = hasBodyParam ? 'httpRequest' : 'request';
   lines.push(`${indent2}using var ${reqVar} = new HttpRequestMessage(HttpMethod.${httpMethodName(httpMethod)}, url);`);
 
-  if (op.noAuth) {
-    lines.push(`${indent2}${reqVar}.Headers.Authorization = null;`);
-  }
   for (const h of op.requestHeaders ?? []) {
     lines.push(`${indent2}${reqVar}.Headers.TryAddWithoutValidation(${JSON.stringify(h.name)}, ${JSON.stringify(h.value)});`);
   }
@@ -1232,12 +1248,17 @@ function emitMethodBody(
   }
 
   // Send request
-  lines.push(`${indent2}using var response = await PachcaUtils.SendWithRetryAsync(_client, ${reqVar}, cancellationToken).ConfigureAwait(false);`);
+  lines.push(`${indent2}using var response = await PachcaUtils.SendWithRetryAsync(${csSendClient(op)}, ${reqVar}, cancellationToken).ConfigureAwait(false);`);
   if (!op.successResponse.isBinary) {
     lines.push(`${indent2}var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);`);
   }
 
   emitResponseHandling(lines, op, ir, globalHasApiError);
+}
+
+/** A request that takes no token goes through a client without it, see `PachcaUtils.WithoutToken`. */
+function csSendClient(op: IROperation): string {
+  return op.noAuth ? 'PachcaUtils.WithoutToken(_client)' : '_client';
 }
 
 function httpMethodName(method: string): string {
@@ -1295,10 +1316,7 @@ function emitMultipartBody(
 
   lines.push(`${indent2}using var httpRequest = new HttpRequestMessage(HttpMethod.${httpMethodName(op.method.toUpperCase())}, url);`);
   lines.push(`${indent2}httpRequest.Content = content;`);
-  if (op.noAuth) {
-    lines.push(`${indent2}httpRequest.Headers.Authorization = null;`);
-  }
-  lines.push(`${indent2}using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);`);
+  lines.push(`${indent2}using var response = await PachcaUtils.SendWithRetryAsync(${csSendClient(op)}, httpRequest, cancellationToken).ConfigureAwait(false);`);
   if (!op.successResponse.isBinary) {
     lines.push(`${indent2}var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);`);
   }

@@ -73,6 +73,10 @@
       {
         "type": "+",
         "description": "Коды ошибок `daily_invites_limit` и `restricted_bot_tag_denied`"
+      },
+      {
+        "type": "-",
+        "description": "C# и Kotlin: загрузка файла в хранилище и обмен кода на токен идут без заголовка `Authorization`. В C# такой запрос через переданный `HttpClient` с токеном в `DefaultRequestHeaders` уходит через отдельный клиент."
       }
     ]
   },
@@ -104,6 +108,10 @@
       {
         "type": "-",
         "description": "Go: код успешного ответа берётся из спеки — `200`, `201`, `202` или `204`"
+      },
+      {
+        "type": "-",
+        "description": "C# и Kotlin: операция без авторизации (`x-requirements: { auth: false }`) уходит без заголовка `Authorization`, даже если токен задан в заголовках клиента по умолчанию"
       }
     ]
   },

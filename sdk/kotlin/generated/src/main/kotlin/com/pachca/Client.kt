@@ -12,6 +12,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.AttributeKey
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -85,6 +86,23 @@ object PachcaOAuth {
             "code_challenge_method" to "S256",
         ).joinToString("&") { (key, value) -> "$key=${java.net.URLEncoder.encode(value, "UTF-8")}" }
         return "$authorizeUrl?$query"
+    }
+}
+
+/** Marks a request that takes no token, such as the upload to storage. */
+internal val PachcaNoAuth = AttributeKey<Unit>("PachcaNoAuth")
+
+private val PachcaNoAuthInstalled = AttributeKey<Unit>("PachcaNoAuthInstalled")
+
+/**
+ * A request marked [PachcaNoAuth] goes without `Authorization`, whoever set it: `defaultRequest`
+ * adds the header after the request block, so it is taken off in the send pipeline.
+ */
+internal fun dropAuthorizationOfNoAuthRequests(client: HttpClient) {
+    if (client.attributes.contains(PachcaNoAuthInstalled)) return
+    client.attributes.put(PachcaNoAuthInstalled, Unit)
+    client.sendPipeline.intercept(HttpSendPipeline.Before) {
+        if (context.attributes.contains(PachcaNoAuth)) context.headers.remove(HttpHeaders.Authorization)
     }
 }
 
@@ -1160,7 +1178,7 @@ class FilesServiceImpl internal constructor(
                 })
             },
         ) {
-            headers.remove(HttpHeaders.Authorization)
+            attributes.put(PachcaNoAuth, Unit)
         }
         when (response.status.value) {
             204 -> return
@@ -1896,7 +1914,7 @@ class OAuthServiceImpl internal constructor(
     override suspend fun exchangeToken(request: OAuthTokenRequest): OAuthToken {
         val response = client.post("$baseUrl/oauth/token") {
             setBody(FormDataContent(formParameters(pachcaJson.encodeToJsonElement(OAuthTokenRequest.serializer(), request))))
-            headers.remove(HttpHeaders.Authorization)
+            attributes.put(PachcaNoAuth, Unit)
         }
         return when (response.status.value) {
             200 -> response.body()
@@ -2693,7 +2711,7 @@ class CommonServiceImpl internal constructor(
                 })
             },
         ) {
-            headers.remove(HttpHeaders.Authorization)
+            attributes.put(PachcaNoAuth, Unit)
         }
         when (response.status.value) {
             204 -> return
@@ -2785,6 +2803,10 @@ class PachcaClient private constructor(
     val users: UsersService,
     val views: ViewsService
 ) : Closeable {
+
+    init {
+        _client?.let(::dropAuthorizationOfNoAuthRequests)
+    }
 
     companion object {
         operator fun invoke(

@@ -108,6 +108,11 @@ function ktDefaultValue(
 }
 
 /** Check if ApiError model exists in IR */
+/** Some operation takes no token (`x-requirements: { auth: false }`). */
+function ktHasNoAuth(ir: IR): boolean {
+  return ir.services.some((s) => s.operations.some((op) => op.noAuth));
+}
+
 /** Both error models exist, so an error's class is read off its body. */
 function ktPicksErrorByBody(ir: IR): boolean {
   return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
@@ -634,6 +639,7 @@ function generateClient(ir: IR): string {
   lines.push('import io.ktor.client.statement.*');
   lines.push('import io.ktor.http.*');
   lines.push('import io.ktor.serialization.kotlinx.json.*');
+  if (ktHasNoAuth(ir)) lines.push('import io.ktor.util.AttributeKey');
   const clientNeedDateTime = ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
   const needPolling = ir.services.some(hasWebhookPolling);
   if (needPolling) {
@@ -693,6 +699,25 @@ function generateClient(ir: IR): string {
   if (ir.oauthAuthorizeUrl) {
     lines.push('');
     emitKotlinOAuthHelpers(lines, ir.oauthAuthorizeUrl);
+  }
+  if (ktHasNoAuth(ir)) {
+    lines.push('');
+    lines.push('/** Marks a request that takes no token, such as the upload to storage. */');
+    lines.push('internal val PachcaNoAuth = AttributeKey<Unit>("PachcaNoAuth")');
+    lines.push('');
+    lines.push('private val PachcaNoAuthInstalled = AttributeKey<Unit>("PachcaNoAuthInstalled")');
+    lines.push('');
+    lines.push('/**');
+    lines.push(' * A request marked [PachcaNoAuth] goes without `Authorization`, whoever set it: `defaultRequest`');
+    lines.push(' * adds the header after the request block, so it is taken off in the send pipeline.');
+    lines.push(' */');
+    lines.push('internal fun dropAuthorizationOfNoAuthRequests(client: HttpClient) {');
+    lines.push('    if (client.attributes.contains(PachcaNoAuthInstalled)) return');
+    lines.push('    client.attributes.put(PachcaNoAuthInstalled, Unit)');
+    lines.push('    client.sendPipeline.intercept(HttpSendPipeline.Before) {');
+    lines.push('        if (context.attributes.contains(PachcaNoAuth)) context.headers.remove(HttpHeaders.Authorization)');
+    lines.push('    }');
+    lines.push('}');
   }
 
   // Services
@@ -1110,14 +1135,14 @@ function emitMethodBody(
       }
     }
     for (const h of fixedHeaders) lines.push(`${indent3}header(${JSON.stringify(h.name)}, ${JSON.stringify(h.value)})`);
-    if (op.noAuth) lines.push(`${indent3}headers.remove(HttpHeaders.Authorization)`);
+    if (op.noAuth) lines.push(`${indent3}attributes.put(PachcaNoAuth, Unit)`);
     lines.push(`${indent2}}`);
   } else {
     if (op.noAuth) {
       lines.push(
         `${indent2}val response = client.${httpMethod}(${urlExpr}) {`,
       );
-      lines.push(`${indent3}headers.remove(HttpHeaders.Authorization)`);
+      lines.push(`${indent3}attributes.put(PachcaNoAuth, Unit)`);
       lines.push(`${indent2}}`);
     } else {
       lines.push(
@@ -1197,7 +1222,7 @@ function emitMultipartBody(
   lines.push(`${indent3}},`);
   if (op.noAuth) {
     lines.push(`${indent2}) {`);
-    lines.push(`${indent3}headers.remove(HttpHeaders.Authorization)`);
+    lines.push(`${indent3}attributes.put(PachcaNoAuth, Unit)`);
     lines.push(`${indent2}}`);
   } else {
     lines.push(`${indent2})`);
@@ -1290,6 +1315,12 @@ function emitPachcaClient(
   }
   lines.push(') : Closeable {');
   lines.push('');
+  if (ktHasNoAuth(ir)) {
+    lines.push('    init {');
+    lines.push('        _client?.let(::dropAuthorizationOfNoAuthRequests)');
+    lines.push('    }');
+    lines.push('');
+  }
   lines.push('    companion object {');
 
   // operator fun invoke - creates HttpClient and real services

@@ -59,8 +59,7 @@ public sealed class CommonServiceImpl : CommonService
         content.Add(new ByteArrayContent(request.File), "file", "file");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
         httpRequest.Content = content;
-        httpRequest.Headers.Authorization = null;
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        using var response = await PachcaUtils.SendWithRetryAsync(PachcaUtils.WithoutToken(_client), httpRequest, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         switch ((int)response.StatusCode)
         {

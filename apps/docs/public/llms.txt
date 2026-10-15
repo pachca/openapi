@@ -346,7 +346,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 
 ## Обновления
-- [15 октября 2026 — Номер выгрузки в ответе и аватар бота](https://dev.pachca.com/updates/2026-10-15.md)
+- [16 октября 2026 — Номер выгрузки в ответе и аватар бота](https://dev.pachca.com/updates/2026-10-16.md)
 - [13 октября 2026 — Раздел «Интеграции», API ботов и авторизация от имени сотрудника](https://dev.pachca.com/updates/2026-10-13.md)
 - [20 сентября 2026 — Черновики и отложенные сообщения](https://dev.pachca.com/updates/2026-09-20.md)
 - [10 сентября 2026 — Руководство по тегам](https://dev.pachca.com/updates/2026-09-10.md)

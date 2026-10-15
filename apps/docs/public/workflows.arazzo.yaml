@@ -470,8 +470,10 @@ workflows:
       Whether authorization is enabled is shown by `oauth_client_enabled`: `oauth_client` can come
       even for a bot with authorization disabled. `--oauth-client=null` disables it and revokes the
       authorizations granted by employees, and `pachca bots rotate-client-secret` issues a new
-      secret. Manual prerequisites: Save `client_secret` from the server-side client response — it
-      is returned only once. `client_id` comes in `oauth_client` and is not secret.
+      secret. The button for the employee and the exchange of the code for their token are covered
+      by the "Get an employee token via OAuth" workflow in pachca-oauth. Manual prerequisites: Save
+      `client_secret` from the server-side client response — it is returned only once. `client_id`
+      comes in `oauth_client` and is not secret.
     steps:
       - stepId: enable-authorization-on-behalf-of-an-employee-for-a-bot-1
         description: >-
@@ -838,11 +840,12 @@ workflows:
       `client.oauth.revokeToken()`. Manual prerequisites: Create a random `state` and a PKCE pair: a
       random `code_verifier` and `code_challenge`, its SHA-256 in base64url without the trailing
       `=`. Store them with the `id` of the employee you send the button to. In the SDK,
-      `createPkce()` creates the pair; Build a link to `https://app.pachca.com/apps/authorize` with
-      `client_id`, `redirect_uri`, `response_type=code`, `state`, `code_challenge` and
-      `code_challenge_method=S256`. In the SDK, `buildAuthorizeUrl()` builds it; After consent the
-      browser returns to `redirect_uri` with `code` and `state`. Find the stored `state` and delete
-      it: each one is valid once.
+      `createPkce()` creates the pair; Build the link
+      `https://app.pachca.com/apps/authorize?client_id=<client_id>&redirect_uri=<redirect_uri>&response_type=code&state=<state>&code_challenge=<code_challenge>&code_challenge_method=S256`:
+      `client_id` and the redirect address come from the bot's `oauth_client` (`pachca bots get
+      <bot_id>`), URL-encode the values. In the SDK, `buildAuthorizeUrl()` builds it; After consent
+      the browser returns to `redirect_uri` with `code` and `state`. Find the stored `state` and
+      delete it: each one is valid once.
     steps:
       - stepId: get-an-employee-token-via-oauth-1
         description: Send the link to the employee as a URL button in a direct message

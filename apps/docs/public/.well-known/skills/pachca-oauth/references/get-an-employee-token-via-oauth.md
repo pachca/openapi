@@ -1,8 +1,9 @@
 ### Получить токен сотрудника по OAuth
 
 1. Создай случайный `state` и пару PKCE: случайный `code_verifier` и `code_challenge` — его SHA-256 в base64url без `=` на конце. Сохрани их вместе с `id` сотрудника, которому отправишь кнопку. В SDK пару создаёт `createPkce()`
+   > В shell: `VERIFIER=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=')`, затем `printf %s "$VERIFIER" | openssl dgst -sha256 -binary | openssl base64 | tr '+/' '-_' | tr -d '='` — это `code_challenge`
 
-2. Собери ссылку на `https://app.pachca.com/apps/authorize` с параметрами `client_id`, `redirect_uri`, `response_type=code`, `state`, `code_challenge` и `code_challenge_method=S256`. В SDK её собирает `buildAuthorizeUrl()`
+2. Собери ссылку `https://app.pachca.com/apps/authorize?client_id=<client_id>&redirect_uri=<redirect_uri>&response_type=code&state=<state>&code_challenge=<code_challenge>&code_challenge_method=S256`: `client_id` и адрес возврата — из `oauth_client` бота (`pachca bots get <bot_id>`), значения кодируй для URL. В SDK её собирает `buildAuthorizeUrl()`
 
 3. Отправь ссылку сотруднику URL-кнопкой в личные сообщения:
    ```bash

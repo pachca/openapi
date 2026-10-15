@@ -49,7 +49,7 @@ actions:
 
         The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation error. Commands and scopes are replaced by the passed list as a whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by [Edit bot token](PUT /bots/{id}/tokens/{token_id}).
 
-        The `oauth_client` object enables authorization on behalf of an employee or changes its settings, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own tokens keep working. When the client becomes server-side, its secret comes in `client_secret` once. The catalog page is set by `promo` while authorization is enabled.
+        The `oauth_client` object enables authorization on behalf of an employee or changes its settings, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own tokens keep working. When the client becomes server-side, its secret comes in `client_secret` once. The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow). The catalog page is set by `promo` while authorization is enabled.
 
         Only a workspace administrator or owner can enable the `message_link_shared` event, and for a bot with it change the domains, the webhook address and the event history.
 
@@ -1958,7 +1958,7 @@ actions:
 
         The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it is the set of its chats that decides where it lands. No token is needed for that, the webhook address is enough. To write into one particular chat, take the [New message](POST /messages) method — that one does need a token.
 
-        Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. Learn more in [Authorization setup](/guides/oauth/setup).
+        Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. Learn more in [Authorization setup](/guides/oauth/setup). The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow).
 
         The nickname must end with `_bot` and be free in the workspace.
   - target: $.paths['/bots/{id}'].get

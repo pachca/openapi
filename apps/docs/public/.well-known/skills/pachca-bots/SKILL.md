@@ -143,7 +143,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
    pachca bots update <bot_id> --promo='{"description":"Собирает сводку по задачам","published":true}'
    ```
 
-> Включена ли авторизация, показывает `oauth_client_enabled`: `oauth_client` может прийти и у бота с выключенной авторизацией. `--oauth-client=null` выключает её и отзывает выданные сотрудниками авторизации, новый секрет выпускает `pachca bots rotate-client-secret`.
+> Включена ли авторизация, показывает `oauth_client_enabled`: `oauth_client` может прийти и у бота с выключенной авторизацией. `--oauth-client=null` выключает её и отзывает выданные сотрудниками авторизации, новый секрет выпускает `pachca bots rotate-client-secret`. Кнопку сотруднику и обмен кода на его токен описывает сценарий «Получить токен сотрудника по OAuth» в pachca-oauth.
 
 
 ### Найти и удалить бота

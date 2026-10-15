@@ -557,7 +557,8 @@ paths:
 
         Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page
         can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. Learn more in
-        [Authorization setup](/guides/oauth/setup).
+        [Authorization setup](/guides/oauth/setup). The authorization link for the button is built, and the code is
+        exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow).
 
 
         The nickname must end with `_bot` and be free in the workspace.
@@ -830,8 +831,10 @@ paths:
 
         The `oauth_client` object enables authorization on behalf of an employee or changes its settings, and `null`
         disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own
-        tokens keep working. When the client becomes server-side, its secret comes in `client_secret` once. The catalog
-        page is set by `promo` while authorization is enabled.
+        tokens keep working. When the client becomes server-side, its secret comes in `client_secret` once. The
+        authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by
+        step in [Getting a token](/guides/oauth/flow). The catalog page is set by `promo` while authorization is
+        enabled.
 
 
         Only a workspace administrator or owner can enable the `message_link_shared` event, and for a bot with it change

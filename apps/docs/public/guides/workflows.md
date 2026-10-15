@@ -53,7 +53,7 @@
 **Получить токен сотрудника по OAuth**
 
 1. Создай случайный `state` и пару PKCE: случайный `code_verifier` и `code_challenge` — его SHA-256 в base64url без `=` на конце. Сохрани их вместе с `id` сотрудника, которому отправишь кнопку. В SDK пару создаёт `createPkce()`
-2. Собери ссылку на `https://app.pachca.com/apps/authorize` с параметрами `client_id`, `redirect_uri`, `response_type=code`, `state`, `code_challenge` и `code_challenge_method=S256`. В SDK её собирает `buildAuthorizeUrl()`
+2. Собери ссылку `https://app.pachca.com/apps/authorize?client_id=<client_id>&redirect_uri=<redirect_uri>&response_type=code&state=<state>&code_challenge=<code_challenge>&code_challenge_method=S256`: `client_id` и адрес возврата — из `oauth_client` бота (`pachca bots get <bot_id>`), значения кодируй для URL. В SDK её собирает `buildAuthorizeUrl()`
 3. Отправь ссылку сотруднику URL-кнопкой в личные сообщения
 4. После согласия браузер вернётся на `redirect_uri` с `code` и `state`. Найди сохранённый `state` и удали его: каждый действует один раз
 5. Обменяй код на токен: `grant_type=authorization_code`, `code`, `redirect_uri`, `client_id`, `client_secret` и `code_verifier` формой в теле запроса. Код живёт 10 минут и обменивается один раз. В SDK это `client.oauth.exchangeToken()`
@@ -377,7 +377,7 @@
 2. Сохрани `client_secret` из ответа серверного клиента — он возвращается единственный раз. `client_id` приходит в `oauth_client` и не секретный
 3. Чтобы бот появился в витрине, добавь описание и опубликуй страницу
 
-> Включена ли авторизация, показывает `oauth_client_enabled`: `oauth_client` может прийти и у бота с выключенной авторизацией. `--oauth-client=null` выключает её и отзывает выданные сотрудниками авторизации, новый секрет выпускает `pachca bots rotate-client-secret`.
+> Включена ли авторизация, показывает `oauth_client_enabled`: `oauth_client` может прийти и у бота с выключенной авторизацией. `--oauth-client=null` выключает её и отзывает выданные сотрудниками авторизации, новый секрет выпускает `pachca bots rotate-client-secret`. Кнопку сотруднику и обмен кода на его токен описывает сценарий «Получить токен сотрудника по OAuth» в pachca-oauth.
 
 **Найти и удалить бота**
 

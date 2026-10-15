@@ -1063,8 +1063,8 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
     {
       title: 'Включить боту авторизацию от имени сотрудника',
       titleEn: 'Enable authorization on behalf of an employee for a bot',
-      related: ['Создать бота через API и получить токен', 'Выпустить боту отдельный токен'],
-      relatedEn: ['Create a bot via API and get its token', 'Issue an additional bot token'],
+      related: ['Получить токен сотрудника по OAuth', 'Создать бота через API и получить токен', 'Выпустить боту отдельный токен'],
+      relatedEn: ['Get an employee token via OAuth', 'Create a bot via API and get its token', 'Issue an additional bot token'],
       steps: [
         {
           description:
@@ -1093,9 +1093,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
       notes:
-        'Включена ли авторизация, показывает `oauth_client_enabled`: `oauth_client` может прийти и у бота с выключенной авторизацией. `--oauth-client=null` выключает её и отзывает выданные сотрудниками авторизации, новый секрет выпускает `pachca bots rotate-client-secret`.',
+        'Включена ли авторизация, показывает `oauth_client_enabled`: `oauth_client` может прийти и у бота с выключенной авторизацией. `--oauth-client=null` выключает её и отзывает выданные сотрудниками авторизации, новый секрет выпускает `pachca bots rotate-client-secret`. Кнопку сотруднику и обмен кода на его токен описывает сценарий «Получить токен сотрудника по OAuth» в pachca-oauth.',
       notesEn:
-        'Whether authorization is enabled is shown by `oauth_client_enabled`: `oauth_client` can come even for a bot with authorization disabled. `--oauth-client=null` disables it and revokes the authorizations granted by employees, and `pachca bots rotate-client-secret` issues a new secret.',
+        'Whether authorization is enabled is shown by `oauth_client_enabled`: `oauth_client` can come even for a bot with authorization disabled. `--oauth-client=null` disables it and revokes the authorizations granted by employees, and `pachca bots rotate-client-secret` issues a new secret. The button for the employee and the exchange of the code for their token are covered by the "Get an employee token via OAuth" workflow in pachca-oauth.',
     },
     {
       title: 'Найти и удалить бота',
@@ -2007,12 +2007,16 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
             'Создай случайный `state` и пару PKCE: случайный `code_verifier` и `code_challenge` — его SHA-256 в base64url без `=` на конце. Сохрани их вместе с `id` сотрудника, которому отправишь кнопку. В SDK пару создаёт `createPkce()`',
           descriptionEn:
             'Create a random `state` and a PKCE pair: a random `code_verifier` and `code_challenge`, its SHA-256 in base64url without the trailing `=`. Store them with the `id` of the employee you send the button to. In the SDK, `createPkce()` creates the pair',
+          notes:
+            'В shell: `VERIFIER=$(openssl rand -base64 32 | tr \'+/\' \'-_\' | tr -d \'=\')`, затем `printf %s "$VERIFIER" | openssl dgst -sha256 -binary | openssl base64 | tr \'+/\' \'-_\' | tr -d \'=\'` — это `code_challenge`',
+          notesEn:
+            'In a shell: `VERIFIER=$(openssl rand -base64 32 | tr \'+/\' \'-_\' | tr -d \'=\')`, then `printf %s "$VERIFIER" | openssl dgst -sha256 -binary | openssl base64 | tr \'+/\' \'-_\' | tr -d \'=\'` gives `code_challenge`',
         },
         {
           description:
-            'Собери ссылку на `https://app.pachca.com/apps/authorize` с параметрами `client_id`, `redirect_uri`, `response_type=code`, `state`, `code_challenge` и `code_challenge_method=S256`. В SDK её собирает `buildAuthorizeUrl()`',
+            'Собери ссылку `https://app.pachca.com/apps/authorize?client_id=<client_id>&redirect_uri=<redirect_uri>&response_type=code&state=<state>&code_challenge=<code_challenge>&code_challenge_method=S256`: `client_id` и адрес возврата — из `oauth_client` бота (`pachca bots get <bot_id>`), значения кодируй для URL. В SDK её собирает `buildAuthorizeUrl()`',
           descriptionEn:
-            'Build a link to `https://app.pachca.com/apps/authorize` with `client_id`, `redirect_uri`, `response_type=code`, `state`, `code_challenge` and `code_challenge_method=S256`. In the SDK, `buildAuthorizeUrl()` builds it',
+            'Build the link `https://app.pachca.com/apps/authorize?client_id=<client_id>&redirect_uri=<redirect_uri>&response_type=code&state=<state>&code_challenge=<code_challenge>&code_challenge_method=S256`: `client_id` and the redirect address come from the bot\'s `oauth_client` (`pachca bots get <bot_id>`), URL-encode the values. In the SDK, `buildAuthorizeUrl()` builds it',
         },
         {
           description: 'Отправь ссылку сотруднику URL-кнопкой в личные сообщения',

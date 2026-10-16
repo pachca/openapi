@@ -55,9 +55,11 @@ import {
   CHAIN_STEPS,
   COMPACT_PROJECTIONS,
   DESTRUCTIVE,
+  FILE_SOURCES,
   NAME_OVERRIDES,
   REFUSALS,
   RESPONSE_FORMAT,
+  UPLOAD_LIFTS,
   INSTRUCTION_PLACEHOLDERS,
   SERVER_INFO,
   SERVER_INSTRUCTIONS,
@@ -220,7 +222,11 @@ function property(schema: any, doc: YamlNode, depth = 0, shape: Shape = { side: 
     const value = source?.[k];
     if (value === undefined || (k === 'example' && shape.side === 'output')) continue;
     const scalar = ['string', 'number', 'boolean'].includes(typeof value);
-    if (scalar || JSON.stringify(value).length <= EXAMPLE_CHARS) (out as any)[k] = value;
+    if (!scalar && JSON.stringify(value).length > EXAMPLE_CHARS) continue;
+    // OpenAPI says example; JSON Schema, which the listing is, says examples — a
+    // list. A strict validator refuses a schema with a keyword it does not know.
+    if (k === 'example') out.examples = [value];
+    else (out as any)[k] = value;
   }
   const limit = NESTING[shape.side];
   if (source?.type === 'array') {
@@ -293,7 +299,7 @@ function variantsAsOne(source: any, variants: any[], doc: YamlNode, depth: numbe
   const said = String(source?.description ?? '').replace(/\s+/g, ' ').trim();
   return {
     type: 'object',
-    description: `${said ? `${said}. ` : ''}One of — ${lines.join('; ')}${shape.side === 'input' ? ' (* — required)' : ''}.`,
+    description: `${said ? `${/[.!?]$/.test(said) ? said : `${said}.`} ` : ''}One of — ${lines.join('; ')}${shape.side === 'input' ? ' (* — required)' : ''}.`,
     properties,
     ...(kinds.length && shape.side === 'input' ? { required: ['type'] } : {}),
   };
@@ -407,7 +413,8 @@ function readOperations(): Operation[] {
         node,
         nodeEn: docEn.paths?.[p]?.[method],
       });
-      TOOL_BY_KEY.set(k, out[out.length - 1].name);
+      // A chain step is no tool, so a link to it keeps its words (`linksAsTools`).
+      if (!(k in CHAIN_STEPS)) TOOL_BY_KEY.set(k, out[out.length - 1].name);
     }
   }
   return out;
@@ -450,6 +457,12 @@ interface ArgumentPlace {
   operations?: OperationKey[];
   scopes?: string[];
   /**
+   * For an upload: what each item becomes once uploaded — `file`, the file
+   * object with its key and size filled in, or `key`, the key alone where the
+   * API takes a list of keys.
+   */
+  item?: 'file' | 'key';
+  /**
    * What the server does with an argument the API has no field for. Written out
    * so the runtime executes a declaration instead of knowing the argument by
    * name: `view` cuts the answer to the card of an entity, `draft_id` runs one
@@ -458,8 +471,22 @@ interface ArgumentPlace {
    */
   effect?:
     | { kind: 'projection'; entity: string }
-    | { kind: 'after'; operation: OperationKey; at: string; on: 'success'; scopes: string[] };
+    | { kind: 'after'; operation: OperationKey; at: string; on: 'success'; scopes: string[] }
+    | { kind: 'download'; into: string };
 }
+
+/** The operations an upload runs, in order: the chain steps of the set. */
+const UPLOAD_STEPS = Object.keys(CHAIN_STEPS) as OperationKey[];
+
+/** A file the model hands over: its contents, or a link the server downloads (`FILE_SOURCES`). */
+const FILE_CONTENT: JsonSchema = {
+  type: 'string',
+  description: 'The file contents, base64-encoded — for text you wrote yourself. Pass this or url.',
+};
+const FILE_URL: JsonSchema = {
+  type: 'string',
+  description: 'A public https link to the file; the server downloads it. Pass this or content.',
+};
 
 interface BuiltInput {
   schema: JsonSchema;
@@ -580,18 +607,66 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
     // an image, a voice message with its duration and waveform. Keeping only a
     // name and the bytes left no way to send either.
     const kept = Object.entries(item.properties ?? {}).filter(([name]) => !UPLOAD_FILLS.includes(name));
-    claim(chain.argument, { in: 'upload', at, operations: [step.key], scopes: step.scope ? [step.scope] : [] }, {
+    claim(chain.argument, { in: 'upload', at, operations: [step.key], scopes: step.scope ? [step.scope] : [], item: 'file' }, {
       type: 'array',
       items: {
         type: 'object',
         properties: {
           ...Object.fromEntries(kept),
-          content: { type: 'string', description: 'The file contents, base64-encoded.' },
+          content: FILE_CONTENT,
+          url: FILE_URL,
         },
-        required: [...(item.required ?? []).filter((name) => !UPLOAD_FILLS.includes(name)), 'content'],
+        required: (item.required ?? []).filter((name: string) => !UPLOAD_FILLS.includes(name)),
       },
-      description: 'Files to attach. The server uploads each one, fills in the key and the size, and sends them with the message.',
+      description:
+        'Files to attach, each as its contents or as a link. The server uploads each one, fills in the key and the size, and sends them with the message.',
     });
+  }
+
+  // A field of keys is lifted out to an argument the server fills by uploading
+  // (`UPLOAD_LIFTS`): the model hands over the images, the server makes the keys.
+  for (const lift of UPLOAD_LIFTS[op.key] ?? []) {
+    const [outer, inner] = lift.at.split('.') as [string, string];
+    const host = Object.entries(places).find(([, place]) => place.in === 'body' && place.at === outer)?.[0];
+    const holder = host ? properties[host] : undefined;
+    const field = holder?.properties?.[inner];
+    if (!host || !holder || !field) throw new Error(`${op.key}: ${lift.at} is lifted, and the body has no such field`);
+    delete holder.properties![inner];
+    if (holder.required) holder.required = holder.required.filter((name: string) => name !== inner);
+    claim(lift.argument, { in: 'upload', at: lift.at, operations: [...UPLOAD_STEPS], scopes: [], item: 'key' }, {
+      type: 'array',
+      ...(field.maxItems !== undefined ? { maxItems: field.maxItems } : {}),
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'File name with its extension.' },
+          content: FILE_CONTENT,
+          url: FILE_URL,
+        },
+        required: ['name'],
+      },
+      // The spec's words stay; only the part about keys, which the model never
+      // holds, becomes what it passes instead.
+      description: (() => {
+        const said = String(field.description ?? '').trim();
+        const passed = 'each image as its contents or as a link; the server uploads them and puts their keys in place.';
+        const told = said.replace(/:\s*keys of uploaded images\s*\([^)]*\)\./, `: ${passed}`);
+        return told !== said ? told : `${said} Each image goes as its contents or as a link; the server uploads them and puts their keys in place.`.trim();
+      })(),
+    });
+  }
+
+  // A file the API takes as bytes can come as a link too: the server downloads it
+  // (`FILE_SOURCES`). The bytes stay optional then — one of the two is enough.
+  for (const [name, place] of Object.entries({ ...places })) {
+    if (place.in !== 'body' || properties[name]?.format !== 'binary') continue;
+    const url = `${name}_url`;
+    claim(url, { in: 'server', effect: { kind: 'download', into: name } }, {
+      type: 'string',
+      description: `A public https link to the file instead of ${name}; the server downloads it. Pass one of the two.`,
+    });
+    properties[name] = { ...properties[name], description: `${properties[name]!.description} Or pass ${url} instead.` };
+    for (let i = required.length - 1; i >= 0; i--) if (required[i] === name) required.splice(i, 1);
   }
   const mediaType = Object.keys(op.nodeEn?.requestBody?.content ?? {}).find((t) =>
     ['application/json', 'multipart/form-data'].includes(t),
@@ -665,8 +740,9 @@ function outputSchema(op: Operation, docEn: YamlNode): JsonSchema | null {
     return {
       type: 'object',
       properties: {
-        content: { type: 'string', description: 'The file itself, base64-encoded.' },
+        file_name: { type: 'string', description: 'The name the file was sent with.' },
         mime_type: { type: 'string', description: `The media type of the file, ${other} when the API does not name a narrower one.` },
+        size: { type: 'integer', description: 'Size in bytes. The bytes themselves are a content block of the answer (`binary_body`).' },
       },
     };
   }
@@ -772,6 +848,7 @@ function lintSchema(name: string, schema: JsonSchema): string[] {
 
 interface BuiltTool {
   name: string;
+  title: string;
   operation: OperationKey;
   kind: ToolKind;
   scope: string | null;
@@ -828,10 +905,25 @@ const HTTP_REWRITES: Array<[RegExp, string]> = [
     /When the archive is ready, a webhook with the identifier in the `export_id` field arrives at the address from\s+`webhook_url`\./g,
     'When the archive is ready, a webhook arrives at the address from `webhook_url`.',
   ],
+  // An avatar is an argument here, bytes or a link; how the file travels is the
+  // server's business, and the fact worth keeping is what comes back.
+  [
+    /The file is sent in\s+`multipart\/form-data`\s+format, and the response contains only a link to the new image\./g,
+    'The answer contains only a link to the new image.',
+  ],
+  // The answer of a download is the file itself (`binary_body`), not an HTTP body
+  // with a header: the name rides in the structured half.
+  [/The response is the body of the file and a\s+`Content-Disposition`\s+header with its name, not\s+`JSON`\.\s*/g, ''],
+  // The wait is in a header a model never sees; the server names it in the refusal.
+  [
+    /responds\s+`429`,\s+and the\s+`Retry-After`\s+header carries the pause before the next attempt\./g,
+    'responds `429` and says how long to wait before the next attempt.',
+  ],
 ];
 
 // A webhook has a `URL` of its own, so only the plumbing phrasings count.
-const HTTP_LEFTOVER = /request `URL`|in the `URL`|request body|`302 Found`|`Location` header|use it in the request/;
+const HTTP_LEFTOVER =
+  /request `URL`|in the `URL`|request body|`302 Found`|`Location` header|use it in the request|`multipart\/form-data`|`Content-Disposition`|`Retry-After` header|not `JSON`/;
 
 /**
  * What the spec says about an operation, as one paragraph.
@@ -891,6 +983,14 @@ function linksAsTools(text: string): string {
       const now = pageNow(page) ?? page;
       return `"${label}" (${/^https?:/.test(now) ? now : `${SERVER_INFO.website_url}${now}`})`;
     });
+}
+
+/** The title line of an operation, for a client to show instead of the name. */
+function specTitle(op: Operation): string {
+  const one = (value: unknown): string => String(value ?? '').replace(/\s+/g, ' ').trim();
+  const summary = one(op.nodeEn?.summary);
+  const head = one(String(op.nodeEn?.description ?? '').split(/\n\s*\n/)[0]);
+  return (summary || head).replace(/[.!?]$/, '');
 }
 
 function specText(op: Operation): string {
@@ -989,6 +1089,7 @@ function build(): void {
       const input = inputSchema(op, absorbedBy.get(op.key) ?? [], docEn);
       return {
         name: op.name,
+        title: specTitle(op),
         operation: op.key,
         kind: op.kind,
         scope: op.scope,
@@ -1004,6 +1105,22 @@ function build(): void {
         entity: responseEntity(op, docEn),
       };
     });
+
+  // A lifted upload runs the upload steps, and they bring their scopes, read from
+  // the spec, the same way as for a message's files.
+  for (const tool of tools) {
+    for (const place of Object.values(tool.request.arguments)) {
+      if (place.in !== 'upload' || place.item !== 'key') continue;
+      for (const stepKey of place.operations ?? []) {
+        const step = byKey.get(stepKey);
+        if (step?.scope && !place.scopes!.includes(step.scope)) place.scopes!.push(step.scope);
+        if (step) {
+          const barred = tool.roles.filter((role) => !step.roles.includes(role));
+          if (barred.length) problems.push(`${tool.name} is listed for ${barred.join(', ')}, and ${stepKey} inside it is not allowed to them`);
+        }
+      }
+    }
+  }
 
   // An operation a declared effect runs brings its own scope, read from the
   // spec: a token that may send a message but not delete a draft is refused
@@ -1057,7 +1174,8 @@ function build(): void {
     }
     const body = flatten(requestBodySchema(op), docEn);
     for (const [name, raw] of Object.entries<any>(body?.properties ?? {})) {
-      const place = Object.entries(tool.request.arguments).find(([, p]) => p.at === name || p.at?.startsWith(`${name}.`));
+      const placed = Object.entries(tool.request.arguments);
+      const place = placed.find(([, p]) => p.at === name) ?? placed.find(([, p]) => p.at?.startsWith(`${name}.`));
       if (!place) {
         problems.push(`${tool.name}: the body field ${name} reaches no argument`);
         continue;
@@ -1067,7 +1185,24 @@ function build(): void {
         continue;
       }
       if (place[1].at === name) {
-        problems.push(...lostFields(tool.name, name, raw, tool.inputSchema.properties?.[place[0]], docEn));
+        // A field lifted out to an upload of its own (`UPLOAD_LIFTS`) is checked
+        // there, not as a part of the object it left.
+        const lifted = placed.filter(([, p]) => p.in === 'upload' && p.at?.startsWith(`${name}.`));
+        const resolved = flatten(raw, docEn);
+        const rest =
+          lifted.length && resolved?.properties
+            ? {
+                ...resolved,
+                properties: Object.fromEntries(
+                  Object.entries<any>(resolved.properties).filter(([inner]) => !lifted.some(([, p]) => p.at === `${name}.${inner}`)),
+                ),
+              }
+            : raw;
+        problems.push(...lostFields(tool.name, name, rest, tool.inputSchema.properties?.[place[0]], docEn));
+        for (const [argument, p] of lifted) {
+          const inner = p.at!.slice(name.length + 1);
+          if (!resolved?.properties?.[inner]) problems.push(`${tool.name}: ${argument} is lifted from ${p.at}, which the spec does not have`);
+        }
       } else {
         for (const [inner, innerRaw] of Object.entries<any>(flatten(raw, docEn)?.properties ?? {})) {
           const arg = Object.entries(tool.request.arguments).find(([, p]) => p.at === `${name}.${inner}`);
@@ -1085,8 +1220,8 @@ function build(): void {
       ([code, r]) => /^2/.test(code) && Object.keys(r?.content ?? {}).some((type) => type !== 'application/json'),
     );
     for (const [code] of otherBodies) {
-      if (tool.outputSchema?.properties?.content && tool.outputSchema?.properties?.mime_type) continue;
-      problems.push(`${tool.name} answers ${code} with a body that is not JSON and declares no content to hand it back in`);
+      if (tool.outputSchema?.properties?.mime_type && tool.outputSchema?.properties?.size) continue;
+      problems.push(`${tool.name} answers ${code} with a body that is not JSON and does not describe the file it hands back`);
     }
     for (const code of ['200', '201', '202']) {
       const answer = op.nodeEn?.responses?.[code]?.content?.['application/json']?.schema;
@@ -1208,6 +1343,12 @@ function build(): void {
         if (!COMPACT_PROJECTIONS[effect.entity]) problems.push(`${tool.name} cuts ${name} to the card of ${effect.entity}, which has no card`);
         if (tool.entity !== effect.entity) problems.push(`${tool.name} answers with ${tool.entity ?? 'nothing named'} and cuts ${name} to ${effect.entity}`);
       }
+      if (effect.kind === 'download') {
+        const into = tool.request.arguments[effect.into];
+        if (!into || into.in !== 'body' || tool.inputSchema.properties?.[effect.into]?.format !== 'binary') {
+          problems.push(`${tool.name} downloads ${name} into ${effect.into}, which is not a file field of the body`);
+        }
+      }
       if (effect.kind === 'after') {
         const after = byKey.get(effect.operation);
         if (!after) problems.push(`${tool.name} runs ${effect.operation} after ${name}, which is not an operation of the spec`);
@@ -1276,8 +1417,18 @@ function build(): void {
   // `export_id`. Those are facts a model needs, not dangling pointers, so the
   // check knows them and only flags what names nothing at all.
   const quoted = TOOL_NAME_IN_PROSE;
+  // Argument wording counts as much as the description: a field that points at a
+  // tool nobody has is the same dead end, one level down.
+  const readText = (schema: any): string[] =>
+    !schema || typeof schema !== 'object'
+      ? []
+      : [
+          ...(typeof schema.description === 'string' ? [schema.description] : []),
+          ...Object.values<any>(schema.properties ?? {}).flatMap(readText),
+          ...(schema.items ? readText(schema.items) : []),
+        ];
   for (const tool of tools) {
-    for (const quotedName of new Set(tool.description.match(quoted) ?? [])) {
+    for (const quotedName of new Set([tool.description, ...readText(tool.inputSchema)].join('\n').match(quoted) ?? [])) {
       if (!names.has(quotedName) && !serviceNames.has(quotedName) && !tool.inputSchema.properties?.[quotedName] && !SPEC_VOCABULARY.has(quotedName)) {
         problems.push(`${tool.name} names "${quotedName}", which is neither a tool, an argument, nor a name the spec uses`);
       }
@@ -1432,7 +1583,7 @@ function build(): void {
         if (typeof value !== 'string' || scenario.prompt.includes(value)) continue;
         const offered = accepted.find((t) => {
           const field = (t.inputSchema.properties as Record<string, JsonSchema> | undefined)?.[argument];
-          return field?.example === value && !field.enum;
+          return Array.isArray(field?.examples) && field.examples.includes(value) && !field.enum;
         });
         if (offered) {
           problems.push(`${scenario.id} wants ${argument} «${value}», the example ${offered.name} gives — a copied example would pass`);
@@ -1500,8 +1651,10 @@ function build(): void {
     response_format: RESPONSE_FORMAT,
     refusals: REFUSALS,
     compact_projections: COMPACT_PROJECTIONS,
+    files: FILE_SOURCES,
     tools: tools.map((t) => ({
       name: `${TOOL_PREFIX}${t.name}`,
+      title: t.title,
       operation: t.operation,
       kind: t.kind,
       scope: t.scope,
@@ -1516,7 +1669,10 @@ function build(): void {
       ...(t.outputSchema ? { outputSchema: t.outputSchema } : {}),
     })),
     service_tools: SERVICE_TOOLS.map((t: McpServiceTool) => ({
-      name: `${TOOL_PREFIX}${t.name}`,
+      // One platform's research mode looks for search and fetch by these exact
+      // names, so a compatibility tool goes without the prefix.
+      name: t.compat ? t.name : `${TOOL_PREFIX}${t.name}`,
+      title: t.title,
       kind: t.kind,
       compat: Boolean(t.compat),
       operations: t.operations,
@@ -1538,6 +1694,7 @@ function build(): void {
           : {}),
         additionalProperties: false,
       },
+      ...(t.outputSchema ? { outputSchema: t.outputSchema } : {}),
     })),
     audiences,
   };

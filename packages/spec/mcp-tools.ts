@@ -114,9 +114,6 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   delete_message: {
     notFor: ['Taking back something you only regret sending — update_message edits it in place instead.'],
   },
-  recreate_bot_token: {
-    description: 'Hand the new token to the person, never into a chat.',
-  },
 
   // ── What the server does that the API has no field for ──────────────────
   list_drafts: {

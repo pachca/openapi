@@ -14,6 +14,7 @@
     "response_format",
     "refusals",
     "compact_projections",
+    "files",
     "tools",
     "service_tools",
     "audiences"
@@ -147,6 +148,40 @@
         }
       }
     },
+    "files": {
+      "type": "object",
+      "description": "Where the bytes of a file the model hands over come from, and the ceiling for a file handed back. A file argument takes its contents in base64 or a link; the server downloads a link itself, so these limits are the server’s to keep.",
+      "required": [
+        "url_schemes",
+        "public_hosts_only",
+        "max_redirects",
+        "max_bytes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "url_schemes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The only schemes a link may use."
+        },
+        "public_hosts_only": {
+          "type": "boolean",
+          "description": "true: a link to a private, loopback or link-local address is refused, and so is one that redirects there."
+        },
+        "max_redirects": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many redirects a download follows, each one checked like the link itself."
+        },
+        "max_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The largest file downloaded from a link, and the largest one handed back to the model."
+        }
+      }
+    },
     "tools": {
       "type": "array",
       "minItems": 1,
@@ -156,7 +191,7 @@
     },
     "service_tools": {
       "type": "array",
-      "description": "Tools that are not one API operation: the documentation lookup, which reads nothing of the workspace, and the generic search and fetch pair one platform requires, which call several.",
+      "description": "Tools that are not one API operation: the generic search and fetch pair one platform requires, which call several operations each.",
       "items": {
         "$ref": "#/$defs/serviceTool"
       }
@@ -251,6 +286,7 @@
       "type": "object",
       "required": [
         "name",
+        "title",
         "operation",
         "kind",
         "scope",
@@ -268,6 +304,11 @@
           "type": "string",
           "pattern": "^pachca_[a-z][a-z0-9_]*$",
           "maxLength": 64
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What a client shows instead of the name: the title line of the operation in the spec."
         },
         "operation": {
           "type": "string",
@@ -370,7 +411,7 @@
                   "upload",
                   "server"
                 ],
-                "description": "upload: the server uploads each file and puts the result at `at`; server: the server's own argument, never sent to the API."
+                "description": "upload: the server uploads each file and puts the result at `at`; server: the server’s own argument, never sent to the API."
               },
               "at": {
                 "type": "string",
@@ -394,6 +435,13 @@
                   "type": "string"
                 },
                 "description": "upload: the scopes those operations need beyond the tool's own, read from the spec. Passing the argument without them is refused before the first step."
+              },
+              "item": {
+                "enum": [
+                  "file",
+                  "key"
+                ],
+                "description": "upload: what each item becomes once uploaded — file, the file object with its key and size filled in; key, the key alone, where the API takes a list of keys. An item gives its contents in base64 or a link the server downloads first (files)."
               },
               "effect": {
                 "description": "server: what the runtime does with an argument the API has no field for. Declared rather than known by name, so a new argument of this kind is a new version of the package and not a change in the backend.",
@@ -449,6 +497,23 @@
                         "description": "The scopes that operation needs beyond the tool's own."
                       }
                     }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "into"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "const": "download"
+                      },
+                      "into": {
+                        "type": "string",
+                        "description": "The file argument the downloaded bytes fill: the server fetches the link under the files policy and sends the bytes as that field."
+                      }
+                    }
                   }
                 ]
               }
@@ -461,6 +526,7 @@
       "type": "object",
       "required": [
         "name",
+        "title",
         "kind",
         "compat",
         "operations",
@@ -473,8 +539,13 @@
       "properties": {
         "name": {
           "type": "string",
-          "pattern": "^pachca_[a-z][a-z0-9_]*$",
-          "maxLength": 64
+          "pattern": "^(pachca_[a-z][a-z0-9_]*|search|fetch)$",
+          "maxLength": 64,
+          "description": "Prefixed like every tool, except a compatibility tool, which keeps the exact name its platform asks for."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
         },
         "kind": {
           "enum": [
@@ -496,7 +567,7 @@
             "type": "string",
             "pattern": "^(GET|POST|PUT|PATCH|DELETE) /"
           },
-          "description": "The API operations the tool calls. Empty for the documentation lookup."
+          "description": "The API operations the tool calls."
         },
         "scopes": {
           "type": "array",
@@ -510,6 +581,10 @@
         },
         "inputSchema": {
           "$ref": "#/$defs/jsonSchema"
+        },
+        "outputSchema": {
+          "$ref": "#/$defs/jsonSchema",
+          "description": "The answer a platform prescribes, when it prescribes one: the compatibility pair answers in this shape (response_format.compat)."
         }
       }
     },

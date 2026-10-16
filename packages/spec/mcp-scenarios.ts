@@ -997,6 +997,40 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     note: "Отмена отложенного — удаление черновика: убрать у него расписание нельзя.",
   },
 
+  // ── Аватар бота, перенос отложенного, файл без ссылки, права подключения ──
+  {
+    id: "bot-avatar-by-link",
+    prompt: "поставь боту «Дежурный» аватар — вот картинка: https://img.example.org/duty-bot.png",
+    accept: ["list_bots", "get_bot", "update_bot_avatar"],
+    args: { must: { id: 7801, image_url: "https://img.example.org/duty-bot.png" }, absent: ["image"] },
+    note: "Картинку по ссылке скачивает сервер: переписывать её в base64 не нужно и не получится.",
+  },
+  {
+    id: "bot-avatar-remove",
+    prompt: "убери аватар у бота «Дежурный»",
+    accept: ["list_bots", "get_bot", "delete_bot_avatar"],
+    args: { must: { id: 7801 } },
+  },
+  {
+    id: "draft-reschedule",
+    prompt: "перенеси отложенное сообщение в «Платипусе» на четверг 9:30",
+    accept: ["list_drafts", "get_draft", "update_draft"],
+    args: { must: { id: 5621 }, present: ["schedule"] },
+    note: "Перенос — правка расписания того же черновика, а не новый черновик и не отправка.",
+  },
+  {
+    id: "file-download",
+    prompt: "открой файл из сообщения https://app.pachca.com/chats/4719?message=603402 и скажи, что в нём",
+    accept: ["get_message", "download_file"],
+    args: { must: { id: 3571 } },
+    note: "У вложения без прямой ссылки содержимое отдаёт только скачивание: имени файла из карточки сообщения мало.",
+  },
+  {
+    id: "token-info",
+    prompt: "какие права есть у этого подключения к Пачке?",
+    accept: ["get_token_info"],
+  },
+
   // ── Список сотрудника: чего у него нет, и что он об этом говорит ─────────
   {
     id: "role-user-delete-person",

@@ -127,6 +127,39 @@ export const CHAIN_STEPS: Record<OperationKey, { into: OperationKey[]; argument:
 };
 
 /**
+ * Fields that take keys of uploads already made, lifted out to an argument of
+ * their own that the server fills by uploading.
+ *
+ * The screenshots of a bot's catalog page are keys from the upload steps, and a
+ * model has no way to make an upload: left as it is, the field points at a tool
+ * nobody has. Here the model passes the images themselves — contents or a link —
+ * and the server runs the same upload steps as for a message's files, then puts
+ * each key in place. The rest of `promo` stays one object argument.
+ */
+export const UPLOAD_LIFTS: Record<OperationKey, Array<{ at: string; argument: string }>> = {
+  'POST /bots': [{ at: 'promo.promo_images', argument: 'promo_images' }],
+  'PUT /bots/{id}': [{ at: 'promo.promo_images', argument: 'promo_images' }],
+};
+
+/**
+ * Where the bytes of a file the model hands over come from.
+ *
+ * A model cannot write a real image out as base64, and a client does not put the
+ * bytes of an attachment into arguments: the contents work for text a model wrote
+ * itself — a table as `.md` — and a link is how everything else arrives. The
+ * server downloads a link itself, so the limits are the server's to keep: only
+ * https, only public addresses — no private, loopback or link-local network, and
+ * the same after every redirect — and no more than `max_bytes`. The same ceiling
+ * holds for a file handed back to the model.
+ */
+export const FILE_SOURCES = {
+  url_schemes: ['https'],
+  public_hosts_only: true,
+  max_redirects: 3,
+  max_bytes: 20_000_000,
+};
+
+/**
  * Body wrappers the spec does not mark as required.
  *
  * A wrapper is unwrapped when it is the one thing the body requires. `PUT /bots/{id}`
@@ -163,6 +196,11 @@ export const DESTRUCTIVE = new Set<OperationKey>([
   'DELETE /bots/{id}/tokens/{token_id}',
   'POST /bots/{id}/tokens/{token_id}/reissue',
   'POST /bots/{id}/rotate_client_secret',
+  // A draft holds text nobody else has, and a scheduled one is a send that will
+  // not happen once it is gone. Taking a tag off a chat removes the people who came
+  // with it: adding the tag back returns them, not the messages they missed.
+  'DELETE /drafts/{id}',
+  'DELETE /chats/{id}/group_tags/{tag_id}',
 ]);
 
 /**
@@ -271,9 +309,13 @@ export const SERVER_INSTRUCTIONS = [
     '«себе», a direct one included, goes to this id — their chat with themselves — so it names who to ' +
     'write to, and there is nobody left to ask about. Today is {today}. This week: {week}.',
   '',
-  'Authorship. Everything you send is signed with that name — there is no way to post as someone ' +
-    'else — and readers take it as written by them: most connections leave no mark that an app sent ' +
-    'it. Write the way they would, and say afterwards what you sent and where.',
+  'Authorship. Everything you send is signed with that name, and readers take it as written by them: ' +
+    'most connections leave no mark that an app sent it. A personal token has no way to post as ' +
+    'someone else; a bot token can show another name and avatar on one message, display_name, and ' +
+    'keeps its Bot badge. Write the way they would, and say afterwards what you sent and where.',
+  '',
+  'Secrets. A bot’s access_token, a client_secret and a webhook’s secret_token go to the person in ' +
+    'your answer, never into a chat or a message: whoever reads that chat could act as the bot.',
   '',
   'Get on with it. Do not interview the person. A request is an instruction, not the opening of a ' +
     'negotiation: work out the missing pieces yourself — find the chat or the person by name, take ' +
@@ -401,12 +443,16 @@ export const REFUSALS: Record<string, string> = {
     'methods answer this way until the workspace is paid for, and nothing an agent does changes that ' +
     '— tell the person.',
   '403':
-    'Not allowed, and the body says which of three cases. insufficient_scope names a permission the ' +
-    'connection lacks or the person’s role does not allow: say which, since granting it is not yours ' +
-    'to do. access_denied: the token belongs to a guest, or to a suspended or deleted employee. ' +
+    'Not allowed, and the code says why. insufficient_scope: the connection lacks the permission it ' +
+    'names — say which; reconnecting with it is the person’s step. role_forbidden: the permission is ' +
+    'there but the person’s role does not allow the action, and no reconnection changes that. ' +
+    'oauth_role_forbidden: this role has no public API at all; admins_only_access_denied: the ' +
+    'workspace opens the API to administrators only — an administrator changes that in the workspace ' +
+    'settings. access_denied: the token belongs to a guest, or to a suspended or deleted employee. ' +
     'not_authorized: no right to this object or action — not a member of that chat, a subscriber in a ' +
     'channel, an archived chat — or a feature the workspace plan lacks; the body does not tell these ' +
-    'apart, so check membership before blaming the plan.',
+    'apart, so check membership before blaming the plan. Any other code is the method’s own and its ' +
+    'description says what it means.',
   '404':
     'Not found for this person: no object with that id, one in another workspace, or a deleted ' +
     'employee — a chat or thread that exists but is closed to them answers 403 instead. Two codes are ' +
@@ -428,11 +474,9 @@ export const REFUSALS: Record<string, string> = {
     'one, the message says why otherwise: fix that and try once more. The code rate_limit here is the ' +
     'export limit, one request per workspace every 90 seconds.',
   '429':
-    'Rate limited. Wait out the Retry-After header before repeating: sending faster will not get the ' +
+    'Rate limited: wait as long as the refusal says before repeating. Sending faster will not get the ' +
     'message through, and every call made while the daily cap on one sender’s messages to one chat ' +
-    'holds lengthens its block, up to a day. It arrives in two shapes: that daily cap as ordinary JSON ' +
-    'with the code rate_limit, the per-second limits as plain text refused before the method is ' +
-    'reached. Check the content type before parsing.',
+    'holds lengthens its block, up to a day.',
 };
 
 /**
@@ -541,6 +585,16 @@ export const RESPONSE_FORMAT = {
   invalid_arguments: 'These arguments do not fit {tool}: {problems}. It takes: {signature}.',
 
   /**
+   * A 429 reaches the server in two shapes: the daily cap on one sender's
+   * messages to one chat as JSON with the code rate_limit, and the per-second
+   * limits as plain text refused before the method runs. Either way the wait is
+   * in Retry-After, which the model never sees — so the server reads it and
+   * names it in the refusal, and the refusal tells the model to wait that long.
+   */
+  rate_limit:
+    'a 429 comes as JSON with code rate_limit (the daily cap) or as plain text (per-second limits); read the wait from Retry-After and name it in the refusal: «Wait {seconds} s before repeating.»',
+
+  /**
    * A redirect is not followed. The archive of an export answers with where it
    * lies, and that link is for the person to open — following it would pour an
    * archive into the model's context.
@@ -551,12 +605,22 @@ export const RESPONSE_FORMAT = {
    * A body that is not JSON is the file itself. Only one method answers with
    * one, and it exists for the attachments that have no link to follow —
    * encrypted, or sent from the secure perimeter — so refusing to carry it
-   * would leave them unreadable by any means. Base64 mirrors the input side,
-   * where a file argument is base64 too, and the media type travels with it so
-   * a client knows what it received. Size is the caller's to watch: a large
-   * file grows by a third on the way in.
+   * would leave them unreadable by any means. Base64 text in the structured half
+   * is what a model cannot read: an image has to arrive as an image to be seen,
+   * a text file as text. The protocol has a content type for each, so the bytes
+   * travel as that, and the structured half says what came. A file above the
+   * ceiling is not poured into the context at all.
    */
-  binary_body: 'the file itself, as content: base64 with mime_type in the structured half',
+  binary_body:
+    'the bytes go as a content block — image/* as an image, text/* and JSON as a text resource, anything else as a blob resource — and the structured half names file_name, mime_type and size; a file over files.max_bytes is not passed: the text names its size and says it opens in Pachca',
+
+  /**
+   * One platform's research mode accepts only a search and a fetch of its own
+   * shape, and reads the answer from the text half: the same object goes there
+   * as JSON and into the structured half.
+   */
+  compat:
+    'search and fetch answer the object their outputSchema describes, both as structuredContent and as its JSON in one text block; an id is kind:number — message:880412733, chat:52817, user:41277 — and url is the app.pachca.com link of the item',
 
   /**
    * Long content is cut rather than allowed to flood the context, and the cut
@@ -630,7 +694,7 @@ export const COMPACT_PROJECTIONS: Record<string, string[]> = {
   Reaction: ['user_id', 'code', 'name', 'created_at'],
   UserStatus: ['emoji', 'title', 'expires_at'],
   // Commands, scopes and templates are the bulk of a bot and rarely the question.
-  BotResponse: ['id', 'webhook.name', 'webhook.nickname', 'webhook.outgoing_url', 'webhook.trigger_on', 'webhook.can_edit'],
+  BotResponse: ['id', 'name', 'nickname', 'oauth_client_enabled', 'webhook.kind', 'webhook.outgoing_url', 'webhook.trigger_on'],
   CompanyBotResponse: ['id', 'webhook.name', 'webhook.nickname', 'webhook.outgoing_url', 'webhook.trigger_on', 'webhook.can_edit'],
   // Who did what to what, and when; the request details stay in the full view.
   AuditEvent: ['id', 'created_at', 'event_key', 'entity_type', 'entity_id', 'actor_type', 'actor_id'],
@@ -640,8 +704,8 @@ export const COMPACT_PROJECTIONS: Record<string, string[]> = {
 
 /**
  * An argument of a service tool. Service tools carry no API operation of their
- * own — the documentation search, and the compatibility pair — so their arguments
- * are written here rather than derived from the spec.
+ * own — today only the compatibility pair — so their arguments are written here
+ * rather than derived from the spec.
  */
 export interface ServiceField {
   name: string;
@@ -652,15 +716,17 @@ export interface ServiceField {
 }
 
 export interface McpServiceTool {
+  /** The name as served. A compatibility tool keeps the exact name its platform asks for, without the prefix. */
   name: string;
+  title: string;
   kind: ToolKind;
   /**
    * What the tool is for. Written here because there is no operation to take it
-   * from — and a tool without one is a name and nothing else: in a measured run
-   * both questions about how Pachca works were answered from memory because the
-   * tool that answers them said nothing about itself.
+   * from — and a tool without one is a name and nothing else.
    */
   description: string;
+  /** The answer the platform reads, when it prescribes one. */
+  outputSchema?: Record<string, unknown>;
   /**
    * Served only to clients that need it. The generic search/fetch pair exists
    * because one platform's research mode requires that exact shape; serving it
@@ -679,6 +745,7 @@ export interface McpServiceTool {
 export const SERVICE_TOOLS: McpServiceTool[] = [
   {
     name: 'search',
+    title: 'Search',
     kind: 'read',
     compat: true,
     description:
@@ -687,9 +754,28 @@ export const SERVICE_TOOLS: McpServiceTool[] = [
       'are available they say more and cost less.',
     operations: ['GET /search/messages', 'GET /search/chats', 'GET /search/users'],
     input: [{ name: 'query', type: 'string', required: true, description: 'What to look for across Pachca.' }],
+    outputSchema: {
+      type: 'object',
+      properties: {
+        results: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string', description: 'kind:number, passed to fetch as it is: message:880412733, chat:52817, user:41277.' },
+              title: { type: 'string', description: 'The chat name, the person, or the start of the message.' },
+              url: { type: 'string', description: 'The app.pachca.com link of the item.' },
+            },
+            required: ['id', 'title', 'url'],
+          },
+        },
+      },
+      required: ['results'],
+    },
   },
   {
     name: 'fetch',
+    title: 'Fetch',
     kind: 'read',
     compat: true,
     description:
@@ -704,6 +790,17 @@ export const SERVICE_TOOLS: McpServiceTool[] = [
         description: 'Identifier returned by search, passed back verbatim.',
       },
     ],
+    outputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'The id that was fetched.' },
+        title: { type: 'string', description: 'The chat name, the person, or the start of the message.' },
+        text: { type: 'string', description: 'The message text, or the card of the chat or the person.' },
+        url: { type: 'string', description: 'The app.pachca.com link of the item.' },
+        metadata: { type: 'object', description: 'Author, chat and time of a message; nothing else is promised.' },
+      },
+      required: ['id', 'title', 'text', 'url'],
+    },
   },
 ];
 

@@ -102,10 +102,14 @@ function parseEndpoint(
   // Parse x-requirements extension
   const requirements = getRecord(operation, 'x-requirements');
   if (requirements) {
+    const roles = getArray(requirements, 'roles')?.filter(
+      (r): r is string => typeof r === 'string'
+    );
     endpoint.requirements = {
       scope: getString(requirements, 'scope') || undefined,
       plan: getString(requirements, 'plan') || undefined,
       auth: requirements.auth === false ? false : undefined,
+      ...(roles?.length ? { roles } : {}),
     };
   }
 

@@ -42,12 +42,17 @@ _16 октября 2026_
 - `Chat`: операция `Request Export` сразу возвращает номер выгрузки в `id` — с ним `Download Export` забирает архив, когда тот соберётся
 - `Bot`: операции `Update Avatar` и `Delete Avatar` — аватар бота
 - `Bot`: операция `Get` отдаёт в `Webhook` адрес входящего вебхука, секрет подписи и тело последнего запроса, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота
+- `Form`: в операции `Create` поля `Close Text` и `Submit Text` по умолчанию пустые — тогда кнопки подписывает Пачка: «Отменить» и «Отправить»
+- `Message`: в операции `Create` поле `Content` необязательно — сообщение можно отправить из одних файлов
+- `Profile` и `User`: в операции `Update Status` поля `Emoji` и `Title` нужны, только когда статуса ещё нет — продлить статус можно одним `Expires At`
 
 ### CLI v2026.10.1
 
 - `pachca chats request-export` выводит номер выгрузки `id`: с ним `pachca chats download-export` забирает архив, когда тот соберётся
 - `pachca bots update-avatar` и `bots remove-avatar` — аватар бота
 - `pachca bots get`: в `webhook` приходят адрес входящего вебхука `url`, секрет подписи `secret_token` и тело последнего запроса `last_request_body`, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота
+- `pachca messages create` отправляет сообщение без `--content`, если к нему приложены файлы
+- `pachca profile update-status` и `pachca users update-status`: `--emoji` и `--title` нужны, только когда статуса ещё нет — продлить статус можно одним `--expires-at`
 
 ### SDK v1.6.0
 
@@ -59,6 +64,12 @@ _16 октября 2026_
 - Методы `Загрузка аватара бота` (`PUT /bots/{id}/avatar`) и `Удаление аватара бота` (`DELETE /bots/{id}/avatar`)
 - Поля `url`, `secret_token` и `last_request_body` в объекте `webhook` бота — приходят в методе `Информация о боте` (`GET /bots/{id}`)
 - Коды ошибок `daily_invites_limit` и `restricted_bot_tag_denied`
+- Поле `value` в `ApiErrorItem` принимает любое JSON-значение, как его отдаёт API: строку, число, массив, а иногда логическое значение или объект, например список `id` ботов у кода `bot_add_denied`. Тип поля — `unknown` в TypeScript, `Any` в Python, `any` в Go, `JsonElement` в Kotlin, `AnyCodable` в Swift и `object` в C#.
+- Необязательны `content` в `MessageCreateRequest` — для сообщения из одних файлов — и `emoji` с `title` в `StatusUpdateRequest` — для продления статуса одним `expires_at`
+- Поле `size` у файла в `MessageCreateRequest` необязательно, как при правке сообщения и в черновике: черновик отправляют, передав `key`, `name` и `file_type` его файлов
+- Поля `started_at` и `duration` в `VideoCallWebhookPayload` и `duration` в `AuditDetailsVideoCallFinished` бывают `null` — у звонка, который завершился, так и не начавшись. В Go `StartedAt` — `*string`, как остальные даты, которые бывают `null`.
+- Python: запросы правки сотрудника, задачи, бота и сообщения, а также создания бота передают только те поля, которые вы задали
+- Модель `ExportWebhookPayload` — тело вебхука о готовой выгрузке
 - C# и Kotlin: загрузка файла в хранилище и обмен кода на токен идут без заголовка `Authorization`. В C# такой запрос через переданный `HttpClient` с токеном в `DefaultRequestHeaders` уходит через отдельный клиент.
 
 ### Generator v1.3.0
@@ -68,6 +79,9 @@ _16 октября 2026_
 - Тело `application/x-www-form-urlencoded`: сгенерированный метод передаёт поля запроса формой
 - Расширение `x-oauth-authorize-url` у операции: SDK получает функции, которые собирают ссылку авторизации и пару PKCE
 - Класс ошибки выбирается по телу ответа, если в спеке есть обе модели ошибок: `ApiError` для массива `errors`, `OAuthError` для кода в поле `error`
+- Массив в query уходит парами `name[]=value` по расширению `x-query-array: brackets` у параметра. Без расширения значение повторяется под тем же именем: `name=a&name=b`.
+- Ссылка на схему-скаляр с ограничениями, например целое от 0 до 6, становится примитивом своего языка, а не моделью
+- Объединение простых значений — `anyOf` из строк, чисел, логических значений, массивов и объектов без `$ref` — становится открытым JSON-значением: `unknown` в TypeScript, `Any` в Python, `any` без указателя в Go, `JsonElement` в Kotlin, `AnyCodable` в Swift и `object` в C#
 - Go: код успешного ответа берётся из спеки — `200`, `201`, `202` или `204`
 - C# и Kotlin: операция без авторизации (`x-requirements: { auth: false }`) уходит без заголовка `Authorization`, даже если токен задан в заголовках клиента по умолчанию
 

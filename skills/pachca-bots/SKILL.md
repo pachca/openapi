@@ -225,7 +225,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | POST | /bots/{id}/tokens/{token_id}/reissue | Перевыпуск токена бота |
 | GET | /company/bots | Список ботов пространства |
 | GET | /webhooks/events | История событий |
-| DELETE | /webhooks/events/{id} | Удаление события |
+| DELETE | /webhooks/events/{id} | Удаление события истории |
 
 ## Advanced workflows
 

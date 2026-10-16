@@ -54,10 +54,7 @@ curl "https://api.pachca.com/api/shared/v1/oauth/revoke" \
 
 ### 403: Access is forbidden.
 
-**Схема ответа при ошибке:**
-
-- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
-- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
 
 **Пример ответа:**
 

@@ -112,12 +112,12 @@
 | Операция | API |
 |----------|-----|
 | Get Many | [Список участников чата](/api/members/list) |
-| Create | [Добавление пользователей](/api/members/add) |
-| Delete | [Исключение пользователя](/api/members/remove) |
-| Update | [Редактирование роли](/api/members/update) |
+| Create | [Добавление участников](/api/members/add) |
+| Delete | [Исключение участника](/api/members/remove) |
+| Update | [Редактирование роли участника](/api/members/update) |
 | Leave | [Выход из чата](/api/members/leave) |
 | Add Group Tags | [Добавление тегов](/api/members/add-group-tags) |
-| Remove Group Tags | [Исключение тега](/api/members/remove-group-tag) |
+| Remove Group Tags | [Исключение тега из чата](/api/members/remove-group-tag) |
 
 ---
 
@@ -263,7 +263,7 @@
 | Recreate Token | [Ротация токена бота](/api/bots/recreate-token) |
 | Recreate Token Self | [Ротация собственного токена бота](/api/bots/recreate-token-self) |
 | Get Many Events | [История событий](/api/bots/list-events) |
-| Remove Events | [Удаление события](/api/bots/remove-event) |
+| Remove Events | [Удаление события истории](/api/bots/remove-event) |
 | Get Many Workspace Bots | [Список ботов пространства](/api/bots/list-company) |
 | Get Many Tokens | [Список токенов бота](/api/bots/list-tokens) |
 | Create Token | [Новый токен бота](/api/bots/create-token) |

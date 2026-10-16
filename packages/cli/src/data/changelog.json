@@ -17,6 +17,16 @@
         "type": "+",
         "command": "bots get",
         "description": "В `webhook` приходят адрес входящего вебхука `url`, секрет подписи `secret_token` и тело последнего запроса `last_request_body`, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота"
+      },
+      {
+        "type": "~",
+        "command": "messages create",
+        "description": "Сообщение уходит без `--content`, если к нему приложены файлы"
+      },
+      {
+        "type": "~",
+        "command": "profile update-status, users update-status",
+        "description": "`--emoji` и `--title` нужны, только когда статуса ещё нет — продлить статус можно одним `--expires-at`"
       }
     ]
   },

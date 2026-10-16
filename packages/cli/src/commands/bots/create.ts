@@ -48,7 +48,7 @@ export default class BotsCreate extends BaseCommand {
       description: "Шаблон форматирования входящего вебхука",
     }),
     'template-engine': Flags.string({
-      description: "Шаблонизатор для обработки шаблона входящего вебхука",
+      description: "Шаблонизатор для обработки шаблона входящего вебхука. Без этого поля бот получает `liquid`, а пустой бот (`empty: true`) — `mustache`.",
     }),
     'challenge-key': Flags.string({
       description: "Название поля проверки для верификации входящего вебхука",

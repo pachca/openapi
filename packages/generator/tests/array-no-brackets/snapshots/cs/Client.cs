@@ -62,7 +62,7 @@ public sealed class SearchServiceImpl : SearchService
             queryParts.Add($"chat_ids[]={Uri.EscapeDataString(item.ToString()!)}");
         if (userIds != null)
             foreach (var item in userIds)
-                queryParts.Add($"user_ids[]={Uri.EscapeDataString(item.ToString()!)}");
+                queryParts.Add($"user_ids={Uri.EscapeDataString(item.ToString()!)}");
         if (limit != null)
             queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)

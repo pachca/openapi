@@ -98,7 +98,7 @@ hideTableOfContents: true
 - [Информация о теге](GET /group_tags/{id})
 - [Список тегов](GET /group_tags)
 - [Редактирование тега](PUT /group_tags/{id})
-- [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id})
+- [Исключение тега из чата](DELETE /chats/{id}/group_tags/{tag_id})
 - [Удаление тега](DELETE /group_tags/{id})
 
 <ModelSchema name="GroupTag" />
@@ -106,7 +106,7 @@ hideTableOfContents: true
 ## Чат
 
 - [Новый чат](POST /chats)
-- [Добавление пользователей](POST /chats/{id}/members)
+- [Добавление участников](POST /chats/{id}/members)
 - [Информация о чате](GET /chats/{id})
 - [Список чатов](GET /chats)
 - [Список чатов пространства](GET /company/chats)
@@ -115,9 +115,9 @@ hideTableOfContents: true
 - [Архивация чата](PUT /chats/{id}/archive)
 - [Разархивация чата](PUT /chats/{id}/unarchive)
 - [Отметка чата непрочитанным](PUT /chats/{id}/unread)
-- [Редактирование роли](PUT /chats/{id}/members/{user_id})
+- [Редактирование роли участника](PUT /chats/{id}/members/{user_id})
 - [Выход из чата](DELETE /chats/{id}/leave)
-- [Исключение пользователя](DELETE /chats/{id}/members/{user_id})
+- [Исключение участника](DELETE /chats/{id}/members/{user_id})
 
 <ModelSchema name="Chat" />
 
@@ -231,7 +231,7 @@ hideTableOfContents: true
 ## Событие исходящего вебхука
 
 - [История событий](GET /webhooks/events)
-- [Удаление события](DELETE /webhooks/events/{id})
+- [Удаление события истории](DELETE /webhooks/events/{id})
 
 <ModelSchema name="WebhookEvent" />
 

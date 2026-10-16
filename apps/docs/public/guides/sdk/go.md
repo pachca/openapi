@@ -110,12 +110,12 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.GroupTags.UpdateTag()` | [Редактирование тега](/api/group-tags/update) |
 | `client.GroupTags.DeleteTag()` | [Удаление тега](/api/group-tags/delete) |
 | `client.Members.AddTags()` | [Добавление тегов](/api/members/add-group-tags) |
-| `client.Members.AddMembers()` | [Добавление пользователей](/api/members/add) |
+| `client.Members.AddMembers()` | [Добавление участников](/api/members/add) |
 | `client.Members.ListMembers()` | [Список участников чата](/api/members/list) |
-| `client.Members.UpdateMemberRole()` | [Редактирование роли](/api/members/update) |
+| `client.Members.UpdateMemberRole()` | [Редактирование роли участника](/api/members/update) |
 | `client.Members.LeaveChat()` | [Выход из чата](/api/members/leave) |
-| `client.Members.RemoveTag()` | [Исключение тега](/api/members/remove-group-tag) |
-| `client.Members.RemoveMember()` | [Исключение пользователя](/api/members/remove) |
+| `client.Members.RemoveTag()` | [Исключение тега из чата](/api/members/remove-group-tag) |
+| `client.Members.RemoveMember()` | [Исключение участника](/api/members/remove) |
 | `client.Threads.CreateStandaloneThread()` | [Новый самостоятельный тред](/api/threads/create) |
 | `client.Threads.CreateThread()` | [Новый тред](/api/threads/add) |
 | `client.Threads.ListThreads()` | [Список тредов](/api/threads/list) |
@@ -165,7 +165,7 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Bots.UpdateBotToken()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.Bots.DeleteBot()` | [Удаление бота](/api/bots/delete) |
 | `client.Bots.DeleteBotAvatar()` | [Удаление аватара бота](/api/bots/remove-avatar) |
-| `client.Bots.DeleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
+| `client.Bots.DeleteWebhookEvent()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.Bots.DeleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.Security.GetAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.CustomProperties.ListProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
@@ -400,12 +400,12 @@ request := MessageCreateRequest{
 	Message: MessageCreateRequestMessage{
 		EntityType: Ptr(MessageEntityTypeDiscussion),
 		EntityID: int32(334),
-		Content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+		Content: Ptr("Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"),
 		Files: []MessageCreateRequestFile{MessageCreateRequestFile{
 			Key: "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
 			Name: "logo.png",
 			FileType: FileTypeImage,
-			Size: int64(12345),
+			Size: Ptr(int64(12345)),
 			Width: Ptr(int32(800)),
 			Height: Ptr(int32(600)),
 			DurationMs: Ptr(int32(5400)),

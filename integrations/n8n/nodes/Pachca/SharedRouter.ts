@@ -577,9 +577,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			bodyMap: [
 				{ api: 'entity_type', n8n: 'entityType' },
 				{ api: 'entity_id', n8n: 'entityId', locator: true },
-				{ api: 'content', n8n: 'content' },
 			],
 			optionalBodyMap: [
+				{ api: 'content', n8n: 'content' },
 				{ api: 'files', n8n: 'files', subKey: 'file' },
 				{ api: 'parent_message_id', n8n: 'parentMessageId' },
 				{ api: 'display_avatar_url', n8n: 'displayAvatarUrl' },
@@ -729,11 +729,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'PUT' as IHttpRequestMethods,
 			path: '/profile/status',
 			wrapperKey: 'status',
-			bodyMap: [
+			optionalBodyMap: [
 				{ api: 'emoji', n8n: 'statusEmoji' },
 				{ api: 'title', n8n: 'statusTitle' },
-			],
-			optionalBodyMap: [
 				{ api: 'expires_at', n8n: 'statusExpiresAt' },
 				{ api: 'is_away', n8n: 'isAway' },
 				{ api: 'away_message', n8n: 'awayMessage' },
@@ -901,11 +899,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/users/{user_id}/status',
 			pathParams: [{ api: 'user_id', n8n: 'userId', locator: true }],
 			wrapperKey: 'status',
-			bodyMap: [
+			optionalBodyMap: [
 				{ api: 'emoji', n8n: 'emoji' },
 				{ api: 'title', n8n: 'title' },
-			],
-			optionalBodyMap: [
 				{ api: 'expires_at', n8n: 'expiresAt' },
 				{ api: 'is_away', n8n: 'isAway' },
 				{ api: 'away_message', n8n: 'awayMessage' },

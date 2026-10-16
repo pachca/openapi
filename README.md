@@ -299,11 +299,12 @@ workflows.ts + examples.ts (packages/spec — единый источник сц
 | `generate` | `setup` | да (inputs: tsp + yaml config → outputs: openapi.yaml, generated/) |
 | `overlay:apply` | `@pachca/spec#generate` | да (→ openapi.en.yaml) |
 | `overlay:validate` | `@pachca/spec#generate`, `overlay:apply` | да |
-| `generate-llms` | `@pachca/spec#generate` | да (→ llms.txt, llms-full.txt, skill.md, *.md, Agent Skills) |
+| `generate-mcp` | `@pachca/spec#generate`, `overlay:apply`, `overlay:validate` | да (→ mcp-manifest.json) |
+| `generate-llms` | `@pachca/spec#generate`, `overlay:apply` | да (→ llms.txt, llms-full.txt, skill.md, *.md, Agent Skills) |
 | `generate-cli` | `@pachca/spec#generate` | да (→ CLI commands, data/*.json) |
 | `generate-n8n` | `@pachca/spec#generate`, `overlay:apply` | да (→ n8n nodes, credentials) |
 | `test` | `generate-cli`, `generate-n8n` | да |
-| `build` | `generate`, `overlay:apply`, `generate-llms`, `generate-cli`, `generate-n8n` | да (→ .next/, dist/) |
+| `build` | `generate`, `overlay:apply`, `generate-mcp`, `generate-llms`, `generate-cli`, `generate-n8n` | да (→ .next/, dist/) |
 | `dev` | `@pachca/spec#generate`, `generate-llms` | нет (persistent) |
 | `check` | `lint`, `typecheck`, `knip`, `format:check`, `test`, `overlay:validate` | нет |
 | `check-urls` | `@pachca/spec#generate` | да |
@@ -381,7 +382,8 @@ FlexSearch с `tokenize: 'forward'`. Русский язык: синонимы (
 Попадают в OpenAPI YAML как `x-requirements` и рендерятся в трёх местах: в UI как бейджи, в Agent Skills рядом с каждой операцией, в per-endpoint `.md`-файлах.
 
 Поля:
-- `scope` — требуемый скоуп токена (например `"messages:read"`)
+- `scope` — требуемый скоуп токена (например `"messages:read"`). `null` — метод отвечает на любой действующий токен и скоупа не требует. Метод без `scope`, без `scope: null` и без `auth: false` валит сборку MCP-манифеста, как и скоуп, которого нет в `x-scope-roles`
+- `roles` — роли метода, если их меньше, чем у скоупа (подробно в [docs/docs-conventions.md](docs/docs-conventions.md))
 - `plan` — требуемый тариф (например `"corporation"`)
 - `auth` — `false` если авторизация не нужна
 

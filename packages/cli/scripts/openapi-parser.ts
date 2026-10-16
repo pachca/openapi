@@ -45,6 +45,8 @@ export interface Parameter {
   required?: boolean;
   schema: Schema;
   'x-param-names'?: { name: string; description?: string }[];
+  /** How a list in the query travels: `brackets` sends each value as `name[]=value`. */
+  'x-query-array'?: 'brackets';
 }
 
 export interface RequestBody {
@@ -155,6 +157,7 @@ export function parseOpenAPI(): Endpoint[] {
           required: resolved.required as boolean | undefined,
           schema: paramSchema,
           'x-param-names': resolved['x-param-names'] as Parameter['x-param-names'],
+          'x-query-array': resolved['x-query-array'] as Parameter['x-query-array'],
         });
       }
 

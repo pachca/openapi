@@ -647,7 +647,7 @@ export enum ValidationErrorCode {
   UniqueLimit = "unique_limit",
   /** Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций) */
   GeneralLimit = "general_limit",
-  /** Ошибка выполнения запроса (пояснения вы получите в поле message) */
+  /** Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий */
   Unhandled = "unhandled",
   /** Не удалось найти идентификатор события */
   TriggerNotFound = "trigger_not_found",
@@ -778,7 +778,7 @@ export class ApiError extends Error {
 
 export interface ApiErrorItem {
   key: string;
-  value: string | null;
+  value: unknown | null;
   message: string;
   code: ValidationErrorCode;
   payload: Record<string, unknown> | null;
@@ -938,7 +938,7 @@ export interface AuditDetailsUserUpdated {
 export interface AuditDetailsVideoCallFinished {
   chatId: number;
   startedMessageId: number | null;
-  duration: number;
+  duration: number | null;
   maxMembersCount: number;
 }
 
@@ -999,7 +999,6 @@ export interface BotCreateRequest {
     commands?: string[];
     scopes?: string[];
     template?: string;
-    /** @default liquid */
     templateEngine?: BotTemplateEngine;
     challengeKey?: string;
     /** @default true */
@@ -1164,21 +1163,15 @@ export interface BotUpdateRequest {
     nickname?: string;
     outgoingUrl?: string;
     events?: BotEventName[];
-    /** @default commands */
     triggerOn?: BotTriggerOn;
     commands?: string[];
     scopes?: string[];
     template?: string;
-    /** @default liquid */
     templateEngine?: BotTemplateEngine;
     challengeKey?: string;
-    /** @default true */
     linkPreviewEnabled?: boolean;
-    /** @default false */
     ignoreSelfMessages?: boolean;
-    /** @default false */
     eventsHistoryEnabled?: boolean;
-    /** @default creator */
     whoCanAdd?: BotWhoCanAdd;
     canEdit?: BotCanEdit[];
     singleChat?: boolean;
@@ -1412,6 +1405,13 @@ export interface ExportRequest {
   skipChatsFile?: boolean;
 }
 
+export interface ExportWebhookPayload {
+  type: "export";
+  event: "ready";
+  exportId: number;
+  createdAt: string;
+}
+
 export interface File {
   id: number;
   key: string;
@@ -1519,7 +1519,7 @@ export interface MessageCreateRequestFile {
   key: string;
   name: string;
   fileType: FileType;
-  size: number;
+  size?: number;
   width?: number;
   height?: number;
   durationMs?: number;
@@ -1531,7 +1531,7 @@ export interface MessageCreateRequest {
     /** @default discussion */
     entityType?: MessageEntityType;
     entityId: number;
-    content: string;
+    content?: string;
     files?: MessageCreateRequestFile[];
     buttons?: Button[][];
     parentMessageId?: number;
@@ -1547,7 +1547,6 @@ export interface MessageCreateRequest {
 export interface MessageUpdateRequestFile {
   key: string;
   name: string;
-  /** @default file */
   fileType?: FileType;
   size?: number;
   width?: number;
@@ -1672,8 +1671,8 @@ export interface SearchPaginationMeta {
 
 export interface StatusUpdateRequest {
   status: {
-    emoji: string;
-    title: string;
+    emoji?: string;
+    title?: string;
     expiresAt?: string;
     isAway?: boolean;
     awayMessage?: string;
@@ -1730,7 +1729,6 @@ export interface TaskUpdateRequestCustomProperty {
 
 export interface TaskUpdateRequest {
   task: {
-    /** @default reminder */
     kind?: TaskKind;
     content?: string;
     dueAt?: string;
@@ -1841,7 +1839,6 @@ export interface UserUpdateRequest {
     department?: string;
     title?: string;
     role?: UserRoleInput;
-    /** @default false */
     suspended?: boolean;
     listTags?: string[];
     customProperties?: UserUpdateRequestCustomProperty[];
@@ -1855,9 +1852,9 @@ export interface VideoCallWebhookPayload {
   chatId: number;
   ownerId: number;
   thread?: WebhookVideoCallThread | null;
-  startedAt?: string;
+  startedAt?: string | null;
   finishedAt?: string;
-  duration?: number;
+  duration?: number | null;
   members?: WebhookVideoCallMember[];
   recordingId?: number;
   fileId?: number | null;

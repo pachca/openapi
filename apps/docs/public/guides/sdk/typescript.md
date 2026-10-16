@@ -101,12 +101,12 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.groupTags.updateTag()` | [Редактирование тега](/api/group-tags/update) |
 | `client.groupTags.deleteTag()` | [Удаление тега](/api/group-tags/delete) |
 | `client.members.addTags()` | [Добавление тегов](/api/members/add-group-tags) |
-| `client.members.addMembers()` | [Добавление пользователей](/api/members/add) |
+| `client.members.addMembers()` | [Добавление участников](/api/members/add) |
 | `client.members.listMembers()` | [Список участников чата](/api/members/list) |
-| `client.members.updateMemberRole()` | [Редактирование роли](/api/members/update) |
+| `client.members.updateMemberRole()` | [Редактирование роли участника](/api/members/update) |
 | `client.members.leaveChat()` | [Выход из чата](/api/members/leave) |
-| `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
-| `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
+| `client.members.removeTag()` | [Исключение тега из чата](/api/members/remove-group-tag) |
+| `client.members.removeMember()` | [Исключение участника](/api/members/remove) |
 | `client.threads.createStandaloneThread()` | [Новый самостоятельный тред](/api/threads/create) |
 | `client.threads.createThread()` | [Новый тред](/api/threads/add) |
 | `client.threads.listThreads()` | [Список тредов](/api/threads/list) |
@@ -156,7 +156,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.bots.updateBotToken()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.bots.deleteBot()` | [Удаление бота](/api/bots/delete) |
 | `client.bots.deleteBotAvatar()` | [Удаление аватара бота](/api/bots/remove-avatar) |
-| `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
+| `client.bots.deleteWebhookEvent()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.bots.deleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |

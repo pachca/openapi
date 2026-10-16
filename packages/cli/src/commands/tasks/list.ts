@@ -61,8 +61,8 @@ export default class TasksList extends BaseCommand {
       while (pages < 500) {
         const query: Record<string, string | number | boolean | string[] | undefined> = {
         status: flags['status'],
-        'chat_ids': flags['chat-ids']?.split(','),
-        'performer_ids': flags['performer-ids']?.split(','),
+        'chat_ids[]': flags['chat-ids']?.split(','),
+        'performer_ids[]': flags['performer-ids']?.split(','),
         'author_id': flags['author-id'],
         limit: flags.limit,
           cursor: nextCursor,
@@ -110,8 +110,8 @@ export default class TasksList extends BaseCommand {
       path: '/tasks',
       query: {
       status: flags['status'],
-      'chat_ids': flags['chat-ids']?.split(','),
-      'performer_ids': flags['performer-ids']?.split(','),
+      'chat_ids[]': flags['chat-ids']?.split(','),
+      'performer_ids[]': flags['performer-ids']?.split(','),
       'author_id': flags['author-id'],
       limit: flags.limit,
       cursor: flags.cursor,

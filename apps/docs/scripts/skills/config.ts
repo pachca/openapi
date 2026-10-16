@@ -13,7 +13,6 @@ export interface SkillConfig {
   nearestAlternatives?: (string | { name: string; text: string })[];
   guides?: string[];
   errors?: SkillError[];
-  botOnly?: boolean;
   extraSections?: { title: string; content: string }[];
   extraGotchas?: string[];
   isRouter?: boolean;
@@ -225,7 +224,6 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     negativeTriggers: ['кнопки в сообщении', 'настроить бота', 'вебхук'],
     nearestAlternatives: ['pachca-messages', 'pachca-bots'],
     guides: ['forms'],
-    botOnly: true,
     errors: [
       {
         code: 410,

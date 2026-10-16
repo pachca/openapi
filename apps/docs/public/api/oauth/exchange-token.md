@@ -86,10 +86,7 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token" \
 
 ### 400: The server could not understand the request due to invalid syntax.
 
-**Схема ответа при ошибке:**
-
-- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
-- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
 
 **Пример ответа:**
 
@@ -102,10 +99,7 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token" \
 
 ### 401: Access is unauthorized.
 
-**Схема ответа при ошибке:**
-
-- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
-- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
 
 **Пример ответа:**
 

@@ -53,10 +53,7 @@ curl "https://api.pachca.com/api/shared/v1/profile/status" \
 
 ### 401: Access is unauthorized.
 
-**Схема ответа при ошибке:**
-
-- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
-- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
 
 **Пример ответа:**
 
@@ -67,19 +64,43 @@ curl "https://api.pachca.com/api/shared/v1/profile/status" \
 }
 ```
 
-### 403: Access is forbidden.
+### 402: Client error
 
-**Схема ответа при ошибке:**
-
-- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
-- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
 
 **Пример ответа:**
 
 ```json
 {
-  "error": "invalid_token",
-  "error_description": "Access token is missing"
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
 }
 ```
 

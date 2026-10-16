@@ -617,7 +617,7 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case uniqueLimit = "unique_limit"
     /// Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
     case generalLimit = "general_limit"
-    /// Ошибка выполнения запроса (пояснения вы получите в поле message)
+    /// Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий
     case unhandled
     /// Не удалось найти идентификатор события
     case triggerNotFound = "trigger_not_found"
@@ -794,12 +794,12 @@ public struct ApiError: Codable, Error {
 
 public struct ApiErrorItem: Codable {
     public let key: String
-    public let value: String?
+    public let value: AnyCodable?
     public let message: String
     public let code: ValidationErrorCode
     public let payload: [String: AnyCodable]?
 
-    public init(key: String, value: String? = nil, message: String, code: ValidationErrorCode, payload: [String: AnyCodable]? = nil) {
+    public init(key: String, value: AnyCodable? = nil, message: String, code: ValidationErrorCode, payload: [String: AnyCodable]? = nil) {
         self.key = key
         self.value = value
         self.message = message
@@ -1250,10 +1250,10 @@ public struct AuditDetailsUserUpdated: Codable {
 public struct AuditDetailsVideoCallFinished: Codable {
     public let chatId: Int
     public let startedMessageId: Int?
-    public let duration: Int
+    public let duration: Int?
     public let maxMembersCount: Int
 
-    public init(chatId: Int, startedMessageId: Int? = nil, duration: Int, maxMembersCount: Int) {
+    public init(chatId: Int, startedMessageId: Int? = nil, duration: Int? = nil, maxMembersCount: Int) {
         self.chatId = chatId
         self.startedMessageId = startedMessageId
         self.duration = duration
@@ -2600,6 +2600,27 @@ public struct ExportRequest: Codable {
     }
 }
 
+public struct ExportWebhookPayload: Codable {
+    public let type: String
+    public let event: String
+    public let exportId: Int
+    public let createdAt: String
+
+    public init(type: String, event: String, exportId: Int, createdAt: String) {
+        self.type = type
+        self.event = event
+        self.exportId = exportId
+        self.createdAt = createdAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case type
+        case event
+        case exportId = "export_id"
+        case createdAt = "created_at"
+    }
+}
+
 public struct File: Codable {
     public let id: Int
     public let key: String
@@ -2921,13 +2942,13 @@ public struct MessageCreateRequestFile: Codable {
     public let key: String
     public let name: String
     public let fileType: FileType
-    public let size: Int64
+    public let size: Int64?
     public let width: Int?
     public let height: Int?
     public let durationMs: Int?
     public let waveform: String?
 
-    public init(key: String, name: String, fileType: FileType, size: Int64, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
+    public init(key: String, name: String, fileType: FileType, size: Int64? = nil, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
         self.key = key
         self.name = name
         self.fileType = fileType
@@ -2953,7 +2974,7 @@ public struct MessageCreateRequestFile: Codable {
 public struct MessageCreateRequestMessage: Codable {
     public let entityType: MessageEntityType?
     public let entityId: Int
-    public let content: String
+    public let content: String?
     public let files: [MessageCreateRequestFile]?
     public let buttons: [[Button]]?
     public let parentMessageId: Int?
@@ -2961,7 +2982,7 @@ public struct MessageCreateRequestMessage: Codable {
     public let displayName: String?
     public let skipInviteMentions: Bool?
 
-    public init(entityType: MessageEntityType? = nil, entityId: Int, content: String, files: [MessageCreateRequestFile]? = nil, buttons: [[Button]]? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, skipInviteMentions: Bool? = nil) {
+    public init(entityType: MessageEntityType? = nil, entityId: Int, content: String? = nil, files: [MessageCreateRequestFile]? = nil, buttons: [[Button]]? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, skipInviteMentions: Bool? = nil) {
         self.entityType = entityType
         self.entityId = entityId
         self.content = content
@@ -3370,13 +3391,13 @@ public struct SearchPaginationMeta: Codable {
 }
 
 public struct StatusUpdateRequestStatus: Codable {
-    public let emoji: String
-    public let title: String
+    public let emoji: String?
+    public let title: String?
     public let expiresAt: String?
     public let isAway: Bool?
     public let awayMessage: String?
 
-    public init(emoji: String, title: String, expiresAt: String? = nil, isAway: Bool? = nil, awayMessage: String? = nil) {
+    public init(emoji: String? = nil, title: String? = nil, expiresAt: String? = nil, isAway: Bool? = nil, awayMessage: String? = nil) {
         self.emoji = emoji
         self.title = title
         self.expiresAt = expiresAt
@@ -4453,16 +4474,16 @@ public enum AuditEventDetailsUnion: Codable {
             self = .auditDetailsBotScopes(value)
             return
         }
-        if let value = try? AuditDetailsVideoCallFinished(from: decoder) {
-            self = .auditDetailsVideoCallFinished(value)
-            return
-        }
         if let value = try? AuditDetailsKms(from: decoder) {
             self = .auditDetailsKms(value)
             return
         }
         if let value = try? AuditDetailsRoleChanged(from: decoder) {
             self = .auditDetailsRoleChanged(value)
+            return
+        }
+        if let value = try? AuditDetailsVideoCallFinished(from: decoder) {
+            self = .auditDetailsVideoCallFinished(value)
             return
         }
         if let value = try? AuditDetailsBotOAuthClientSecretRotated(from: decoder) {

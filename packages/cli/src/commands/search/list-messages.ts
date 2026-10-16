@@ -21,7 +21,7 @@ export default class SearchListMessages extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'query': Flags.string({
-      description: "Текст поискового запроса",
+      description: "Текст поискового запроса. Без него сообщения отбираются только фильтрами. Запрос длиннее 500 знаков обрезается.",
     }),
     'order': Flags.string({
       description: "Направление сортировки",
@@ -78,8 +78,8 @@ export default class SearchListMessages extends BaseCommand {
         sort: flags['sort'],
         'created_from': flags['created-from'],
         'created_to': flags['created-to'],
-        'chat_ids': flags['chat-ids']?.split(','),
-        'user_ids': flags['user-ids']?.split(','),
+        'chat_ids[]': flags['chat-ids']?.split(','),
+        'user_ids[]': flags['user-ids']?.split(','),
         active: flags['active'],
         limit: flags.limit,
           cursor: nextCursor,
@@ -131,8 +131,8 @@ export default class SearchListMessages extends BaseCommand {
       sort: flags['sort'],
       'created_from': flags['created-from'],
       'created_to': flags['created-to'],
-      'chat_ids': flags['chat-ids']?.split(','),
-      'user_ids': flags['user-ids']?.split(','),
+      'chat_ids[]': flags['chat-ids']?.split(','),
+      'user_ids[]': flags['user-ids']?.split(','),
       active: flags['active'],
       limit: flags.limit,
       cursor: flags.cursor,

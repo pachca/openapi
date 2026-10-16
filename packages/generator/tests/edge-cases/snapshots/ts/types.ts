@@ -41,6 +41,11 @@ export interface ReactionNotification {
   emoji: string;
 }
 
+export interface Schedule {
+  days: number[];
+  value: unknown | null;
+}
+
 export type NotificationUnion = MessageNotification | ReactionNotification;
 
 export interface ListEventsParams {

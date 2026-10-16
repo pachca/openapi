@@ -260,9 +260,9 @@
   - `chat_id: integer, int32` (required) — Идентификатор чата треда. Пример: `67890`
   - `message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому создан тред. `null` у треда без сообщения-родителя — такие создаёт [Новый самостоятельный тред](/api/threads/create). Пример: `268092`
   - `message_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому создан тред. `null` у треда без сообщения-родителя. Пример: `23438`
-- `started_at: date-time` — Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished. Пример: `"2025-05-15T14:30:00.000Z"`
+- `started_at: date-time` (nullable) — Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished. `null`, если звонок завершился, так и не начавшись. Пример: `"2025-05-15T14:30:00.000Z"`
 - `finished_at: date-time` — Дата и время завершения звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для события finished. Пример: `"2025-05-15T14:45:00.000Z"`
-- `duration: integer, int32` — Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи. Пример: `900`
+- `duration: integer, int32` (nullable) — Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи. `null`, если звонок завершился, так и не начавшись. Пример: `900`
 - `members: array of object` — Список участников звонка. Присутствует для события finished.
   - `user_id: integer, int32` (required) — Идентификатор участника. Пример: `2345`
   - `joined_at: date-time` (required) — Дата и время первого подключения к звонку (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`

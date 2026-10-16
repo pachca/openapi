@@ -30,7 +30,7 @@ func main() {
 	msg, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{
 		Message: pachca.MessageCreateRequestMessage{
 			EntityID: 12345,
-			Content:  "Привет из Go SDK!",
+			Content:  pachca.Ptr("Привет из Go SDK!"),
 		},
 	})
 	if err != nil {

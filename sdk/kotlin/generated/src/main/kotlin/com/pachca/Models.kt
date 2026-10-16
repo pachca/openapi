@@ -711,7 +711,7 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("unique_limit") UNIQUE_LIMIT("unique_limit"),
     /** Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций) */
     @SerialName("general_limit") GENERAL_LIMIT("general_limit"),
-    /** Ошибка выполнения запроса (пояснения вы получите в поле message) */
+    /** Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий */
     @SerialName("unhandled") UNHANDLED("unhandled"),
     /** Не удалось найти идентификатор события */
     @SerialName("trigger_not_found") TRIGGER_NOT_FOUND("trigger_not_found"),
@@ -1434,7 +1434,7 @@ data class ApiError(
 @Serializable
 data class ApiErrorItem(
     val key: String,
-    val value: String? = null,
+    val value: JsonElement? = null,
     val message: String,
     val code: ValidationErrorCode,
     val payload: Map<String, JsonElement>? = null,
@@ -1483,7 +1483,7 @@ data class BotCreateRequestWebhook(
     val commands: List<String>? = null,
     val scopes: List<String>? = null,
     val template: String? = null,
-    @SerialName("template_engine") val templateEngine: BotTemplateEngine? = BotTemplateEngine.LIQUID,
+    @SerialName("template_engine") val templateEngine: BotTemplateEngine? = null,
     @SerialName("challenge_key") val challengeKey: String? = null,
     @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = true,
     @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean? = false,
@@ -1664,16 +1664,16 @@ data class BotUpdateRequestWebhook(
     val nickname: String? = null,
     @SerialName("outgoing_url") val outgoingUrl: String? = null,
     val events: List<BotEventName>? = null,
-    @SerialName("trigger_on") val triggerOn: BotTriggerOn? = BotTriggerOn.COMMANDS,
+    @SerialName("trigger_on") val triggerOn: BotTriggerOn? = null,
     val commands: List<String>? = null,
     val scopes: List<String>? = null,
     val template: String? = null,
-    @SerialName("template_engine") val templateEngine: BotTemplateEngine? = BotTemplateEngine.LIQUID,
+    @SerialName("template_engine") val templateEngine: BotTemplateEngine? = null,
     @SerialName("challenge_key") val challengeKey: String? = null,
-    @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = true,
-    @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean? = false,
-    @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean? = false,
-    @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd? = BotWhoCanAdd.CREATOR,
+    @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = null,
+    @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean? = null,
+    @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean? = null,
+    @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd? = null,
     @SerialName("can_edit") val canEdit: List<BotCanEdit>? = null,
     @SerialName("single_chat") val singleChat: Boolean? = null,
     val kind: BotWebhookKind? = null,
@@ -1914,6 +1914,14 @@ data class ExportRequest(
 )
 
 @Serializable
+data class ExportWebhookPayload(
+    val type: String,
+    val event: String,
+    @SerialName("export_id") val exportId: Int,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
+)
+
+@Serializable
 data class File(
     val id: Int,
     val key: String,
@@ -2025,7 +2033,7 @@ data class MessageCreateRequestFile(
     val key: String,
     val name: String,
     @SerialName("file_type") val fileType: FileType,
-    val size: Long,
+    val size: Long? = null,
     val width: Int? = null,
     val height: Int? = null,
     @SerialName("duration_ms") val durationMs: Int? = null,
@@ -2036,7 +2044,7 @@ data class MessageCreateRequestFile(
 data class MessageCreateRequestMessage(
     @SerialName("entity_type") val entityType: MessageEntityType? = MessageEntityType.DISCUSSION,
     @SerialName("entity_id") val entityId: Int,
-    val content: String,
+    val content: String? = null,
     val files: List<MessageCreateRequestFile>? = null,
     val buttons: List<List<Button>>? = null,
     @SerialName("parent_message_id") val parentMessageId: Int? = null,
@@ -2055,7 +2063,7 @@ data class MessageCreateRequest(
 data class MessageUpdateRequestFile(
     val key: String,
     val name: String,
-    @SerialName("file_type") val fileType: FileType? = FileType.FILE,
+    @SerialName("file_type") val fileType: FileType? = null,
     val size: Long? = null,
     val width: Int? = null,
     val height: Int? = null,
@@ -2170,8 +2178,8 @@ data class SearchPaginationMeta(
 
 @Serializable
 data class StatusUpdateRequestStatus(
-    val emoji: String,
-    val title: String,
+    val emoji: String? = null,
+    val title: String? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("expires_at") val expiresAt: OffsetDateTime? = null,
     @SerialName("is_away") val isAway: Boolean? = null,
     @SerialName("away_message") val awayMessage: String? = null,
@@ -2240,7 +2248,7 @@ data class TaskUpdateRequestCustomProperty(
 
 @Serializable
 data class TaskUpdateRequestTask(
-    val kind: TaskKind? = TaskKind.REMINDER,
+    val kind: TaskKind? = null,
     val content: String? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("due_at") val dueAt: OffsetDateTime? = null,
     val priority: Int? = null,
@@ -2366,7 +2374,7 @@ data class UserUpdateRequestUser(
     val department: String? = null,
     val title: String? = null,
     val role: UserRoleInput? = null,
-    val suspended: Boolean? = false,
+    val suspended: Boolean? = null,
     @SerialName("list_tags") val listTags: List<String>? = null,
     @SerialName("custom_properties") val customProperties: List<UserUpdateRequestCustomProperty>? = null,
 )

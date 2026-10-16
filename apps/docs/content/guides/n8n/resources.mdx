@@ -105,12 +105,12 @@ related:
 | Операция | API |
 |----------|-----|
 | Get Many | [Список участников чата](GET /chats/{id}/members) |
-| Create | [Добавление пользователей](POST /chats/{id}/members) |
-| Delete | [Исключение пользователя](DELETE /chats/{id}/members/{user_id}) |
-| Update | [Редактирование роли](PUT /chats/{id}/members/{user_id}) |
+| Create | [Добавление участников](POST /chats/{id}/members) |
+| Delete | [Исключение участника](DELETE /chats/{id}/members/{user_id}) |
+| Update | [Редактирование роли участника](PUT /chats/{id}/members/{user_id}) |
 | Leave | [Выход из чата](DELETE /chats/{id}/leave) |
 | Add Group Tags | [Добавление тегов](POST /chats/{id}/group_tags) |
-| Remove Group Tags | [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id}) |
+| Remove Group Tags | [Исключение тега из чата](DELETE /chats/{id}/group_tags/{tag_id}) |
 
 ---
 
@@ -256,7 +256,7 @@ related:
 | Recreate Token | [Ротация токена бота](POST /bots/{id}/recreate_token) |
 | Recreate Token Self | [Ротация собственного токена бота](POST /bot/recreate_token) |
 | Get Many Events | [История событий](GET /webhooks/events) |
-| Remove Events | [Удаление события](DELETE /webhooks/events/{id}) |
+| Remove Events | [Удаление события истории](DELETE /webhooks/events/{id}) |
 | Get Many Workspace Bots | [Список ботов пространства](GET /company/bots) |
 | Get Many Tokens | [Список токенов бота](GET /bots/{id}/tokens) |
 | Create Token | [Новый токен бота](POST /bots/{id}/tokens) |

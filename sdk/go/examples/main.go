@@ -49,7 +49,7 @@ func main() {
 	created, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{
 		Message: pachca.MessageCreateRequestMessage{
 			EntityID: int32(chatID),
-			Content:  "SDK test Go 🚀",
+			Content:  pachca.Ptr("SDK test Go 🚀"),
 		},
 	})
 	if err != nil {
@@ -91,7 +91,7 @@ func main() {
 		Message: pachca.MessageCreateRequestMessage{
 			EntityType: &entityType,
 			EntityID:   int32(thread.ID),
-			Content:    fmt.Sprintf("Echo: %s", msg.Content),
+			Content:    pachca.Ptr(fmt.Sprintf("Echo: %s", msg.Content)),
 		},
 	})
 	if err != nil {

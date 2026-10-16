@@ -97,7 +97,7 @@ pachca guide            # список всех сценариев
 | `pachca bots reissue-token` | Перевыпуск токена бота |
 | `pachca bots list-company` | Список ботов пространства |
 | `pachca bots list-events` | История событий |
-| `pachca bots remove-event` | Удаление события |
+| `pachca bots remove-event` | Удаление события истории |
 
 ### chats
 
@@ -121,12 +121,12 @@ pachca guide            # список всех сценариев
 | Команда | Описание |
 |---------|---------|
 | `pachca members add-group-tags` | Добавление тегов |
-| `pachca members remove-group-tag` | Исключение тега |
+| `pachca members remove-group-tag` | Исключение тега из чата |
 | `pachca members leave` | Выход из чата |
 | `pachca members list` | Список участников чата |
-| `pachca members add` | Добавление пользователей |
-| `pachca members remove` | Исключение пользователя |
-| `pachca members update` | Редактирование роли |
+| `pachca members add` | Добавление участников |
+| `pachca members remove` | Исключение участника |
+| `pachca members update` | Редактирование роли участника |
 
 ### custom-properties
 

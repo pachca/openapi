@@ -87,10 +87,10 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275/link_previews" \
   -H "Content-Type: application/json" \
   -d '{
   "link_previews": {
-    "https://website.com/articles/123": {
+    "https://example.com/articles/123": {
       "title": "Статья: Отправка файлов",
       "description": "Пример отправки файлов на удаленный сервер",
-      "image_url": "https://website.com/img/landing.png",
+      "image_url": "https://example.com/img/landing.png",
       "image": {
         "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
         "name": "files-to-server.jpg",

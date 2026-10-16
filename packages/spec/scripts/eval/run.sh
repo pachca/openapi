@@ -23,6 +23,16 @@
 # first call alone measures the shape instead of the work.
 set -euo pipefail
 
+# A run has to see what a person with a current client sees. From 2.1.84 on the
+# client keeps only the first 2048 characters of the instructions and of every
+# tool description; an older one reads them whole and measures text nobody gets.
+MIN_CLAUDE="2.1.84"
+HAVE_CLAUDE="$(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
+if [ -z "$HAVE_CLAUDE" ] || [ "$(printf '%s\n%s\n' "$MIN_CLAUDE" "$HAVE_CLAUDE" | sort -V | head -1)" != "$MIN_CLAUDE" ]; then
+  echo "claude $MIN_CLAUDE or newer is needed, found ${HAVE_CLAUDE:-none}: an older client does not cut instructions and descriptions the way current ones do" >&2
+  exit 1
+fi
+
 RUN_DIR="${1:?run directory}"
 MODEL="${2:?model}"
 PASS="${3:?pass label}"

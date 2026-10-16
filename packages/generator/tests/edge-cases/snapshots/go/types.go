@@ -53,6 +53,11 @@ type ReactionNotification struct {
 	Emoji string `json:"emoji"`
 }
 
+type Schedule struct {
+	Days  []int32 `json:"days"`
+	Value any     `json:"value"`
+}
+
 type NotificationUnion struct {
 	MessageNotification  *MessageNotification
 	ReactionNotification *ReactionNotification

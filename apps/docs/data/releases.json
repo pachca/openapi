@@ -15,6 +15,18 @@
       {
         "type": "+",
         "description": "`Bot`: операция `Get` отдаёт в `Webhook` адрес входящего вебхука, секрет подписи и тело последнего запроса, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота"
+      },
+      {
+        "type": "~",
+        "description": "`Form`: в операции `Create` поля `Close Text` и `Submit Text` по умолчанию пустые — тогда кнопки подписывает Пачка: «Отменить» и «Отправить»"
+      },
+      {
+        "type": "~",
+        "description": "`Message`: в операции `Create` поле `Content` необязательно — сообщение можно отправить из одних файлов"
+      },
+      {
+        "type": "~",
+        "description": "`Profile` и `User`: в операции `Update Status` поля `Emoji` и `Title` нужны, только когда статуса ещё нет — продлить статус можно одним `Expires At`"
       }
     ]
   },
@@ -34,6 +46,14 @@
       {
         "type": "+",
         "description": "`pachca bots get`: в `webhook` приходят адрес входящего вебхука `url`, секрет подписи `secret_token` и тело последнего запроса `last_request_body`, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота"
+      },
+      {
+        "type": "~",
+        "description": "`pachca messages create` отправляет сообщение без `--content`, если к нему приложены файлы"
+      },
+      {
+        "type": "~",
+        "description": "`pachca profile update-status` и `pachca users update-status`: `--emoji` и `--title` нужны, только когда статуса ещё нет — продлить статус можно одним `--expires-at`"
       }
     ]
   },
@@ -75,6 +95,30 @@
         "description": "Коды ошибок `daily_invites_limit` и `restricted_bot_tag_denied`"
       },
       {
+        "type": "~",
+        "description": "Поле `value` в `ApiErrorItem` принимает любое JSON-значение, как его отдаёт API: строку, число, массив, а иногда логическое значение или объект, например список `id` ботов у кода `bot_add_denied`. Тип поля — `unknown` в TypeScript, `Any` в Python, `any` в Go, `JsonElement` в Kotlin, `AnyCodable` в Swift и `object` в C#."
+      },
+      {
+        "type": "~",
+        "description": "Необязательны `content` в `MessageCreateRequest` — для сообщения из одних файлов — и `emoji` с `title` в `StatusUpdateRequest` — для продления статуса одним `expires_at`"
+      },
+      {
+        "type": "~",
+        "description": "Поле `size` у файла в `MessageCreateRequest` необязательно, как при правке сообщения и в черновике: черновик отправляют, передав `key`, `name` и `file_type` его файлов"
+      },
+      {
+        "type": "~",
+        "description": "Поля `started_at` и `duration` в `VideoCallWebhookPayload` и `duration` в `AuditDetailsVideoCallFinished` бывают `null` — у звонка, который завершился, так и не начавшись. В Go `StartedAt` — `*string`, как остальные даты, которые бывают `null`."
+      },
+      {
+        "type": "~",
+        "description": "Python: запросы правки сотрудника, задачи, бота и сообщения, а также создания бота передают только те поля, которые вы задали"
+      },
+      {
+        "type": "+",
+        "description": "Модель `ExportWebhookPayload` — тело вебхука о готовой выгрузке"
+      },
+      {
         "type": "-",
         "description": "C# и Kotlin: загрузка файла в хранилище и обмен кода на токен идут без заголовка `Authorization`. В C# такой запрос через переданный `HttpClient` с токеном в `DefaultRequestHeaders` уходит через отдельный клиент."
       }
@@ -104,6 +148,18 @@
       {
         "type": "~",
         "description": "Класс ошибки выбирается по телу ответа, если в спеке есть обе модели ошибок: `ApiError` для массива `errors`, `OAuthError` для кода в поле `error`"
+      },
+      {
+        "type": "~",
+        "description": "Массив в query уходит парами `name[]=value` по расширению `x-query-array: brackets` у параметра. Без расширения значение повторяется под тем же именем: `name=a&name=b`."
+      },
+      {
+        "type": "+",
+        "description": "Ссылка на схему-скаляр с ограничениями, например целое от 0 до 6, становится примитивом своего языка, а не моделью"
+      },
+      {
+        "type": "~",
+        "description": "Объединение простых значений — `anyOf` из строк, чисел, логических значений, массивов и объектов без `$ref` — становится открытым JSON-значением: `unknown` в TypeScript, `Any` в Python, `any` без указателя в Go, `JsonElement` в Kotlin, `AnyCodable` в Swift и `object` в C#"
       },
       {
         "type": "-",

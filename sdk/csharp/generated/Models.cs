@@ -1934,7 +1934,7 @@ public enum ValidationErrorCode
     UniqueLimit,
     /// <summary>Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)</summary>
     GeneralLimit,
-    /// <summary>Ошибка выполнения запроса (пояснения вы получите в поле message)</summary>
+    /// <summary>Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий</summary>
     Unhandled,
     /// <summary>Не удалось найти идентификатор события</summary>
     TriggerNotFound,
@@ -2525,7 +2525,7 @@ public class AuditDetailsVideoCallFinished : AuditEventDetailsUnion
     [JsonPropertyName("started_message_id")]
     public int? StartedMessageId { get; set; }
     [JsonPropertyName("duration")]
-    public int Duration { get; set; } = default!;
+    public int? Duration { get; set; }
     [JsonPropertyName("max_members_count")]
     public int MaxMembersCount { get; set; } = default!;
 }
@@ -3048,7 +3048,7 @@ public class ApiErrorItem
     [JsonPropertyName("key")]
     public string Key { get; set; } = default!;
     [JsonPropertyName("value")]
-    public string? Value { get; set; }
+    public object? Value { get; set; }
     [JsonPropertyName("message")]
     public string Message { get; set; } = default!;
     [JsonPropertyName("code")]
@@ -3807,6 +3807,18 @@ public class ExportRequest
     public bool? SkipChatsFile { get; set; }
 }
 
+public class ExportWebhookPayload
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = default!;
+    [JsonPropertyName("event")]
+    public string @Event { get; set; } = default!;
+    [JsonPropertyName("export_id")]
+    public int ExportId { get; set; } = default!;
+    [JsonPropertyName("created_at")]
+    public DateTimeOffset CreatedAt { get; set; } = default!;
+}
+
 public class File
 {
     [JsonPropertyName("id")]
@@ -3982,7 +3994,7 @@ public class MessageCreateRequestFile
     [JsonPropertyName("file_type")]
     public FileType FileType { get; set; } = default!;
     [JsonPropertyName("size")]
-    public long Size { get; set; } = default!;
+    public long? Size { get; set; }
     [JsonPropertyName("width")]
     public int? Width { get; set; }
     [JsonPropertyName("height")]
@@ -4000,7 +4012,7 @@ public class MessageCreateRequestMessage
     [JsonPropertyName("entity_id")]
     public int EntityId { get; set; } = default!;
     [JsonPropertyName("content")]
-    public string Content { get; set; } = default!;
+    public string? Content { get; set; }
     [JsonPropertyName("files")]
     public List<MessageCreateRequestFile>? Files { get; set; }
     [JsonPropertyName("buttons")]
@@ -4196,9 +4208,9 @@ public class SearchPaginationMeta
 public class StatusUpdateRequestStatus
 {
     [JsonPropertyName("emoji")]
-    public string Emoji { get; set; } = default!;
+    public string? Emoji { get; set; }
     [JsonPropertyName("title")]
-    public string Title { get; set; } = default!;
+    public string? Title { get; set; }
     [JsonPropertyName("expires_at")]
     public DateTimeOffset? ExpiresAt { get; set; }
     [JsonPropertyName("is_away")]

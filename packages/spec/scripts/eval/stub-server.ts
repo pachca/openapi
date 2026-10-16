@@ -8,6 +8,20 @@
  * measured something adjacent and hid its own faults — a listing longer than one
  * read silently lost its tail.
  *
+ * It behaves like the server where the behaviour of an agent depends on it: the
+ * instructions arrive with their placeholders filled, arguments are read and
+ * refused by the published schema, an answer comes from a fake workspace
+ * (`world.json`) in the text shape of `RESPONSE_FORMAT` — other people's text
+ * inside the untrusted wrapper, the footer on every result, a refusal as a
+ * result with `isError` and the line of `REFUSALS` for its status.
+ *
+ * What it does not serve: a tool's title, annotations and outputSchema, and the
+ * structured half of a result. Claude Code shows none of them to the model, and
+ * declaring an outputSchema without returning structuredContent that fits it
+ * would make the client throw the result away. Whether a real answer fits its
+ * outputSchema is the build's to check, against the spec's own examples — not
+ * this stub's.
+ *
  * Usage (through --mcp-config, never by hand):
  *   EVAL_TOOLS=<listing.json> EVAL_RECORD=<calls.jsonl> bun stub-server.ts
  *
@@ -16,8 +30,10 @@
  * EVAL_INSTRUCTIONS  optional file with the server instructions
  * EVAL_RESPONSES     optional fake workspace the answers come from (world.json)
  */
+import crypto from 'node:crypto';
 import fs from 'node:fs';
-import { RESPONSE_FORMAT } from '../../mcp-core';
+import { REFUSALS, RESPONSE_FORMAT } from '../../mcp-core';
+import { pick, REFUSAL } from './world-pick';
 
 const TOOLS_PATH = process.env.EVAL_TOOLS;
 const RECORD_PATH = process.env.EVAL_RECORD;
@@ -44,17 +60,18 @@ const readTools = (): Array<{ name: string; description: string; inputSchema: un
  * Answers live in a file and are read per call, so they can be changed without
  * restarting anything.
  *
- * An answer is either the text itself or a set of texts keyed by a value the
- * call passed: `{"4719": "…", "199": "…", "*": "…"}` picks by whichever argument
- * matches. One answer per tool is enough only while every request names an id;
- * the moment requests name things instead, the same tool is called twice for
- * two different things, and a single answer makes them look identical.
+ * An answer is either the text itself or a set of texts keyed by values the call
+ * passed (`pick`, in world-pick.ts). Keys starting with `@` describe the world
+ * rather than answer a tool: `@now` and `@you` make the footer, `@role` the role
+ * in `{caller}`, `@me` the caller's id that answers echo.
  */
-const readResponses = (): Record<string, unknown> => {
+type World = Record<string, unknown>;
+
+const readWorld = (): World => {
   const path = process.env.EVAL_RESPONSES;
   if (!path || !fs.existsSync(path)) return {};
   try {
-    return JSON.parse(onToday(fs.readFileSync(path, 'utf8'))) as Record<string, unknown>;
+    return JSON.parse(onToday(fs.readFileSync(path, 'utf8'))) as World;
   } catch {
     return {};
   }
@@ -65,7 +82,7 @@ const readResponses = (): Record<string, unknown> => {
  * date on its own, and a world that stays on the day it was written hands the
  * model two todays: a run that crossed midnight put «завтра» a day out and then
  * deleted the task it had made. Every date moves by the days since `@today`, and
- * each line spelling out a week is written again for the week of the new today.
+ * the footer is built from the moved `@now`.
  */
 const DAY_MS = 86_400_000;
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -78,35 +95,50 @@ const onToday = (raw: string): string => {
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   const shift = Math.round((Date.parse(today) - Date.parse(written)) / DAY_MS);
   if (shift === 0) return raw;
-  const monday = Date.parse(today) - ((new Date(Date.parse(today)).getUTCDay() + 6) % 7) * DAY_MS;
+  return raw.replace(/(?<!\d)(\d{4}-\d{2}-\d{2})(?!\d)/g, (date) => isoDay(Date.parse(date) + shift * DAY_MS));
+};
+
+/** The day of `@now`, its weekday and the dates of its week, as `RESPONSE_FORMAT.footer` spells them. */
+function calendar(world: World): { now: string; day: string; weekday: string; week: string } {
+  const now = String(world['@now'] ?? new Date().toISOString());
+  const day = now.slice(0, 10);
+  const at = Date.parse(day);
+  const monday = at - ((new Date(at).getUTCDay() + 6) % 7) * DAY_MS;
   const week = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => `${d} ${isoDay(monday + i * DAY_MS)}`).join(' · ');
-  return raw
-    .replace(/(?<!\d)(\d{4}-\d{2}-\d{2})(?!\d)/g, (date) => isoDay(Date.parse(date) + shift * DAY_MS))
-    .replace(/(Now: (\d{4}-\d{2}-\d{2})T[^,]*, )[A-Z][a-z]+day/g, (_, head: string, date: string) => `${head}${WEEKDAYS[new Date(Date.parse(date)).getUTCDay()]}`)
-    .replace(/Mon \d{4}-\d{2}-\d{2} · Tue \d{4}-\d{2}-\d{2} · Wed \d{4}-\d{2}-\d{2} · Thu \d{4}-\d{2}-\d{2} · Fri \d{4}-\d{2}-\d{2} · Sat \d{4}-\d{2}-\d{2} · Sun \d{4}-\d{2}-\d{2}/g, week);
+  return { now, day, weekday: WEEKDAYS[new Date(at).getUTCDay()]!, week };
+}
+
+const footerOf = (world: World): string => {
+  const { now, weekday, week } = calendar(world);
+  return `Now: ${now}, ${weekday} · you: ${String(world['@you'] ?? '')}\nWeek: ${week}`;
 };
 
 /**
- * The instructions carry placeholders a real server fills when a connection
- * opens. The stub fills them from the fake workspace itself — the footer its
- * answers already carry — so the date before the first call and the date in
- * every result are the same date.
+ * The instructions carry placeholders the server fills from the token of the
+ * request that carries them. The stub fills them from the same fake workspace
+ * its answers come from, so the date before the first call, the date in every
+ * footer and the caller are one and the same.
  */
 const readInstructions = (): string | undefined => {
   if (!process.env.EVAL_INSTRUCTIONS || !fs.existsSync(process.env.EVAL_INSTRUCTIONS)) return undefined;
   const text = fs.readFileSync(process.env.EVAL_INSTRUCTIONS, 'utf8');
-  const footer = String(Object.values(readResponses()).find((v) => typeof v === 'string' && /Now: /.test(v)) ?? '');
-  const now = footer.match(/Now: (\d{4}-\d{2}-\d{2})T[^,]*, (\w+)(?: · you: ([^\n]+))?/);
-  const week = footer.match(/Week: ([^\n]+)/);
+  const world = readWorld();
+  const { day, weekday, week } = calendar(world);
+  const you = String(world['@you'] ?? 'the account whose token this is');
   const fill: Record<string, string> = {
-    caller: now?.[3]?.trim() ?? 'the person whose token this is',
-    today: now ? `${now[1]}, ${now[2]}` : new Date().toISOString().slice(0, 10),
-    week: week?.[1]?.trim() ?? '',
+    caller: world['@role'] ? `${you}, ${String(world['@role'])}` : you,
+    today: `${day}, ${weekday}`,
+    week,
+    // The fake workspace lives in the cloud, and its links are the cloud's.
+    app_host: 'app.pachca.com',
   };
-  return text.replace(/\{(caller|today|week)\}/g, (_, name: string) => fill[name] ?? '');
+  return text.replace(/\{(caller|today|week|app_host)\}/g, (_, name: string) => fill[name] ?? '');
 };
 
 const send = (message: unknown) => process.stdout.write(`${JSON.stringify(message)}\n`);
+
+/** Messages sent in this run, by id: the answer that created each. */
+const created = new Map<string, string>();
 
 /**
  * Arguments the server would refuse, refused here too. The server checks a call
@@ -116,7 +148,7 @@ const send = (message: unknown) => process.stdout.write(`${JSON.stringify(messag
  * something the real server would have stopped at the door.
  */
 interface Field {
-  type?: string;
+  type?: string | string[];
   enum?: unknown[];
   items?: Field;
   properties?: Record<string, Field>;
@@ -124,8 +156,12 @@ interface Field {
   additionalProperties?: boolean;
 }
 
-const misfit = (field: Field, value: unknown): string | undefined => {
-  switch (field.type) {
+/** The types a field declares, without the null it may also be: `["object", "null"]` reads as an object. */
+const typesOf = (field: Field): string[] => [field.type ?? []].flat().filter((t) => t !== 'null');
+const nullable = (field: Field): boolean => [field.type ?? []].flat().includes('null');
+
+const misfitAs = (type: string | undefined, field: Field, value: unknown): string | undefined => {
+  switch (type) {
     case 'integer':
       return Number.isInteger(value) ? undefined : 'must be an integer';
     case 'number':
@@ -150,6 +186,14 @@ const misfit = (field: Field, value: unknown): string | undefined => {
   }
 };
 
+const misfit = (field: Field, value: unknown): string | undefined => {
+  if (value === null) return nullable(field) || typesOf(field).length === 0 ? undefined : 'must not be null';
+  const types = typesOf(field);
+  if (types.length === 0) return undefined;
+  const reasons = types.map((type) => misfitAs(type, field, value));
+  return reasons.some((r) => r === undefined) ? undefined : reasons[0];
+};
+
 /**
  * A value as the server reads it: by the declared type first, so text that reads
  * as that type is taken as meant (`RESPONSE_FORMAT.argument_reading`). A client
@@ -157,33 +201,43 @@ const misfit = (field: Field, value: unknown): string | undefined => {
  * not hold that against the call.
  */
 const readValue = (field: Field, value: unknown): unknown => {
+  const types = typesOf(field);
   if (typeof value !== 'string') {
-    if (field.type === 'array' && Array.isArray(value)) return value.map((item) => readValue(field.items ?? {}, item));
-    if (field.type === 'object' && value && typeof value === 'object' && !Array.isArray(value)) {
+    if (types.includes('array') && Array.isArray(value)) return value.map((item) => readValue(field.items ?? {}, item));
+    if (types.includes('object') && value && typeof value === 'object' && !Array.isArray(value)) {
       return readArguments(field, value as Record<string, unknown>);
     }
     return value;
   }
   const text = value.trim();
-  switch (field.type) {
-    case 'integer':
-      return /^-?\d+$/.test(text) ? Number(text) : value;
-    case 'number':
-      return text !== '' && Number.isFinite(Number(text)) ? Number(text) : value;
-    case 'boolean':
-      return text === 'true' ? true : text === 'false' ? false : value;
-    case 'array':
-    case 'object':
-      try {
-        const parsed = JSON.parse(text);
-        const fits = parsed !== null && typeof parsed === 'object' && Array.isArray(parsed) === (field.type === 'array');
-        return fits ? readValue(field, parsed) : value;
-      } catch {
+  if (text === 'null' && nullable(field)) return null;
+  for (const type of types) {
+    switch (type) {
+      case 'integer':
+        if (/^-?\d+$/.test(text)) return Number(text);
+        break;
+      case 'number':
+        if (text !== '' && Number.isFinite(Number(text))) return Number(text);
+        break;
+      case 'boolean':
+        if (text === 'true' || text === 'false') return text === 'true';
+        break;
+      case 'array':
+      case 'object':
+        try {
+          const parsed = JSON.parse(text);
+          if (parsed !== null && typeof parsed === 'object' && Array.isArray(parsed) === (type === 'array')) {
+            return readValue(field, parsed);
+          }
+        } catch {
+          // not JSON: left as text, and refused below if text is not its type
+        }
+        break;
+      case 'string':
         return value;
-      }
-    default:
-      return value;
+    }
   }
+  return value;
 };
 
 const readArguments = (schema: Field, given: Record<string, unknown>): Record<string, unknown> =>
@@ -210,7 +264,7 @@ const problemsOf = (schema: Field, given: Record<string, unknown>): string[] => 
 };
 
 /**
- * What a tool takes, spelled the way `RESPONSE_FORMAT.invalid_arguments` asks: a
+ * What a tool takes, spelled the way `RESPONSE_FORMAT.signature` asks: a
  * star on what is required, an object with its fields, a list of objects with
  * the fields of one item, two levels down. A refusal that said only
  * `view (object, required)` sent the agent off to ask the person what a form
@@ -223,12 +277,18 @@ const signatureOf = (schema: Field, depth = 0): string =>
 
 const shapeOf = (field: Field, depth: number): string => {
   if (field.enum) return `(${field.enum.join(' | ')})`;
-  if (field.type === 'object' && field.properties && depth < 2) return `{${signatureOf(field, depth + 1)}}`;
-  if (field.type === 'array') {
+  const types = typesOf(field);
+  const orNull = nullable(field) ? ' or null' : '';
+  if (types.includes('object') && field.properties && depth < 2) return `{${signatureOf(field, depth + 1)}}${orNull}`;
+  if (types.includes('array')) {
     const item = field.items ?? {};
-    return item.type === 'object' && item.properties && depth < 2 ? `[{${signatureOf(item, depth + 1)}}]` : `[${item.type ?? 'any'}]`;
+    const itemTypes = typesOf(item);
+    if (itemTypes.includes('object') && item.properties && depth < 2) return `[{${signatureOf(item, depth + 1)}}]${orNull}`;
+    // A list of lists — the rows of buttons — spells its inner list the same way.
+    if (itemTypes.includes('array')) return `[${shapeOf(item, depth)}]${orNull}`;
+    return `[${itemTypes.join(' | ') || 'any'}]${orNull}`;
   }
-  return `(${field.type ?? 'any'})`;
+  return `(${types.join(' | ') || 'any'}${orNull})`;
 };
 
 function handle(request: { id?: number | string; method: string; params?: any }): void {
@@ -260,62 +320,70 @@ function handle(request: { id?: number | string; method: string; params?: any })
     // client happened to send.
     const read = tool ? readArguments(tool.inputSchema as Field, sent) : sent;
     const problems = tool ? problemsOf(tool.inputSchema as Field, read) : [];
-    if (params) params.arguments = read;
-    fs.appendFileSync(
-      RECORD_PATH!,
-      `${JSON.stringify({
-        name: params?.name,
-        arguments: read,
-        at: Date.now(),
-        ...(problems.length ? { refused: problems.join('; ') } : {}),
-      })}\n`,
-    );
+    const record = (refused?: string) =>
+      fs.appendFileSync(
+        RECORD_PATH!,
+        `${JSON.stringify({ name: params?.name, arguments: read, at: Date.now(), ...(refused ? { refused } : {}) })}\n`,
+      );
+    const world = readWorld();
+    const footer = footerOf(world);
     if (tool && problems.length) {
+      record(problems.join('; '));
       const text = RESPONSE_FORMAT.invalid_arguments
         .replace('{tool}', tool.name)
         .replace('{problems}', problems.join('; '))
         .replace('{signature}', signatureOf(tool.inputSchema as Field));
-      send({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text }], isError: true } });
+      send({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: `${text}\n\n${footer}` }], isError: true } });
       return;
     }
     // A plausible answer keeps a chain going: the call that resolves a name has
     // to hand back an id, or the next step is impossible for reasons that have
     // nothing to do with what is being measured.
-    const answers = readResponses();
     const name = String(params?.name ?? '').replace(/^.*pachca_/, '');
-    const given = (params?.arguments ?? {}) as Record<string, unknown>;
-    const pick = (entry: unknown): unknown => {
-      if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) return entry;
-      const set = entry as Record<string, unknown>;
-      for (const value of Object.values(given)) {
-        const key = String(value);
-        if (key in set) return set[key];
-      }
-      // A free-text query rarely equals a key: «webhook signature verification»
-      // should still find the answer filed under «webhook».
-      const text = Object.values(given).map((v) => String(v).toLowerCase()).join(' ');
-      for (const [key, answer] of Object.entries(set)) {
-        if (key !== '*' && /[a-zа-яё]/i.test(key) && text.includes(key.toLowerCase())) return answer;
-      }
-      return set['*'];
-    };
-    const answer = pick(answers[name]) ?? pick(answers['*']) ?? 'Готово.';
+    const answer = pick(world[name], read) ?? pick(world['*'], read) ?? 'Done.';
     // A canned answer that states an id of its own contradicts the call that
     // asked for another one, and the agent believes the answer: it read person
     // 3560 and then wrote to 18521. `{{user_id|18521}}` echoes what was asked,
-    // falling back to the default when the argument was left out.
+    // falling back to the default when the argument was left out; `{{@me}}`
+    // reads the world, and is filled first so it can stand in a fallback.
+    const echo = (value: unknown) => (typeof value === 'object' ? JSON.stringify(value) : String(value));
     const filled = (text: string): string =>
-      text.replace(/\{\{(\w+)(?:\|([^}]*))?\}\}/g, (_, key: string, fallback = '') => {
-        const passed = given[key];
-        return passed === undefined || passed === null ? fallback : String(passed);
-      });
+      text
+        .replace(/\{\{@(\w+)(?:\|([^}]*))?\}\}/g, (_, key: string, fallback = '') =>
+          world[`@${key}`] === undefined ? fallback : echo(world[`@${key}`]),
+        )
+        .replace(/\{\{(\w+)(?:\|([^}]*))?\}\}/g, (_, key: string, fallback = '') =>
+          read[key] === undefined || read[key] === null ? fallback : echo(read[key]),
+        );
+    // Text written by other people goes inside the wrapper, with a nonce no
+    // content can guess (`RESPONSE_FORMAT.untrusted_wrapper`).
+    const nonce = crypto.randomBytes(4).toString('hex');
+    const wrapped = (text: string): string =>
+      text.replace(/⟦([\s\S]*?)⟧/g, (_, inner: string) => `<pachca_content_${nonce}>${inner}</pachca_content_${nonce}>`);
+    let body = filled(typeof answer === 'string' ? answer : JSON.stringify(answer, null, 1));
+    // A message sent in this run exists from then on: reading it back or reacting
+    // to it answers as for any message, instead of the 404 the world gives an id
+    // it does not know.
+    const own = created.get(String(read.id ?? ''));
+    if (own && REFUSAL.test(body)) {
+      if (name === 'get_message') body = own;
+      if (name === 'add_reaction') body = `## Reaction ${echo(read.code)} added to message ${echo(read.id)}`;
+    }
+    const made = body.match(/^## Message (\d+)\n/);
+    if (made && name !== 'get_message') created.set(made[1]!, body);
+    const refusal = body.match(REFUSAL);
+    if (refusal) {
+      const [, status, code, rest] = refusal;
+      record(`${status} ${code}`);
+      const text = `${REFUSALS[status!] ?? `Refused with ${status}.`}\n\nerrors: code ${code}${rest}\n\n${footer}`;
+      send({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: wrapped(text) }], isError: true } });
+      return;
+    }
+    record();
     send({
       jsonrpc: '2.0',
       id,
-      result: {
-        content: [{ type: 'text', text: filled(typeof answer === 'string' ? answer : JSON.stringify(answer, null, 1)) }],
-        isError: false,
-      },
+      result: { content: [{ type: 'text', text: wrapped(`${body}\n\n${footer}`) }], isError: false },
     });
     return;
   }

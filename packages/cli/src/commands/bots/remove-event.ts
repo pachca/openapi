@@ -4,7 +4,7 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class BotsRemoveEvent extends BaseCommand {
-  static override description = "Удаление события";
+  static override description = "Удаление события истории";
 
   static override examples = [
       "Обработка событий через историю (polling) — Удали обработанное событие:\n  $ pachca bots remove-event"

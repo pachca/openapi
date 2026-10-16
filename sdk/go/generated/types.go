@@ -440,7 +440,7 @@ const (
 	ValidationErrorCodeUserLimit                  ValidationErrorCode = "user_limit" // Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
 	ValidationErrorCodeUniqueLimit                ValidationErrorCode = "unique_limit" // Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
 	ValidationErrorCodeGeneralLimit               ValidationErrorCode = "general_limit" // Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
-	ValidationErrorCodeUnhandled                  ValidationErrorCode = "unhandled" // Ошибка выполнения запроса (пояснения вы получите в поле message)
+	ValidationErrorCodeUnhandled                  ValidationErrorCode = "unhandled" // Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий
 	ValidationErrorCodeTriggerNotFound            ValidationErrorCode = "trigger_not_found" // Не удалось найти идентификатор события
 	ValidationErrorCodeTriggerExpired             ValidationErrorCode = "trigger_expired" // Время жизни идентификатора события истекло
 	ValidationErrorCodeRequired                   ValidationErrorCode = "required" // Обязательный параметр не передан
@@ -540,7 +540,7 @@ type ApiErrorItem struct {
 	Key     string              `json:"key"`
 	Message string              `json:"message"`
 	Code    ValidationErrorCode `json:"code"`
-	Value   *string             `json:"value"`
+	Value   any                 `json:"value"`
 	Payload map[string]any      `json:"payload"`
 }
 
@@ -697,9 +697,9 @@ type AuditDetailsUserUpdated struct {
 
 type AuditDetailsVideoCallFinished struct {
 	ChatID           int32  `json:"chat_id"`
-	Duration         int32  `json:"duration"`
 	MaxMembersCount  int32  `json:"max_members_count"`
 	StartedMessageID *int32 `json:"started_message_id"`
+	Duration         *int32 `json:"duration"`
 }
 
 type AuditDetailsVideoCallRecording struct {
@@ -1391,6 +1391,13 @@ func (m ExportRequest) MarshalJSON() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
+type ExportWebhookPayload struct {
+	Type      string    `json:"type"` // always "export"
+	Event     string    `json:"event"` // always "ready"
+	ExportID  int32     `json:"export_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type File struct {
 	ID         int32    `json:"id"`
 	Key        string   `json:"key"`
@@ -1504,7 +1511,7 @@ type MessageCreateRequestFile struct {
 	Key        string   `json:"key"`
 	Name       string   `json:"name"`
 	FileType   FileType `json:"file_type"`
-	Size       int64    `json:"size"`
+	Size       *int64   `json:"size,omitempty"`
 	Width      *int32   `json:"width,omitempty"`
 	Height     *int32   `json:"height,omitempty"`
 	DurationMs *int32   `json:"duration_ms,omitempty"`
@@ -1513,8 +1520,8 @@ type MessageCreateRequestFile struct {
 
 type MessageCreateRequestMessage struct {
 	EntityID           int32                      `json:"entity_id"`
-	Content            string                     `json:"content"`
 	EntityType         *MessageEntityType         `json:"entity_type,omitempty"`
+	Content            *string                    `json:"content,omitempty"`
 	Files              []MessageCreateRequestFile `json:"files,omitempty"`
 	Buttons            [][]Button                 `json:"buttons,omitempty"`
 	ParentMessageID    *int32                     `json:"parent_message_id,omitempty"`
@@ -1702,8 +1709,8 @@ type SearchPaginationMeta struct {
 }
 
 type StatusUpdateRequestStatus struct {
-	Emoji       string     `json:"emoji"`
-	Title       string     `json:"title"`
+	Emoji       *string    `json:"emoji,omitempty"`
+	Title       *string    `json:"title,omitempty"`
 	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
 	IsAway      *bool      `json:"is_away,omitempty"`
 	AwayMessage *string    `json:"away_message,omitempty"`
@@ -1989,9 +1996,9 @@ type VideoCallWebhookPayload struct {
 	OwnerID          int32                    `json:"owner_id"`
 	WebhookTimestamp int32                    `json:"webhook_timestamp"`
 	Thread           *WebhookVideoCallThread  `json:"thread"`
-	StartedAt        *time.Time               `json:"started_at,omitempty"`
+	StartedAt        *string                  `json:"started_at"`
 	FinishedAt       *time.Time               `json:"finished_at,omitempty"`
-	Duration         *int32                   `json:"duration,omitempty"`
+	Duration         *int32                   `json:"duration"`
 	Members          []WebhookVideoCallMember `json:"members,omitempty"`
 	RecordingID      *int32                   `json:"recording_id,omitempty"`
 	FileID           *int32                   `json:"file_id"`

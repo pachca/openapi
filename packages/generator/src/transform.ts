@@ -39,6 +39,20 @@ function isUnion(schema: Schema): boolean {
     (!!schema.oneOf && schema.oneOf.length > 0);
 }
 
+const SCALAR_TYPES = ['integer', 'number', 'boolean', 'string'];
+
+/** A named scalar (`scalar Weekday extends int32`): a primitive with limits, not a model. */
+function isScalarSchema(schema: Schema): boolean {
+  return typeof schema.type === 'string' && SCALAR_TYPES.includes(schema.type) &&
+    !schema.enum && !schema.properties && !schema.additionalProperties && !schema.allOf && !isUnion(schema);
+}
+
+function containsRef(schema: Schema | undefined): boolean {
+  if (!schema) return false;
+  if (schema.$ref) return true;
+  return [schema.items, ...(schema.anyOf ?? []), ...(schema.oneOf ?? []), ...(schema.allOf ?? [])].some(containsRef);
+}
+
 // ----- Field type resolution -----
 
 function resolveFieldType(schema: Schema): IRFieldType {
@@ -50,11 +64,20 @@ function resolveFieldType(schema: Schema): IRFieldType {
     if (getSchemaType(schema) === 'array' && schema.items) {
       return { kind: 'array', items: resolveFieldType(schema.items) };
     }
+    // Scalar refs (e.g. Weekday: integer, 0..6) are inlined as their primitive
+    if (isScalarSchema(schema)) {
+      return { kind: 'primitive', primitive: schema.type as string, format: schema.format };
+    }
     return { kind: 'model', ref: name };
   }
 
   // anyOf / oneOf → union
   const unionMembers = schema.anyOf || schema.oneOf;
+  // A union of plain values (a string, a number or a list of them) names no type
+  // to generate: it is an open JSON value.
+  if (unionMembers && unionMembers.length > 0 && !unionMembers.some(containsRef)) {
+    return { kind: 'primitive', primitive: 'any' };
+  }
   if (unionMembers) {
     return {
       kind: 'union',
@@ -450,8 +473,10 @@ function transformParam(param: Parameter): IRParam {
 
   const isArrayParam = isArray || type.kind === 'array';
 
-  // Array query params need [] suffix for Rails/Rack to parse as arrays
-  if (isArrayParam && !wireName.endsWith('[]')) {
+  // A list in the query travels as the spec declares it. `x-query-array: brackets`
+  // sends each value as `name[]=value`, the form Rails/Rack reads as a list.
+  // Without it the value repeats under the plain name, OpenAPI's default.
+  if (isArrayParam && param['x-query-array'] === 'brackets' && !wireName.endsWith('[]')) {
     wireName += '[]';
   }
 
@@ -772,6 +797,9 @@ export function transform(spec: ParsedAPI): IR {
       enums.push(transformEnum(name, schema));
     } else if (getSchemaType(schema) === 'array') {
       // Array-type schemas (e.g. TagNamesFilter) are inlined as array types in field references
+      continue;
+    } else if (isScalarSchema(schema)) {
+      // Named scalars (e.g. Weekday) are inlined as primitives in field references
       continue;
     } else {
       models.push(transformModel(name, schema));

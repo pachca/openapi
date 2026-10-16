@@ -43,6 +43,11 @@ function isOptionalField(field: IRField): boolean {
   return !field.required || field.nullable;
 }
 
+/** An open JSON value is `any`: nil already stands for null and for an absent field, so it takes no pointer. */
+function isOpenValue(field: IRField): boolean {
+  return field.type.kind === 'primitive' && field.type.primitive === 'any';
+}
+
 function goAligned(rows: string[][]): string[] {
   if (rows.length === 0) return [];
   const cols = Math.max(...rows.map((r) => r.length));
@@ -119,7 +124,8 @@ function goFieldInfo(field: IRField, modelName: string): { name: string; typeNam
   });
   const pointer =
     (field.type.kind === 'primitive' || field.type.kind === 'model' || field.type.kind === 'enum' || field.type.kind === 'union') &&
-    isOptionalField(field);
+    isOptionalField(field) &&
+    !isOpenValue(field);
   const typeName = pointer ? `*${base}` : base;
   const tag = `\`json:"${goJsonTag(field)}"\``;
   const comment = field.type.kind === 'literal' && field.type.literalValue
@@ -1556,6 +1562,7 @@ function goModelLiteral(
   const entries = fields.map((f) => {
     const name = goExportName(f.name);
     const opt = isOptionalField(f) &&
+      !isOpenValue(f) &&
       (f.type.kind === 'primitive' || f.type.kind === 'model' || f.type.kind === 'enum' || f.type.kind === 'union');
     const value = goLiteral(f.type, ir, models, nextVisited, childIndent);
     if (opt) {
@@ -1608,7 +1615,7 @@ function goModelFp(
   const fields = model.fields.map((f) => {
     const name = goExportName(f.name);
     const type = goFingerprint(f.type, ir, models, nextVisited);
-    const opt = isOptionalField(f) ? '*' : '';
+    const opt = isOptionalField(f) && !isOpenValue(f) ? '*' : '';
     return `${name}: ${opt}${type}`;
   });
 

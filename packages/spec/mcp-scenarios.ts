@@ -1,6 +1,6 @@
 /**
- * Scenarios for a judged run: a request as a person would type it, and the tools
- * that count as a correct first call.
+ * Scenarios for a judged run: a request as a person would type it, and the calls
+ * that count as doing it.
  *
  * Written in Russian on purpose. The prose that routes them is English, and
  * whether English descriptions carry a Russian request to the right tool is
@@ -27,6 +27,11 @@
  * the acting call comes after it.
  */
 
+import type { AudienceKey } from './mcp-core';
+
+/** A value an argument is expected to carry: a scalar, or a list of ids or names. */
+type ArgValue = string | number | boolean | Array<string | number>;
+
 /**
  * What the arguments of the call have to look like. Naming the right tool is
  * only half of a call: an argument outside its enum, or a required one left
@@ -34,21 +39,29 @@
  * only the tool name reports it as a success. Assertions are checked against
  * the manifest at build time, so a scenario cannot demand an argument the tool
  * does not take or a value its enum does not allow.
+ *
+ * A value is held against the argument of that name and no other: a message id
+ * sent as `parent_message_id` is not the thread a request asked to write to. A
+ * dotted name reaches inside an argument — `schedule.start_date`, and through a
+ * list item by item, `files.key` — and an argument left out counts as its
+ * default, the way the server reads it: a send without `entity_type` goes to a
+ * discussion. A list matches whatever its order.
  */
 export interface ArgExpectation {
   /** Argument must be passed with exactly this value. */
-  must?: Record<string, string | number | boolean | Array<string | number>>;
+  must?: Record<string, ArgValue>;
   /** Argument must be passed, any value. */
   present?: string[];
   /** Argument must not be passed — usually because its value would be invented. */
   absent?: string[];
   /**
    * Alternative sets of values, any one of which satisfies the assertion. Some
-   * things are addressable two ways that are equally right — a thread by the
-   * message it hangs off or by its own id — and a key that names only one of
-   * them fails the agent for taking the other road to the same place.
+   * things are addressable two ways that are equally right — a thread by its own
+   * id with `entity_type: "thread"`, or by the id of its chat as a discussion —
+   * and a key that names only one of them fails the agent for taking the other
+   * road to the same place.
    */
-  either?: Array<Record<string, string | number | boolean>>;
+  either?: Array<Record<string, ArgValue>>;
   /**
    * The local day an argument has to land on, named as a weekday rather than a
    * date so the set does not rot: the run resolves it against the day it runs.
@@ -64,8 +77,9 @@ export interface ToolScenario {
   /** The request as a person would type it. */
   prompt: string;
   /**
-   * Tool names without the prefix, any of which is a correct first call, plus
-   * one answer that is not a tool.
+   * Tool names without the prefix: a run gets there when one of its calls is one
+   * of them and carries what `args` asks — whichever call of the chain that is.
+   * Or one answer that is not a tool.
    *
    * "none" — there is no tool for this on this surface, and saying so is the
    * whole answer. Some requests ask for capabilities deliberately not exposed
@@ -87,7 +101,8 @@ export interface ToolScenario {
    * `says`, or the build fails. The server hands the caller's name and id over
    * before the first call, so «какой у меня id» needs no call — and a reply
    * that names a wrong id is the failure, whatever was called on the way. A
-   * write fails it too.
+   * write fails it too; a write the server refused changed nothing, so trying
+   * and then explaining the refusal passes.
    */
   accept: string[];
   /** For an "ask" scenario: the one thing only the person has. */
@@ -95,6 +110,8 @@ export interface ToolScenario {
   /**
    * What the reply must contain — required for an "answer" scenario, and for any
    * other whose point is what the agent concluded rather than which call it made.
+   * Each entry is one thing to say; `|` inside it separates the words any of
+   * which says it.
    */
   says?: string[];
   /** What the arguments of that call have to look like. */
@@ -102,11 +119,13 @@ export interface ToolScenario {
   /** Why this scenario exists, when it is not obvious. */
   note?: string;
   /**
-   * Whose listing the model sees. Omitted, it is the owner on the Corporation
-   * plan — the largest listing. `user` measures what an employee is told when
-   * the tool is not theirs; `bot` measures the tools only a bot token receives.
+   * Whose listing the model sees: a key of the manifest's `audiences`. Omitted,
+   * it is the owner on the Corporation plan — the largest listing. The others
+   * measure what a token is told when a tool is not theirs, and `bot` the tools
+   * only a bot token receives. A run takes the scenarios of its own listing
+   * only, and the build fails a scenario that accepts a tool its listing lacks.
    */
-  audience?: 'user' | 'bot';
+  audience?: AudienceKey;
 }
 
 export const TOOL_SCENARIOS: ToolScenario[] = [
@@ -152,9 +171,9 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   {
     id: "edge-read-file",
     prompt: "прочитай, что во вложении к сообщению Ани про отчёт",
-    accept: ["get_chat", "list_chat_messages", "get_thread", "search_messages", "list_chats", "search_chats", "list_company_chats", "get_message", "list_reactions", "list_message_readers"],
-    args: { must: { id: 603390 } },
-    note: "Инструмента чтения файла нет намеренно: агент отдаёт ссылку человеку. Верный первый шаг — открыть сообщение и увидеть вложение, а не искать несуществующее чтение файла.",
+    accept: ["get_chat", "list_chat_messages", "search_messages", "list_chats", "search_chats", "list_company_chats", "get_message", "download_file"],
+    args: { must: { id: 72040 } },
+    note: "Вложение текстовое, и скачивание отдаёт его текстом. Верно — найти сообщение, взять id файла из files и скачать: ссылку модель открыть не может, а пересказ по имени файла — выдумка.",
   },
 
   // ── Переформулировки: то же намерение чужими словами ─────────────────────
@@ -224,7 +243,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   {
     id: "indirect-catchup",
     prompt: "меня не было неделю, что я пропустил",
-    accept: ["list_chats", "search_chats", "list_company_chats", "list_threads"],
+    accept: ["list_chats", "search_chats", "list_company_chats", "list_threads", "search_messages"],
   },
   {
     id: "indirect-task",
@@ -258,8 +277,13 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   {
     id: "pair-thread-existing",
     prompt: "давай обсудим отдельно то, что Петя написал про ревью — успеем ли к пятнице?",
-    accept: ["get_chat", "list_chat_messages", "get_thread", "search_messages", "list_chats", "search_chats", "list_company_chats", "create_thread", "send_message"],
-    args: { present: ["content"], either: [{ id: 603381 }, { id: 87215 }] },
+    accept: ["get_chat", "list_chat_messages", "get_message", "get_thread", "search_messages", "list_chats", "search_chats", "list_company_chats", "create_thread", "send_message"],
+    args: {
+      present: ["content"],
+      absent: ["parent_message_id"],
+      either: [{ entity_type: "thread", entity_id: 87215 }, { entity_type: "discussion", entity_id: 341207 }],
+    },
+    note: "В тред пишут по его id с entity_type thread или по chat_id треда как в обсуждение. Ответ цепочкой в самом канале — промах: это другое место.",
   },
   {
     id: "pair-thread-new",
@@ -276,7 +300,6 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "pair-find-chat",
     prompt: "есть ли у нас чат про переезд офиса",
     accept: ["list_chats", "search_chats", "list_company_chats"],
-    args: { present: ["query"] },
   },
 
   // ── Администрирование: боты, выгрузки, журнал, теги ──────────────────────
@@ -291,7 +314,8 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "export-history",
     prompt: "выгрузи всю переписку пространства архивом",
     accept: ["request_export"],
-    note: "Адрес вебхука необязателен: без него номер готового архива приходит заказавшему письмом и уведомлением в Пачке, а заказывает здесь сам человек. Спрашивать у него адрес сервера незачем. Ответ на заказ пустой, так что верный ответ — выгрузка заказана, номер придёт в уведомлении, а не «архив готов».",
+    says: ["5590"],
+    note: "Адрес вебхука необязателен: без него о готовом архиве заказавшему придут письмо и уведомление в Пачке, а заказывает здесь сам сотрудник. Спрашивать у него адрес сервера незачем. Ответ на заказ несёт номер выгрузки в data.id, а архив готовится в фоне: верный ответ называет номер, а не говорит «архив готов».",
   },
   {
     id: "audit-log",
@@ -371,7 +395,8 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "retell-thread",
     prompt: "перескажи обсуждение под сообщением Пети про ревью и выпиши решения",
     accept: ["get_chat", "list_chat_messages", "get_thread", "get_message", "list_reactions", "list_message_readers", "search_messages", "list_chats", "search_chats", "list_company_chats", "list_threads"],
-    args: { must: { id: 87215 } },
+    args: { either: [{ id: 87215 }, { chat_id: 341207 }] },
+    note: "Ответы треда читаются по его chat_id, а сам тред открывается по его id. Чат по id треда и лента по id треда — промах: сервер отвечает 404.",
   },
   {
     id: "who-agreed",
@@ -420,14 +445,19 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "dm-person",
     prompt: "напиши Пете Смирнову в личку, что я задержусь",
     accept: ["list_users", "search_users", "send_message"],
-    args: { must: { entity_id: 48217 }},
+    args: { must: { entity_type: "user", entity_id: 48217 } },
     note: "Человека называют по имени. Личный чат заводится по идентификатору получателя, так что сотрудника сначала находят поиском.",
   },
   {
     id: "reply-thread",
     prompt: "ответь в треде под сообщением Пети про ревью, что посмотрю завтра",
-    accept: ["get_chat", "list_chat_messages", "get_thread", "search_messages", "list_chats", "search_chats", "list_company_chats", "create_thread", "send_message"],
-    args: { either: [{ id: 603381 }, { id: 87215 }] },
+    accept: ["get_chat", "list_chat_messages", "get_message", "get_thread", "search_messages", "list_chats", "search_chats", "list_company_chats", "create_thread", "send_message"],
+    args: {
+      present: ["content"],
+      absent: ["parent_message_id"],
+      either: [{ entity_type: "thread", entity_id: 87215 }, { entity_type: "discussion", entity_id: 341207 }],
+    },
+    note: "Открыть тред — ещё не ответить: засчитывается только отправка в тред. Ответ цепочкой в канале — пара chain-reply, здесь это промах.",
   },
   {
     id: "chain-reply",
@@ -440,7 +470,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "send-report",
     prompt: "положи отчёт файлом report.md в «Релизы», текст такой: «Сентябрь закрыт, выручка выросла на 12%»",
     accept: ["list_chats", "search_chats", "list_company_chats", "send_message"],
-    args: { must: { entity_id: 4719 }},
+    args: { must: { entity_id: 4719 }, present: ["files"] },
   },
   {
     id: "start-discussion",
@@ -464,6 +494,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "fix-typo",
     prompt: "в моём сообщении про сентябрьский отчёт замени текст на «отчёт за сентябрь готов»",
     accept: ["get_chat", "list_chat_messages", "get_thread", "search_messages", "list_chats", "search_chats", "list_company_chats", "get_message", "list_reactions", "list_message_readers", "update_message"],
+    args: { must: { id: 603390 } },
   },
   {
     id: "new-channel",
@@ -519,9 +550,9 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   {
     id: "word-branch",
     prompt: "глянь, о чём договорились в ветке под сообщением Пети про ревью",
-    accept: ["get_message", "list_reactions", "list_message_readers", "get_chat", "list_chat_messages", "get_thread", "search_messages", "list_chats", "search_chats", "list_company_chats"],
-    args: { either: [{ id: 603381 }, { id: 87215 }] },
-    note: "«Ветка» — это тред. В описаниях слова нет. Верно открыть сообщение и взять тред из него; сразу читать тред можно только зная его номер.",
+    accept: ["get_message", "get_chat", "list_chat_messages", "get_thread", "search_messages", "list_chats", "search_chats", "list_company_chats"],
+    args: { either: [{ id: 603381 }, { id: 87215 }, { chat_id: 341207 }] },
+    note: "«Ветка» — это тред. В описаниях слова нет. Верно открыть сообщение и взять тред из него, а ответы читать по chat_id треда. Сразу читать тред можно, только зная его номер.",
   },
   {
     id: "word-group",
@@ -549,9 +580,9 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   {
     id: "link-thread-by-message",
     prompt: "перескажи, к чему пришли — https://app.pachca.com/chats?thread_message_id=1058906882",
-    accept: ["get_message", "list_reactions", "list_message_readers", "get_chat", "list_chat_messages", "get_thread"],
+    accept: ["get_message", "list_reactions", "list_message_readers"],
     args: { must: { id: 1058906882 } },
-    note: "Главная ловушка адресов: под thread_message_id лежит идентификатор сообщения, а не треда. Верно либо открыть сообщение и взять thread.id, либо, если модель это уже знает, читать тред. Подставить это число как thread_id — промах.",
+    note: "Главная ловушка адресов: под thread_message_id лежит идентификатор сообщения, а не треда. Верно открыть сообщение и читать тред по его thread.chat_id. Подставить это число как id треда или чата — промах: таких нет, и сервер отвечает 404.",
   },
   {
     id: "link-user",
@@ -562,9 +593,13 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   {
     id: "link-reply",
     prompt: "ответь в треде https://app.pachca.com/chats?thread_message_id=1058906882, что посмотрю завтра",
-    accept: ["create_thread", "send_message"],
-    args: { present: ["content"], either: [{ id: 1058906882 }, { id: 265160 }] },
-    note: "Ответ в тред принимает и message_id, так что число из адреса подставляется напрямую — лишнего чтения тут не нужно.",
+    accept: ["get_message", "get_thread", "create_thread", "send_message"],
+    args: {
+      present: ["content"],
+      absent: ["parent_message_id"],
+      either: [{ entity_type: "thread", entity_id: 265160 }, { entity_type: "discussion", entity_id: 341160 }],
+    },
+    note: "Число из адреса — сообщение. Тред под ним отдают get_message и create_thread, который для уже открытого треда возвращает его же. Отправка уходит в тред по его id или по chat_id треда.",
   },
 
   // ── Запрос, в котором чего-то не хватает ────────────────────────────────
@@ -592,13 +627,14 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "thin-react-which",
     prompt: "поставь реакцию на последнее сообщение Пети",
     accept: ["list_users", "search_users", "search_messages", "get_chat", "list_chat_messages", "get_thread", "list_chats", "search_chats", "list_company_chats", "add_reaction"],
-    note: "Не сказано, какую реакцию. Эмодзи выбирается по смыслу просьбы — так прямо сказано в инструкциях сервера; промах — поставить её не на то сообщение.",
+    args: { must: { id: 603402 } },
+    note: "Не сказано, какую реакцию. Эмодзи выбирается по смыслу просьбы — так прямо сказано в инструкциях сервера. Промах — поставить её не на то сообщение. Последнее сообщение Пети в мире — смета в «Релизах».",
   },
   {
     id: "thin-add-who",
     prompt: "добавь ребят из соседней команды в «Релизы»",
     accept: ["list_chats", "search_chats", "list_company_chats", "list_members", "list_users", "search_users", "list_tags", "get_tag", "get_tag_users", "add_members", "add_tags_to_chat"],
-    args: { must: { id: 4719 }, either: [{ member_ids: [3571, 3572] }, { member_ids: [3572, 3571] }, { group_tag_ids: [9112] }] },
+    args: { must: { id: 4719 }, either: [{ member_ids: [3571, 3572] }, { group_tag_ids: [9112] }] },
     note: "«Ребята из соседней команды» — не список. Команда находится тегом: «Логистика», в которой нет никого из «Релизов». Верно добавить её людей или подключить сам тег; добавить наугад того, кто под руку попался, — промах.",
   },
 
@@ -608,21 +644,20 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     prompt: "объяви в «Релизах», что релиз выехал",
     accept: ["list_chats", "search_chats", "list_company_chats", "send_message"],
     args: { must: { entity_id: 4719 }, present: ["content"] },
-    note: "Сообщение подписано именем человека и видно всему каналу. Инструмент выбран верно, но отправлять без «да» нельзя — это и проверяем отдельной осью.",
+    note: "Сообщение подписано именем сотрудника и видно всему каналу, и всё равно делается сразу: разрешение на запись спрашивает клиент, а не агент.",
   },
   {
     id: "write-dm-self",
     prompt: "напиши мне в личку, что вечером созвон",
     accept: ["send_message"],
-    args: { must: { entity_id: 18521 } },
+    args: { must: { entity_type: "user", entity_id: 18521 } },
     note: "Себе пишут по своему идентификатору, а он есть в инструкциях сервера и в подвале каждого ответа. Промах — спросить, кому писать.",
   },
   {
     id: "write-new-thread",
     prompt: "заведи отдельное обсуждение по переезду и позови туда Петю",
     accept: ["create_unattached_thread", "add_members", "send_message", "list_users", "search_users"],
-    args: { present: ["member_ids"] },
-    note: "Тред заводится, людей зовут вторым вызовом, первое сообщение задаёт тему: цепочка из нескольких шагов, а не один инструмент.",
+    note: "Тред заводится, сотрудников зовут вторым вызовом или упоминанием в первом сообщении, оно же задаёт тему: цепочка из нескольких шагов, а не один инструмент. Засчитывается запись: поиск Пети без неё сценарий не проходит.",
   },
   {
     id: "write-edit-own",
@@ -655,16 +690,22 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   },
   {
     id: "channel-write-trap",
-    prompt: "напиши в «Релизы», что релиз выехал, но я там только подписчик",
-    accept: ["send_message", "create_thread", "get_chat", "list_chat_messages", "get_thread", "list_members", "list_chats", "search_chats", "list_company_chats"],
-    args: { must: { entity_id: 4719 } },
-    note: "Подписчик в канал писать не может, но может комментировать в его тредах. Отсюда верные первые шаги: попробовать и получить внятный отказ, уйти сразу в тред под сообщением, сначала прочитать чат, чтобы найти сообщение для треда, или посмотреть состав и свою роль. Чтение перед тредом выбрала крупная модель, и это план, а не промах.",
+    prompt: "напиши в «Объявления», что релиз выехал, но я там только подписчик",
+    accept: ["send_message", "create_thread", "get_chat", "list_chat_messages", "get_message", "get_thread", "list_members", "list_chats", "search_chats", "list_company_chats"],
+    args: {
+      present: ["content"],
+      either: [{ entity_type: "thread", entity_id: 88310 }, { entity_type: "discussion", entity_id: 341310 }],
+    },
+    note: "Подписчик в канал писать не может, но может комментировать в его тредах. Отправка в сам канал получает отказ 403 и ничего не меняет, так что засчитывается только ответ в тред под сообщением о релизе — сразу или после отказа. Чтение ленты перед тредом — план, а не промах.",
   },
   {
     id: "thread-chat-trap",
     prompt: "напиши в тред «Переезд офиса», что посмотрю завтра",
     accept: ["search_messages", "list_threads", "list_chat_messages", "get_thread", "send_message"],
-    args: { must: { entity_id: 265150 }, present: ["content"] },
+    args: {
+      present: ["content"],
+      either: [{ entity_type: "thread", entity_id: 265150 }, { entity_type: "discussion", entity_id: 341150 }],
+    },
     note: "Названия у треда нет, и в списке тредов нет текста: тред по теме находят поиском сообщений, а найденное сообщение говорит, в каком оно чате. Перебрать треды списком и прочитать их тоже можно.",
   },
 
@@ -717,7 +758,6 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "method-one-tag",
     prompt: "что за тег «Оформление» и сколько в нём людей?",
     accept: ["list_tags", "get_tag", "get_tag_users"],
-    args: { present: ["names"] },
   },
   {
     id: "method-task-fields",
@@ -756,9 +796,9 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   },
   {
     id: "method-unarchive",
-    prompt: "верни канал «Релизы» из архива",
-    accept: ["list_chats", "search_chats", "list_company_chats", "unarchive_chat"],
-    args: { must: { id: 4719} },
+    prompt: "верни канал «Старт 2025» из архива",
+    accept: ["list_chats", "search_chats", "list_company_chats", "get_chat", "unarchive_chat"],
+    args: { must: { id: 52299 } },
   },
   {
     id: "method-leave",
@@ -780,10 +820,10 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   },
   {
     id: "method-attach-tag",
-    prompt: "подключи к «Релизам» тег «Оформление», чтобы новые оформители попадали туда сами",
+    prompt: "подключи к «Релизам» тег «Логистика», чтобы новые логисты попадали туда сами",
     accept: ["list_chats", "search_chats", "list_company_chats", "list_tags", "get_tag", "add_tags_to_chat"],
     args: { must: { id: 4719 }},
-    note: "Тег привязывается к чату, а не добавляется людьми поштучно.",
+    note: "Тег привязывается к чату, а не добавляется людьми поштучно. «Оформление» к «Релизам» уже подключено (его отвязывает method-detach-tag), «Логистика» — нет.",
   },
   {
     id: "method-detach-tag",
@@ -799,12 +839,13 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   {
     id: "method-my-avatar",
     prompt: "поставь мне на аватар эту картинку, вот она в base64: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-    accept: ["update_profile_avatar"],
+    accept: ["update_my_avatar"],
+    args: { present: ["image"] },
   },
   {
     id: "method-clear-avatar",
     prompt: "убери моё фото из профиля",
-    accept: ["delete_profile_avatar"],
+    accept: ["delete_my_avatar"],
   },
   {
     id: "method-create-user",
@@ -821,7 +862,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "method-user-avatar",
     prompt: "поставь Пете фото, вот картинка в base64: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
     accept: ["list_users", "search_users", "update_user_avatar"],
-    args: { must: { user_id: 48217 }},
+    args: { must: { user_id: 48217 }, present: ["image"] },
   },
   {
     id: "method-user-clear-avatar",
@@ -914,7 +955,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "method-chat-avatar",
     prompt: "поставь «Релизам» эту картинку на аватар, вот она в base64: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
     accept: ["list_chats", "search_chats", "list_company_chats", "get_chat", "update_chat_avatar"],
-    args: { must: { id: 4719 } },
+    args: { must: { id: 4719 }, present: ["image"] },
   },
   {
     id: "method-chat-clear-avatar",
@@ -972,7 +1013,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "draft-schedule",
     prompt: "запланируй в «Платипус» на пятницу 10:00: «Созвон переносится на вторник»",
     accept: ["search_chats", "list_chats", "create_draft"],
-    args: { must: { entity_id: 199 }, present: ["content", "schedule"] },
+    args: { must: { entity_id: 199 }, present: ["content", "schedule"], onWeekday: { "schedule.start_date": "friday" } },
     note: "Отложенная отправка — черновик с расписанием. Отправить сразу — лишняя запись: сообщение уйдёт раньше, чем просили.",
   },
   {
@@ -988,6 +1029,16 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     accept: ["list_drafts", "get_draft", "search_chats", "list_chats", "send_message"],
     args: { must: { entity_id: 199, draft_id: 5620 }, present: ["content"] },
     note: "Метода отправки черновика нет: текст уходит обычной отправкой, а draft_id убирает сам черновик, чтобы он не остался в поле ввода.",
+  },
+  {
+    id: "draft-send-with-file",
+    prompt: "отправь черновик, который я начала в «Продукте»",
+    accept: ["list_drafts", "get_draft", "search_chats", "list_chats", "send_message"],
+    args: {
+      must: { entity_id: 144483, draft_id: 5622, parent_message_id: 1076601400, "files.key": "attaches/files/18521/7c2e91d4/maket-v2.pdf" },
+      present: ["content"],
+    },
+    note: "Черновик — ответ на сообщение с приложенным файлом. Сервер удаляет его после отправки и ничего из него не берёт: файл по key и parent_message_id уходят, только если их передать вместе с draft_id.",
   },
   {
     id: "draft-cancel-scheduled",
@@ -1015,15 +1066,15 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "draft-reschedule",
     prompt: "перенеси отложенное сообщение в «Платипусе» на четверг 9:30",
     accept: ["list_drafts", "get_draft", "update_draft"],
-    args: { must: { id: 5621 }, present: ["schedule"] },
+    args: { must: { id: 5621 }, present: ["schedule"], onWeekday: { "schedule.start_date": "thursday" } },
     note: "Перенос — правка расписания того же черновика, а не новый черновик и не отправка.",
   },
   {
     id: "file-download",
     prompt: "открой файл из сообщения https://app.pachca.com/chats/4719?message=603402 и скажи, что в нём",
     accept: ["get_message", "download_file"],
-    args: { must: { id: 3571 } },
-    note: "У вложения без прямой ссылки содержимое отдаёт только скачивание: имени файла из карточки сообщения мало.",
+    args: { must: { id: 72041 } },
+    note: "У вложения без прямой ссылки содержимое отдаёт только скачивание: имени файла из карточки сообщения мало. Таблица приходит blob-ресурсом, который модель не прочтёт: верно сказать это или взять первую страницу картинкой (target pdf_first_page).",
   },
   {
     id: "token-info",
@@ -1061,7 +1112,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   {
     id: "role-user-all-chats",
     prompt: "покажи все чаты пространства, даже закрытые",
-    accept: ["none", "list_chats", "search_chats", "list_company_chats"],
+    accept: ["none", "list_chats", "search_chats"],
     audience: "user",
     note: "Свои чаты сотрудник видит, все — нет. Показать свои и сказать про границу — тоже верно.",
   },
@@ -1070,6 +1121,37 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     prompt: "поменяй Пете должность на «тимлид»",
     accept: ["none"],
     audience: "user",
+  },
+
+  // ── Другие списки: чего у токена нет, и что он об этом говорит ──────────
+  {
+    id: "role-guest-invite",
+    prompt: "добавь Петю в «Платипус»",
+    accept: ["none"],
+    audience: "multi_guest",
+    note: "Мультигость состав чата не меняет, и такого инструмента в его списке нет. Верно — сказать, что нужна другая роль, а не позвать Петю упоминанием или иначе.",
+  },
+  {
+    id: "role-guest-new-chat",
+    prompt: "заведи новую беседу для нас с Ольгой и Игорем",
+    accept: ["none"],
+    audience: "multi_guest",
+    note: "Создавать чаты мультигостю нельзя. Промах — завести вместо беседы тред или написать каждому в личку.",
+  },
+  {
+    id: "role-owner-all-chats",
+    prompt: "покажи все чаты пространства, даже закрытые",
+    accept: ["none", "list_chats", "search_chats"],
+    says: ["Корпорац|Corporation"],
+    audience: "owner",
+    note: "Список всех чатов — у владельца только на «Корпорации». Верно — показать свои чаты и назвать тариф, которого не хватает. Промах — сказать, что Пачка так не умеет.",
+  },
+  {
+    id: "role-admin-audit",
+    prompt: "покажи журнал безопасности за вчера",
+    accept: ["none"],
+    audience: "admin",
+    note: "Журнал — у владельца на «Корпорации», администратору он не выдаётся. Верно сказать это, а не собирать ответ из чатов.",
   },
 
   // ── Список бота: инструменты, которые получает только токен бота ─────────
@@ -1081,26 +1163,27 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   },
   {
     id: "bot-ack-event",
-    prompt: "событие 777001 обработано, убери его из журнала",
+    prompt: "событие 01KB3F9W7R2M4N6P8Q0S1T3V5X обработано, убери его из журнала",
     accept: ["delete_webhook_event"],
-    args: { must: { id: "777001" } },
+    args: { must: { id: "01KB3F9W7R2M4N6P8Q0S1T3V5X" } },
     audience: "bot",
-    note: "Число здесь остаётся числом: идентификатор события приходит боту в самом событии, а не из речи человека.",
+    note: "Идентификатор события — строка, и бот берёт его из самого события, а не из просьбы.",
   },
   {
     id: "bot-open-form",
     prompt: "человек нажал кнопку «Отпуск», trigger_id 7f3c9a21 — открой ему форму заявки с датами начала и конца",
-    accept: ["open_form"],
-    args: { must: { trigger_id: "7f3c9a21" }, present: ["view"] },
+    accept: ["open_form", "answer"],
+    says: ["истек|истёк|секунд|не успе|поздно"],
     audience: "bot",
+    note: "Окно формы — 3 секунды от нажатия, и из разговора оно почти всегда упущено: сервер отвечает 410. Засчитываются и попытка, после которой ответ называет истёкшее окно, и объяснение без вызова. Аргументы вызова не судятся: мир отвечает на него 410, а вызов с отказом в счёт не идёт.",
   },
   {
     id: "bot-form-error",
     prompt: "пришла отправка формы: view_id 4410, submit_id 7c1e-22; дата окончания раньше даты начала — верни ошибку под полем date_end",
-    accept: ["answer_form"],
-    args: { present: ["view_id", "submit_id", "errors"] },
+    accept: ["answer_form", "answer"],
+    says: ["истек|истёк|секунд|не успе|поздно"],
     audience: "bot",
-    note: "Числа здесь остаются числами: view_id и submit_id приходят боту в теле отправки формы.",
+    note: "Числа здесь остаются числами: view_id и submit_id приходят боту в теле отправки формы. На ответ 5 секунд от отправки, и из разговора их не хватает: сервер отвечает 410, и засчитывается ответ, который называет истёкшее окно, с вызовом или без. Аргументы вызова не судятся: мир отвечает на него 410, а вызов с отказом в счёт не идёт.",
   },
   {
     id: "bot-link-preview",
@@ -1121,6 +1204,14 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     accept: ["self_update_bot_webhook"],
     args: { present: ["outgoing_url"] },
     audience: "bot",
+  },
+  {
+    id: "bot-write-me",
+    prompt: "напиши мне в личку, что деплой прошёл",
+    accept: ["ask", "search_users", "list_users"],
+    missing: "кто пишет боту — имя или id",
+    audience: "bot",
+    note: "С токеном бота «мне» — тот, кто пишет боту, а не сам бот: личный чат бота с собой никто не читает. Имени нет, искать не по чему — верно спросить. Промах — отправить сообщение самому боту.",
   },
   {
     id: "bot-schedule-none",

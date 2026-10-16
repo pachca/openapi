@@ -4,7 +4,7 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MembersRemove extends BaseCommand {
-  static override description = "Исключение пользователя";
+  static override description = "Исключение участника";
 
   static override examples = [
       "Архивация и управление чатом — Удалить участника:\n  $ pachca members remove"

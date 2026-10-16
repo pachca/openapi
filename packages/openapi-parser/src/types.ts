@@ -26,6 +26,8 @@ export interface EndpointRequirements {
   scope?: string;
   plan?: string;
   auth?: boolean;
+  /** Roles the operation answers to when they are fewer than its scope is given to (`x-requirements.roles`). */
+  roles?: string[];
 }
 
 export interface Endpoint {
@@ -62,6 +64,8 @@ export interface Parameter {
   explode?: boolean;
   style?: string;
   'x-param-names'?: ParamNameEntry[];
+  /** How a list in the query travels: `brackets` sends each value as `name[]=value`. */
+  'x-query-array'?: 'brackets';
 }
 
 export interface ParamNameEntry {

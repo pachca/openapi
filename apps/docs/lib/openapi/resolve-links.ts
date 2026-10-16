@@ -1,5 +1,6 @@
 import type { Endpoint, Schema, Parameter, RequestBody, Response, MediaType } from './types';
 import { generateUrlFromOperation } from './mapper';
+import { operationRoles } from '../scope-roles';
 
 export function resolveEndpointLinks(
   text: string,
@@ -23,7 +24,8 @@ export function resolveEndpointLinks(
           const req = endpoint.requirements;
           const attrs: string[] = [`method="${method}"`, `href="${url}"`];
           if (req?.scope) attrs.push(`scope="${req.scope}"`);
-          if (req?.scopeRoles) attrs.push(`scopeRoles="${req.scopeRoles.join(',')}"`);
+          const roles = operationRoles(req);
+          if (roles) attrs.push(`roles="${roles.join(',')}"`);
           if (req?.plan) attrs.push(`plan="${req.plan}"`);
           if (req?.auth === false) attrs.push(`noAuth`);
           return `<EndpointLink ${attrs.join(' ')}>${description.trim()}</EndpointLink>`;

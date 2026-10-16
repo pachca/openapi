@@ -25,6 +25,13 @@ export const formOperations: INodeProperties[] = [
 
 export const formFields: INodeProperties[] = [
 	{
+		displayName: 'Requires bot roles',
+		name: 'formCreateNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: { show: { resource: ['form'], operation: ['create'] } },
+	},
+	{
 		displayName: 'Title',
 		name: 'formTitle',
 		type: 'string',
@@ -75,8 +82,8 @@ export const formFields: INodeProperties[] = [
 				displayName: 'Close Text',
 				name: 'closeText',
 				type: 'string',
-				default: "Cancel",
-				description: 'Close button text',
+				default: "",
+				description: 'Close button text. Shown only in the desktop web app. In the mobile apps (iOS/Android) the close button is a cross in the header, and the text set here is not shown there.',
 				placeholder: 'Close',
 			},
 			{
@@ -91,7 +98,7 @@ export const formFields: INodeProperties[] = [
 				displayName: 'Submit Text',
 				name: 'submitText',
 				type: 'string',
-				default: "Submit",
+				default: "",
 				description: 'Submit button text',
 				placeholder: 'Submit request',
 			},
@@ -310,6 +317,13 @@ export const formFields: INodeProperties[] = [
 		name: 'viewId',
 		type: 'string',
 		required: true,
+		default: '',
+		displayOptions: { show: { resource: ['form'], operation: ['submitResponse'] } },
+	},
+	{
+		displayName: 'Requires bot roles',
+		name: 'formSubmitResponseNotice',
+		type: 'notice',
 		default: '',
 		displayOptions: { show: { resource: ['form'], operation: ['submitResponse'] } },
 	},

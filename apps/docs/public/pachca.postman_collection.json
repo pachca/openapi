@@ -674,7 +674,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"email\": \"olegpetrov@example.com\",\n    \"phone_number\": \"+79001234567\",\n    \"nickname\": \"olegpetrov\",\n    \"department\": \"Отдел разработки\",\n    \"title\": \"Старший разработчик\",\n    \"role\": \"user\",\n    \"list_tags\": [\n      \"Product\",\n      \"Design\"\n    ],\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  }\n}",
+              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"email\": \"olegpetrov@example.com\",\n    \"phone_number\": \"+79001234567\",\n    \"nickname\": \"olegpetrov\",\n    \"department\": \"Отдел разработки\",\n    \"title\": \"Старший разработчик\",\n    \"role\": \"user\",\n    \"suspended\": false,\n    \"list_tags\": [\n      \"Product\",\n      \"Design\"\n    ],\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1056,7 +1056,7 @@
           }
         },
         {
-          "name": "Исключение тега",
+          "name": "Исключение тега из чата",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -1133,7 +1133,7 @@
           }
         },
         {
-          "name": "Добавление пользователей",
+          "name": "Добавление участников",
           "request": {
             "method": "POST",
             "header": [
@@ -1171,7 +1171,7 @@
           }
         },
         {
-          "name": "Исключение пользователя",
+          "name": "Исключение участника",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -1200,7 +1200,7 @@
           }
         },
         {
-          "name": "Редактирование роли",
+          "name": "Редактирование роли участника",
           "request": {
             "method": "PUT",
             "header": [
@@ -1489,7 +1489,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"link_previews\": {\n    \"https://website.com/articles/123\": {\n      \"title\": \"Статья: Отправка файлов\",\n      \"description\": \"Пример отправки файлов на удаленный сервер\",\n      \"image_url\": \"https://website.com/img/landing.png\",\n      \"image\": {\n        \"key\": \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n        \"name\": \"files-to-server.jpg\",\n        \"size\": 695604\n      }\n    }\n  }\n}",
+              "raw": "{\n  \"link_previews\": {\n    \"https://example.com/articles/123\": {\n      \"title\": \"Статья: Отправка файлов\",\n      \"description\": \"Пример отправки файлов на удаленный сервер\",\n      \"image_url\": \"https://example.com/img/landing.png\",\n      \"image\": {\n        \"key\": \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n        \"name\": \"files-to-server.jpg\",\n        \"size\": 695604\n      }\n    }\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1824,7 +1824,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"task\": {\n    \"content\": \"Забрать со склада 21 заказ\",\n    \"due_at\": \"2020-06-05T12:00:00.000+03:00\",\n    \"priority\": 2,\n    \"performer_ids\": [\n      12\n    ],\n    \"status\": \"done\",\n    \"all_day\": false,\n    \"done_at\": \"2020-06-05T12:00:00.000Z\",\n    \"custom_properties\": [\n      {\n        \"id\": 78,\n        \"value\": \"Синий склад\"\n      }\n    ]\n  }\n}",
+              "raw": "{\n  \"task\": {\n    \"kind\": \"reminder\",\n    \"content\": \"Забрать со склада 21 заказ\",\n    \"due_at\": \"2020-06-05T12:00:00.000+03:00\",\n    \"priority\": 2,\n    \"performer_ids\": [\n      12\n    ],\n    \"status\": \"done\",\n    \"all_day\": false,\n    \"done_at\": \"2020-06-05T12:00:00.000Z\",\n    \"custom_properties\": [\n      {\n        \"id\": 78,\n        \"value\": \"Синий склад\"\n      }\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2017,7 +2017,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"modal\",\n  \"trigger_id\": \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  \"private_metadata\": \"{\\\"timeoff_id\\\":4378}\",\n  \"callback_id\": \"timeoff_request_form\",\n  \"view\": {\n    \"title\": \"Уведомление об отпуске\",\n    \"close_text\": \"Закрыть\",\n    \"submit_text\": \"Отправить заявку\",\n    \"blocks\": [\n      {\n        \"type\": \"header\",\n        \"text\": \"Основная информация\"\n      },\n      {\n        \"type\": \"plain_text\",\n        \"text\": \"Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе.\"\n      },\n      {\n        \"type\": \"markdown\",\n        \"text\": \"Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)\"\n      },\n      {\n        \"type\": \"divider\"\n      },\n      {\n        \"type\": \"input\",\n        \"name\": \"info\",\n        \"label\": \"Описание отпуска\",\n        \"placeholder\": \"Куда собираетесь и что будете делать\",\n        \"multiline\": true,\n        \"initial_value\": \"Начальный текст\",\n        \"min_length\": 10,\n        \"max_length\": 500,\n        \"required\": true,\n        \"hint\": \"Возможно вам подскаджут, какие места лучше посетить\"\n      },\n      {\n        \"type\": \"select\",\n        \"name\": \"team\",\n        \"label\": \"Выберите команду\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"selected\": true\n          }\n        ],\n        \"hint\": \"Выберите одну из команд\"\n      },\n      {\n        \"type\": \"radio\",\n        \"name\": \"accessibility\",\n        \"label\": \"Доступность\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"checked\": true\n          }\n        ],\n        \"required\": true,\n        \"hint\": \"Если вы не планируете выходить на связь, то выберите вариант Ничего\"\n      },\n      {\n        \"type\": \"checkbox\",\n        \"name\": \"newsletters\",\n        \"label\": \"Рассылки\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"checked\": true\n          }\n        ],\n        \"hint\": \"Выберите интересующие вас рассылки\"\n      },\n      {\n        \"type\": \"date\",\n        \"name\": \"date_start\",\n        \"label\": \"Дата начала отпуска\",\n        \"initial_date\": \"2025-07-01\",\n        \"required\": true,\n        \"hint\": \"Укажите дату начала отпуска\"\n      },\n      {\n        \"type\": \"time\",\n        \"name\": \"newsletter_time\",\n        \"label\": \"Время рассылки\",\n        \"initial_time\": \"11:00\",\n        \"hint\": \"Укажите, в какое время присылать выбранные рассылки\"\n      },\n      {\n        \"type\": \"file_input\",\n        \"name\": \"request_doc\",\n        \"label\": \"Заявление\",\n        \"filetypes\": [\n          \"pdf\",\n          \"jpg\",\n          \"png\"\n        ],\n        \"max_files\": 1,\n        \"required\": true,\n        \"hint\": \"Загрузите заполненное заявление с электронной подписью (в формате pdf, jpg или png)\"\n      }\n    ]\n  }\n}",
+              "raw": "{\n  \"type\": \"modal\",\n  \"trigger_id\": \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  \"private_metadata\": \"{\\\"timeoff_id\\\":4378}\",\n  \"callback_id\": \"timeoff_request_form\",\n  \"view\": {\n    \"title\": \"Уведомление об отпуске\",\n    \"close_text\": \"Закрыть\",\n    \"submit_text\": \"Отправить заявку\",\n    \"blocks\": [\n      {\n        \"type\": \"header\",\n        \"text\": \"Основная информация\"\n      },\n      {\n        \"type\": \"plain_text\",\n        \"text\": \"Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе.\"\n      },\n      {\n        \"type\": \"markdown\",\n        \"text\": \"Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://example.com/timeoff)\"\n      },\n      {\n        \"type\": \"divider\"\n      },\n      {\n        \"type\": \"input\",\n        \"name\": \"info\",\n        \"label\": \"Описание отпуска\",\n        \"placeholder\": \"Куда собираетесь и что будете делать\",\n        \"multiline\": true,\n        \"initial_value\": \"Начальный текст\",\n        \"min_length\": 10,\n        \"max_length\": 500,\n        \"required\": true,\n        \"hint\": \"Возможно вам подскаджут, какие места лучше посетить\"\n      },\n      {\n        \"type\": \"select\",\n        \"name\": \"team\",\n        \"label\": \"Выберите команду\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"selected\": true\n          }\n        ],\n        \"hint\": \"Выберите одну из команд\"\n      },\n      {\n        \"type\": \"radio\",\n        \"name\": \"accessibility\",\n        \"label\": \"Доступность\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"checked\": true\n          }\n        ],\n        \"required\": true,\n        \"hint\": \"Если вы не планируете выходить на связь, то выберите вариант Ничего\"\n      },\n      {\n        \"type\": \"checkbox\",\n        \"name\": \"newsletters\",\n        \"label\": \"Рассылки\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"checked\": true\n          }\n        ],\n        \"hint\": \"Выберите интересующие вас рассылки\"\n      },\n      {\n        \"type\": \"date\",\n        \"name\": \"date_start\",\n        \"label\": \"Дата начала отпуска\",\n        \"initial_date\": \"2025-07-01\",\n        \"required\": true,\n        \"hint\": \"Укажите дату начала отпуска\"\n      },\n      {\n        \"type\": \"time\",\n        \"name\": \"newsletter_time\",\n        \"label\": \"Время рассылки\",\n        \"initial_time\": \"11:00\",\n        \"hint\": \"Укажите, в какое время присылать выбранные рассылки\"\n      },\n      {\n        \"type\": \"file_input\",\n        \"name\": \"request_doc\",\n        \"label\": \"Заявление\",\n        \"filetypes\": [\n          \"pdf\",\n          \"jpg\",\n          \"png\"\n        ],\n        \"max_files\": 1,\n        \"required\": true,\n        \"hint\": \"Загрузите заполненное заявление с электронной подписью (в формате pdf, jpg или png)\"\n      }\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2108,7 +2108,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"webhook\": {\n    \"outgoing_url\": \"https://www.website.com/tasks/new\"\n  }\n}",
+              "raw": "{\n  \"webhook\": {\n    \"outgoing_url\": \"https://example.com/tasks/new\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2154,7 +2154,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://www.website.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"trigger_on\": \"commands\",\n    \"commands\": [\n      \"/task\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ]\n  },\n  \"oauth_client\": {\n    \"confidential\": true,\n    \"redirect_uris\": [\n      \"https://example.com/oauth/callback\"\n    ],\n    \"scopes\": [\n      \"messages:read\",\n      \"messages:create\"\n    ]\n  }\n}",
+              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://example.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"trigger_on\": \"commands\",\n    \"commands\": [\n      \"/task\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ]\n  },\n  \"oauth_client\": {\n    \"confidential\": true,\n    \"redirect_uris\": [\n      \"https://example.com/oauth/callback\"\n    ],\n    \"scopes\": [\n      \"messages:read\",\n      \"messages:create\"\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2214,7 +2214,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://www.website.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"commands\": [\n      \"/task\",\n      \"/help\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ],\n    \"template\": \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    \"challenge_key\": \"challenge\",\n    \"can_edit\": [\n      \"admin\"\n    ],\n    \"single_chat\": false,\n    \"kind\": \"simple\",\n    \"unfurl_domains\": [\n      \"example.com\"\n    ]\n  },\n  \"oauth_client\": {\n    \"confidential\": true,\n    \"redirect_uris\": [\n      \"https://example.com/oauth/callback\"\n    ],\n    \"scopes\": [\n      \"messages:read\",\n      \"messages:create\"\n    ]\n  },\n  \"promo\": {\n    \"description\": \"Собирает сводку по задачам Jira и присылает её в чат\",\n    \"published\": true,\n    \"promo_images\": [\n      \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png\"\n    ]\n  }\n}",
+              "raw": "{\n  \"webhook\": {\n    \"name\": \"Бот задач\",\n    \"nickname\": \"tasks_bot\",\n    \"outgoing_url\": \"https://example.com/tasks/new\",\n    \"events\": [\n      \"message_new\"\n    ],\n    \"trigger_on\": \"commands\",\n    \"commands\": [\n      \"/task\",\n      \"/help\"\n    ],\n    \"scopes\": [\n      \"messages:create\"\n    ],\n    \"template\": \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    \"template_engine\": \"liquid\",\n    \"challenge_key\": \"challenge\",\n    \"link_preview_enabled\": true,\n    \"ignore_self_messages\": false,\n    \"events_history_enabled\": false,\n    \"who_can_add\": \"creator\",\n    \"can_edit\": [\n      \"admin\"\n    ],\n    \"single_chat\": false,\n    \"kind\": \"simple\",\n    \"unfurl_domains\": [\n      \"example.com\"\n    ]\n  },\n  \"oauth_client\": {\n    \"confidential\": true,\n    \"redirect_uris\": [\n      \"https://example.com/oauth/callback\"\n    ],\n    \"scopes\": [\n      \"messages:read\",\n      \"messages:create\"\n    ]\n  },\n  \"promo\": {\n    \"description\": \"Собирает сводку по задачам Jira и присылает её в чат\",\n    \"published\": true,\n    \"promo_images\": [\n      \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png\"\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2579,7 +2579,7 @@
           }
         },
         {
-          "name": "Удаление события",
+          "name": "Удаление события истории",
           "request": {
             "method": "DELETE",
             "header": [],

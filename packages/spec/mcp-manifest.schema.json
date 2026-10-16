@@ -14,6 +14,10 @@
     "response_format",
     "refusals",
     "compact_projections",
+    "single_read_omit",
+    "authors",
+    "web_links",
+    "compat_address",
     "files",
     "tools",
     "service_tools",
@@ -29,15 +33,11 @@
     "generated_from": {
       "type": "object",
       "required": [
-        "spec",
         "digest"
       ],
       "additionalProperties": false,
-      "description": "Which spec produced this file. The digest is content, not a timestamp, so the same spec always produces the same manifest.",
+      "description": "A digest of the manifest content: everything in the file but this field, whichever input it came from — the spec, its translation, the rules or the prose. Equal digests mean equal manifests, and any change to what the manifest says changes the digest.",
       "properties": {
-        "spec": {
-          "type": "string"
-        },
         "digest": {
           "type": "string",
           "pattern": "^[0-9a-f]{16}$"
@@ -62,17 +62,41 @@
           "type": "string"
         },
         "icons": {
-          "type": "array"
+          "type": "array",
+          "description": "Icons of the server, as the protocol's Implementation describes them: images that exist on the documentation site.",
+          "items": {
+            "type": "object",
+            "required": [
+              "src"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "src": {
+                "type": "string",
+                "pattern": "^https://"
+              },
+              "mimeType": {
+                "type": "string"
+              },
+              "sizes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "instructions": {
       "type": "string",
-      "description": "The always-on block a model reads before its first call. Carries {placeholders} the server fills when a connection opens."
+      "description": "The always-on block a model reads before its first call. Carries {placeholders} the server fills in every response that carries the instructions. Its head — the catalogue of tools, who the caller is and what day it is, then the rules on trust, secrets, authorship and asking — fits within 2048 characters with the placeholders filled, the most a widely used client keeps; the rest follows for clients that keep it all."
     },
     "instruction_placeholders": {
       "type": "object",
-      "description": "What each placeholder in the instructions stands for. They belong to the caller and to the day, so the server fills them per connection: the date has to be known before the first call, and nothing else is in front of the model then.",
+      "description": "What each placeholder in the instructions stands for, ending with an example in «…». They belong to the caller, to the day and to the installation, so the server fills them in every response that carries the instructions (the result of initialize or of server/discover), from the token of that request: the date has to be known before the first call, and nothing else is in front of the model then. The caller carries the kind of token and, for a personal token, the role. web_links carries {app_host} too.",
       "additionalProperties": {
         "type": "string"
       }
@@ -81,26 +105,48 @@
       "type": "object",
       "required": [
         "scope",
-        "ttl_ms"
+        "ttl_ms",
+        "discover"
       ],
       "additionalProperties": false,
-      "description": "Listings are personal — what a token may see decides what comes back — so nothing here may be cached on a shared intermediary.",
+      "description": "Listings and instructions are personal — what a token may see decides what comes back, and the instructions carry the caller and the day — so nothing here may be cached on a shared intermediary.",
       "properties": {
         "scope": {
-          "const": "private"
+          "const": "private",
+          "description": "The cacheScope every list result carries."
         },
         "ttl_ms": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "The ttlMs every list result carries: how long a client may keep a listing of tools for one token before asking again."
+        },
+        "discover": {
+          "type": "string",
+          "description": "How the answer of server/discover, which carries the filled instructions, is cached."
         }
       }
     },
     "response_format": {
       "type": "object",
-      "description": "How a tool answers: the rules live here rather than in the server, so results do not differ per handler. Most entries are one line of text; the shape of the text half is a list of lines, and the cut of a long result carries its budget alongside the notice.",
+      "description": "How a tool answers: the rules live here rather than in the server, so results do not differ per handler. Most entries are one line of text, with a template in «…» where the server writes exact words; the shape of the text half is a list of lines, and the cut of a long result carries its budget beside its rule and notices. Which values of an answer are text of other people, each tool lists itself (tool.untrusted).",
       "required": [
-        "shape",
-        "truncation"
+        "structured_content",
+        "untrusted_wrapper",
+        "footer",
+        "own_items",
+        "pagination_footer",
+        "empty_result",
+        "card_note",
+        "errors",
+        "argument_reading",
+        "invalid_arguments",
+        "signature",
+        "rate_limit",
+        "redirect",
+        "binary_body",
+        "compat",
+        "truncation",
+        "shape"
       ],
       "properties": {
         "shape": {
@@ -113,7 +159,9 @@
           "type": "object",
           "required": [
             "max_tokens",
-            "notice"
+            "rule",
+            "list_notice",
+            "text_notice"
           ],
           "additionalProperties": false,
           "properties": {
@@ -121,8 +169,17 @@
               "type": "integer",
               "minimum": 1
             },
-            "notice": {
-              "type": "string"
+            "rule": {
+              "type": "string",
+              "description": "When and how a result is cut."
+            },
+            "list_notice": {
+              "type": "string",
+              "description": "What a list cut between records says. The page under it is the one the server asked for again with the smaller limit, so the cursor in its footer goes on right after the last record shown."
+            },
+            "text_notice": {
+              "type": "string",
+              "description": "What any other text cut where the budget ends says."
             }
           }
         }
@@ -133,14 +190,14 @@
     },
     "refusals": {
       "type": "object",
-      "description": "What an agent should do when a call is refused, by code.",
+      "description": "What an agent should do when a call is refused, by HTTP status. Every status from 400 up that an operation of a tool declares has a line, and every line answers such a status; a code a line names in backticks is a code of the spec.",
       "additionalProperties": {
         "type": "string"
       }
     },
     "compact_projections": {
       "type": "object",
-      "description": "The fields a compact card of each entity carries: the default for every read, full on request. A write answers with the whole record.",
+      "description": "The card of each entity that has one. A list or a search of such an entity cuts each record to its card unless view is full; a read of one record answers whole, apart from what single_read_omit names, and a write answers with the whole record. A name keeps that field. A dotted name keeps that part of a nested object, of every item where the object is a list; a field or a parent that is null or absent stays as it is, so thread.id keeps thread: null. The cut record still fits the tool's outputSchema.",
       "additionalProperties": {
         "type": "array",
         "items": {
@@ -148,14 +205,98 @@
         }
       }
     },
+    "single_read_omit": {
+      "type": "object",
+      "description": "Fields a read of one record keeps out of its default answer, by entity: secrets that act as a bot, and the like. The argument whose effect is omission names the entity; view: full returns these fields too. Dotted names and null parents follow compact_projections. An entity named nowhere here is read whole.",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "authors": {
+      "type": "object",
+      "description": "Who wrote a record, by entity, for response_format.own_items: the record whose author is the caller is marked «(you)». An entity named nowhere here has no author. The author is compared with the caller's id as text, since some ids are strings.",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "field"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "The field holding the author, a dotted name as in compact_projections."
+          },
+          "prefer": {
+            "type": "string",
+            "description": "A field that is the author instead whenever it holds a value: the author of the original of a forwarded message."
+          },
+          "when": {
+            "type": "object",
+            "required": [
+              "field",
+              "equals"
+            ],
+            "additionalProperties": false,
+            "description": "field names the author only in records where this other field has this value.",
+            "properties": {
+              "field": {
+                "type": "string"
+              },
+              "equals": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "web_links": {
+      "type": "object",
+      "description": "Links into the web app for an item the API answers without one, by kind: response_format.compat answers every item with a link. {app_host} is filled as in instruction_placeholders, the other placeholders from the record. A message carries url in the API, which is used as it is.",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^https://\\{app_host\\}/"
+      }
+    },
+    "compat_address": {
+      "type": "object",
+      "required": [
+        "path_suffix",
+        "serves",
+        "authorization"
+      ],
+      "additionalProperties": false,
+      "description": "Where the compatibility pair (service tools with compat: true) is served: the same server at its own address, the address of the main endpoint with path_suffix appended. A listing has to stay the same per connection and may differ only by authorization, and a client's description of itself is no ground for behaving differently; another address is another server, so a client that needs the pair is connected there.",
+      "properties": {
+        "path_suffix": {
+          "type": "string",
+          "pattern": "^/[a-z]+$",
+          "description": "Appended to the path of the main endpoint: /mcp becomes /mcp/compat."
+        },
+        "serves": {
+          "type": "string",
+          "description": "What a listing at that address holds."
+        },
+        "authorization": {
+          "type": "string",
+          "description": "How a token is checked at that address. A separate server URL is a separate protected resource with its own metadata, so this says which authorization server, scopes and tokens it shares with the main address."
+        }
+      }
+    },
     "files": {
       "type": "object",
-      "description": "Where the bytes of a file the model hands over come from, and the ceiling for a file handed back. A file argument takes its contents in base64 or a link; the server downloads a link itself, so these limits are the server’s to keep.",
+      "description": "Files crossing the server. A file argument takes its contents in base64 or a link, and the server downloads a link itself, so the limits on links are the server’s to keep. A file handed back to the model (response_format.binary_body) is held to what the strictest client takes, not to what the server can download.",
       "required": [
         "url_schemes",
         "public_hosts_only",
         "max_redirects",
-        "max_bytes"
+        "max_download_bytes",
+        "max_return_bytes",
+        "max_image_bytes"
       ],
       "additionalProperties": false,
       "properties": {
@@ -175,10 +316,20 @@
           "minimum": 0,
           "description": "How many redirects a download follows, each one checked like the link itself."
         },
-        "max_bytes": {
+        "max_download_bytes": {
           "type": "integer",
           "minimum": 1,
-          "description": "The largest file downloaded from a link, and the largest one handed back to the model."
+          "description": "The largest file downloaded from a link a model passes."
+        },
+        "max_return_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The largest file handed back to the model as a blob resource, counted as its base64 text like max_image_bytes; a larger one is named, not passed."
+        },
+        "max_image_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The largest image handed back as an image block, counted as its base64 text: the smallest limit a client sets for one image."
         }
       }
     },
@@ -191,14 +342,14 @@
     },
     "service_tools": {
       "type": "array",
-      "description": "Tools that are not one API operation: the generic search and fetch pair one platform requires, which call several operations each.",
+      "description": "Tools that are not one API operation: the generic search and fetch pair one platform requires, which call several operations each and are served at compat_address.",
       "items": {
         "$ref": "#/$defs/serviceTool"
       }
     },
     "audiences": {
       "type": "object",
-      "description": "What each kind of token receives. The protocol allows a different listing per authorization, and a tool whose scope a role never gets is not shown at all.",
+      "description": "What each kind of token receives at the main address. The protocol allows a different listing per authorization, and a tool a role is always refused — its scope never given to the role, or the operation itself closed to it (tool.roles) — is not shown at all. The compatibility pair is not listed here: compat_address says where it is served.",
       "additionalProperties": {
         "$ref": "#/$defs/audience"
       }
@@ -207,13 +358,13 @@
   "$defs": {
     "jsonSchema": {
       "type": "object",
-      "description": "A JSON Schema without composition keywords: several clients silently drop a tool whose schema carries $ref, allOf, oneOf, anyOf or not.",
+      "description": "A JSON Schema without composition keywords: several clients silently drop a tool whose schema carries $ref, allOf, oneOf, anyOf or not. This schema checks the root; the build checks every depth. The root is an object, as the protocol requires of a tool's arguments and of its structured answer. A format is a hint to the model: the server reads a value by its type (response_format.argument_reading).",
       "required": [
         "type"
       ],
       "properties": {
         "type": {
-          "type": "string"
+          "const": "object"
         },
         "properties": {
           "type": "object"
@@ -252,6 +403,11 @@
           {
             "required": [
               "anyOf"
+            ]
+          },
+          {
+            "required": [
+              "not"
             ]
           }
         ]
@@ -296,7 +452,8 @@
         "description",
         "annotations",
         "inputSchema",
-        "request"
+        "request",
+        "untrusted"
       ],
       "additionalProperties": false,
       "properties": {
@@ -345,10 +502,11 @@
               "bot"
             ]
           },
-          "description": "Read from x-scope-roles of the spec."
+          "description": "Who the operation answers to: x-requirements.roles of the operation where it answers to fewer roles than its scope is given to, otherwise x-scope-roles of its scope. Never written by hand."
         },
         "bot_token_only": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Only a bot token reaches the operation: roles is bot alone."
         },
         "description": {
           "type": "string",
@@ -365,11 +523,18 @@
         },
         "outputSchema": {
           "$ref": "#/$defs/jsonSchema",
-          "description": "The structured half of an answer: the response body as the API gives it, data and, for a list, meta. A read cuts each record to its compact card unless view is full; a write answers with the whole record. Nothing in it is required, so both fit."
+          "description": "The structured half of an answer: the response body as the API gives it, data and, for a list, meta — except for a file and a redirect, whose structured half response_format describes (binary_body, redirect). A list cuts each record to its compact card unless view is full, a single read keeps out what single_read_omit names, and a write answers with the whole record. Nothing in it is required, so all of them fit. It declares types and the null a field may be, and no enum, limit or format other than date-time: the values a field takes are in its description, and a value the API adds later is no reason for a client to refuse the answer."
         },
         "entity": {
           "type": "string",
-          "description": "The entity a successful answer carries, as compact_projections names it. The runtime needs it to know which card to cut a read to."
+          "description": "The entity a successful answer carries. A list or a search of an entity with a card in compact_projections takes a view argument whose effect is projection; a single read of an entity in single_read_omit takes one whose effect is omission. Any other answer is returned whole. own_items reads the author of the entity from authors."
+        },
+        "untrusted": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Paths of the structured half whose values other people wrote: the text half puts each such value inside response_format.untrusted_wrapper. A path names fields by dots; [] steps into every item of a list, {} into every value of a map, and a path ending at an object covers everything in it — data[].content, data[].files[].name, data[].details. Generated closed by default: every string without a closed set of values or a format, and every object of free keys, unless the rules declare that Pachca makes it (identifiers, cursors, links to Pachca, secrets, codes). The build fails on text of an answer that is in neither group."
         }
       }
     },
@@ -417,9 +582,11 @@
                 "type": "string",
                 "description": "The dotted place in the body: message.content."
               },
-              "explode": {
-                "type": "boolean",
-                "description": "false: a list in the query goes as one comma-separated value."
+              "array": {
+                "enum": [
+                  "brackets"
+                ],
+                "description": "query, for a list: how it travels, read from x-query-array of the parameter. brackets: each value goes as its own name[]=value pair. Every list in the query carries it."
               },
               "operations": {
                 "type": "array",
@@ -441,7 +608,7 @@
                   "file",
                   "key"
                 ],
-                "description": "upload: what each item becomes once uploaded — file, the file object with its key and size filled in; key, the key alone, where the API takes a list of keys. An item gives its contents in base64 or a link the server downloads first (files)."
+                "description": "upload: what each item becomes once uploaded — file, the file object with its key and size filled in; key, the key alone, where the API takes a list of keys. An item gives its contents in base64 or a link the server downloads first (files), or the key of a file already in Pachca: an item that carries key goes as it is, without an upload, and an id is meaningful only beside a key."
               },
               "effect": {
                 "description": "server: what the runtime does with an argument the API has no field for. Declared rather than known by name, so a new argument of this kind is a new version of the package and not a change in the backend.",
@@ -459,7 +626,24 @@
                       },
                       "entity": {
                         "type": "string",
-                        "description": "Cut each record of the answer to the card of this entity unless the full view is asked for."
+                        "description": "Cut each record of a list to the card of this entity unless the full view is asked for."
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "entity"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "const": "omission"
+                      },
+                      "entity": {
+                        "type": "string",
+                        "description": "Keep the fields single_read_omit names for this entity out of the record unless the full view is asked for."
                       }
                     }
                   },
@@ -494,7 +678,7 @@
                         "items": {
                           "type": "string"
                         },
-                        "description": "The scopes that operation needs beyond the tool's own."
+                        "description": "The scopes that operation needs beyond the tool's own. Passing the argument without them is refused before the tool's own call, so the call never succeeds and leaves this operation undone."
                       }
                     }
                   },
@@ -533,7 +717,8 @@
         "scopes",
         "description",
         "annotations",
-        "inputSchema"
+        "inputSchema",
+        "untrusted"
       ],
       "additionalProperties": false,
       "properties": {
@@ -559,7 +744,7 @@
         },
         "compat": {
           "type": "boolean",
-          "description": "Served only to clients that need it: the generic search and fetch pair exists because one platform's research mode requires that exact shape."
+          "description": "Served at compat_address only, and never in a listing of audiences: the generic search and fetch pair exists because one platform's research mode requires that exact shape."
         },
         "operations": {
           "type": "array",
@@ -584,7 +769,14 @@
         },
         "outputSchema": {
           "$ref": "#/$defs/jsonSchema",
-          "description": "The answer a platform prescribes, when it prescribes one: the compatibility pair answers in this shape (response_format.compat)."
+          "description": "The answer a platform prescribes, when it prescribes one: the compatibility pair answers in this shape (response_format.compat), and its descriptions say what id and url look like."
+        },
+        "untrusted": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "As tool.untrusted, for the answer of the service tool."
         }
       }
     },

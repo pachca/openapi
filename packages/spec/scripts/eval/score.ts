@@ -2,15 +2,19 @@
  * Score the runs of one set: did the agent get there, and with the right values.
  *
  * A run passes a scenario when some call it made is one the scenario accepts and
- * carries the thing the request named. Not the first call: which call does the
+ * carries the thing the request named — a write, where the scenario accepts one. Not the first call: which call does the
  * work is a property of the shape of the set rather than of the agent — where a
  * set has a tool for the action, the first call does it; where a request names a
  * chat by its name, the call that finds it comes first and the action second.
  * Grading the first call measures the shape and calls it a difference in
  * behaviour.
  *
- * Values are compared, never argument names: two sets spell the same identifier
- * differently and neither is wrong.
+ * A value is held against the argument of that name and no other: a message id
+ * passed as `parent_message_id` is not the thread the request wanted to write
+ * to, and the call that passes it answers in the wrong place. An argument left
+ * out counts as its default, the way the server reads it; a dotted name reaches
+ * inside an argument, through a list item by item; a list matches whatever its
+ * order.
  *
  * Every pass in `out/` is scored on its own and the passes are summarised
  * together, because a single pass says less than it looks: two passes of the
@@ -26,7 +30,7 @@ import path from 'node:path';
 interface Call {
   name: string;
   arguments: Record<string, unknown>;
-  /** Why the server refused the arguments; a refused call did nothing. */
+  /** Why the server refused the call — its arguments, or the status and code the API answered; a refused call did nothing. */
   refused?: string;
 }
 interface Answer {
@@ -35,17 +39,15 @@ interface Answer {
   text?: string;
 }
 
-type Scalar = string | number | boolean;
-
 interface Expectation {
   accept: string[];
-  /** What the reply has to contain, for a request answered from what the agent already holds. */
+  /** What the reply has to contain; `|` inside an entry separates words any of which will do. */
   says?: string[];
   args: {
     must?: Record<string, unknown>;
     present?: string[];
     absent?: string[];
-    either?: Array<Record<string, Scalar>>;
+    either?: Array<Record<string, unknown>>;
     onWeekday?: Record<string, string>;
   } | null;
 }
@@ -58,15 +60,28 @@ if (!runDir) {
 
 const answerKey = JSON.parse(fs.readFileSync(path.join(runDir, 'key.json'), 'utf8')) as {
   writes: string[];
+  /** Per tool, what the server reads an argument left out as. */
+  defaults?: Record<string, Record<string, unknown>>;
   scenarios: Record<string, Expectation>;
 };
 const key = answerKey.scenarios;
 const writes = new Set(answerKey.writes);
+const defaults = answerKey.defaults ?? {};
 
-const same = (expected: unknown, actual: unknown): boolean =>
-  typeof expected === 'string' && typeof actual === 'string'
-    ? expected.trim().toLowerCase() === actual.trim().toLowerCase()
-    : JSON.stringify(expected) === JSON.stringify(actual);
+const same = (expected: unknown, actual: unknown): boolean => {
+  if (typeof expected === 'string' && typeof actual === 'string') {
+    return expected.trim().toLowerCase() === actual.trim().toLowerCase();
+  }
+  if (Array.isArray(expected) && Array.isArray(actual)) {
+    const order = (list: unknown[]) => list.map((item) => JSON.stringify(item)).sort();
+    return JSON.stringify(order(expected)) === JSON.stringify(order(actual));
+  }
+  return JSON.stringify(expected) === JSON.stringify(actual);
+};
+
+/** Whether the reply says it: `|` inside an entry separates words any of which will do. */
+const says = (text: string, entry: string): boolean =>
+  entry.split('|').some((word) => text.toLowerCase().includes(word.trim().toLowerCase()));
 
 /**
  * The zone of the person the fake workspace acts for. A moment is judged on
@@ -97,27 +112,50 @@ function landsOn(value: unknown, weekday: string): boolean {
   return midnight && local(new Date(at.getTime() - 1000)).weekday!.toLowerCase() === weekday;
 }
 
-/** Every value the call passed, so a value can be matched whatever it is called. */
-const values = (args: Record<string, unknown>): unknown[] => Object.values(args);
+/**
+ * The values a call holds at a place: `entity_id`, `schedule.start_date`, or
+ * `files.key`, which a list answers with the value of each item. An argument
+ * left out is its default, unless the question is whether it was passed at all.
+ */
+function valuesAt(call: Call, place: string, asRead = true): unknown[] {
+  const [head, ...rest] = place.split('.');
+  const given = call.arguments[head!] ?? (asRead ? defaults[call.name]?.[head!] : undefined);
+  let found: unknown[] = given === undefined ? [] : [given];
+  for (const step of rest) {
+    found = found
+      .flatMap((value) => (Array.isArray(value) ? value : [value]))
+      .map((value) => (value && typeof value === 'object' ? (value as Record<string, unknown>)[step] : undefined))
+      .filter((value) => value !== undefined);
+  }
+  return found;
+}
+
+const empty = (value: unknown): boolean =>
+  value === '' ||
+  value === null ||
+  (Array.isArray(value) && value.length === 0) ||
+  (typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length === 0);
+
+const holds = (call: Call, place: string, expected: unknown): boolean =>
+  valuesAt(call, place).some((value) => same(expected, value));
 
 function argsOk(call: Call, spec: NonNullable<Expectation['args']>): boolean {
-  const carries = (expected: Scalar): boolean => values(call.arguments).some((v) => same(expected, v));
   for (const [name, expected] of Object.entries(spec.must ?? {})) {
-    if (!same(expected, call.arguments[name]) && !carries(expected as Scalar)) return false;
+    if (!holds(call, name, expected)) return false;
   }
+  // Present means a value: an empty string, list or object passes nothing.
   for (const name of spec.present ?? []) {
-    if (call.arguments[name] === undefined || call.arguments[name] === '') return false;
+    if (!valuesAt(call, name).some((value) => !empty(value))) return false;
   }
+  // Absent means not passed: a null says «none» in so many words and invents nothing.
   for (const name of spec.absent ?? []) {
-    if (call.arguments[name] !== undefined) return false;
+    if (valuesAt(call, name, false).some((value) => value !== null)) return false;
   }
   for (const [name, weekday] of Object.entries(spec.onWeekday ?? {})) {
-    if (!landsOn(call.arguments[name], weekday)) return false;
+    if (!valuesAt(call, name).some((value) => landsOn(value, weekday))) return false;
   }
   if (spec.either?.length) {
-    const any = spec.either.some((one) =>
-      Object.entries(one).every(([name, expected]) => same(expected, call.arguments[name]) || carries(expected)),
-    );
+    const any = spec.either.some((one) => Object.entries(one).every(([name, expected]) => holds(call, name, expected)));
     if (!any) return false;
   }
   return true;
@@ -135,7 +173,12 @@ function scorePass(answers: Answer[]): { tool: [number, number]; args: [number, 
     // reaches the answer nor counts as a write. What it shows is on the next call.
     const done = calls.filter((c) => !c.refused);
     const refused = calls.filter((c) => c.refused);
-    const reached = done.filter((c) => expectation.accept.includes(c.name));
+    // Where the key wants a write, the write is what gets there: the reads it
+    // accepts beside it are the way to it. A run that read the message and
+    // asked «заменить?», or found Petya and stopped, did not do what was asked,
+    // and a read that takes the same argument as the write must not pass for it.
+    const wantsWrite = expectation.accept.some((name) => writes.has(name));
+    const reached = done.filter((c) => expectation.accept.includes(c.name) && (!wantsWrite || writes.has(c.name)));
     // «There is no tool for this» and «ask for what only the person has» are
     // failed by acting, not by looking. Reading around first is what a person
     // does; the failure is the write — in a measured run one agent removed
@@ -150,7 +193,7 @@ function scorePass(answers: Answer[]): { tool: [number, number]; args: [number, 
     const unasked = acted.filter((c) => !expectation.accept.includes(c.name));
     // An answer is judged by what it says: an id read off the instructions is as
     // good as one read off a card, and a mistyped one is wrong either way.
-    const unsaid = (expectation.says ?? []).filter((s) => !(answer.text ?? '').toLowerCase().includes(s.toLowerCase()));
+    const unsaid = (expectation.says ?? []).filter((entry) => !says(answer.text ?? '', entry));
     const ok = holdsBack
       ? acted.length === 0 && unsaid.length === 0
       : calls.length > 0 && reached.length > 0 && unasked.length === 0 && unsaid.length === 0;
@@ -168,7 +211,8 @@ function scorePass(answers: Answer[]): { tool: [number, number]; args: [number, 
           : reached.length && unsaid.length
             ? `в ответе нет ${unsaid.join(', ')}`
             : `${made}${turnedDown}`;
-      misses.push(`${answer.id}: ${why} (ждали ${expectation.accept.join(' или ')})`);
+      const awaited = wantsWrite ? expectation.accept.filter((name) => writes.has(name)) : expectation.accept;
+      misses.push(`${answer.id}: ${why} (ждали ${awaited.join(' или ')})`);
     }
     if (ok && expectation.args && reached.length) {
       const good = reached.some((c) => argsOk(c, expectation.args!));

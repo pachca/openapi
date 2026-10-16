@@ -354,7 +354,7 @@ export const draftFields: INodeProperties[] = [
 					],
 				}],
 				default: [],
-				description: 'Files to attach, no more than ten. The array you pass replaces the previous set: an empty one removes all the attachments, and to keep a file that is already attached, pass it with its `ID`. Without this field the attachments stay as they were.',
+				description: 'Files to attach, no more than ten. The array you pass replaces the previous set: an empty one removes all the attachments, and to keep a file that is already attached, pass it with its ID. Without this field the attachments stay as they were.',
 			},
 			{
 				displayName: 'Parent Message ID',

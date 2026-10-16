@@ -108,12 +108,12 @@ await client.close()
 | `client.group_tags.update_tag()` | [Редактирование тега](/api/group-tags/update) |
 | `client.group_tags.delete_tag()` | [Удаление тега](/api/group-tags/delete) |
 | `client.members.add_tags()` | [Добавление тегов](/api/members/add-group-tags) |
-| `client.members.add_members()` | [Добавление пользователей](/api/members/add) |
+| `client.members.add_members()` | [Добавление участников](/api/members/add) |
 | `client.members.list_members()` | [Список участников чата](/api/members/list) |
-| `client.members.update_member_role()` | [Редактирование роли](/api/members/update) |
+| `client.members.update_member_role()` | [Редактирование роли участника](/api/members/update) |
 | `client.members.leave_chat()` | [Выход из чата](/api/members/leave) |
-| `client.members.remove_tag()` | [Исключение тега](/api/members/remove-group-tag) |
-| `client.members.remove_member()` | [Исключение пользователя](/api/members/remove) |
+| `client.members.remove_tag()` | [Исключение тега из чата](/api/members/remove-group-tag) |
+| `client.members.remove_member()` | [Исключение участника](/api/members/remove) |
 | `client.threads.create_standalone_thread()` | [Новый самостоятельный тред](/api/threads/create) |
 | `client.threads.create_thread()` | [Новый тред](/api/threads/add) |
 | `client.threads.list_threads()` | [Список тредов](/api/threads/list) |
@@ -163,7 +163,7 @@ await client.close()
 | `client.bots.update_bot_token()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.bots.delete_bot()` | [Удаление бота](/api/bots/delete) |
 | `client.bots.delete_bot_avatar()` | [Удаление аватара бота](/api/bots/remove-avatar) |
-| `client.bots.delete_webhook_event()` | [Удаление события](/api/bots/remove-event) |
+| `client.bots.delete_webhook_event()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.bots.delete_bot_token()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |
 | `client.custom_properties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |

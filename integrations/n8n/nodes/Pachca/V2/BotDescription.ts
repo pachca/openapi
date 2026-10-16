@@ -136,7 +136,7 @@ export const botFields: INodeProperties[] = [
 		default: "",
 		description: 'Outgoing webhook URL. An empty string disables the webhook.',
 		displayOptions: { show: { resource: ['bot'], operation: ['updateWebhook'] } },
-		placeholder: 'https://www.website.com/tasks/new',
+		placeholder: 'https://example.com/tasks/new',
 	},
 	{
 		displayName: 'Requires owner, admin, user roles',
@@ -295,7 +295,7 @@ export const botFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				description: 'Outgoing webhook URL',
-				placeholder: 'https://www.website.com/tasks/new',
+				placeholder: 'https://example.com/tasks/new',
 			},
 			{
 				displayName: 'Promo',
@@ -334,7 +334,7 @@ export const botFields: INodeProperties[] = [
 				options: [{ name: 'Liquid', value: 'liquid', description: 'Liquid — conditions, loops, and filters' },
 { name: 'Mustache', value: 'mustache', description: 'Mustache — simple substitution without logic' }],
 				default: "liquid",
-				description: 'Template engine used to process the incoming webhook template',
+				description: 'Template engine used to process the incoming webhook template. Without this field a bot gets `liquid`, and an empty bot (`empty: true`) gets `mustache`.',
 			},
 			{
 				displayName: 'Trigger On',
@@ -430,7 +430,7 @@ export const botFields: INodeProperties[] = [
 				name: 'canEdit',
 				type: 'string',
 				default: "",
-				description: 'Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit.',
+				description: 'Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty array means only the creator can edit. The list is replaced as a whole.',
 				placeholder: 'admin',
 			},
 			{
@@ -454,7 +454,7 @@ export const botFields: INodeProperties[] = [
 				name: 'events',
 				type: 'string',
 				default: "",
-				description: 'Events the bot is subscribed to',
+				description: 'Events the bot is subscribed to. The list is replaced as a whole.',
 				placeholder: 'message_new',
 			},
 			{
@@ -485,7 +485,7 @@ export const botFields: INodeProperties[] = [
 				displayName: 'Link Preview Enabled',
 				name: 'linkPreviewEnabled',
 				type: 'boolean',
-				default: true,
+				default: false,
 				description: 'Whether to show link previews in incoming webhook messages',
 			},
 			{
@@ -517,7 +517,7 @@ export const botFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				description: 'Outgoing webhook URL',
-				placeholder: 'https://www.website.com/tasks/new',
+				placeholder: 'https://example.com/tasks/new',
 			},
 			{
 				displayName: 'Promo',
@@ -573,7 +573,7 @@ export const botFields: INodeProperties[] = [
 				name: 'unfurlDomains',
 				type: 'string',
 				default: "",
-				description: 'Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event.',
+				description: 'Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event. The list is replaced as a whole.',
 				placeholder: 'example.com',
 			},
 			{
@@ -927,6 +927,13 @@ export const botFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['bot'], operation: ['getAllCompanyBots'] } },
 	},
 	{
+		displayName: 'Requires bot roles',
+		name: 'botGetAllEventsNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: { show: { resource: ['bot'], operation: ['getAllEvents'] } },
+	},
+	{
 		displayName: 'Return All',
 		name: 'returnAll',
 		type: 'boolean',
@@ -959,5 +966,12 @@ export const botFields: INodeProperties[] = [
 		default: '',
 		displayOptions: { show: { resource: ['bot'], operation: ['removeEvents'] } },
 		description: 'Event ID',
+	},
+	{
+		displayName: 'Requires bot roles',
+		name: 'botRemoveEventsNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: { show: { resource: ['bot'], operation: ['removeEvents'] } },
 	},
 ];

@@ -24,6 +24,16 @@ const CLI_SRC = path.join(ROOT, 'packages', 'cli', 'src');
 const COMMANDS_DIR = path.join(CLI_SRC, 'commands');
 const DATA_DIR = path.join(CLI_SRC, 'data');
 
+/**
+ * The spec links into the docs site by path (`[Buttons](/guides/buttons)`). A
+ * terminal has no site to resolve such a path against, so flag help carries the
+ * whole address.
+ */
+const DOCS_SITE = 'https://dev.pachca.com';
+function absoluteLinks<T extends string | undefined>(text: T): T {
+  return (text?.replace(/\]\((\/(?:guides|api)\/[^)\s]*)\)/g, `](${DOCS_SITE}$1)`) ?? text) as T;
+}
+
 // URL generation — single source of truth from apps/docs/lib/openapi/mapper.ts
 import { generateUrlFromOperation, generateTitle } from '../../../apps/docs/lib/openapi/mapper.js';
 
@@ -198,7 +208,7 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
           type: getSchemaType(propSchema),
           format: propSchema.format,
           required: innerRequired.has(name),
-          description: propSchema.description,
+          description: absoluteLinks(propSchema.description),
           enum: propSchema.enum,
           maxLength: propSchema.maxLength,
           maximum: propSchema.maximum,
@@ -214,7 +224,7 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
           type: getSchemaType(propSchema),
           format: propSchema.format,
           required: requiredFields.has(key),
-          description: propSchema.description,
+          description: absoluteLinks(propSchema.description),
           enum: propSchema.enum,
           maxLength: propSchema.maxLength,
           maximum: propSchema.maximum,
@@ -235,7 +245,7 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
       type: getSchemaType(propSchema),
       format: propSchema.format,
       required: requiredFields.has(name),
-      description: propSchema.description,
+      description: absoluteLinks(propSchema.description),
       enum: propSchema.enum,
       maxLength: propSchema.maxLength,
       maximum: propSchema.maximum,
@@ -336,7 +346,7 @@ function generateCommandCode(p: CommandGenParams): string {
     if (param.required) {
       requiredQueryFlags.push({
         flagName: toKebabCase(param.name),
-        description: param.description || param.name,
+        description: absoluteLinks(param.description) || param.name,
         type: getOclifFlagType(param.schema),
       });
     }
@@ -378,7 +388,7 @@ function generateCommandCode(p: CommandGenParams): string {
   // Build args
   const argsCode = p.pathParams.map((param) => {
     const argName = param.name.replace(/[{}]/g, '');
-    let desc = param.description || 'ID';
+    let desc = absoluteLinks(param.description) || 'ID';
     // Add related list command hint for ID args
     if (argName === 'id') {
       const relatedCmd = ENTITY_HINTS[p.section];
@@ -405,7 +415,7 @@ function generateCommandCode(p: CommandGenParams): string {
         argType: getOclifArgType(param.schema),
       };
       argsCode.push(`    ${param.name}: Args.${shortcutArg.argType}({
-      description: ${JSON.stringify(param.description || param.name)},
+      description: ${JSON.stringify(absoluteLinks(param.description) || param.name)},
       required: false,
     }),`);
     }
@@ -449,7 +459,7 @@ function generateCommandCode(p: CommandGenParams): string {
     const extrasStr = extras.length > 0 ? '\n' + extras.join('\n') : '';
     const arrayHint = resolvedParamSchema.type === 'array' ? ' (через запятую)' : '';
     queryFlagLines.push(`    '${flagName}': Flags.${flagType}({
-      description: ${JSON.stringify(param.description || param.name)}${arrayHint ? ` + ${JSON.stringify(arrayHint)}` : ''},${extrasStr}
+      description: ${JSON.stringify(absoluteLinks(param.description) || param.name)}${arrayHint ? ` + ${JSON.stringify(arrayHint)}` : ''},${extrasStr}
     }),`);
   }
 
@@ -664,7 +674,14 @@ function generateCommandCode(p: CommandGenParams): string {
     const isArrayParam = getSchemaType(resolveAllOf(param.schema)) === 'array';
     const flagRef = flagName !== param.name ? `flags['${flagName}']` : `flags['${param.name}']`;
     const value = isArrayParam ? `${flagRef}?.split(',')` : flagRef;
-    const key = flagName !== param.name ? `'${param.name}'` : param.name;
+    // A list travels as the spec declares it (`x-query-array`): `brackets` is the
+    // `name[]` key, each value its own pair. A list without the declaration has
+    // no form the API reads, so the build stops rather than guess one.
+    if (isArrayParam && param['x-query-array'] !== 'brackets') {
+      throw new Error(`${p.endpoint.method} ${p.endpoint.path}: query list ${param.name} has no x-query-array`);
+    }
+    const wireName = isArrayParam ? `${param.name}[]` : param.name;
+    const key = isArrayParam || flagName !== param.name ? `'${wireName}'` : wireName;
     queryEntries.push(`      ${key}: ${value},`);
   }
   if (p.hasPagination) {

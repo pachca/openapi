@@ -175,7 +175,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -234,7 +236,7 @@ paths:
                   webhook:
                     name: Tasks bot
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -270,7 +272,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -320,7 +324,7 @@ paths:
                   webhook:
                     name: Tasks bot
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -361,7 +365,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -378,7 +384,7 @@ paths:
               $ref: '#/components/schemas/BotWebhookSelfUpdateRequest'
             example:
               webhook:
-                outgoing_url: https://www.website.com/tasks/new
+                outgoing_url: https://example.com/tasks/new
       x-requirements:
         scope: bot_self:webhook:write
   /bots:
@@ -463,7 +469,7 @@ paths:
                     webhook:
                       name: Tasks bot
                       nickname: tasks_bot
-                      outgoing_url: https://www.website.com/tasks/new
+                      outgoing_url: https://example.com/tasks/new
                       events:
                         - message_new
                       trigger_on: commands
@@ -522,7 +528,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Bots
       x-paginated: true
@@ -545,9 +553,9 @@ paths:
 
 
         A newly created bot does not write anywhere yet. It writes into a conversation and a channel only as a member,
-        and it is added like an employee — with the [Add users](POST /chats/{id}/members) method, passing the bot's
-        `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not require
-        membership.
+        and it is added like an employee — with the [Add chat members](POST /chats/{id}/members) method, passing the
+        bot's `id`. In a channel the bot receives the editor role. Direct messages and threads in public chats do not
+        require membership.
 
 
         The bot's incoming webhook sends a message at once to every conversation and channel the bot belongs to, so it
@@ -589,7 +597,7 @@ paths:
                   webhook:
                     name: Tasks bot
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -653,7 +661,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Bots
       requestBody:
@@ -666,7 +676,7 @@ paths:
               webhook:
                 name: Tasks bot
                 nickname: tasks_bot
-                outgoing_url: https://www.website.com/tasks/new
+                outgoing_url: https://example.com/tasks/new
                 events:
                   - message_new
                 trigger_on: commands
@@ -743,7 +753,7 @@ paths:
                   webhook:
                     name: Tasks bot
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -802,7 +812,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -823,10 +835,10 @@ paths:
 
 
         The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation
-        error. Commands and scopes are replaced by the passed list as a whole. Scopes apply to the bot's main token —
-        the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need
-        to reissue it. The scopes of an additional token are changed by [Edit bot token](PUT
-        /bots/{id}/tokens/{token_id}).
+        error. Commands, scopes, events, link unfurling domains, and edit roles are replaced by the passed list as a
+        whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and
+        take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by
+        [Edit bot token](PUT /bots/{id}/tokens/{token_id}).
 
 
         The `oauth_client` object enables authorization on behalf of an employee or changes its settings, and `null`
@@ -964,7 +976,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -1187,7 +1201,7 @@ paths:
                   webhook:
                     name: Tasks bot
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -1244,7 +1258,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -1309,7 +1325,7 @@ paths:
                   webhook:
                     name: Tasks bot
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -1966,10 +1982,10 @@ paths:
         A multi-guest cannot create chats, as in the interface: the method responds `403` to them.
 
 
-        To create a one-on-one direct message with a user, use the [New message](POST /messages) method. To discuss a
+        To create a 1-on-1 direct message with a user, use the [New message](POST /messages) method. To discuss a
         particular message there is no need to create a chat — a thread is started under it with the [New thread](POST
         /messages/{id}/thread) method. A conversation on a single topic needs no permanent place either: there is the
-        [New standalone thread](POST /threads) method for it.
+        [New unattached thread](POST /threads) method for it.
 
 
         Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who
@@ -2199,7 +2215,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -2219,6 +2237,10 @@ paths:
 
 
         Order an export of the workspace messages for a period. The archive is prepared in the background.
+
+
+        The export period is at most 45 days, with `chat_ids` up to 366 days, and `end_at` cannot be earlier than
+        `start_at`. A different period responds `422` with the `invalid_date_range` code.
 
 
         With the `Prefer: return=representation` header the response comes with status `202` and the export identifier
@@ -2322,9 +2344,9 @@ paths:
         download link for the file. Most HTTP clients automatically follow the redirect and download the file.
 
 
-        The link is valid for 5 minutes, so download the archive right after the request. The archive itself is stored
-        for 7 days, and only the employee who ordered the export can download it — the method refuses another employee
-        holding the same permission.
+        The link is valid for 5 minutes, so use it right away. The archive itself is stored for 7 days, and only the
+        employee who ordered the export can download it — the method refuses another employee holding the same
+        permission.
 
 
         While the archive is being assembled, the method responds `404` with the `export_file_not_found` code.
@@ -2332,7 +2354,9 @@ paths:
         - name: id
           in: path
           required: true
-          description: Export ID
+          description: >-
+            Export ID: `export_id` from the webhook about the finished archive, or the number from a link of the form
+            `/full_exports/{id}` in the notification in Pachca
           schema:
             type: integer
             format: int32
@@ -2360,10 +2384,8 @@ paths:
             application/json:
               schema:
                 anyOf:
+                  - $ref: '#/components/schemas/ApiError'
                   - $ref: '#/components/schemas/OAuthError'
-                  - anyOf:
-                      - $ref: '#/components/schemas/ApiError'
-                      - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2434,7 +2456,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2460,8 +2484,8 @@ paths:
         any employee of the workspace, even a non-member.
 
 
-        The membership is not changed by this method; for that there are [Add users](POST /chats/{id}/members) and
-        [Remove user](DELETE /chats/{id}/members/{user_id}).
+        The membership is not changed by this method; for that there are [Add chat members](POST /chats/{id}/members)
+        and [Remove chat member](DELETE /chats/{id}/members/{user_id}).
       parameters:
         - name: id
           in: path
@@ -2508,7 +2532,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2571,12 +2597,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2753,8 +2787,9 @@ paths:
 
 
         A tag can be linked by a member of a private conversation and by any employee of the workspace in an open chat,
-        while taking it off is available only to the chat owner or a chat administrator through the [Remove tag](DELETE
-        /chats/{id}/group_tags/{tag_id}) method.
+        while taking it off is available only to the chat owner or a chat administrator through the [Remove tag from
+        chat](DELETE /chats/{id}/group_tags/{tag_id}) method. For a guest and a multi-guest the method responds `403`,
+        whatever their role in the chat.
       parameters:
         - name: id
           in: path
@@ -2780,12 +2815,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2808,11 +2851,16 @@ paths:
               $ref: '#/components/schemas/AddTagsRequest'
       x-requirements:
         scope: chat_members:write
+        roles:
+          - owner
+          - admin
+          - user
+          - bot
   /chats/{id}/group_tags/{tag_id}:
     delete:
       operationId: ChatMemberOperations_removeTag
       description: >-
-        Remove tag
+        Remove tag from chat
 
 
         Unlinks a tag from a conversation or a channel and takes out the employees who were held there by it alone.
@@ -2853,12 +2901,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2882,12 +2938,13 @@ paths:
 
 
         You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is
-        taken off the employee or off the chat. You cannot leave a direct message either, but you can leave an archived
-        chat.
+        taken off the employee or off the chat. For a guest and a multi-guest the method also responds `403`, whatever
+        their role in the chat. You cannot leave a direct message, the response is `400` with the `personal_chat` code.
+        You can leave an archived chat, though.
 
 
         You can come back to a public chat on your own, and to a private one only if one of the members adds you back.
-        Another employee is taken out by [Remove user](DELETE /chats/{id}/members/{user_id}).
+        Another employee is taken out by [Remove chat member](DELETE /chats/{id}/members/{user_id}).
       parameters:
         - name: id
           in: path
@@ -2913,12 +2970,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -3024,12 +3089,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -3050,7 +3123,7 @@ paths:
     post:
       operationId: ChatMemberOperations_addMembers
       description: >-
-        Add users
+        Add chat members
 
 
         Adds employees and bots to a conversation, a channel, or a thread. A bot is added the same way as an employee:
@@ -3058,10 +3131,14 @@ paths:
         member — and only after that can it write there.
 
 
+        Members are added by employees and bots. For a guest and a multi-guest the method responds `403`, as in the
+        interface, whatever their role in the chat.
+
+
         The role in the chat is assigned at the moment of adding: the workspace owner and an administrator become chat
-        administrators, everyone else becomes an ordinary member. After that it is not recalculated by itself, and
-        promoting an employee in the workspace changes nothing where they already belong. To change a role, use the
-        [Edit role](PUT /chats/{id}/members/{user_id}) method.
+        administrators, everyone else becomes an ordinary member. After that the chat role is not recalculated by
+        itself: promoting an employee in the workspace does not change their role where they already belong. To change a
+        role, use the [Change member role](PUT /chats/{id}/members/{user_id}) method.
 
 
         Those who already belong to the chat are silently skipped by the method, and this is not treated as an error. An
@@ -3107,6 +3184,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3143,11 +3226,16 @@ paths:
               $ref: '#/components/schemas/AddMembersRequest'
       x-requirements:
         scope: chat_members:write
+        roles:
+          - owner
+          - admin
+          - user
+          - bot
   /chats/{id}/members/{user_id}:
     delete:
       operationId: ChatMemberOperations_removeMember
       description: >-
-        Remove user
+        Remove chat member
 
 
         Removes an employee or a bot from a conversation, a channel, or a thread. A thread is addressed by its
@@ -3157,72 +3245,11 @@ paths:
 
         An employee held in the chat by a linked tag cannot be removed with this method: the response will be
         successful, but the employee will stay in the chat. Take the tag off them with [Edit employee](PUT /users/{id})
-        or unlink the tag from the chat with the [Remove tag](DELETE /chats/{id}/group_tags/{tag_id}) method.
+        or unlink the tag from the chat with the [Remove tag from chat](DELETE /chats/{id}/group_tags/{tag_id}) method.
 
 
-        If the user is the chat owner, they cannot be removed. They can only leave the chat on their own using the
-        [Leave chat](DELETE /chats/{id}/leave) method.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Chat ID
-          schema:
-            type: integer
-            format: int32
-            example: 334
-          example: 334
-        - name: user_id
-          in: path
-          required: true
-          description: User ID
-          schema:
-            type: integer
-            format: int32
-            example: 186
-          example: 186
-      responses:
-        '204':
-          description: 'There is no content to send for this request, but the headers may be useful. '
-        '401':
-          description: Access is unauthorized.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '403':
-          description: Access is forbidden.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '404':
-          description: The server cannot find the requested resource.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-      tags:
-        - Members
-      x-requirements:
-        scope: chat_members:write
-    put:
-      operationId: ChatMemberOperations_updateMemberRole
-      description: >-
-        Edit role
-
-
-        Changes the role of a member of a conversation or a channel. A role in a chat is not tied to a role in the
-        workspace: a regular employee can be a chat administrator, and a promotion in the workspace does not change
-        roles in chats.
-
-
-        The `editor` role exists only in channels. You cannot change your own role, nor the role of someone who is not
-        in the chat: the method responds with an error. Setting the same role again is treated as an error, not as a
-        repeat.
-
-
-        The chat owner's role cannot be changed. They always have Admin privileges in the chat.
+        The chat owner cannot be removed: the method responds `400` with the `cannot_kick_owner` code. The owner can
+        only leave the chat on their own, with the [Leave chat](DELETE /chats/{id}/leave) method.
       parameters:
         - name: id
           in: path
@@ -3257,12 +3284,98 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Members
+      x-requirements:
+        scope: chat_members:write
+    put:
+      operationId: ChatMemberOperations_updateMemberRole
+      description: >-
+        Change member role
+
+
+        Changes the role of a member of a conversation or a channel. A role in a chat is not tied to a role in the
+        workspace: a regular employee can be a chat administrator, and a promotion in the workspace does not change
+        roles in chats.
+
+
+        The `editor` role exists only in channels. You cannot change your own role, nor the role of someone who is not
+        in the chat, nor the chat owner's: the owner always has Admin privileges in the chat. Setting the same role
+        again is treated as an error, not as a repeat.
+
+
+        A refusal comes with status `400`, and the code names the reason: `not_applicable` — the `editor` role outside a
+        channel, `self_update` — your own role, `owner_protected` — the chat owner's role, `already_assigned` — the
+        member already has this role, `forbidden` — you may not change this role. For an employee who is not in the chat
+        the method responds `404`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Chat ID
+          schema:
+            type: integer
+            format: int32
+            example: 334
+          example: 334
+        - name: user_id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            format: int32
+            example: 186
+          example: 186
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -3316,12 +3429,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -3348,14 +3469,15 @@ paths:
         method responds with success and does nothing.
 
 
-        Works in conversations, channels, direct chats and threads the token owner belongs to. A hidden direct chat
-        appears in the list again. For a chat the token owner is not in, and for a message from another chat, the method
-        responds `404`.
+        Works in conversations, channels, direct chats and threads the token owner belongs to: a thread is passed by its
+        `chat_id`. A hidden direct chat appears in the list again. A public chat the token owner is not in and a message
+        from another chat respond `404`. A private chat, an inaccessible thread, and a chat of another workspace respond
+        `403`.
       parameters:
         - name: id
           in: path
           required: true
-          description: Chat or thread ID
+          description: Chat ID (conversation, channel, direct chat, or thread chat)
           schema:
             type: integer
             format: int32
@@ -3486,7 +3608,7 @@ paths:
                     webhook:
                       name: Tasks bot
                       nickname: tasks_bot
-                      outgoing_url: https://www.website.com/tasks/new
+                      outgoing_url: https://example.com/tasks/new
                       events:
                         - message_new
                       trigger_on: commands
@@ -3725,7 +3847,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -3777,9 +3901,10 @@ paths:
         Puts a draft into a conversation, a thread, or a direct message. In the Pachca interface it shows up in that
         chat's input box, where an employee finishes it and sends it. A scheduled message is created by this same
         method: with the `schedule` field the draft goes out by itself at the appointed time, without it the draft
-        simply lies there. The method itself sends nothing — sending is [New message](POST /messages). Sending a message
-        does not remove the draft: the Pachca app clears it by itself, while through the API it is removed with the
-        [Delete draft](DELETE /drafts/{id}) method — otherwise the text stays in the input box.
+        simply lies there. The method itself sends nothing: a draft is sent with [New message](POST /messages), passing
+        it the draft's `content` and `parent_message_id`, and `key`, `name` and `file_type` of each file in `files`.
+        Sending a message does not remove the draft: the Pachca app clears it by itself, while through the API it is
+        removed with the [Delete draft](DELETE /drafts/{id}) method — otherwise the text stays in the input box.
 
 
         A draft is visible only to its author — neither the other party nor a workspace administrator sees it. A chat
@@ -4200,13 +4325,13 @@ paths:
     get:
       operationId: FileOperations_downloadFile
       description: >-
-        Downloading a file
+        Download file
 
 
-        Returns the file itself, not a link to it. It is needed for attachments that have no direct storage link: their
-        `url` field holds the address of this method, and it can only be opened with a token. Encrypted files and files
-        sent from the workspace secure perimeter are served this way — both settings are covered in [Encryption and the
-        secure perimeter](/guides/data-protection).
+        Returns the file itself, not a link to it, and works for any attachment the token can see. For attachments
+        without a direct storage link it is the only way: their `url` field holds the address of this method, and it can
+        only be opened with a token. Encrypted files and files sent from the workspace secure perimeter are served this
+        way — both settings are covered in [Encryption and the secure perimeter](/guides/data-protection).
 
 
         A refusal comes as `403` with the `confidential_download_denied` code. The address being checked is the one the
@@ -4225,7 +4350,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: File ID as it comes in the attachment object
+          description: File ID from the attachment's `id` field
           schema:
             type: integer
             format: int32
@@ -4303,8 +4428,9 @@ paths:
         tags](POST /chats/{id}/group_tags).
 
 
-        The name is unique within the workspace, case-insensitively, and cannot contain `@`. Tags can be created by the
-        workspace owner and an administrator; the method is not available to a bot.
+        The name is unique within the workspace, case-insensitively, and cannot contain `@`. A name already taken
+        responds `400` with the `taken` code, and `409` comes only if the same tag was created at the same moment as the
+        request. Tags can be created by the workspace owner and an administrator; the method is not available to a bot.
       parameters: []
       responses:
         '201':
@@ -4342,7 +4468,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '409':
           description: The request conflicts with the current state of the server.
           content:
@@ -4388,12 +4516,15 @@ paths:
           description: Array of tag names to filter by
           schema:
             $ref: '#/components/schemas/TagNamesFilter'
+            x-query-array: brackets
             example:
               - Design
               - Product
+          x-query-array: brackets
           example:
             - Design
             - Product
+          explode: false
         - name: limit
           in: query
           required: false
@@ -4457,7 +4588,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -4525,7 +4658,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4546,8 +4681,9 @@ paths:
         it, only under the new name.
 
 
-        The name is unique within the workspace, case-insensitively, and cannot contain `@`. Tags can be renamed by the
-        workspace owner and an administrator; the method is not available to a bot.
+        The name is unique within the workspace, case-insensitively, and cannot contain `@`. A name already taken
+        responds `400` with the `taken` code, and `409` comes only if the same name was set at the same moment as the
+        request. Tags can be renamed by the workspace owner and an administrator; the method is not available to a bot.
       parameters:
         - name: id
           in: path
@@ -4594,7 +4730,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4634,7 +4772,8 @@ paths:
 
         Nobody leaves the chats because of this. The employees the tag brought into a conversation or a channel stay
         there as ordinary members, and their membership is no longer maintained by the tag. To take them out of a
-        particular chat, use [Remove tag](DELETE /chats/{id}/group_tags/{tag_id}) before deleting the tag itself.
+        particular chat, use [Remove tag from chat](DELETE /chats/{id}/group_tags/{tag_id}) before deleting the tag
+        itself.
 
 
         Tags can be deleted by the workspace owner and an administrator; the method is not available to a bot.
@@ -4668,7 +4807,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4769,7 +4910,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4787,6 +4930,11 @@ paths:
       x-paginated: true
       x-requirements:
         scope: group_tags:read
+        roles:
+          - owner
+          - admin
+          - user
+          - bot
   /messages:
     post:
       operationId: MessageOperations_createMessage
@@ -4804,15 +4952,15 @@ paths:
 
         There is no need to create the direct chat for this: it appears by itself if there has been no prior
         conversation between you. Only one direct chat can exist between two users. Your own ID writes to the chat with
-        yourself, where notes to oneself go.
+        yourself, where notes to oneself go. With a bot token that is a chat with the bot alone: no employee sees it.
 
 
         Unlike a direct chat, a thread does not appear by itself: if a message has no thread yet, it is first created
         with the [New thread](POST /messages/{id}/thread) method.
 
 
-        To reply to a specific message with a quote, pass its ID in `parent_message_id`. This works in any chat,
-        including a thread: the reply is sent to the same chat or thread where the original message is.
+        A channel subscriber writes only in the threads of its messages, and in the channel itself the method answers
+        them `403`. Who can write where is in the [Permissions and roles](/guides/permissions) section.
 
 
         The text in the `content` field is parsed as markdown: bold, italic, strikethrough, inline code, code block, and
@@ -4820,27 +4968,6 @@ paths:
         with a hash and a space becomes bold. Attach a table, a checklist, or a diagram as an `.md` file: Pachca shows
         such a file formatted, and if it is the only document in the message, its beginning is visible right in the
         chat. The details are in the [Text formatting](/guides/markdown) section.
-
-
-        `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without
-        spaces the employees of that tag. In a thread a mention also works as an invitation: a mentioned employee who is
-        not in the thread is added to it by Pachca and gains access to the thread and its parent message. To prevent
-        that, pass `skip_invite_mentions: true`. In a conversation or a channel a mention adds nobody, and the parameter
-        changes nothing there. A name without `@`, and a mention inside inline code or a code block, are not mentions.
-
-
-        Buttons can be shown under the message text — the `buttons` array, where each nested array is a row. They only
-        work on messages sent with a bot token: a click on a button with `data` arrives as a `button_click` event to
-        that same bot, carrying a `trigger_id` — there are 3 seconds to open a form with it, the [Open view](POST
-        /views/open) method. A button with `url` simply follows the link and creates no event. Details are in the
-        [Buttons](/guides/buttons) section.
-
-
-        A bot can sign a message with someone else's name and avatar: `display_name` and `display_avatar_url` change the
-        sender for this message only. The **Bot** badge stays, and the sender's profile still shows the real bot. This
-        is how the original author is shown when a conversation is carried over from another system. With a personal
-        token these fields are not available and the response is `403`. Details are in the [Bots](/guides/bots/overview)
-        section.
 
 
         No more than 10 files can be attached to a message. A link preview is built only if `link_preview` is passed at
@@ -4887,7 +5014,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '422':
           description: Client error
           content:
@@ -5029,7 +5164,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5103,7 +5240,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5176,7 +5315,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5245,7 +5386,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5275,7 +5418,7 @@ paths:
 
         The domain of the link must be in the bot's list of allowed ones, and the link itself must be present in the
         message text, otherwise the method responds with an error. The response comes back empty even when no preview
-        has been applied: the result is checked by reading the message again.
+        has been applied. The message object does not carry previews: they are seen only in the app.
       parameters:
         - name: id
           in: path
@@ -5301,12 +5444,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5329,6 +5480,8 @@ paths:
               $ref: '#/components/schemas/LinkPreviewsRequest'
       x-requirements:
         scope: link_previews:write
+        roles:
+          - bot
   /messages/{id}/pin:
     post:
       operationId: MessageOperations_pinMessage
@@ -5360,12 +5513,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5380,6 +5541,10 @@ paths:
                 $ref: '#/components/schemas/ApiError'
         '422':
           description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
       tags:
         - Messages
       x-requirements:
@@ -5411,12 +5576,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5444,6 +5617,9 @@ paths:
 
         If there is a thread under the message, the employee who reacted is subscribed to it as well and starts
         receiving the new messages of the thread.
+
+
+        A message the token cannot see responds `404` with the `not_found` code, as a nonexistent one does.
 
 
         **Reaction limits:**
@@ -5483,12 +5659,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5567,12 +5751,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5659,12 +5851,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5771,7 +5971,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5799,7 +6001,7 @@ paths:
         Creates a thread under a message — a place to discuss what has been said without cluttering the chat feed. A
         thread is a separate access: an employee can be invited into it without opening the chat itself to them, and
         they will see only the thread and the parent message. If a topic rather than a message needs discussing, start a
-        thread with the [New standalone thread](POST /threads) method.
+        thread with the [New unattached thread](POST /threads) method.
 
 
         A new thread immediately includes the employee who created it, the author of the message, everyone who added
@@ -5817,7 +6019,7 @@ paths:
         If a thread has already been created for the message, the response will return information about the previously
         created thread. But to simply read a thread, the method is not needed: the ID of an existing thread arrives in
         the `thread` field of the message itself. A thread cannot be created under a message that itself lies in a
-        thread: there are no nested threads in Pachca.
+        thread: there are no nested threads in Pachca, and the method responds `400` with the `thread_message` code.
       parameters:
         - name: id
           in: path
@@ -5841,18 +6043,32 @@ paths:
                   data:
                     $ref: '#/components/schemas/Thread'
                 description: Response wrapper with data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -6019,8 +6235,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
       tags:
         - OAuth
+      x-requirements:
+        scope: null
   /profile:
     get:
       operationId: ProfileOperations_getProfile
@@ -6031,8 +6255,8 @@ paths:
         The profile of the token owner. For a bot token this is the bot's own profile.
 
 
-        The time zone from here is needed by anyone who turns human deadlines into dates: "by 3 p.m." and "by Friday"
-        are counted in the employee's time zone, not in UTC. An empty value means the workspace time zone.
+        The time zone from here is needed by anyone who turns human deadlines into dates: "by 15:00" and "by Friday" are
+        counted in the employee's time zone, not in UTC. An empty value means the workspace time zone.
 
 
         Someone else's profile is returned by [Employee info](GET /users/{id}).
@@ -6061,7 +6285,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Profile
       x-requirements:
@@ -6210,12 +6436,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Profile
       x-requirements:
@@ -6243,8 +6477,8 @@ paths:
         /profile).
 
 
-        The emoji is required, and there must be exactly one, with no text around it. The caption is required and no
-        longer than 50 characters.
+        The emoji and the caption are required only when there is no status yet. The emoji must be exactly one, with no
+        text around it, and the caption no longer than 50 characters.
       parameters: []
       responses:
         '200':
@@ -6271,12 +6505,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -6311,12 +6553,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Profile
       x-requirements:
@@ -6346,7 +6596,7 @@ paths:
         - name: query
           in: query
           required: false
-          description: Search query text
+          description: Search query text. A query longer than 500 characters is cut off.
           schema:
             type: string
             example: Development
@@ -6470,7 +6720,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '504':
           description: Server error
           content:
@@ -6508,7 +6760,9 @@ paths:
         - name: query
           in: query
           required: false
-          description: Search query text
+          description: >-
+            Search query text. Without it, messages are picked by the filters alone. A query longer than 500 characters
+            is cut off.
           schema:
             type: string
             example: t-shirts
@@ -6583,9 +6837,11 @@ paths:
             items:
               type: integer
               format: int32
+            x-query-array: brackets
             example:
               - 198
               - 334
+          x-query-array: brackets
           example:
             - 198
             - 334
@@ -6599,9 +6855,11 @@ paths:
             items:
               type: integer
               format: int32
+            x-query-array: brackets
             example:
               - 12
               - 185
+          x-query-array: brackets
           example:
             - 12
             - 185
@@ -6656,7 +6914,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '504':
           description: Server error
           content:
@@ -6693,7 +6953,7 @@ paths:
         - name: query
           in: query
           required: false
-          description: Search query text
+          description: Search query text. A query longer than 500 characters is cut off.
           schema:
             type: string
             example: Oleg
@@ -6766,9 +7026,11 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/UserRole'
+            x-query-array: brackets
             example:
               - admin
               - user
+          x-query-array: brackets
           example:
             - admin
             - user
@@ -6814,7 +7076,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '504':
           description: Server error
           content:
@@ -6895,7 +7159,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -6954,9 +7220,11 @@ paths:
               type: integer
               format: int32
             maxItems: 100
+            x-query-array: brackets
             example:
               - 198
               - 334
+          x-query-array: brackets
           example:
             - 198
             - 334
@@ -6971,9 +7239,11 @@ paths:
               type: integer
               format: int32
             maxItems: 100
+            x-query-array: brackets
             example:
               - 12
               - 185
+          x-query-array: brackets
           example:
             - 12
             - 185
@@ -7051,7 +7321,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Tasks
       x-paginated: true
@@ -7111,7 +7383,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -7188,7 +7462,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -7256,7 +7532,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -7271,17 +7549,17 @@ paths:
     post:
       operationId: ThreadOperations_createStandaloneThread
       description: >-
-        New standalone thread
+        New unattached thread
 
 
         Creates a thread that is not linked to anything: a place for a conversation, a dialogue with an agent, or a call
         that needs no chat of its own. Any employees can be gathered in it.
 
 
-        No request body is required. The thread creator becomes its only member, and the `message_id` and
-        `message_chat_id` fields in the response are returned as `null`. The easiest way to add members to the thread is
-        a mention: `@nickname` or `@tag` at the start or the end of the message text. The [Add users](POST
-        /chats/{id}/members) method by the `chat_id` of the thread works too.
+        The thread creator becomes its only member, and the `message_id` and `message_chat_id` fields in the response
+        are returned as `null`. The easiest way to add members to the thread is a mention: `@nickname` or `@tag` at the
+        start or the end of the message text. The [Add chat members](POST /chats/{id}/members) method by the `chat_id`
+        of the thread works too.
 
 
         A thread has no name, so send the first message into it right away — that is how employees will understand what
@@ -7326,7 +7604,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Threads
       x-requirements:
@@ -7442,7 +7722,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -7514,7 +7796,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -7568,7 +7852,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Files
       x-requirements:
@@ -7646,7 +7932,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '409':
           description: The request conflicts with the current state of the server.
           content:
@@ -7680,8 +7968,7 @@ paths:
 
 
         Bots in the workspace are employees too and come in the common list with `bot: true`. But they are excluded from
-        the results for `query`: to find a bot by name, page through the list without a search query or use [List
-        bots](GET /bots).
+        the results for `query`: to find a bot by name, page through the list without a search query.
 
 
         For a multi-guest the method returns not the whole workspace but the people they see in the interface:
@@ -7774,7 +8061,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -7854,7 +8143,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -7899,15 +8190,9 @@ paths:
 
 
         For a bot the method changes only the name (`first_name`), nickname, tags and `suspended`, and skips the other
-        fields in the request. A bot's nickname must end with `_bot` and be unique in the workspace, otherwise the
-        method responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. A bot's existing
-        nickname is checked only when it is changed. Only a bot that any employee can add to a chat and that has the
-        "Restrict to a single chat" setting turned off can be added to a tag. If the bot does not meet these conditions
-        and `list_tags` contains a tag it does not have yet, the method responds `422` on the `group_tags` field and
-        changes nothing: with the `single_chat_bot_tag_denied` code when the bot is restricted to a single chat, and
-        `restricted_bot_tag_denied` when not everyone can add it to chats. More in the [Bot in
-        tags](/guides/bots/settings#bot-v-tegah) section. If the bot's settings changed during the request, the `422`
-        response comes with the `bot_changed_concurrently` code: retry the request.
+        fields in the request. Which nickname and which tags a bot can be given is said at the `nickname` and
+        `list_tags` fields. If the bot's settings changed during the request, the `422` response comes with the
+        `bot_changed_concurrently` code: retry the request.
       parameters:
         - name: id
           in: path
@@ -7954,7 +8239,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -8034,7 +8321,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -8236,12 +8525,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -8271,8 +8568,11 @@ paths:
 
 
         An expiry named in words is `expires_at`, not a part of the caption, and it is counted in the time zone of the
-        employee the status is set for. The emoji is required and there must be exactly one; the caption is required and
-        no longer than 50 characters.
+        employee the status is set for.
+
+
+        The emoji and the caption are required only when there is no status yet. The emoji must be exactly one, with no
+        text around it, and the caption no longer than 50 characters.
 
 
         Your own status is set by the [New own status](PUT /profile/status) method — it is available to all roles and to
@@ -8312,12 +8612,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -8371,12 +8679,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -8399,9 +8715,9 @@ paths:
 
 
         There is only one way to open the window — by the `trigger_id` from the button click event. One `trigger_id`
-        opens one window and lives for 3 seconds: for a bot with a webhook, from the moment Pachca delivered the click,
-        and for a bot with the [Event history](GET /webhooks/events), from the moment the click was written to it. That
-        is why the window is opened first of all, and everything else for the event is done afterwards.
+        opens one window and lives for 3 seconds. For a bot with a webhook they count from the moment Pachca delivered
+        the click, and for a bot that reads [Event history](GET /webhooks/events), from the moment the click was written
+        to the log. That is why the window is opened first of all, and everything else for the event is done afterwards.
 
 
         The filled-in form comes back as a `view_submit` event: to the outgoing webhook, and if no address is set, to
@@ -8435,7 +8751,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '410':
           description: Client error
           content:
@@ -8458,6 +8776,8 @@ paths:
               $ref: '#/components/schemas/OpenViewRequest'
       x-requirements:
         scope: views:write
+        roles:
+          - bot
   /views/{view_id}/submit_response:
     post:
       operationId: FormOperations_submitViewResponse
@@ -8467,8 +8787,8 @@ paths:
 
         Closes the form for the employee or shows them errors under the fields. The method is needed by a bot that has
         no outgoing webhook address set: such a bot has nowhere to answer the webhook, and it receives the `view_submit`
-        event from the [Event history](GET /webhooks/events). If the webhook address is set, answer the webhook directly
-        — that is simpler and does not require polling the history.
+        event through the [Event history](GET /webhooks/events) method. If the webhook address is set, answer the
+        webhook directly — that is simpler and does not require polling the history.
 
 
         The `view_id` and `submit_id` identifiers arrive in the event payload. You must respond within 5 seconds of the
@@ -8515,7 +8835,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -8550,6 +8872,8 @@ paths:
               $ref: '#/components/schemas/SubmitViewResponseRequest'
       x-requirements:
         scope: views:write
+        roles:
+          - bot
   /webhooks/events:
     get:
       operationId: BotOperations_getWebhookEvents
@@ -8571,7 +8895,7 @@ paths:
         newest to oldest, and an event identifier is a string, not a number.
 
 
-        The history does not clear itself: delete the events you have read with the [Delete event](DELETE
+        The history does not clear itself: delete the events you have read with the [Delete history event](DELETE
         /webhooks/events/{id}) method, otherwise they come again on a repeat request.
       parameters:
         - name: limit
@@ -8637,7 +8961,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -8649,11 +8975,13 @@ paths:
       x-paginated: true
       x-requirements:
         scope: webhooks:events:read
+        roles:
+          - bot
   /webhooks/events/{id}:
     delete:
       operationId: BotOperations_deleteWebhookEvent
       description: >-
-        Delete event
+        Delete history event
 
 
         Removes an event from the bot's event history. When working through the history, delete an event right after
@@ -8690,7 +9018,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -8701,6 +9031,8 @@ paths:
         - Bots
       x-requirements:
         scope: webhooks:events:delete
+        roles:
+          - bot
 security:
   - BearerAuth: []
 components:
@@ -8769,7 +9101,7 @@ components:
           format: date-time
           nullable: true
           description: >-
-            Token last used date. `null` until the token has been used at least once. Updated at most once per hour, so
+            Token last used date. `null` until the token has been used at least once. Updated at most once a minute, so
             it may lag behind.
           example: '2025-02-24T14:20:00.000Z'
       description: Access token
@@ -8783,6 +9115,7 @@ components:
           items:
             type: integer
             format: int32
+          minItems: 1
           description: Array of user IDs who will become members
           example:
             - 186
@@ -8802,6 +9135,7 @@ components:
           items:
             type: integer
             format: int32
+          minItems: 1
           description: Array of tag IDs to be added as members
           example:
             - 86
@@ -8830,12 +9164,22 @@ components:
       properties:
         key:
           type: string
-          description: Field key that caused the error
+          description: Error field key. `system` if the error does not relate to a specific field.
           example: field.name
         value:
-          type: string
+          anyOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: array
+              items: {}
+            - type: object
+              additionalProperties: {}
           nullable: true
-          description: Field value that caused the error. `null` if the error does not relate to a specific value.
+          description: >-
+            The value that caused the error, as it was passed or as it is stored: usually a string, a number or an
+            array, for example the bots' `id` for the `bot_add_denied` code, and sometimes a boolean or an object.
+            `null` if the error does not relate to a specific value.
           example: invalid_value
         message:
           type: string
@@ -8853,7 +9197,9 @@ components:
           description: >-
             Additional error data. Content depends on the error code: `{id: number}` — for custom property errors
             (property ID), `{record: {type: string, id: number}, query: string}` — for authorization errors, `{draft_id:
-            number}` — when a draft already exists in this chat. In most cases `null`.
+            number}` — when a draft already exists in this chat, `{limit: number, remaining: number, reset_at: string}`
+            — when the daily limit of invitation emails is used up (`reset_at` is when a slot frees up in the window).
+            In most cases `null`.
           example: null
       description: Detailed error information
     AuditDetailsBot:
@@ -9150,7 +9496,8 @@ components:
       description: >-
         Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created,
         user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created,
-        reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed.
+        reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed,
+        exchange_disabled.
     AuditDetailsInitiator:
       type: object
       required:
@@ -9374,7 +9721,8 @@ components:
         duration:
           type: integer
           format: int32
-          description: Call duration in seconds
+          nullable: true
+          description: Call duration in seconds. `null` if the call ended without ever starting.
         max_members_count:
           type: integer
           format: int32
@@ -9491,7 +9839,7 @@ components:
           type: string
           nullable: true
           description: Client user agent, truncated to 255 characters. `null` for events recorded without a user request.
-          example: Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0
+          example: Pachca/3.60.0 (build:15; iOS 18.5.0) Alamofire/5.0.0
       description: Audit event
     AuditEventDetailsUnion:
       anyOf:
@@ -9656,7 +10004,7 @@ components:
         image_url:
           type: string
           description: Avatar URL
-          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+          example: https://files.example.com/uploads/0001/0001/image.jpg
       description: Avatar data
     BotAccessToken:
       type: object
@@ -9723,7 +10071,7 @@ components:
           format: date-time
           nullable: true
           description: >-
-            Token last used date. `null` until the token has been used at least once. Updated at most once per hour, so
+            Token last used date. `null` until the token has been used at least once. Updated at most once a minute, so
             it may lag behind.
           example: '2025-02-24T14:20:00.000Z'
         authorized_at:
@@ -9770,7 +10118,7 @@ components:
             outgoing_url:
               type: string
               description: Outgoing webhook URL
-              example: https://www.website.com/tasks/new
+              example: https://example.com/tasks/new
             events:
               type: array
               items:
@@ -9811,9 +10159,10 @@ components:
             template_engine:
               allOf:
                 - $ref: '#/components/schemas/BotTemplateEngine'
-              description: Template engine used to process the incoming webhook template
+              description: >-
+                Template engine used to process the incoming webhook template. Without this field a bot gets `liquid`,
+                and an empty bot (`empty: true`) gets `mustache`.
               example: liquid
-              default: liquid
             challenge_key:
               type: string
               description: Verification field name for incoming webhook verification
@@ -9866,6 +10215,7 @@ components:
               type: array
               items:
                 type: string
+              maxItems: 5
               description: Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event.
               example:
                 - example.com
@@ -9915,7 +10265,7 @@ components:
           type: string
           nullable: true
           description: Bot avatar URL. `null` if no avatar is set.
-          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+          example: https://files.example.com/uploads/0001/0001/image.jpg
         creator_id:
           type: integer
           format: int32
@@ -9939,7 +10289,7 @@ components:
           description: >-
             Date and time the bot last worked (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format: a request to the
             incoming webhook or an API call with any of the bot's tokens, including employee tokens. `null` if there has
-            been none. Token use is recorded at most once an hour.
+            been none. Token use is recorded at most once a minute.
           example: '2025-05-15T14:30:00.000Z'
         webhook:
           allOf:
@@ -10083,6 +10433,7 @@ components:
             The list is replaced as a whole.
           example:
             - https://example.com/oauth/callback
+          x-replaces-set: true
         scopes:
           type: array
           items:
@@ -10094,6 +10445,7 @@ components:
           example:
             - messages:read
             - messages:create
+          x-replaces-set: true
       description: Settings of authorization on behalf of an employee
     BotPermissions:
       type: object
@@ -10150,8 +10502,7 @@ components:
         url:
           type: string
           description: Image URL
-          example: >-
-            https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png
+          example: https://files.example.com/attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png
       description: Screenshot for the bot's catalog page
     BotPromoRequest:
       type: object
@@ -10170,11 +10521,13 @@ components:
           type: array
           items:
             type: string
+          maxItems: 5
           description: >-
             Screenshots for the bot's page, up to 5: keys of uploaded images (`key` from [Get signature, key and other
             parameters](POST /uploads)). The list is replaced as a whole, the order is kept.
           example:
             - attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png
+          x-replaces-set: true
       description: The bot's catalog page
     BotResponse:
       type: object
@@ -10196,7 +10549,7 @@ components:
         id:
           type: integer
           format: int32
-          description: Bot ID
+          description: Bot ID (same as the bot's `user_id`)
           example: 1738816
         name:
           type: string
@@ -10210,7 +10563,7 @@ components:
           type: string
           nullable: true
           description: Bot avatar URL. `null` if no avatar is set.
-          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+          example: https://files.example.com/uploads/0001/0001/image.jpg
         creator_id:
           type: integer
           format: int32
@@ -10234,7 +10587,7 @@ components:
           description: >-
             Date and time the bot last worked (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format: a request to the
             incoming webhook or an API call with any of the bot's tokens, including employee tokens. `null` if there has
-            been none. Token use is recorded at most once an hour.
+            been none. Token use is recorded at most once a minute.
           example: '2025-05-15T14:30:00.000Z'
         webhook:
           allOf:
@@ -10365,7 +10718,7 @@ components:
         id:
           type: integer
           format: int32
-          description: Bot ID
+          description: Bot ID (same as the bot's `user_id`)
           example: 1738816
         oauth_client:
           type: object
@@ -10391,7 +10744,7 @@ components:
         id:
           type: integer
           format: int32
-          description: Bot ID
+          description: Bot ID (same as the bot's `user_id`)
           example: 1738816
         oauth_client:
           type: object
@@ -10443,8 +10796,8 @@ components:
         outgoing_url:
           type: string
           nullable: true
-          description: Outgoing webhook URL
-          example: https://www.website.com/tasks/new
+          description: Outgoing webhook URL. `null` if the bot has no outgoing webhook configured.
+          example: https://example.com/tasks/new
         events:
           type: array
           items:
@@ -10569,6 +10922,7 @@ components:
           example:
             - messages:create
             - chats:read
+          x-replaces-set: true
       description: Bot token update request
     BotTriggerOn:
       type: string
@@ -10600,20 +10954,20 @@ components:
             outgoing_url:
               type: string
               description: Outgoing webhook URL
-              example: https://www.website.com/tasks/new
+              example: https://example.com/tasks/new
             events:
               type: array
               items:
                 $ref: '#/components/schemas/BotEventName'
-              description: Events the bot is subscribed to
+              description: Events the bot is subscribed to. The list is replaced as a whole.
               example:
                 - message_new
+              x-replaces-set: true
             trigger_on:
               allOf:
                 - $ref: '#/components/schemas/BotTriggerOn'
               description: Outgoing webhook trigger condition
               example: commands
-              default: commands
             commands:
               type: array
               items:
@@ -10624,6 +10978,7 @@ components:
               example:
                 - /task
                 - /help
+              x-replaces-set: true
             scopes:
               type: array
               items:
@@ -10634,6 +10989,7 @@ components:
                 `400`. The service values `bot` and `all` cannot be assigned.
               example:
                 - messages:create
+              x-replaces-set: true
             template:
               type: string
               description: Template for formatting the incoming webhook
@@ -10643,7 +10999,6 @@ components:
                 - $ref: '#/components/schemas/BotTemplateEngine'
               description: Template engine used to process the incoming webhook template
               example: liquid
-              default: liquid
             challenge_key:
               type: string
               description: Verification field name for incoming webhook verification
@@ -10652,32 +11007,29 @@ components:
               type: boolean
               description: Show link previews in incoming webhook messages
               example: true
-              default: true
             ignore_self_messages:
               type: boolean
               description: Skip events about the bot's own messages and reactions
               example: false
-              default: false
             events_history_enabled:
               type: boolean
               description: Save the bot's event history for later retrieval via the event history method
               example: false
-              default: false
             who_can_add:
               allOf:
                 - $ref: '#/components/schemas/BotWhoCanAdd'
               description: Who can add the bot to chats
               example: creator
-              default: creator
             can_edit:
               type: array
               items:
                 $ref: '#/components/schemas/BotCanEdit'
               description: >-
                 Roles allowed to edit the bot settings in addition to the creator. The creator can always edit. An empty
-                array means only the creator can edit.
+                array means only the creator can edit. The list is replaced as a whole.
               example:
                 - admin
+              x-replaces-set: true
             single_chat:
               type: boolean
               description: >-
@@ -10693,9 +11045,13 @@ components:
               type: array
               items:
                 type: string
-              description: Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event.
+              maxItems: 5
+              description: >-
+                Domains whose links the bot unfurls, up to 5. They work together with the `message_link_shared` event.
+                The list is replaced as a whole.
               example:
                 - example.com
+              x-replaces-set: true
           description: Webhook parameters object of the bot to update
         oauth_client:
           type: object
@@ -10747,7 +11103,7 @@ components:
           type: string
           nullable: true
           description: Outgoing webhook URL. `null` if the bot has no outgoing webhook configured.
-          example: https://www.website.com/tasks/new
+          example: https://example.com/tasks/new
         events:
           type: array
           items:
@@ -10888,7 +11244,7 @@ components:
             outgoing_url:
               type: string
               description: Outgoing webhook URL. An empty string disables the webhook.
-              example: https://www.website.com/tasks/new
+              example: https://example.com/tasks/new
           required:
             - outgoing_url
           description: Webhook parameters object
@@ -10919,14 +11275,23 @@ components:
         url:
           type: string
           maxLength: 1024
-          description: URL that will be opened when the button is clicked
+          description: URL that will be opened when the button is clicked. A button must have exactly one of `url` and `data`.
           example: https://example.com/details
         data:
           type: string
           maxLength: 255
-          description: Data that will be sent in the outgoing webhook when the button is clicked
+          description: >-
+            Data that will be sent in the outgoing webhook when the button is clicked. A button must have exactly one of
+            `url` and `data`.
           example: awesome
       description: Button
+    ButtonRowItem:
+      type: array
+      items:
+        $ref: '#/components/schemas/Button'
+      minItems: 1
+      maxItems: 8
+      description: Button row
     ButtonWebhookPayload:
       type: object
       required:
@@ -11068,7 +11433,7 @@ components:
           type: string
           nullable: true
           description: Chat avatar link. `null` if no avatar is set.
-          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+          example: https://files.example.com/uploads/0001/0001/image.jpg
       description: Chat
     ChatActivity:
       type: string
@@ -11273,7 +11638,7 @@ components:
         id:
           type: integer
           format: int32
-          description: Bot ID
+          description: Bot ID (same as the bot's `user_id`)
           example: 1738816
         oauth_client:
           type: object
@@ -11322,7 +11687,7 @@ components:
           type: string
           nullable: true
           description: Outgoing webhook URL. `null` if the bot has no outgoing webhook configured.
-          example: https://www.website.com/tasks/new
+          example: https://example.com/tasks/new
         events:
           type: array
           items:
@@ -11465,23 +11830,25 @@ components:
         id:
           type: integer
           format: int32
-          description: Custom property ID
+          description: Property ID
           example: 1678
         name:
           type: string
           maxLength: 32
-          description: Custom property name
+          description: Property name
           example: City
         data_type:
           allOf:
             - $ref: '#/components/schemas/CustomPropertyDataType'
-          description: Custom property data type
+          description: Property type
           example: string
         value:
           type: string
           nullable: true
           maxLength: 768
-          description: Custom property value
+          description: >-
+            Value. Returns `null` if the property is not filled in. A number is returned as a string, a date in ISO 8601
+            format.
           example: Saint Petersburg
       description: Custom property
     CustomPropertyDataType:
@@ -11777,12 +12144,11 @@ components:
         days:
           type: array
           items:
-            type: integer
-            format: int32
+            $ref: '#/components/schemas/Weekday'
           maxItems: 7
           description: >-
-            Days of the week the message goes out on: 0 — Sunday, 6 — Saturday. Taken into account only with the
-            `weekly` interval; if not passed, the day of the week is taken from `start_date`.
+            Days of the week the message goes out on: 0 — Sunday, 6 — Saturday, without repeats. Taken into account only
+            with the `weekly` interval; if not passed, the day of the week is taken from `start_date`.
           example:
             - 1
             - 3
@@ -11886,8 +12252,9 @@ components:
               maxItems: 10
               description: >-
                 Files to attach, no more than ten. The array you pass replaces the previous set: an empty one removes
-                all the attachments, and to keep a file that is already attached, pass it with its `ID`. Without this
+                all the attachments, and to keep a file that is already attached, pass it with its `id`. Without this
                 field the attachments stay as they were.
+              x-replaces-set: true
             schedule:
               type: object
               allOf:
@@ -11921,13 +12288,17 @@ components:
           example: '2025-03-20'
         webhook_url:
           type: string
-          description: Address that the webhook with the number of the finished export arrives at once the archive is assembled
-          example: https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2
+          description: >-
+            Address that the webhook with the number of the finished export arrives at once the archive is assembled.
+            The number comes in the `export_id` field, and the whole webhook body is described in the
+            [Export](/guides/export) section.
+          example: https://example.com/webhooks/export
         chat_ids:
           type: array
           items:
             type: integer
             format: int32
+          maxItems: 50
           description: Array of chat IDs. Specify to export messages from specific chats only.
           example:
             - 1381521
@@ -11937,6 +12308,41 @@ components:
           example: false
           default: false
       description: Message export request
+    ExportWebhookPayload:
+      type: object
+      required:
+        - type
+        - event
+        - export_id
+        - created_at
+      properties:
+        type:
+          type: string
+          enum:
+            - export
+          description: Object type
+          example: export
+          x-enum-descriptions:
+            export: Always export for an export
+        event:
+          type: string
+          enum:
+            - ready
+          description: Event type
+          example: ready
+          x-enum-descriptions:
+            ready: The archive is assembled
+        export_id:
+          type: integer
+          format: int32
+          description: 'Export ID: the [Download export archive](GET /chats/exports/{id}) method serves the archive by it'
+          example: 22322
+        created_at:
+          type: string
+          format: date-time
+          description: Date and time the export was ordered (ISO-8601)
+          example: '2025-03-20T12:33:58Z'
+      description: 'Webhook about a finished export: it arrives at the address from `webhook_url` once the archive is assembled'
     File:
       type: object
       required:
@@ -11966,9 +12372,14 @@ components:
           example: image
         url:
           type: string
-          description: Direct file download URL
+          description: >-
+            File download link. Usually it leads straight to the storage and is valid for up to 7 days, and the
+            remaining time may be shorter — if such a link returns `403`, fetch the message again to get a fresh one. If
+            the workspace has encryption enabled or a secure perimeter set, the link leads to [Download file](GET
+            /files/{id}): such a file has to be fetched with an `Authorization` header, and the token needs the
+            `files:read` scope.
           example: >-
-            https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8
+            https://files.example.com/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?X-Amz-Expires=604800&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8
         width:
           type: integer
           format: int32
@@ -12190,7 +12601,7 @@ components:
         image_url:
           type: string
           description: Public image URL (if you want to upload an image file to Pachca, use the image parameter)
-          example: https://website.com/img/landing.png
+          example: https://example.com/img/landing.png
         image:
           type: object
           properties:
@@ -12222,7 +12633,7 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/LinkPreview'
           description: '`JSON` map of link previews, where each key is a `URL` received in the outgoing webhook about a new message'
-          x-record-key-example: https://website.com/articles/123
+          x-record-key-example: https://example.com/articles/123
       description: Link unfurling request
     LinkSharedWebhookPayload:
       type: object
@@ -12502,10 +12913,12 @@ components:
             content:
               type: string
               description: >-
-                Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`).
-                For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to
-                40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. In a workspace with advanced
-                encryption — up to 27,000 bytes.
+                Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or
+                `<@user_id>` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here`
+                those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name
+                without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest,
+                `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8,
+                which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes.
               example: Yesterday we sold 756 t-shirts (10% more than last Sunday)
             files:
               type: array
@@ -12563,18 +12976,19 @@ components:
                   - key
                   - name
                   - file_type
-                  - size
+              maxItems: 10
               description: Files to attach
             buttons:
               type: array
               items:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Button'
+                $ref: '#/components/schemas/ButtonRowItem'
               maxItems: 32
               description: >-
                 Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons
-                per row.
+                per row. Buttons are shown under the text and work only on messages sent with a bot token: a click on a
+                button with `data` arrives as a `button_click` event to that same bot, carrying a `trigger_id` — there
+                are 3 seconds to open a form with it, the [Open view](POST /views/open) method. A button with `url`
+                simply follows the link and creates no event. Details are in the [Buttons](/guides/buttons) section.
               example:
                 - - text: Learn more
                     url: https://example.com/details
@@ -12597,16 +13011,24 @@ components:
             display_name:
               type: string
               maxLength: 255
-              description: Custom sender display name for this message. This field can only be used with a bot access_token.
+              description: >-
+                Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message
+                with someone else's name and avatar, and only this message. The Bot badge stays, and the sender's
+                profile still shows the real bot. This is how the original author is shown when a conversation is
+                carried over from another system. With a personal token the field is not available and the response is
+                `403`. Details are in the [Bots](/guides/bots/overview) section.
               example: Support Bot
             skip_invite_mentions:
               type: boolean
-              description: Skip adding mentioned users to the thread. Only works when sending a message to a thread.
+              description: >-
+                Skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a
+                mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and
+                its parent message. In a conversation or a channel a mention adds nobody, and the parameter changes
+                nothing there.
               example: false
               default: false
           required:
             - entity_id
-            - content
           description: Message parameters object to create
         link_preview:
           type: boolean
@@ -12679,9 +13101,8 @@ components:
                   file_type:
                     allOf:
                       - $ref: '#/components/schemas/FileType'
-                    description: 'File type: file (file), image (image)'
+                    description: File type
                     example: image
-                    default: file
                   size:
                     type: integer
                     format: int64
@@ -12716,13 +13137,15 @@ components:
                 required:
                   - key
                   - name
-              description: Files to attach
+              maxItems: 10
+              description: >-
+                Files to attach. The set you pass replaces the previous one: to keep a file already attached, pass it
+                again with the same `key`.
+              x-replaces-set: true
             buttons:
               type: array
               items:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Button'
+                $ref: '#/components/schemas/ButtonRowItem'
               maxItems: 32
               description: >-
                 Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons
@@ -12730,6 +13153,7 @@ components:
               example:
                 - - text: Learn more
                     url: https://example.com/details
+              x-replaces-set: true
             display_avatar_url:
               type: string
               description: Custom sender avatar URL for this message. This field can only be used with a bot access_token.
@@ -12842,7 +13266,11 @@ components:
       properties:
         error:
           type: string
-          description: Error code
+          description: >-
+            Error code. API methods respond with `invalid_token` (`401`, the token is missing, not found, or revoked),
+            `insufficient_scope` (`403`, the token lacks the required scope), and `role_forbidden` (`403`, the token
+            owner's role does not allow the action). The codes of the token exchange and revoke methods are described
+            with those methods.
           example: invalid_token
         error_description:
           type: string
@@ -13405,27 +13833,35 @@ components:
           properties:
             title:
               type: string
+              minLength: 1
               maxLength: 24
               description: View title
               example: Vacation notification
             close_text:
               type: string
+              minLength: 1
               maxLength: 24
-              description: Close button text
+              description: >-
+                Close button text. Shown only in the desktop web app. In the mobile apps (iOS/Android) the close button
+                is a cross in the header, and the text set here is not shown there.
               example: Close
-              default: Cancel
+              default: Отменить
             submit_text:
               type: string
+              minLength: 1
               maxLength: 24
               description: Submit button text
               example: Submit request
-              default: Submit
+              default: Отправить
             blocks:
               type: array
               items:
                 $ref: '#/components/schemas/ViewBlockUnion'
+              minItems: 1
               maxItems: 100
-              description: Array of view blocks
+              description: >-
+                Array of view blocks. Block names (`name`) do not repeat, in select and radio no more than one option is
+                selected in advance, and the `min_length` of an input field is not greater than its `max_length`.
           required:
             - title
             - blocks
@@ -13637,12 +14073,12 @@ components:
           properties:
             emoji:
               type: string
-              description: Status emoji character
+              description: Status emoji character. Required if there is no status yet.
               example: 🎮
             title:
               type: string
               maxLength: 50
-              description: Status text
+              description: Status text. Required if there is no status yet.
               example: Very busy
             expires_at:
               type: string
@@ -13660,9 +14096,6 @@ components:
               maxLength: 1024
               description: '"Away" mode message text. Displayed in the profile and in direct messages/mentions.'
               example: Back after 3 PM
-          required:
-            - emoji
-            - title
       description: Status update request
     SubmitViewResponseRequest:
       type: object
@@ -13892,7 +14325,6 @@ components:
                 - $ref: '#/components/schemas/TaskKind'
               description: Kind
               example: reminder
-              default: reminder
             content:
               type: string
               description: Description. Up to 40,000 bytes in UTF-8.
@@ -14447,7 +14879,10 @@ components:
             nickname:
               type: string
               maxLength: 255
-              description: Username
+              description: >-
+                Username. A bot's nickname must end with `_bot` and be unique in the workspace, otherwise the method
+                responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. A bot's existing
+                nickname is checked only when it is changed.
               example: olegpetrov
             department:
               type: string
@@ -14467,7 +14902,6 @@ components:
               type: boolean
               description: Whether the user is deactivated
               example: false
-              default: false
             list_tags:
               type: array
               items:
@@ -14475,10 +14909,16 @@ components:
               description: >-
                 Array of tag names to assign to the employee. The list replaces the previous one as a whole, an empty
                 one removes all tags. A value that is not an array of non-empty strings is ignored: the employee's tags
-                do not change.
+                do not change. Only a bot that any employee can add to a chat and that has the "Restrict to a single
+                chat" setting turned off can be added to a tag. If the bot does not meet these conditions and the list
+                contains a tag it does not have yet, the method responds `422` on the `group_tags` field and changes
+                nothing: with the `single_chat_bot_tag_denied` code when the bot is restricted to a single chat, and
+                `restricted_bot_tag_denied` when not everyone can add it to chats. More in the [Bot in
+                tags](/guides/bots/settings#bot-v-tegah) section.
               example:
                 - Product
                 - Design
+              x-replaces-set: true
             custom_properties:
               type: array
               items:
@@ -14582,7 +15022,9 @@ components:
         user_limit: User reaction limit exceeded (20 unique reactions)
         unique_limit: Unique reaction limit per message exceeded (30 unique reactions)
         general_limit: Reaction limit per message exceeded (1000 reactions)
-        unhandled: Request execution error (details provided in the message field)
+        unhandled: >-
+          The request failed: a server error or a value the server could not parse, and the message text is always
+          generic
         trigger_not_found: Event identifier not found
         trigger_expired: Event identifier has expired
         required: Required parameter not provided
@@ -14614,10 +15056,12 @@ components:
         draft_type_change_forbidden: A scheduled message cannot be turned back into a draft
         confidential_download_denied: 'Downloading the file is denied: the request has to come from the secure perimeter'
         decryption_failed: The file could not be decrypted
-        bot_add_denied: 'The bot''s "Who can add the bot to chats" setting does not let you add it: the IDs of such bots come in `value`'
+        bot_add_denied: >-
+          The bot's "Who can add the bot to chats" setting does not let you add it: the `id` of each such bot comes in
+          `value`
         single_chat_bot_occupied: >-
-          A bot with the "Restrict to a single chat" setting already belongs to another conversation or channel: the IDs
-          of such bots come in `value`
+          A bot with the "Restrict to a single chat" setting already belongs to another conversation or channel: the
+          `id` of each such bot comes in `value`
         single_chat_bot_tag_denied: A bot with the "Restrict to a single chat" setting cannot be added to a tag
         restricted_bot_tag_denied: Only a bot that any employee can add to a chat can be added to a tag
         bot_changed_concurrently: 'The bot''s settings changed during the request: retry it'
@@ -14683,9 +15127,10 @@ components:
         started_at:
           type: string
           format: date-time
+          nullable: true
           description: >-
             Call start date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format. Present for the started and
-            finished events.
+            finished events. `null` if the call ended without ever starting.
           example: '2025-05-15T14:30:00.000Z'
         finished_at:
           type: string
@@ -14695,9 +15140,10 @@ components:
         duration:
           type: integer
           format: int32
+          nullable: true
           description: >-
             Duration in seconds. For the finished event it is the call duration, for recording_ready it is the recording
-            duration.
+            duration. `null` if the call ended without ever starting.
           example: 900
         members:
           type: array
@@ -14770,11 +15216,13 @@ components:
             checkbox: Always checkbox for checkboxes
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Name that will be sent to your application as the key for the user-selected choice
           example: newsletters
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Checkbox group label
           example: Newsletters
@@ -14804,22 +15252,24 @@ components:
       properties:
         text:
           type: string
+          minLength: 1
           maxLength: 75
-          description: Checkbox option label text
+          description: Display text
           example: None
         value:
           type: string
+          minLength: 1
           maxLength: 255
-          description: Checkbox option value
+          description: Unique string value that will be sent to your application when this item is selected
           example: nothing
         description:
           type: string
           maxLength: 75
-          description: Checkbox option description
+          description: Description displayed in gray below the display text for this item
           example: Every day the bot will send a list of new tasks in your team
         checked:
           type: boolean
-          description: Whether the checkbox is checked by default
+          description: Initially selected item
           example: true
     ViewBlockDate:
       type: object
@@ -14838,11 +15288,13 @@ components:
             date: Always date for date picker
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Name that will be sent to your application as the key for the user-specified value
           example: date_start
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Field label
           example: Vacation start date
@@ -14893,11 +15345,13 @@ components:
             file_input: Always file_input for file upload
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Name that will be sent to your application as the key for the user-specified value
           example: request_doc
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Field label
           example: Application
@@ -14906,9 +15360,10 @@ components:
           items:
             type: string
           description: >-
-            Array of allowed file extensions as strings (e.g., ["png","jpg","gif"]). If this field is not specified, all
-            file extensions will be accepted. The value feeds the file picker filter, so check the extension of the
-            received file on your side.
+            Array of allowed file extensions as strings (e.g., ["png","jpg","gif"]). A leading dot is not needed but is
+            allowed — it is added automatically. A value with a slash is treated as a MIME type and kept as is. If this
+            field is not specified, all file extensions will be accepted. The value feeds the file picker filter, so
+            check the extension of the received file on your side.
           example:
             - pdf
             - jpg
@@ -14931,7 +15386,7 @@ components:
           maxLength: 2000
           description: Hint displayed below the field in gray
           example: Upload the completed application with an electronic signature (in pdf, jpg, or png format)
-      description: File input block — file upload
+      description: file_input block — file upload
     ViewBlockHeader:
       type: object
       required:
@@ -14948,6 +15403,7 @@ components:
             header: Always header for headings
         text:
           type: string
+          minLength: 1
           maxLength: 150
           description: Header text
           example: General information
@@ -14969,11 +15425,13 @@ components:
             input: Always input for text fields
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Name that will be sent to your application as the key for the user-specified value
           example: info
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Field label
           example: Vacation description
@@ -15033,9 +15491,10 @@ components:
             markdown: Always markdown for formatted text
         text:
           type: string
+          minLength: 1
           maxLength: 12000
           description: Text
-          example: You can read about your available vacation days at [this link](https://www.website.com/timeoff)
+          example: You can read about your available vacation days at [this link](https://example.com/timeoff)
       description: Markdown block — formatted text
     ViewBlockPlainText:
       type: object
@@ -15053,12 +15512,13 @@ components:
             plain_text: Always plain_text for plain text
         text:
           type: string
+          minLength: 1
           maxLength: 12000
           description: Text
           example: >-
             Fill out the form. After submitting, a text notification will be sent to the general chat, and your vacation
             will be saved in the database.
-      description: Plain text block — plain text
+      description: plain_text block — plain text
     ViewBlockRadio:
       type: object
       required:
@@ -15077,11 +15537,13 @@ components:
             radio: Always radio for radio buttons
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Name that will be sent to your application as the key for the user-selected choice
           example: accessibility
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Radio button group label
           example: Availability
@@ -15121,11 +15583,13 @@ components:
             select: Always select for dropdowns
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Name that will be sent to your application as the key for the user-selected choice
           example: team
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Dropdown label
           example: Select a team
@@ -15155,22 +15619,24 @@ components:
       properties:
         text:
           type: string
+          minLength: 1
           maxLength: 75
-          description: Select option label text
+          description: Displayed text
           example: None
         value:
           type: string
+          minLength: 1
           maxLength: 255
-          description: Select option value
+          description: Unique string value passed to your app when this option is selected
           example: nothing
         description:
           type: string
           maxLength: 75
-          description: Select option description
+          description: Description displayed in gray below the display text for this item
           example: Every day the bot will send a list of new tasks in your team
         selected:
           type: boolean
-          description: Whether this select option is selected by default
+          description: Initially selected option. Only one option can be selected.
           example: true
       description: >-
         Dropdown (select) option. The initial choice is set with `selected`, not with `checked`, as in radio and
@@ -15183,22 +15649,24 @@ components:
       properties:
         text:
           type: string
+          minLength: 1
           maxLength: 75
-          description: Radio option label text
+          description: Display text
           example: None
         value:
           type: string
+          minLength: 1
           maxLength: 255
-          description: Radio option value
+          description: Unique string value that will be sent to your application when this item is selected
           example: nothing
         description:
           type: string
           maxLength: 75
-          description: Radio option description
+          description: Description displayed in gray below the display text for this item
           example: Every day the bot will send a list of new tasks in your team
         checked:
           type: boolean
-          description: Whether this radio option is selected by default
+          description: Initially selected radio button. Only one radio button can be selected.
           example: true
       description: >-
         Radio button of a radio block. The initial choice is set with `checked`, as in checkbox, not with `selected`, as
@@ -15220,17 +15688,19 @@ components:
             time: Always time for time picker
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Name that will be sent to your application as the key for the user-specified value
           example: newsletter_time
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Field label
           example: Newsletter time
         initial_time:
           type: string
-          format: time
+          pattern: ^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$
           description: Initial field value in HH:mm format. A value in HH:mm:ss format is also accepted, with the seconds discarded
           example: '11:00'
         required:
@@ -15411,7 +15881,7 @@ components:
           example: example.com
         skip:
           type: boolean
-          description: Whether the message author hid the preview for this link. If `true`, the bot must not create a preview
+          description: Whether the message author hid the preview for this link. If `true`, the bot must not create a preview.
           example: false
       description: Link object in the link unfurling webhook
     WebhookMessageThread:
@@ -15426,7 +15896,7 @@ components:
           nullable: true
           description: >-
             ID of the message the thread was created for. `null` for a thread without a parent message — such threads
-            are created by [New standalone thread](POST /threads).
+            are created by [New unattached thread](POST /threads).
           example: 12345
         message_chat_id:
           type: integer
@@ -15496,7 +15966,7 @@ components:
           nullable: true
           description: >-
             ID of the message the thread was created for. `null` for a thread without a parent message — such threads
-            are created by [New standalone thread](POST /threads).
+            are created by [New unattached thread](POST /threads).
           example: 268092
         message_chat_id:
           type: integer
@@ -15505,6 +15975,12 @@ components:
           description: Chat ID of the message the thread was created for. `null` for a thread without a parent message.
           example: 23438
       description: Parameters of the thread the video call takes place in
+    Weekday:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 6
+      description: 'Day of the week: 0 — Sunday, 6 — Saturday'
   securitySchemes:
     BearerAuth:
       type: http

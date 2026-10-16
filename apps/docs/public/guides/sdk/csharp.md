@@ -103,12 +103,12 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.GroupTags.UpdateTagAsync()` | [Редактирование тега](/api/group-tags/update) |
 | `client.GroupTags.DeleteTagAsync()` | [Удаление тега](/api/group-tags/delete) |
 | `client.Members.AddTagsAsync()` | [Добавление тегов](/api/members/add-group-tags) |
-| `client.Members.AddMembersAsync()` | [Добавление пользователей](/api/members/add) |
+| `client.Members.AddMembersAsync()` | [Добавление участников](/api/members/add) |
 | `client.Members.ListMembersAsync()` | [Список участников чата](/api/members/list) |
-| `client.Members.UpdateMemberRoleAsync()` | [Редактирование роли](/api/members/update) |
+| `client.Members.UpdateMemberRoleAsync()` | [Редактирование роли участника](/api/members/update) |
 | `client.Members.LeaveChatAsync()` | [Выход из чата](/api/members/leave) |
-| `client.Members.RemoveTagAsync()` | [Исключение тега](/api/members/remove-group-tag) |
-| `client.Members.RemoveMemberAsync()` | [Исключение пользователя](/api/members/remove) |
+| `client.Members.RemoveTagAsync()` | [Исключение тега из чата](/api/members/remove-group-tag) |
+| `client.Members.RemoveMemberAsync()` | [Исключение участника](/api/members/remove) |
 | `client.Threads.CreateStandaloneThreadAsync()` | [Новый самостоятельный тред](/api/threads/create) |
 | `client.Threads.CreateThreadAsync()` | [Новый тред](/api/threads/add) |
 | `client.Threads.ListThreadsAsync()` | [Список тредов](/api/threads/list) |
@@ -158,7 +158,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.UpdateBotTokenAsync()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.Bots.DeleteBotAsync()` | [Удаление бота](/api/bots/delete) |
 | `client.Bots.DeleteBotAvatarAsync()` | [Удаление аватара бота](/api/bots/remove-avatar) |
-| `client.Bots.DeleteWebhookEventAsync()` | [Удаление события](/api/bots/remove-event) |
+| `client.Bots.DeleteWebhookEventAsync()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.Bots.DeleteBotTokenAsync()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |
 | `client.CustomProperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |

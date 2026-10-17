@@ -1,6 +1,178 @@
 [
   {
     "product": "n8n",
+    "version": "2.2.0",
+    "date": "2026-10-16",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`Chat`: операция `Request Export` сразу возвращает номер выгрузки в `id` — с ним `Download Export` забирает архив, когда тот соберётся"
+      },
+      {
+        "type": "+",
+        "description": "`Bot`: операции `Update Avatar` и `Delete Avatar` — аватар бота"
+      },
+      {
+        "type": "+",
+        "description": "`Bot`: операция `Get` отдаёт в `Webhook` адрес входящего вебхука, секрет подписи и тело последнего запроса, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота"
+      },
+      {
+        "type": "~",
+        "description": "`Form`: в операции `Create` поля `Close Text` и `Submit Text` по умолчанию пустые — тогда кнопки подписывает Пачка: «Отменить» и «Отправить»"
+      },
+      {
+        "type": "~",
+        "description": "`Message`: в операции `Create` поле `Content` необязательно — сообщение можно отправить из одних файлов"
+      },
+      {
+        "type": "~",
+        "description": "`Profile` и `User`: в операции `Update Status` поля `Emoji` и `Title` нужны, только когда статуса ещё нет — продлить статус можно одним `Expires At`"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.10.1",
+    "date": "2026-10-16",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`pachca chats request-export` выводит номер выгрузки `id`: с ним `pachca chats download-export` забирает архив, когда тот соберётся"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots update-avatar` и `bots remove-avatar` — аватар бота"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots get`: в `webhook` приходят адрес входящего вебхука `url`, секрет подписи `secret_token` и тело последнего запроса `last_request_body`, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота"
+      },
+      {
+        "type": "~",
+        "description": "`pachca messages create` отправляет сообщение без `--content`, если к нему приложены файлы"
+      },
+      {
+        "type": "~",
+        "description": "`pachca profile update-status` и `pachca users update-status`: `--emoji` и `--title` нужны, только когда статуса ещё нет — продлить статус можно одним `--expires-at`"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.6.0",
+    "date": "2026-10-16",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Метод `Экспорт сообщений` (`POST /chats/exports`) возвращает модель `ChatExport` с идентификатором выгрузки: SDK передаёт заголовок `Prefer: return=representation`"
+      },
+      {
+        "type": "~",
+        "description": "Метод `Скачивание файла` (`GET /files/{id}`) возвращает содержимое файла: `Blob` в TypeScript, `bytes` в Python, `[]byte` в Go, `ByteArray` в Kotlin, `Data` в Swift и `byte[]` в C#"
+      },
+      {
+        "type": "~",
+        "description": "Класс ошибки SDK выбирает по телу ответа: `ApiError` — для ответа с массивом `errors`, `OAuthError` — для ответа с кодом в поле `error`, в том числе `403` с `insufficient_scope` или `role_forbidden`"
+      },
+      {
+        "type": "+",
+        "description": "Методы `Обмен кода на токен` (`POST /oauth/token`) и `Отзыв токена` (`POST /oauth/revoke`) в сервисе `oauth` — для бота, который получает токен сотрудника"
+      },
+      {
+        "type": "+",
+        "description": "Функции для кнопки авторизации: ссылка на экран согласия и пара PKCE — `buildAuthorizeUrl` и `createPkce` в TypeScript, в остальных языках по их правилам"
+      },
+      {
+        "type": "+",
+        "description": "Методы `Загрузка аватара бота` (`PUT /bots/{id}/avatar`) и `Удаление аватара бота` (`DELETE /bots/{id}/avatar`)"
+      },
+      {
+        "type": "+",
+        "description": "Поля `url`, `secret_token` и `last_request_body` в объекте `webhook` бота — приходят в методе `Информация о боте` (`GET /bots/{id}`)"
+      },
+      {
+        "type": "+",
+        "description": "Коды ошибок `daily_invites_limit` и `restricted_bot_tag_denied`"
+      },
+      {
+        "type": "~",
+        "description": "Поле `value` в `ApiErrorItem` принимает любое JSON-значение, как его отдаёт API: строку, число, массив, а иногда логическое значение или объект, например список `id` ботов у кода `bot_add_denied`. Тип поля — `unknown` в TypeScript, `Any` в Python, `any` в Go, `JsonElement` в Kotlin, `AnyCodable` в Swift и `object` в C#."
+      },
+      {
+        "type": "~",
+        "description": "Необязательны `content` в `MessageCreateRequest` — для сообщения из одних файлов — и `emoji` с `title` в `StatusUpdateRequest` — для продления статуса одним `expires_at`"
+      },
+      {
+        "type": "~",
+        "description": "Поле `size` у файла в `MessageCreateRequest` необязательно, как при правке сообщения и в черновике: черновик отправляют, передав `key`, `name` и `file_type` его файлов"
+      },
+      {
+        "type": "~",
+        "description": "Поля `started_at` и `duration` в `VideoCallWebhookPayload` и `duration` в `AuditDetailsVideoCallFinished` бывают `null` — у звонка, который завершился, так и не начавшись. В Go `StartedAt` — `*string`, как остальные даты, которые бывают `null`."
+      },
+      {
+        "type": "~",
+        "description": "Python: запросы правки сотрудника, задачи, бота и сообщения, а также создания бота передают только те поля, которые вы задали"
+      },
+      {
+        "type": "+",
+        "description": "Модель `ExportWebhookPayload` — тело вебхука о готовой выгрузке"
+      },
+      {
+        "type": "-",
+        "description": "C# и Kotlin: загрузка файла в хранилище и обмен кода на токен идут без заголовка `Authorization`. В C# такой запрос через переданный `HttpClient` с токеном в `DefaultRequestHeaders` уходит через отдельный клиент."
+      }
+    ]
+  },
+  {
+    "product": "generator",
+    "version": "1.3.0",
+    "date": "2026-10-16",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Заголовок запроса с единственным допустимым значением, например `Prefer: return=representation`, сгенерированный метод передаёт сам, а ответ `202` с телом становится его результатом"
+      },
+      {
+        "type": "+",
+        "description": "Ответ с файлом (`application/octet-stream`) становится результатом метода: сгенерированный метод возвращает содержимое файла в типе своего языка"
+      },
+      {
+        "type": "+",
+        "description": "Тело `application/x-www-form-urlencoded`: сгенерированный метод передаёт поля запроса формой"
+      },
+      {
+        "type": "+",
+        "description": "Расширение `x-oauth-authorize-url` у операции: SDK получает функции, которые собирают ссылку авторизации и пару PKCE"
+      },
+      {
+        "type": "~",
+        "description": "Класс ошибки выбирается по телу ответа, если в спеке есть обе модели ошибок: `ApiError` для массива `errors`, `OAuthError` для кода в поле `error`"
+      },
+      {
+        "type": "~",
+        "description": "Массив в query уходит парами `name[]=value` по расширению `x-query-array: brackets` у параметра. Без расширения значение повторяется под тем же именем: `name=a&name=b`."
+      },
+      {
+        "type": "+",
+        "description": "Ссылка на схему-скаляр с ограничениями, например целое от 0 до 6, становится примитивом своего языка, а не моделью"
+      },
+      {
+        "type": "~",
+        "description": "Объединение простых значений — `anyOf` из строк, чисел, логических значений, массивов и объектов без `$ref` — становится открытым JSON-значением: `unknown` в TypeScript, `Any` в Python, `any` без указателя в Go, `JsonElement` в Kotlin, `AnyCodable` в Swift и `object` в C#"
+      },
+      {
+        "type": "-",
+        "description": "Go: код успешного ответа берётся из спеки — `200`, `201`, `202` или `204`"
+      },
+      {
+        "type": "-",
+        "description": "C# и Kotlin: операция без авторизации (`x-requirements: { auth: false }`) уходит без заголовка `Authorization`, даже если токен задан в заголовках клиента по умолчанию"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
     "version": "2.1.4",
     "date": "2026-10-13",
     "changes": [

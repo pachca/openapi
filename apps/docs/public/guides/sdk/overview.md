@@ -54,7 +54,7 @@ npx -y @pachca/generator --spec https://example.com/openapi.yaml --output ./gene
 
 | Возможность | Описание |
 |-------------|----------|
-| **16 сервисов** | Типизированные методы для каждого API-эндпоинта |
+| **Все методы API** | Типизированный метод на каждый метод API |
 | **Автопагинация** | Методы `*All()` для автоматического обхода всех страниц |
 | **Повторные запросы** | Автоматический retry при `429` и `5xx` с экспоненциальным backoff — подробнее на странице [Лимиты](/api/limits) |
 | **Обработка ошибок** | Типизированные `ApiError` и `OAuthError` |
@@ -70,6 +70,21 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
+
+## Токен сотрудника
+
+Бот, который действует от имени сотрудника, получает его токен по OAuth: схема по шагам — в разделе [Получение токена](/guides/oauth/flow). Обмен кода на токен и отзыв токена — методы `exchangeToken` и `revokeToken` сервиса `oauth`, а ссылку для кнопки и пару PKCE собирают функции SDK:
+
+| Язык | Ссылка авторизации | Пара PKCE |
+|---|---|---|
+| TypeScript | `buildAuthorizeUrl()` | `await createPkce()` |
+| Python | `build_authorize_url()` | `create_pkce()` |
+| Go | `pachca.BuildAuthorizeURL()` | `pachca.CreatePKCE()` |
+| Kotlin | `PachcaOAuth.buildAuthorizeUrl()` | `PachcaOAuth.createPkce()` |
+| Swift | `PachcaOAuth.buildAuthorizeURL()` | `PachcaOAuth.createPKCE()` |
+| C# | `PachcaOAuth.BuildAuthorizeUrl()` | `PachcaOAuth.CreatePkce()` |
+
+Ссылка принимает `client_id` и адрес возврата бота, `state` и `code_challenge` из пары, имена параметров — по правилам языка. Она ведёт на экран согласия `https://app.pachca.com/apps/authorize`, для on-premise передайте адрес экрана своей установки необязательным параметром `authorizeUrl`. В Python функции импортируются из `pachca.client`, в TypeScript `createPkce()` работает в Node.js 20+ и в браузере.
 
 ## Сравнение языков
 

@@ -264,6 +264,7 @@ export async function makeApiRequest(
   body?: IDataObject,
   qs?: IDataObject,
   itemIndex?: number,
+  extraHeaders?: Record<string, string>,
 ): Promise<IDataObject> {
   const credentials = await this.getCredentials('pachcaApi');
   const baseUrl = sanitizeBaseUrl(credentials.baseUrl as string);
@@ -271,6 +272,8 @@ export async function makeApiRequest(
   if (method !== 'GET' && method !== 'DELETE') {
     headers['Content-Type'] = 'application/json';
   }
+  // Заголовки, которые операция шлёт всегда (`Prefer: return=representation`)
+  Object.assign(headers, extraHeaders);
   // Separate array params from scalar params — arrays need []= format for Rails
   let scalarQs: IDataObject | undefined = qs;
   let arrayQuerySuffix = '';

@@ -113,4 +113,30 @@ internal static class PachcaUtils
 
     internal static string EnumToApiString<T>(T value) where T : struct, Enum =>
         JsonSerializer.Serialize(value, JsonOptions).Trim('"');
+
+    // An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
+    // which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
+    internal static Exception ErrorFromJson(string json)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+            if (root.ValueKind == JsonValueKind.Object
+                && !root.TryGetProperty("errors", out _)
+                && root.TryGetProperty("error", out var code)
+                && code.ValueKind == JsonValueKind.String)
+            {
+                var description = root.TryGetProperty("error_description", out var text)
+                    && text.ValueKind == JsonValueKind.String
+                    ? text.GetString()!
+                    : "";
+                return new OAuthError { Error = code.GetString()!, ErrorDescription = description };
+            }
+        }
+        catch (JsonException)
+        {
+        }
+        return Deserialize<ApiError>(json);
+    }
 }

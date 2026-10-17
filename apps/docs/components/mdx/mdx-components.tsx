@@ -498,8 +498,8 @@ export async function ScopeRoles() {
 
 // Update manually when a new product release goes out
 const LATEST_PRODUCT_UPDATE = {
-  date: '23 сентября 2026',
-  title: 'Транскрибация звонков: открываем бету 🎧',
+  date: '15 октября 2026',
+  title: 'Большое обновление ботов 🤖',
 };
 
 export function ProductUpdatesLink() {

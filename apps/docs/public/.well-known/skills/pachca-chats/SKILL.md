@@ -169,12 +169,12 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | PUT | /chats/{id}/avatar | Загрузка аватара чата |
 | DELETE | /chats/{id}/avatar | Удаление аватара чата |
 | POST | /chats/{id}/group_tags | Добавление тегов |
-| DELETE | /chats/{id}/group_tags/{tag_id} | Исключение тега |
+| DELETE | /chats/{id}/group_tags/{tag_id} | Исключение тега из чата |
 | DELETE | /chats/{id}/leave | Выход из чата |
 | GET | /chats/{id}/members | Список участников чата |
-| POST | /chats/{id}/members | Добавление пользователей |
-| DELETE | /chats/{id}/members/{user_id} | Исключение пользователя |
-| PUT | /chats/{id}/members/{user_id} | Редактирование роли |
+| POST | /chats/{id}/members | Добавление участников |
+| DELETE | /chats/{id}/members/{user_id} | Исключение участника |
+| PUT | /chats/{id}/members/{user_id} | Редактирование роли участника |
 | PUT | /chats/{id}/unarchive | Разархивация чата |
 | PUT | /chats/{id}/unread | Отметка чата непрочитанным |
 | GET | /company/chats | Список чатов пространства |

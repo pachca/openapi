@@ -493,6 +493,14 @@ export enum OAuthScope {
   DraftsWrite = "drafts:write",
 }
 
+/** Что передано в запросе на отзыв токена */
+export enum OAuthTokenTypeHint {
+  /** Токен сотрудника */
+  AccessToken = "access_token",
+  /** Токен обновления */
+  RefreshToken = "refresh_token",
+}
+
 /** Тип события webhook для реакций */
 export enum ReactionEventType {
   /** Создание */
@@ -639,7 +647,7 @@ export enum ValidationErrorCode {
   UniqueLimit = "unique_limit",
   /** Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций) */
   GeneralLimit = "general_limit",
-  /** Ошибка выполнения запроса (пояснения вы получите в поле message) */
+  /** Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий */
   Unhandled = "unhandled",
   /** Не удалось найти идентификатор события */
   TriggerNotFound = "trigger_not_found",
@@ -677,10 +685,14 @@ export enum ValidationErrorCode {
   SingleChatBotOccupied = "single_chat_bot_occupied",
   /** Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег */
   SingleChatBotTagDenied = "single_chat_bot_tag_denied",
+  /** В тег можно добавить только бота, которого может добавить в чат любой сотрудник */
+  RestrictedBotTagDenied = "restricted_bot_tag_denied",
   /** Настройки бота изменились во время запроса: повторите его */
   BotChangedConcurrently = "bot_changed_concurrently",
   /** Поиск не уложился по времени: сузьте запрос и повторите */
   Timeout = "timeout",
+  /** Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload` */
+  DailyInvitesLimit = "daily_invites_limit",
   /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
   Forbidden = "forbidden",
   /** Доступ запрещён (недостаточно прав) */
@@ -766,7 +778,7 @@ export class ApiError extends Error {
 
 export interface ApiErrorItem {
   key: string;
-  value: string | null;
+  value: unknown | null;
   message: string;
   code: ValidationErrorCode;
   payload: Record<string, unknown> | null;
@@ -926,7 +938,7 @@ export interface AuditDetailsUserUpdated {
 export interface AuditDetailsVideoCallFinished {
   chatId: number;
   startedMessageId: number | null;
-  duration: number;
+  duration: number | null;
   maxMembersCount: number;
 }
 
@@ -987,7 +999,6 @@ export interface BotCreateRequest {
     commands?: string[];
     scopes?: string[];
     template?: string;
-    /** @default liquid */
     templateEngine?: BotTemplateEngine;
     challengeKey?: string;
     /** @default true */
@@ -1152,21 +1163,15 @@ export interface BotUpdateRequest {
     nickname?: string;
     outgoingUrl?: string;
     events?: BotEventName[];
-    /** @default commands */
     triggerOn?: BotTriggerOn;
     commands?: string[];
     scopes?: string[];
     template?: string;
-    /** @default liquid */
     templateEngine?: BotTemplateEngine;
     challengeKey?: string;
-    /** @default true */
     linkPreviewEnabled?: boolean;
-    /** @default false */
     ignoreSelfMessages?: boolean;
-    /** @default false */
     eventsHistoryEnabled?: boolean;
-    /** @default creator */
     whoCanAdd?: BotWhoCanAdd;
     canEdit?: BotCanEdit[];
     singleChat?: boolean;
@@ -1197,6 +1202,9 @@ export interface BotWebhook {
   kind: BotWebhookKind | null;
   unfurlDomains: string[];
   lastRequestAt: string | null;
+  url?: string | null;
+  secretToken?: string;
+  lastRequestBody?: string | null;
 }
 
 export interface BotWebhookSelfUpdateRequest {
@@ -1248,6 +1256,10 @@ export interface ChatCreateRequest {
     /** @default false */
     public?: boolean;
   };
+}
+
+export interface ChatExport {
+  id: number;
 }
 
 export interface ChatMemberWebhookPayload {
@@ -1393,6 +1405,13 @@ export interface ExportRequest {
   skipChatsFile?: boolean;
 }
 
+export interface ExportWebhookPayload {
+  type: "export";
+  event: "ready";
+  exportId: number;
+  createdAt: string;
+}
+
 export interface File {
   id: number;
   key: string;
@@ -1500,7 +1519,7 @@ export interface MessageCreateRequestFile {
   key: string;
   name: string;
   fileType: FileType;
-  size: number;
+  size?: number;
   width?: number;
   height?: number;
   durationMs?: number;
@@ -1512,7 +1531,7 @@ export interface MessageCreateRequest {
     /** @default discussion */
     entityType?: MessageEntityType;
     entityId: number;
-    content: string;
+    content?: string;
     files?: MessageCreateRequestFile[];
     buttons?: Button[][];
     parentMessageId?: number;
@@ -1528,7 +1547,6 @@ export interface MessageCreateRequest {
 export interface MessageUpdateRequestFile {
   key: string;
   name: string;
-  /** @default file */
   fileType?: FileType;
   size?: number;
   width?: number;
@@ -1570,6 +1588,30 @@ export class OAuthError extends Error {
     super(error);
     this.error = error;
   }
+}
+
+export interface OAuthRevokeRequest {
+  token: string;
+  tokenTypeHint?: OAuthTokenTypeHint;
+  clientId?: string;
+  clientSecret?: string;
+}
+
+export interface OAuthToken {
+  accessToken: string;
+  tokenType: "Bearer";
+  refreshToken: string;
+  scope: string;
+  createdAt: number;
+}
+
+export interface OAuthTokenRequest {
+  grantType: "authorization_code";
+  code: string;
+  redirectUri: string;
+  clientId?: string;
+  clientSecret?: string;
+  codeVerifier?: string;
 }
 
 export interface OpenViewRequest {
@@ -1629,8 +1671,8 @@ export interface SearchPaginationMeta {
 
 export interface StatusUpdateRequest {
   status: {
-    emoji: string;
-    title: string;
+    emoji?: string;
+    title?: string;
     expiresAt?: string;
     isAway?: boolean;
     awayMessage?: string;
@@ -1687,7 +1729,6 @@ export interface TaskUpdateRequestCustomProperty {
 
 export interface TaskUpdateRequest {
   task: {
-    /** @default reminder */
     kind?: TaskKind;
     content?: string;
     dueAt?: string;
@@ -1798,7 +1839,6 @@ export interface UserUpdateRequest {
     department?: string;
     title?: string;
     role?: UserRoleInput;
-    /** @default false */
     suspended?: boolean;
     listTags?: string[];
     customProperties?: UserUpdateRequestCustomProperty[];
@@ -1812,9 +1852,9 @@ export interface VideoCallWebhookPayload {
   chatId: number;
   ownerId: number;
   thread?: WebhookVideoCallThread | null;
-  startedAt?: string;
+  startedAt?: string | null;
   finishedAt?: string;
-  duration?: number;
+  duration?: number | null;
   members?: WebhookVideoCallMember[];
   recordingId?: number;
   fileId?: number | null;
@@ -1996,6 +2036,10 @@ export interface WebhookVideoCallThread {
   chatId: number;
   messageId: number | null;
   messageChatId: number | null;
+}
+
+export interface UpdateBotAvatarRequest {
+  image: Blob;
 }
 
 export interface UpdateChatAvatarRequest {

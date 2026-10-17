@@ -50,7 +50,7 @@ func (s *SearchServiceImpl) SearchMessages(ctx context.Context, params SearchMes
 		q.Add("chat_ids[]", fmt.Sprintf("%v", v))
 	}
 	for _, v := range params.UserIDs {
-		q.Add("user_ids[]", fmt.Sprintf("%v", v))
+		q.Add("user_ids", fmt.Sprintf("%v", v))
 	}
 	if params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))

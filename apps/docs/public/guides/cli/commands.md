@@ -42,9 +42,11 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca bots recreate-token` | `POST` Ротация токена бота |
 | `pachca bots recreate-token-self` | `POST` Ротация собственного токена бота |
 | `pachca bots reissue-token` | `POST` Перевыпуск токена бота |
-| `pachca bots remove-event` | `DELETE` Удаление события |
+| `pachca bots remove-avatar` | `DELETE` Удаление аватара бота |
+| `pachca bots remove-event` | `DELETE` Удаление события истории |
 | `pachca bots rotate-client-secret` | `POST` Ротация секрета клиента |
 | `pachca bots update` | `PUT` Редактирование бота |
+| `pachca bots update-avatar` | `PUT` Загрузка аватара бота |
 | `pachca bots update-token` | `PUT` Изменение токена бота |
 | `pachca bots update-webhook` | `PUT` Саморегистрация вебхука бота |
 | `pachca changelog` | История изменений CLI |
@@ -82,13 +84,13 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca group-tags update` | `PUT` Редактирование тега |
 | `pachca guide` | Поиск сценариев использования |
 | `pachca introspect` | Метаданные команды в машиночитаемом формате |
-| `pachca members add` | `POST` Добавление пользователей |
+| `pachca members add` | `POST` Добавление участников |
 | `pachca members add-group-tags` | `POST` Добавление тегов |
 | `pachca members leave` | `DELETE` Выход из чата |
 | `pachca members list` | `GET` Список участников чата |
-| `pachca members remove` | `DELETE` Исключение пользователя |
-| `pachca members remove-group-tag` | `DELETE` Исключение тега |
-| `pachca members update` | `PUT` Редактирование роли |
+| `pachca members remove` | `DELETE` Исключение участника |
+| `pachca members remove-group-tag` | `DELETE` Исключение тега из чата |
+| `pachca members update` | `PUT` Редактирование роли участника |
 | `pachca messages create` | `POST` Новое сообщение |
 | `pachca messages delete` | `DELETE` Удаление сообщения |
 | `pachca messages get` | `GET` Информация о сообщении |

@@ -473,7 +473,7 @@ enum ChatSubtype {
   user_limit: "Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)",
   unique_limit: "Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)",
   general_limit: "Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)",
-  unhandled: "Ошибка выполнения запроса (пояснения вы получите в поле message)",
+  unhandled: "Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий",
   trigger_not_found: "Не удалось найти идентификатор события",
   trigger_expired: "Время жизни идентификатора события истекло",
   required: "Обязательный параметр не передан",
@@ -508,8 +508,10 @@ enum ChatSubtype {
   bot_add_denied: "Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`",
   single_chat_bot_occupied: "Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`",
   single_chat_bot_tag_denied: "Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег",
+  restricted_bot_tag_denied: "В тег можно добавить только бота, которого может добавить в чат любой сотрудник",
   bot_changed_concurrently: "Настройки бота изменились во время запроса: повторите его",
   timeout: "Поиск не уложился по времени: сузьте запрос и повторите",
+  daily_invites_limit: "Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`",
 })
 enum ValidationErrorCode {
   @doc("Обязательное поле (не может быть пустым)")
@@ -569,7 +571,7 @@ enum ValidationErrorCode {
   @doc("Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)")
   general_limit: "general_limit",
   
-  @doc("Ошибка выполнения запроса (пояснения вы получите в поле message)")
+  @doc("Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий")
   unhandled: "unhandled",
   
   @doc("Не удалось найти идентификатор события")
@@ -626,11 +628,17 @@ enum ValidationErrorCode {
   @doc("Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег")
   single_chat_bot_tag_denied: "single_chat_bot_tag_denied",
 
+  @doc("В тег можно добавить только бота, которого может добавить в чат любой сотрудник")
+  restricted_bot_tag_denied: "restricted_bot_tag_denied",
+
   @doc("Настройки бота изменились во время запроса")
   bot_changed_concurrently: "bot_changed_concurrently",
 
   @doc("Поиск не уложился по времени")
   timeout: "timeout",
+
+  @doc("Бесплатное пространство исчерпало суточный лимит писем-приглашений")
+  daily_invites_limit: "daily_invites_limit",
 
   @doc("Недостаточно прав для выполнения действия (пояснения вы получите в поле message)")
   forbidden: "forbidden",
@@ -1010,7 +1018,7 @@ model File {
   file_type: FileType;
   
   @doc("Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](GET /files/{id}): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`.")
-  @example("https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8")
+  @example("https://files.example.com/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?X-Amz-Expires=604800&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8")
   url: string;
   
   @doc("Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке.")
@@ -1043,6 +1051,13 @@ model Button {
   @maxLength(255)
   data?: string;
 }
+
+// Used in both a POST and a PUT body, so the emitter names the schema ButtonRowItem
+// (the array item variant shared by both visibility contexts).
+@doc("Ряд кнопок")
+@minItems(1)
+@maxItems(8)
+model ButtonRow is Button[];
 
 @doc("Тред")
 model Thread {
@@ -1246,7 +1261,7 @@ model Chat {
   meet_room_url: string;
 
   @doc("Ссылка на аватар чата. `null`, если аватар не задан.")
-  @example("https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg")
+  @example("https://files.example.com/uploads/0001/0001/image.jpg")
   avatar_url: string | null;
 }
 
@@ -1628,7 +1643,7 @@ model PaginatedDataResponse<T> {
 @doc("Данные аватара")
 model AvatarData {
   @doc("URL аватара")
-  @example("https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg")
+  @example("https://files.example.com/uploads/0001/0001/image.jpg")
   image_url: string;
 }
 
@@ -1967,9 +1982,88 @@ model AccessTokenInfo {
   @example(null)
   expires_in: int32 | null;
 
-  @doc("Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать.")
+  @doc("Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в минуту, поэтому может отставать.")
   @example(utcDateTime.fromISO("2025-02-24T14:20:00.000Z"))
   last_used_at: utcDateTime | null;
+}
+
+@doc("Токен сотрудника, выданный боту в обмен на код авторизации")
+model OAuthToken {
+  @doc("Токен сотрудника. Передаётся в заголовке `Authorization: Bearer` при запросах от его имени.")
+  @example("pato_bm90X2FfcmVhbF90b2tlbg")
+  access_token: string;
+
+  @doc("Тип токена, всегда `Bearer`")
+  @example("Bearer")
+  token_type: "Bearer";
+
+  @doc("Токен обновления. Токен сотрудника бессрочный, поэтому обновлять его не нужно.")
+  @example("cmVmcmVzaF9ub3RfcmVhbA")
+  refresh_token: string;
+
+  @doc("Выданные права через пробел. Набор берётся из настроек бота.")
+  @example("chats:read messages:read tasks:read tasks:create")
+  scope: string;
+
+  @doc("Время выдачи токена в формате Unix time, в секундах")
+  @example(1790242260)
+  created_at: int64;
+}
+
+@doc("Запрос на обмен кода авторизации на токен")
+model OAuthTokenRequest {
+  @doc("Тип запроса, всегда `authorization_code`")
+  @example("authorization_code")
+  grant_type: "authorization_code";
+
+  @doc("Код авторизации из адреса возврата")
+  @example("ZmFrZV9hdXRoX2NvZGU")
+  code: string;
+
+  @doc("Адрес возврата — тот же, что в ссылке авторизации")
+  @example("https://bot.example.com/oauth/callback")
+  redirect_uri: string;
+
+  @doc("Идентификатор клиента с вкладки «OAuth» в карточке бота. Не нужен, если клиент передаёт его заголовком `Authorization: Basic`.")
+  @example("aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY")
+  client_id?: string;
+
+  @doc("Секрет клиента серверного приложения. Вместе с `client_id` его можно передать заголовком `Authorization: Basic`.")
+  @example("dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA")
+  client_secret?: string;
+
+  @doc("Проверочный код PKCE, из которого получен `code_challenge` ссылки авторизации. Обязателен для приложения без секрета.")
+  @example("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
+  code_verifier?: string;
+}
+
+@doc("Что передано в запросе на отзыв токена")
+@extension("x-enum-descriptions", #{
+  access_token: "Токен сотрудника",
+  refresh_token: "Токен обновления",
+})
+enum OAuthTokenTypeHint {
+  access_token: "access_token",
+  refresh_token: "refresh_token",
+}
+
+@doc("Запрос на отзыв токена")
+model OAuthRevokeRequest {
+  @doc("Токен сотрудника или его токен обновления")
+  @example("pato_bm90X2FfcmVhbF90b2tlbg")
+  token: string;
+
+  @doc("Что передано в `token`. Без подсказки сервер определит сам.")
+  @example(OAuthTokenTypeHint.access_token)
+  token_type_hint?: OAuthTokenTypeHint;
+
+  @doc("Идентификатор клиента серверного приложения")
+  @example("aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY")
+  client_id?: string;
+
+  @doc("Секрет клиента серверного приложения. Вместе с `client_id` его можно передать заголовком `Authorization: Basic`.")
+  @example("dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA")
+  client_secret?: string;
 }
 
 // ============================================================================
@@ -1985,13 +2079,13 @@ model ApiError {
 
 @doc("Детальная информация об ошибке")
 model ApiErrorItem {
-  @doc("Ключ поля с ошибкой")
+  @doc("Ключ поля с ошибкой. `system`, если ошибка не относится к конкретному полю.")
   @example("field.name")
   key: string;
   
-  @doc("Значение поля, которое вызвало ошибку. `null`, если ошибка не относится к конкретному значению.")
+  @doc("Значение, которое вызвало ошибку, как его передали или как оно хранится: обычно строка, число или массив, например `id` ботов у кода `bot_add_denied`, а бывает и логическое значение или объект. `null`, если ошибка не относится к конкретному значению.")
   @example("invalid_value")
-  value: string | null;
+  value: string | numeric | boolean | unknown[] | Record<unknown> | null;
   
   @doc("Сообщение об ошибке")
   @example("Поле не может быть пустым")
@@ -2001,7 +2095,7 @@ model ApiErrorItem {
   @example(ValidationErrorCode.blank)
   code: ValidationErrorCode;
   
-  @doc("Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть. В большинстве случаев `null`.")
+  @doc("Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть, `{limit: number, remaining: number, reset_at: string}` — при исчерпанном суточном лимите писем-приглашений (`reset_at` — когда в окне освободится место). В большинстве случаев `null`.")
   @example(null)
   payload: Record<unknown> | null;
 }
@@ -2009,7 +2103,7 @@ model ApiErrorItem {
 @extension("x-error", true)
 @doc("Ошибка OAuth авторизации (используется для 401 и 403)")
 model OAuthError {
-  @doc("Код ошибки")
+  @doc("Код ошибки. Методы API отвечают кодами `invalid_token` (`401`, токен не передан, не найден или отозван), `insufficient_scope` (`403`, у токена нет нужного скоупа) и `role_forbidden` (`403`, роль владельца токена не позволяет действие). Коды обмена и отзыва токена описаны у этих методов.")
   @example("invalid_token")
   error: string;
   
@@ -2017,6 +2111,10 @@ model OAuthError {
   @example("Access token is missing")
   error_description: string;
 }
+
+// 403 comes in two shapes: OAuthError when the token lacks the scope or the role
+// allows no such action, ApiError when the access check on the object itself refuses.
+alias ForbiddenError = ApiError | OAuthError;
 
 @doc("Параметры для загрузки файла")
 model UploadParams {
@@ -2158,7 +2256,7 @@ model UserUpdateRequest {
     @example("+79001234567")
     phone_number?: string;
 
-    @doc("Имя пользователя")
+    @doc("Имя пользователя. Ник бота должен оканчиваться на `_bot` и быть уникальным в пространстве, иначе метод отвечает `422` с ошибкой на поле `nickname`: `invalid` или `already_exists`. Прежний ник бота проверяется, только когда его меняют.")
     @maxLength(255)
     @example("olegpetrov")
     nickname?: string;
@@ -2178,10 +2276,11 @@ model UserUpdateRequest {
 
     @doc("Деактивация пользователя")
     @example(false)
-    suspended?: boolean = false;
+    suspended?: boolean;
 
-    @doc("Массив названий тегов, привязываемых к сотруднику. Список заменяет прежний целиком, пустой снимает все теги. Значение, которое не является массивом непустых строк, игнорируется: теги сотрудника не меняются.")
+    @doc("Массив названий тегов, привязываемых к сотруднику. Список заменяет прежний целиком, пустой снимает все теги. Значение, которое не является массивом непустых строк, игнорируется: теги сотрудника не меняются. В тег можно добавить только бота, которого может добавить в чат любой сотрудник и у которого выключена настройка «Ограничить одним чатом». Если бот этим условиям не отвечает, а в списке есть тег, которого у него ещё нет, метод отвечает `422` на поле `group_tags` и ничего не меняет: с кодом `single_chat_bot_tag_denied`, когда бот ограничен одним чатом, и `restricted_bot_tag_denied`, когда добавлять его в чаты могут не все. Подробнее — в разделе [Бот в тегах](/guides/bots/settings#bot-v-tegah).")
     @example(#["Product", "Design"])
+    @extension("x-replaces-set", true)
     list_tags?: string[];
     
     @doc("Задаваемые дополнительные поля")
@@ -2201,16 +2300,16 @@ model UserUpdateRequest {
 @doc("Запрос на установку статуса")
 model StatusUpdateRequest {
   status: {
-    @doc("Emoji символ статуса")
+    @doc("Emoji символ статуса. Обязателен, если статуса ещё нет.")
     @example("🎮")
-    emoji: string;
+    emoji?: string;
 
-    @doc("Текст статуса")
+    @doc("Текст статуса. Обязателен, если статуса ещё нет.")
     @maxLength(50)
     @example("Очень занят")
-    title: string;
+    title?: string;
 
-    @doc("Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Сюда идёт срок, названный словами: «до трёх» это значение поля, а не часть подписи.")
+    @doc("Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC.")
     @example(utcDateTime.fromISO("2024-04-08T10:00:00.000Z"))
     expires_at?: utcDateTime;
 
@@ -2289,6 +2388,7 @@ model MarkChatUnreadRequest {
 model AddMembersRequest {
   @doc("Массив идентификаторов пользователей, которые станут участниками")
   @example(#[186, 187])
+  @minItems(1)
   member_ids: int32[];
   
   @doc("Не создавать в чате системное сообщение о добавлении участника")
@@ -2300,6 +2400,7 @@ model AddMembersRequest {
 model AddTagsRequest {
   @doc("Массив идентификаторов тегов, которые станут участниками")
   @example(#[86, 18])
+  @minItems(1)
   group_tag_ids: int32[];
 }
 
@@ -2318,15 +2419,16 @@ model MessageCreateRequest {
     @example(MessageEntityType.discussion)
     entity_type?: MessageEntityType = MessageEntityType.discussion;
 
-    @doc("Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника.")
+    @doc("Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо пользователя.")
     @example(334)
     entity_id: int32;
 
-    @doc("Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов. В пространстве с продвинутым шифрованием — до 27 000 байт.")
+    @doc("Текст сообщения. Обязателен, если к сообщению не приложены файлы. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). `@all` упоминает всех участников чата, `@here` — тех, кто сейчас в сети, а `@` с названием тега без пробелов — сотрудников этого тега. Имя без `@` и упоминание внутри строчного кода или блока кода упоминанием не считаются. У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов. В пространстве с продвинутым шифрованием — до 27 000 байт.")
     @example("Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)")
-    content: string;
+    content?: string;
 
     @doc("Прикрепляемые файлы")
+    @maxItems(10)
     files?: {
       @doc("Путь к файлу, полученный в методе [Загрузка файла](POST /direct_url)")
       @example("attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png")
@@ -2344,7 +2446,7 @@ model MessageCreateRequest {
       
       @doc("Размер файла в байтах, отображаемый пользователю")
       @example(12345)
-      size: int64;
+      size?: int64;
       
       @doc("Ширина изображения в px (используется в случае, если file_type указан как image)")
       @example(800)
@@ -2365,10 +2467,10 @@ model MessageCreateRequest {
       waveform?: string;
     }[];
 
-    @doc("Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.")
+    @doc("Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Кнопки показываются под текстом и работают только у сообщений, отправленных токеном бота: нажатие на кнопку с `data` приходит событием `button_click` тому самому боту, а вместе с ним `trigger_id` — на открытие формы по нему есть 3 секунды, метод [Открытие представления](POST /views/open). Кнопка с `url` просто ведёт по ссылке и события не создаёт. Подробности — в разделе [Кнопки](/guides/buttons).")
     @maxItems(32)
     @example(#[#[#{ text: "Подробнее", url: "https://example.com/details" }, #{ text: "Отлично!", data: "awesome" }]])
-    buttons?: Button[][];
+    buttons?: ButtonRow[];
 
     @doc("Идентификатор сообщения, на которое вы отвечаете с цитатой. Ответить можно на сообщение в любом чате, в том числе в треде: ответ отправляют в тот же чат или тред, где лежит это сообщение, иначе запрос вернёт ошибку `422`. Чтобы написать в тред под сообщением, укажите `entity_type: \"thread\"` и идентификатор треда в `entity_id`.")
     @example(194270)
@@ -2379,12 +2481,12 @@ model MessageCreateRequest {
     @maxLength(255)
     display_avatar_url?: string;
     
-    @doc("Полное специальное имя отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.")
+    @doc("Полное специальное имя отправителя для этого сообщения. Вместе с `display_avatar_url` бот подписывает сообщение чужим именем и аватаром, и только это сообщение. Бейдж «Бот» остаётся, а в профиле отправителя видно настоящего бота. Так показывают автора из другой системы, когда переносят в Пачку чужую переписку. С личным токеном поле недоступно, ответ `403`. Подробности — в разделе [Боты](/guides/bots/overview).")
     @example("Бот Поддержки")
     @maxLength(255)
     display_name?: string;
     
-    @doc("Пропуск добавления упоминаемых пользователей в тред. Работает только при отправке сообщения в тред.")
+    @doc("Пропуск добавления упомянутых сотрудников в тред. В треде упоминание работает ещё и как приглашение: упомянутого сотрудника, которого в треде нет, Пачка туда добавляет, и он получает доступ к треду и родительскому сообщению. В беседе и канале упоминание никого не добавляет, и этот параметр там ничего не меняет.")
     @example(false)
     skip_invite_mentions?: boolean = false;
   };
@@ -2402,7 +2504,9 @@ model MessageUpdateRequest {
     @example("Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.")
     content?: string;
     
-    @doc("Прикрепляемые файлы")
+    @doc("Прикрепляемые файлы. Переданный набор заменяет прежний: чтобы оставить уже приложенный файл, передайте его снова с тем же `key`.")
+    @maxItems(10)
+    @extension("x-replaces-set", true)
     files?: {
       @doc("Путь к файлу, полученный в методе [Загрузка файла](POST /direct_url)")
       @example("attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png")
@@ -2416,7 +2520,7 @@ model MessageUpdateRequest {
 
       @doc("Тип файла")
       @example(FileType.image)
-      file_type?: FileType = FileType.file;
+      file_type?: FileType;
 
       @doc("Размер файла в байтах, отображаемый пользователю")
       @example(12345)
@@ -2444,7 +2548,8 @@ model MessageUpdateRequest {
     @doc("Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.")
     @maxItems(32)
     @example(#[#[#{ text: "Подробнее", url: "https://example.com/details" }]])
-    buttons?: Button[][];
+    @extension("x-replaces-set", true)
+    buttons?: ButtonRow[];
     
     @doc("Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.")
     @example("https://example.com/avatar.png")
@@ -2478,7 +2583,7 @@ model LinkPreview {
   description: string;
   
   @doc("Публичная ссылка на изображение (если вы хотите загрузить файл изображения в Пачку, то используйте параметр image)")
-  @example("https://website.com/img/landing.png")
+  @example("https://example.com/img/landing.png")
   image_url?: string;
   
   @doc("Изображение")
@@ -2500,7 +2605,7 @@ model LinkPreview {
 @doc("Запрос на разворачивание ссылок")
 model LinkPreviewsRequest {
   @doc("`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении")
-  @extension("x-record-key-example", "https://website.com/articles/123")
+  @extension("x-record-key-example", "https://example.com/articles/123")
   link_previews: Record<LinkPreview>;
 }
 
@@ -2557,7 +2662,7 @@ model TaskUpdateRequest {
   task: {
     @doc("Тип")
     @example(TaskKind.reminder)
-    kind?: TaskKind = TaskKind.reminder;
+    kind?: TaskKind;
 
     @doc("Описание. До 40 000 байт в UTF-8.")
     @example("Забрать со склада 21 заказ")
@@ -2644,16 +2749,21 @@ model DraftFileRequest {
   waveform?: string;
 }
 
+@doc("День недели: 0 — воскресенье, 6 — суббота")
+@minValue(0)
+@maxValue(6)
+scalar Weekday extends int32;
+
 @doc("Правило повтора в запросе")
 model DraftRepetitionRequest {
   @doc("Периодичность")
   @example(DraftRepetitionInterval.weekly)
   interval: DraftRepetitionInterval;
 
-  @doc("Дни недели, по которым уходит сообщение: 0 — воскресенье, 6 — суббота. Учитывается только при периодичности `weekly`, а если не передать, берётся день недели из `start_date`.")
+  @doc("Дни недели, по которым уходит сообщение: 0 — воскресенье, 6 — суббота, без повторов. Учитывается только при периодичности `weekly`, а если не передать, берётся день недели из `start_date`.")
   @example(#[1, 3])
   @maxItems(7)
-  days?: int32[];
+  days?: Weekday[];
 
   @doc("Какой по счёту день недели в месяце: от 1 до 4 — первый, второй, третий, четвёртый, 5 — последний. Учитывается только при периодичности по месяцам, а без него повтор идёт по числу месяца из `start_date`.")
   @example(2)
@@ -2719,6 +2829,7 @@ model DraftUpdateRequest {
 
     @doc("Прикрепляемые файлы, не больше десяти. Переданный массив заменяет прежний состав: пустой снимает все вложения, а чтобы сохранить уже прикреплённый файл, передайте его с `id`. Без этого поля вложения остаются как были.")
     @maxItems(10)
+    @extension("x-replaces-set", true)
     files?: DraftFileRequest[];
 
     @doc("Расписание отправки. У обычного черновика оно превращает его в отложенное сообщение. У отложенного расписание можно изменить, но не снять: `null` в ответ даст `422` с кодом `draft_type_change_forbidden`.")
@@ -2730,11 +2841,13 @@ model DraftUpdateRequest {
 model ViewBlockSelectableOption {
   @doc("Отображаемый текст")
   @example("Ничего")
+  @minLength(1)
   @maxLength(75)
   text: string;
 
   @doc("Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта")
   @example("nothing")
+  @minLength(1)
   @maxLength(255)
   value: string;
 
@@ -2752,11 +2865,13 @@ model ViewBlockSelectableOption {
 model ViewBlockSelectOption {
   @doc("Отображаемый текст")
   @example("Ничего")
+  @minLength(1)
   @maxLength(75)
   text: string;
 
   @doc("Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта")
   @example("nothing")
+  @minLength(1)
   @maxLength(255)
   value: string;
 
@@ -2773,11 +2888,13 @@ model ViewBlockSelectOption {
 model ViewBlockCheckboxOption {
   @doc("Отображаемый текст")
   @example("Ничего")
+  @minLength(1)
   @maxLength(75)
   text: string;
 
   @doc("Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта")
   @example("nothing")
+  @minLength(1)
   @maxLength(255)
   value: string;
 
@@ -2802,6 +2919,7 @@ model ViewBlockHeader {
   
   @doc("Текст заголовка")
   @example("Основная информация")
+  @minLength(1)
   @maxLength(150)
   text: string;
 }
@@ -2817,6 +2935,7 @@ model ViewBlockPlainText {
   
   @doc("Текст")
   @example("Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе.")
+  @minLength(1)
   @maxLength(12000)
   text: string;
 }
@@ -2831,7 +2950,8 @@ model ViewBlockMarkdown {
   type: "markdown";
   
   @doc("Текст")
-  @example("Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)")
+  @example("Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://example.com/timeoff)")
+  @minLength(1)
   @maxLength(12000)
   text: string;
 }
@@ -2857,11 +2977,13 @@ model ViewBlockInput {
   
   @doc("Название, которое будет передано в ваше приложение как ключ указанного пользователем значения")
   @example("info")
+  @minLength(1)
   @maxLength(255)
   name: string;
   
   @doc("Подпись к полю")
   @example("Описание отпуска")
+  @minLength(1)
   @maxLength(150)
   label: string;
   
@@ -2912,11 +3034,13 @@ model ViewBlockSelect {
   
   @doc("Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора")
   @example("team")
+  @minLength(1)
   @maxLength(255)
   name: string;
   
   @doc("Подпись к выпадающему списку")
   @example("Выберите команду")
+  @minLength(1)
   @maxLength(150)
   label: string;
   
@@ -2946,11 +3070,13 @@ model ViewBlockRadio {
   
   @doc("Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора")
   @example("accessibility")
+  @minLength(1)
   @maxLength(255)
   name: string;
   
   @doc("Подпись к группе радиокнопок")
   @example("Доступность")
+  @minLength(1)
   @maxLength(150)
   label: string;
   
@@ -2980,11 +3106,13 @@ model ViewBlockCheckbox {
   
   @doc("Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора")
   @example("newsletters")
+  @minLength(1)
   @maxLength(255)
   name: string;
   
   @doc("Подпись к группе чекбоксов")
   @example("Рассылки")
+  @minLength(1)
   @maxLength(150)
   label: string;
   
@@ -3014,11 +3142,13 @@ model ViewBlockDate {
   
   @doc("Название, которое будет передано в ваше приложение как ключ указанного пользователем значения")
   @example("date_start")
+  @minLength(1)
   @maxLength(255)
   name: string;
   
   @doc("Подпись к полю")
   @example("Дата начала отпуска")
+  @minLength(1)
   @maxLength(150)
   label: string;
   
@@ -3047,17 +3177,20 @@ model ViewBlockTime {
   
   @doc("Название, которое будет передано в ваше приложение как ключ указанного пользователем значения")
   @example("newsletter_time")
+  @minLength(1)
   @maxLength(255)
   name: string;
   
   @doc("Подпись к полю")
   @example("Время рассылки")
+  @minLength(1)
   @maxLength(150)
   label: string;
   
   @doc("Начальное значение в поле в формате HH:mm. Значение в формате HH:mm:ss тоже принимается — секунды отбрасываются.")
-  @example(plainTime.fromISO("11:00"))
-  initial_time?: plainTime;
+  @example("11:00")
+  @pattern("^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$")
+  initial_time?: string;
 
   @doc("Обязательность")
   @example(false)
@@ -3080,11 +3213,13 @@ model ViewBlockFileInput {
   
   @doc("Название, которое будет передано в ваше приложение как ключ указанного пользователем значения")
   @example("request_doc")
+  @minLength(1)
   @maxLength(255)
   name: string;
   
   @doc("Подпись к полю")
   @example("Заявление")
+  @minLength(1)
   @maxLength(150)
   label: string;
   
@@ -3167,21 +3302,25 @@ model OpenViewRequest {
   @doc("Собранный объект представления")
   view: {
     @doc("Заголовок представления")
+    @minLength(1)
     @maxLength(24)
     @example("Уведомление об отпуске")
     title: string;
 
     @doc("Текст кнопки закрытия представления. Отображается только в десктоп-вебе. В мобильных приложениях (iOS/Android) кнопка закрытия — это крестик в шапке, и заданный текст там не показывается.")
+    @minLength(1)
     @maxLength(24)
     @example("Закрыть")
     close_text?: string = "Отменить";
 
     @doc("Текст кнопки отправки формы")
+    @minLength(1)
     @maxLength(24)
     @example("Отправить заявку")
     submit_text?: string = "Отправить";
 
-    @doc("Массив блоков представления")
+    @doc("Массив блоков представления. Имена блоков (`name`) не повторяются, в select и radio заранее выбрано не больше одного варианта, а `min_length` поля ввода не больше его `max_length`.")
+    @minItems(1)
     @maxItems(100)
     blocks: ViewBlockUnion[];
   };
@@ -3306,7 +3445,7 @@ model BotCreateRequest {
     nickname?: string;
 
     @doc("URL исходящего вебхука")
-    @example("https://www.website.com/tasks/new")
+    @example("https://example.com/tasks/new")
     outgoing_url?: string;
 
     @doc("События, на которые подписан бот")
@@ -3329,9 +3468,9 @@ model BotCreateRequest {
     @example("Заказ от {{ client }} на сумму {{ amount }} ₽")
     template?: string;
 
-    @doc("Шаблонизатор для обработки шаблона входящего вебхука")
+    @doc("Шаблонизатор для обработки шаблона входящего вебхука. Без этого поля бот получает `liquid`, а пустой бот (`empty: true`) — `mustache`.")
     @example(BotTemplateEngine.liquid)
-    template_engine?: BotTemplateEngine = BotTemplateEngine.liquid;
+    template_engine?: BotTemplateEngine;
 
     @doc("Название поля проверки для верификации входящего вебхука")
     @example("challenge")
@@ -3367,6 +3506,7 @@ model BotCreateRequest {
 
     @doc("Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`.")
     @example(#["example.com"])
+    @maxItems(5)
     unfurl_domains?: string[];
   };
 
@@ -3392,23 +3532,26 @@ model BotUpdateRequest {
     nickname?: string;
 
     @doc("URL исходящего вебхука")
-    @example("https://www.website.com/tasks/new")
+    @example("https://example.com/tasks/new")
     outgoing_url?: string;
 
-    @doc("События, на которые подписан бот")
+    @doc("События, на которые подписан бот. Список заменяется целиком.")
     @example(#[BotEventName.message_new])
+    @extension("x-replaces-set", true)
     events?: BotEventName[];
 
     @doc("Условие срабатывания исходящего вебхука")
     @example(BotTriggerOn.commands)
-    trigger_on?: BotTriggerOn = BotTriggerOn.commands;
+    trigger_on?: BotTriggerOn;
 
     @doc("Команды бота (триггер-слова), на которые он реагирует при trigger_on = commands. Суммарная длина команд, объединённых через запятую, не должна превышать 255 символов.")
     @example(#["/task", "/help"])
+    @extension("x-replaces-set", true)
     commands?: string[];
 
     @doc("Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию. Боту доступны не все скоупы: часть из них разрешена только пользовательским ролям, и попытка назначить такой скоуп возвращает `400`. Служебные значения `bot` и `all` назначать нельзя.")
     @example(#["messages:create"])
+    @extension("x-replaces-set", true)
     scopes?: string[];
 
     @doc("Шаблон форматирования входящего вебхука")
@@ -3417,7 +3560,7 @@ model BotUpdateRequest {
 
     @doc("Шаблонизатор для обработки шаблона входящего вебхука")
     @example(BotTemplateEngine.liquid)
-    template_engine?: BotTemplateEngine = BotTemplateEngine.liquid;
+    template_engine?: BotTemplateEngine;
 
     @doc("Название поля проверки для верификации входящего вебхука")
     @example("challenge")
@@ -3425,22 +3568,23 @@ model BotUpdateRequest {
 
     @doc("Показывать превью ссылок в сообщениях входящего вебхука")
     @example(true)
-    link_preview_enabled?: boolean = true;
+    link_preview_enabled?: boolean;
 
     @doc("Не присылать боту события о его собственных сообщениях и реакциях")
     @example(false)
-    ignore_self_messages?: boolean = false;
+    ignore_self_messages?: boolean;
 
     @doc("Сохранять историю событий бота для последующего получения через метод истории событий")
     @example(false)
-    events_history_enabled?: boolean = false;
+    events_history_enabled?: boolean;
 
     @doc("Кто может добавлять бота в чаты")
     @example(BotWhoCanAdd.creator)
-    who_can_add?: BotWhoCanAdd = BotWhoCanAdd.creator;
+    who_can_add?: BotWhoCanAdd;
 
-    @doc("Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.")
+    @doc("Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Список заменяется целиком.")
     @example(#[BotCanEdit.admin])
+    @extension("x-replaces-set", true)
     can_edit?: BotCanEdit[];
 
     @doc("Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.")
@@ -3451,8 +3595,10 @@ model BotUpdateRequest {
     @example(BotWebhookKind.simple)
     kind?: BotWebhookKind;
 
-    @doc("Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`.")
+    @doc("Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`. Список заменяется целиком.")
     @example(#["example.com"])
+    @maxItems(5)
+    @extension("x-replaces-set", true)
     unfurl_domains?: string[];
   };
 
@@ -3471,10 +3617,12 @@ model BotOAuthClientRequest {
 
   @doc("Адреса возврата после согласия. HTTPS обязателен, кроме адресов на этом же компьютере (`localhost`, `127.0.0.1`, `[::1]`). Адрес в ссылке авторизации должен совпадать с одним из списка точно, у адресов на этом же компьютере порт не сравнивается. При включении передайте хотя бы один адрес. Список заменяется целиком.")
   @example(#["https://example.com/oauth/callback"])
+  @extension("x-replaces-set", true)
   redirect_uris?: string[];
 
   @doc("Права, которые бот запрашивает у сотрудника на экране согласия. Доступны только права, которые можно выдать самому боту. Если при включении поле не передать, запрашиваются все права бота. Список заменяется целиком.")
   @example(#["messages:read", "messages:create"])
+  @extension("x-replaces-set", true)
   scopes?: string[];
 }
 
@@ -3513,6 +3661,8 @@ model BotPromoRequest {
 
   @doc("Скриншоты страницы бота, не больше 5: ключи загруженных изображений (`key` из [Получение подписи, ключа и других параметров](POST /uploads)). Список заменяется целиком, порядок сохраняется.")
   @example(#["attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png"])
+  @maxItems(5)
+  @extension("x-replaces-set", true)
   promo_images?: string[];
 }
 
@@ -3523,7 +3673,7 @@ model BotPromoImage {
   key: string;
 
   @doc("Ссылка на изображение")
-  @example("https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png")
+  @example("https://files.example.com/attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png")
   url: string;
 }
 
@@ -3569,7 +3719,7 @@ model BotSelfWebhook {
   nickname: string;
 
   @doc("URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен.")
-  @example("https://www.website.com/tasks/new")
+  @example("https://example.com/tasks/new")
   outgoing_url: string | null;
 
   @doc("События, на которые подписан бот")
@@ -3640,6 +3790,18 @@ model BotWebhook {
   @doc("Дата и время последнего запроса на входящий вебхук бота (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если запросов не было.")
   @example(utcDateTime.fromISO("2025-05-15T14:30:00.000Z"))
   last_request_at: utcDateTime | null;
+
+  @doc("Адрес входящего вебхука. `null`, если входящий вебхук у бота выключен. Приходит только в методе [Информация о боте](GET /bots/{id}).")
+  @example("https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M")
+  url?: string | null;
+
+  @doc("Секрет подписи исходящего вебхука: им подписан заголовок `Pachca-Signature`. Приходит только в методе [Информация о боте](GET /bots/{id}).")
+  @example("pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA")
+  secret_token?: string;
+
+  @doc("Тело последнего запроса на входящий вебхук бота. Длиннее 128 КБ обрезается и заканчивается на `...[truncated]`. `null`, если запросов не было. Приходит только в методе [Информация о боте](GET /bots/{id}).")
+  @example("{\"client\": \"ООО Ромашка\", \"amount\": 15000}")
+  last_request_body?: string | null;
 }
 
 @doc("Запрос на саморегистрацию вебхука бота")
@@ -3647,7 +3809,7 @@ model BotWebhookSelfUpdateRequest {
   @doc("Объект параметров вебхука")
   webhook: {
     @doc("URL исходящего вебхука. Пустая строка отключает вебхук.")
-    @example("https://www.website.com/tasks/new")
+    @example("https://example.com/tasks/new")
     outgoing_url: string;
   };
 }
@@ -3667,7 +3829,7 @@ model BotResponse {
   nickname: string;
 
   @doc("Ссылка на аватар бота. `null`, если аватар не задан.")
-  @example("https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg")
+  @example("https://files.example.com/uploads/0001/0001/image.jpg")
   avatar_url: string | null;
 
   @doc("Идентификатор сотрудника, создавшего бота. `null`, если создатель не записан.")
@@ -3682,7 +3844,7 @@ model BotResponse {
   @example(3)
   authorized_users_count: int32;
 
-  @doc("Дата и время, когда бот последний раз работал (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ: запрос на входящий вебхук или вызов API любым токеном бота, включая токены сотрудников. `null`, если такого не было. Использование токена учитывается не чаще раза в час.")
+  @doc("Дата и время, когда бот последний раз работал (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ: запрос на входящий вебхук или вызов API любым токеном бота, включая токены сотрудников. `null`, если такого не было. Использование токена учитывается не чаще раза в минуту.")
   @example(utcDateTime.fromISO("2025-05-15T14:30:00.000Z"))
   last_used_at: utcDateTime | null;
 
@@ -3772,7 +3934,7 @@ model BotAccessToken {
   @example(null)
   expires_in: int32 | null;
 
-  @doc("Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать.")
+  @doc("Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в минуту, поэтому может отставать.")
   @example(utcDateTime.fromISO("2025-02-24T14:20:00.000Z"))
   last_used_at: utcDateTime | null;
 
@@ -3802,6 +3964,7 @@ model BotTokenUpdateRequest {
 
   @doc("Новые права токена. Список заменяется целиком и действует сразу, перевыпускать токен не нужно.")
   @example(#["messages:create", "chats:read"])
+  @extension("x-replaces-set", true)
   scopes?: string[];
 }
 
@@ -3875,7 +4038,7 @@ model CompanyBotWebhook {
   nickname: string;
 
   @doc("URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен.")
-  @example("https://www.website.com/tasks/new")
+  @example("https://example.com/tasks/new")
   outgoing_url: string | null;
 
   @doc("События, на которые подписан бот")
@@ -4207,8 +4370,8 @@ model AuditDetailsVideoCallFinished {
   chat_id: int32;
   @doc("Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.")
   started_message_id: int32 | null;
-  @doc("Длительность звонка в секундах")
-  duration: int32;
+  @doc("Длительность звонка в секундах. `null`, если звонок завершился, так и не начавшись.")
+  duration: int32 | null;
   @doc("Максимальное число одновременных участников за время звонка")
   max_members_count: int32;
 }
@@ -4300,7 +4463,7 @@ model AuditEvent {
   ip_address: string | null;
   
   @doc("User agent клиента, обрезается до 255 символов. `null` у событий, записанных без запроса пользователя.")
-  @example("Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0")
+  @example("Pachca/3.60.0 (build:15; iOS 18.5.0) Alamofire/5.0.0")
   user_agent: string | null;
 }
 
@@ -4716,17 +4879,17 @@ model VideoCallWebhookPayload {
   @doc("Объект с параметрами треда, если видеозвонок проходит в треде. `null`, если звонок не в треде.")
   thread?: WebhookVideoCallThread | null;
 
-  @doc("Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished.")
+  @doc("Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished. `null`, если звонок завершился, так и не начавшись.")
   @example(utcDateTime.fromISO("2025-05-15T14:30:00.000Z"))
-  started_at?: utcDateTime;
+  started_at?: utcDateTime | null;
 
   @doc("Дата и время завершения звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для события finished.")
   @example(utcDateTime.fromISO("2025-05-15T14:45:00.000Z"))
   finished_at?: utcDateTime;
 
-  @doc("Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи.")
+  @doc("Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи. `null`, если звонок завершился, так и не начавшись.")
   @example(900)
-  duration?: int32;
+  duration?: int32 | null;
 
   @doc("Список участников звонка. Присутствует для события finished.")
   members?: WebhookVideoCallMember[];
@@ -4793,12 +4956,13 @@ model ExportRequest {
   @example(plainDate.fromISO("2025-03-20"))
   end_at: plainDate;
   
-  @doc("Адрес, на который придёт вебхук с номером готовой выгрузки. Без него узнать номер неоткуда: заказавший получит письмо и уведомление, а вызывающая программа — ничего.")
-  @example("https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2")
+  @doc("Адрес, на который придёт вебхук с номером готовой выгрузки, когда архив будет собран. Номер приходит в поле `export_id`, а всё тело вебхука описано в разделе [Экспорт](/guides/export).")
+  @example("https://example.com/webhooks/export")
   webhook_url?: string;
   
   @doc("Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов.")
   @example(#[1381521])
+  @maxItems(50)
   chat_ids?: int32[];
   
   @doc("Пропуск формирования файла со списком чатов (chats.json)")
@@ -4806,9 +4970,138 @@ model ExportRequest {
   skip_chats_file?: boolean = false;
 }
 
+@doc("Заказанный экспорт сообщений")
+model ChatExport {
+  @doc("Идентификатор экспорта")
+  @example(22322)
+  id: int32;
+}
+
+@doc("Вебхук о готовой выгрузке: приходит на адрес из `webhook_url`, когда архив собран")
+model ExportWebhookPayload {
+  @doc("Тип объекта")
+  @example("export")
+  @extension("x-enum-descriptions", #{
+    export: "Для выгрузки всегда export"
+  })
+  type: "export";
+
+  @doc("Тип события")
+  @example("ready")
+  @extension("x-enum-descriptions", #{
+    ready: "Архив собран"
+  })
+  event: "ready";
+
+  @doc("Идентификатор экспорта: по нему архив отдаёт метод [Скачать архив экспорта](GET /chats/exports/{id})")
+  @example(22322)
+  export_id: int32;
+
+  @doc("Дата и время заказа выгрузки (ISO-8601)")
+  @example(utcDateTime.fromISO("2025-03-20T12:33:58Z"))
+  created_at: utcDateTime;
+}
+
+@route("/oauth")
+@tag("OAuth")
+interface OAuthFlowOperations {
+  @extension("x-requirements", #{
+    auth: false,
+  })
+  @extension("x-oauth-flow", true)
+  @extension("x-oauth-authorize-url", "https://app.pachca.com/apps/authorize")
+  @doc("""
+Обмен кода на токен
+
+Второй шаг авторизации от имени сотрудника: код из адреса возврата меняется на токен этого сотрудника. Код действует 10 минут и обменивается один раз. Как получить код и проверить, чей токен пришёл, — в разделе [Получение токена](/guides/oauth/flow).
+
+Тело передаётся в формате `application/x-www-form-urlencoded`, как требует OAuth 2.0. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета передаёт `client_id` и `code_verifier` — проверочный код PKCE, из которого получен `code_challenge` ссылки авторизации.
+
+Токен бессрочный: `expires_in` в ответе нет, и работает токен, пока сотрудник не отзовёт доступ. Если сотрудник уже авторизовал бота раньше, приходит его прежний токен. Чей это токен, показывает [Информация о токене](GET /oauth/token/info).
+
+Ошибки приходят в формате OAuth: `invalid_grant` — код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, а `invalid_client` — неверный `client_id` или `client_secret`. У обмена свой [лимит](/api/limits).
+""")
+  @route("/token")
+  @post
+  @opExample(#{
+    parameters: #{
+      contentType: "application/x-www-form-urlencoded",
+      request: #{
+        grant_type: "authorization_code",
+        code: "ZmFrZV9hdXRoX2NvZGU",
+        redirect_uri: "https://bot.example.com/oauth/callback",
+        client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+        client_secret: "dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA",
+        code_verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+      },
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        access_token: "pato_bm90X2FfcmVhbF90b2tlbg",
+        token_type: "Bearer",
+        refresh_token: "cmVmcmVzaF9ub3RfcmVhbA",
+        scope: "chats:read messages:read tasks:read tasks:create",
+        created_at: 1790242260,
+      },
+    },
+  })
+  exchangeToken(
+    @header("Content-Type") contentType: "application/x-www-form-urlencoded",
+    @body request: OAuthTokenRequest
+  ): {
+    @statusCode _: 200;
+    @body body: OAuthToken;
+  } | {
+    @statusCode _: 400;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  };
+
+  @extension("x-oauth-flow", true)
+  @doc("""
+Отзыв токена
+
+Отзывает токен сотрудника, выданный боту, по стандарту OAuth 2.0 ([RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009)). Так бот отключает доступ сам, например когда сотрудник выключает интеграцию в вашем сервисе. В `token` можно передать и токен сотрудника, и его токен обновления: перестают работать оба.
+
+Тело передаётся в формате `application/x-www-form-urlencoded`. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета отзывает только сам токен: передаёт его и в теле, и в заголовке `Authorization: Bearer`.
+
+Ответ `200` с пустым объектом приходит и тогда, когда токен уже отозван или не найден. Токен другого бота метод не отзывает и отвечает `403` с кодом `unauthorized_client`. Отзыв записывается в [журнал аудита событий](/guides/audit-events) с типом `oauth_token_revoked`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
+""")
+  @route("/revoke")
+  @post
+  @opExample(#{
+    parameters: #{
+      contentType: "application/x-www-form-urlencoded",
+      request: #{
+        token: "pato_bm90X2FfcmVhbF90b2tlbg",
+        client_id: "aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY",
+        client_secret: "dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA",
+      },
+    },
+    returnType: #{
+      _: 200,
+    },
+  })
+  revokeToken(
+    @header("Content-Type") contentType: "application/x-www-form-urlencoded",
+    @body request: OAuthRevokeRequest
+  ): {
+    @statusCode _: 200;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  };
+}
+
 @route("/oauth/token/info")
 @tag("OAuth")
 interface OAuthOperations {
+  @extension("x-requirements", #{
+    scope: null,
+  })
   @doc("""
 Информация о токене
 
@@ -4825,6 +5118,9 @@ interface OAuthOperations {
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError;
   };
 }
 
@@ -4838,23 +5134,53 @@ interface ExportOperations {
   @doc("""
 Экспорт сообщений
 
-Заказ выгрузки сообщений пространства за период. Архив готовится в фоне, поэтому ответ приходит пустым и идентификатора выгрузки не содержит.
+Заказ выгрузки сообщений пространства за период. Архив готовится в фоне.
 
-Номер готовой выгрузки приходит в поле `export_id` вебхука на адрес из `webhook_url`. Заказавший дополнительно получает письмо и уведомление в Пачке со ссылкой вида `/full_exports/{id}` — число в ней и есть идентификатор. Адрес вебхука необязателен, но без него программе номер взять неоткуда: остаются только письмо и уведомление заказавшему.
+Период выгрузки — не больше 45 дней, с `chat_ids` — до 366 дней, а `end_at` не может быть раньше `start_at`. Другой период отвечает `422` с кодом `invalid_date_range`.
 
-С этим идентификатором архив забирают методом [Скачать архив экспорта](GET /chats/exports/{id}).
+С заголовком `Prefer: return=representation` ответ приходит со статусом `202` и идентификатором экспорта в `data.id`. Без заголовка ответ пустой, со статусом `204`. По идентификатору архив отдаёт метод [Скачать архив экспорта](GET /chats/exports/{id}), когда сборка закончится.
+
+Когда архив готов, на адрес из `webhook_url` приходит вебхук с идентификатором в поле `export_id`. Заказавший получает письмо и уведомление в Пачке со ссылкой вида `/full_exports/{id}` — число в ней и есть идентификатор.
+
+Следующую выгрузку пространство может заказать через 90 секунд после предыдущей, даже если та ещё собирается. Более ранний запрос отвечает `422` с кодом `rate_limit`.
 """)
   @post
-  
-  requestExport(@body request: ExportRequest): {
+  @opExample(#{
+    parameters: #{
+      prefer: "return=representation",
+      request: #{
+        start_at: plainDate.fromISO("2025-03-01"),
+        end_at: plainDate.fromISO("2025-03-20"),
+        chat_ids: #[1381521],
+      },
+    },
+    returnType: #{
+      _: 202,
+      preferenceApplied: "return=representation",
+      body: #{
+        data: #{
+          id: 22322,
+        },
+      },
+    },
+  })
+  requestExport(
+    @doc("Просьба вернуть идентификатор экспорта в ответе. Без заголовка ответ приходит пустым, со статусом `204`.")
+    @header("Prefer") prefer?: "return=representation",
+    @body request: ExportRequest
+  ): {
+    @statusCode _: 202;
+    @doc("Применённое предпочтение")
+    @header("Preference-Applied") preferenceApplied: "return=representation";
+    @body body: DataResponse<ChatExport>;
+  } | {
     @statusCode _: 204;
-
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -4872,13 +5198,15 @@ interface ExportOperations {
 
 В ответ на запрос сервер вернёт `302 Found` с заголовком `Location`, содержащим временную ссылку на скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.
 
-Ссылка действует 5 минут, поэтому скачивайте архив сразу после запроса. Сам архив хранится 7 дней, а скачать его может только тот, кто заказал выгрузку. Другому сотруднику с тем же правом метод откажет.
+Ссылка действует 5 минут, используйте её сразу. Сам архив хранится 7 дней, а скачать его может только тот, кто заказал выгрузку. Другому сотруднику с тем же правом метод откажет.
+
+Пока архив собирается, метод отвечает `404` с кодом `export_file_not_found`.
 """)
   @route("/{id}")
   @get
 
   downloadExport(
-    @doc("Идентификатор экспорта")
+    @doc("Идентификатор экспорта: `export_id` из вебхука о готовом архиве или число из ссылки вида `/full_exports/{id}` в уведомлении в Пачке")
     @extension("example", 22322)
     @path id: int32
   ): {
@@ -4890,13 +5218,10 @@ interface ExportOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
-  } | {
-    @statusCode _: 403;
-    @body body: ApiError | OAuthError;
   };
 }
 
@@ -4939,7 +5264,7 @@ interface CompanyChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -4977,7 +5302,7 @@ interface ProfileOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   };
   
   @extension("x-requirements", #{
@@ -5000,7 +5325,10 @@ interface ProfileOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
   
   @extension("x-requirements", #{
@@ -5017,7 +5345,7 @@ interface ProfileOperations {
 
 Срок, названный словами («до трёх», «до конца дня»), — это `expires_at`, а не часть подписи. Считается он в часовом поясе сотрудника, а пояс приходит в методе [Свой профиль](GET /profile).
 
-Эмодзи обязателен, и он должен быть ровно один, без текста вокруг. Подпись обязательна и не длиннее 50 символов.
+Эмодзи и подпись обязательны, только когда статуса ещё нет. Эмодзи должен быть ровно один, без текста вокруг, а подпись — не длиннее 50 символов.
 """)
   @route("/status")
   @put
@@ -5029,12 +5357,15 @@ interface ProfileOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
   
@@ -5057,7 +5388,10 @@ interface ProfileOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
 }
 
@@ -5095,7 +5429,7 @@ interface ProfileAvatarOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 402;
     @body body: ApiError;
@@ -5121,7 +5455,7 @@ interface ProfileAvatarOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 402;
     @body body: ApiError;
@@ -5145,6 +5479,8 @@ interface UserOperations {
 
 Если сотрудник с этим адресом уже есть в пространстве, метод отвечает `409`. Занятый ник ошибкой не считается: к нему молча дописываются случайные символы, и в ответе приходит уже изменённый.
 
+Бесплатное пространство, в том числе на пробном периоде, может отправить за сутки ограниченное число писем: приглашения и письма о смене почты считаются вместе, а предел указан на странице [Лимиты](/api/limits). Сверх него метод отвечает `422` с кодом `daily_invites_limit` и сотрудника не заводит, а остаток и время сброса приходят в `payload`. С `skip_email_notify: true` письмо не отправляется и в лимит не идёт.
+
 Вы можете заполнять дополнительные поля сотрудника, которые созданы в вашей компании. Получить актуальный список идентификаторов дополнительных полей сотрудника вы можете в методе [Список дополнительных полей](GET /custom_properties).
 
 Поле `list_tags` сразу заводит сотрудника в теги, а вместе с тегами — и в чаты, к которым эти теги привязаны. У гостя теги не назначаются вовсе: ответ приходит успешный, а `list_tags` в нём пустой.
@@ -5160,7 +5496,7 @@ interface UserOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 422;
     @body body: ApiError;
@@ -5183,7 +5519,7 @@ interface UserOperations {
 
 Все сотрудники пространства, кроме удалённых. Приостановленные приходят вместе с остальными и отличаются полем `suspended`.
 
-Боты в пространстве — тоже сотрудники и приходят в общем списке с `bot: true`. Но из выдачи по `query` они исключены: чтобы найти бота по имени, перебирайте страницы без поискового запроса или пользуйтесь методом [Список ботов](GET /bots).
+Боты в пространстве — тоже сотрудники и приходят в общем списке с `bot: true`. Но из выдачи по `query` они исключены: чтобы найти бота по имени, перебирайте страницы без поискового запроса.
 
 Мульти-гостю метод отдаёт не всё пространство, а тех, кого он видит в интерфейсе: его самого, участников общих с ним чатов вместе с ботами и публичных ботов. Треды и архивные чаты общими не считаются.
 
@@ -5216,7 +5552,7 @@ interface UserOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -5259,7 +5595,7 @@ interface UserOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -5276,6 +5612,8 @@ interface UserOperations {
 
 Меняет карточку сотрудника: перезаписываются только переданные поля. Идентификаторы дополнительных полей отдаёт [Список дополнительных полей](GET /custom_properties).
 
+Запрос применяется целиком: если какое-то поле не прошло проверку, например новый `email` уже занят, не меняется ничего. Смена почты отправляет письма на прежний и новый адрес. В бесплатном пространстве они идут в тот же суточный лимит, что и приглашения из метода [Новый сотрудник](POST /users), и сверх него ответ `422` с кодом `daily_invites_limit`.
+
 Поле `list_tags` заменяет набор тегов целиком, поэтому присылайте вместе с новым тегом и те, что сохраняются. Снятый тег выводит сотрудника из чатов, куда его привёл этот тег, а имя, которого в пространстве ещё нет, создаёт новый тег вместе с назначением.
 
 `suspended: true` приостанавливает сотрудника: он теряет доступ, но остаётся в чатах, тегах и задачах, а `suspended: false` возвращает его обратно. Насовсем убирает сотрудника [Удаление сотрудника](DELETE /users/{id}).
@@ -5284,7 +5622,7 @@ interface UserOperations {
 
 Незнакомое значение роли метод молча пропускает: ответ приходит успешный, а роль остаётся прежней.
 
-У бота метод меняет только имя (`first_name`), ник, теги и `suspended`, остальные поля в запросе пропускает. Ник бота должен оканчиваться на `_bot` и быть уникальным в пространстве, иначе метод отвечает `422` с ошибкой на поле `nickname`: `invalid` или `already_exists`. Прежний ник бота проверяется, только когда его меняют. Бота с настройкой «Ограничить одним чатом» в теги не добавить: если в `list_tags` есть тег, которого у бота ещё нет, метод отвечает `422` с кодом `single_chat_bot_tag_denied` на поле `group_tags` и ничего не меняет. Если настройки бота поменялись во время запроса, ответ `422` приходит с кодом `bot_changed_concurrently`: повторите запрос.
+У бота метод меняет только имя (`first_name`), ник, теги и `suspended`, остальные поля в запросе пропускает. Какой ник и какие теги можно дать боту, сказано у полей `nickname` и `list_tags`. Если настройки бота поменялись во время запроса, ответ `422` приходит с кодом `bot_changed_concurrently`: повторите запрос.
 """)
   @put
   updateUser(
@@ -5300,7 +5638,7 @@ interface UserOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -5346,7 +5684,7 @@ interface UserOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -5389,9 +5727,12 @@ interface UserStatusOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 
@@ -5407,7 +5748,9 @@ interface UserStatusOperations {
 
 Статус видят все, кто видит сотрудника в пространстве. Перезаписываются только переданные поля, поэтому продлить чужой статус можно одним `expires_at`.
 
-Срок, названный словами, — это `expires_at`, а не часть подписи, и считается он в часовом поясе того сотрудника, которому ставят статус. Эмодзи обязателен и ровно один, подпись обязательна и не длиннее 50 символов.
+Срок, названный словами, — это `expires_at`, а не часть подписи, и считается он в часовом поясе того сотрудника, которому ставят статус.
+
+Эмодзи и подпись обязательны, только когда статуса ещё нет. Эмодзи должен быть ровно один, без текста вокруг, а подпись — не длиннее 50 символов.
 
 Свой статус ставят методом [Новый свой статус](PUT /profile/status) — он доступен всем ролям и ботам.
 """)
@@ -5426,7 +5769,7 @@ interface UserStatusOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -5435,6 +5778,9 @@ interface UserStatusOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 
@@ -5463,9 +5809,12 @@ interface UserStatusOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }
@@ -5507,7 +5856,7 @@ interface UserAvatarOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -5542,7 +5891,7 @@ interface UserAvatarOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -5569,7 +5918,7 @@ interface GroupTagOperations {
 
 Сотрудников в тег добавляют не здесь, а в карточке каждого — [Редактирование сотрудника](PUT /users/{id}) с полем `list_tags`. Свежий тег создаётся пустым, с `users_count: 0`. К чату его привязывает метод [Добавление тегов](POST /chats/{id}/group_tags).
 
-Название уникально в пространстве без учёта регистра и не может содержать `@`. Создавать теги могут владелец пространства и администратор, боту метод недоступен.
+Название уникально в пространстве без учёта регистра и не может содержать `@`. Занятое название отвечает `400` с кодом `taken`, а `409` приходит, только если такой же тег создали одновременно с запросом. Создавать теги могут владелец пространства и администратор, боту метод недоступен.
 """)
   @post
   createTag(@body request: GroupTagRequest): {
@@ -5580,7 +5929,7 @@ interface GroupTagOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 422;
     @body body: ApiError;
@@ -5621,7 +5970,7 @@ interface GroupTagOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -5647,7 +5996,8 @@ interface GroupTagOperations {
   listTags(
     @doc("Массив названий тегов, по которым вы хотите отфильтровать список")
     @extension("example", #["Design", "Product"])
-    @query(#{ explode: true })
+    @extension("x-query-array", "brackets")
+    @query
     names?: TagNamesFilter,
     @doc("Количество возвращаемых сущностей за один запрос")
     @query
@@ -5666,7 +6016,7 @@ interface GroupTagOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -5680,6 +6030,7 @@ interface GroupTagOperations {
 
   @extension("x-requirements", #{
     scope: "group_tags:read",
+    roles: #["owner", "admin", "user", "bot"],
   })
   @doc("""
 Список сотрудников тега
@@ -5714,7 +6065,7 @@ interface GroupTagOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -5737,7 +6088,7 @@ interface GroupTagOperations {
 
 Переименовывает тег. Состав сотрудников и привязки к чатам при этом не меняются: у всех, кто был в теге, он остаётся, только под новым названием.
 
-Название уникально в пространстве без учёта регистра и не может содержать `@`. Переименовывать теги могут владелец пространства и администратор, боту метод недоступен.
+Название уникально в пространстве без учёта регистра и не может содержать `@`. Занятое название отвечает `400` с кодом `taken`, а `409` приходит, только если такое же название задали одновременно с запросом. Переименовывать теги могут владелец пространства и администратор, боту метод недоступен.
 """)
   @put
   updateTag(
@@ -5753,7 +6104,7 @@ interface GroupTagOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -5779,7 +6130,7 @@ interface GroupTagOperations {
 
 Убирает тег из пространства: он снимается со всех сотрудников и отвязывается от всех чатов.
 
-Из чатов при этом никто не выходит. Сотрудники, которых тег привёл в беседу или канал, остаются там обычными участниками, и дальше их состав тегом уже не поддерживается. Чтобы вывести их из конкретного чата, пользуйтесь методом [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id}) до удаления самого тега.
+Из чатов при этом никто не выходит. Сотрудники, которых тег привёл в беседу или канал, остаются там обычными участниками, и дальше их состав тегом уже не поддерживается. Чтобы вывести их из конкретного чата, пользуйтесь методом [Исключение тега из чата](DELETE /chats/{id}/group_tags/{tag_id}) до удаления самого тега.
 
 Удалять теги могут владелец пространства и администратор, боту метод недоступен.
 """)
@@ -5797,7 +6148,7 @@ interface GroupTagOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -5824,7 +6175,7 @@ interface ChatOperations {
 
 Мульти-гость, как и в интерфейсе, создавать чаты не может: метод отвечает ему `403`.
 
-Для создания личной переписки 1 на 1 с пользователем пользуйтесь методом [Новое сообщение](POST /messages). Чтобы обсудить конкретное сообщение, чат заводить не нужно — под ним заводят тред методом [Новый тред](POST /messages/{id}/thread).
+Для создания личной переписки 1 на 1 с пользователем пользуйтесь методом [Новое сообщение](POST /messages). Чтобы обсудить конкретное сообщение, чат заводить не нужно — под ним заводят тред методом [Новый тред](POST /messages/{id}/thread). Разговору на одну тему постоянное место тоже не нужно: для него есть метод [Новый самостоятельный тред](POST /threads).
 
 Участников можно передать сразу: `member_ids` добавляет поимённо, `group_tag_ids` приводит всех, кто состоит в теге, и дальше поддерживает состав сам. Идентификаторы, которых в пространстве нет, а также приостановленные и удалённые сотрудники молча отбрасываются — ответ приходит успешным, а сотрудника в чате не оказывается, поэтому сверяйте состав в ответе. С ботами строже: если настройка бота «Кто может добавлять бота в чаты» не разрешает вам его добавить, чат не создаётся, а метод отвечает `403` с кодом `bot_add_denied` и идентификаторами таких ботов в `value`. Бот с настройкой «Ограничить одним чатом», который уже состоит в другой беседе или канале, тоже останавливает запрос, если он есть в `member_ids` или создаёт чат сам: чат не создаётся, а метод отвечает `409` с кодом `single_chat_bot_occupied` и идентификаторами таких ботов в `value`.
 """)
@@ -5837,7 +6188,7 @@ interface ChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 409;
     @body body: ApiError;
@@ -5858,7 +6209,7 @@ interface ChatOperations {
   @doc("""
 Информация о чате
 
-Карточка чата вместе с составом участников и привязанными тегами.
+Карточка чата вместе с составом участников и привязанными тегами. Что в чате написано, возвращает [Список сообщений чата](GET /messages).
 
 Закрытая беседа, в которой вызывающий не состоит, отвечает `403`, а не `404`: существование чата этим методом не скрывается. Открытый канал своего пространства отдаётся и тому, кто в него не вступал. Владельцу пространства метод тоже не открывает чужие закрытые чаты — весь их перечень отдаёт [Список чатов пространства](GET /company/chats).
 
@@ -5878,7 +6229,7 @@ interface ChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -5940,7 +6291,7 @@ interface ChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -5962,7 +6313,7 @@ interface ChatOperations {
 
 Личный чат переименовать нельзя, архивный — тоже: сначала верните его из архива методом [Разархивация чата](PUT /chats/{id}/unarchive). В закрытом чате метод доступен владельцу и администратору чата, в открытом — любому сотруднику пространства, даже не участнику.
 
-Состав участников этим методом не меняется, для него есть [Добавление пользователей](POST /chats/{id}/members) и [Исключение пользователя](DELETE /chats/{id}/members/{user_id}).
+Состав участников этим методом не меняется, для него есть [Добавление участников](POST /chats/{id}/members) и [Исключение участника](DELETE /chats/{id}/members/{user_id}).
 """)
   @put
   updateChat(
@@ -5978,7 +6329,7 @@ interface ChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6022,9 +6373,12 @@ interface ChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
   
@@ -6053,9 +6407,12 @@ interface ChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 
@@ -6069,7 +6426,7 @@ interface ChatOperations {
 
 Без `message_id` непрочитанным становится последнее сообщение чата, с `message_id` — это сообщение и все после него. Повторный запрос с тем же сообщением ничего не меняет, а в чате без сообщений метод отвечает успехом и ничего не делает.
 
-Работает в беседах, каналах, личных чатах и тредах, где владелец токена состоит. Скрытый личный чат снова появляется в списке. На чат, где владельца токена нет, и на сообщение из другого чата метод отвечает `404`.
+Работает в беседах, каналах, личных чатах и тредах, где владелец токена состоит: тред передают его `chat_id`. Скрытый личный чат снова появляется в списке. Открытый чат, где владелец токена не состоит, и сообщение из другого чата отвечают `404`. Закрытый чат, недоступный тред и чат другого пространства отвечают `403`.
 """)
   @route("/{id}/unread")
   @put
@@ -6085,7 +6442,7 @@ interface ChatOperations {
     },
   })
   markChatUnread(
-    @doc("Идентификатор чата или треда")
+    @doc("Идентификатор чата (беседы, канала, личного чата или чата треда)")
     @extension("example", 334)
     @path id: int32,
     @body request?: MarkChatUnreadRequest
@@ -6099,7 +6456,7 @@ interface ChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6138,7 +6495,7 @@ interface ChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6173,7 +6530,7 @@ interface ChatOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6228,7 +6585,7 @@ interface ChatMemberOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6238,17 +6595,23 @@ interface ChatMemberOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
   
   @extension("x-requirements", #{
     scope: "chat_members:write",
+    roles: #["owner", "admin", "user", "bot"],
   })
   @doc("""
-Добавление пользователей
+Добавление участников
 
 Добавляет сотрудников и ботов в беседу, канал или тред. Бота добавляют так же, как сотрудника: его `id` в `member_ids`. В канале он получает роль редактора, а в беседе становится обычным участником — и только после этого может туда писать.
 
-Роль в чате назначается в момент добавления: владелец пространства и администратор становятся администраторами чата, остальные — обычными участниками. Дальше она сама не пересчитывается, и повышение сотрудника в пространстве ничего не меняет там, где он уже состоит. Менять роль нужно методом [Редактирование роли](PUT /chats/{id}/members/{user_id}).
+Добавлять участников могут сотрудники и боты. Гостю и мульти-гостю метод отвечает `403`, как и в интерфейсе, какая бы роль в чате у них ни была.
+
+Роль в чате назначается в момент добавления: владелец пространства и администратор становятся администраторами чата, остальные — обычными участниками. Дальше роль в чате сама не пересчитывается: повышение сотрудника в пространстве не меняет его роль там, где он уже состоит. Менять роль нужно методом [Редактирование роли участника](PUT /chats/{id}/members/{user_id}).
 
 Тех, кто уже состоит в чате, метод пропускает молча и ошибкой это не считает. А вот неизвестный или неактивный идентификатор останавливает весь запрос: метод отвечает `404` и перечисляет такие значения, никто при этом не добавляется.
 
@@ -6274,7 +6637,7 @@ interface ChatMemberOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6287,19 +6650,22 @@ interface ChatMemberOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
   
   @extension("x-requirements", #{
     scope: "chat_members:write",
   })
   @doc("""
-Исключение пользователя
+Исключение участника
 
 Убирает сотрудника или бота из беседы, канала или треда. Из треда исключают по его `chat_id`. В закрытой беседе исключённый теряет доступ к чату, но остаётся в тредах, где состоял.
 
-Сотрудника, которого держит в чате привязанный тег, этим методом убрать нельзя: ответ придёт успешный, а сотрудник останется в чате. Снимите с него тег методом [Редактирование сотрудника](PUT /users/{id}) или отцепите тег от чата методом [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id}).
+Сотрудника, которого держит в чате привязанный тег, этим методом убрать нельзя: ответ придёт успешный, а сотрудник останется в чате. Снимите с него тег методом [Редактирование сотрудника](PUT /users/{id}) или отцепите тег от чата методом [Исключение тега из чата](DELETE /chats/{id}/group_tags/{tag_id}).
 
-Если пользователь является владельцем чата, то исключить его нельзя. Он может только самостоятельно выйти из чата, воспользовавшись методом [Выход из чата](DELETE /chats/{id}/leave).
+Владельца чата исключить нельзя: метод ответит `400` с кодом `cannot_kick_owner`. Выйти из чата владелец может только сам, методом [Выход из чата](DELETE /chats/{id}/leave).
 """)
   @route("/chats/{id}/members/{user_id}")
   @delete
@@ -6319,14 +6685,21 @@ interface ChatMemberOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 400;
     @body body: ApiError;
   };
   
   @extension("x-requirements", #{
     scope: "chat_members:write",
+    roles: #["owner", "admin", "user", "bot"],
   })
   @doc("""
 Добавление тегов
@@ -6335,9 +6708,9 @@ interface ChatMemberOperations {
 
 После добавления тега все его участники автоматически становятся участниками чата. Состав участников тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу появляется в чате, при удалении из тега — удаляется из чата.
 
-Если хотя бы один из переданных тегов не найден, метод отвечает `404` и не привязывает ни одного. Тег, который к чату уже привязан, повторно не привязывается, а его участники всё равно догружаются в чат.
+Если хотя бы один из переданных тегов не найден, метод отвечает `404` и не привязывает ни одного. Тег, который к чату уже привязан, повторно не привязывается, а его участники всё равно догружаются в чат. Бот, которому нельзя состоять в тегах, по тегу в чат не приходит.
 
-Привязать тег может участник закрытой беседы и любой сотрудник пространства в открытом чате, а отцепить — только владелец или администратор чата методом [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id}).
+Привязать тег может участник закрытой беседы и любой сотрудник пространства в открытом чате, а отцепить — только владелец или администратор чата методом [Исключение тега из чата](DELETE /chats/{id}/group_tags/{tag_id}). Гостю и мульти-гостю метод отвечает `403`, какая бы роль в чате у них ни была.
 """)
   @route("/chats/{id}/group_tags")
   @post
@@ -6355,7 +6728,7 @@ interface ChatMemberOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6365,13 +6738,16 @@ interface ChatMemberOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
   
   @extension("x-requirements", #{
     scope: "chat_members:write",
   })
   @doc("""
-Исключение тега
+Исключение тега из чата
 
 Отцепляет тег от беседы или канала и выводит оттуда сотрудников, которых держал только он.
 
@@ -6397,9 +6773,12 @@ interface ChatMemberOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
   
@@ -6407,13 +6786,13 @@ interface ChatMemberOperations {
     scope: "chat_members:write",
   })
   @doc("""
-Редактирование роли
+Редактирование роли участника
 
 Меняет роль участника беседы или канала. Роль в чате с ролью в пространстве не связана: рядовой сотрудник может быть администратором чата, а повышение в пространстве роли в чатах не меняет.
 
-Роль `editor` существует только в каналах. Себе роль сменить нельзя, как и тому, кто в чате не состоит: метод ответит ошибкой. Повторная установка той же роли считается ошибкой, а не повтором.
+Роль `editor` существует только в каналах. Себе роль сменить нельзя, как и тому, кто в чате не состоит, и владельцу чата: он всегда имеет права администратора чата. Повторная установка той же роли считается ошибкой, а не повтором.
 
-Владельцу чата роль изменить нельзя. Он всегда имеет права администратора чата.
+Отказ приходит со статусом `400`, а причину называет код: `not_applicable` — роль `editor` вне канала, `self_update` — своя роль, `owner_protected` — роль владельца чата, `already_assigned` — у участника уже эта роль, `forbidden` — эту роль вам менять нельзя. На сотрудника, который в чате не состоит, метод отвечает `404`.
 """)
   @route("/chats/{id}/members/{user_id}")
   @put
@@ -6434,7 +6813,7 @@ interface ChatMemberOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6443,6 +6822,9 @@ interface ChatMemberOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
   
@@ -6454,9 +6836,9 @@ interface ChatMemberOperations {
 
 Владелец токена выходит из беседы, канала или треда сам. Из треда выходят по его `chat_id`. В закрытой беседе остальные видят системное сообщение о выходе, в открытом чате и канале — нет.
 
-Выйти нельзя, если сотрудника держит в чате привязанный тег: метод ответит `403`, пока тег не снимут с сотрудника или с чата. Из личной переписки выйти тоже нельзя, а вот из архивного чата можно.
+Выйти нельзя, если сотрудника держит в чате привязанный тег: метод ответит `403`, пока тег не снимут с сотрудника или с чата. Гостю и мульти-гостю метод тоже отвечает `403`, какая бы роль в чате у них ни была. Из личной переписки выйти нельзя, ответ — `400` с кодом `personal_chat`. А вот из архивного чата выйти можно.
 
-Вернуться в открытый чат можно самому, в закрытый — только если кто-то из участников добавит обратно. Другого сотрудника выводит [Исключение пользователя](DELETE /chats/{id}/members/{user_id}).
+Вернуться в открытый чат можно самому, в закрытый — только если кто-то из участников добавит обратно. Другого сотрудника выводит [Исключение участника](DELETE /chats/{id}/members/{user_id}).
 """)
   @route("/chats/{id}/leave")
   @delete
@@ -6473,7 +6855,7 @@ interface ChatMemberOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6482,6 +6864,9 @@ interface ChatMemberOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }
@@ -6498,13 +6883,13 @@ interface ThreadOperations {
   @doc("""
 Новый тред
 
-Заводит тред под сообщением — место, где обсуждают сказанное, не засоряя ленту чата. Тред — это отдельный доступ: в него можно позвать сотрудника, не открывая ему сам чат, и он увидит только тред и родительское сообщение.
+Заводит тред под сообщением — место, где обсуждают сказанное, не засоряя ленту чата. Тред — это отдельный доступ: в него можно позвать сотрудника, не открывая ему сам чат, и он увидит только тред и родительское сообщение. Если обсуждать нужно тему, а не сообщение, заводите тред методом [Новый самостоятельный тред](POST /threads).
 
 В новый тред сразу попадают тот, кто его создал, автор сообщения, все, кто ставил на сообщение реакции, и участники чата, включившие уведомления о тредах. Упомянутых в родительском сообщении — и поимённо, и тегом — добавляет фоновая задача сразу после создания, поэтому в первом ответе их может ещё не быть. Общие упоминания вроде `@all` в тред никого не приводят, а упомянутого, которого нет в самом чате, тред не подхватит.
 
 Пустой тред разговором ещё не является: сразу отправьте в него первое сообщение методом [Новое сообщение](POST /messages) с `entity_type: "thread"`. Названия у треда нет, и удалить его нельзя ни через API, ни в приложении.
 
-Если у сообщения уже был создан тред, то в ответе на запрос вернётся информация об уже созданном ранее треде. Тред под сообщением, которое само лежит в треде, завести нельзя: вложенных тредов в Пачке нет.
+Если у сообщения уже был создан тред, то в ответе на запрос вернётся информация об уже созданном ранее треде. Но чтобы просто прочитать тред, метод не нужен: идентификатор существующего треда приходит в поле `thread` самого сообщения. Тред под сообщением, которое само лежит в треде, завести нельзя: вложенных тредов в Пачке нет, и метод отвечает `400` с кодом `thread_message`.
 """)
   @route("/messages/{id}/thread")
   @post
@@ -6520,9 +6905,15 @@ interface ThreadOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 400;
     @body body: ApiError;
   };
 
@@ -6534,7 +6925,7 @@ interface ThreadOperations {
 
 Заводит тред, который ни к чему не привязан: место для разговора, диалога с агентом или звонка, которому не нужен отдельный чат. Собрать в нём можно любых сотрудников.
 
-Тело запроса не требуется. Создатель треда становится его единственным участником, а поля `message_id` и `message_chat_id` в ответе возвращаются как `null`. Добавить в тред участников проще всего упоминанием: `@ник` или `@тег` в начале или в конце текста сообщения. Можно и методом [Добавление пользователей](POST /chats/{id}/members) по `chat_id` треда.
+Создатель треда становится его единственным участником, а поля `message_id` и `message_chat_id` в ответе возвращаются как `null`. Добавить в тред участников проще всего упоминанием: `@ник` или `@тег` в начале или в конце текста сообщения. Можно и методом [Добавление участников](POST /chats/{id}/members) по `chat_id` треда.
 
 Названия у треда нет, поэтому сразу отправьте в него первое сообщение — по нему сотрудники и поймут, о чём речь. Удалить тред нельзя. Если обсуждать нужно конкретное сообщение в чате, заводите тред под ним методом [Новый тред](POST /messages/{id}/thread), а если нужно постоянное место с названием — создайте его методом [Новый чат](POST /chats).
 """)
@@ -6565,7 +6956,7 @@ interface ThreadOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   };
 
   @extension("x-requirements", #{
@@ -6594,7 +6985,7 @@ interface ThreadOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6644,7 +7035,7 @@ interface ThreadOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -6670,21 +7061,17 @@ interface MessageOperations {
   @doc("""
 Новое сообщение
 
-Отправляет сообщение в беседу или канал, личное сообщение сотруднику или комментарий в тред.
+Отправляет сообщение в беседу или канал, личное сообщение пользователю или комментарий в тред.
 
-При использовании `entity_type: "discussion"` (или просто без указания `entity_type`) допускается отправка любого `chat_id` в поле `entity_id`. То есть сообщение можно отправить, зная только идентификатор чата. Сообщение в тред можно отправить и по идентификатору самого треда, а личное — по идентификатору сотрудника, но тогда нужно указать соответствующий `entity_type`: `thread` или `user`.
+С `entity_type: "discussion"` — это значение по умолчанию — в `entity_id` можно передать `chat_id` любого чата, так что для отправки достаточно знать идентификатор чата. Сообщение в тред можно адресовать и идентификатором самого треда, а личное — идентификатором пользователя, но тогда нужен соответствующий `entity_type`: `thread` или `user`.
 
-Личный чат для этого создавать не требуется: он появится сам, если между вами ещё не было переписки. Между двумя сотрудниками может быть только один личный чат. Со своим собственным идентификатором сообщение уйдёт в чат с самим собой — туда же, куда сотрудник пишет заметки себе.
+Личный чат для этого создавать не требуется: он появится сам, если между вами ещё не было переписки. Между двумя пользователями может быть только один личный чат. Со своим собственным идентификатором сообщение уйдёт в чат с самим собой, где пишут заметки себе. С токеном бота это чат, где состоит только сам бот: его не видит ни один сотрудник.
 
-Чтобы ответить на конкретное сообщение с цитатой, передайте его идентификатор в `parent_message_id`. Так отвечают в любом чате, в том числе в треде: ответ отправляют в тот же чат или тред, где лежит исходное сообщение.
+Тред, в отличие от личного чата, сам не появляется: если у сообщения треда ещё нет, его сначала создают методом [Новый тред](POST /messages/{id}/thread).
 
-Текст в поле `content` разбирается как markdown: жирный, курсив, зачёркнутый, строчный код, блок кода и ссылки. Списки и таблицы не разбираются — `-`, `1.` и `|` остаются как есть, у цитаты пропадает `>`, а строка с решёткой и пробелом становится жирной. Подробности — в разделе [Форматирование текста](/guides/markdown).
+Подписчик канала пишет только в тредах его сообщений, а в сам канал метод отвечает ему `403`. Кто где может писать — в разделе [Права и роли](/guides/permissions).
 
-`@all` упоминает всех участников чата, `@here` — тех, кто сейчас в сети, а `@` с названием тега без пробелов — сотрудников этого тега. В треде упоминание работает ещё и как приглашение: упомянутого сотрудника, которого в треде нет, Пачка туда добавляет, и он получает доступ к треду и родительскому сообщению. Чтобы этого не происходило, передайте `skip_invite_mentions: true`. В беседе и канале упоминание никого не добавляет, и этот параметр там ничего не меняет.
-
-Под текстом сообщения можно показать кнопки — массив `buttons`, где каждый вложенный массив это ряд. Работают они только у сообщений, отправленных токеном бота: нажатие на кнопку с `data` приходит событием `button_click` тому самому боту, а вместе с ним `trigger_id` — на открытие формы по нему есть 3 секунды, метод [Открытие представления](POST /views/open). Кнопка с `url` просто ведёт по ссылке и события не создаёт. Подробности в разделе [Кнопки](/guides/buttons).
-
-Бот может подписать сообщение чужим именем и аватаром: `display_name` и `display_avatar_url` меняют отправителя только у этого сообщения. Бейдж «Бот» остаётся, а в профиле отправителя видно настоящего бота. Так показывают автора из другой системы, когда переносят в Пачку чужую переписку. С личным токеном поля недоступны, ответ `403`. Подробности — в разделе [Боты](/guides/bots/overview).
+Текст в поле `content` разбирается как markdown: жирный, курсив, зачёркнутый, строчный код, блок кода и ссылки. Списки и таблицы не разбираются — `-`, `1.` и `|` остаются как есть, у цитаты пропадает `>`, а строка с решёткой и пробелом становится жирной. Таблицу, чек-лист или диаграмму приложите файлом `.md`: Пачка показывает такой файл оформленным, а если он единственный документ в сообщении, его начало видно прямо в чате. Подробности — в разделе [Форматирование текста](/guides/markdown).
 
 К сообщению можно приложить не больше 10 файлов. Превью ссылки строится, только если передать `link_preview` в корне тела запроса.
 
@@ -6699,7 +7086,10 @@ interface MessageOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -6740,7 +7130,7 @@ interface MessageOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6755,7 +7145,7 @@ interface MessageOperations {
   @doc("""
 Редактирование сообщения
 
-Меняет текст, файлы и кнопки уже отправленного сообщения. В интерфейсе у него появляется пометка о правке.
+Меняет текст, файлы и кнопки уже отправленного сообщения. В интерфейсе у него появляется пометка о правке. Текст оформляется по тем же правилам, что и в методе [Новое сообщение](POST /messages).
 
 Править можно только свои сообщения, и только обычные: системное, пересланное и голосовое метод не меняет. Ограничений по давности отправки нет.
 
@@ -6775,7 +7165,7 @@ interface MessageOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6816,7 +7206,7 @@ interface MessageOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6850,14 +7240,18 @@ interface MessageOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
   } | {
     @statusCode _: 409;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 
@@ -6884,9 +7278,12 @@ interface MessageOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }
@@ -6937,7 +7334,7 @@ interface ChatMessageOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -6995,7 +7392,7 @@ interface ReadMemberOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7030,6 +7427,8 @@ interface ReactionOperations {
 
 Если под сообщением есть тред, реагирующий заодно подписывается на него и начинает получать новые сообщения треда.
 
+Сообщение, которое токену не видно, отвечает `404` с кодом `not_found`, как несуществующее.
+
 **Лимиты реакций:**
 
 - Каждый пользователь может установить на сообщение не более **20 уникальных** реакций
@@ -7051,7 +7450,7 @@ interface ReactionOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7060,6 +7459,9 @@ interface ReactionOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
   
@@ -7095,7 +7497,7 @@ interface ReactionOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7104,6 +7506,9 @@ interface ReactionOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
   
@@ -7140,7 +7545,7 @@ interface ReactionOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7149,6 +7554,9 @@ interface ReactionOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }
@@ -7161,6 +7569,7 @@ interface ReactionOperations {
 interface LinkPreviewOperations {
   @extension("x-requirements", #{
     scope: "link_previews:write",
+    roles: #["bot"],
   })
   @doc("""
 Unfurl (разворачивание ссылок)
@@ -7169,7 +7578,7 @@ Unfurl (разворачивание ссылок)
 
 Метод доступен только боту, у которого исходящий вебхук настроен на разворачивание ссылок. Такой бот получает событие `message_link_shared` и отвечает на него этим методом, причём состоять в чате с сообщением ему не нужно — достаточно, чтобы чат был в его пространстве.
 
-Домен ссылки должен быть в списке разрешённых у бота, а сама ссылка — присутствовать в тексте сообщения, иначе метод ответит ошибкой. Ответ приходит пустым даже тогда, когда ни одно превью не применилось: результат проверяют повторным чтением сообщения.
+Домен ссылки должен быть в списке разрешённых у бота, а сама ссылка — присутствовать в тексте сообщения, иначе метод ответит ошибкой. Ответ приходит пустым даже тогда, когда ни одно превью не применилось. В объекте сообщения превью нет: их видно только в приложении.
 """)
   @route("/messages/{id}/link_previews")
   @post
@@ -7186,7 +7595,7 @@ Unfurl (разворачивание ссылок)
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7195,6 +7604,9 @@ Unfurl (разворачивание ссылок)
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }
@@ -7224,7 +7636,7 @@ interface SearchOperations {
   @route("/users")
   @get
   searchUsers(
-    @doc("Текст поискового запроса")
+    @doc("Текст поискового запроса. Запрос длиннее 500 знаков обрезается.")
     @extension("example", "Олег")
     @query query?: string,
     @doc("Количество возвращаемых результатов за один запрос")
@@ -7248,6 +7660,7 @@ interface SearchOperations {
     @query created_to?: utcDateTime,
     @doc("Фильтр по ролям сотрудников")
     @extension("example", #["admin", "user"])
+    @extension("x-query-array", "brackets")
     @query company_roles?: UserRole[]
   ): {
     @statusCode _: 200;
@@ -7260,7 +7673,7 @@ interface SearchOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -7287,7 +7700,7 @@ interface SearchOperations {
   @route("/chats")
   @get
   searchChats(
-    @doc("Текст поискового запроса")
+    @doc("Текст поискового запроса. Запрос длиннее 500 знаков обрезается.")
     @extension("example", "Разработка")
     @query query?: string,
     @doc("Количество возвращаемых результатов за один запрос")
@@ -7326,7 +7739,7 @@ interface SearchOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -7353,7 +7766,7 @@ interface SearchOperations {
   @route("/messages")
   @get
   searchMessages(
-    @doc("Текст поискового запроса")
+    @doc("Текст поискового запроса. Без него сообщения отбираются только фильтрами. Запрос длиннее 500 знаков обрезается.")
     @extension("example", "футболки")
     @query query?: string,
     @doc("Количество возвращаемых результатов за один запрос")
@@ -7377,9 +7790,11 @@ interface SearchOperations {
     @query created_to?: utcDateTime,
     @doc("Фильтр по ID чатов")
     @extension("example", #[198, 334])
+    @extension("x-query-array", "brackets")
     @query chat_ids?: int32[],
     @doc("Фильтр по ID авторов сообщений")
     @extension("example", #[12, 185])
+    @extension("x-query-array", "brackets")
     @query user_ids?: int32[],
     @doc("Фильтр по активности чата")
     @extension("example", true)
@@ -7395,7 +7810,7 @@ interface SearchOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -7441,7 +7856,7 @@ interface TaskOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7474,10 +7889,12 @@ interface TaskOperations {
     @query status?: TaskStatus,
     @doc("Фильтр по чатам, к которым привязаны напоминания. Доступными считаются чаты, где вы состоите участником, открытые беседы и каналы пространства, а также треды, доступные вам по родительскому чату. Мульти-гостю открытые беседы и каналы доступны, только если он в них участник. Остальные переданные идентификаторы игнорируются без ошибки. Не более 100 идентификаторов.")
     @extension("example", #[198, 334])
+    @extension("x-query-array", "brackets")
     @maxItems(100)
     @query chat_ids?: int32[],
     @doc("Фильтр по ответственным за напоминание. Не более 100 идентификаторов.")
     @extension("example", #[12, 185])
+    @extension("x-query-array", "brackets")
     @maxItems(100)
     @query performer_ids?: int32[],
     @doc("Фильтр по автору напоминания")
@@ -7500,7 +7917,7 @@ interface TaskOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -7533,7 +7950,7 @@ interface TaskOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7570,7 +7987,7 @@ interface TaskOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7611,7 +8028,7 @@ interface TaskOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7634,7 +8051,7 @@ interface DraftOperations {
   @doc("""
 Новый черновик
 
-Кладёт черновик в беседу, тред или личную переписку. В интерфейсе Пачки он появляется в поле ввода этого чата, где сотрудник его допишет и отправит. Этим же методом создаётся отложенное сообщение: с полем `schedule` черновик уходит сам в назначенное время, без него просто лежит. Сам метод ничего не отправляет, для отправки есть [Новое сообщение](POST /messages).
+Кладёт черновик в беседу, тред или личную переписку. В интерфейсе Пачки он появляется в поле ввода этого чата, где сотрудник его допишет и отправит. Этим же методом создаётся отложенное сообщение: с полем `schedule` черновик уходит сам в назначенное время, без него просто лежит. Сам метод ничего не отправляет: черновик отправляют методом [Новое сообщение](POST /messages), передав в него `content` и `parent_message_id` черновика, а у каждого файла из `files` — `key`, `name` и `file_type`. Отправка сообщения черновик не удаляет: приложение Пачки убирает его само, а через API — методом [Удаление черновика](DELETE /drafts/{id}), иначе текст останется в поле ввода.
 
 Черновик виден только своему автору — его не видит ни собеседник, ни администратор пространства. Обычный черновик в чате может быть только один. Повторный вызов отвечает `409` с кодом `already_exists` и номером существующего в `payload.draft_id`. Дописывают его методом [Редактирование черновика](PUT /drafts/{id}). Отложенных сообщений на один чат — не больше 50.
 
@@ -7653,7 +8070,7 @@ interface DraftOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7712,7 +8129,7 @@ interface DraftOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -7746,7 +8163,7 @@ interface DraftOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7784,7 +8201,7 @@ interface DraftOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7823,7 +8240,7 @@ interface DraftOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7860,13 +8277,14 @@ model SubmitViewResponseResult {
 interface FormOperations {
   @extension("x-requirements", #{
     scope: "views:write",
+    roles: #["bot"],
   })
   @doc("""
 Открытие представления
 
 Показывает пользователю модальное окно с формой в ответ на его действие. Метод вызывают токеном бота: события о нажатии кнопок приходят только ботам, от имени бота окно и открывается.
 
-Открыть окно можно единственным способом — по `trigger_id` из события о нажатии кнопки. Один `trigger_id` открывает одно окно и живёт 3 секунды: у бота с вебхуком — с момента, когда Пачка передала нажатие, у бота с [Журналом событий](GET /webhooks/events) — с момента записи нажатия в журнал. Поэтому окно открывают первым делом, а всё остальное по событию делают уже после.
+Открыть окно можно единственным способом — по `trigger_id` из события о нажатии кнопки. Один `trigger_id` открывает одно окно и живёт 3 секунды. У бота с вебхуком они отсчитываются с момента, когда Пачка передала нажатие, а у бота, который читает [Историю событий](GET /webhooks/events), с момента записи нажатия в журнал. Поэтому окно открывают первым делом, а всё остальное по событию делают уже после.
 
 Заполненная форма приходит обратно событием `view_submit`: на исходящий вебхук, а если адрес не задан — в журнал. На вебхук отвечают прямо в ответе на него, и Пачка ждёт его 3 секунды. Событие из журнала закрывают методом [Ответ на отправку формы](POST /views/{view_id}/submit_response), на это есть 5 секунд. Не успели — пользователь увидит ошибку отправки.
 """)
@@ -7880,7 +8298,7 @@ interface FormOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -7897,6 +8315,7 @@ interface FormOperations {
 
   @extension("x-requirements", #{
     scope: "views:write",
+    roles: #["bot"],
   })
   @doc("""
 Ответ на отправку формы
@@ -7926,7 +8345,7 @@ interface FormOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -7983,7 +8402,7 @@ interface BotOperations {
             webhook: #{
               name: "Бот задач",
               nickname: "tasks_bot",
-              outgoing_url: "https://www.website.com/tasks/new",
+              outgoing_url: "https://example.com/tasks/new",
               events: #[BotEventName.message_new],
               trigger_on: BotTriggerOn.commands,
               commands: #["/task"],
@@ -8051,7 +8470,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 402;
     @body body: ApiError;
@@ -8067,11 +8486,11 @@ interface BotOperations {
 
 С `empty: true` создаётся пустой бот, как в интерфейсе: только имя и ник, без токена и без входящего вебхука. Токены ему выпускают методом [Новый токен бота](POST /bots/{id}/tokens), а входящий вебхук включают полем `kind` в объекте `webhook`.
 
-Созданный бот ещё никуда не пишет. В беседу и канал он пишет только как участник, а добавляют его как сотрудника — методом [Добавление пользователей](POST /chats/{id}/members), передав `id` бота. В канале бот получает роль редактора. Личные сообщения и треды в открытых чатах членства не требуют.
+Созданный бот ещё никуда не пишет. В беседу и канал он пишет только как участник, а добавляют его как сотрудника — методом [Добавление участников](POST /chats/{id}/members), передав `id` бота. В канале бот получает роль редактора. Личные сообщения и треды в открытых чатах членства не требуют.
 
 Входящий вебхук бота отправляет сообщение сразу во все беседы и каналы, где бот состоит, поэтому набор его чатов и решает, куда оно попадёт. Токен для этого не нужен, достаточно адреса вебхука. Чтобы написать в один конкретный чат, берите метод [Новое сообщение](POST /messages) — вот там токен уже нужен.
 
-Авторизацию от имени сотрудника можно включить сразу, передав `oauth_client`, а страницу в витрине заполнить в `promo`. У серверного клиента секрет приходит в `client_secret` один раз. Подробнее — в разделе [Настройка авторизации](/guides/oauth/setup).
+Авторизацию от имени сотрудника можно включить сразу, передав `oauth_client`, а страницу в витрине заполнить в `promo`. У серверного клиента секрет приходит в `client_secret` один раз. Подробнее — в разделе [Настройка авторизации](/guides/oauth/setup). Ссылку авторизации для кнопки собирает и код на токен обменивает сервер бота — по шагам в разделе [Получение токена](/guides/oauth/flow).
 
 Ник обязан заканчиваться на `_bot` и быть свободным в пространстве.
 """)
@@ -8083,7 +8502,7 @@ interface BotOperations {
         webhook: #{
           name: "Бот задач",
           nickname: "tasks_bot",
-          outgoing_url: "https://www.website.com/tasks/new",
+          outgoing_url: "https://example.com/tasks/new",
           events: #[BotEventName.message_new],
           trigger_on: BotTriggerOn.commands,
           commands: #["/task"],
@@ -8111,7 +8530,7 @@ interface BotOperations {
           webhook: #{
             name: "Бот задач",
             nickname: "tasks_bot",
-            outgoing_url: "https://www.website.com/tasks/new",
+            outgoing_url: "https://example.com/tasks/new",
             events: #[BotEventName.message_new],
             trigger_on: BotTriggerOn.commands,
             commands: #["/task"],
@@ -8165,7 +8584,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 402;
     @body body: ApiError;
@@ -8180,6 +8599,8 @@ interface BotOperations {
 Настройки бота. Токен в ответе не приходит — его показывают один раз при создании бота и при вызове метода [Ротация токена бота](POST /bots/{id}/recreate_token). Токены бота отдаёт [Список токенов бота](GET /bots/{id}/tokens).
 
 Метод отдаёт только тех ботов, которых вызывающий вправе настраивать: своих, а также чужих, если настройки бота открывают доступ администраторам пространства или руководителям чатов, где бот состоит. На остальных метод ответит `403`.
+
+Токену со скоупом `bots:write` метод отвечает и без `bots:read`. Если при этом вы можете управлять токенами бота (`permissions.recreate_token`), в `webhook` приходят адрес входящего вебхука `url`, секрет подписи `secret_token` и тело последнего запроса на входящий вебхук `last_request_body`.
 
 Перечень всех ботов пространства, включая чужих, доступен владельцу на тарифе «Корпорация» — [Список ботов пространства](GET /company/bots).
 """)
@@ -8204,7 +8625,7 @@ interface BotOperations {
           webhook: #{
             name: "Бот задач",
             nickname: "tasks_bot",
-            outgoing_url: "https://www.website.com/tasks/new",
+            outgoing_url: "https://example.com/tasks/new",
             events: #[BotEventName.message_new],
             trigger_on: BotTriggerOn.commands,
             commands: #["/task"],
@@ -8222,6 +8643,9 @@ interface BotOperations {
             kind: BotWebhookKind.simple,
             unfurl_domains: #[],
             last_request_at: utcDateTime.fromISO("2025-05-20T09:15:00.000Z"),
+            url: "https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M",
+            secret_token: "pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA",
+            last_request_body: "{\"client\": \"ООО Ромашка\", \"amount\": 15000}",
           },
           oauth_client_enabled: true,
           oauth_client: #{
@@ -8257,7 +8681,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -8274,11 +8698,13 @@ interface BotOperations {
 
 Меняет настройки бота: перезаписываются только переданные поля.
 
-Ник обязан заканчиваться на `_bot` и быть свободным в пространстве, иначе метод отвечает ошибкой валидации. Команды и скоупы заменяются переданным списком целиком. Скоупы относятся к основному токену бота — тому, что без имени, а если такого нет, к самому старому — и применяются к нему сразу, перевыпускать его не нужно. Права отдельного токена меняет [Изменение токена бота](PUT /bots/{id}/tokens/{token_id}).
+Ник обязан заканчиваться на `_bot` и быть свободным в пространстве, иначе метод отвечает ошибкой валидации. Команды, скоупы, события, домены разворачивания ссылок и роли редактирования заменяются переданным списком целиком. Скоупы относятся к основному токену бота — тому, что без имени, а если такого нет, к самому старому — и применяются к нему сразу, перевыпускать его не нужно. Права отдельного токена меняет [Изменение токена бота](PUT /bots/{id}/tokens/{token_id}).
 
-Объект `oauth_client` включает авторизацию от имени сотрудника или меняет её настройки, а `null` её выключает: авторизации, выданные сотрудниками, отзываются, страница в витрине удаляется, собственные токены бота продолжают работать. Когда клиент становится серверным, его секрет приходит в `client_secret` один раз. Страницу в витрине задаёт `promo`, пока авторизация включена.
+Объект `oauth_client` включает авторизацию от имени сотрудника или меняет её настройки, а `null` её выключает: авторизации, выданные сотрудниками, отзываются, страница в витрине удаляется, собственные токены бота продолжают работать. Когда клиент становится серверным, его секрет приходит в `client_secret` один раз. Ссылку авторизации для кнопки собирает и код на токен обменивает сервер бота — по шагам в разделе [Получение токена](/guides/oauth/flow). Страницу в витрине задаёт `promo`, пока авторизация включена.
 
 Включать событие `message_link_shared`, а у бота с ним менять домены, адрес вебхука и историю событий может только администратор или владелец пространства.
+
+Если изменение лишает бота права состоять в тегах (`single_chat: true` или `who_can_add` со значением `creator` или `creator_admin`), он выходит из всех тегов и из чатов, куда попал через них, а в чатах, куда его добавили напрямую, остаётся. Подробнее — в разделе [Бот в тегах](/guides/bots/settings#bot-v-tegah).
 
 Имя бота, авторизацию от имени сотрудника и страницу в витрине меняют только его создатель и администратор пространства, если настройки бота открывают администраторам доступ к редактированию. Остальные настройки нельзя менять у бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).
 """)
@@ -8297,7 +8723,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -8335,9 +8761,89 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:write",
+  })
+  @doc("""
+Загрузка аватара бота
+
+Ставит или заменяет аватар бота. Менять его может тот, кому доступно [Редактирование бота](PUT /bots/{id}).
+
+Файл передаётся в формате `multipart/form-data`, в ответе приходит только ссылка на новое изображение. Принимаются `jpg`, `jpeg`, `png` и `gif`, анимированный `gif` — не больше 2 МБ, картинка уменьшается до 1024 на 1024 пикселя.
+
+Уменьшенная копия приходит в поле `avatar_url` бота, например в методе [Информация о боте](GET /bots/{id}).
+""")
+  @route("/bots/{id}/avatar")
+  @put
+  updateBotAvatar(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32,
+    @multipartBody body: {
+      @doc("Файл изображения для аватара")
+      image: HttpPart<bytes>;
+    }
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<AvatarData>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "bots:write",
+  })
+  @doc("""
+Удаление аватара бота
+
+Убирает аватар бота. Доступно тому же, кому доступна [Загрузка аватара бота](PUT /bots/{id}/avatar).
+
+Если аватара не было, ответ всё равно `204`.
+""")
+  @route("/bots/{id}/avatar")
+  @delete
+  deleteBotAvatar(
+    @doc("Идентификатор бота")
+    @extension("example", 1738816)
+    @path id: int32
+  ): {
+    @statusCode _: 204;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ForbiddenError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 400;
     @body body: ApiError;
   } | {
     @statusCode _: 402;
@@ -8358,7 +8864,7 @@ interface BotOperations {
     parameters: #{
       request: #{
         webhook: #{
-          outgoing_url: "https://www.website.com/tasks/new",
+          outgoing_url: "https://example.com/tasks/new",
         },
       },
     },
@@ -8377,7 +8883,7 @@ interface BotOperations {
           webhook: #{
             name: "Бот задач",
             nickname: "tasks_bot",
-            outgoing_url: "https://www.website.com/tasks/new",
+            outgoing_url: "https://example.com/tasks/new",
             events: #[BotEventName.message_new],
             trigger_on: BotTriggerOn.commands,
             commands: #["/task"],
@@ -8407,7 +8913,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 422;
     @body body: ApiError;
@@ -8451,7 +8957,7 @@ interface BotOperations {
           webhook: #{
             name: "Бот задач",
             nickname: "tasks_bot",
-            outgoing_url: "https://www.website.com/tasks/new",
+            outgoing_url: "https://example.com/tasks/new",
             events: #[BotEventName.message_new],
             trigger_on: BotTriggerOn.commands,
             commands: #["/task"],
@@ -8505,7 +9011,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -8544,7 +9050,7 @@ interface BotOperations {
           webhook: #{
             name: "Бот задач",
             nickname: "tasks_bot",
-            outgoing_url: "https://www.website.com/tasks/new",
+            outgoing_url: "https://example.com/tasks/new",
             events: #[BotEventName.message_new],
             trigger_on: BotTriggerOn.commands,
             commands: #["/task"],
@@ -8572,7 +9078,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -8647,7 +9153,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -8714,7 +9220,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -8781,7 +9287,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -8842,7 +9348,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -8877,7 +9383,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -8945,7 +9451,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -8987,7 +9493,7 @@ interface BotOperations {
           webhook: #{
             name: "Бот задач",
             nickname: "tasks_bot",
-            outgoing_url: "https://www.website.com/tasks/new",
+            outgoing_url: "https://example.com/tasks/new",
             events: #[BotEventName.message_new],
             trigger_on: BotTriggerOn.commands,
             commands: #["/task"],
@@ -9044,7 +9550,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -9055,6 +9561,7 @@ interface BotOperations {
 
   @extension("x-requirements", #{
     scope: "webhooks:events:read",
+    roles: #["bot"],
   })
   @doc("""
 История событий
@@ -9065,7 +9572,7 @@ interface BotOperations {
 
 Метод работает только с токеном бота: у личного токена своего журнала нет. События отдаются от новых к старым, идентификатор события — строка, а не число.
 
-Сам журнал не очищается: прочитанные события удаляйте методом [Удаление события](DELETE /webhooks/events/{id}), иначе они придут снова при повторном запросе.
+Сам журнал не очищается: прочитанные события удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), иначе они придут снова при повторном запросе.
 """)
   @extension("x-paginated", true)
   @route("/webhooks/events")
@@ -9089,7 +9596,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -9103,9 +9610,10 @@ interface BotOperations {
 
   @extension("x-requirements", #{
     scope: "webhooks:events:delete",
+    roles: #["bot"],
   })
   @doc("""
-Удаление события
+Удаление события истории
 
 Убирает событие из журнала бота. Разбирая журнал, удаляйте событие сразу после обработки: журнал не очищается сам, и всё, что осталось, придёт снова при повторном запросе.
 
@@ -9126,7 +9634,7 @@ interface BotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -9169,7 +9677,7 @@ interface CompanyBotOperations {
             webhook: #{
               name: "Бот задач",
               nickname: "tasks_bot",
-              outgoing_url: "https://www.website.com/tasks/new",
+              outgoing_url: "https://example.com/tasks/new",
               events: #[BotEventName.message_new],
               trigger_on: BotTriggerOn.commands,
               commands: #["/task"],
@@ -9237,7 +9745,7 @@ interface CompanyBotOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -9315,7 +9823,7 @@ interface SecurityOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -9362,7 +9870,7 @@ interface CommonOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 422;
     @body body: ApiError;
@@ -9384,7 +9892,7 @@ interface FileOperations {
   @doc("""
 Скачивание файла
 
-Отдаёт сам файл, а не ссылку на него. Нужен для вложений, у которых прямой ссылки на хранилище нет: в поле `url` у них стоит адрес этого метода, и открыть его можно только с токеном. Так отдаются зашифрованные файлы и отправленные из безопасного контура пространства — обе настройки описаны в разделе [Шифрование и безопасный контур](/guides/data-protection).
+Отдаёт сам файл, а не ссылку на него, и подходит для любого вложения, которое видно токену. Для вложений без прямой ссылки на хранилище это единственный способ: в поле `url` у них стоит адрес этого метода, и открыть его можно только с токеном. Так отдаются зашифрованные файлы и отправленные из безопасного контура пространства — обе настройки описаны в разделе [Шифрование и безопасный контур](/guides/data-protection).
 
 Отказ приходит `403` с кодом `confidential_download_denied`. Сверяется при этом адрес, с которого пришёл запрос, то есть адрес вашего сервера, а не сотрудника, чьим токеном вы пользуетесь: для серверной интеграции это самая частая причина отказа.
 
@@ -9409,7 +9917,7 @@ interface FileOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError | OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
     @body body: ApiError;
@@ -9446,7 +9954,7 @@ interface UploadOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: OAuthError;
+    @body body: ForbiddenError;
   } | {
     @statusCode _: 402;
     @body body: ApiError;

@@ -53,7 +53,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275" \
     - `name: string` (required) — Название файла с расширением. Пример: `"congrat.png"`
     - `file_type: string` (required) — Тип файла
       Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение, `video` — Видеофайл
-    - `url: string` (required) — Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](/api/files/get): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
+    - `url: string` (required) — Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](/api/files/get): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`. Пример: `"https://files.example.com/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?X-Amz-Expires=604800&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
     - `width: integer, int32` (nullable) — Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1920`
     - `height: integer, int32` (nullable) — Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1080`
     - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового, аудио- и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
@@ -99,7 +99,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275" \
         "key": "attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png",
         "name": "congrat.png",
         "file_type": "image",
-        "url": "https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8",
+        "url": "https://files.example.com/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?X-Amz-Expires=604800&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8",
         "width": 1920,
         "height": 1080,
         "duration_ms": 5400
@@ -143,10 +143,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275" \
 
 ### 401: Access is unauthorized.
 
-**Схема ответа при ошибке:**
-
-- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
-- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
 
 **Пример ответа:**
 
@@ -159,17 +156,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275" \
 
 ### 402: Client error
 
-**Схема ответа при ошибке:**
-
-- `errors: array of object` (required) — Массив ошибок
-  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
-  - `value: string` (required, nullable) — Значение поля, которое вызвало ошибку. `null`, если ошибка не относится к конкретному значению. Пример: `"invalid_value"`
-  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
-  - `code: string` (required) — Код ошибки
-    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить, `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `next_send_at_invalid` — Ближайшая отправка отложенного сообщения приходится на прошлое, `schedule_invalid` — Расписание отложенного сообщения не складывается в повтор, `schedule_end_date_invalid` — Расписание заканчивается раньше ближайшей отправки, `scheduled_messages_limit` — Превышен лимит отложенных сообщений на чат (50), `draft_type_change_forbidden` — Отложенное сообщение нельзя превратить обратно в черновик, `confidential_download_denied` — Скачивание файла запрещено: нужен запрос из безопасного контура, `decryption_failed` — Не удалось расшифровать файл, `bot_add_denied` — Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`, `single_chat_bot_occupied` — Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`, `single_chat_bot_tag_denied` — Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег, `bot_changed_concurrently` — Настройки бота изменились во время запроса: повторите его, `timeout` — Поиск не уложился по времени: сузьте запрос и повторите, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде, `view_not_found` — Представление не найдено или принадлежит другому боту, `submit_expired` — Время на ответ об отправке формы истекло или ответ уже был принят, `service_unavailable` — Сервис временно недоступен, повторите запрос
-  - `payload: Record<string, object>` (required, nullable) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть. В большинстве случаев `null`. Пример: `null`
-    **Структура значений Record:**
-    - Тип значения: `any`
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
 
 **Пример ответа:**
 
@@ -189,33 +176,27 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275" \
 
 ### 403: Access is forbidden.
 
-**Схема ответа при ошибке:**
-
-- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
-- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+**Схема ответа при ошибке:** `ApiError` или `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
 
 **Пример ответа:**
 
 ```json
 {
-  "error": "invalid_token",
-  "error_description": "Access token is missing"
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
 }
 ```
 
 ### 404: The server cannot find the requested resource.
 
-**Схема ответа при ошибке:**
-
-- `errors: array of object` (required) — Массив ошибок
-  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
-  - `value: string` (required, nullable) — Значение поля, которое вызвало ошибку. `null`, если ошибка не относится к конкретному значению. Пример: `"invalid_value"`
-  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
-  - `code: string` (required) — Код ошибки
-    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить, `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `next_send_at_invalid` — Ближайшая отправка отложенного сообщения приходится на прошлое, `schedule_invalid` — Расписание отложенного сообщения не складывается в повтор, `schedule_end_date_invalid` — Расписание заканчивается раньше ближайшей отправки, `scheduled_messages_limit` — Превышен лимит отложенных сообщений на чат (50), `draft_type_change_forbidden` — Отложенное сообщение нельзя превратить обратно в черновик, `confidential_download_denied` — Скачивание файла запрещено: нужен запрос из безопасного контура, `decryption_failed` — Не удалось расшифровать файл, `bot_add_denied` — Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`, `single_chat_bot_occupied` — Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`, `single_chat_bot_tag_denied` — Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег, `bot_changed_concurrently` — Настройки бота изменились во время запроса: повторите его, `timeout` — Поиск не уложился по времени: сузьте запрос и повторите, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all), `export_file_not_found` — Файл экспорта не найден или ещё не готов, `cannot_kick_owner` — Нельзя исключить владельца чата, `pin_failed` — Не удалось закрепить сообщение, `message_deleted` — Сообщение удалено, `thread_message` — Нельзя создать тред для сообщения, которое уже находится в треде, `view_not_found` — Представление не найдено или принадлежит другому боту, `submit_expired` — Время на ответ об отправке формы истекло или ответ уже был принят, `service_unavailable` — Сервис временно недоступен, повторите запрос
-  - `payload: Record<string, object>` (required, nullable) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть. В большинстве случаев `null`. Пример: `null`
-    **Структура значений Record:**
-    - Тип значения: `any`
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
 
 **Пример ответа:**
 

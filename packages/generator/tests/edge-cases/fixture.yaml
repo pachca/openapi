@@ -18,6 +18,7 @@ paths:
         - name: scopes
           in: query
           description: Array of enum query param
+          x-query-array: brackets
           schema:
             type: array
             items:
@@ -165,6 +166,32 @@ components:
               enum: [message]
             emoji:
               type: string
+
+    Weekday:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 6
+      description: Named scalar, inlined as its primitive
+
+    Schedule:
+      type: object
+      required: [days, value]
+      properties:
+        days:
+          type: array
+          items:
+            $ref: "#/components/schemas/Weekday"
+        value:
+          description: Union of plain values, an open JSON value
+          anyOf:
+            - type: string
+            - type: integer
+              format: int64
+            - type: array
+              items:
+                type: string
+          nullable: true
 
     NotificationUnion:
       anyOf:

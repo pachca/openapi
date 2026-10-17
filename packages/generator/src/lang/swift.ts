@@ -344,6 +344,7 @@ function generateModels(ir: IR): string {
 
 function opReturn(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'String';
+  if (op.successResponse.isBinary) return 'Data';
   if (!op.successResponse.hasBody) return 'Void';
   if (op.successResponse.isList) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
@@ -421,6 +422,20 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
   }
   if (op.method !== 'GET') lines.push(`        request.httpMethod = ${JSON.stringify(op.method)}`);
   if (!op.noAuth) lines.push('        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }');
+  for (const h of op.requestHeaders ?? []) {
+    lines.push(`        request.setValue(${JSON.stringify(h.value)}, forHTTPHeaderField: ${JSON.stringify(h.name)})`);
+  }
+
+  if (op.requestBody?.contentType === 'form') {
+    const rb = op.requestBody!;
+    lines.push('        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")');
+    if (shouldUnwrapBody(rb)) {
+      const f = rb.unwrapField!;
+      lines.push(`        request.httpBody = Data("${f.name}=\\(pachcaFormEncode(String(describing: ${swiftIdentifier(f.name)})))".utf8)`);
+    } else {
+      lines.push('        request.httpBody = try pachcaFormBody(body)');
+    }
+  }
 
   if (op.requestBody?.contentType === 'json') {
     const rb = op.requestBody!;
@@ -487,7 +502,10 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
       lines.push('        case 401:');
       lines.push('            throw try deserialize(OAuthError.self, from: data)');
     }
-    if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
+    if (swPicksErrorByBody(ir)) {
+      lines.push('        default:');
+      lines.push('            throw pachcaErrorFromBody(data)');
+    } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
       lines.push('        default:');
       lines.push('            throw try deserialize(ApiError.self, from: data)');
     } else {
@@ -505,7 +523,8 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
   lines.push('        switch statusCode {');
   const okCode = op.successResponse.statusCode;
   lines.push(`        case ${okCode}:`);
-  if (!op.successResponse.hasBody) lines.push('            return');
+  if (op.successResponse.isBinary) lines.push(`            return ${resVar}`);
+  else if (!op.successResponse.hasBody) lines.push('            return');
   else if (op.successResponse.isList) lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
   else if (op.successResponse.isUnwrap && op.successResponse.dataRef) lines.push(`            return try deserialize(${op.successResponse.dataRef}DataWrapper.self, from: ${resVar}).data`);
   else lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
@@ -514,7 +533,10 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
     lines.push('        case 401:');
     lines.push(`            throw try deserialize(OAuthError.self, from: ${resVar})`);
   }
-  if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
+  if (swPicksErrorByBody(ir)) {
+    lines.push('        default:');
+    lines.push(`            throw pachcaErrorFromBody(${resVar})`);
+  } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
     lines.push('        default:');
     lines.push(`            throw try deserialize(ApiError.self, from: ${resVar})`);
   } else {
@@ -709,9 +731,73 @@ function emitWebhookPollingMethods(lines: string[], prefix: string): void {
   lines.push('    }');
 }
 
+/** Both error models exist, so an error's class is read off its body. */
+function swPicksErrorByBody(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+}
+
+/** The authorization link and the PKCE pair for the OAuth flow (`x-oauth-authorize-url`). */
+function emitSwiftOAuthHelpers(lines: string[], authorizeUrl: string): void {
+  lines.push('/// The authorization link and the PKCE pair of the OAuth flow.');
+  lines.push('public enum PachcaOAuth {');
+  lines.push(`    public static let authorizeURL = ${JSON.stringify(authorizeUrl)}`);
+  lines.push('');
+  lines.push('    /// Keep `codeVerifier` until the code exchange, put `codeChallenge` into the link.');
+  lines.push('    public struct PKCE {');
+  lines.push('        public let codeVerifier: String');
+  lines.push('        public let codeChallenge: String');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    /// The authorization link for a message button: the consent screen with PKCE (S256).');
+  lines.push('    public static func buildAuthorizeURL(');
+  lines.push('        clientId: String,');
+  lines.push('        redirectUri: String,');
+  lines.push('        state: String,');
+  lines.push('        codeChallenge: String,');
+  lines.push('        authorizeURL: String = PachcaOAuth.authorizeURL');
+  lines.push('    ) -> String {');
+  lines.push('        let query = [');
+  lines.push('            ("client_id", clientId),');
+  lines.push('            ("redirect_uri", redirectUri),');
+  lines.push('            ("response_type", "code"),');
+  lines.push('            ("state", state),');
+  lines.push('            ("code_challenge", codeChallenge),');
+  lines.push('            ("code_challenge_method", "S256"),');
+  lines.push('        ].map { "\\($0.0)=\\(pachcaFormEncode($0.1))" }.joined(separator: "&")');
+  lines.push('        return "\\(authorizeURL)?\\(query)"');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    #if canImport(CryptoKit) || canImport(Crypto)');
+  lines.push('    /// A random code verifier and its SHA-256 challenge.');
+  lines.push('    public static func createPKCE() -> PKCE {');
+  lines.push('        var generator = SystemRandomNumberGenerator()');
+  lines.push('        let bytes = (0..<32).map { _ in UInt8.random(in: .min ... .max, using: &generator) }');
+  lines.push('        let verifier = base64URL(Data(bytes))');
+  lines.push('        let digest = SHA256.hash(data: Data(verifier.utf8))');
+  lines.push('        return PKCE(codeVerifier: verifier, codeChallenge: base64URL(Data(digest)))');
+  lines.push('    }');
+  lines.push('    #endif');
+  lines.push('');
+  lines.push('    private static func base64URL(_ data: Data) -> String {');
+  lines.push('        data.base64EncodedString()');
+  lines.push('            .replacingOccurrences(of: "+", with: "-")');
+  lines.push('            .replacingOccurrences(of: "/", with: "_")');
+  lines.push('            .replacingOccurrences(of: "=", with: "")');
+  lines.push('    }');
+  lines.push('}');
+  lines.push('');
+}
+
 function generateClient(ir: IR): string {
   const lines: string[] = [];
   lines.push(...FOUNDATION_IMPORTS);
+  if (ir.oauthAuthorizeUrl) {
+    lines.push('#if canImport(CryptoKit)');
+    lines.push('import CryptoKit');
+    lines.push('#elseif canImport(Crypto)');
+    lines.push('import Crypto');
+    lines.push('#endif');
+  }
   lines.push('');
   const hasServices = ir.services.length > 0;
   if (hasServices) {
@@ -720,6 +806,46 @@ function generateClient(ir: IR): string {
     lines.push('}');
     lines.push('');
   }
+  const hasForm = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'form'));
+  if (hasForm || ir.oauthAuthorizeUrl) {
+    lines.push('/// Percent-encodes a form or query value: only unreserved ASCII stays as is.');
+    lines.push('func pachcaFormEncode(_ value: String) -> String {');
+    lines.push('    let unreserved = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")');
+    lines.push('    return value.addingPercentEncoding(withAllowedCharacters: unreserved) ?? value');
+    lines.push('}');
+    lines.push('');
+  }
+  if (hasForm) {
+    lines.push('/// A form body (application/x-www-form-urlencoded): the fields go by their wire names, empty ones are left out.');
+    lines.push('func pachcaFormBody<T: Encodable>(_ value: T) throws -> Data {');
+    lines.push('    let object = try JSONSerialization.jsonObject(with: serialize(value)) as? [String: Any] ?? [:]');
+    lines.push('    let pairs = object.compactMap { key, item -> String? in');
+    lines.push('        if item is NSNull { return nil }');
+    lines.push('        // Numbers and booleans go as their JSON text: true, not 1');
+    lines.push('        let text = item as? String');
+    lines.push('            ?? (try? JSONSerialization.data(withJSONObject: item, options: .fragmentsAllowed))');
+    lines.push('                .flatMap { String(data: $0, encoding: .utf8) }');
+    lines.push('            ?? "\\(item)"');
+    lines.push('        return "\\(key)=\\(pachcaFormEncode(text))"');
+    lines.push('    }');
+    lines.push('    return Data(pairs.joined(separator: "&").utf8)');
+    lines.push('}');
+    lines.push('');
+  }
+  if (hasServices && swPicksErrorByBody(ir)) {
+    lines.push('/// An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
+    lines.push('/// which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the type.');
+    lines.push('func pachcaErrorFromBody(_ data: Data) -> Error {');
+    lines.push('    if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],');
+    lines.push('       object["errors"] == nil, let code = object["error"] as? String {');
+    lines.push('        return OAuthError(error: code, errorDescription: object["error_description"] as? String ?? "")');
+    lines.push('    }');
+    lines.push('    if let apiError = try? deserialize(ApiError.self, from: data) { return apiError }');
+    lines.push('    return URLError(.badServerResponse)');
+    lines.push('}');
+    lines.push('');
+  }
+  if (ir.oauthAuthorizeUrl) emitSwiftOAuthHelpers(lines, ir.oauthAuthorizeUrl);
   if (ir.services.some(hasWebhookPolling)) {
     lines.push('private func pachcaParseWebhookDate(_ value: String) -> Date? {');
     lines.push('    let fractionalFormatter = ISO8601DateFormatter()');
@@ -1148,6 +1274,7 @@ function swiftBuildOutputFingerprint(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'String';
+  if (resp.isBinary) return 'Data';
   if (!resp.hasBody) return null;
 
   if (resp.isList && resp.responseRef) {

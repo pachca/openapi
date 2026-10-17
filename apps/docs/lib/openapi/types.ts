@@ -26,7 +26,10 @@ export interface Tag {
 
 export interface EndpointRequirements {
   scope?: string;
+  /** Роли, которым выдаётся скоуп (`x-scope-roles`) */
   scopeRoles?: string[];
+  /** Роли самого метода, если их меньше, чем у скоупа (`x-requirements.roles`) */
+  roles?: string[];
   plan?: string;
   auth?: boolean;
 }
@@ -47,6 +50,8 @@ export interface Endpoint {
   requirements?: EndpointRequirements;
   externalUrl?: string;
   paginated?: boolean;
+  /** Step of the OAuth flow (`x-oauth-flow`): documented and made an SDK method, but no CLI command, n8n operation or MCP tool */
+  oauthFlow?: boolean;
 }
 
 export interface Parameter {

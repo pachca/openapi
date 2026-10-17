@@ -4,7 +4,7 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MembersRemoveGroupTag extends BaseCommand {
-  static override description = "Исключение тега";
+  static override description = "Исключение тега из чата";
 
   static scope = "chat_members:write";
   static apiMethod = "DELETE";

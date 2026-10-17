@@ -6,9 +6,9 @@
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~703K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~378K токенов — обычно не помещается в контекст целиком).
 
-> English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~26K токенов).
+> English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~28K токенов).
 
 > Индексы разделов (только нужный срез): [/api/llms.txt](https://dev.pachca.com/api/llms.txt) — методы и основы API, [/guides/llms.txt](https://dev.pachca.com/guides/llms.txt) — руководства.
 
@@ -61,9 +61,9 @@
 | SDK | Типизированные клиенты для 6 языков | 87–113 |
 | Agent Skills | Скиллы для AI-агентов и установка | 114–137 |
 | Руководства | Страницы-руководства (Markdown по `.md`) | 138–211 |
-| API-методы | Все эндпоинты, сгруппированы по разделам | 212–343 |
-| Обновления | Журнал обновлений по датам | 344–408 |
-| Дополнительно | Прочие ссылки и контакты | 409–417 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 212–347 |
+| Обновления | Журнал обновлений по датам | 348–413 |
+| Дополнительно | Прочие ссылки и контакты | 414–422 |
 
 ## CLI Quick Start
 
@@ -165,7 +165,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Авторизация от имени сотрудника, Обзор](https://dev.pachca.com/guides/oauth/overview.md): Авторизация от имени сотрудника: сотрудник выдаёт боту свои права, и бот делает автоматизации в Пачке и связывает её с другими сервисами от его имени. Как это выглядит для сотрудника, где настраивается у бота и какие ограничения действуют
 - [Авторизация от имени сотрудника, Чек-лист запуска](https://dev.pachca.com/guides/oauth/checklist.md): Что должно быть включено у бота, чтобы авторизация от имени сотрудника заработала: сотрудник может написать боту, бот узнаёт о сообщении и отвечает кнопкой, вкладка «OAuth» настроена. Что видно, когда чего-то не хватает
 - [Авторизация от имени сотрудника, Настройка авторизации](https://dev.pachca.com/guides/oauth/setup.md): Как включить у бота авторизацию от имени сотрудника: где хранится секрет, адреса возврата, client_id и client_secret, запрашиваемый доступ, страница на витрине, отключение и те же настройки через API
-- [Авторизация от имени сотрудника, Получение токена](https://dev.pachca.com/guides/oauth/flow.md): Как бот получает токен сотрудника по шагам: ссылка авторизации с state и PKCE, кнопка в сообщении бота, возврат с кодом, обмен кода на токен, проверка сотрудника и обработка отказов. Пример на curl и TypeScript
+- [Авторизация от имени сотрудника, Получение токена](https://dev.pachca.com/guides/oauth/flow.md): Как бот получает токен сотрудника по шагам: ссылка авторизации с state и PKCE, кнопка в сообщении бота, возврат с кодом, обмен кода на токен, проверка сотрудника и обработка отказов. Пример на curl и TypeScript с SDK
 - [Авторизация от имени сотрудника, Согласие и отзыв](https://dev.pachca.com/guides/oauth/consent.md): Экран согласия при авторизации бота: что видит сотрудник, кто не может выдать доступ, повторная авторизация, список «Авторизации» на странице «API», отзыв доступа и что после него происходит с ботом
 - [Экспорт сообщений](https://dev.pachca.com/guides/export.md): Экспорт сообщений из чатов Пачки: запрос архива за период до 45 дней, скачивание JSON-файлов, структура архива и ограничения по чатам. Тариф «Корпорация»
 - [DLP-система](https://dev.pachca.com/guides/dlp.md): DLP-система Пачки для защиты от утечек конфиденциальной информации: правила с условиями и действиями, приоритеты, контексты применения. Тариф «Корпорация»
@@ -210,6 +210,8 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Основы API, Модели](https://dev.pachca.com/api/models.md): Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, черновики, задачи, теги, вебхуки и другие сущности
 
 ## OAuth
+- [Отзыв токена](https://dev.pachca.com/api/oauth/revoke-token.md): POST /oauth/revoke
+- [Обмен кода на токен](https://dev.pachca.com/api/oauth/exchange-token.md): POST /oauth/token
 - [Информация о токене](https://dev.pachca.com/api/oauth/token-info.md): GET /oauth/token/info
 
 ## Chats
@@ -256,12 +258,12 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 
 ## Members
 - [Добавление тегов](https://dev.pachca.com/api/members/add-group-tags.md): POST /chats/{id}/group_tags
-- [Исключение тега](https://dev.pachca.com/api/members/remove-group-tag.md): DELETE /chats/{id}/group_tags/{tag_id}
+- [Исключение тега из чата](https://dev.pachca.com/api/members/remove-group-tag.md): DELETE /chats/{id}/group_tags/{tag_id}
 - [Выход из чата](https://dev.pachca.com/api/members/leave.md): DELETE /chats/{id}/leave
 - [Список участников чата](https://dev.pachca.com/api/members/list.md): GET /chats/{id}/members
-- [Добавление пользователей](https://dev.pachca.com/api/members/add.md): POST /chats/{id}/members
-- [Исключение пользователя](https://dev.pachca.com/api/members/remove.md): DELETE /chats/{id}/members/{user_id}
-- [Редактирование роли](https://dev.pachca.com/api/members/update.md): PUT /chats/{id}/members/{user_id}
+- [Добавление участников](https://dev.pachca.com/api/members/add.md): POST /chats/{id}/members
+- [Исключение участника](https://dev.pachca.com/api/members/remove.md): DELETE /chats/{id}/members/{user_id}
+- [Редактирование роли участника](https://dev.pachca.com/api/members/update.md): PUT /chats/{id}/members/{user_id}
 
 ## Threads
 - [Новый тред](https://dev.pachca.com/api/threads/add.md): POST /messages/{id}/thread
@@ -318,6 +320,8 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Информация о боте](https://dev.pachca.com/api/bots/get.md): GET /bots/{id}
 - [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
 - [Удаление бота](https://dev.pachca.com/api/bots/delete.md): DELETE /bots/{id}
+- [Загрузка аватара бота](https://dev.pachca.com/api/bots/update-avatar.md): PUT /bots/{id}/avatar
+- [Удаление аватара бота](https://dev.pachca.com/api/bots/remove-avatar.md): DELETE /bots/{id}/avatar
 - [Ротация токена бота](https://dev.pachca.com/api/bots/recreate-token.md): POST /bots/{id}/recreate_token
 - [Ротация секрета клиента](https://dev.pachca.com/api/bots/rotate-client-secret.md): POST /bots/{id}/rotate_client_secret
 - [Каталог прав бота](https://dev.pachca.com/api/bots/list-scopes.md): GET /bots/{id}/scopes
@@ -328,7 +332,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Перевыпуск токена бота](https://dev.pachca.com/api/bots/reissue-token.md): POST /bots/{id}/tokens/{token_id}/reissue
 - [Список ботов пространства](https://dev.pachca.com/api/bots/list-company.md): GET /company/bots
 - [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
-- [Удаление события](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}
+- [Удаление события истории](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}
 
 ## Security
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
@@ -342,6 +346,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Получение подписи, ключа и других параметров](https://dev.pachca.com/api/files/uploads.md): POST /uploads
 
 ## Обновления
+- [16 октября 2026 — Номер выгрузки в ответе и аватар бота](https://dev.pachca.com/updates/2026-10-16.md)
 - [13 октября 2026 — Раздел «Интеграции», API ботов и авторизация от имени сотрудника](https://dev.pachca.com/updates/2026-10-13.md)
 - [20 сентября 2026 — Черновики и отложенные сообщения](https://dev.pachca.com/updates/2026-09-20.md)
 - [10 сентября 2026 — Руководство по тегам](https://dev.pachca.com/updates/2026-09-10.md)

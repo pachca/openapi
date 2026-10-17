@@ -48,7 +48,7 @@ class SearchServiceImpl internal constructor(
         val response = client.get("$baseUrl/search/messages") {
             parameter("query", query)
             chatIds.forEach { parameter("chat_ids[]", it) }
-            userIds?.forEach { parameter("user_ids[]", it) }
+            userIds?.forEach { parameter("user_ids", it) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
         }

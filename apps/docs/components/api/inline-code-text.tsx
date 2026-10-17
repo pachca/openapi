@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import { ExternalLink as ExternalLinkIcon } from 'lucide-react';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 
@@ -37,10 +36,9 @@ function renderTextWithLinks(text: string): React.ReactNode[] {
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:underline inline-flex items-baseline gap-0.5"
+            className="text-primary hover:underline external-link"
           >
             {linkText}
-            <ExternalLinkIcon className="size-3.5 shrink-0 self-center" strokeWidth={2.5} />
           </a>
         ) : (
           <Link key={match.index} href={url} className="text-primary hover:underline">

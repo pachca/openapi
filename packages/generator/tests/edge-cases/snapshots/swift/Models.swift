@@ -79,6 +79,16 @@ public struct ReactionNotification: Codable {
     }
 }
 
+public struct Schedule: Codable {
+    public let days: [Int]
+    public let value: AnyCodable?
+
+    public init(days: [Int], value: AnyCodable? = nil) {
+        self.days = days
+        self.value = value
+    }
+}
+
 public enum NotificationUnion: Codable {
     case messageNotification(MessageNotification)
     case reactionNotification(ReactionNotification)

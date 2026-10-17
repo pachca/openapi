@@ -97,6 +97,15 @@ export function serializeType(_type: string, obj: unknown): unknown {
   return serialize(obj);
 }
 
+/** A form body (`application/x-www-form-urlencoded`) from a serialized request: empty fields are left out. */
+export function toFormBody(value: Record<string, unknown>): URLSearchParams {
+  const form = new URLSearchParams();
+  for (const [key, item] of Object.entries(value)) {
+    if (item !== undefined && item !== null) form.set(key, String(item));
+  }
+  return form;
+}
+
 const MAX_RETRIES = 3;
 // Only the daily chat limit and the hour-long ban wait longer than a minute.
 const MAX_RETRY_AFTER_MS = 60_000;

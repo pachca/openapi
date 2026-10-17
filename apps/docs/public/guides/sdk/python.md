@@ -70,6 +70,8 @@ await client.close()
 
 | Метод | Метод API |
 |-------|----------|
+| `client.oauth.revoke_token()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.oauth.exchange_token()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.oauth.get_token_info()` | [Информация о токене](/api/oauth/token-info) |
 | `client.chats.create_chat()` | [Новый чат](/api/chats/create) |
 | `client.chats.request_export()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -106,12 +108,12 @@ await client.close()
 | `client.group_tags.update_tag()` | [Редактирование тега](/api/group-tags/update) |
 | `client.group_tags.delete_tag()` | [Удаление тега](/api/group-tags/delete) |
 | `client.members.add_tags()` | [Добавление тегов](/api/members/add-group-tags) |
-| `client.members.add_members()` | [Добавление пользователей](/api/members/add) |
+| `client.members.add_members()` | [Добавление участников](/api/members/add) |
 | `client.members.list_members()` | [Список участников чата](/api/members/list) |
-| `client.members.update_member_role()` | [Редактирование роли](/api/members/update) |
+| `client.members.update_member_role()` | [Редактирование роли участника](/api/members/update) |
 | `client.members.leave_chat()` | [Выход из чата](/api/members/leave) |
-| `client.members.remove_tag()` | [Исключение тега](/api/members/remove-group-tag) |
-| `client.members.remove_member()` | [Исключение пользователя](/api/members/remove) |
+| `client.members.remove_tag()` | [Исключение тега из чата](/api/members/remove-group-tag) |
+| `client.members.remove_member()` | [Исключение участника](/api/members/remove) |
 | `client.threads.create_standalone_thread()` | [Новый самостоятельный тред](/api/threads/create) |
 | `client.threads.create_thread()` | [Новый тред](/api/threads/add) |
 | `client.threads.list_threads()` | [Список тредов](/api/threads/list) |
@@ -157,9 +159,11 @@ await client.close()
 | `client.bots.list_bot_tokens()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.bots.self_update_bot_webhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.update_bot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.update_bot_avatar()` | [Загрузка аватара бота](/api/bots/update-avatar) |
 | `client.bots.update_bot_token()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.bots.delete_bot()` | [Удаление бота](/api/bots/delete) |
-| `client.bots.delete_webhook_event()` | [Удаление события](/api/bots/remove-event) |
+| `client.bots.delete_bot_avatar()` | [Удаление аватара бота](/api/bots/remove-avatar) |
+| `client.bots.delete_webhook_event()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.bots.delete_bot_token()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |
 | `client.custom_properties.list_properties()` | [Список дополнительных полей](/api/custom-properties/list) |
@@ -281,7 +285,7 @@ SDK выбрасывает два типа исключений:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```python
 from pachca.models import ApiError
@@ -306,7 +310,7 @@ except ApiError as error:
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```python
 from pachca.models import OAuthError
@@ -314,7 +318,7 @@ from pachca.models import OAuthError
 try:
     await client.profile.get_profile()
 except OAuthError as error:
-    print(error.error)              # "Token not found"
+    print(error.error)              # "insufficient_scope"
     print(error.error_description)  # описание ошибки
 ```
 

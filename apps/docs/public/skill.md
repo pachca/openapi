@@ -56,6 +56,8 @@ A personal token issued in the interface does not expire. One obtained by `pachc
 ## Capabilities
 
 ### OAuth
+- `POST /oauth/revoke` — Revoke token
+- `POST /oauth/token` — Exchange token
 - `GET /oauth/token/info` — Get token info
 
 ### Chats
@@ -164,6 +166,8 @@ A personal token issued in the interface does not expire. One obtained by `pachc
 - `GET /bots/{id}` — Get bot
 - `PUT /bots/{id}` — Update bot
 - `DELETE /bots/{id}` — Delete bot
+- `PUT /bots/{id}/avatar` — Update bot avatar
+- `DELETE /bots/{id}/avatar` — Delete bot avatar
 - `POST /bots/{id}/recreate_token` — Recreate bot token
 - `POST /bots/{id}/rotate_client_secret` — Rotate bot client secret
 - `GET /bots/{id}/scopes` — Get bot scopes
@@ -285,7 +289,7 @@ Detailed documentation on specific topics is available at:
 - [Авторизация от имени сотрудника, Обзор](https://dev.pachca.com/guides/oauth/overview) — Авторизация от имени сотрудника: сотрудник выдаёт боту свои права, и бот делает автоматизации в Пачке и связывает её с другими сервисами от его имени. Как это выглядит для сотрудника, где настраивается у бота и какие ограничения действуют
 - [Авторизация от имени сотрудника, Чек-лист запуска](https://dev.pachca.com/guides/oauth/checklist) — Что должно быть включено у бота, чтобы авторизация от имени сотрудника заработала: сотрудник может написать боту, бот узнаёт о сообщении и отвечает кнопкой, вкладка «OAuth» настроена. Что видно, когда чего-то не хватает
 - [Авторизация от имени сотрудника, Настройка авторизации](https://dev.pachca.com/guides/oauth/setup) — Как включить у бота авторизацию от имени сотрудника: где хранится секрет, адреса возврата, client_id и client_secret, запрашиваемый доступ, страница на витрине, отключение и те же настройки через API
-- [Авторизация от имени сотрудника, Получение токена](https://dev.pachca.com/guides/oauth/flow) — Как бот получает токен сотрудника по шагам: ссылка авторизации с state и PKCE, кнопка в сообщении бота, возврат с кодом, обмен кода на токен, проверка сотрудника и обработка отказов. Пример на curl и TypeScript
+- [Авторизация от имени сотрудника, Получение токена](https://dev.pachca.com/guides/oauth/flow) — Как бот получает токен сотрудника по шагам: ссылка авторизации с state и PKCE, кнопка в сообщении бота, возврат с кодом, обмен кода на токен, проверка сотрудника и обработка отказов. Пример на curl и TypeScript с SDK
 - [Авторизация от имени сотрудника, Согласие и отзыв](https://dev.pachca.com/guides/oauth/consent) — Экран согласия при авторизации бота: что видит сотрудник, кто не может выдать доступ, повторная авторизация, список «Авторизации» на странице «API», отзыв доступа и что после него происходит с ботом
 - [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт сообщений из чатов Пачки: запрос архива за период до 45 дней, скачивание JSON-файлов, структура архива и ограничения по чатам. Тариф «Корпорация»
 - [DLP-система](https://dev.pachca.com/guides/dlp) — DLP-система Пачки для защиты от утечек конфиденциальной информации: правила с условиями и действиями, приоритеты, контексты применения. Тариф «Корпорация»

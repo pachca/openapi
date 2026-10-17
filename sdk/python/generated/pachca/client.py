@@ -5,6 +5,12 @@ from collections import deque
 from datetime import datetime, timezone
 from typing import AsyncIterator, TypeVar
 
+import base64
+import hashlib
+import secrets
+from dataclasses import dataclass
+from urllib.parse import urlencode
+
 import httpx
 
 from .models import (
@@ -35,6 +41,7 @@ from .models import (
     BotWebhookSelfUpdateRequest,
     BotSelfResponse,
     BotUpdateRequest,
+    AvatarData,
     BotTokenUpdateRequest,
     ListChatsParams,
     ListChatsResponse,
@@ -47,8 +54,8 @@ from .models import (
     ChatActivity,
     ChatCreateRequest,
     ExportRequest,
+    ChatExport,
     ChatUpdateRequest,
-    AvatarData,
     MarkChatUnreadRequest,
     ListMembersParams,
     ListMembersResponse,
@@ -93,6 +100,9 @@ from .models import (
     ListThreadsResponse,
     Thread,
     AccessTokenInfo,
+    OAuthRevokeRequest,
+    OAuthTokenRequest,
+    OAuthToken,
     UserStatus,
     StatusUpdateRequest,
     SearchChatsParams,
@@ -121,6 +131,58 @@ from .models import (
 from .utils import deserialize, serialize, RetryTransport
 
 TPayload = TypeVar("TPayload", bound=WebhookPayloadUnion)
+
+
+def _form_data(fields: dict) -> dict[str, str]:
+    # A form body (application/x-www-form-urlencoded): booleans go as true and false like in JSON.
+    return {k: str(v).lower() if isinstance(v, bool) else str(v) for k, v in fields.items() if v is not None}
+
+
+def _error_from_body(body: object) -> Exception:
+    # An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
+    # which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
+    if isinstance(body, dict) and isinstance(body.get("error"), str) and "errors" not in body:
+        return OAuthError(body["error"], str(body.get("error_description") or ""))
+    return deserialize(ApiError, body)
+
+
+PACHCA_AUTHORIZE_URL = "https://app.pachca.com/apps/authorize"
+
+
+@dataclass
+class Pkce:
+    # A PKCE pair: keep code_verifier until the code exchange, put code_challenge into the link.
+    code_verifier: str
+    code_challenge: str
+
+
+def _base64_url(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode()
+
+
+def create_pkce() -> Pkce:
+    # A random code_verifier and its SHA-256 code_challenge.
+    code_verifier = _base64_url(secrets.token_bytes(32))
+    return Pkce(code_verifier, _base64_url(hashlib.sha256(code_verifier.encode()).digest()))
+
+
+def build_authorize_url(
+    client_id: str,
+    redirect_uri: str,
+    state: str,
+    code_challenge: str,
+    authorize_url: str = PACHCA_AUTHORIZE_URL,
+) -> str:
+    # The authorization link for a message button: the consent screen with PKCE (S256).
+    query = urlencode({
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "response_type": "code",
+        "state": state,
+        "code_challenge": code_challenge,
+        "code_challenge_method": "S256",
+    })
+    return f"{authorize_url}?{query}"
 
 class SecurityService:
     async def get_audit_events(
@@ -174,7 +236,7 @@ class SecurityServiceImpl(SecurityService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def get_audit_events_all(
         self,
@@ -370,6 +432,13 @@ class BotsService:
     ) -> BotResponse:
         raise NotImplementedError("Bots.updateBot is not implemented")
 
+    async def update_bot_avatar(
+        self,
+        id: int,
+        image: bytes,
+    ) -> AvatarData:
+        raise NotImplementedError("Bots.updateBotAvatar is not implemented")
+
     async def update_bot_token(
         self,
         id: int,
@@ -383,6 +452,12 @@ class BotsService:
         id: int,
     ) -> None:
         raise NotImplementedError("Bots.deleteBot is not implemented")
+
+    async def delete_bot_avatar(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Bots.deleteBotAvatar is not implemented")
 
     async def delete_bot_token(
         self,
@@ -424,7 +499,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_bots_all(
         self,
@@ -460,7 +535,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def get_bot_scopes(
         self,
@@ -476,7 +551,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_bot_tokens(
         self,
@@ -499,7 +574,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_bot_tokens_all(
         self,
@@ -544,7 +619,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_company_bots_all(
         self,
@@ -586,7 +661,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def get_webhook_events_all(
         self,
@@ -620,7 +695,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def create_bot(
         self,
@@ -637,7 +712,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def recreate_bot_token(
         self,
@@ -653,7 +728,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def rotate_bot_client_secret(
         self,
@@ -669,7 +744,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def create_bot_token(
         self,
@@ -687,7 +762,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def reissue_bot_token(
         self,
@@ -704,7 +779,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def self_update_bot_webhook(
         self,
@@ -721,7 +796,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def update_bot(
         self,
@@ -739,7 +814,27 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
+
+    async def update_bot_avatar(
+        self,
+        id: int,
+        image: bytes,
+    ) -> AvatarData:
+        data: dict[str, str] = {}
+        response = await self._client.post(
+            f"/bots/{id}/avatar",
+            data=data,
+            files={"image": image},
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(AvatarData, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise _error_from_body(body)
 
     async def update_bot_token(
         self,
@@ -758,7 +853,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def delete_bot(
         self,
@@ -773,7 +868,22 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
+
+    async def delete_bot_avatar(
+        self,
+        id: int,
+    ) -> None:
+        response = await self._client.delete(
+            f"/bots/{id}/avatar",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise _error_from_body(response.json())
 
     async def delete_bot_token(
         self,
@@ -789,7 +899,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def delete_webhook_event(
         self,
@@ -804,7 +914,7 @@ class BotsServiceImpl(BotsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 class ChatsService:
@@ -853,7 +963,7 @@ class ChatsService:
     async def request_export(
         self,
         request: ExportRequest,
-    ) -> None:
+    ) -> ChatExport:
         raise NotImplementedError("Chats.requestExport is not implemented")
 
     async def update_chat(
@@ -934,7 +1044,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_chats_all(
         self,
@@ -970,7 +1080,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def download_export(
         self,
@@ -991,7 +1101,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def list_company_chats(
         self,
@@ -1015,7 +1125,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_company_chats_all(
         self,
@@ -1052,23 +1162,25 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def request_export(
         self,
         request: ExportRequest,
-    ) -> None:
+    ) -> ChatExport:
         response = await self._client.post(
             "/chats/exports",
+            headers={"Prefer": "return=representation"},
             json=serialize(request),
         )
+        body = response.json()
         match response.status_code:
-            case 204:
-                return
+            case 202:
+                return deserialize(ChatExport, body["data"])
             case 401:
-                raise deserialize(OAuthError, response.json())
+                raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(body)
 
     async def update_chat(
         self,
@@ -1086,7 +1198,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def archive_chat(
         self,
@@ -1101,7 +1213,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def update_chat_avatar(
         self,
@@ -1121,7 +1233,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def unarchive_chat(
         self,
@@ -1136,7 +1248,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def mark_chat_unread(
         self,
@@ -1153,7 +1265,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def delete_chat_avatar(
         self,
@@ -1168,7 +1280,7 @@ class ChatsServiceImpl(ChatsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 class MembersService:
@@ -1256,7 +1368,7 @@ class MembersServiceImpl(MembersService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_members_all(
         self,
@@ -1294,7 +1406,7 @@ class MembersServiceImpl(MembersService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def add_members(
         self,
@@ -1311,7 +1423,7 @@ class MembersServiceImpl(MembersService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def update_member_role(
         self,
@@ -1329,7 +1441,7 @@ class MembersServiceImpl(MembersService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def remove_tag(
         self,
@@ -1345,7 +1457,7 @@ class MembersServiceImpl(MembersService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def leave_chat(
         self,
@@ -1360,7 +1472,7 @@ class MembersServiceImpl(MembersService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def remove_member(
         self,
@@ -1376,7 +1488,7 @@ class MembersServiceImpl(MembersService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 class CustomPropertiesService:
@@ -1408,7 +1520,7 @@ class CustomPropertiesServiceImpl(CustomPropertiesService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
 
 class FilesService:
@@ -1416,7 +1528,7 @@ class FilesService:
         self,
         id: int,
         params: DownloadFileParams | None = None,
-    ) -> None:
+    ) -> bytes:
         raise NotImplementedError("Files.downloadFile is not implemented")
 
     async def upload_file(
@@ -1439,7 +1551,7 @@ class FilesServiceImpl(FilesService):
         self,
         id: int,
         params: DownloadFileParams | None = None,
-    ) -> None:
+    ) -> bytes:
         query: dict[str, str] = {}
         if params is not None and params.target is not None:
             query["target"] = params.target
@@ -1449,11 +1561,11 @@ class FilesServiceImpl(FilesService):
         )
         match response.status_code:
             case 200:
-                return
+                return response.content
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def upload_file(
         self,
@@ -1479,7 +1591,7 @@ class FilesServiceImpl(FilesService):
             case 204:
                 return
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def get_upload_params(
         self) -> UploadParams:
@@ -1493,7 +1605,7 @@ class FilesServiceImpl(FilesService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
 
 class DraftsService:
@@ -1565,7 +1677,7 @@ class DraftsServiceImpl(DraftsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_drafts_all(
         self,
@@ -1601,7 +1713,7 @@ class DraftsServiceImpl(DraftsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def create_draft(
         self,
@@ -1618,7 +1730,7 @@ class DraftsServiceImpl(DraftsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def update_draft(
         self,
@@ -1636,7 +1748,7 @@ class DraftsServiceImpl(DraftsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def delete_draft(
         self,
@@ -1651,7 +1763,7 @@ class DraftsServiceImpl(DraftsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 class GroupTagsService:
@@ -1734,7 +1846,7 @@ class GroupTagsServiceImpl(GroupTagsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_tags_all(
         self,
@@ -1770,7 +1882,7 @@ class GroupTagsServiceImpl(GroupTagsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def get_tag_users(
         self,
@@ -1793,7 +1905,7 @@ class GroupTagsServiceImpl(GroupTagsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def get_tag_users_all(
         self,
@@ -1831,7 +1943,7 @@ class GroupTagsServiceImpl(GroupTagsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def update_tag(
         self,
@@ -1849,7 +1961,7 @@ class GroupTagsServiceImpl(GroupTagsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def delete_tag(
         self,
@@ -1864,7 +1976,7 @@ class GroupTagsServiceImpl(GroupTagsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 class MessagesService:
@@ -1954,7 +2066,7 @@ class MessagesServiceImpl(MessagesService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_chat_messages_all(
         self,
@@ -1990,7 +2102,7 @@ class MessagesServiceImpl(MessagesService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def create_message(
         self,
@@ -2007,7 +2119,7 @@ class MessagesServiceImpl(MessagesService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def unfurl(
         self,
@@ -2024,7 +2136,7 @@ class MessagesServiceImpl(MessagesService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def pin_message(
         self,
@@ -2039,7 +2151,7 @@ class MessagesServiceImpl(MessagesService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def update_message(
         self,
@@ -2057,7 +2169,7 @@ class MessagesServiceImpl(MessagesService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def delete_message(
         self,
@@ -2072,7 +2184,7 @@ class MessagesServiceImpl(MessagesService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def unpin_message(
         self,
@@ -2087,7 +2199,7 @@ class MessagesServiceImpl(MessagesService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 class ReactionsService:
@@ -2145,7 +2257,7 @@ class ReactionsServiceImpl(ReactionsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_reactions_all(
         self,
@@ -2184,7 +2296,7 @@ class ReactionsServiceImpl(ReactionsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def remove_reaction(
         self,
@@ -2205,7 +2317,7 @@ class ReactionsServiceImpl(ReactionsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 class ReadMembersService:
@@ -2242,7 +2354,7 @@ class ReadMembersServiceImpl(ReadMembersService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
 
 class ThreadsService:
@@ -2303,7 +2415,7 @@ class ThreadsServiceImpl(ThreadsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_threads_all(
         self,
@@ -2339,7 +2451,7 @@ class ThreadsServiceImpl(ThreadsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def create_thread(
         self,
@@ -2355,7 +2467,7 @@ class ThreadsServiceImpl(ThreadsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def create_standalone_thread(
         self) -> Thread:
@@ -2369,13 +2481,25 @@ class ThreadsServiceImpl(ThreadsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
 
 class OAuthService:
     async def get_token_info(
         self) -> AccessTokenInfo:
         raise NotImplementedError("OAuth.getTokenInfo is not implemented")
+
+    async def revoke_token(
+        self,
+        request: OAuthRevokeRequest,
+    ) -> None:
+        raise NotImplementedError("OAuth.revokeToken is not implemented")
+
+    async def exchange_token(
+        self,
+        request: OAuthTokenRequest,
+    ) -> OAuthToken:
+        raise NotImplementedError("OAuth.exchangeToken is not implemented")
 
 
 class OAuthServiceImpl(OAuthService):
@@ -2394,7 +2518,41 @@ class OAuthServiceImpl(OAuthService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
+
+    async def revoke_token(
+        self,
+        request: OAuthRevokeRequest,
+    ) -> None:
+        response = await self._client.post(
+            "/oauth/revoke",
+            data=_form_data(serialize(request)),
+        )
+        match response.status_code:
+            case 200:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise _error_from_body(response.json())
+
+    async def exchange_token(
+        self,
+        request: OAuthTokenRequest,
+    ) -> OAuthToken:
+        async with httpx.AsyncClient(base_url=self._client.base_url) as _no_auth:
+            response = await _no_auth.post(
+                "/oauth/token",
+                data=_form_data(serialize(request)),
+            )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(OAuthToken, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise _error_from_body(body)
 
 
 class ProfileService:
@@ -2447,7 +2605,7 @@ class ProfileServiceImpl(ProfileService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def get_status(
         self) -> UserStatus:
@@ -2461,7 +2619,7 @@ class ProfileServiceImpl(ProfileService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def update_profile_avatar(
         self,
@@ -2480,7 +2638,7 @@ class ProfileServiceImpl(ProfileService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def update_status(
         self,
@@ -2497,7 +2655,7 @@ class ProfileServiceImpl(ProfileService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def delete_profile_avatar(
         self) -> None:
@@ -2510,7 +2668,7 @@ class ProfileServiceImpl(ProfileService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def delete_status(
         self) -> None:
@@ -2523,7 +2681,7 @@ class ProfileServiceImpl(ProfileService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def get_token_info(
         self) -> AccessTokenInfo:
@@ -2537,7 +2695,7 @@ class ProfileServiceImpl(ProfileService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
 
 class SearchService:
@@ -2616,7 +2774,7 @@ class SearchServiceImpl(SearchService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def search_chats_all(
         self,
@@ -2673,7 +2831,7 @@ class SearchServiceImpl(SearchService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def search_messages_all(
         self,
@@ -2725,7 +2883,7 @@ class SearchServiceImpl(SearchService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def search_users_all(
         self,
@@ -2818,7 +2976,7 @@ class TasksServiceImpl(TasksService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_tasks_all(
         self,
@@ -2854,7 +3012,7 @@ class TasksServiceImpl(TasksService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def create_task(
         self,
@@ -2871,7 +3029,7 @@ class TasksServiceImpl(TasksService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def update_task(
         self,
@@ -2889,7 +3047,7 @@ class TasksServiceImpl(TasksService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def delete_task(
         self,
@@ -2904,7 +3062,7 @@ class TasksServiceImpl(TasksService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 class UsersService:
@@ -3004,7 +3162,7 @@ class UsersServiceImpl(UsersService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def list_users_all(
         self,
@@ -3040,7 +3198,7 @@ class UsersServiceImpl(UsersService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def get_user_status(
         self,
@@ -3056,7 +3214,7 @@ class UsersServiceImpl(UsersService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def create_user(
         self,
@@ -3073,7 +3231,7 @@ class UsersServiceImpl(UsersService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def update_user(
         self,
@@ -3091,7 +3249,7 @@ class UsersServiceImpl(UsersService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def update_user_avatar(
         self,
@@ -3111,7 +3269,7 @@ class UsersServiceImpl(UsersService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def update_user_status(
         self,
@@ -3129,7 +3287,7 @@ class UsersServiceImpl(UsersService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def delete_user(
         self,
@@ -3144,7 +3302,7 @@ class UsersServiceImpl(UsersService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def delete_user_avatar(
         self,
@@ -3159,7 +3317,7 @@ class UsersServiceImpl(UsersService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def delete_user_status(
         self,
@@ -3174,7 +3332,7 @@ class UsersServiceImpl(UsersService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 class ViewsService:
@@ -3212,7 +3370,7 @@ class ViewsServiceImpl(ViewsService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def open_view(
         self,
@@ -3228,7 +3386,7 @@ class ViewsServiceImpl(ViewsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 # Deprecated: CommonService is kept for backward compatibility — use the new service(s).
@@ -3253,7 +3411,7 @@ class CommonService:
     async def request_export(
         self,
         request: ExportRequest,
-    ) -> None:
+    ) -> ChatExport:
         raise NotImplementedError("Common.requestExport is not implemented")
 
     async def download_export(
@@ -3279,7 +3437,7 @@ class CommonServiceImpl(CommonService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def upload_file(
         self,
@@ -3305,7 +3463,7 @@ class CommonServiceImpl(CommonService):
             case 204:
                 return
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
     async def list_properties(
         self,
@@ -3324,23 +3482,25 @@ class CommonServiceImpl(CommonService):
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, body)
+                raise _error_from_body(body)
 
     async def request_export(
         self,
         request: ExportRequest,
-    ) -> None:
+    ) -> ChatExport:
         response = await self._client.post(
             "/chats/exports",
+            headers={"Prefer": "return=representation"},
             json=serialize(request),
         )
+        body = response.json()
         match response.status_code:
-            case 204:
-                return
+            case 202:
+                return deserialize(ChatExport, body["data"])
             case 401:
-                raise deserialize(OAuthError, response.json())
+                raise deserialize(OAuthError, body)
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(body)
 
     async def download_export(
         self,
@@ -3361,7 +3521,7 @@ class CommonServiceImpl(CommonService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 # Deprecated: LinkPreviewsService is kept for backward compatibility — use the new service(s).
@@ -3393,7 +3553,7 @@ class LinkPreviewsServiceImpl(LinkPreviewsService):
             case 401:
                 raise deserialize(OAuthError, response.json())
             case _:
-                raise deserialize(ApiError, response.json())
+                raise _error_from_body(response.json())
 
 
 PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"

@@ -377,13 +377,13 @@
     "skill": "pachca-chats",
     "steps": [
       {
-        "description": "Запроси экспорт",
-        "command": "pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>",
-        "notes": "`start_at`, `end_at` (YYYY-MM-DD). Запрос асинхронный: ответ приходит пустым, без номера выгрузки. `webhook_url` формально не обязателен, но без него номер взять неоткуда — присылай его всегда"
+        "description": "Запроси экспорт и возьми номер выгрузки из `data.id`",
+        "command": "pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD>",
+        "notes": "`start_at`, `end_at` (YYYY-MM-DD). Номер приходит с заголовком `Prefer: return=representation` и ответом `202`, CLI и SDK шлют его сами. Без заголовка ответ `204` без тела"
       },
       {
         "description": "Скачай файл экспорта",
-        "command": "pachca chats download-export <export_id>",
+        "command": "pachca chats download-export <id>",
         "notes": "Сервер вернёт 302, HTTP-клиент скачает файл автоматически"
       }
     ]

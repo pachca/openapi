@@ -17,6 +17,7 @@ import type {
   IROperation,
   IRParam,
   IRRequestBody,
+  IRRequestHeader,
   IRSuccessResponse,
   IRErrorResponse,
   IRParamsType,
@@ -38,6 +39,20 @@ function isUnion(schema: Schema): boolean {
     (!!schema.oneOf && schema.oneOf.length > 0);
 }
 
+const SCALAR_TYPES = ['integer', 'number', 'boolean', 'string'];
+
+/** A named scalar (`scalar Weekday extends int32`): a primitive with limits, not a model. */
+function isScalarSchema(schema: Schema): boolean {
+  return typeof schema.type === 'string' && SCALAR_TYPES.includes(schema.type) &&
+    !schema.enum && !schema.properties && !schema.additionalProperties && !schema.allOf && !isUnion(schema);
+}
+
+function containsRef(schema: Schema | undefined): boolean {
+  if (!schema) return false;
+  if (schema.$ref) return true;
+  return [schema.items, ...(schema.anyOf ?? []), ...(schema.oneOf ?? []), ...(schema.allOf ?? [])].some(containsRef);
+}
+
 // ----- Field type resolution -----
 
 function resolveFieldType(schema: Schema): IRFieldType {
@@ -49,11 +64,20 @@ function resolveFieldType(schema: Schema): IRFieldType {
     if (getSchemaType(schema) === 'array' && schema.items) {
       return { kind: 'array', items: resolveFieldType(schema.items) };
     }
+    // Scalar refs (e.g. Weekday: integer, 0..6) are inlined as their primitive
+    if (isScalarSchema(schema)) {
+      return { kind: 'primitive', primitive: schema.type as string, format: schema.format };
+    }
     return { kind: 'model', ref: name };
   }
 
   // anyOf / oneOf → union
   const unionMembers = schema.anyOf || schema.oneOf;
+  // A union of plain values (a string, a number or a list of them) names no type
+  // to generate: it is an open JSON value.
+  if (unionMembers && unionMembers.length > 0 && !unionMembers.some(containsRef)) {
+    return { kind: 'primitive', primitive: 'any' };
+  }
   if (unionMembers) {
     return {
       kind: 'union',
@@ -449,8 +473,10 @@ function transformParam(param: Parameter): IRParam {
 
   const isArrayParam = isArray || type.kind === 'array';
 
-  // Array query params need [] suffix for Rails/Rack to parse as arrays
-  if (isArrayParam && !wireName.endsWith('[]')) {
+  // A list in the query travels as the spec declares it. `x-query-array: brackets`
+  // sends each value as `name[]=value`, the form Rails/Rack reads as a list.
+  // Without it the value repeats under the plain name, OpenAPI's default.
+  if (isArrayParam && param['x-query-array'] === 'brackets' && !wireName.endsWith('[]')) {
     wireName += '[]';
   }
 
@@ -482,10 +508,12 @@ function transformRequestBody(
 
   const contentTypes = Object.keys(endpoint.requestBody.content);
   const isMultipart = contentTypes.some((ct) => ct.includes('multipart'));
-  const contentType: 'json' | 'multipart' = isMultipart ? 'multipart' : 'json';
+  const isForm = !isMultipart && contentTypes.includes('application/x-www-form-urlencoded');
+  const contentType: IRRequestBody['contentType'] = isMultipart ? 'multipart' : isForm ? 'form' : 'json';
 
   const mediaType =
     endpoint.requestBody.content['multipart/form-data'] ||
+    endpoint.requestBody.content['application/x-www-form-urlencoded'] ||
     endpoint.requestBody.content['application/json'];
   if (!mediaType) return undefined;
 
@@ -581,12 +609,14 @@ function transformSuccessResponse(endpoint: Endpoint): IRSuccessResponse {
 
   const mediaType = response.content['application/json'];
   if (!mediaType) {
+    // A body that is not JSON is the file itself (`GET /files/{id}`): the method returns its bytes.
     return {
       statusCode,
       hasBody: false,
       isList: false,
       isUnwrap: false,
       isRedirect: false,
+      isBinary: Object.keys(response.content).length > 0 || undefined,
     };
   }
 
@@ -663,9 +693,14 @@ function transformOperation(
   const methodName = operationIdToMethod(endpoint.id);
   const tag = endpoint.tags[0] || 'Common';
 
-  // Warn about unsupported parameter locations
+  // A header that allows exactly one value is sent as is; any other header or
+  // cookie parameter is not supported and skipped.
+  const requestHeaders: IRRequestHeader[] = [];
   for (const p of endpoint.parameters) {
-    if (p.in === 'header' || p.in === 'cookie') {
+    const only = p.in === 'header' && p.schema.enum?.length === 1 ? p.schema.enum[0] : undefined;
+    if (typeof only === 'string') {
+      requestHeaders.push({ name: p.name, value: only });
+    } else if (p.in === 'header' || p.in === 'cookie') {
       console.warn(`Warning: ${endpoint.id} — ${p.in} parameter "${p.name}" is not supported by the generator and will be skipped`);
     }
   }
@@ -679,6 +714,9 @@ function transformOperation(
     .map(transformParam);
 
   const requestBody = transformRequestBody(endpoint, schemas, models);
+  if (requestHeaders.length > 0 && requestBody?.contentType === 'multipart') {
+    throw new Error(`${endpoint.id}: a fixed request header on a multipart body is not supported by the generator`);
+  }
   const successResponse = transformSuccessResponse(endpoint);
   const errorResponses = transformErrorResponses(endpoint);
 
@@ -703,6 +741,7 @@ function transformOperation(
     noAuth: endpoint.requirements?.auth === false ? true : undefined,
     isPaginated: endpoint.paginated || undefined,
     deprecated: endpoint.deprecated || undefined,
+    requestHeaders: requestHeaders.length > 0 ? requestHeaders : undefined,
   };
 }
 
@@ -758,6 +797,9 @@ export function transform(spec: ParsedAPI): IR {
       enums.push(transformEnum(name, schema));
     } else if (getSchemaType(schema) === 'array') {
       // Array-type schemas (e.g. TagNamesFilter) are inlined as array types in field references
+      continue;
+    } else if (isScalarSchema(schema)) {
+      // Named scalars (e.g. Weekday) are inlined as primitives in field references
       continue;
     } else {
       models.push(transformModel(name, schema));
@@ -852,11 +894,13 @@ export function transform(spec: ParsedAPI): IR {
   }
 
   const baseUrl = spec.servers[0]?.url;
+  const oauthAuthorizeUrl = spec.endpoints.find((e) => e.oauthAuthorizeUrl)?.oauthAuthorizeUrl;
 
   return {
     title: spec.info.title,
     version: spec.info.version,
     baseUrl,
+    oauthAuthorizeUrl,
     enums,
     models,
     unions,

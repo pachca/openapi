@@ -48,7 +48,7 @@ export default class GroupTagsList extends BaseCommand {
 
       while (pages < 500) {
         const query: Record<string, string | number | boolean | string[] | undefined> = {
-        names: flags['names']?.split(','),
+        'names[]': flags['names']?.split(','),
         limit: flags.limit,
           cursor: nextCursor,
         };
@@ -94,7 +94,7 @@ export default class GroupTagsList extends BaseCommand {
       method: 'GET',
       path: '/group_tags',
       query: {
-      names: flags['names']?.split(','),
+      'names[]': flags['names']?.split(','),
       limit: flags.limit,
       cursor: flags.cursor,
       },

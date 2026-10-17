@@ -57,6 +57,7 @@ OpenAPI YAML → @pachca/openapi-parser → IR (transform.ts) → Генерат
 | `x-paginated: true` | Operation | Генерирует хелпер `*All` для автоматической пагинации по всем страницам |
 | `x-enum-descriptions` | Schema | Сопоставляет значения enum с человекочитаемыми описаниями |
 | `x-param-names` | Parameter | Переопределяет имя параметра в SDK |
+| `x-query-array: brackets` | Parameter | Массив в query уходит парами `name[]=value`, как его читает Rails, а без расширения значение повторяется под тем же именем: `name=a&name=b` |
 
 ## Генерируемые возможности
 

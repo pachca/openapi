@@ -16,7 +16,7 @@ export default class MessagesCreate extends BaseCommand {
   static apiMethod = "POST";
   static apiPath = "/messages";
   static defaultColumns = ["id","content","created_at","entity_type","entity_id"];
-  static requiredFlags = ["entity-id","content"];
+  static requiredFlags = ["entity-id"];
 
   static override args = {
 
@@ -28,16 +28,16 @@ export default class MessagesCreate extends BaseCommand {
       description: "Тип сущности. Регистр значения не учитывается. Значение вне списка возвращает `400` с кодом `invalid`.",
     }),
     'entity-id': Flags.integer({
-      description: "Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника. (pachca chats list | pachca users list)",
+      description: "Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо пользователя. (pachca chats list | pachca users list)",
     }),
     'content': Flags.string({
-      description: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов. В пространстве с продвинутым шифрованием — до 27 000 байт.",
+      description: "Текст сообщения. Обязателен, если к сообщению не приложены файлы. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). `@all` упоминает всех участников чата, `@here` — тех, кто сейчас в сети, а `@` с названием тега без пробелов — сотрудников этого тега. Имя без `@` и упоминание внутри строчного кода или блока кода упоминанием не считаются. У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов. В пространстве с продвинутым шифрованием — до 27 000 байт.",
     }),
     'files': Flags.string({
       description: "Прикрепляемые файлы",
     }),
     'buttons': Flags.string({
-      description: "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.",
+      description: "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Кнопки показываются под текстом и работают только у сообщений, отправленных токеном бота: нажатие на кнопку с `data` приходит событием `button_click` тому самому боту, а вместе с ним `trigger_id` — на открытие формы по нему есть 3 секунды, метод [Открытие представления](POST /views/open). Кнопка с `url` просто ведёт по ссылке и события не создаёт. Подробности — в разделе [Кнопки](https://dev.pachca.com/guides/buttons).",
     }),
     'parent-message-id': Flags.integer({
       description: "Идентификатор сообщения, на которое вы отвечаете с цитатой. Ответить можно на сообщение в любом чате, в том числе в треде: ответ отправляют в тот же чат или тред, где лежит это сообщение, иначе запрос вернёт ошибку `422`. Чтобы написать в тред под сообщением, укажите `entity_type: \"thread\"` и идентификатор треда в `entity_id`.",
@@ -46,10 +46,10 @@ export default class MessagesCreate extends BaseCommand {
       description: "Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота. (макс. 255 символов)",
     }),
     'display-name': Flags.string({
-      description: "Полное специальное имя отправителя для этого сообщения. Использование этого поля возможно только с access_token бота. (макс. 255 символов)",
+      description: "Полное специальное имя отправителя для этого сообщения. Вместе с `display_avatar_url` бот подписывает сообщение чужим именем и аватаром, и только это сообщение. Бейдж «Бот» остаётся, а в профиле отправителя видно настоящего бота. Так показывают автора из другой системы, когда переносят в Пачку чужую переписку. С личным токеном поле недоступно, ответ `403`. Подробности — в разделе [Боты](https://dev.pachca.com/guides/bots/overview). (макс. 255 символов)",
     }),
     'skip-invite-mentions': Flags.boolean({
-      description: "Пропуск добавления упоминаемых пользователей в тред. Работает только при отправке сообщения в тред.",
+      description: "Пропуск добавления упомянутых сотрудников в тред. В треде упоминание работает ещё и как приглашение: упомянутого сотрудника, которого в треде нет, Пачка туда добавляет, и он получает доступ к треду и родительскому сообщению. В беседе и канале упоминание никого не добавляет, и этот параметр там ничего не меняет.",
       allowNo: true,
     }),
     'link-preview': Flags.boolean({
@@ -72,8 +72,7 @@ export default class MessagesCreate extends BaseCommand {
     }
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'entity-id', label: "Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника.", type: 'integer' },
-      { flag: 'content', label: "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов. В пространстве с продвинутым шифрованием — до 27 000 байт.", type: 'string' },
+      { flag: 'entity-id', label: "Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо пользователя.", type: 'integer' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {
@@ -88,7 +87,7 @@ export default class MessagesCreate extends BaseCommand {
       } else {
         this.validationError(
           missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
-          { hint: "Обязательные: --entity-id <integer>, --content <string>. pachca introspect messages create" },
+          { hint: "Обязательные: --entity-id <integer>. pachca introspect messages create" },
         );
       }
     }

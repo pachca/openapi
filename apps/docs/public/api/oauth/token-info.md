@@ -36,7 +36,7 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
   - `created_at: date-time` (required) — Дата создания токена. Пример: `"2025-01-15T10:30:00.000Z"`
   - `revoked_at: date-time` (required, nullable) — Дата отзыва токена. Всегда `null`: по отозванному токену метод возвращает 401. Пример: `null`
   - `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. `null` у бессрочного токена — такие выдаёт интерфейс. У токена, полученного входом из CLI, здесь `3600`: он живёт час и продлевается сам. Пример: `null`
-  - `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать. Пример: `"2025-02-24T14:20:00.000Z"`
+  - `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в минуту, поэтому может отставать. Пример: `"2025-02-24T14:20:00.000Z"`
 
 **Пример ответа:**
 
@@ -61,10 +61,7 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
 
 ### 401: Access is unauthorized.
 
-**Схема ответа при ошибке:**
-
-- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
-- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
+**Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
 
 **Пример ответа:**
 
@@ -72,6 +69,26 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
 {
   "error": "invalid_token",
   "error_description": "Access token is missing"
+}
+```
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
 }
 ```
 

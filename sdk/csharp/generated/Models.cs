@@ -1455,6 +1455,41 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
     }
 }
 
+/// <summary>Что передано в запросе на отзыв токена</summary>
+[JsonConverter(typeof(OAuthTokenTypeHintConverter))]
+public enum OAuthTokenTypeHint
+{
+    /// <summary>Токен сотрудника</summary>
+    AccessToken,
+    /// <summary>Токен обновления</summary>
+    RefreshToken,
+}
+
+internal class OAuthTokenTypeHintConverter : JsonConverter<OAuthTokenTypeHint>
+{
+    public override OAuthTokenTypeHint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "access_token" => OAuthTokenTypeHint.AccessToken,
+            "refresh_token" => OAuthTokenTypeHint.RefreshToken,
+            _ => throw new JsonException($"Unknown OAuthTokenTypeHint value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, OAuthTokenTypeHint value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            OAuthTokenTypeHint.AccessToken => "access_token",
+            OAuthTokenTypeHint.RefreshToken => "refresh_token",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Тип события webhook для реакций</summary>
 [JsonConverter(typeof(ReactionEventTypeConverter))]
 public enum ReactionEventType
@@ -1899,7 +1934,7 @@ public enum ValidationErrorCode
     UniqueLimit,
     /// <summary>Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)</summary>
     GeneralLimit,
-    /// <summary>Ошибка выполнения запроса (пояснения вы получите в поле message)</summary>
+    /// <summary>Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий</summary>
     Unhandled,
     /// <summary>Не удалось найти идентификатор события</summary>
     TriggerNotFound,
@@ -1937,10 +1972,14 @@ public enum ValidationErrorCode
     SingleChatBotOccupied,
     /// <summary>Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег</summary>
     SingleChatBotTagDenied,
+    /// <summary>В тег можно добавить только бота, которого может добавить в чат любой сотрудник</summary>
+    RestrictedBotTagDenied,
     /// <summary>Настройки бота изменились во время запроса: повторите его</summary>
     BotChangedConcurrently,
     /// <summary>Поиск не уложился по времени: сузьте запрос и повторите</summary>
     Timeout,
+    /// <summary>Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`</summary>
+    DailyInvitesLimit,
     /// <summary>Недостаточно прав для выполнения действия (пояснения вы получите в поле message)</summary>
     Forbidden,
     /// <summary>Доступ запрещён (недостаточно прав)</summary>
@@ -2020,8 +2059,10 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             "bot_add_denied" => ValidationErrorCode.BotAddDenied,
             "single_chat_bot_occupied" => ValidationErrorCode.SingleChatBotOccupied,
             "single_chat_bot_tag_denied" => ValidationErrorCode.SingleChatBotTagDenied,
+            "restricted_bot_tag_denied" => ValidationErrorCode.RestrictedBotTagDenied,
             "bot_changed_concurrently" => ValidationErrorCode.BotChangedConcurrently,
             "timeout" => ValidationErrorCode.Timeout,
+            "daily_invites_limit" => ValidationErrorCode.DailyInvitesLimit,
             "forbidden" => ValidationErrorCode.Forbidden,
             "permission_denied" => ValidationErrorCode.PermissionDenied,
             "access_denied" => ValidationErrorCode.AccessDenied,
@@ -2084,8 +2125,10 @@ internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
             ValidationErrorCode.BotAddDenied => "bot_add_denied",
             ValidationErrorCode.SingleChatBotOccupied => "single_chat_bot_occupied",
             ValidationErrorCode.SingleChatBotTagDenied => "single_chat_bot_tag_denied",
+            ValidationErrorCode.RestrictedBotTagDenied => "restricted_bot_tag_denied",
             ValidationErrorCode.BotChangedConcurrently => "bot_changed_concurrently",
             ValidationErrorCode.Timeout => "timeout",
+            ValidationErrorCode.DailyInvitesLimit => "daily_invites_limit",
             ValidationErrorCode.Forbidden => "forbidden",
             ValidationErrorCode.PermissionDenied => "permission_denied",
             ValidationErrorCode.AccessDenied => "access_denied",
@@ -2482,7 +2525,7 @@ public class AuditDetailsVideoCallFinished : AuditEventDetailsUnion
     [JsonPropertyName("started_message_id")]
     public int? StartedMessageId { get; set; }
     [JsonPropertyName("duration")]
-    public int Duration { get; set; } = default!;
+    public int? Duration { get; set; }
     [JsonPropertyName("max_members_count")]
     public int MaxMembersCount { get; set; } = default!;
 }
@@ -3005,7 +3048,7 @@ public class ApiErrorItem
     [JsonPropertyName("key")]
     public string Key { get; set; } = default!;
     [JsonPropertyName("value")]
-    public string? Value { get; set; }
+    public object? Value { get; set; }
     [JsonPropertyName("message")]
     public string Message { get; set; } = default!;
     [JsonPropertyName("code")]
@@ -3452,6 +3495,12 @@ public class BotWebhook
     public List<string> UnfurlDomains { get; set; } = default!;
     [JsonPropertyName("last_request_at")]
     public DateTimeOffset? LastRequestAt { get; set; }
+    [JsonPropertyName("url")]
+    public string? Url { get; set; }
+    [JsonPropertyName("secret_token")]
+    public string? SecretToken { get; set; }
+    [JsonPropertyName("last_request_body")]
+    public string? LastRequestBody { get; set; }
 }
 
 public class BotWebhookSelfUpdateRequestWebhook
@@ -3524,6 +3573,12 @@ public class ChatCreateRequest
 {
     [JsonPropertyName("chat")]
     public ChatCreateRequestChat Chat { get; set; } = default!;
+}
+
+public class ChatExport
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; } = default!;
 }
 
 public class ChatUpdateRequestChat
@@ -3752,6 +3807,18 @@ public class ExportRequest
     public bool? SkipChatsFile { get; set; }
 }
 
+public class ExportWebhookPayload
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = default!;
+    [JsonPropertyName("event")]
+    public string @Event { get; set; } = default!;
+    [JsonPropertyName("export_id")]
+    public int ExportId { get; set; } = default!;
+    [JsonPropertyName("created_at")]
+    public DateTimeOffset CreatedAt { get; set; } = default!;
+}
+
 public class File
 {
     [JsonPropertyName("id")]
@@ -3927,7 +3994,7 @@ public class MessageCreateRequestFile
     [JsonPropertyName("file_type")]
     public FileType FileType { get; set; } = default!;
     [JsonPropertyName("size")]
-    public long Size { get; set; } = default!;
+    public long? Size { get; set; }
     [JsonPropertyName("width")]
     public int? Width { get; set; }
     [JsonPropertyName("height")]
@@ -3945,7 +4012,7 @@ public class MessageCreateRequestMessage
     [JsonPropertyName("entity_id")]
     public int EntityId { get; set; } = default!;
     [JsonPropertyName("content")]
-    public string Content { get; set; } = default!;
+    public string? Content { get; set; }
     [JsonPropertyName("files")]
     public List<MessageCreateRequestFile>? Files { get; set; }
     [JsonPropertyName("buttons")]
@@ -4016,6 +4083,48 @@ public class OAuthError : Exception
     public string ErrorDescription { get; set; } = default!;
 
     public override string Message => Error ?? "oauth error";
+}
+
+public class OAuthRevokeRequest
+{
+    [JsonPropertyName("token")]
+    public string Token { get; set; } = default!;
+    [JsonPropertyName("token_type_hint")]
+    public OAuthTokenTypeHint? TokenTypeHint { get; set; }
+    [JsonPropertyName("client_id")]
+    public string? ClientId { get; set; }
+    [JsonPropertyName("client_secret")]
+    public string? ClientSecret { get; set; }
+}
+
+public class OAuthToken
+{
+    [JsonPropertyName("access_token")]
+    public string AccessToken { get; set; } = default!;
+    [JsonPropertyName("token_type")]
+    public string TokenType { get; set; } = default!;
+    [JsonPropertyName("refresh_token")]
+    public string RefreshToken { get; set; } = default!;
+    [JsonPropertyName("scope")]
+    public string Scope { get; set; } = default!;
+    [JsonPropertyName("created_at")]
+    public long CreatedAt { get; set; } = default!;
+}
+
+public class OAuthTokenRequest
+{
+    [JsonPropertyName("grant_type")]
+    public string GrantType { get; set; } = default!;
+    [JsonPropertyName("code")]
+    public string Code { get; set; } = default!;
+    [JsonPropertyName("redirect_uri")]
+    public string RedirectUri { get; set; } = default!;
+    [JsonPropertyName("client_id")]
+    public string? ClientId { get; set; }
+    [JsonPropertyName("client_secret")]
+    public string? ClientSecret { get; set; }
+    [JsonPropertyName("code_verifier")]
+    public string? CodeVerifier { get; set; }
 }
 
 public class OpenViewRequestView
@@ -4099,9 +4208,9 @@ public class SearchPaginationMeta
 public class StatusUpdateRequestStatus
 {
     [JsonPropertyName("emoji")]
-    public string Emoji { get; set; } = default!;
+    public string? Emoji { get; set; }
     [JsonPropertyName("title")]
-    public string Title { get; set; } = default!;
+    public string? Title { get; set; }
     [JsonPropertyName("expires_at")]
     public DateTimeOffset? ExpiresAt { get; set; }
     [JsonPropertyName("is_away")]
@@ -4532,6 +4641,12 @@ public class WebhookVideoCallThread
     public int? MessageChatId { get; set; }
 }
 
+public class UpdateBotAvatarRequest
+{
+    [JsonIgnore]
+    public byte[] Image { get; set; } = Array.Empty<byte>();
+}
+
 public class UpdateChatAvatarRequest
 {
     [JsonIgnore]
@@ -4738,16 +4853,22 @@ public class BotSelfResponseDataWrapper
     public BotSelfResponse Data { get; set; } = default!;
 }
 
+public class AvatarDataDataWrapper
+{
+    [JsonPropertyName("data")]
+    public AvatarData Data { get; set; } = default!;
+}
+
 public class ChatDataWrapper
 {
     [JsonPropertyName("data")]
     public Chat Data { get; set; } = default!;
 }
 
-public class AvatarDataDataWrapper
+public class ChatExportDataWrapper
 {
     [JsonPropertyName("data")]
-    public AvatarData Data { get; set; } = default!;
+    public ChatExport Data { get; set; } = default!;
 }
 
 public class DraftDataWrapper

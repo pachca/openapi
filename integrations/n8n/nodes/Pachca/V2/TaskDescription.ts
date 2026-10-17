@@ -309,7 +309,7 @@ export const taskFields: INodeProperties[] = [
 { name: 'Event', value: 'event' },
 { name: 'Meeting', value: 'meeting' },
 { name: 'Reminder', value: 'reminder', description: 'Simple reminder' }],
-				default: "reminder",
+				default: "call",
 			},
 			{
 				displayName: 'Performer IDs',

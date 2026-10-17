@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 
+#pragma warning disable CS1998
 namespace Pachca.Sdk;
 
 public class MembersService
@@ -52,7 +53,7 @@ public sealed class MembersServiceImpl : MembersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -96,7 +97,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -113,7 +114,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }

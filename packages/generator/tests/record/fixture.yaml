@@ -72,7 +72,7 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/LinkPreview'
           description: Карта предпросмотров ссылок
-          x-record-key-example: https://website.com/articles/123
+          x-record-key-example: https://example.com/articles/123
       description: Запрос на разворачивание ссылок
 
     ApiError:

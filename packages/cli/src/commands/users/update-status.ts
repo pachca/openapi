@@ -1,7 +1,6 @@
 // Auto-generated from openapi.yaml — DO NOT EDIT
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
-import * as clack from '@clack/prompts';
 
 export default class UsersUpdateStatus extends BaseCommand {
   static override description = "Новый статус сотрудника";
@@ -14,7 +13,6 @@ export default class UsersUpdateStatus extends BaseCommand {
   static apiMethod = "PUT";
   static apiPath = "/users/{user_id}/status";
   static defaultColumns = ["title","emoji","expires_at","is_away"];
-  static requiredFlags = ["emoji","title"];
 
   static override args = {
     user_id: Args.integer({
@@ -26,13 +24,13 @@ export default class UsersUpdateStatus extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'emoji': Flags.string({
-      description: "Emoji символ статуса",
+      description: "Emoji символ статуса. Обязателен, если статуса ещё нет.",
     }),
     'title': Flags.string({
-      description: "Текст статуса (макс. 50 символов)",
+      description: "Текст статуса. Обязателен, если статуса ещё нет. (макс. 50 символов)",
     }),
     'expires-at': Flags.string({
-      description: "Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Сюда идёт срок, названный словами: «до трёх» это значение поля, а не часть подписи.",
+      description: "Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC.",
     }),
     'is-away': Flags.boolean({
       description: "Режим «Нет на месте»",
@@ -46,28 +44,6 @@ export default class UsersUpdateStatus extends BaseCommand {
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UsersUpdateStatus);
     this.parsedFlags = flags;
-
-    const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'emoji', label: "Emoji символ статуса", type: 'string' },
-      { flag: 'title', label: "Текст статуса", type: 'string' },
-    ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
-
-    if (missingRequired.length > 0) {
-      if (this.isInteractive()) {
-        for (const field of missingRequired) {
-          const value = await clack.text({ message: field.label, validate: (v) => v.length === 0 ? 'Обязательное поле' : undefined });
-          if (clack.isCancel(value)) { process.stderr.write('Отменено.\n'); this.exit(0); }
-          if (field.type === 'integer') { (flags as Record<string, unknown>)[field.flag] = Number.parseInt(value, 10); }
-          else if (field.type === 'boolean') { (flags as Record<string, unknown>)[field.flag] = value === 'true'; }
-          else { (flags as Record<string, unknown>)[field.flag] = value; }
-        }
-      } else {
-        this.validationError(
-          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
-          { hint: "Обязательные: --emoji <string>, --title <string>. pachca introspect users update-status" },
-        );
-      }
-    }
 
     const validationErrors: { message: string; flag: string }[] = [];
     if (flags['title'] && String(flags['title']).length > 50) {

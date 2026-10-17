@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 
+#pragma warning disable CS1998
 namespace Pachca.Sdk;
 
 public class EventsService

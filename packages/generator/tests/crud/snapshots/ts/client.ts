@@ -9,6 +9,15 @@ import {
 } from "./types.js";
 import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
 
+/**
+ * An error body is either `{ errors: [...] }` or the OAuth form `{ error, error_description }`,
+ * which also comes with 400 and 403 (`insufficient_scope`, `invalid_grant`). The body decides the class.
+ */
+function errorFromBody(body: any): Error {
+  if (body && typeof body.error === "string" && body.errors === undefined) return new OAuthError(body.error);
+  return new ApiError(body?.errors);
+}
+
 export class ChatsService {
   async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
     throw new Error("Chats.listChats is not implemented");
@@ -65,7 +74,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -94,7 +103,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -111,7 +120,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -128,7 +137,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(body.error);
       default:
-        throw new ApiError(body.errors);
+        throw errorFromBody(body);
     }
   }
 
@@ -143,7 +152,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 
@@ -158,7 +167,7 @@ export class ChatsServiceImpl extends ChatsService {
       case 401:
         throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError(((await response.json()) as any).errors);
+        throw errorFromBody(await response.json());
     }
   }
 }

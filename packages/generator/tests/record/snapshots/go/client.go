@@ -5,9 +5,35 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
+
+// errorFromBody reads an error answer. Its body is either {"errors": [...]} or the
+// OAuth form {"error", "error_description"}, which also comes with 400 and 403
+// (insufficient_scope, invalid_grant): the body decides the type.
+func errorFromBody(resp *http.Response) error {
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+	}
+	var probe struct {
+		Errors json.RawMessage `json:"errors"`
+		Error  *string         `json:"error"`
+	}
+	if json.Unmarshal(data, &probe) == nil && probe.Errors == nil && probe.Error != nil {
+		var e OAuthError
+		if err := json.Unmarshal(data, &e); err == nil {
+			return &e
+		}
+	}
+	var e ApiError
+	if err := json.Unmarshal(data, &e); err != nil {
+		return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+	}
+	return &e
+}
 
 type authTransport struct {
 	token string
@@ -59,11 +85,7 @@ func (s *LinkPreviewsServiceImpl) CreateLinkPreviews(ctx context.Context, id int
 		}
 		return &e
 	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return &e
+		return errorFromBody(resp)
 	}
 }
 

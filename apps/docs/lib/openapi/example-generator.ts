@@ -297,7 +297,9 @@ export function generateRequestExample(
   }
 
   const content =
-    requestBody.content['application/json'] || requestBody.content['multipart/form-data'];
+    requestBody.content['application/json'] ||
+    requestBody.content['multipart/form-data'] ||
+    requestBody.content['application/x-www-form-urlencoded'];
   if (!content?.schema) {
     return undefined;
   }

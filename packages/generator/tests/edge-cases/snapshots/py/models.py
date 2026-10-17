@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Union
+from typing import Any, Union
 
 class OAuthScope(StrEnum):
     CHATS_READ = "chats:read"
@@ -53,6 +53,12 @@ class MessageNotification:
 class ReactionNotification:
     kind: str  # literal "message"
     emoji: str
+
+
+@dataclass
+class Schedule:
+    days: list[int]
+    value: Any | None = None
 
 
 NotificationUnion = Union[MessageNotification, ReactionNotification]

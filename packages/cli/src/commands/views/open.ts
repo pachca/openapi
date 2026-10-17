@@ -33,7 +33,7 @@ export default class ViewsOpen extends BaseCommand {
       description: "Текст кнопки отправки формы (макс. 24 символов)",
     }),
     'blocks': Flags.string({
-      description: "Массив блоков представления",
+      description: "Массив блоков представления. Имена блоков (`name`) не повторяются, в select и radio заранее выбрано не больше одного варианта, а `min_length` поля ввода не больше его `max_length`.",
     }),
     'type': Flags.string({
       description: "Способ открытия представления",
@@ -56,7 +56,7 @@ export default class ViewsOpen extends BaseCommand {
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
       { flag: 'title', label: "Заголовок представления", type: 'string' },
-      { flag: 'blocks', label: "Массив блоков представления", type: 'string' },
+      { flag: 'blocks', label: "Массив блоков представления. Имена блоков (`name`) не повторяются, в select и radio заранее выбрано не больше одного варианта, а `min_length` поля ввода не больше его `max_length`.", type: 'string' },
       { flag: 'type', label: "Способ открытия представления", type: 'string' },
       { flag: 'trigger-id', label: "Уникальный идентификатор события (полученный, например, в исходящем вебхуке о нажатии кнопки)", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);

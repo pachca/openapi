@@ -3,22 +3,36 @@
   "version": "1.0.0",
   "private": true,
   "exports": {
-    "./workflows": "./workflows.ts"
+    "./workflows": "./workflows.ts",
+    "./mcp-core": "./mcp-core.ts",
+    "./mcp-tools": "./mcp-tools.ts",
+    "./mcp-manifest": "./mcp-manifest.json",
+    "./mcp-manifest-schema": "./mcp-manifest.schema.json"
   },
   "scripts": {
     "setup": "true",
     "generate": "tsp compile typespec.tsp --config tspconfig.yaml",
+    "generate-mcp": "bun scripts/generate-mcp-manifest.ts",
+    "typecheck": "tsc --noEmit",
     "overlay:apply": "bun scripts/apply-overlay.ts",
     "overlay:validate": "bun scripts/validate-overlay.ts",
-    "enum:check": "bun scripts/check-enum-descriptions.ts"
+    "overlay:fingerprints": "bun scripts/validate-overlay.ts --write-fingerprints",
+    "enum:check": "bun scripts/check-enum-descriptions.ts",
+    "eval:build": "bun scripts/eval/build-inputs.ts",
+    "eval:run": "scripts/eval/run.sh",
+    "eval:score": "bun scripts/eval/score.ts"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.14.0",
     "@typespec/compiler": "^1.7.1",
     "@typespec/http": "^1.7.0",
     "@typespec/openapi": "^1.7.0",
     "@typespec/openapi3": "^1.7.0",
     "@typespec/rest": "^0.77.0",
-    "js-yaml": "^4.1.1"
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1",
+    "js-yaml": "^4.1.1",
+    "typescript": "^5.7.3"
   }
 }

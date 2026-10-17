@@ -63,6 +63,8 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 
 | Метод | Метод API |
 |-------|----------|
+| `client.oauth.revokeToken()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.oauth.exchangeToken()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.oauth.getTokenInfo()` | [Информация о токене](/api/oauth/token-info) |
 | `client.chats.createChat()` | [Новый чат](/api/chats/create) |
 | `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -99,12 +101,12 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.groupTags.updateTag()` | [Редактирование тега](/api/group-tags/update) |
 | `client.groupTags.deleteTag()` | [Удаление тега](/api/group-tags/delete) |
 | `client.members.addTags()` | [Добавление тегов](/api/members/add-group-tags) |
-| `client.members.addMembers()` | [Добавление пользователей](/api/members/add) |
+| `client.members.addMembers()` | [Добавление участников](/api/members/add) |
 | `client.members.listMembers()` | [Список участников чата](/api/members/list) |
-| `client.members.updateMemberRole()` | [Редактирование роли](/api/members/update) |
+| `client.members.updateMemberRole()` | [Редактирование роли участника](/api/members/update) |
 | `client.members.leaveChat()` | [Выход из чата](/api/members/leave) |
-| `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
-| `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
+| `client.members.removeTag()` | [Исключение тега из чата](/api/members/remove-group-tag) |
+| `client.members.removeMember()` | [Исключение участника](/api/members/remove) |
 | `client.threads.createStandaloneThread()` | [Новый самостоятельный тред](/api/threads/create) |
 | `client.threads.createThread()` | [Новый тред](/api/threads/add) |
 | `client.threads.listThreads()` | [Список тредов](/api/threads/list) |
@@ -150,9 +152,11 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.bots.listBotTokens()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.updateBotAvatar()` | [Загрузка аватара бота](/api/bots/update-avatar) |
 | `client.bots.updateBotToken()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.bots.deleteBot()` | [Удаление бота](/api/bots/delete) |
-| `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
+| `client.bots.deleteBotAvatar()` | [Удаление аватара бота](/api/bots/remove-avatar) |
+| `client.bots.deleteWebhookEvent()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.bots.deleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
@@ -274,7 +278,7 @@ SDK выбрасывает два типа ошибок:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```typescript
 import { PachcaClient, ApiError } from "@pachca/sdk"
@@ -303,7 +307,7 @@ try {
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```typescript
 import { OAuthError } from "@pachca/sdk"
@@ -312,7 +316,7 @@ try {
   await client.profile.getProfile()
 } catch (error) {
   if (error instanceof OAuthError) {
-    console.log(error.message) // "Token not found"
+    console.log(error.error) // "insufficient_scope"
   }
 }
 ```

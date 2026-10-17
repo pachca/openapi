@@ -26,6 +26,8 @@ export interface EndpointRequirements {
   scope?: string;
   plan?: string;
   auth?: boolean;
+  /** Roles the operation answers to when they are fewer than its scope is given to (`x-requirements.roles`). */
+  roles?: string[];
 }
 
 export interface Endpoint {
@@ -43,6 +45,10 @@ export interface Endpoint {
   externalUrl?: string;
   paginated?: boolean;
   deprecated?: boolean;
+  /** Step of the OAuth flow (`x-oauth-flow`): documented and made an SDK method, but no CLI command, n8n operation or MCP tool */
+  oauthFlow?: boolean;
+  /** Authorization link of the OAuth flow (`x-oauth-authorize-url`), declared on the code exchange */
+  oauthAuthorizeUrl?: string;
 }
 
 export interface Parameter {
@@ -58,6 +64,8 @@ export interface Parameter {
   explode?: boolean;
   style?: string;
   'x-param-names'?: ParamNameEntry[];
+  /** How a list in the query travels: `brackets` sends each value as `name[]=value`. */
+  'x-query-array'?: 'brackets';
 }
 
 export interface ParamNameEntry {

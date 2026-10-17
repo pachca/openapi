@@ -305,6 +305,18 @@ const PROMOTED_TOP_LEVEL_FIELDS: Record<string, Record<string, Set<string>>> = {
   message: { create: new Set(['entity_type']), send: new Set(['entity_type']) },
 };
 
+/**
+ * Fields the spec made optional that stay where saved workflows keep them: on top,
+ * not required. Moving them into "Additional Fields" would drop the value a saved
+ * workflow holds on top. The router reads optional fields from the collection and
+ * falls back to a top-level parameter, skipping an empty one.
+ */
+const OPTIONAL_TOP_LEVEL_FIELDS: Record<string, Record<string, Set<string>>> = {
+  message: { create: new Set(['content']), send: new Set(['content']) },
+  profile: { updateStatus: new Set(['emoji', 'title']) },
+  user: { updateStatus: new Set(['emoji', 'title']) },
+};
+
 // ============================================================================
 // WEBHOOK EVENT MAPPING (for PachcaTrigger generation)
 // ============================================================================
@@ -355,7 +367,8 @@ function buildOperationNotice(ep: Endpoint): string | undefined {
   let rolePart = '';
   if (scope) {
     const scopeKey = scope.replace(/:/g, '_');
-    const roles = scopeRolesMap.get(scopeKey);
+    // The operation's own roles when it answers to fewer than its scope (x-requirements.roles)
+    const roles = ep.requirements?.roles ?? scopeRolesMap.get(scopeKey);
     if (roles && roles.length < ALL_ROLES.length) {
       if (roles.length === 1 && roles[0] === 'owner') {
         rolePart = 'owner role';
@@ -1055,8 +1068,9 @@ function generateResourceDescription(
 
     // Required body fields + promoted optional fields (for v1 compat)
     const promotedSet = PROMOTED_TOP_LEVEL_FIELDS[resource]?.[op.v2Op] ?? PROMOTED_TOP_LEVEL_FIELDS[resource]?.[op.v1Op];
-    let requiredFields = op.fields.filter(f => (f.required || promotedSet?.has(f.name)) && !f.readOnly);
-    const optionalFields = op.fields.filter(f => !f.required && !promotedSet?.has(f.name) && !f.readOnly);
+    const keptOnTop = OPTIONAL_TOP_LEVEL_FIELDS[resource]?.[op.v2Op] ?? OPTIONAL_TOP_LEVEL_FIELDS[resource]?.[op.v1Op];
+    let requiredFields = op.fields.filter(f => (f.required || promotedSet?.has(f.name) || keptOnTop?.has(f.name)) && !f.readOnly);
+    const optionalFields = op.fields.filter(f => !f.required && !promotedSet?.has(f.name) && !keptOnTop?.has(f.name) && !f.readOnly);
 
     // Bot update: replace webhook json field with webhookUrl string field
     if (resource === 'bot' && (op.v2Op === 'update' || op.v1Op === 'update')) {
@@ -1093,7 +1107,7 @@ function generateResourceDescription(
     }
 
     for (const field of requiredFields) {
-      lines.push(generateFieldProperty(field, resource, op, allResourceValues, allOpValues, true));
+      lines.push(generateFieldProperty(field, resource, op, allResourceValues, allOpValues, !keptOnTop?.has(field.name)));
     }
 
     // Optional fields in "Additional Fields" collection
@@ -1868,8 +1882,19 @@ function sanitizeDescription(desc: string): string {
   // Encode angle brackets — n8n lint: node-param-description-unencoded-angle-brackets
   // Skip <a href="..."> tags which are valid HTML in n8n descriptions
   result = result.replace(/<(?!\/?a[\s>])/g, '&lt;').replace(/(?<!["=])>/g, '&gt;');
+  // A link of the spec into the docs site is a path, which n8n has no site to resolve
+  // against: it becomes a link to the whole address, the way hand-written hints link
+  result = result.replace(
+    /\[([^\]]+)\]\((\/(?:guides|api)\/[^)\s]*)\)/g,
+    (_m, text: string, href: string) => `<a href="https://dev.pachca.com${href}">${text}</a>`,
+  );
   // Uppercase all occurrences of "json" (any case) to "JSON" — n8n lint requires uppercase
   result = result.replace(/\bjson\b/gi, 'JSON');
+  // "id" → "ID" — n8n lint: node-param-description-miscased-id. A backticked `id` loses its
+  // backticks first: `ID` would read as a field name the JSON does not have. The spec keeps the
+  // field name `id` as it is: the MCP manifest and the docs read it from there.
+  result = result.replace(/`(i|I)d(s?)`/g, 'ID$2');
+  result = result.replace(/\b(i|I)d(s?)\b/g, 'ID$2');
   // Strip leading quoted/backticked word so description starts with a letter (n8n lint)
   result = result.replace(/^`([^`]+)`\s*/, (_m, w: string) => w + ' ');
   result = result.replace(/^"([^"]+)"\s*/, (_m, w: string) => w + ' ');
@@ -2155,6 +2180,8 @@ function getSchemaDefault(schema: Schema | undefined): unknown {
 function groupEndpointsByTag(endpoints: Endpoint[]): Map<string, Endpoint[]> {
   const groups = new Map<string, Endpoint[]>();
   for (const endpoint of endpoints) {
+    // A step of the OAuth flow (`x-oauth-flow`) is not an operation: n8n credentials handle OAuth.
+    if (endpoint.oauthFlow) continue;
     const tag = endpoint.tags[0] || 'Common';
     if (!groups.has(tag)) groups.set(tag, []);
     groups.get(tag)!.push(endpoint);
@@ -2745,7 +2772,7 @@ function getSpecialHandler(resource: string, v2Op: string): string | null {
   if (resource === 'bot' && v2Op === 'update') return 'botWebhook';
   if (resource === 'user' && v2Op === 'getAll') return 'userGetAllFilters';
   if (resource === 'chat' && v2Op === 'downloadExport') return 'exportDownload';
-  if ((resource === 'profile' || resource === 'user' || resource === 'chat') && v2Op === 'updateAvatar') return 'avatarUpload';
+  if ((resource === 'profile' || resource === 'user' || resource === 'chat' || resource === 'bot') && v2Op === 'updateAvatar') return 'avatarUpload';
   return null;
 }
 
@@ -2817,8 +2844,17 @@ function buildRouteEntry(resource: string, op: OperationInfo): string {
   if (siblingFields.length) parts.push(`siblingFields: [${siblingFields.map(f => `'${f}'`).join(', ')}]`);
 
   if (hasPagination) parts.push('paginated: true');
-  // Chat export endpoints return raw payloads (no { data } wrapper).
-  if (resource === 'chat' && (v2Op === 'requestExport' || v2Op === 'downloadExport')) parts.push('noDataWrapper: true');
+  // Скачивание архива отдаёт ссылку, а не { data }.
+  if (resource === 'chat' && v2Op === 'downloadExport') parts.push('noDataWrapper: true');
+
+  // Заголовок с единственным допустимым значением (`Prefer: return=representation`)
+  // — выбор уже сделан, полем ноды он не становится: операция шлёт его всегда.
+  const fixedHeaders: string[] = [];
+  for (const param of endpoint.parameters) {
+    const only = param.in === 'header' && param.schema.enum?.length === 1 ? param.schema.enum[0] : undefined;
+    if (typeof only === 'string') fixedHeaders.push(`'${param.name}': '${only}'`);
+  }
+  if (fixedHeaders.length) parts.push(`headers: { ${fixedHeaders.join(', ')} }`);
 
   const special = getSpecialHandler(resource, v2Op);
   if (special) parts.push(`special: '${special}'`);
@@ -3096,6 +3132,7 @@ interface RouteConfig {
 \toptionalQueryMap?: QueryMap[];
 \tv1Collection?: string;
 \tspecial?: string;
+\theaders?: Record<string, string>;
 }
 
 // ============================================================================
@@ -3463,7 +3500,7 @@ async function executeRoute(
 
 \tconst response = await makeApiRequest.call(
 \t\tthis, route.method, url, finalBody,
-\t\tObject.keys(qs).length > 0 ? qs : undefined, i,
+\t\tObject.keys(qs).length > 0 ? qs : undefined, i, route.headers,
 \t);
 
 \t// === Handle response ===

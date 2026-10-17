@@ -23,7 +23,7 @@ export default class SearchListUsers extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'query': Flags.string({
-      description: "Текст поискового запроса",
+      description: "Текст поискового запроса. Запрос длиннее 500 знаков обрезается.",
     }),
     'sort': Flags.string({
       description: "Сортировка результатов",
@@ -72,7 +72,7 @@ export default class SearchListUsers extends BaseCommand {
         order: flags['order'],
         'created_from': flags['created-from'],
         'created_to': flags['created-to'],
-        'company_roles': flags['company-roles']?.split(','),
+        'company_roles[]': flags['company-roles']?.split(','),
         limit: flags.limit,
           cursor: nextCursor,
         };
@@ -123,7 +123,7 @@ export default class SearchListUsers extends BaseCommand {
       order: flags['order'],
       'created_from': flags['created-from'],
       'created_to': flags['created-to'],
-      'company_roles': flags['company-roles']?.split(','),
+      'company_roles[]': flags['company-roles']?.split(','),
       limit: flags.limit,
       cursor: flags.cursor,
       },

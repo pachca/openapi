@@ -65,6 +65,8 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 
 | Метод | Метод API |
 |-------|----------|
+| `client.Oauth.RevokeTokenAsync()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.Oauth.ExchangeTokenAsync()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.Oauth.GetTokenInfoAsync()` | [Информация о токене](/api/oauth/token-info) |
 | `client.Chats.CreateChatAsync()` | [Новый чат](/api/chats/create) |
 | `client.Chats.RequestExportAsync()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -101,12 +103,12 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.GroupTags.UpdateTagAsync()` | [Редактирование тега](/api/group-tags/update) |
 | `client.GroupTags.DeleteTagAsync()` | [Удаление тега](/api/group-tags/delete) |
 | `client.Members.AddTagsAsync()` | [Добавление тегов](/api/members/add-group-tags) |
-| `client.Members.AddMembersAsync()` | [Добавление пользователей](/api/members/add) |
+| `client.Members.AddMembersAsync()` | [Добавление участников](/api/members/add) |
 | `client.Members.ListMembersAsync()` | [Список участников чата](/api/members/list) |
-| `client.Members.UpdateMemberRoleAsync()` | [Редактирование роли](/api/members/update) |
+| `client.Members.UpdateMemberRoleAsync()` | [Редактирование роли участника](/api/members/update) |
 | `client.Members.LeaveChatAsync()` | [Выход из чата](/api/members/leave) |
-| `client.Members.RemoveTagAsync()` | [Исключение тега](/api/members/remove-group-tag) |
-| `client.Members.RemoveMemberAsync()` | [Исключение пользователя](/api/members/remove) |
+| `client.Members.RemoveTagAsync()` | [Исключение тега из чата](/api/members/remove-group-tag) |
+| `client.Members.RemoveMemberAsync()` | [Исключение участника](/api/members/remove) |
 | `client.Threads.CreateStandaloneThreadAsync()` | [Новый самостоятельный тред](/api/threads/create) |
 | `client.Threads.CreateThreadAsync()` | [Новый тред](/api/threads/add) |
 | `client.Threads.ListThreadsAsync()` | [Список тредов](/api/threads/list) |
@@ -152,9 +154,11 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Bots.ListBotTokensAsync()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.Bots.SelfUpdateBotWebhookAsync()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.Bots.UpdateBotAsync()` | [Редактирование бота](/api/bots/update) |
+| `client.Bots.UpdateBotAvatarAsync()` | [Загрузка аватара бота](/api/bots/update-avatar) |
 | `client.Bots.UpdateBotTokenAsync()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.Bots.DeleteBotAsync()` | [Удаление бота](/api/bots/delete) |
-| `client.Bots.DeleteWebhookEventAsync()` | [Удаление события](/api/bots/remove-event) |
+| `client.Bots.DeleteBotAvatarAsync()` | [Удаление аватара бота](/api/bots/remove-avatar) |
+| `client.Bots.DeleteWebhookEventAsync()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.Bots.DeleteBotTokenAsync()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.Security.GetAuditEventsAsync()` | [Журнал аудита событий](/api/security/list) |
 | `client.CustomProperties.ListPropertiesAsync()` | [Список дополнительных полей](/api/custom-properties/list) |
@@ -270,7 +274,7 @@ SDK выбрасывает два типа исключений:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```csharp
 using Pachca.Sdk;
@@ -301,7 +305,7 @@ catch (ApiError e)
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```csharp
 using Pachca.Sdk;
@@ -312,7 +316,8 @@ try
 }
 catch (OAuthError e)
 {
-    Console.WriteLine(e.ErrorDescription); // "Token not found"
+    Console.WriteLine(e.Error);            // "insufficient_scope"
+    Console.WriteLine(e.ErrorDescription); // описание ошибки
 }
 ```
 

@@ -1,6 +1,6 @@
 ---
 title: Получение токена
-description: "Как бот получает токен сотрудника по шагам: ссылка авторизации с state и PKCE, кнопка в сообщении бота, возврат с кодом, обмен кода на токен, проверка сотрудника и обработка отказов. Пример на curl и TypeScript"
+description: "Как бот получает токен сотрудника по шагам: ссылка авторизации с state и PKCE, кнопка в сообщении бота, возврат с кодом, обмен кода на токен, проверка сотрудника и обработка отказов. Пример на curl и TypeScript с SDK"
 related:
   - /guides/oauth/checklist
   - /guides/oauth/setup
@@ -34,8 +34,8 @@ related:
 | Адрес | Назначение |
 | --- | --- |
 | `https://app.pachca.com/apps/authorize` | Экран согласия, на него ведёт кнопка |
-| `https://api.pachca.com/api/shared/v1/oauth/token` | Обмен кода на токен |
-| `https://api.pachca.com/api/shared/v1/oauth/revoke` | Отзыв токена |
+| `https://api.pachca.com/api/shared/v1/oauth/token` | [Обмен кода на токен](POST /oauth/token) |
+| `https://api.pachca.com/api/shared/v1/oauth/revoke` | [Отзыв токена](POST /oauth/revoke) |
 
 Те же адреса публикуются в метаданных сервера авторизации по [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414): `https://api.pachca.com/.well-known/oauth-authorization-server`.
 
@@ -43,7 +43,7 @@ related:
 
 <Steps>
   <Step title="Сгенерируйте state и пару PKCE">
-    На каждую кнопку создайте случайный `state` и проверочный код `code_verifier` — случайную строку длиной от 43 до 128 символов. Из него получите `code_challenge`: SHA-256 от `code_verifier` в кодировке base64url без `=` на конце.
+    На каждую кнопку создайте случайный `state` и проверочный код `code_verifier` — случайную строку длиной от 43 до 128 символов. Из него получите `code_challenge`: SHA-256 от `code_verifier` в кодировке base64url без `=` на конце. В SDK пару создаёт `createPkce()`.
 
     Сохраните `state`, `code_verifier` и идентификатор сотрудника, которому отправляете кнопку: по `state` вы узнаете, чей это возврат. Для варианта **Браузер, мобильное, CLI** PKCE обязателен, для варианта **Серверное, с секретом** — рекомендуется.
   </Step>
@@ -65,11 +65,13 @@ related:
     - `code_challenge` и `code_challenge_method` — PKCE, метод только `S256`
 
     Параметр `scope` передавать не нужно: набор прав сервер берёт из настроек бота.
+
+    В SDK ссылку собирает `buildAuthorizeUrl()`. Имена обеих функций во всех языках — в разделе [SDK](/guides/sdk/overview#token-sotrudnika).
   </Step>
   <Step title="Отправьте кнопку">
     Отправьте ссылку сотруднику URL-кнопкой в личной переписке с ботом — методом [Новое сообщение](POST /messages) с `entity_type: "user"`. Подробнее о кнопках — в разделе [Кнопки в сообщениях](/guides/buttons).
 
-    <ImageCard src="/images/oauth/access_request.webp" alt="Бот в ответ на просьбу сотрудника присылает сообщение с кнопкой «Предоставить доступ»" caption="Кнопка авторизации в сообщении бота" maxWidth={718} />
+    <ImageCard src="/images/oauth/access_request.webp" alt="Сотрудник просит бота «Jira-карточки» взять задачу в работу, бот присылает сообщение с кнопкой «Предоставить доступ»" caption="Кнопка авторизации в сообщении бота" maxWidth={718} />
 
     В тексте рядом с кнопкой объясните, зачем боту доступ и что он будет делать, и попросите не пересылать ссылку.
   </Step>
@@ -83,7 +85,7 @@ related:
     Найдите сохранённый `state` и сразу удалите его: каждый `state` действует один раз. Если сотрудник нажал **Отменить**, возврата на ваш адрес не будет — браузер просто вернётся назад. Поэтому храните неиспользованные `state` ограниченное время, например сутки.
   </Step>
   <Step title="Обменяйте код на токен">
-    Код живёт 10 минут и обменивается один раз. Серверное приложение передаёт `client_secret` в теле запроса или в заголовке `Authorization: Basic`, приложение без секрета — только `code_verifier`.
+    Код живёт 10 минут и обменивается один раз. Серверное приложение передаёт `client_secret` в теле запроса или в заголовке `Authorization: Basic`, приложение без секрета — только `code_verifier`. Поля запроса и ответа — на странице метода [Обмен кода на токен](POST /oauth/token).
 
     ```bash title="Обмен кода на токен"
     curl -X POST https://api.pachca.com/api/shared/v1/oauth/token \
@@ -119,48 +121,45 @@ related:
 
 ## Пример на TypeScript
 
-Серверное приложение на Express: кнопка в ответ на сообщение сотрудника и обработчик возврата.
+Серверное приложение на Express с [TypeScript SDK](/guides/sdk/typescript): кнопка в ответ на сообщение сотрудника и обработчик возврата. Ссылку и пару PKCE собирают функции SDK, в других языках они называются по-своему — список в разделе [SDK](/guides/sdk/overview#token-sotrudnika).
 
 ```typescript title="oauth.ts"
 import crypto from "node:crypto"
 import express from "express"
+import {
+  MessageEntityType,
+  PachcaClient,
+  buildAuthorizeUrl,
+  createPkce,
+} from "@pachca/sdk"
 
-const API = "https://api.pachca.com/api/shared/v1"
 const CLIENT_ID = process.env.PACHCA_CLIENT_ID!
 const CLIENT_SECRET = process.env.PACHCA_CLIENT_SECRET!
-const BOT_TOKEN = process.env.PACHCA_BOT_TOKEN!
 const REDIRECT_URI = "https://bot.example.com/oauth/callback"
+
+const bot = new PachcaClient(process.env.PACHCA_BOT_TOKEN!)
 
 // state → кому отправлена кнопка и проверочный код PKCE
 const pending = new Map<string, { userId: number; verifier: string }>()
 
 export async function sendAuthButton(userId: number) {
   const state = crypto.randomBytes(16).toString("hex")
-  const verifier = crypto.randomBytes(32).toString("base64url")
-  const challenge = crypto.createHash("sha256").update(verifier).digest("base64url")
-  pending.set(state, { userId, verifier })
+  const { codeVerifier, codeChallenge } = await createPkce()
+  pending.set(state, { userId, verifier: codeVerifier })
 
-  const url = new URL("https://app.pachca.com/apps/authorize")
-  url.search = new URLSearchParams({
-    client_id: CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
-    response_type: "code",
+  const url = buildAuthorizeUrl({
+    clientId: CLIENT_ID,
+    redirectUri: REDIRECT_URI,
     state,
-    code_challenge: challenge,
-    code_challenge_method: "S256",
-  }).toString()
-
-  await fetch(`${API}/messages`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${BOT_TOKEN}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message: {
-        entity_type: "user",
-        entity_id: userId,
-        content: "Чтобы я мог работать с вашими задачами, разрешите доступ.",
-        buttons: [[{ text: "Предоставить доступ", url: url.toString() }]],
-      },
-    }),
+    codeChallenge,
+  })
+  await bot.messages.createMessage({
+    message: {
+      entityType: MessageEntityType.User,
+      entityId: userId,
+      content: "Чтобы я мог работать с вашими задачами, разрешите доступ.",
+      buttons: [[{ text: "Предоставить доступ", url }]],
+    },
   })
 }
 
@@ -173,33 +172,30 @@ app.get("/oauth/callback", async (req, res) => {
   pending.delete(state)
   if (error || !code) return res.status(400).send("Доступ не выдан, запросите новую ссылку у бота")
 
-  const tokenResponse = await fetch(`${API}/oauth/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "authorization_code",
+  const token = await bot.oauth
+    .exchangeToken({
+      grantType: "authorization_code",
       code,
-      redirect_uri: REDIRECT_URI,
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      code_verifier: entry.verifier,
-    }),
-  })
-  if (!tokenResponse.ok) return res.status(502).send("Не удалось получить токен")
-  const { access_token } = await tokenResponse.json()
+      redirectUri: REDIRECT_URI,
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
+      codeVerifier: entry.verifier,
+    })
+    .catch(() => null)
+  if (!token) return res.status(502).send("Не удалось получить токен")
 
-  const infoResponse = await fetch(`${API}/oauth/token/info`, {
-    headers: { Authorization: `Bearer ${access_token}` },
-  })
-  if (!infoResponse.ok) return res.status(502).send("Не удалось проверить токен")
-  const { data } = await infoResponse.json()
+  const employee = new PachcaClient(token.accessToken)
+  const info = await employee.oauth.getTokenInfo().catch(() => null)
+  if (!info) return res.status(502).send("Не удалось проверить токен")
 
   // Токен принадлежит тому, кто дал согласие, даже если кнопку ему переслали
-  await saveToken(data.user_id, access_token) // ваше хранилище токенов
-  if (data.user_id !== entry.userId) await sendAuthButton(entry.userId)
+  await saveToken(info.userId, token.accessToken) // ваше хранилище токенов
+  if (info.userId !== entry.userId) await sendAuthButton(entry.userId)
   res.send("Готово, можно вернуться в Пачку")
 })
 ```
+
+Ошибку обмена SDK выбрасывает как `OAuthError` с кодом в поле `error`, коды перечислены ниже.
 
 ## Ошибки и отказы
 
@@ -219,4 +215,12 @@ app.get("/oauth/callback", async (req, res) => {
 
 ## Отзыв токена ботом
 
-Бот может сам отозвать токен сотрудника, например когда тот отключает интеграцию в вашем сервисе. Серверное приложение отправляет на адрес отзыва `token` вместе с `client_id` и `client_secret`, приложение без секрета — сам токен в теле запроса и в заголовке `Authorization: Bearer`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
+Бот может сам отозвать токен сотрудника методом [Отзыв токена](POST /oauth/revoke), например когда тот отключает интеграцию в вашем сервисе. Серверное приложение отправляет `token` вместе с `client_id` и `client_secret`, приложение без секрета — сам токен в теле запроса и в заголовке `Authorization: Bearer`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
+
+```typescript title="Отзыв токена"
+await bot.oauth.revokeToken({
+  token: accessToken,
+  clientId: CLIENT_ID,
+  clientSecret: CLIENT_SECRET,
+})
+```

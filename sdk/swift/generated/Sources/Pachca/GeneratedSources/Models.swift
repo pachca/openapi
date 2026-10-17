@@ -475,6 +475,13 @@ public enum OAuthScope: String, Codable, CaseIterable {
     case draftsWrite = "drafts:write"
 }
 
+public enum OAuthTokenTypeHint: String, Codable, CaseIterable {
+    /// Токен сотрудника
+    case accessToken = "access_token"
+    /// Токен обновления
+    case refreshToken = "refresh_token"
+}
+
 public enum ReactionEventType: String, Codable, CaseIterable {
     /// Создание
     case new
@@ -610,7 +617,7 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case uniqueLimit = "unique_limit"
     /// Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
     case generalLimit = "general_limit"
-    /// Ошибка выполнения запроса (пояснения вы получите в поле message)
+    /// Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий
     case unhandled
     /// Не удалось найти идентификатор события
     case triggerNotFound = "trigger_not_found"
@@ -648,10 +655,14 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case singleChatBotOccupied = "single_chat_bot_occupied"
     /// Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
     case singleChatBotTagDenied = "single_chat_bot_tag_denied"
+    /// В тег можно добавить только бота, которого может добавить в чат любой сотрудник
+    case restrictedBotTagDenied = "restricted_bot_tag_denied"
     /// Настройки бота изменились во время запроса: повторите его
     case botChangedConcurrently = "bot_changed_concurrently"
     /// Поиск не уложился по времени: сузьте запрос и повторите
     case timeout
+    /// Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`
+    case dailyInvitesLimit = "daily_invites_limit"
     /// Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     case forbidden
     /// Доступ запрещён (недостаточно прав)
@@ -783,12 +794,12 @@ public struct ApiError: Codable, Error {
 
 public struct ApiErrorItem: Codable {
     public let key: String
-    public let value: String?
+    public let value: AnyCodable?
     public let message: String
     public let code: ValidationErrorCode
     public let payload: [String: AnyCodable]?
 
-    public init(key: String, value: String? = nil, message: String, code: ValidationErrorCode, payload: [String: AnyCodable]? = nil) {
+    public init(key: String, value: AnyCodable? = nil, message: String, code: ValidationErrorCode, payload: [String: AnyCodable]? = nil) {
         self.key = key
         self.value = value
         self.message = message
@@ -1239,10 +1250,10 @@ public struct AuditDetailsUserUpdated: Codable {
 public struct AuditDetailsVideoCallFinished: Codable {
     public let chatId: Int
     public let startedMessageId: Int?
-    public let duration: Int
+    public let duration: Int?
     public let maxMembersCount: Int
 
-    public init(chatId: Int, startedMessageId: Int? = nil, duration: Int, maxMembersCount: Int) {
+    public init(chatId: Int, startedMessageId: Int? = nil, duration: Int? = nil, maxMembersCount: Int) {
         self.chatId = chatId
         self.startedMessageId = startedMessageId
         self.duration = duration
@@ -1949,8 +1960,11 @@ public struct BotWebhook: Codable {
     public let kind: BotWebhookKind?
     public let unfurlDomains: [String]
     public let lastRequestAt: String?
+    public let url: String?
+    public let secretToken: String?
+    public let lastRequestBody: String?
 
-    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String? = nil, templateEngine: BotTemplateEngine, challengeKey: String? = nil, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind? = nil, unfurlDomains: [String], lastRequestAt: String? = nil) {
+    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String? = nil, templateEngine: BotTemplateEngine, challengeKey: String? = nil, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind? = nil, unfurlDomains: [String], lastRequestAt: String? = nil, url: String? = nil, secretToken: String? = nil, lastRequestBody: String? = nil) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
@@ -1970,6 +1984,9 @@ public struct BotWebhook: Codable {
         self.kind = kind
         self.unfurlDomains = unfurlDomains
         self.lastRequestAt = lastRequestAt
+        self.url = url
+        self.secretToken = secretToken
+        self.lastRequestBody = lastRequestBody
     }
 
     enum CodingKeys: String, CodingKey {
@@ -1992,6 +2009,9 @@ public struct BotWebhook: Codable {
         case kind
         case unfurlDomains = "unfurl_domains"
         case lastRequestAt = "last_request_at"
+        case url
+        case secretToken = "secret_token"
+        case lastRequestBody = "last_request_body"
     }
 }
 
@@ -2137,6 +2157,14 @@ public struct ChatCreateRequest: Codable {
 
     public init(chat: ChatCreateRequestChat) {
         self.chat = chat
+    }
+}
+
+public struct ChatExport: Codable {
+    public let id: Int
+
+    public init(id: Int) {
+        self.id = id
     }
 }
 
@@ -2572,6 +2600,27 @@ public struct ExportRequest: Codable {
     }
 }
 
+public struct ExportWebhookPayload: Codable {
+    public let type: String
+    public let event: String
+    public let exportId: Int
+    public let createdAt: String
+
+    public init(type: String, event: String, exportId: Int, createdAt: String) {
+        self.type = type
+        self.event = event
+        self.exportId = exportId
+        self.createdAt = createdAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case type
+        case event
+        case exportId = "export_id"
+        case createdAt = "created_at"
+    }
+}
+
 public struct File: Codable {
     public let id: Int
     public let key: String
@@ -2893,13 +2942,13 @@ public struct MessageCreateRequestFile: Codable {
     public let key: String
     public let name: String
     public let fileType: FileType
-    public let size: Int64
+    public let size: Int64?
     public let width: Int?
     public let height: Int?
     public let durationMs: Int?
     public let waveform: String?
 
-    public init(key: String, name: String, fileType: FileType, size: Int64, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
+    public init(key: String, name: String, fileType: FileType, size: Int64? = nil, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
         self.key = key
         self.name = name
         self.fileType = fileType
@@ -2925,7 +2974,7 @@ public struct MessageCreateRequestFile: Codable {
 public struct MessageCreateRequestMessage: Codable {
     public let entityType: MessageEntityType?
     public let entityId: Int
-    public let content: String
+    public let content: String?
     public let files: [MessageCreateRequestFile]?
     public let buttons: [[Button]]?
     public let parentMessageId: Int?
@@ -2933,7 +2982,7 @@ public struct MessageCreateRequestMessage: Codable {
     public let displayName: String?
     public let skipInviteMentions: Bool?
 
-    public init(entityType: MessageEntityType? = nil, entityId: Int, content: String, files: [MessageCreateRequestFile]? = nil, buttons: [[Button]]? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, skipInviteMentions: Bool? = nil) {
+    public init(entityType: MessageEntityType? = nil, entityId: Int, content: String? = nil, files: [MessageCreateRequestFile]? = nil, buttons: [[Button]]? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, skipInviteMentions: Bool? = nil) {
         self.entityType = entityType
         self.entityId = entityId
         self.content = content
@@ -3106,6 +3155,78 @@ public struct OAuthError: Codable, Error {
     }
 }
 
+public struct OAuthRevokeRequest: Codable {
+    public let token: String
+    public let tokenTypeHint: OAuthTokenTypeHint?
+    public let clientId: String?
+    public let clientSecret: String?
+
+    public init(token: String, tokenTypeHint: OAuthTokenTypeHint? = nil, clientId: String? = nil, clientSecret: String? = nil) {
+        self.token = token
+        self.tokenTypeHint = tokenTypeHint
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case token
+        case tokenTypeHint = "token_type_hint"
+        case clientId = "client_id"
+        case clientSecret = "client_secret"
+    }
+}
+
+public struct OAuthToken: Codable {
+    public let accessToken: String
+    public let tokenType: String
+    public let refreshToken: String
+    public let scope: String
+    public let createdAt: Int64
+
+    public init(accessToken: String, tokenType: String, refreshToken: String, scope: String, createdAt: Int64) {
+        self.accessToken = accessToken
+        self.tokenType = tokenType
+        self.refreshToken = refreshToken
+        self.scope = scope
+        self.createdAt = createdAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+        case tokenType = "token_type"
+        case refreshToken = "refresh_token"
+        case scope
+        case createdAt = "created_at"
+    }
+}
+
+public struct OAuthTokenRequest: Codable {
+    public let grantType: String
+    public let code: String
+    public let redirectUri: String
+    public let clientId: String?
+    public let clientSecret: String?
+    public let codeVerifier: String?
+
+    public init(grantType: String, code: String, redirectUri: String, clientId: String? = nil, clientSecret: String? = nil, codeVerifier: String? = nil) {
+        self.grantType = grantType
+        self.code = code
+        self.redirectUri = redirectUri
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+        self.codeVerifier = codeVerifier
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case grantType = "grant_type"
+        case code
+        case redirectUri = "redirect_uri"
+        case clientId = "client_id"
+        case clientSecret = "client_secret"
+        case codeVerifier = "code_verifier"
+    }
+}
+
 public struct OpenViewRequestView: Codable {
     public let title: String
     public let closeText: String?
@@ -3270,13 +3391,13 @@ public struct SearchPaginationMeta: Codable {
 }
 
 public struct StatusUpdateRequestStatus: Codable {
-    public let emoji: String
-    public let title: String
+    public let emoji: String?
+    public let title: String?
     public let expiresAt: String?
     public let isAway: Bool?
     public let awayMessage: String?
 
-    public init(emoji: String, title: String, expiresAt: String? = nil, isAway: Bool? = nil, awayMessage: String? = nil) {
+    public init(emoji: String? = nil, title: String? = nil, expiresAt: String? = nil, isAway: Bool? = nil, awayMessage: String? = nil) {
         self.emoji = emoji
         self.title = title
         self.expiresAt = expiresAt
@@ -4255,6 +4376,14 @@ public struct WebhookVideoCallThread: Codable {
     }
 }
 
+public struct UpdateBotAvatarRequest: Codable {
+    public var image: Data
+
+    public init(image: Data) {
+        self.image = image
+    }
+}
+
 public struct UpdateChatAvatarRequest: Codable {
     public var image: Data
 
@@ -4345,16 +4474,16 @@ public enum AuditEventDetailsUnion: Codable {
             self = .auditDetailsBotScopes(value)
             return
         }
-        if let value = try? AuditDetailsVideoCallFinished(from: decoder) {
-            self = .auditDetailsVideoCallFinished(value)
-            return
-        }
         if let value = try? AuditDetailsKms(from: decoder) {
             self = .auditDetailsKms(value)
             return
         }
         if let value = try? AuditDetailsRoleChanged(from: decoder) {
             self = .auditDetailsRoleChanged(value)
+            return
+        }
+        if let value = try? AuditDetailsVideoCallFinished(from: decoder) {
+            self = .auditDetailsVideoCallFinished(value)
             return
         }
         if let value = try? AuditDetailsBotOAuthClientSecretRotated(from: decoder) {
@@ -4760,12 +4889,16 @@ struct BotSelfResponseDataWrapper: Codable {
     let data: BotSelfResponse
 }
 
+struct AvatarDataDataWrapper: Codable {
+    let data: AvatarData
+}
+
 struct ChatDataWrapper: Codable {
     let data: Chat
 }
 
-struct AvatarDataDataWrapper: Codable {
-    let data: AvatarData
+struct ChatExportDataWrapper: Codable {
+    let data: ChatExport
 }
 
 struct DraftDataWrapper: Codable {

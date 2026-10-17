@@ -133,6 +133,14 @@ public class Notification
     public string Kind { get; set; } = default!;
 }
 
+public class Schedule
+{
+    [JsonPropertyName("days")]
+    public List<int> Days { get; set; } = default!;
+    [JsonPropertyName("value")]
+    public object? Value { get; set; }
+}
+
 public class ListEventsResponse
 {
     [JsonPropertyName("data")]

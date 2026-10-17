@@ -15,6 +15,8 @@
 - [Модели](https://dev.pachca.com/api/models.md): Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, черновики, задачи, теги, вебхуки и другие сущности
 
 ## OAuth
+- [Отзыв токена](https://dev.pachca.com/api/oauth/revoke-token.md): POST /oauth/revoke
+- [Обмен кода на токен](https://dev.pachca.com/api/oauth/exchange-token.md): POST /oauth/token
 - [Информация о токене](https://dev.pachca.com/api/oauth/token-info.md): GET /oauth/token/info
 
 ## Chats
@@ -61,12 +63,12 @@
 
 ## Members
 - [Добавление тегов](https://dev.pachca.com/api/members/add-group-tags.md): POST /chats/{id}/group_tags
-- [Исключение тега](https://dev.pachca.com/api/members/remove-group-tag.md): DELETE /chats/{id}/group_tags/{tag_id}
+- [Исключение тега из чата](https://dev.pachca.com/api/members/remove-group-tag.md): DELETE /chats/{id}/group_tags/{tag_id}
 - [Выход из чата](https://dev.pachca.com/api/members/leave.md): DELETE /chats/{id}/leave
 - [Список участников чата](https://dev.pachca.com/api/members/list.md): GET /chats/{id}/members
-- [Добавление пользователей](https://dev.pachca.com/api/members/add.md): POST /chats/{id}/members
-- [Исключение пользователя](https://dev.pachca.com/api/members/remove.md): DELETE /chats/{id}/members/{user_id}
-- [Редактирование роли](https://dev.pachca.com/api/members/update.md): PUT /chats/{id}/members/{user_id}
+- [Добавление участников](https://dev.pachca.com/api/members/add.md): POST /chats/{id}/members
+- [Исключение участника](https://dev.pachca.com/api/members/remove.md): DELETE /chats/{id}/members/{user_id}
+- [Редактирование роли участника](https://dev.pachca.com/api/members/update.md): PUT /chats/{id}/members/{user_id}
 
 ## Threads
 - [Новый тред](https://dev.pachca.com/api/threads/add.md): POST /messages/{id}/thread
@@ -123,6 +125,8 @@
 - [Информация о боте](https://dev.pachca.com/api/bots/get.md): GET /bots/{id}
 - [Редактирование бота](https://dev.pachca.com/api/bots/update.md): PUT /bots/{id}
 - [Удаление бота](https://dev.pachca.com/api/bots/delete.md): DELETE /bots/{id}
+- [Загрузка аватара бота](https://dev.pachca.com/api/bots/update-avatar.md): PUT /bots/{id}/avatar
+- [Удаление аватара бота](https://dev.pachca.com/api/bots/remove-avatar.md): DELETE /bots/{id}/avatar
 - [Ротация токена бота](https://dev.pachca.com/api/bots/recreate-token.md): POST /bots/{id}/recreate_token
 - [Ротация секрета клиента](https://dev.pachca.com/api/bots/rotate-client-secret.md): POST /bots/{id}/rotate_client_secret
 - [Каталог прав бота](https://dev.pachca.com/api/bots/list-scopes.md): GET /bots/{id}/scopes
@@ -133,7 +137,7 @@
 - [Перевыпуск токена бота](https://dev.pachca.com/api/bots/reissue-token.md): POST /bots/{id}/tokens/{token_id}/reissue
 - [Список ботов пространства](https://dev.pachca.com/api/bots/list-company.md): GET /company/bots
 - [История событий](https://dev.pachca.com/api/bots/list-events.md): GET /webhooks/events
-- [Удаление события](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}
+- [Удаление события истории](https://dev.pachca.com/api/bots/remove-event.md): DELETE /webhooks/events/{id}
 
 ## Security
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events

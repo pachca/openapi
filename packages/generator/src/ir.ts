@@ -99,7 +99,8 @@ export interface IRParam {
 export type UnwrapMode = 'none' | 'single' | 'full';
 
 export interface IRRequestBody {
-  contentType: 'json' | 'multipart';
+  /** form — `application/x-www-form-urlencoded`, as the OAuth flow requires */
+  contentType: 'json' | 'multipart' | 'form';
   /** Name of the request schema */
   schemaRef: string;
   unwrapMode: UnwrapMode;
@@ -120,6 +121,8 @@ export interface IRSuccessResponse {
   responseRef?: string;
   /** 302 redirect → return Location header */
   isRedirect: boolean;
+  /** A body that is not JSON (`application/octet-stream`) is the file itself → return its bytes */
+  isBinary?: boolean;
 }
 
 export interface IRErrorResponse {
@@ -156,6 +159,16 @@ export interface IROperation {
   noAuth?: boolean;
   /** Generate *All pagination helper (from x-paginated: true) */
   isPaginated?: boolean;
+  /**
+   * Headers the SDK always sends: a header parameter that allows exactly one value
+   * (`Prefer: return=representation`) is a choice already made, not an argument.
+   */
+  requestHeaders?: IRRequestHeader[];
+}
+
+export interface IRRequestHeader {
+  name: string;
+  value: string;
 }
 
 export interface IRService {
@@ -207,4 +220,9 @@ export interface IR {
   services: IRService[];
   params: IRParamsType[];
   responses: IRResponseType[];
+  /**
+   * Where the authorization link of the OAuth flow points (`x-oauth-authorize-url`
+   * on the code exchange). The SDK builds the link and the PKCE pair for it.
+   */
+  oauthAuthorizeUrl?: string;
 }

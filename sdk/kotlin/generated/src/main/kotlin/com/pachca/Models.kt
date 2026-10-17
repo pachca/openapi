@@ -545,6 +545,15 @@ enum class OAuthScope(val value: String) {
     @SerialName("drafts:write") DRAFTS_WRITE("drafts:write"),
 }
 
+/** Что передано в запросе на отзыв токена */
+@Serializable
+enum class OAuthTokenTypeHint(val value: String) {
+    /** Токен сотрудника */
+    @SerialName("access_token") ACCESS_TOKEN("access_token"),
+    /** Токен обновления */
+    @SerialName("refresh_token") REFRESH_TOKEN("refresh_token"),
+}
+
 /** Тип события webhook для реакций */
 @Serializable
 enum class ReactionEventType(val value: String) {
@@ -702,7 +711,7 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("unique_limit") UNIQUE_LIMIT("unique_limit"),
     /** Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций) */
     @SerialName("general_limit") GENERAL_LIMIT("general_limit"),
-    /** Ошибка выполнения запроса (пояснения вы получите в поле message) */
+    /** Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий */
     @SerialName("unhandled") UNHANDLED("unhandled"),
     /** Не удалось найти идентификатор события */
     @SerialName("trigger_not_found") TRIGGER_NOT_FOUND("trigger_not_found"),
@@ -740,10 +749,14 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("single_chat_bot_occupied") SINGLE_CHAT_BOT_OCCUPIED("single_chat_bot_occupied"),
     /** Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег */
     @SerialName("single_chat_bot_tag_denied") SINGLE_CHAT_BOT_TAG_DENIED("single_chat_bot_tag_denied"),
+    /** В тег можно добавить только бота, которого может добавить в чат любой сотрудник */
+    @SerialName("restricted_bot_tag_denied") RESTRICTED_BOT_TAG_DENIED("restricted_bot_tag_denied"),
     /** Настройки бота изменились во время запроса: повторите его */
     @SerialName("bot_changed_concurrently") BOT_CHANGED_CONCURRENTLY("bot_changed_concurrently"),
     /** Поиск не уложился по времени: сузьте запрос и повторите */
     @SerialName("timeout") TIMEOUT("timeout"),
+    /** Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload` */
+    @SerialName("daily_invites_limit") DAILY_INVITES_LIMIT("daily_invites_limit"),
     /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
     @SerialName("forbidden") FORBIDDEN("forbidden"),
     /** Доступ запрещён (недостаточно прав) */
@@ -1421,7 +1434,7 @@ data class ApiError(
 @Serializable
 data class ApiErrorItem(
     val key: String,
-    val value: String? = null,
+    val value: JsonElement? = null,
     val message: String,
     val code: ValidationErrorCode,
     val payload: Map<String, JsonElement>? = null,
@@ -1470,7 +1483,7 @@ data class BotCreateRequestWebhook(
     val commands: List<String>? = null,
     val scopes: List<String>? = null,
     val template: String? = null,
-    @SerialName("template_engine") val templateEngine: BotTemplateEngine? = BotTemplateEngine.LIQUID,
+    @SerialName("template_engine") val templateEngine: BotTemplateEngine? = null,
     @SerialName("challenge_key") val challengeKey: String? = null,
     @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = true,
     @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean? = false,
@@ -1651,16 +1664,16 @@ data class BotUpdateRequestWebhook(
     val nickname: String? = null,
     @SerialName("outgoing_url") val outgoingUrl: String? = null,
     val events: List<BotEventName>? = null,
-    @SerialName("trigger_on") val triggerOn: BotTriggerOn? = BotTriggerOn.COMMANDS,
+    @SerialName("trigger_on") val triggerOn: BotTriggerOn? = null,
     val commands: List<String>? = null,
     val scopes: List<String>? = null,
     val template: String? = null,
-    @SerialName("template_engine") val templateEngine: BotTemplateEngine? = BotTemplateEngine.LIQUID,
+    @SerialName("template_engine") val templateEngine: BotTemplateEngine? = null,
     @SerialName("challenge_key") val challengeKey: String? = null,
-    @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = true,
-    @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean? = false,
-    @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean? = false,
-    @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd? = BotWhoCanAdd.CREATOR,
+    @SerialName("link_preview_enabled") val linkPreviewEnabled: Boolean? = null,
+    @SerialName("ignore_self_messages") val ignoreSelfMessages: Boolean? = null,
+    @SerialName("events_history_enabled") val eventsHistoryEnabled: Boolean? = null,
+    @SerialName("who_can_add") val whoCanAdd: BotWhoCanAdd? = null,
     @SerialName("can_edit") val canEdit: List<BotCanEdit>? = null,
     @SerialName("single_chat") val singleChat: Boolean? = null,
     val kind: BotWebhookKind? = null,
@@ -1695,6 +1708,9 @@ data class BotWebhook(
     val kind: BotWebhookKind? = null,
     @SerialName("unfurl_domains") val unfurlDomains: List<String>,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_request_at") val lastRequestAt: OffsetDateTime? = null,
+    val url: String? = null,
+    @SerialName("secret_token") val secretToken: String? = null,
+    @SerialName("last_request_body") val lastRequestBody: String? = null,
 )
 
 @Serializable
@@ -1743,6 +1759,11 @@ data class ChatCreateRequestChat(
 @Serializable
 data class ChatCreateRequest(
     val chat: ChatCreateRequestChat,
+)
+
+@Serializable
+data class ChatExport(
+    val id: Int,
 )
 
 @Serializable
@@ -1893,6 +1914,14 @@ data class ExportRequest(
 )
 
 @Serializable
+data class ExportWebhookPayload(
+    val type: String,
+    val event: String,
+    @SerialName("export_id") val exportId: Int,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
+)
+
+@Serializable
 data class File(
     val id: Int,
     val key: String,
@@ -2004,7 +2033,7 @@ data class MessageCreateRequestFile(
     val key: String,
     val name: String,
     @SerialName("file_type") val fileType: FileType,
-    val size: Long,
+    val size: Long? = null,
     val width: Int? = null,
     val height: Int? = null,
     @SerialName("duration_ms") val durationMs: Int? = null,
@@ -2015,7 +2044,7 @@ data class MessageCreateRequestFile(
 data class MessageCreateRequestMessage(
     @SerialName("entity_type") val entityType: MessageEntityType? = MessageEntityType.DISCUSSION,
     @SerialName("entity_id") val entityId: Int,
-    val content: String,
+    val content: String? = null,
     val files: List<MessageCreateRequestFile>? = null,
     val buttons: List<List<Button>>? = null,
     @SerialName("parent_message_id") val parentMessageId: Int? = null,
@@ -2034,7 +2063,7 @@ data class MessageCreateRequest(
 data class MessageUpdateRequestFile(
     val key: String,
     val name: String,
-    @SerialName("file_type") val fileType: FileType? = FileType.FILE,
+    @SerialName("file_type") val fileType: FileType? = null,
     val size: Long? = null,
     val width: Int? = null,
     val height: Int? = null,
@@ -2064,6 +2093,33 @@ data class OAuthError(
  {
     override val message: String get() = error
 }
+
+@Serializable
+data class OAuthRevokeRequest(
+    val token: String,
+    @SerialName("token_type_hint") val tokenTypeHint: OAuthTokenTypeHint? = null,
+    @SerialName("client_id") val clientId: String? = null,
+    @SerialName("client_secret") val clientSecret: String? = null,
+)
+
+@Serializable
+data class OAuthToken(
+    @SerialName("access_token") val accessToken: String,
+    @SerialName("token_type") val tokenType: String,
+    @SerialName("refresh_token") val refreshToken: String,
+    val scope: String,
+    @SerialName("created_at") val createdAt: Long,
+)
+
+@Serializable
+data class OAuthTokenRequest(
+    @SerialName("grant_type") val grantType: String,
+    val code: String,
+    @SerialName("redirect_uri") val redirectUri: String,
+    @SerialName("client_id") val clientId: String? = null,
+    @SerialName("client_secret") val clientSecret: String? = null,
+    @SerialName("code_verifier") val codeVerifier: String? = null,
+)
 
 @Serializable
 data class OpenViewRequestView(
@@ -2122,8 +2178,8 @@ data class SearchPaginationMeta(
 
 @Serializable
 data class StatusUpdateRequestStatus(
-    val emoji: String,
-    val title: String,
+    val emoji: String? = null,
+    val title: String? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("expires_at") val expiresAt: OffsetDateTime? = null,
     @SerialName("is_away") val isAway: Boolean? = null,
     @SerialName("away_message") val awayMessage: String? = null,
@@ -2192,7 +2248,7 @@ data class TaskUpdateRequestCustomProperty(
 
 @Serializable
 data class TaskUpdateRequestTask(
-    val kind: TaskKind? = TaskKind.REMINDER,
+    val kind: TaskKind? = null,
     val content: String? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("due_at") val dueAt: OffsetDateTime? = null,
     val priority: Int? = null,
@@ -2318,7 +2374,7 @@ data class UserUpdateRequestUser(
     val department: String? = null,
     val title: String? = null,
     val role: UserRoleInput? = null,
-    val suspended: Boolean? = false,
+    val suspended: Boolean? = null,
     @SerialName("list_tags") val listTags: List<String>? = null,
     @SerialName("custom_properties") val customProperties: List<UserUpdateRequestCustomProperty>? = null,
 )
@@ -2402,6 +2458,11 @@ data class WebhookVideoCallThread(
     @SerialName("chat_id") val chatId: Int,
     @SerialName("message_id") val messageId: Int? = null,
     @SerialName("message_chat_id") val messageChatId: Int? = null,
+)
+
+@Serializable
+data class UpdateBotAvatarRequest(
+    @Transient val image: ByteArray = ByteArray(0),
 )
 
 @Serializable
@@ -2554,10 +2615,13 @@ data class BotAccessTokenDataWrapper(val data: BotAccessToken)
 data class BotSelfResponseDataWrapper(val data: BotSelfResponse)
 
 @Serializable
+data class AvatarDataDataWrapper(val data: AvatarData)
+
+@Serializable
 data class ChatDataWrapper(val data: Chat)
 
 @Serializable
-data class AvatarDataDataWrapper(val data: AvatarData)
+data class ChatExportDataWrapper(val data: ChatExport)
 
 @Serializable
 data class DraftDataWrapper(val data: Draft)

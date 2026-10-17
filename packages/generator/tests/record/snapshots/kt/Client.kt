@@ -11,7 +11,27 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import java.io.Closeable
+
+internal val pachcaJson = Json { explicitNulls = false; ignoreUnknownKeys = true }
+
+/**
+ * An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
+ * which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
+ */
+internal suspend fun errorFromResponse(response: HttpResponse): Exception {
+    val text = response.bodyAsText()
+    val element = runCatching { pachcaJson.parseToJsonElement(text) }.getOrNull()
+    val code = (element as? JsonObject)?.get("error") as? JsonPrimitive
+    if (element is JsonObject && element["errors"] == null && code != null && code.isString) {
+        val description = element["error_description"] as? JsonPrimitive
+        return OAuthError(error = code.content, errorDescription = description?.content ?: "")
+    }
+    return pachcaJson.decodeFromString(ApiError.serializer(), text)
+}
 
 interface LinkPreviewsService {
     suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
@@ -31,7 +51,7 @@ class LinkPreviewsServiceImpl internal constructor(
         when (response.status.value) {
             201 -> return
             401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
+            else -> throw errorFromResponse(response)
         }
     }
 }

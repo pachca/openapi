@@ -4,7 +4,7 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MembersAdd extends BaseCommand {
-  static override description = "Добавление пользователей";
+  static override description = "Добавление участников";
 
   static override examples = [
       "Подписаться на тред сообщения — Добавь бота в участники чата треда:\n  $ pachca members add",

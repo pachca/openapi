@@ -2,9 +2,94 @@ import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
+#if canImport(CryptoKit)
+import CryptoKit
+#elseif canImport(Crypto)
+import Crypto
+#endif
 
 private func pachcaNotImplemented(_ method: String) -> Error {
     NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+/// Percent-encodes a form or query value: only unreserved ASCII stays as is.
+func pachcaFormEncode(_ value: String) -> String {
+    let unreserved = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")
+    return value.addingPercentEncoding(withAllowedCharacters: unreserved) ?? value
+}
+
+/// A form body (application/x-www-form-urlencoded): the fields go by their wire names, empty ones are left out.
+func pachcaFormBody<T: Encodable>(_ value: T) throws -> Data {
+    let object = try JSONSerialization.jsonObject(with: serialize(value)) as? [String: Any] ?? [:]
+    let pairs = object.compactMap { key, item -> String? in
+        if item is NSNull { return nil }
+        // Numbers and booleans go as their JSON text: true, not 1
+        let text = item as? String
+            ?? (try? JSONSerialization.data(withJSONObject: item, options: .fragmentsAllowed))
+                .flatMap { String(data: $0, encoding: .utf8) }
+            ?? "\(item)"
+        return "\(key)=\(pachcaFormEncode(text))"
+    }
+    return Data(pairs.joined(separator: "&").utf8)
+}
+
+/// An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
+/// which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the type.
+func pachcaErrorFromBody(_ data: Data) -> Error {
+    if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+       object["errors"] == nil, let code = object["error"] as? String {
+        return OAuthError(error: code, errorDescription: object["error_description"] as? String ?? "")
+    }
+    if let apiError = try? deserialize(ApiError.self, from: data) { return apiError }
+    return URLError(.badServerResponse)
+}
+
+/// The authorization link and the PKCE pair of the OAuth flow.
+public enum PachcaOAuth {
+    public static let authorizeURL = "https://app.pachca.com/apps/authorize"
+
+    /// Keep `codeVerifier` until the code exchange, put `codeChallenge` into the link.
+    public struct PKCE {
+        public let codeVerifier: String
+        public let codeChallenge: String
+    }
+
+    /// The authorization link for a message button: the consent screen with PKCE (S256).
+    public static func buildAuthorizeURL(
+        clientId: String,
+        redirectUri: String,
+        state: String,
+        codeChallenge: String,
+        authorizeURL: String = PachcaOAuth.authorizeURL
+    ) -> String {
+        let query = [
+            ("client_id", clientId),
+            ("redirect_uri", redirectUri),
+            ("response_type", "code"),
+            ("state", state),
+            ("code_challenge", codeChallenge),
+            ("code_challenge_method", "S256"),
+        ].map { "\($0.0)=\(pachcaFormEncode($0.1))" }.joined(separator: "&")
+        return "\(authorizeURL)?\(query)"
+    }
+
+    #if canImport(CryptoKit) || canImport(Crypto)
+    /// A random code verifier and its SHA-256 challenge.
+    public static func createPKCE() -> PKCE {
+        var generator = SystemRandomNumberGenerator()
+        let bytes = (0..<32).map { _ in UInt8.random(in: .min ... .max, using: &generator) }
+        let verifier = base64URL(Data(bytes))
+        let digest = SHA256.hash(data: Data(verifier.utf8))
+        return PKCE(codeVerifier: verifier, codeChallenge: base64URL(Data(digest)))
+    }
+    #endif
+
+    private static func base64URL(_ data: Data) -> String {
+        data.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+    }
 }
 
 private func pachcaParseWebhookDate(_ value: String) -> Date? {
@@ -61,7 +146,7 @@ public final class SecurityServiceImpl: SecurityService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -239,12 +324,20 @@ open class BotsService {
         throw pachcaNotImplemented("Bots.updateBot")
     }
 
+    open func updateBotAvatar(id: Int, image: Data) async throws -> AvatarData {
+        throw pachcaNotImplemented("Bots.updateBotAvatar")
+    }
+
     open func updateBotToken(id: Int, tokenId: Int64, request body: BotTokenUpdateRequest) async throws -> BotAccessToken {
         throw pachcaNotImplemented("Bots.updateBotToken")
     }
 
     open func deleteBot(id: Int) async throws -> Void {
         throw pachcaNotImplemented("Bots.deleteBot")
+    }
+
+    open func deleteBotAvatar(id: Int) async throws -> Void {
+        throw pachcaNotImplemented("Bots.deleteBotAvatar")
     }
 
     open func deleteBotToken(id: Int, tokenId: Int64) async throws -> Void {
@@ -285,7 +378,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -314,7 +407,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -329,7 +422,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -349,7 +442,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -384,7 +477,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -418,7 +511,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -448,7 +541,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -466,7 +559,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -482,7 +575,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -498,7 +591,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -516,7 +609,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -532,7 +625,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -550,7 +643,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -568,7 +661,38 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
+        }
+    }
+
+    public override func updateBotAvatar(id: Int, image: Data) async throws -> AvatarData {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/avatar")!)
+        request.httpMethod = "PUT"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        var data = Data()
+        func appendField(_ name: String, _ value: String) {
+            data.append("--\(boundary)\r\n".data(using: .utf8)!)
+            data.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            data.append("\(value)\r\n".data(using: .utf8)!)
+        }
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"image\"; filename=\"upload\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        data.append(image)
+        data.append("\r\n".data(using: .utf8)!)
+        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = data
+        let (responseData, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(AvatarDataDataWrapper.self, from: responseData).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: responseData)
+        default:
+            throw pachcaErrorFromBody(responseData)
         }
     }
 
@@ -586,7 +710,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -602,7 +726,23 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
+        }
+    }
+
+    public override func deleteBotAvatar(id: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/bots/\(id)/avatar")!)
+        request.httpMethod = "DELETE"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -618,7 +758,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -634,7 +774,7 @@ public final class BotsServiceImpl: BotsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -670,7 +810,7 @@ open class ChatsService {
         throw pachcaNotImplemented("Chats.createChat")
     }
 
-    open func requestExport(request body: ExportRequest) async throws -> Void {
+    open func requestExport(request body: ExportRequest) async throws -> ChatExport {
         throw pachcaNotImplemented("Chats.requestExport")
     }
 
@@ -734,7 +874,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -763,7 +903,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -782,7 +922,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -803,7 +943,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -835,25 +975,26 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
-    public override func requestExport(request body: ExportRequest) async throws -> Void {
+    public override func requestExport(request body: ExportRequest) async throws -> ChatExport {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/exports")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("return=representation", forHTTPHeaderField: "Prefer")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try serialize(body)
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
-        case 204:
-            return
+        case 202:
+            return try deserialize(ChatExportDataWrapper.self, from: data).data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -871,7 +1012,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -887,7 +1028,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -918,7 +1059,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: responseData)
         default:
-            throw try deserialize(ApiError.self, from: responseData)
+            throw pachcaErrorFromBody(responseData)
         }
     }
 
@@ -934,7 +1075,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -952,7 +1093,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -968,7 +1109,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -1038,7 +1179,7 @@ public final class MembersServiceImpl: MembersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1070,7 +1211,7 @@ public final class MembersServiceImpl: MembersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1088,7 +1229,7 @@ public final class MembersServiceImpl: MembersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1106,7 +1247,7 @@ public final class MembersServiceImpl: MembersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1122,7 +1263,7 @@ public final class MembersServiceImpl: MembersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1138,7 +1279,7 @@ public final class MembersServiceImpl: MembersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1154,7 +1295,7 @@ public final class MembersServiceImpl: MembersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -1194,7 +1335,7 @@ public final class CustomPropertiesServiceImpl: CustomPropertiesService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -1202,7 +1343,7 @@ public final class CustomPropertiesServiceImpl: CustomPropertiesService {
 open class FilesService {
     public init() {}
 
-    open func downloadFile(id: Int, target: FileTarget? = nil) async throws -> Void {
+    open func downloadFile(id: Int, target: FileTarget? = nil) async throws -> Data {
         throw pachcaNotImplemented("Files.downloadFile")
     }
 
@@ -1227,7 +1368,7 @@ public final class FilesServiceImpl: FilesService {
         super.init()
     }
 
-    public override func downloadFile(id: Int, target: FileTarget? = nil) async throws -> Void {
+    public override func downloadFile(id: Int, target: FileTarget? = nil) async throws -> Data {
         var components = URLComponents(string: "\(baseURL)/files/\(id)")!
         var queryItems: [URLQueryItem] = []
         if let target { queryItems.append(URLQueryItem(name: "target", value: target.rawValue)) }
@@ -1238,11 +1379,11 @@ public final class FilesServiceImpl: FilesService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return
+            return data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1278,7 +1419,7 @@ public final class FilesServiceImpl: FilesService {
         case 204:
             return
         default:
-            throw try deserialize(ApiError.self, from: responseData)
+            throw pachcaErrorFromBody(responseData)
         }
     }
 
@@ -1294,7 +1435,7 @@ public final class FilesServiceImpl: FilesService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -1358,7 +1499,7 @@ public final class DraftsServiceImpl: DraftsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1387,7 +1528,7 @@ public final class DraftsServiceImpl: DraftsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1405,7 +1546,7 @@ public final class DraftsServiceImpl: DraftsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1423,7 +1564,7 @@ public final class DraftsServiceImpl: DraftsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1439,7 +1580,7 @@ public final class DraftsServiceImpl: DraftsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -1509,7 +1650,7 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1538,7 +1679,7 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1558,7 +1699,7 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1590,7 +1731,7 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1608,7 +1749,7 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1624,7 +1765,7 @@ public final class GroupTagsServiceImpl: GroupTagsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -1700,7 +1841,7 @@ public final class MessagesServiceImpl: MessagesService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1729,7 +1870,7 @@ public final class MessagesServiceImpl: MessagesService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1747,7 +1888,7 @@ public final class MessagesServiceImpl: MessagesService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1765,7 +1906,7 @@ public final class MessagesServiceImpl: MessagesService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1781,7 +1922,7 @@ public final class MessagesServiceImpl: MessagesService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1799,7 +1940,7 @@ public final class MessagesServiceImpl: MessagesService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1815,7 +1956,7 @@ public final class MessagesServiceImpl: MessagesService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1831,7 +1972,7 @@ public final class MessagesServiceImpl: MessagesService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -1884,7 +2025,7 @@ public final class ReactionsServiceImpl: ReactionsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1916,7 +2057,7 @@ public final class ReactionsServiceImpl: ReactionsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -1937,7 +2078,7 @@ public final class ReactionsServiceImpl: ReactionsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -1978,7 +2119,7 @@ public final class ReadMembersServiceImpl: ReadMembersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -2037,7 +2178,7 @@ public final class ThreadsServiceImpl: ThreadsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2066,7 +2207,7 @@ public final class ThreadsServiceImpl: ThreadsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2082,7 +2223,7 @@ public final class ThreadsServiceImpl: ThreadsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2098,7 +2239,7 @@ public final class ThreadsServiceImpl: ThreadsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -2108,6 +2249,14 @@ open class OAuthService {
 
     open func getTokenInfo() async throws -> AccessTokenInfo {
         throw pachcaNotImplemented("OAuth.getTokenInfo")
+    }
+
+    open func revokeToken(request body: OAuthRevokeRequest) async throws -> Void {
+        throw pachcaNotImplemented("OAuth.revokeToken")
+    }
+
+    open func exchangeToken(request body: OAuthTokenRequest) async throws -> OAuthToken {
+        throw pachcaNotImplemented("OAuth.exchangeToken")
     }
 }
 
@@ -2134,7 +2283,42 @@ public final class OAuthServiceImpl: OAuthService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
+        }
+    }
+
+    public override func revokeToken(request body: OAuthRevokeRequest) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/oauth/revoke")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try pachcaFormBody(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw pachcaErrorFromBody(data)
+        }
+    }
+
+    public override func exchangeToken(request body: OAuthTokenRequest) async throws -> OAuthToken {
+        var request = URLRequest(url: URL(string: "\(baseURL)/oauth/token")!)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try pachcaFormBody(body)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(OAuthToken.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -2194,7 +2378,7 @@ public final class ProfileServiceImpl: ProfileService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2209,7 +2393,7 @@ public final class ProfileServiceImpl: ProfileService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2240,7 +2424,7 @@ public final class ProfileServiceImpl: ProfileService {
         case 401:
             throw try deserialize(OAuthError.self, from: responseData)
         default:
-            throw try deserialize(ApiError.self, from: responseData)
+            throw pachcaErrorFromBody(responseData)
         }
     }
 
@@ -2258,7 +2442,7 @@ public final class ProfileServiceImpl: ProfileService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2274,7 +2458,7 @@ public final class ProfileServiceImpl: ProfileService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2290,7 +2474,7 @@ public final class ProfileServiceImpl: ProfileService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2305,7 +2489,7 @@ public final class ProfileServiceImpl: ProfileService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -2373,7 +2557,7 @@ public final class SearchServiceImpl: SearchService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2413,7 +2597,7 @@ public final class SearchServiceImpl: SearchService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2451,7 +2635,7 @@ public final class SearchServiceImpl: SearchService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2528,7 +2712,7 @@ public final class TasksServiceImpl: TasksService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2557,7 +2741,7 @@ public final class TasksServiceImpl: TasksService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2575,7 +2759,7 @@ public final class TasksServiceImpl: TasksService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2593,7 +2777,7 @@ public final class TasksServiceImpl: TasksService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2609,7 +2793,7 @@ public final class TasksServiceImpl: TasksService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -2691,7 +2875,7 @@ public final class UsersServiceImpl: UsersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2720,7 +2904,7 @@ public final class UsersServiceImpl: UsersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2735,7 +2919,7 @@ public final class UsersServiceImpl: UsersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2753,7 +2937,7 @@ public final class UsersServiceImpl: UsersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2771,7 +2955,7 @@ public final class UsersServiceImpl: UsersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2802,7 +2986,7 @@ public final class UsersServiceImpl: UsersService {
         case 401:
             throw try deserialize(OAuthError.self, from: responseData)
         default:
-            throw try deserialize(ApiError.self, from: responseData)
+            throw pachcaErrorFromBody(responseData)
         }
     }
 
@@ -2820,7 +3004,7 @@ public final class UsersServiceImpl: UsersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2836,7 +3020,7 @@ public final class UsersServiceImpl: UsersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2852,7 +3036,7 @@ public final class UsersServiceImpl: UsersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2868,7 +3052,7 @@ public final class UsersServiceImpl: UsersService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -2911,7 +3095,7 @@ public final class ViewsServiceImpl: ViewsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -2929,7 +3113,7 @@ public final class ViewsServiceImpl: ViewsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -2949,7 +3133,7 @@ open class CommonService {
         throw pachcaNotImplemented("Common.listProperties")
     }
 
-    open func requestExport(request body: ExportRequest) async throws -> Void {
+    open func requestExport(request body: ExportRequest) async throws -> ChatExport {
         throw pachcaNotImplemented("Common.requestExport")
     }
 
@@ -2982,7 +3166,7 @@ public final class CommonServiceImpl: CommonService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -3018,7 +3202,7 @@ public final class CommonServiceImpl: CommonService {
         case 204:
             return
         default:
-            throw try deserialize(ApiError.self, from: responseData)
+            throw pachcaErrorFromBody(responseData)
         }
     }
 
@@ -3037,25 +3221,26 @@ public final class CommonServiceImpl: CommonService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
-    public override func requestExport(request body: ExportRequest) async throws -> Void {
+    public override func requestExport(request body: ExportRequest) async throws -> ChatExport {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/exports")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        request.setValue("return=representation", forHTTPHeaderField: "Prefer")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try serialize(body)
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
-        case 204:
-            return
+        case 202:
+            return try deserialize(ChatExportDataWrapper.self, from: data).data
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -3074,7 +3259,7 @@ public final class CommonServiceImpl: CommonService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }
@@ -3113,7 +3298,7 @@ public final class LinkPreviewsServiceImpl: LinkPreviewsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }

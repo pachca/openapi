@@ -7,6 +7,17 @@ private func pachcaNotImplemented(_ method: String) -> Error {
     NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
 }
 
+/// An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
+/// which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the type.
+func pachcaErrorFromBody(_ data: Data) -> Error {
+    if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+       object["errors"] == nil, let code = object["error"] as? String {
+        return OAuthError(error: code, errorDescription: object["error_description"] as? String ?? "")
+    }
+    if let apiError = try? deserialize(ApiError.self, from: data) { return apiError }
+    return URLError(.badServerResponse)
+}
+
 open class ChatsService {
     public init() {}
 
@@ -70,7 +81,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -99,7 +110,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -117,7 +128,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -135,7 +146,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -151,7 +162,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 
@@ -167,7 +178,7 @@ public final class ChatsServiceImpl: ChatsService {
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try deserialize(ApiError.self, from: data)
+            throw pachcaErrorFromBody(data)
         }
     }
 }

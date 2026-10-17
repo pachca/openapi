@@ -7,7 +7,11 @@ import { MarkdownActions } from './markdown-actions';
 import { MethodBadge } from './method-badge';
 import { CopyButton } from './copy-button';
 import type { EndpointRequirements } from '@/lib/openapi/types';
-import { SCOPE_ROLES as ROLES, SCOPE_ROLE_LABELS as ROLE_LABELS } from '@/lib/scope-roles';
+import {
+  SCOPE_ROLES as ROLES,
+  SCOPE_ROLE_LABELS as ROLE_LABELS,
+  operationRoles,
+} from '@/lib/scope-roles';
 
 const planNames: Record<string, string> = {
   corporation: 'Корпорация',
@@ -32,6 +36,7 @@ export function EndpointHeader({
 
   const hasBadges =
     requirements && (requirements.scope || requirements.plan || requirements.auth === false);
+  const roles = operationRoles(requirements);
 
   return (
     <div className="mb-8">
@@ -69,15 +74,13 @@ export function EndpointHeader({
                         className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-method-get/10 ![color:var(--color-method-get)] ![text-decoration:none] hover:opacity-80 transition-opacity"
                       >
                         {requirements.scope}
-                        {requirements.scopeRoles && (
+                        {roles && (
                           <span className="flex gap-0.5">
                             {ROLES.map((r) => (
                               <span
                                 key={r}
                                 className={`w-1.5 h-1.5 rounded-full ${
-                                  requirements.scopeRoles!.includes(r)
-                                    ? 'bg-method-get/50'
-                                    : 'bg-method-get/15'
+                                  roles.includes(r) ? 'bg-method-get/50' : 'bg-method-get/15'
                                 }`}
                               />
                             ))}
@@ -93,14 +96,12 @@ export function EndpointHeader({
                         collisionPadding={8}
                         className="z-50 animate-tooltip rounded-lg px-2.5 py-1.5 shadow-xl border border-glass-heavy-border bg-glass-heavy backdrop-blur-md text-[12px] font-semibold whitespace-nowrap flex items-center gap-1.5"
                       >
-                        {requirements.scopeRoles ? (
+                        {roles ? (
                           ROLES.map((r, i) => (
                             <span
                               key={r}
                               className={
-                                requirements.scopeRoles!.includes(r)
-                                  ? 'text-text-primary'
-                                  : 'text-text-tertiary'
+                                roles.includes(r) ? 'text-text-primary' : 'text-text-tertiary'
                               }
                             >
                               {i > 0 && <span className="text-text-tertiary/50 mr-1.5">·</span>}

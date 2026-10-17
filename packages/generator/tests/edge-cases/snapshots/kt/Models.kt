@@ -3,6 +3,7 @@ package com.pachca.sdk
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
 enum class OAuthScope(val value: String) {
@@ -60,6 +61,12 @@ data class UploadRequest(
 @Serializable
 data class Notification(
     val kind: String,
+)
+
+@Serializable
+data class Schedule(
+    val days: List<Int>,
+    val value: JsonElement? = null,
 )
 
 @Serializable

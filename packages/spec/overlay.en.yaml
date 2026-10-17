@@ -49,13 +49,15 @@ actions:
 
         The nickname must end with `_bot` and be free in the workspace, otherwise the method responds with a validation error. Commands, scopes, events, link unfurling domains, and edit roles are replaced by the passed list as a whole. Scopes apply to the bot's main token — the one without a name, or the oldest one if there is none — and take effect on it right away, there is no need to reissue it. The scopes of an additional token are changed by [Edit bot token](PUT /bots/{id}/tokens/{token_id}).
 
-        The `oauth_client` object enables authorization on behalf of an employee or changes its settings, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own tokens keep working. When the client becomes server-side, its secret comes in `client_secret` once. The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow). The catalog page is set by `promo` while authorization is enabled.
+        When `oauth_client` makes the client server-side, its secret comes in `client_secret` once. The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow). The catalog page is set by `promo` while authorization is enabled.
 
         Only a workspace administrator or owner can enable the `message_link_shared` event, and for a bot with it change the domains, the webhook address and the event history.
 
         If a change takes away the bot's right to be in tags (`single_chat: true` or `who_can_add` set to `creator` or `creator_admin`), it leaves all tags and the chats it got into through them, and stays in the chats it was added to directly. More in the [Bot in tags](/guides/bots/settings#bot-v-tegah) section.
 
         The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be changed for a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on the "General" tab in the bot settings).
+
+        The bot's avatar is set and removed by separate methods, [Upload bot avatar](PUT /bots/{id}/avatar) and [Delete bot avatar](DELETE /bots/{id}/avatar).
   - target: $.paths['/bots/{id}'].put.parameters[?(@.name=='id')]
     update:
       description: Bot ID
@@ -122,6 +124,8 @@ actions:
         To create a 1-on-1 direct message with a user, use the [New message](POST /messages) method. To discuss a particular message there is no need to create a chat — a thread is started under it with the [New thread](POST /messages/{id}/thread) method. A conversation on a single topic needs no permanent place either: there is the [New unattached thread](POST /threads) method for it.
 
         Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, are silently dropped — the response is successful but the employee is not in the chat, so check the membership in the response. Bots are stricter: if a bot's "Who can add the bot to chats" setting does not let you add it, the chat is not created, and the method responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel stops the request too if it is in `member_ids` or creates the chat itself: the chat is not created, and the method responds `409` with the `single_chat_bot_occupied` code and the IDs of such bots in `value`.
+
+        The chat's avatar is set after creation with the [Upload chat avatar](PUT /chats/{id}/avatar) method.
   - target: $.paths['/chats'].get
     update:
       description: |-
@@ -245,6 +249,8 @@ actions:
         A direct chat cannot be renamed, and neither can an archived one: [Unarchive chat](PUT /chats/{id}/unarchive) it first. In a private chat the method is available to the chat owner and a chat administrator, in a public one to any employee of the workspace, even a non-member.
 
         The membership is not changed by this method; for that there are [Add chat members](POST /chats/{id}/members) and [Remove chat member](DELETE /chats/{id}/members/{user_id}).
+
+        The avatar is set and removed by separate methods, [Upload chat avatar](PUT /chats/{id}/avatar) and [Delete chat avatar](DELETE /chats/{id}/avatar).
   - target: $.paths['/chats/{id}'].put.parameters[?(@.name=='id')]
     update:
       description: Chat ID
@@ -823,6 +829,8 @@ actions:
         The time zone from here is needed by anyone who turns human deadlines into dates: "by 15:00" and "by Friday" are counted in the employee's time zone, not in UTC. An empty value means the workspace time zone.
 
         Someone else's profile is returned by [Employee info](GET /users/{id}).
+
+        Your own avatar is set by [Upload own avatar](PUT /profile/avatar) and removed by [Delete own avatar](DELETE /profile/avatar).
   - target: $.paths['/profile/status'].get
     update:
       description: "Own status\n\nThe status of the token owner: the emoji, the title, the expiry, and away mode.\n\nIf no status is set, the method returns `200` and `null` in the response body — with no wrapper object. A status whose `expires_at` has passed may still be returned for a short time until it is cleared, so check `expires_at` on the client side."
@@ -1138,6 +1146,8 @@ actions:
         The `list_tags` field puts the employee into tags right away, and together with the tags into the chats those tags are linked to. For a guest no tags are assigned at all: the response is successful and `list_tags` in it is empty.
 
         Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a guest, pass `role: "guest"` — for this role `chat_ids` is required and must contain exactly one active chat the token has permission to add members to. Violating the guest access rules returns `400` with an error on the `chat_ids` field.
+
+        The employee's avatar is set after creation with the [Upload employee avatar](PUT /users/{user_id}/avatar) method.
   - target: $.paths['/users'].get
     update:
       description: |-
@@ -1198,6 +1208,8 @@ actions:
         An unknown role value is silently ignored by the method: the response is successful and the role stays as it was.
 
         For a bot the method changes only the name (`first_name`), nickname, tags and `suspended`, and skips the other fields in the request. Which nickname and which tags a bot can be given is said at the `nickname` and `list_tags` fields. If the bot's settings changed during the request, the `422` response comes with the `bot_changed_concurrently` code: retry the request.
+
+        The employee's avatar is set and removed by separate methods, [Upload employee avatar](PUT /users/{user_id}/avatar) and [Delete employee avatar](DELETE /users/{user_id}/avatar).
   - target: $.paths['/users/{id}'].put.parameters[?(@.name=='id')]
     update:
       description: User ID
@@ -1900,6 +1912,8 @@ actions:
         Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. Learn more in [Authorization setup](/guides/oauth/setup). The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow).
 
         The nickname must end with `_bot` and be free in the workspace.
+
+        The bot's avatar is set after creation with the [Upload bot avatar](PUT /bots/{id}/avatar) method.
   - target: $.paths['/bots/{id}'].get
     update:
       description: |-
@@ -4794,7 +4808,7 @@ actions:
       description: "New token scopes. The list is replaced as a whole and takes effect immediately, there is no need to reissue the token."
   - target: $.components.schemas.BotUpdateRequest.properties.oauth_client
     update:
-      description: "Settings of authorization on behalf of an employee. If authorization is disabled, the object enables it, and `null` disables it: authorizations granted by employees are revoked and the catalog page is deleted."
+      description: "Settings of authorization on behalf of an employee. If authorization is disabled, the object enables it, and `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own tokens keep working."
   - target: $.components.schemas.BotUpdateRequest.properties.promo
     update:
       description: "The bot's catalog page. Available only while authorization is enabled for the bot."

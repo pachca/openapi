@@ -570,6 +570,9 @@ paths:
 
 
         The nickname must end with `_bot` and be free in the workspace.
+
+
+        The bot's avatar is set after creation with the [Upload bot avatar](PUT /bots/{id}/avatar) method.
       parameters: []
       responses:
         '201':
@@ -841,12 +844,9 @@ paths:
         [Edit bot token](PUT /bots/{id}/tokens/{token_id}).
 
 
-        The `oauth_client` object enables authorization on behalf of an employee or changes its settings, and `null`
-        disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the bot's own
-        tokens keep working. When the client becomes server-side, its secret comes in `client_secret` once. The
-        authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by
-        step in [Getting a token](/guides/oauth/flow). The catalog page is set by `promo` while authorization is
-        enabled.
+        When `oauth_client` makes the client server-side, its secret comes in `client_secret` once. The authorization
+        link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in
+        [Getting a token](/guides/oauth/flow). The catalog page is set by `promo` while authorization is enabled.
 
 
         Only a workspace administrator or owner can enable the `message_link_shared` event, and for a bot with it change
@@ -862,6 +862,10 @@ paths:
         and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be
         changed for a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on
         the "General" tab in the bot settings).
+
+
+        The bot's avatar is set and removed by separate methods, [Upload bot avatar](PUT /bots/{id}/avatar) and [Delete
+        bot avatar](DELETE /bots/{id}/avatar).
       parameters:
         - name: id
           in: path
@@ -1997,6 +2001,9 @@ paths:
         that already belongs to another conversation or channel stops the request too if it is in `member_ids` or
         creates the chat itself: the chat is not created, and the method responds `409` with the
         `single_chat_bot_occupied` code and the IDs of such bots in `value`.
+
+
+        The chat's avatar is set after creation with the [Upload chat avatar](PUT /chats/{id}/avatar) method.
       parameters: []
       responses:
         '201':
@@ -2486,6 +2493,10 @@ paths:
 
         The membership is not changed by this method; for that there are [Add chat members](POST /chats/{id}/members)
         and [Remove chat member](DELETE /chats/{id}/members/{user_id}).
+
+
+        The avatar is set and removed by separate methods, [Upload chat avatar](PUT /chats/{id}/avatar) and [Delete chat
+        avatar](DELETE /chats/{id}/avatar).
       parameters:
         - name: id
           in: path
@@ -6260,6 +6271,10 @@ paths:
 
 
         Someone else's profile is returned by [Employee info](GET /users/{id}).
+
+
+        Your own avatar is set by [Upload own avatar](PUT /profile/avatar) and removed by [Delete own avatar](DELETE
+        /profile/avatar).
       parameters: []
       responses:
         '200':
@@ -7895,6 +7910,10 @@ paths:
         guest, pass `role: "guest"` — for this role `chat_ids` is required and must contain exactly one active chat the
         token has permission to add members to. Violating the guest access rules returns `400` with an error on the
         `chat_ids` field.
+
+
+        The employee's avatar is set after creation with the [Upload employee avatar](PUT /users/{user_id}/avatar)
+        method.
       parameters: []
       responses:
         '201':
@@ -8193,6 +8212,10 @@ paths:
         fields in the request. Which nickname and which tags a bot can be given is said at the `nickname` and
         `list_tags` fields. If the bot's settings changed during the request, the `422` response comes with the
         `bot_changed_concurrently` code: retry the request.
+
+
+        The employee's avatar is set and removed by separate methods, [Upload employee avatar](PUT
+        /users/{user_id}/avatar) and [Delete employee avatar](DELETE /users/{user_id}/avatar).
       parameters:
         - name: id
           in: path
@@ -11060,7 +11083,8 @@ components:
           nullable: true
           description: >-
             Settings of authorization on behalf of an employee. If authorization is disabled, the object enables it, and
-            `null` disables it: authorizations granted by employees are revoked and the catalog page is deleted.
+            `null` disables it: authorizations granted by employees are revoked, the catalog page is deleted, and the
+            bot's own tokens keep working.
         promo:
           allOf:
             - $ref: '#/components/schemas/BotPromoRequest'

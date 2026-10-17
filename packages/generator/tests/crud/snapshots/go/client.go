@@ -132,7 +132,7 @@ func (s *ChatsServiceImpl) ListChats(ctx context.Context, params *ListChatsParam
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
 	default:
@@ -188,7 +188,7 @@ func (s *ChatsServiceImpl) GetChat(ctx context.Context, id int32) (*Chat, error)
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
 	default:
@@ -223,7 +223,7 @@ func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateReq
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
 	default:
@@ -258,7 +258,7 @@ func (s *ChatsServiceImpl) UpdateChat(ctx context.Context, id int32, request Cha
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
 	default:
@@ -282,7 +282,7 @@ func (s *ChatsServiceImpl) ArchiveChat(ctx context.Context, id int32) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
 	default:
@@ -306,7 +306,7 @@ func (s *ChatsServiceImpl) DeleteChat(ctx context.Context, id int32) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
 	default:

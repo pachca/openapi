@@ -316,14 +316,85 @@ function extractInlineModel(
 
 // ----- Schema → IR -----
 
-function transformEnum(name: string, schema: Schema): IREnum {
+function transformEnum(name: string, schema: Schema, open: boolean): IREnum {
   const descriptions = schema['x-enum-descriptions'] || {};
   const hasDescriptions = !!schema['x-enum-descriptions'];
   const members: IREnumMember[] = (schema.enum || []).map((value) => ({
     value: String(value),
     description: descriptions[String(value)],
   }));
-  return { name, description: schema.description, members, hasDescriptions };
+  return { name, description: schema.description, members, hasDescriptions, open };
+}
+
+// ----- Enum usage -----
+
+/** Component names a schema refers to directly: the walk stops at every nested `$ref`. */
+function collectDirectRefs(schema: Schema | undefined, out: Set<string>): void {
+  if (!schema) return;
+  if (schema.$ref) {
+    out.add(refName(schema.$ref));
+    return;
+  }
+  for (const prop of Object.values(schema.properties ?? {})) collectDirectRefs(prop, out);
+  collectDirectRefs(schema.items, out);
+  if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+    collectDirectRefs(schema.additionalProperties, out);
+  }
+  for (const sub of [...(schema.allOf ?? []), ...(schema.anyOf ?? []), ...(schema.oneOf ?? [])]) {
+    collectDirectRefs(sub, out);
+  }
+}
+
+/** Every component reachable from the given roots through the component graph. */
+function reachableComponents(roots: Set<string>, graph: Map<string, Set<string>>): Set<string> {
+  const seen = new Set<string>();
+  const queue = [...roots];
+  while (queue.length > 0) {
+    const name = queue.pop()!;
+    if (seen.has(name)) continue;
+    seen.add(name);
+    for (const next of graph.get(name) ?? []) if (!seen.has(next)) queue.push(next);
+  }
+  return seen;
+}
+
+/**
+ * Which side of the API each component is reached from: `request` — parameters
+ * and request bodies, `response` — response bodies and headers. Webhook payloads
+ * are on the response side through the event history that returns them.
+ */
+export function classifyEnumUsage(spec: ParsedAPI): { request: Set<string>; response: Set<string> } {
+  const graph = new Map<string, Set<string>>();
+  for (const [name, schema] of Object.entries(spec.schemas)) {
+    const refs = new Set<string>();
+    collectDirectRefs(schema, refs);
+    graph.set(name, refs);
+  }
+  const requestRoots = new Set<string>();
+  const responseRoots = new Set<string>();
+  for (const endpoint of spec.endpoints) {
+    for (const param of endpoint.parameters) collectDirectRefs(param.schema, requestRoots);
+    for (const media of Object.values(endpoint.requestBody?.content ?? {})) {
+      collectDirectRefs(media.schema, requestRoots);
+    }
+    for (const response of Object.values(endpoint.responses)) {
+      for (const media of Object.values(response.content ?? {})) collectDirectRefs(media.schema, responseRoots);
+      for (const header of Object.values(response.headers ?? {})) collectDirectRefs(header.schema, responseRoots);
+    }
+  }
+  return {
+    request: reachableComponents(requestRoots, graph),
+    response: reachableComponents(responseRoots, graph),
+  };
+}
+
+/**
+ * An enum stays closed only when requests reach it and responses never do: a
+ * value the SDK sends is checked by its compiler, a value it receives may be one
+ * the server added after this SDK was generated.
+ */
+function isOpenEnum(name: string, usage: { request: Set<string>; response: Set<string> }): boolean {
+  return !(usage.request.has(name) && !usage.response.has(name));
 }
 
 function transformModel(name: string, schema: Schema): IRModel {
@@ -788,13 +859,14 @@ export function transform(spec: ParsedAPI): IR {
   const enums: IREnum[] = [];
   const models: IRModel[] = [];
   const unions: IRUnion[] = [];
+  const enumUsage = classifyEnumUsage(spec);
 
   // Classify and transform schemas
   for (const [name, schema] of Object.entries(spec.schemas)) {
     if (isUnion(schema)) {
       unions.push(transformUnion(name, schema, spec.schemas));
     } else if (isEnumSchema(schema)) {
-      enums.push(transformEnum(name, schema));
+      enums.push(transformEnum(name, schema, isOpenEnum(name, enumUsage)));
     } else if (getSchemaType(schema) === 'array') {
       // Array-type schemas (e.g. TagNamesFilter) are inlined as array types in field references
       continue;

@@ -1,4 +1,8 @@
-/** Тип аудит-события */
+/**
+ * Тип аудит-события
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum AuditEventKey {
   /** Пользователь успешно вошел в систему */
   UserLogin = "user_login",
@@ -120,7 +124,11 @@ export enum AuditEventKey {
   ExchangeDisabled = "exchange_disabled",
 }
 
-/** Роль, которой разрешено редактировать настройки бота */
+/**
+ * Роль, которой разрешено редактировать настройки бота
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotCanEdit {
   /** Администраторы компании */
   Admin = "admin",
@@ -128,7 +136,11 @@ export enum BotCanEdit {
   ChatOwners = "chat_owners",
 }
 
-/** Событие исходящего вебхука бота */
+/**
+ * Событие исходящего вебхука бота
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotEventName {
   /** Новое сообщение */
   MessageNew = "message_new",
@@ -168,7 +180,11 @@ export enum BotEventName {
   VideoCallRecordingReady = "video_call_recording_ready",
 }
 
-/** Шаблонизатор для форматирования входящих вебхуков */
+/**
+ * Шаблонизатор для форматирования входящих вебхуков
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotTemplateEngine {
   /** Liquid — условия, циклы и фильтры */
   Liquid = "liquid",
@@ -176,7 +192,11 @@ export enum BotTemplateEngine {
   Mustache = "mustache",
 }
 
-/** Условие срабатывания исходящего вебхука бота */
+/**
+ * Условие срабатывания исходящего вебхука бота
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotTriggerOn {
   /** Только на команды (триггер-слова) из commands */
   Commands = "commands",
@@ -186,7 +206,11 @@ export enum BotTriggerOn {
   Unfurl = "unfurl",
 }
 
-/** Источник входящего вебхука бота */
+/**
+ * Источник входящего вебхука бота
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotWebhookKind {
   /** Свой формат: сообщение собирается из тела запроса по шаблону бота */
   Simple = "simple",
@@ -196,7 +220,11 @@ export enum BotWebhookKind {
   Grafana = "grafana",
 }
 
-/** Кто может добавлять бота в чаты */
+/**
+ * Кто может добавлять бота в чаты
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotWhoCanAdd {
   /** Только создатель бота */
   Creator = "creator",
@@ -264,7 +292,11 @@ export enum ChatSubtype {
   Thread = "thread",
 }
 
-/** Тип данных дополнительного поля */
+/**
+ * Тип данных дополнительного поля
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum CustomPropertyDataType {
   /** Строковое значение */
   String = "string",
@@ -276,7 +308,11 @@ export enum CustomPropertyDataType {
   Link = "link",
 }
 
-/** Периодичность повтора отложенного сообщения */
+/**
+ * Периодичность повтора отложенного сообщения
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum DraftRepetitionInterval {
   /** Один раз */
   Once = "once",
@@ -320,7 +356,11 @@ export enum FileTarget {
   Image = "image",
 }
 
-/** Тип файла */
+/**
+ * Тип файла
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum FileType {
   /** Обычный файл */
   File = "file",
@@ -334,7 +374,11 @@ export enum FileType {
   Video = "video",
 }
 
-/** Статус приглашения пользователя */
+/**
+ * Статус приглашения пользователя
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum InviteStatus {
   /** Принято */
   Confirmed = "confirmed",
@@ -342,7 +386,11 @@ export enum InviteStatus {
   Sent = "sent",
 }
 
-/** Тип события webhook для участников */
+/**
+ * Тип события webhook для участников
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum MemberEventType {
   /** Добавление */
   Add = "add",
@@ -350,7 +398,11 @@ export enum MemberEventType {
   Remove = "remove",
 }
 
-/** Тип сущности для сообщений */
+/**
+ * Тип сущности для сообщений
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum MessageEntityType {
   /** Беседа или канал */
   Discussion = "discussion",
@@ -373,7 +425,35 @@ export enum MessageSortField {
   Id = "id",
 }
 
-/** Скоуп доступа OAuth токена */
+/**
+ * Код ошибки OAuth
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum OAuthErrorCode {
+  /** Токен не передан, не найден, истёк или отозван */
+  InvalidToken = "invalid_token",
+  /** У токена нет скоупа, который нужен методу */
+  InsufficientScope = "insufficient_scope",
+  /** Скоуп у токена есть, но роль его владельца не позволяет действие */
+  RoleForbidden = "role_forbidden",
+  /** В запросе нет обязательного параметра или он передан неверно */
+  InvalidRequest = "invalid_request",
+  /** Неверный `client_id` или `client_secret` */
+  InvalidClient = "invalid_client",
+  /** Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier` */
+  InvalidGrant = "invalid_grant",
+  /** Значение `grant_type` не поддерживается */
+  UnsupportedGrantType = "unsupported_grant_type",
+  /** Токен выдан другому боту или клиент не подтвердил себя */
+  UnauthorizedClient = "unauthorized_client",
+}
+
+/**
+ * Скоуп доступа OAuth токена
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum OAuthScope {
   /** Просмотр чатов и списка чатов */
   ChatsRead = "chats:read",
@@ -501,7 +581,11 @@ export enum OAuthTokenTypeHint {
   RefreshToken = "refresh_token",
 }
 
-/** Тип события webhook для реакций */
+/**
+ * Тип события webhook для реакций
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum ReactionEventType {
   /** Создание */
   New = "new",
@@ -535,7 +619,11 @@ export enum SortOrder {
   Desc = "desc",
 }
 
-/** Тип задачи */
+/**
+ * Тип задачи
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum TaskKind {
   /** Позвонить контакту */
   Call = "call",
@@ -549,7 +637,11 @@ export enum TaskKind {
   Email = "email",
 }
 
-/** Статус напоминания */
+/**
+ * Статус напоминания
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum TaskStatus {
   /** Выполнено */
   Done = "done",
@@ -569,7 +661,11 @@ export enum UserCreateRole {
   Guest = "guest",
 }
 
-/** Тип события webhook для пользователей */
+/**
+ * Тип события webhook для пользователей
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum UserEventType {
   /** Приглашение */
   Invite = "invite",
@@ -585,7 +681,11 @@ export enum UserEventType {
   Delete = "delete",
 }
 
-/** Роль пользователя в системе */
+/**
+ * Роль пользователя в системе
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum UserRole {
   /** Администратор */
   Admin = "admin",
@@ -607,7 +707,11 @@ export enum UserRoleInput {
   MultiGuest = "multi_guest",
 }
 
-/** Коды ошибок валидации */
+/**
+ * Коды ошибок валидации
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum ValidationErrorCode {
   /** Обязательное поле (не может быть пустым) */
   Blank = "blank",
@@ -727,7 +831,11 @@ export enum ValidationErrorCode {
   ServiceUnavailable = "service_unavailable",
 }
 
-/** Тип события видеозвонка */
+/**
+ * Тип события видеозвонка
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum VideoCallEventType {
   /** Видеозвонок начался */
   Started = "started",
@@ -737,7 +845,11 @@ export enum VideoCallEventType {
   RecordingReady = "recording_ready",
 }
 
-/** Тип события webhook */
+/**
+ * Тип события webhook
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum WebhookEventType {
   /** Создание */
   New = "new",

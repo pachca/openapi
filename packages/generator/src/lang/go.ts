@@ -135,6 +135,8 @@ function goFieldInfo(field: IRField, modelName: string): { name: string; typeNam
 }
 
 function emitEnum(lines: string[], e: IREnum): void {
+  // A string type already takes any value: an open enum only says so.
+  if (e.open) lines.push(`// ${e.name} may hold a value this SDK does not list yet: a response keeps it as is.`);
   lines.push(`type ${e.name} string`);
   lines.push('');
   lines.push('const (');
@@ -224,12 +226,13 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
 
     lines.push('');
     lines.push('func (e *OAuthError) Error() string {');
+    const isEnum = errField?.type.kind === 'enum';
     if (isPointer) {
       lines.push('\tif e.Err != nil {');
-      lines.push('\t\treturn *e.Err');
+      lines.push(isEnum ? '\t\treturn string(*e.Err)' : '\t\treturn *e.Err');
     } else {
       lines.push('\tif e.Err != "" {');
-      lines.push('\t\treturn e.Err');
+      lines.push(isEnum ? '\t\treturn string(e.Err)' : '\t\treturn e.Err');
     }
     lines.push('\t}');
     lines.push('\treturn "oauth error"');
@@ -534,6 +537,13 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     if (!returnsValue) return 'return &e';
     return 'return nil, &e';
   };
+  // An error body that does not decode comes back wrapped with its status.
+  const retDecodeFailure = (): string => {
+    const wrapped = 'fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)';
+    if (op.successResponse.isRedirect) return `return "", ${wrapped}`;
+    if (!returnsValue) return `return ${wrapped}`;
+    return `return nil, ${wrapped}`;
+  };
   const retUnexpected = (): string => {
     if (op.successResponse.isRedirect) return 'return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)';
     if (returnsValue) return 'return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)';
@@ -752,7 +762,9 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\tcase http.StatusUnauthorized:');
     lines.push('\t\tvar e OAuthError');
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&e); err != nil {');
-    lines.push('\t\t\te.Err = fmt.Sprintf("HTTP 401: %v", err)');
+    // A body that does not decode is no OAuth error: it comes back wrapped, the
+    // way the other statuses report one, and `Err` only ever holds a code.
+    lines.push(`\t\t\t${retDecodeFailure()}`);
     lines.push('\t\t}');
     lines.push(`\t\t${retOAuth()}`);
   }
@@ -766,12 +778,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\tdefault:');
     lines.push('\t\tvar e ApiError');
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&e); err != nil {');
-    const retFmt = op.successResponse.isRedirect
-      ? 'return "", fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)'
-      : !returnsValue
-        ? 'return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)'
-        : 'return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)';
-    lines.push(`\t\t\t${retFmt}`);
+    lines.push(`\t\t\t${retDecodeFailure()}`);
     lines.push('\t\t}');
     lines.push(`\t\t${retApi()}`);
   } else {

@@ -3,15 +3,53 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public enum UserRole: String, Codable, CaseIterable {
+public enum UserRole: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Администратор
     case admin
     /// Сотрудник
     case user
     /// Мультиадмин
-    case multiAdmin = "multi_admin"
+    case multiAdmin
     /// Бот
     case bot
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [UserRole] = [.admin, .user, .multiAdmin, .bot]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "admin": self = .admin
+        case "user": self = .user
+        case "multi_admin": self = .multiAdmin
+        case "bot": self = .bot
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .admin: return "admin"
+        case .user: return "user"
+        case .multiAdmin: return "multi_admin"
+        case .bot: return "bot"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public struct User: Codable {

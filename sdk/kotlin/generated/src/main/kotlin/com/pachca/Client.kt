@@ -48,7 +48,7 @@ internal suspend fun errorFromResponse(response: HttpResponse): Exception {
     val code = (element as? JsonObject)?.get("error") as? JsonPrimitive
     if (element is JsonObject && element["errors"] == null && code != null && code.isString) {
         val description = element["error_description"] as? JsonPrimitive
-        return OAuthError(error = code.content, errorDescription = description?.content ?: "")
+        return OAuthError(error = OAuthErrorCode(code.content), errorDescription = description?.content ?: "")
     }
     return pachcaJson.decodeFromString(ApiError.serializer(), text)
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// AuditEventKey may hold a value this SDK does not list yet: a response keeps it as is.
 type AuditEventKey string
 
 const (
@@ -72,6 +73,7 @@ const (
 	AuditEventKeyExchangeDisabled                 AuditEventKey = "exchange_disabled" // Отключена интеграция с Exchange
 )
 
+// BotCanEdit may hold a value this SDK does not list yet: a response keeps it as is.
 type BotCanEdit string
 
 const (
@@ -79,6 +81,7 @@ const (
 	BotCanEditChatOwners BotCanEdit = "chat_owners" // Владельцы чатов, в которые добавлен бот
 )
 
+// BotEventName may hold a value this SDK does not list yet: a response keeps it as is.
 type BotEventName string
 
 const (
@@ -102,6 +105,7 @@ const (
 	BotEventNameVideoCallRecordingReady BotEventName = "video_call_recording_ready" // Запись видеозвонка готова
 )
 
+// BotTemplateEngine may hold a value this SDK does not list yet: a response keeps it as is.
 type BotTemplateEngine string
 
 const (
@@ -109,6 +113,7 @@ const (
 	BotTemplateEngineMustache BotTemplateEngine = "mustache" // Mustache — простая подстановка без логики
 )
 
+// BotTriggerOn may hold a value this SDK does not list yet: a response keeps it as is.
 type BotTriggerOn string
 
 const (
@@ -117,6 +122,7 @@ const (
 	BotTriggerOnUnfurl      BotTriggerOn = "unfurl" // На развёртывание ссылок (link previews)
 )
 
+// BotWebhookKind may hold a value this SDK does not list yet: a response keeps it as is.
 type BotWebhookKind string
 
 const (
@@ -125,6 +131,7 @@ const (
 	BotWebhookKindGrafana BotWebhookKind = "grafana" // Grafana: Пачка сама разбирает запрос и собирает сообщение
 )
 
+// BotWhoCanAdd may hold a value this SDK does not list yet: a response keeps it as is.
 type BotWhoCanAdd string
 
 const (
@@ -180,6 +187,7 @@ const (
 	ChatSubtypeThread     ChatSubtype = "thread" // Тред
 )
 
+// CustomPropertyDataType may hold a value this SDK does not list yet: a response keeps it as is.
 type CustomPropertyDataType string
 
 const (
@@ -189,6 +197,7 @@ const (
 	CustomPropertyDataTypeLink   CustomPropertyDataType = "link" // Ссылка
 )
 
+// DraftRepetitionInterval may hold a value this SDK does not list yet: a response keeps it as is.
 type DraftRepetitionInterval string
 
 const (
@@ -220,6 +229,7 @@ const (
 	FileTargetImage        FileTarget = "image" // Изображение как есть
 )
 
+// FileType may hold a value this SDK does not list yet: a response keeps it as is.
 type FileType string
 
 const (
@@ -230,6 +240,7 @@ const (
 	FileTypeVideo FileType = "video" // Видеофайл
 )
 
+// InviteStatus may hold a value this SDK does not list yet: a response keeps it as is.
 type InviteStatus string
 
 const (
@@ -237,6 +248,7 @@ const (
 	InviteStatusSent      InviteStatus = "sent" // Отправлено
 )
 
+// MemberEventType may hold a value this SDK does not list yet: a response keeps it as is.
 type MemberEventType string
 
 const (
@@ -244,6 +256,7 @@ const (
 	MemberEventTypeRemove MemberEventType = "remove" // Удаление
 )
 
+// MessageEntityType may hold a value this SDK does not list yet: a response keeps it as is.
 type MessageEntityType string
 
 const (
@@ -265,6 +278,21 @@ const (
 	MessageSortFieldID MessageSortField = "id" // По идентификатору сообщения
 )
 
+// OAuthErrorCode may hold a value this SDK does not list yet: a response keeps it as is.
+type OAuthErrorCode string
+
+const (
+	OAuthErrorCodeInvalidToken         OAuthErrorCode = "invalid_token" // Токен не передан, не найден, истёк или отозван
+	OAuthErrorCodeInsufficientScope    OAuthErrorCode = "insufficient_scope" // У токена нет скоупа, который нужен методу
+	OAuthErrorCodeRoleForbidden        OAuthErrorCode = "role_forbidden" // Скоуп у токена есть, но роль его владельца не позволяет действие
+	OAuthErrorCodeInvalidRequest       OAuthErrorCode = "invalid_request" // В запросе нет обязательного параметра или он передан неверно
+	OAuthErrorCodeInvalidClient        OAuthErrorCode = "invalid_client" // Неверный `client_id` или `client_secret`
+	OAuthErrorCodeInvalidGrant         OAuthErrorCode = "invalid_grant" // Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`
+	OAuthErrorCodeUnsupportedGrantType OAuthErrorCode = "unsupported_grant_type" // Значение `grant_type` не поддерживается
+	OAuthErrorCodeUnauthorizedClient   OAuthErrorCode = "unauthorized_client" // Токен выдан другому боту или клиент не подтвердил себя
+)
+
+// OAuthScope may hold a value this SDK does not list yet: a response keeps it as is.
 type OAuthScope string
 
 const (
@@ -335,6 +363,7 @@ const (
 	OAuthTokenTypeHintRefreshToken OAuthTokenTypeHint = "refresh_token" // Токен обновления
 )
 
+// ReactionEventType may hold a value this SDK does not list yet: a response keeps it as is.
 type ReactionEventType string
 
 const (
@@ -364,6 +393,7 @@ const (
 	SortOrderDesc SortOrder = "desc" // По убыванию
 )
 
+// TaskKind may hold a value this SDK does not list yet: a response keeps it as is.
 type TaskKind string
 
 const (
@@ -374,6 +404,7 @@ const (
 	TaskKindEmail    TaskKind = "email" // Написать письмо
 )
 
+// TaskStatus may hold a value this SDK does not list yet: a response keeps it as is.
 type TaskStatus string
 
 const (
@@ -390,6 +421,7 @@ const (
 	UserCreateRoleGuest      UserCreateRole = "guest" // Гость
 )
 
+// UserEventType may hold a value this SDK does not list yet: a response keeps it as is.
 type UserEventType string
 
 const (
@@ -401,6 +433,7 @@ const (
 	UserEventTypeDelete   UserEventType = "delete" // Удаление
 )
 
+// UserRole may hold a value this SDK does not list yet: a response keeps it as is.
 type UserRole string
 
 const (
@@ -418,6 +451,7 @@ const (
 	UserRoleInputMultiGuest UserRoleInput = "multi_guest" // Мульти-гость
 )
 
+// ValidationErrorCode may hold a value this SDK does not list yet: a response keeps it as is.
 type ValidationErrorCode string
 
 const (
@@ -481,6 +515,7 @@ const (
 	ValidationErrorCodeServiceUnavailable         ValidationErrorCode = "service_unavailable" // Сервис временно недоступен, повторите запрос
 )
 
+// VideoCallEventType may hold a value this SDK does not list yet: a response keeps it as is.
 type VideoCallEventType string
 
 const (
@@ -489,6 +524,7 @@ const (
 	VideoCallEventTypeRecordingReady VideoCallEventType = "recording_ready" // Запись видеозвонка готова
 )
 
+// WebhookEventType may hold a value this SDK does not list yet: a response keeps it as is.
 type WebhookEventType string
 
 const (
@@ -1614,13 +1650,13 @@ type MessageWebhookPayload struct {
 }
 
 type OAuthError struct {
-	Err              string `json:"error"`
-	ErrorDescription string `json:"error_description"`
+	Err              OAuthErrorCode `json:"error"`
+	ErrorDescription string         `json:"error_description"`
 }
 
 func (e *OAuthError) Error() string {
 	if e.Err != "" {
-		return e.Err
+		return string(e.Err)
 	}
 	return "oauth error"
 }

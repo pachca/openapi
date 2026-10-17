@@ -194,7 +194,8 @@ function generateModels(ir: IR): string {
       m.inlineObjects.some((i) => i.fields.some((f) => usesAny(f.type)))) ||
     ir.params.some((p) => p.params.some((q) => usesAny(q.type)));
 
-  if (ir.enums.length > 0) needSerialName = true;
+  // An open enum is a value class and names no entries.
+  if (ir.enums.some((e) => !e.open)) needSerialName = true;
   if (ir.unions.length > 0) needSerialName = true;
 
   for (const m of ir.models) {
@@ -289,9 +290,58 @@ function generateModels(ir: IR): string {
   return lines.join('\n');
 }
 
+/** The enum type of `OAuthError.error`, when the spec gives that field one. */
+function oauthErrorCodeEnum(ir: IR): IREnum | undefined {
+  const field = ir.models.find((m) => m.name === 'OAuthError')?.fields.find((f) => f.name === 'error');
+  return field?.type.kind === 'enum' ? ir.enums.find((e) => e.name === field.type.ref) : undefined;
+}
+
+/**
+ * An open enum is a value class over the raw string: a value the SDK does not
+ * list yet decodes into it, where an `enum class` would fail the whole response.
+ * The constants, `value`, `name`, `entries`, `values()` and `valueOf` keep the
+ * shape of an enum class. What a value class cannot keep: `ordinal`,
+ * `enumValueOf`, a `when` without `else`, and `toString()` returning the
+ * constant name — it returns the raw value.
+ */
+function emitOpenEnum(lines: string[], e: IREnum): void {
+  const name = e.name;
+  lines.push('@Serializable');
+  lines.push('@JvmInline');
+  lines.push(`value class ${name}(val value: String) {`);
+  lines.push('    /** Whether this SDK version lists the value */');
+  lines.push('    val isKnown: Boolean get() = value in knownNames');
+  lines.push('    /** Constant name of a listed value, the raw value otherwise */');
+  lines.push('    val name: String get() = knownNames[value] ?: value');
+  lines.push('    override fun toString(): String = value');
+  lines.push('');
+  lines.push('    companion object {');
+  for (const m of e.members) {
+    if (m.description) lines.push(`        /** ${m.description} */`);
+    lines.push(`        val ${snakeToUpperSnake(m.value)} = ${name}(${JSON.stringify(m.value)})`);
+  }
+  lines.push('');
+  lines.push('        /** Every value this SDK version lists */');
+  lines.push(`        val entries: List<${name}> = listOf(${e.members.map((m) => snakeToUpperSnake(m.value)).join(', ')})`);
+  lines.push('');
+  lines.push('        /** The same values as an array, like `values()` of an enum class */');
+  lines.push(`        fun values(): Array<${name}> = entries.toTypedArray()`);
+  lines.push('');
+  lines.push(`        private val knownNames: Map<String, String> = mapOf(${e.members.map((m) => `${JSON.stringify(m.value)} to ${JSON.stringify(snakeToUpperSnake(m.value))}`).join(', ')})`);
+  lines.push('');
+  lines.push(`        fun valueOf(name: String): ${name} =`);
+  lines.push(`            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No ${name} constant $name")`);
+  lines.push('    }');
+  lines.push('}');
+}
+
 function emitEnum(lines: string[], e: IREnum): void {
   if (e.description && e.hasDescriptions && e.members.length > 1) {
     lines.push(`/** ${e.description} */`);
+  }
+  if (e.open) {
+    emitOpenEnum(lines, e);
+    return;
   }
   lines.push('@Serializable');
   lines.push(`enum class ${e.name}(val value: String) {`);
@@ -583,7 +633,8 @@ function emitModel(
     const errField = m.fields.find((f) => f.name === 'error');
     if (errField) {
       lines.push(' {');
-      lines.push(`    override val message: String get() = ${fieldSdkName(errField)}`);
+      const code = errField.type.kind === 'enum' ? `${fieldSdkName(errField)}.value` : fieldSdkName(errField);
+      lines.push(`    override val message: String get() = ${code}`);
       lines.push('}');
     }
   }
@@ -690,8 +741,15 @@ function generateClient(ir: IR): string {
     lines.push('    val element = runCatching { pachcaJson.parseToJsonElement(text) }.getOrNull()');
     lines.push('    val code = (element as? JsonObject)?.get("error") as? JsonPrimitive');
     lines.push('    if (element is JsonObject && element["errors"] == null && code != null && code.isString) {');
-    lines.push('        val description = element["error_description"] as? JsonPrimitive');
-    lines.push('        return OAuthError(error = code.content, errorDescription = description?.content ?: "")');
+    const codeEnum = oauthErrorCodeEnum(ir);
+    if (codeEnum && !codeEnum.open) {
+      // A closed enum takes only the values it lists: the decoder refuses the rest.
+      lines.push('        return pachcaJson.decodeFromJsonElement(OAuthError.serializer(), element)');
+    } else {
+      const code = codeEnum ? `${codeEnum.name}(code.content)` : 'code.content';
+      lines.push('        val description = element["error_description"] as? JsonPrimitive');
+      lines.push(`        return OAuthError(error = ${code}, errorDescription = description?.content ?: "")`);
+    }
     lines.push('    }');
     lines.push('    return pachcaJson.decodeFromString(ApiError.serializer(), text)');
     lines.push('}');

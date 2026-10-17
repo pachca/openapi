@@ -62,7 +62,67 @@ function isOptionalField(field: IRField): boolean {
   return !field.required || field.nullable;
 }
 
+/** The enum type of `OAuthError.error`, when the spec gives that field one. */
+function oauthErrorCodeEnum(ir: IR): IREnum | undefined {
+  const field = ir.models.find((m) => m.name === 'OAuthError')?.fields.find((f) => f.name === 'error');
+  return field?.type.kind === 'enum' ? ir.enums.find((e) => e.name === field.type.ref) : undefined;
+}
+
+/**
+ * An open enum keeps a value the SDK does not list yet in its catch-all case,
+ * where a `String` raw-value enum would fail the whole response. `rawValue`,
+ * `init?(rawValue:)` and `allCases` keep the shape of a raw-value enum, and a
+ * string literal converts into it, so a field that was a `String` still compares
+ * with `"insufficient_scope"`.
+ */
+function emitOpenEnum(lines: string[], e: IREnum): void {
+  const cases = e.members.map((m) => ({ id: swiftIdentifier(m.value), value: m.value, description: m.description }));
+  const unknown = cases.some((c) => c.id === 'unknown') ? 'unknownValue' : 'unknown';
+  lines.push(`public enum ${e.name}: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {`);
+  for (const c of cases) {
+    if (c.description) lines.push(`    /// ${c.description}`);
+    lines.push(`    case ${c.id}`);
+  }
+  lines.push('    /// A value this SDK version does not list yet');
+  lines.push(`    case ${unknown}(String)`);
+  lines.push('');
+  lines.push('    /// Every value this SDK version lists');
+  lines.push(`    public static let allCases: [${e.name}] = [${cases.map((c) => `.${c.id}`).join(', ')}]`);
+  lines.push('');
+  lines.push('    public init(_ rawValue: String) {');
+  lines.push('        switch rawValue {');
+  for (const c of cases) lines.push(`        case ${JSON.stringify(c.value)}: self = .${c.id}`);
+  lines.push(`        default: self = .${unknown}(rawValue)`);
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    public init?(rawValue: String) { self.init(rawValue) }');
+  lines.push('');
+  lines.push('    public init(stringLiteral value: String) { self.init(value) }');
+  lines.push('');
+  lines.push('    public var rawValue: String {');
+  lines.push('        switch self {');
+  for (const c of cases) lines.push(`        case .${c.id}: return ${JSON.stringify(c.value)}`);
+  lines.push(`        case .${unknown}(let value): return value`);
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    public init(from decoder: Decoder) throws {');
+  lines.push('        self.init(try decoder.singleValueContainer().decode(String.self))');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    public func encode(to encoder: Encoder) throws {');
+  lines.push('        var container = encoder.singleValueContainer()');
+  lines.push('        try container.encode(rawValue)');
+  lines.push('    }');
+  lines.push('}');
+}
+
 function emitEnum(lines: string[], e: IREnum): void {
+  if (e.open) {
+    emitOpenEnum(lines, e);
+    return;
+  }
   lines.push(`public enum ${e.name}: String, Codable, CaseIterable {`);
   for (const m of e.members) {
     const id = swiftIdentifier(m.value);
@@ -158,7 +218,8 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
     const errField = m.fields.find((f) => f.name === 'error');
     if (errField) {
       lines.push('');
-      lines.push(`    public var localizedDescription: String { ${swiftIdentifier(errField.name)} }`);
+      const code = errField.type.kind === 'enum' ? `${swiftIdentifier(errField.name)}.rawValue` : swiftIdentifier(errField.name);
+      lines.push(`    public var localizedDescription: String { ${code} }`);
     }
   }
 
@@ -836,9 +897,18 @@ function generateClient(ir: IR): string {
     lines.push('/// An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
     lines.push('/// which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the type.');
     lines.push('func pachcaErrorFromBody(_ data: Data) -> Error {');
+    const codeEnum = oauthErrorCodeEnum(ir);
     lines.push('    if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],');
-    lines.push('       object["errors"] == nil, let code = object["error"] as? String {');
-    lines.push('        return OAuthError(error: code, errorDescription: object["error_description"] as? String ?? "")');
+    if (codeEnum && !codeEnum.open) {
+      // A closed enum takes only the values it lists: the decoder refuses the rest.
+      lines.push('       object["errors"] == nil, object["error"] is String,');
+      lines.push('       let oauthError = try? deserialize(OAuthError.self, from: data) {');
+      lines.push('        return oauthError');
+    } else {
+      const code = codeEnum ? `${codeEnum.name}(code)` : 'code';
+      lines.push('       object["errors"] == nil, let code = object["error"] as? String {');
+      lines.push(`        return OAuthError(error: ${code}, errorDescription: object["error_description"] as? String ?? "")`);
+    }
     lines.push('    }');
     lines.push('    if let apiError = try? deserialize(ApiError.self, from: data) { return apiError }');
     lines.push('    return URLError(.badServerResponse)');

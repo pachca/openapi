@@ -308,10 +308,12 @@ do {
 do {
     try await client.profile.getProfile()
 } catch let error as OAuthError {
-    print(error.error)              // "insufficient_scope"
+    print(error.error.rawValue)     // "insufficient_scope"
     print(error.errorDescription)   // описание ошибки
 }
 ```
+
+Поле `error` — перечисление `OAuthErrorCode`: его сравнивают со случаем, например `error.error == .insufficientScope`, или со строковым литералом, а строку кода даёт `rawValue`.
 
 ## Повторные запросы
 
@@ -346,7 +348,9 @@ let apiError: ApiError
 let oauthError: OAuthError
 ```
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Перечисление в ответе принимает и значение, которого SDK ещё не знает: оно приходит случаем `.unknown(String)`, а `rawValue` возвращает исходную строку. Поэтому `switch` по такому перечислению включает `case .unknown` или `default`. Незнакомую строку и `init?(rawValue:)` превращает в случай `.unknown`: проверить, знает ли SDK значение, помогает `allCases.contains(value)`.
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Платформы
 

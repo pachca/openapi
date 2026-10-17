@@ -321,6 +321,8 @@ catch (OAuthError e)
 }
 ```
 
+Поле `Error` — структура `OAuthErrorCode`: её сравнивают через `==` с константой, например `OAuthErrorCode.InsufficientScope`, или со строкой, а строку кода даёт `Value`.
+
 ## Повторные запросы
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
@@ -411,6 +413,8 @@ ValidationErrorCode errorCode;
 ApiError apiError;
 OAuthError oauthError;
 ```
+
+Перечисление в ответе — структура со строкой `Value`: значение, которого SDK ещё не знает, приходит как есть, и `IsKnown` у него `false`. Значения такого перечисления сравниваются через `==`, а в `switch` — по `Value`. Ту же строку, что и `Value`, возвращает `ToString()`.
 
 ## Примеры
 

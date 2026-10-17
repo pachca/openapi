@@ -147,7 +147,7 @@ internal static class PachcaUtils
                     && text.ValueKind == JsonValueKind.String
                     ? text.GetString()!
                     : "";
-                return new OAuthError { Error = code.GetString()!, ErrorDescription = description };
+                return new OAuthError { Error = new OAuthErrorCode(code.GetString()!), ErrorDescription = description };
             }
         }
         catch (JsonException)

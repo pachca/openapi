@@ -99,6 +99,26 @@ if have dotnet; then run_in sdk/csharp/examples dotnet build -v q; else echo "  
 step "Examples: Swift swift build"
 if have swift; then run_in sdk/swift/examples swift build; else echo "  SKIP (swift not installed)"; fi
 
+# Runtime checks against canned responses (sdk/<lang>/tests): a value the spec
+# does not list decodes and keeps the raw string. TypeScript runs its check in
+# `test:node` above.
+step "Tests: Go go test"
+if have go; then run_in sdk/go/tests go test ./...; else echo "  SKIP (go not installed)"; fi
+
+step "Tests: Python open enums"
+if have python3; then run python3 sdk/python/tests/open_enums.py; else echo "  SKIP (python3 not installed)"; fi
+
+step "Tests: Kotlin gradlew runTests"
+if [ -x sdk/kotlin/generated/gradlew ]; then
+  run_in sdk/kotlin/generated ./gradlew -q runTests -Pversion=0.0.0
+else echo "  SKIP (kotlin gradlew not available)"; fi
+
+step "Tests: C# dotnet run"
+if have dotnet; then run_in sdk/csharp/tests dotnet run; else echo "  SKIP (dotnet not installed)"; fi
+
+step "Tests: Swift swift run"
+if have swift; then run_in sdk/swift/tests swift run OpenEnums; else echo "  SKIP (swift not installed)"; fi
+
 echo
 if [ "$fail" -ne 0 ]; then echo "SDK build: FAILED (see above)"; exit 1; fi
 echo "SDK build: all available toolchains OK"

@@ -5,7 +5,25 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Union
 
-class AuditEventKey(StrEnum):
+class OpenStrEnum(StrEnum):
+    """An enum of responses: a value this SDK does not list yet becomes a member that keeps it, with is_known False."""
+
+    @classmethod
+    def _missing_(cls, value: object) -> OpenStrEnum | None:
+        if not isinstance(value, str):
+            return None
+        member = str.__new__(cls, value)
+        member._name_ = "UNKNOWN_VALUE" if "UNKNOWN" in cls.__members__ else "UNKNOWN"
+        member._value_ = value
+        return member
+
+    @property
+    def is_known(self) -> bool:
+        """Whether this SDK version lists the value."""
+        return self._value_ in type(self)._value2member_map_
+
+
+class AuditEventKey(OpenStrEnum):
     """Тип аудит-события"""
 
     USER_LOGIN = "user_login"  # Пользователь успешно вошел в систему
@@ -69,14 +87,14 @@ class AuditEventKey(StrEnum):
     EXCHANGE_DISABLED = "exchange_disabled"  # Отключена интеграция с Exchange
 
 
-class BotCanEdit(StrEnum):
+class BotCanEdit(OpenStrEnum):
     """Роль, которой разрешено редактировать настройки бота"""
 
     ADMIN = "admin"  # Администраторы компании
     CHAT_OWNERS = "chat_owners"  # Владельцы чатов, в которые добавлен бот
 
 
-class BotEventName(StrEnum):
+class BotEventName(OpenStrEnum):
     """Событие исходящего вебхука бота"""
 
     MESSAGE_NEW = "message_new"  # Новое сообщение
@@ -99,14 +117,14 @@ class BotEventName(StrEnum):
     VIDEO_CALL_RECORDING_READY = "video_call_recording_ready"  # Запись видеозвонка готова
 
 
-class BotTemplateEngine(StrEnum):
+class BotTemplateEngine(OpenStrEnum):
     """Шаблонизатор для форматирования входящих вебхуков"""
 
     LIQUID = "liquid"  # Liquid — условия, циклы и фильтры
     MUSTACHE = "mustache"  # Mustache — простая подстановка без логики
 
 
-class BotTriggerOn(StrEnum):
+class BotTriggerOn(OpenStrEnum):
     """Условие срабатывания исходящего вебхука бота"""
 
     COMMANDS = "commands"  # Только на команды (триггер-слова) из commands
@@ -114,7 +132,7 @@ class BotTriggerOn(StrEnum):
     UNFURL = "unfurl"  # На развёртывание ссылок (link previews)
 
 
-class BotWebhookKind(StrEnum):
+class BotWebhookKind(OpenStrEnum):
     """Источник входящего вебхука бота"""
 
     SIMPLE = "simple"  # Свой формат: сообщение собирается из тела запроса по шаблону бота
@@ -122,7 +140,7 @@ class BotWebhookKind(StrEnum):
     GRAFANA = "grafana"  # Grafana: Пачка сама разбирает запрос и собирает сообщение
 
 
-class BotWhoCanAdd(StrEnum):
+class BotWhoCanAdd(OpenStrEnum):
     """Кто может добавлять бота в чаты"""
 
     CREATOR = "creator"  # Только создатель бота
@@ -177,7 +195,7 @@ class ChatSubtype(StrEnum):
     THREAD = "thread"  # Тред
 
 
-class CustomPropertyDataType(StrEnum):
+class CustomPropertyDataType(OpenStrEnum):
     """Тип данных дополнительного поля"""
 
     STRING = "string"  # Строковое значение
@@ -186,7 +204,7 @@ class CustomPropertyDataType(StrEnum):
     LINK = "link"  # Ссылка
 
 
-class DraftRepetitionInterval(StrEnum):
+class DraftRepetitionInterval(OpenStrEnum):
     """Периодичность повтора отложенного сообщения"""
 
     ONCE = "once"  # Один раз
@@ -217,7 +235,7 @@ class FileTarget(StrEnum):
     IMAGE = "image"  # Изображение как есть
 
 
-class FileType(StrEnum):
+class FileType(OpenStrEnum):
     """Тип файла"""
 
     FILE = "file"  # Обычный файл
@@ -227,21 +245,21 @@ class FileType(StrEnum):
     VIDEO = "video"  # Видеофайл
 
 
-class InviteStatus(StrEnum):
+class InviteStatus(OpenStrEnum):
     """Статус приглашения пользователя"""
 
     CONFIRMED = "confirmed"  # Принято
     SENT = "sent"  # Отправлено
 
 
-class MemberEventType(StrEnum):
+class MemberEventType(OpenStrEnum):
     """Тип события webhook для участников"""
 
     ADD = "add"  # Добавление
     REMOVE = "remove"  # Удаление
 
 
-class MessageEntityType(StrEnum):
+class MessageEntityType(OpenStrEnum):
     """Тип сущности для сообщений"""
 
     DISCUSSION = "discussion"  # Беседа или канал
@@ -260,7 +278,20 @@ class MessageSortField(StrEnum):
     ID = "id"  # По идентификатору сообщения
 
 
-class OAuthScope(StrEnum):
+class OAuthErrorCode(OpenStrEnum):
+    """Код ошибки OAuth"""
+
+    INVALID_TOKEN = "invalid_token"  # Токен не передан, не найден, истёк или отозван
+    INSUFFICIENT_SCOPE = "insufficient_scope"  # У токена нет скоупа, который нужен методу
+    ROLE_FORBIDDEN = "role_forbidden"  # Скоуп у токена есть, но роль его владельца не позволяет действие
+    INVALID_REQUEST = "invalid_request"  # В запросе нет обязательного параметра или он передан неверно
+    INVALID_CLIENT = "invalid_client"  # Неверный `client_id` или `client_secret`
+    INVALID_GRANT = "invalid_grant"  # Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`
+    UNSUPPORTED_GRANT_TYPE = "unsupported_grant_type"  # Значение `grant_type` не поддерживается
+    UNAUTHORIZED_CLIENT = "unauthorized_client"  # Токен выдан другому боту или клиент не подтвердил себя
+
+
+class OAuthScope(OpenStrEnum):
     """Скоуп доступа OAuth токена"""
 
     CHATS_READ = "chats:read"  # Просмотр чатов и списка чатов
@@ -330,7 +361,7 @@ class OAuthTokenTypeHint(StrEnum):
     REFRESH_TOKEN = "refresh_token"  # Токен обновления
 
 
-class ReactionEventType(StrEnum):
+class ReactionEventType(OpenStrEnum):
     """Тип события webhook для реакций"""
 
     NEW = "new"  # Создание
@@ -359,7 +390,7 @@ class SortOrder(StrEnum):
     DESC = "desc"  # По убыванию
 
 
-class TaskKind(StrEnum):
+class TaskKind(OpenStrEnum):
     """Тип задачи"""
 
     CALL = "call"  # Позвонить контакту
@@ -369,7 +400,7 @@ class TaskKind(StrEnum):
     EMAIL = "email"  # Написать письмо
 
 
-class TaskStatus(StrEnum):
+class TaskStatus(OpenStrEnum):
     """Статус напоминания"""
 
     DONE = "done"  # Выполнено
@@ -385,7 +416,7 @@ class UserCreateRole(StrEnum):
     GUEST = "guest"  # Гость
 
 
-class UserEventType(StrEnum):
+class UserEventType(OpenStrEnum):
     """Тип события webhook для пользователей"""
 
     INVITE = "invite"  # Приглашение
@@ -396,7 +427,7 @@ class UserEventType(StrEnum):
     DELETE = "delete"  # Удаление
 
 
-class UserRole(StrEnum):
+class UserRole(OpenStrEnum):
     """Роль пользователя в системе"""
 
     ADMIN = "admin"  # Администратор
@@ -413,7 +444,7 @@ class UserRoleInput(StrEnum):
     MULTI_GUEST = "multi_guest"  # Мульти-гость
 
 
-class ValidationErrorCode(StrEnum):
+class ValidationErrorCode(OpenStrEnum):
     """Коды ошибок валидации"""
 
     BLANK = "blank"  # Обязательное поле (не может быть пустым)
@@ -476,7 +507,7 @@ class ValidationErrorCode(StrEnum):
     SERVICE_UNAVAILABLE = "service_unavailable"  # Сервис временно недоступен, повторите запрос
 
 
-class VideoCallEventType(StrEnum):
+class VideoCallEventType(OpenStrEnum):
     """Тип события видеозвонка"""
 
     STARTED = "started"  # Видеозвонок начался
@@ -484,7 +515,7 @@ class VideoCallEventType(StrEnum):
     RECORDING_READY = "recording_ready"  # Запись видеозвонка готова
 
 
-class WebhookEventType(StrEnum):
+class WebhookEventType(OpenStrEnum):
     """Тип события webhook"""
 
     NEW = "new"  # Создание
@@ -1451,11 +1482,11 @@ class MessageWebhookPayload:
 
 @dataclass
 class OAuthError(Exception):
-    error: str
+    error: OAuthErrorCode
     error_description: str
 
     def __str__(self) -> str:
-        return self.error
+        return str(self.error)
 
 
 @dataclass

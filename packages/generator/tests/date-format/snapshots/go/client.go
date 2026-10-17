@@ -105,7 +105,7 @@ func (s *ExportServiceImpl) CreateExport(ctx context.Context, request ExportRequ
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
 	default:

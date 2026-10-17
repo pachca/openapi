@@ -14,9 +14,29 @@ enum class OAuthScope(val value: String) {
 }
 
 @Serializable
-enum class EventType(val value: String) {
-    @SerialName("message") MESSAGE("message"),
-    @SerialName("reaction") REACTION("reaction"),
+@JvmInline
+value class EventType(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        val MESSAGE = EventType("message")
+        val REACTION = EventType("reaction")
+
+        /** Every value this SDK version lists */
+        val entries: List<EventType> = listOf(MESSAGE, REACTION)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<EventType> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("message" to "MESSAGE", "reaction" to "REACTION")
+
+        fun valueOf(name: String): EventType =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No EventType constant $name")
+    }
 }
 
 @Serializable

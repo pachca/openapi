@@ -13289,12 +13289,11 @@ components:
         - error_description
       properties:
         error:
-          type: string
+          allOf:
+            - $ref: '#/components/schemas/OAuthErrorCode'
           description: >-
-            Error code. API methods respond with `invalid_token` (`401`, the token is missing, not found, or revoked),
-            `insufficient_scope` (`403`, the token lacks the required scope), and `role_forbidden` (`403`, the token
-            owner's role does not allow the action). The codes of the token exchange and revoke methods are described
-            with those methods.
+            Error code. API methods respond with `invalid_token` (`401`), `insufficient_scope` and `role_forbidden`
+            (`403`). The token exchange and revoke methods respond with the other codes.
           example: invalid_token
         error_description:
           type: string
@@ -13302,6 +13301,29 @@ components:
           example: Access token is missing
       description: OAuth authorization error (used for 401 and 403)
       x-error: true
+    OAuthErrorCode:
+      type: string
+      enum:
+        - invalid_token
+        - insufficient_scope
+        - role_forbidden
+        - invalid_request
+        - invalid_client
+        - invalid_grant
+        - unsupported_grant_type
+        - unauthorized_client
+      description: OAuth error code
+      x-enum-descriptions:
+        invalid_token: The token is missing, not found, expired, or revoked
+        insufficient_scope: The token lacks the scope the method requires
+        role_forbidden: The token has the scope, but its owner's role does not allow the action
+        invalid_request: A required parameter is missing or malformed
+        invalid_client: Wrong `client_id` or `client_secret`
+        invalid_grant: >-
+          The code has expired, has already been used, was issued for a different `redirect_uri`, or does not match
+          `code_verifier`
+        unsupported_grant_type: The `grant_type` value is not supported
+        unauthorized_client: The token was issued to another bot, or the client did not authenticate
     OAuthRevokeRequest:
       type: object
       required:

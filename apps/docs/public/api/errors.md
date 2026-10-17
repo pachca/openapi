@@ -41,7 +41,7 @@
 
 > Код `403` может вернуть обе структуры:
 >
-> - `OAuthError` с кодом `insufficient_scope`, когда у токена нет нужного скоупа (scope) для вызываемого метода, или `role_forbidden`, когда скоуп есть, но роль владельца токена не позволяет действие. Ответ с `insufficient_scope` дополнительно содержит заголовок `WWW-Authenticate` с недостающим скоупом — подробнее в разделе [Авторизация](/api/authorization#oshibki-avtorizatsii).
+> - `OAuthError`, когда отказывает проверка самого токена: код `insufficient_scope` или `role_forbidden` из схемы ниже. Ответ с `insufficient_scope` дополнительно содержит заголовок `WWW-Authenticate` с недостающим скоупом — подробнее в разделе [Авторизация](/api/authorization#oshibki-avtorizatsii).
 > - `ApiError`, когда отказывает проверка доступа к самому объекту: чат закрыт, правило чата не разрешает действие, роль в пространстве не подходит. Так может ответить любой метод.
 
 ### ApiError (400, 402, 403, 404, 409, 410, 422, 429, 503, 504)
@@ -58,7 +58,8 @@
 
 ### OAuthError (401, 403)
 
-- `error: string` (required) — Код ошибки. Методы API отвечают кодами `invalid_token` (`401`, токен не передан, не найден или отозван), `insufficient_scope` (`403`, у токена нет нужного скоупа) и `role_forbidden` (`403`, роль владельца токена не позволяет действие). Коды обмена и отзыва токена описаны у этих методов. Пример: `"invalid_token"`
+- `error: string` (required) — Код ошибки. Методы API отвечают кодами `invalid_token` (`401`), `insufficient_scope` и `role_forbidden` (`403`). Остальными кодами отвечают методы обмена и отзыва токена.
+  Значения: `invalid_token` — Токен не передан, не найден, истёк или отозван, `insufficient_scope` — У токена нет скоупа, который нужен методу, `role_forbidden` — Скоуп у токена есть, но роль его владельца не позволяет действие, `invalid_request` — В запросе нет обязательного параметра или он передан неверно, `invalid_client` — Неверный `client_id` или `client_secret`, `invalid_grant` — Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, `unsupported_grant_type` — Значение `grant_type` не поддерживается, `unauthorized_client` — Токен выдан другому боту или клиент не подтвердил себя
 - `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 

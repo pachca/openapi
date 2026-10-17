@@ -1,0 +1,27 @@
+{
+  "Client_Init": {
+    "usage": "client = PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "listMembers": {
+    "usage": "params = ListMembersParams(\n    sort=SortOrder.ASC,\n    role=MemberRole.ADMIN,\n    roles=[MemberRole.ADMIN],\n    region=Region.EU\n)\nresponse = await client.members.list_members(params=params)",
+    "output": "ListMembersResponse(data: list[Member])",
+    "imports": [
+      "ListMembersParams",
+      "MemberRole",
+      "Region",
+      "SortOrder"
+    ]
+  },
+  "updateMember": {
+    "usage": "request = MemberUpdateRequest(role=MemberRole.ADMIN, kind=MemberKind.REGULAR)\nresponse = await client.members.update_member(id=123, request=request)",
+    "output": "Member(id: int, role: MemberRole, status: MemberStatus, previous_statuses: list[MemberStatus] | None)",
+    "imports": [
+      "MemberKind",
+      "MemberRole",
+      "MemberUpdateRequest"
+    ]
+  }
+}

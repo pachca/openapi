@@ -1,4 +1,8 @@
-/** Роль пользователя */
+/**
+ * Роль пользователя
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum UserRole {
   /** Администратор */
   Admin = "admin",

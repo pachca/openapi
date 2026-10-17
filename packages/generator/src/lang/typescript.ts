@@ -135,8 +135,18 @@ function enumMemberName(value: string): string {
 }
 
 function emitEnum(lines: string[], e: IREnum): void {
-  if (e.description && e.hasDescriptions && e.members.length > 1) {
-    lines.push(`/** ${e.description} */`);
+  const description = e.description && e.hasDescriptions && e.members.length > 1 ? e.description : undefined;
+  if (e.open) {
+    // Decoding keeps any string as is: an open enum only says so.
+    lines.push('/**');
+    if (description) {
+      lines.push(` * ${description}`);
+      lines.push(' *');
+    }
+    lines.push(' * A response may carry a value this SDK does not list yet: it arrives as the raw string.');
+    lines.push(' */');
+  } else if (description) {
+    lines.push(`/** ${description} */`);
   }
   lines.push(`export enum ${e.name} {`);
   for (const m of e.members) {

@@ -350,6 +350,8 @@ if err != nil {
 }
 ```
 
+Поле `Err` — перечисление `OAuthErrorCode`: его сравнивают с константой, например `pachca.OAuthErrorCodeInsufficientScope`, а строкой оно становится через `string(oauthErr.Err)`. Если тело ответа `401` не разбирается, SDK возвращает обычную ошибку с текстом `HTTP 401: …`.
+
 ## Повторные запросы
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
@@ -386,7 +388,9 @@ var apiErr *pachca.ApiError
 var oauthErr *pachca.OAuthError
 ```
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Перечисление — строковый тип, поэтому значение, которого SDK ещё не знает, приходит в ответе как есть.
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Примеры
 

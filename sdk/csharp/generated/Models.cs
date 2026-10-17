@@ -10,555 +10,492 @@ namespace Pachca.Sdk;
 
 /// <summary>Тип аудит-события</summary>
 [JsonConverter(typeof(AuditEventKeyConverter))]
-public enum AuditEventKey
+public readonly struct AuditEventKey : IEquatable<AuditEventKey>
 {
+    private readonly string? _value;
+
+    public AuditEventKey(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Пользователь успешно вошел в систему</summary>
-    UserLogin,
+    public static AuditEventKey UserLogin { get; } = new("user_login");
     /// <summary>Пользователь вышел из системы</summary>
-    UserLogout,
+    public static AuditEventKey UserLogout { get; } = new("user_logout");
     /// <summary>Неудачная попытка двухфакторной аутентификации</summary>
-    User2faFail,
+    public static AuditEventKey User2faFail { get; } = new("user_2fa_fail");
     /// <summary>Успешная двухфакторная аутентификация</summary>
-    User2faSuccess,
+    public static AuditEventKey User2faSuccess { get; } = new("user_2fa_success");
     /// <summary>Двухфакторная аутентификация отключена у сотрудника</summary>
-    User2faDisabled,
+    public static AuditEventKey User2faDisabled { get; } = new("user_2fa_disabled");
     /// <summary>Создана новая учетная запись пользователя</summary>
-    UserCreated,
+    public static AuditEventKey UserCreated { get; } = new("user_created");
     /// <summary>Учетная запись пользователя удалена</summary>
-    UserDeleted,
+    public static AuditEventKey UserDeleted { get; } = new("user_deleted");
     /// <summary>Роль пользователя была изменена</summary>
-    UserRoleChanged,
+    public static AuditEventKey UserRoleChanged { get; } = new("user_role_changed");
     /// <summary>Данные пользователя обновлены</summary>
-    UserUpdated,
+    public static AuditEventKey UserUpdated { get; } = new("user_updated");
     /// <summary>Создан новый тег</summary>
-    TagCreated,
+    public static AuditEventKey TagCreated { get; } = new("tag_created");
     /// <summary>Тег удален</summary>
-    TagDeleted,
+    public static AuditEventKey TagDeleted { get; } = new("tag_deleted");
     /// <summary>Пользователь добавлен в тег</summary>
-    UserAddedToTag,
+    public static AuditEventKey UserAddedToTag { get; } = new("user_added_to_tag");
     /// <summary>Пользователь удален из тега</summary>
-    UserRemovedFromTag,
+    public static AuditEventKey UserRemovedFromTag { get; } = new("user_removed_from_tag");
     /// <summary>Создан новый чат</summary>
-    ChatCreated,
+    public static AuditEventKey ChatCreated { get; } = new("chat_created");
     /// <summary>Чат переименован</summary>
-    ChatRenamed,
+    public static AuditEventKey ChatRenamed { get; } = new("chat_renamed");
     /// <summary>Изменены права доступа к чату</summary>
-    ChatPermissionChanged,
+    public static AuditEventKey ChatPermissionChanged { get; } = new("chat_permission_changed");
     /// <summary>Пользователь присоединился к чату</summary>
-    UserChatJoin,
+    public static AuditEventKey UserChatJoin { get; } = new("user_chat_join");
     /// <summary>Пользователь покинул чат</summary>
-    UserChatLeave,
+    public static AuditEventKey UserChatLeave { get; } = new("user_chat_leave");
     /// <summary>Тег добавлен в чат</summary>
-    TagAddedToChat,
+    public static AuditEventKey TagAddedToChat { get; } = new("tag_added_to_chat");
     /// <summary>Тег удален из чата</summary>
-    TagRemovedFromChat,
+    public static AuditEventKey TagRemovedFromChat { get; } = new("tag_removed_from_chat");
     /// <summary>Сообщение отредактировано</summary>
-    MessageUpdated,
+    public static AuditEventKey MessageUpdated { get; } = new("message_updated");
     /// <summary>Сообщение удалено</summary>
-    MessageDeleted,
+    public static AuditEventKey MessageDeleted { get; } = new("message_deleted");
     /// <summary>Сообщение создано</summary>
-    MessageCreated,
+    public static AuditEventKey MessageCreated { get; } = new("message_created");
     /// <summary>Реакция добавлена</summary>
-    ReactionCreated,
+    public static AuditEventKey ReactionCreated { get; } = new("reaction_created");
     /// <summary>Реакция удалена</summary>
-    ReactionDeleted,
+    public static AuditEventKey ReactionDeleted { get; } = new("reaction_deleted");
     /// <summary>Тред создан</summary>
-    ThreadCreated,
+    public static AuditEventKey ThreadCreated { get; } = new("thread_created");
     /// <summary>Создан новый токен доступа</summary>
-    AccessTokenCreated,
+    public static AuditEventKey AccessTokenCreated { get; } = new("access_token_created");
     /// <summary>Токен доступа обновлен</summary>
-    AccessTokenUpdated,
+    public static AuditEventKey AccessTokenUpdated { get; } = new("access_token_updated");
     /// <summary>Токен доступа удален</summary>
-    AccessTokenDestroy,
+    public static AuditEventKey AccessTokenDestroy { get; } = new("access_token_destroy");
     /// <summary>Данные зашифрованы</summary>
-    KmsEncrypt,
+    public static AuditEventKey KmsEncrypt { get; } = new("kms_encrypt");
     /// <summary>Данные расшифрованы</summary>
-    KmsDecrypt,
+    public static AuditEventKey KmsDecrypt { get; } = new("kms_decrypt");
     /// <summary>Доступ к журналам аудита получен</summary>
-    AuditEventsAccessed,
+    public static AuditEventKey AuditEventsAccessed { get; } = new("audit_events_accessed");
     /// <summary>Получен список всех чатов пространства</summary>
-    CompanyChatsAccessed,
+    public static AuditEventKey CompanyChatsAccessed { get; } = new("company_chats_accessed");
     /// <summary>Получен список всех ботов пространства</summary>
-    CompanyBotsAccessed,
+    public static AuditEventKey CompanyBotsAccessed { get; } = new("company_bots_accessed");
     /// <summary>Срабатывание правила DLP-системы</summary>
-    DlpViolationDetected,
+    public static AuditEventKey DlpViolationDetected { get; } = new("dlp_violation_detected");
     /// <summary>Поиск сотрудников через API</summary>
-    SearchUsersApi,
+    public static AuditEventKey SearchUsersApi { get; } = new("search_users_api");
     /// <summary>Поиск чатов через API</summary>
-    SearchChatsApi,
+    public static AuditEventKey SearchChatsApi { get; } = new("search_chats_api");
     /// <summary>Поиск сообщений через API</summary>
-    SearchMessagesApi,
+    public static AuditEventKey SearchMessagesApi { get; } = new("search_messages_api");
     /// <summary>Изменены скоупы токена бота</summary>
-    BotScopesUpdated,
+    public static AuditEventKey BotScopesUpdated { get; } = new("bot_scopes_updated");
     /// <summary>Изменены настройки исходящего вебхука бота</summary>
-    BotWebhookSettingsUpdated,
+    public static AuditEventKey BotWebhookSettingsUpdated { get; } = new("bot_webhook_settings_updated");
     /// <summary>Токен бота перевыпущен (ротация)</summary>
-    BotTokenRecreated,
+    public static AuditEventKey BotTokenRecreated { get; } = new("bot_token_recreated");
     /// <summary>Бот удалён</summary>
-    BotDeleted,
+    public static AuditEventKey BotDeleted { get; } = new("bot_deleted");
     /// <summary>Изменены параметры OAuth-клиента бота</summary>
-    BotOauthClientUpdated,
+    public static AuditEventKey BotOauthClientUpdated { get; } = new("bot_oauth_client_updated");
     /// <summary>У бота выключена авторизация от имени сотрудника</summary>
-    BotOauthClientDisabled,
+    public static AuditEventKey BotOauthClientDisabled { get; } = new("bot_oauth_client_disabled");
     /// <summary>Обновлён секрет OAuth-клиента бота</summary>
-    BotOauthClientSecretRotated,
+    public static AuditEventKey BotOauthClientSecretRotated { get; } = new("bot_oauth_client_secret_rotated");
     /// <summary>Выпущен секрет OAuth-клиента бота</summary>
-    BotOauthClientSecretIssued,
+    public static AuditEventKey BotOauthClientSecretIssued { get; } = new("bot_oauth_client_secret_issued");
     /// <summary>Выпущен токен бота</summary>
-    BotTokenCreated,
+    public static AuditEventKey BotTokenCreated { get; } = new("bot_token_created");
     /// <summary>Изменены имя или скоупы токена бота</summary>
-    BotTokenUpdated,
+    public static AuditEventKey BotTokenUpdated { get; } = new("bot_token_updated");
     /// <summary>Отдельный токен бота перевыпущен</summary>
-    BotTokenReissued,
+    public static AuditEventKey BotTokenReissued { get; } = new("bot_token_reissued");
     /// <summary>Токен бота удалён</summary>
-    BotTokenDeleted,
+    public static AuditEventKey BotTokenDeleted { get; } = new("bot_token_deleted");
     /// <summary>Пользователь выдал OAuth-клиенту доступ к своим данным</summary>
-    OauthAuthorizationGranted,
+    public static AuditEventKey OauthAuthorizationGranted { get; } = new("oauth_authorization_granted");
     /// <summary>Доступ OAuth-клиента к данным пользователя отозван</summary>
-    OauthAuthorizationRevoked,
+    public static AuditEventKey OauthAuthorizationRevoked { get; } = new("oauth_authorization_revoked");
     /// <summary>OAuth-клиент отозвал выданный ему токен</summary>
-    OauthTokenRevoked,
+    public static AuditEventKey OauthTokenRevoked { get; } = new("oauth_token_revoked");
     /// <summary>Сотрудник подтвердил вход приложения с устройства</summary>
-    OauthDeviceAuthorizationApproved,
+    public static AuditEventKey OauthDeviceAuthorizationApproved { get; } = new("oauth_device_authorization_approved");
     /// <summary>Сотрудник отклонил вход приложения с устройства</summary>
-    OauthDeviceAuthorizationDenied,
+    public static AuditEventKey OauthDeviceAuthorizationDenied { get; } = new("oauth_device_authorization_denied");
     /// <summary>Видеозвонок начат</summary>
-    VideoCallStarted,
+    public static AuditEventKey VideoCallStarted { get; } = new("video_call_started");
     /// <summary>Видеозвонок завершён</summary>
-    VideoCallFinished,
+    public static AuditEventKey VideoCallFinished { get; } = new("video_call_finished");
     /// <summary>Запись видеозвонка готова</summary>
-    VideoCallRecordingReady,
+    public static AuditEventKey VideoCallRecordingReady { get; } = new("video_call_recording_ready");
     /// <summary>Отключена интеграция с Exchange</summary>
-    ExchangeDisabled,
+    public static AuditEventKey ExchangeDisabled { get; } = new("exchange_disabled");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<AuditEventKey> Values { get; } = Array.AsReadOnly(new[] { UserLogin, UserLogout, User2faFail, User2faSuccess, User2faDisabled, UserCreated, UserDeleted, UserRoleChanged, UserUpdated, TagCreated, TagDeleted, UserAddedToTag, UserRemovedFromTag, ChatCreated, ChatRenamed, ChatPermissionChanged, UserChatJoin, UserChatLeave, TagAddedToChat, TagRemovedFromChat, MessageUpdated, MessageDeleted, MessageCreated, ReactionCreated, ReactionDeleted, ThreadCreated, AccessTokenCreated, AccessTokenUpdated, AccessTokenDestroy, KmsEncrypt, KmsDecrypt, AuditEventsAccessed, CompanyChatsAccessed, CompanyBotsAccessed, DlpViolationDetected, SearchUsersApi, SearchChatsApi, SearchMessagesApi, BotScopesUpdated, BotWebhookSettingsUpdated, BotTokenRecreated, BotDeleted, BotOauthClientUpdated, BotOauthClientDisabled, BotOauthClientSecretRotated, BotOauthClientSecretIssued, BotTokenCreated, BotTokenUpdated, BotTokenReissued, BotTokenDeleted, OauthAuthorizationGranted, OauthAuthorizationRevoked, OauthTokenRevoked, OauthDeviceAuthorizationApproved, OauthDeviceAuthorizationDenied, VideoCallStarted, VideoCallFinished, VideoCallRecordingReady, ExchangeDisabled });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(AuditEventKey left, AuditEventKey right) => left.Equals(right);
+    public static bool operator !=(AuditEventKey left, AuditEventKey right) => !left.Equals(right);
+    public static implicit operator AuditEventKey(string value) => new(value);
+    public bool Equals(AuditEventKey other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is AuditEventKey other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
 {
-    public override AuditEventKey Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "user_login" => AuditEventKey.UserLogin,
-            "user_logout" => AuditEventKey.UserLogout,
-            "user_2fa_fail" => AuditEventKey.User2faFail,
-            "user_2fa_success" => AuditEventKey.User2faSuccess,
-            "user_2fa_disabled" => AuditEventKey.User2faDisabled,
-            "user_created" => AuditEventKey.UserCreated,
-            "user_deleted" => AuditEventKey.UserDeleted,
-            "user_role_changed" => AuditEventKey.UserRoleChanged,
-            "user_updated" => AuditEventKey.UserUpdated,
-            "tag_created" => AuditEventKey.TagCreated,
-            "tag_deleted" => AuditEventKey.TagDeleted,
-            "user_added_to_tag" => AuditEventKey.UserAddedToTag,
-            "user_removed_from_tag" => AuditEventKey.UserRemovedFromTag,
-            "chat_created" => AuditEventKey.ChatCreated,
-            "chat_renamed" => AuditEventKey.ChatRenamed,
-            "chat_permission_changed" => AuditEventKey.ChatPermissionChanged,
-            "user_chat_join" => AuditEventKey.UserChatJoin,
-            "user_chat_leave" => AuditEventKey.UserChatLeave,
-            "tag_added_to_chat" => AuditEventKey.TagAddedToChat,
-            "tag_removed_from_chat" => AuditEventKey.TagRemovedFromChat,
-            "message_updated" => AuditEventKey.MessageUpdated,
-            "message_deleted" => AuditEventKey.MessageDeleted,
-            "message_created" => AuditEventKey.MessageCreated,
-            "reaction_created" => AuditEventKey.ReactionCreated,
-            "reaction_deleted" => AuditEventKey.ReactionDeleted,
-            "thread_created" => AuditEventKey.ThreadCreated,
-            "access_token_created" => AuditEventKey.AccessTokenCreated,
-            "access_token_updated" => AuditEventKey.AccessTokenUpdated,
-            "access_token_destroy" => AuditEventKey.AccessTokenDestroy,
-            "kms_encrypt" => AuditEventKey.KmsEncrypt,
-            "kms_decrypt" => AuditEventKey.KmsDecrypt,
-            "audit_events_accessed" => AuditEventKey.AuditEventsAccessed,
-            "company_chats_accessed" => AuditEventKey.CompanyChatsAccessed,
-            "company_bots_accessed" => AuditEventKey.CompanyBotsAccessed,
-            "dlp_violation_detected" => AuditEventKey.DlpViolationDetected,
-            "search_users_api" => AuditEventKey.SearchUsersApi,
-            "search_chats_api" => AuditEventKey.SearchChatsApi,
-            "search_messages_api" => AuditEventKey.SearchMessagesApi,
-            "bot_scopes_updated" => AuditEventKey.BotScopesUpdated,
-            "bot_webhook_settings_updated" => AuditEventKey.BotWebhookSettingsUpdated,
-            "bot_token_recreated" => AuditEventKey.BotTokenRecreated,
-            "bot_deleted" => AuditEventKey.BotDeleted,
-            "bot_oauth_client_updated" => AuditEventKey.BotOauthClientUpdated,
-            "bot_oauth_client_disabled" => AuditEventKey.BotOauthClientDisabled,
-            "bot_oauth_client_secret_rotated" => AuditEventKey.BotOauthClientSecretRotated,
-            "bot_oauth_client_secret_issued" => AuditEventKey.BotOauthClientSecretIssued,
-            "bot_token_created" => AuditEventKey.BotTokenCreated,
-            "bot_token_updated" => AuditEventKey.BotTokenUpdated,
-            "bot_token_reissued" => AuditEventKey.BotTokenReissued,
-            "bot_token_deleted" => AuditEventKey.BotTokenDeleted,
-            "oauth_authorization_granted" => AuditEventKey.OauthAuthorizationGranted,
-            "oauth_authorization_revoked" => AuditEventKey.OauthAuthorizationRevoked,
-            "oauth_token_revoked" => AuditEventKey.OauthTokenRevoked,
-            "oauth_device_authorization_approved" => AuditEventKey.OauthDeviceAuthorizationApproved,
-            "oauth_device_authorization_denied" => AuditEventKey.OauthDeviceAuthorizationDenied,
-            "video_call_started" => AuditEventKey.VideoCallStarted,
-            "video_call_finished" => AuditEventKey.VideoCallFinished,
-            "video_call_recording_ready" => AuditEventKey.VideoCallRecordingReady,
-            "exchange_disabled" => AuditEventKey.ExchangeDisabled,
-            _ => throw new JsonException($"Unknown AuditEventKey value: {value}"),
-        };
-    }
+    public override AuditEventKey Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, AuditEventKey value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            AuditEventKey.UserLogin => "user_login",
-            AuditEventKey.UserLogout => "user_logout",
-            AuditEventKey.User2faFail => "user_2fa_fail",
-            AuditEventKey.User2faSuccess => "user_2fa_success",
-            AuditEventKey.User2faDisabled => "user_2fa_disabled",
-            AuditEventKey.UserCreated => "user_created",
-            AuditEventKey.UserDeleted => "user_deleted",
-            AuditEventKey.UserRoleChanged => "user_role_changed",
-            AuditEventKey.UserUpdated => "user_updated",
-            AuditEventKey.TagCreated => "tag_created",
-            AuditEventKey.TagDeleted => "tag_deleted",
-            AuditEventKey.UserAddedToTag => "user_added_to_tag",
-            AuditEventKey.UserRemovedFromTag => "user_removed_from_tag",
-            AuditEventKey.ChatCreated => "chat_created",
-            AuditEventKey.ChatRenamed => "chat_renamed",
-            AuditEventKey.ChatPermissionChanged => "chat_permission_changed",
-            AuditEventKey.UserChatJoin => "user_chat_join",
-            AuditEventKey.UserChatLeave => "user_chat_leave",
-            AuditEventKey.TagAddedToChat => "tag_added_to_chat",
-            AuditEventKey.TagRemovedFromChat => "tag_removed_from_chat",
-            AuditEventKey.MessageUpdated => "message_updated",
-            AuditEventKey.MessageDeleted => "message_deleted",
-            AuditEventKey.MessageCreated => "message_created",
-            AuditEventKey.ReactionCreated => "reaction_created",
-            AuditEventKey.ReactionDeleted => "reaction_deleted",
-            AuditEventKey.ThreadCreated => "thread_created",
-            AuditEventKey.AccessTokenCreated => "access_token_created",
-            AuditEventKey.AccessTokenUpdated => "access_token_updated",
-            AuditEventKey.AccessTokenDestroy => "access_token_destroy",
-            AuditEventKey.KmsEncrypt => "kms_encrypt",
-            AuditEventKey.KmsDecrypt => "kms_decrypt",
-            AuditEventKey.AuditEventsAccessed => "audit_events_accessed",
-            AuditEventKey.CompanyChatsAccessed => "company_chats_accessed",
-            AuditEventKey.CompanyBotsAccessed => "company_bots_accessed",
-            AuditEventKey.DlpViolationDetected => "dlp_violation_detected",
-            AuditEventKey.SearchUsersApi => "search_users_api",
-            AuditEventKey.SearchChatsApi => "search_chats_api",
-            AuditEventKey.SearchMessagesApi => "search_messages_api",
-            AuditEventKey.BotScopesUpdated => "bot_scopes_updated",
-            AuditEventKey.BotWebhookSettingsUpdated => "bot_webhook_settings_updated",
-            AuditEventKey.BotTokenRecreated => "bot_token_recreated",
-            AuditEventKey.BotDeleted => "bot_deleted",
-            AuditEventKey.BotOauthClientUpdated => "bot_oauth_client_updated",
-            AuditEventKey.BotOauthClientDisabled => "bot_oauth_client_disabled",
-            AuditEventKey.BotOauthClientSecretRotated => "bot_oauth_client_secret_rotated",
-            AuditEventKey.BotOauthClientSecretIssued => "bot_oauth_client_secret_issued",
-            AuditEventKey.BotTokenCreated => "bot_token_created",
-            AuditEventKey.BotTokenUpdated => "bot_token_updated",
-            AuditEventKey.BotTokenReissued => "bot_token_reissued",
-            AuditEventKey.BotTokenDeleted => "bot_token_deleted",
-            AuditEventKey.OauthAuthorizationGranted => "oauth_authorization_granted",
-            AuditEventKey.OauthAuthorizationRevoked => "oauth_authorization_revoked",
-            AuditEventKey.OauthTokenRevoked => "oauth_token_revoked",
-            AuditEventKey.OauthDeviceAuthorizationApproved => "oauth_device_authorization_approved",
-            AuditEventKey.OauthDeviceAuthorizationDenied => "oauth_device_authorization_denied",
-            AuditEventKey.VideoCallStarted => "video_call_started",
-            AuditEventKey.VideoCallFinished => "video_call_finished",
-            AuditEventKey.VideoCallRecordingReady => "video_call_recording_ready",
-            AuditEventKey.ExchangeDisabled => "exchange_disabled",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, AuditEventKey value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Роль, которой разрешено редактировать настройки бота</summary>
 [JsonConverter(typeof(BotCanEditConverter))]
-public enum BotCanEdit
+public readonly struct BotCanEdit : IEquatable<BotCanEdit>
 {
+    private readonly string? _value;
+
+    public BotCanEdit(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Администраторы компании</summary>
-    Admin,
+    public static BotCanEdit Admin { get; } = new("admin");
     /// <summary>Владельцы чатов, в которые добавлен бот</summary>
-    ChatOwners,
+    public static BotCanEdit ChatOwners { get; } = new("chat_owners");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<BotCanEdit> Values { get; } = Array.AsReadOnly(new[] { Admin, ChatOwners });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(BotCanEdit left, BotCanEdit right) => left.Equals(right);
+    public static bool operator !=(BotCanEdit left, BotCanEdit right) => !left.Equals(right);
+    public static implicit operator BotCanEdit(string value) => new(value);
+    public bool Equals(BotCanEdit other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is BotCanEdit other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class BotCanEditConverter : JsonConverter<BotCanEdit>
 {
-    public override BotCanEdit Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "admin" => BotCanEdit.Admin,
-            "chat_owners" => BotCanEdit.ChatOwners,
-            _ => throw new JsonException($"Unknown BotCanEdit value: {value}"),
-        };
-    }
+    public override BotCanEdit Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, BotCanEdit value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            BotCanEdit.Admin => "admin",
-            BotCanEdit.ChatOwners => "chat_owners",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, BotCanEdit value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Событие исходящего вебхука бота</summary>
 [JsonConverter(typeof(BotEventNameConverter))]
-public enum BotEventName
+public readonly struct BotEventName : IEquatable<BotEventName>
 {
+    private readonly string? _value;
+
+    public BotEventName(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Новое сообщение</summary>
-    MessageNew,
+    public static BotEventName MessageNew { get; } = new("message_new");
     /// <summary>Сообщение отредактировано</summary>
-    MessageUpdate,
+    public static BotEventName MessageUpdate { get; } = new("message_update");
     /// <summary>Сообщение удалено</summary>
-    MessageDelete,
+    public static BotEventName MessageDelete { get; } = new("message_delete");
     /// <summary>Добавлена реакция</summary>
-    ReactionNew,
+    public static BotEventName ReactionNew { get; } = new("reaction_new");
     /// <summary>Реакция удалена</summary>
-    ReactionDelete,
+    public static BotEventName ReactionDelete { get; } = new("reaction_delete");
     /// <summary>Нажата кнопка</summary>
-    ButtonClick,
+    public static BotEventName ButtonClick { get; } = new("button_click");
     /// <summary>В сообщении отправлена ссылка (для unfurl)</summary>
-    MessageLinkShared,
+    public static BotEventName MessageLinkShared { get; } = new("message_link_shared");
     /// <summary>Участник добавлен в чат</summary>
-    ChatMemberAdd,
+    public static BotEventName ChatMemberAdd { get; } = new("chat_member_add");
     /// <summary>Участник удалён из чата</summary>
-    ChatMemberRemove,
+    public static BotEventName ChatMemberRemove { get; } = new("chat_member_remove");
     /// <summary>Сотрудник приглашён в компанию</summary>
-    CompanyMemberInvite,
+    public static BotEventName CompanyMemberInvite { get; } = new("company_member_invite");
     /// <summary>Сотрудник подтвердил приглашение</summary>
-    CompanyMemberConfirm,
+    public static BotEventName CompanyMemberConfirm { get; } = new("company_member_confirm");
     /// <summary>Сотрудник деактивирован</summary>
-    CompanyMemberSuspend,
+    public static BotEventName CompanyMemberSuspend { get; } = new("company_member_suspend");
     /// <summary>Сотрудник активирован</summary>
-    CompanyMemberActivate,
+    public static BotEventName CompanyMemberActivate { get; } = new("company_member_activate");
     /// <summary>Сотрудник удалён из компании</summary>
-    CompanyMemberDelete,
+    public static BotEventName CompanyMemberDelete { get; } = new("company_member_delete");
     /// <summary>Данные сотрудника изменены</summary>
-    CompanyMemberUpdate,
+    public static BotEventName CompanyMemberUpdate { get; } = new("company_member_update");
     /// <summary>Видеозвонок начался</summary>
-    VideoCallStarted,
+    public static BotEventName VideoCallStarted { get; } = new("video_call_started");
     /// <summary>Видеозвонок завершился</summary>
-    VideoCallFinished,
+    public static BotEventName VideoCallFinished { get; } = new("video_call_finished");
     /// <summary>Запись видеозвонка готова</summary>
-    VideoCallRecordingReady,
+    public static BotEventName VideoCallRecordingReady { get; } = new("video_call_recording_ready");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<BotEventName> Values { get; } = Array.AsReadOnly(new[] { MessageNew, MessageUpdate, MessageDelete, ReactionNew, ReactionDelete, ButtonClick, MessageLinkShared, ChatMemberAdd, ChatMemberRemove, CompanyMemberInvite, CompanyMemberConfirm, CompanyMemberSuspend, CompanyMemberActivate, CompanyMemberDelete, CompanyMemberUpdate, VideoCallStarted, VideoCallFinished, VideoCallRecordingReady });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(BotEventName left, BotEventName right) => left.Equals(right);
+    public static bool operator !=(BotEventName left, BotEventName right) => !left.Equals(right);
+    public static implicit operator BotEventName(string value) => new(value);
+    public bool Equals(BotEventName other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is BotEventName other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class BotEventNameConverter : JsonConverter<BotEventName>
 {
-    public override BotEventName Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "message_new" => BotEventName.MessageNew,
-            "message_update" => BotEventName.MessageUpdate,
-            "message_delete" => BotEventName.MessageDelete,
-            "reaction_new" => BotEventName.ReactionNew,
-            "reaction_delete" => BotEventName.ReactionDelete,
-            "button_click" => BotEventName.ButtonClick,
-            "message_link_shared" => BotEventName.MessageLinkShared,
-            "chat_member_add" => BotEventName.ChatMemberAdd,
-            "chat_member_remove" => BotEventName.ChatMemberRemove,
-            "company_member_invite" => BotEventName.CompanyMemberInvite,
-            "company_member_confirm" => BotEventName.CompanyMemberConfirm,
-            "company_member_suspend" => BotEventName.CompanyMemberSuspend,
-            "company_member_activate" => BotEventName.CompanyMemberActivate,
-            "company_member_delete" => BotEventName.CompanyMemberDelete,
-            "company_member_update" => BotEventName.CompanyMemberUpdate,
-            "video_call_started" => BotEventName.VideoCallStarted,
-            "video_call_finished" => BotEventName.VideoCallFinished,
-            "video_call_recording_ready" => BotEventName.VideoCallRecordingReady,
-            _ => throw new JsonException($"Unknown BotEventName value: {value}"),
-        };
-    }
+    public override BotEventName Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, BotEventName value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            BotEventName.MessageNew => "message_new",
-            BotEventName.MessageUpdate => "message_update",
-            BotEventName.MessageDelete => "message_delete",
-            BotEventName.ReactionNew => "reaction_new",
-            BotEventName.ReactionDelete => "reaction_delete",
-            BotEventName.ButtonClick => "button_click",
-            BotEventName.MessageLinkShared => "message_link_shared",
-            BotEventName.ChatMemberAdd => "chat_member_add",
-            BotEventName.ChatMemberRemove => "chat_member_remove",
-            BotEventName.CompanyMemberInvite => "company_member_invite",
-            BotEventName.CompanyMemberConfirm => "company_member_confirm",
-            BotEventName.CompanyMemberSuspend => "company_member_suspend",
-            BotEventName.CompanyMemberActivate => "company_member_activate",
-            BotEventName.CompanyMemberDelete => "company_member_delete",
-            BotEventName.CompanyMemberUpdate => "company_member_update",
-            BotEventName.VideoCallStarted => "video_call_started",
-            BotEventName.VideoCallFinished => "video_call_finished",
-            BotEventName.VideoCallRecordingReady => "video_call_recording_ready",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, BotEventName value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Шаблонизатор для форматирования входящих вебхуков</summary>
 [JsonConverter(typeof(BotTemplateEngineConverter))]
-public enum BotTemplateEngine
+public readonly struct BotTemplateEngine : IEquatable<BotTemplateEngine>
 {
+    private readonly string? _value;
+
+    public BotTemplateEngine(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Liquid — условия, циклы и фильтры</summary>
-    Liquid,
+    public static BotTemplateEngine Liquid { get; } = new("liquid");
     /// <summary>Mustache — простая подстановка без логики</summary>
-    Mustache,
+    public static BotTemplateEngine Mustache { get; } = new("mustache");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<BotTemplateEngine> Values { get; } = Array.AsReadOnly(new[] { Liquid, Mustache });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(BotTemplateEngine left, BotTemplateEngine right) => left.Equals(right);
+    public static bool operator !=(BotTemplateEngine left, BotTemplateEngine right) => !left.Equals(right);
+    public static implicit operator BotTemplateEngine(string value) => new(value);
+    public bool Equals(BotTemplateEngine other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is BotTemplateEngine other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class BotTemplateEngineConverter : JsonConverter<BotTemplateEngine>
 {
-    public override BotTemplateEngine Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "liquid" => BotTemplateEngine.Liquid,
-            "mustache" => BotTemplateEngine.Mustache,
-            _ => throw new JsonException($"Unknown BotTemplateEngine value: {value}"),
-        };
-    }
+    public override BotTemplateEngine Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, BotTemplateEngine value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            BotTemplateEngine.Liquid => "liquid",
-            BotTemplateEngine.Mustache => "mustache",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, BotTemplateEngine value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Условие срабатывания исходящего вебхука бота</summary>
 [JsonConverter(typeof(BotTriggerOnConverter))]
-public enum BotTriggerOn
+public readonly struct BotTriggerOn : IEquatable<BotTriggerOn>
 {
+    private readonly string? _value;
+
+    public BotTriggerOn(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Только на команды (триггер-слова) из commands</summary>
-    Commands,
+    public static BotTriggerOn Commands { get; } = new("commands");
     /// <summary>На все сообщения в чатах, где есть бот</summary>
-    AllMessages,
+    public static BotTriggerOn AllMessages { get; } = new("all_messages");
     /// <summary>На развёртывание ссылок (link previews)</summary>
-    Unfurl,
+    public static BotTriggerOn Unfurl { get; } = new("unfurl");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<BotTriggerOn> Values { get; } = Array.AsReadOnly(new[] { Commands, AllMessages, Unfurl });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(BotTriggerOn left, BotTriggerOn right) => left.Equals(right);
+    public static bool operator !=(BotTriggerOn left, BotTriggerOn right) => !left.Equals(right);
+    public static implicit operator BotTriggerOn(string value) => new(value);
+    public bool Equals(BotTriggerOn other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is BotTriggerOn other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class BotTriggerOnConverter : JsonConverter<BotTriggerOn>
 {
-    public override BotTriggerOn Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "commands" => BotTriggerOn.Commands,
-            "all_messages" => BotTriggerOn.AllMessages,
-            "unfurl" => BotTriggerOn.Unfurl,
-            _ => throw new JsonException($"Unknown BotTriggerOn value: {value}"),
-        };
-    }
+    public override BotTriggerOn Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, BotTriggerOn value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            BotTriggerOn.Commands => "commands",
-            BotTriggerOn.AllMessages => "all_messages",
-            BotTriggerOn.Unfurl => "unfurl",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, BotTriggerOn value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Источник входящего вебхука бота</summary>
 [JsonConverter(typeof(BotWebhookKindConverter))]
-public enum BotWebhookKind
+public readonly struct BotWebhookKind : IEquatable<BotWebhookKind>
 {
+    private readonly string? _value;
+
+    public BotWebhookKind(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Свой формат: сообщение собирается из тела запроса по шаблону бота</summary>
-    Simple,
+    public static BotWebhookKind Simple { get; } = new("simple");
     /// <summary>GitLab: Пачка сама разбирает запрос и собирает сообщение</summary>
-    Gitlab,
+    public static BotWebhookKind Gitlab { get; } = new("gitlab");
     /// <summary>Grafana: Пачка сама разбирает запрос и собирает сообщение</summary>
-    Grafana,
+    public static BotWebhookKind Grafana { get; } = new("grafana");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<BotWebhookKind> Values { get; } = Array.AsReadOnly(new[] { Simple, Gitlab, Grafana });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(BotWebhookKind left, BotWebhookKind right) => left.Equals(right);
+    public static bool operator !=(BotWebhookKind left, BotWebhookKind right) => !left.Equals(right);
+    public static implicit operator BotWebhookKind(string value) => new(value);
+    public bool Equals(BotWebhookKind other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is BotWebhookKind other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class BotWebhookKindConverter : JsonConverter<BotWebhookKind>
 {
-    public override BotWebhookKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "simple" => BotWebhookKind.Simple,
-            "gitlab" => BotWebhookKind.Gitlab,
-            "grafana" => BotWebhookKind.Grafana,
-            _ => throw new JsonException($"Unknown BotWebhookKind value: {value}"),
-        };
-    }
+    public override BotWebhookKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, BotWebhookKind value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            BotWebhookKind.Simple => "simple",
-            BotWebhookKind.Gitlab => "gitlab",
-            BotWebhookKind.Grafana => "grafana",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, BotWebhookKind value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Кто может добавлять бота в чаты</summary>
 [JsonConverter(typeof(BotWhoCanAddConverter))]
-public enum BotWhoCanAdd
+public readonly struct BotWhoCanAdd : IEquatable<BotWhoCanAdd>
 {
+    private readonly string? _value;
+
+    public BotWhoCanAdd(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Только создатель бота</summary>
-    Creator,
+    public static BotWhoCanAdd Creator { get; } = new("creator");
     /// <summary>Создатель и администраторы компании</summary>
-    CreatorAdmin,
+    public static BotWhoCanAdd CreatorAdmin { get; } = new("creator_admin");
     /// <summary>Создатель, администраторы и участники компании</summary>
-    CreatorAdminUser,
+    public static BotWhoCanAdd CreatorAdminUser { get; } = new("creator_admin_user");
     /// <summary>Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей</summary>
-    Anyone,
+    public static BotWhoCanAdd Anyone { get; } = new("anyone");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<BotWhoCanAdd> Values { get; } = Array.AsReadOnly(new[] { Creator, CreatorAdmin, CreatorAdminUser, Anyone });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(BotWhoCanAdd left, BotWhoCanAdd right) => left.Equals(right);
+    public static bool operator !=(BotWhoCanAdd left, BotWhoCanAdd right) => !left.Equals(right);
+    public static implicit operator BotWhoCanAdd(string value) => new(value);
+    public bool Equals(BotWhoCanAdd other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is BotWhoCanAdd other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class BotWhoCanAddConverter : JsonConverter<BotWhoCanAdd>
 {
-    public override BotWhoCanAdd Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "creator" => BotWhoCanAdd.Creator,
-            "creator_admin" => BotWhoCanAdd.CreatorAdmin,
-            "creator_admin_user" => BotWhoCanAdd.CreatorAdminUser,
-            "anyone" => BotWhoCanAdd.Anyone,
-            _ => throw new JsonException($"Unknown BotWhoCanAdd value: {value}"),
-        };
-    }
+    public override BotWhoCanAdd Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, BotWhoCanAdd value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            BotWhoCanAdd.Creator => "creator",
-            BotWhoCanAdd.CreatorAdmin => "creator_admin",
-            BotWhoCanAdd.CreatorAdminUser => "creator_admin_user",
-            BotWhoCanAdd.Anyone => "anyone",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, BotWhoCanAdd value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Состояние чатов в выборке</summary>
@@ -789,108 +726,116 @@ internal class ChatSubtypeConverter : JsonConverter<ChatSubtype>
 
 /// <summary>Тип данных дополнительного поля</summary>
 [JsonConverter(typeof(CustomPropertyDataTypeConverter))]
-public enum CustomPropertyDataType
+public readonly struct CustomPropertyDataType : IEquatable<CustomPropertyDataType>
 {
+    private readonly string? _value;
+
+    public CustomPropertyDataType(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Строковое значение</summary>
-    String,
+    public static CustomPropertyDataType String { get; } = new("string");
     /// <summary>Числовое значение</summary>
-    Number,
+    public static CustomPropertyDataType Number { get; } = new("number");
     /// <summary>Дата</summary>
-    Date,
+    public static CustomPropertyDataType Date { get; } = new("date");
     /// <summary>Ссылка</summary>
-    Link,
+    public static CustomPropertyDataType Link { get; } = new("link");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<CustomPropertyDataType> Values { get; } = Array.AsReadOnly(new[] { String, Number, Date, Link });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(CustomPropertyDataType left, CustomPropertyDataType right) => left.Equals(right);
+    public static bool operator !=(CustomPropertyDataType left, CustomPropertyDataType right) => !left.Equals(right);
+    public static implicit operator CustomPropertyDataType(string value) => new(value);
+    public bool Equals(CustomPropertyDataType other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is CustomPropertyDataType other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class CustomPropertyDataTypeConverter : JsonConverter<CustomPropertyDataType>
 {
-    public override CustomPropertyDataType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "string" => CustomPropertyDataType.String,
-            "number" => CustomPropertyDataType.Number,
-            "date" => CustomPropertyDataType.Date,
-            "link" => CustomPropertyDataType.Link,
-            _ => throw new JsonException($"Unknown CustomPropertyDataType value: {value}"),
-        };
-    }
+    public override CustomPropertyDataType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, CustomPropertyDataType value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            CustomPropertyDataType.String => "string",
-            CustomPropertyDataType.Number => "number",
-            CustomPropertyDataType.Date => "date",
-            CustomPropertyDataType.Link => "link",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, CustomPropertyDataType value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Периодичность повтора отложенного сообщения</summary>
 [JsonConverter(typeof(DraftRepetitionIntervalConverter))]
-public enum DraftRepetitionInterval
+public readonly struct DraftRepetitionInterval : IEquatable<DraftRepetitionInterval>
 {
+    private readonly string? _value;
+
+    public DraftRepetitionInterval(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Один раз</summary>
-    Once,
+    public static DraftRepetitionInterval Once { get; } = new("once");
     /// <summary>Каждый день</summary>
-    Daily,
+    public static DraftRepetitionInterval Daily { get; } = new("daily");
     /// <summary>Каждую неделю</summary>
-    Weekly,
+    public static DraftRepetitionInterval Weekly { get; } = new("weekly");
     /// <summary>Каждый месяц</summary>
-    Monthly,
+    public static DraftRepetitionInterval Monthly { get; } = new("monthly");
     /// <summary>Раз в два месяца</summary>
-    Every2Months,
+    public static DraftRepetitionInterval Every2Months { get; } = new("every_2_months");
     /// <summary>Раз в три месяца</summary>
-    Every3Months,
+    public static DraftRepetitionInterval Every3Months { get; } = new("every_3_months");
     /// <summary>Раз в четыре месяца</summary>
-    Every4Months,
+    public static DraftRepetitionInterval Every4Months { get; } = new("every_4_months");
     /// <summary>Раз в полгода</summary>
-    Every6Months,
+    public static DraftRepetitionInterval Every6Months { get; } = new("every_6_months");
     /// <summary>Раз в год</summary>
-    Yearly,
+    public static DraftRepetitionInterval Yearly { get; } = new("yearly");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<DraftRepetitionInterval> Values { get; } = Array.AsReadOnly(new[] { Once, Daily, Weekly, Monthly, Every2Months, Every3Months, Every4Months, Every6Months, Yearly });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(DraftRepetitionInterval left, DraftRepetitionInterval right) => left.Equals(right);
+    public static bool operator !=(DraftRepetitionInterval left, DraftRepetitionInterval right) => !left.Equals(right);
+    public static implicit operator DraftRepetitionInterval(string value) => new(value);
+    public bool Equals(DraftRepetitionInterval other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is DraftRepetitionInterval other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class DraftRepetitionIntervalConverter : JsonConverter<DraftRepetitionInterval>
 {
-    public override DraftRepetitionInterval Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "once" => DraftRepetitionInterval.Once,
-            "daily" => DraftRepetitionInterval.Daily,
-            "weekly" => DraftRepetitionInterval.Weekly,
-            "monthly" => DraftRepetitionInterval.Monthly,
-            "every_2_months" => DraftRepetitionInterval.Every2Months,
-            "every_3_months" => DraftRepetitionInterval.Every3Months,
-            "every_4_months" => DraftRepetitionInterval.Every4Months,
-            "every_6_months" => DraftRepetitionInterval.Every6Months,
-            "yearly" => DraftRepetitionInterval.Yearly,
-            _ => throw new JsonException($"Unknown DraftRepetitionInterval value: {value}"),
-        };
-    }
+    public override DraftRepetitionInterval Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, DraftRepetitionInterval value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            DraftRepetitionInterval.Once => "once",
-            DraftRepetitionInterval.Daily => "daily",
-            DraftRepetitionInterval.Weekly => "weekly",
-            DraftRepetitionInterval.Monthly => "monthly",
-            DraftRepetitionInterval.Every2Months => "every_2_months",
-            DraftRepetitionInterval.Every3Months => "every_3_months",
-            DraftRepetitionInterval.Every4Months => "every_4_months",
-            DraftRepetitionInterval.Every6Months => "every_6_months",
-            DraftRepetitionInterval.Yearly => "yearly",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, DraftRepetitionInterval value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Что возвращать в списке черновиков</summary>
@@ -977,158 +922,202 @@ internal class FileTargetConverter : JsonConverter<FileTarget>
 
 /// <summary>Тип файла</summary>
 [JsonConverter(typeof(FileTypeConverter))]
-public enum FileType
+public readonly struct FileType : IEquatable<FileType>
 {
+    private readonly string? _value;
+
+    public FileType(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Обычный файл</summary>
-    File,
+    public static FileType File { get; } = new("file");
     /// <summary>Изображение</summary>
-    Image,
+    public static FileType Image { get; } = new("image");
     /// <summary>Аудиофайл</summary>
-    Audio,
+    public static FileType Audio { get; } = new("audio");
     /// <summary>Голосовое сообщение</summary>
-    Voice,
+    public static FileType Voice { get; } = new("voice");
     /// <summary>Видеофайл</summary>
-    Video,
+    public static FileType Video { get; } = new("video");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<FileType> Values { get; } = Array.AsReadOnly(new[] { File, Image, Audio, Voice, Video });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(FileType left, FileType right) => left.Equals(right);
+    public static bool operator !=(FileType left, FileType right) => !left.Equals(right);
+    public static implicit operator FileType(string value) => new(value);
+    public bool Equals(FileType other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is FileType other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class FileTypeConverter : JsonConverter<FileType>
 {
-    public override FileType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "file" => FileType.File,
-            "image" => FileType.Image,
-            "audio" => FileType.Audio,
-            "voice" => FileType.Voice,
-            "video" => FileType.Video,
-            _ => throw new JsonException($"Unknown FileType value: {value}"),
-        };
-    }
+    public override FileType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, FileType value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            FileType.File => "file",
-            FileType.Image => "image",
-            FileType.Audio => "audio",
-            FileType.Voice => "voice",
-            FileType.Video => "video",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, FileType value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Статус приглашения пользователя</summary>
 [JsonConverter(typeof(InviteStatusConverter))]
-public enum InviteStatus
+public readonly struct InviteStatus : IEquatable<InviteStatus>
 {
+    private readonly string? _value;
+
+    public InviteStatus(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Принято</summary>
-    Confirmed,
+    public static InviteStatus Confirmed { get; } = new("confirmed");
     /// <summary>Отправлено</summary>
-    Sent,
+    public static InviteStatus Sent { get; } = new("sent");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<InviteStatus> Values { get; } = Array.AsReadOnly(new[] { Confirmed, Sent });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(InviteStatus left, InviteStatus right) => left.Equals(right);
+    public static bool operator !=(InviteStatus left, InviteStatus right) => !left.Equals(right);
+    public static implicit operator InviteStatus(string value) => new(value);
+    public bool Equals(InviteStatus other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is InviteStatus other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class InviteStatusConverter : JsonConverter<InviteStatus>
 {
-    public override InviteStatus Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "confirmed" => InviteStatus.Confirmed,
-            "sent" => InviteStatus.Sent,
-            _ => throw new JsonException($"Unknown InviteStatus value: {value}"),
-        };
-    }
+    public override InviteStatus Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, InviteStatus value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            InviteStatus.Confirmed => "confirmed",
-            InviteStatus.Sent => "sent",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, InviteStatus value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Тип события webhook для участников</summary>
 [JsonConverter(typeof(MemberEventTypeConverter))]
-public enum MemberEventType
+public readonly struct MemberEventType : IEquatable<MemberEventType>
 {
+    private readonly string? _value;
+
+    public MemberEventType(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Добавление</summary>
-    Add,
+    public static MemberEventType Add { get; } = new("add");
     /// <summary>Удаление</summary>
-    Remove,
+    public static MemberEventType Remove { get; } = new("remove");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<MemberEventType> Values { get; } = Array.AsReadOnly(new[] { Add, Remove });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(MemberEventType left, MemberEventType right) => left.Equals(right);
+    public static bool operator !=(MemberEventType left, MemberEventType right) => !left.Equals(right);
+    public static implicit operator MemberEventType(string value) => new(value);
+    public bool Equals(MemberEventType other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is MemberEventType other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class MemberEventTypeConverter : JsonConverter<MemberEventType>
 {
-    public override MemberEventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "add" => MemberEventType.Add,
-            "remove" => MemberEventType.Remove,
-            _ => throw new JsonException($"Unknown MemberEventType value: {value}"),
-        };
-    }
+    public override MemberEventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, MemberEventType value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            MemberEventType.Add => "add",
-            MemberEventType.Remove => "remove",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, MemberEventType value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Тип сущности для сообщений</summary>
 [JsonConverter(typeof(MessageEntityTypeConverter))]
-public enum MessageEntityType
+public readonly struct MessageEntityType : IEquatable<MessageEntityType>
 {
+    private readonly string? _value;
+
+    public MessageEntityType(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Беседа или канал</summary>
-    Discussion,
+    public static MessageEntityType Discussion { get; } = new("discussion");
     /// <summary>Тред</summary>
-    Thread,
+    public static MessageEntityType Thread { get; } = new("thread");
     /// <summary>Пользователь</summary>
-    User,
+    public static MessageEntityType User { get; } = new("user");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<MessageEntityType> Values { get; } = Array.AsReadOnly(new[] { Discussion, Thread, User });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(MessageEntityType left, MessageEntityType right) => left.Equals(right);
+    public static bool operator !=(MessageEntityType left, MessageEntityType right) => !left.Equals(right);
+    public static implicit operator MessageEntityType(string value) => new(value);
+    public bool Equals(MessageEntityType other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is MessageEntityType other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class MessageEntityTypeConverter : JsonConverter<MessageEntityType>
 {
-    public override MessageEntityType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "discussion" => MessageEntityType.Discussion,
-            "thread" => MessageEntityType.Thread,
-            "user" => MessageEntityType.User,
-            _ => throw new JsonException($"Unknown MessageEntityType value: {value}"),
-        };
-    }
+    public override MessageEntityType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, MessageEntityType value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            MessageEntityType.Discussion => "discussion",
-            MessageEntityType.Thread => "thread",
-            MessageEntityType.User => "user",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, MessageEntityType value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Сортировка результатов поиска сообщений</summary>
@@ -1196,263 +1185,224 @@ internal class MessageSortFieldConverter : JsonConverter<MessageSortField>
     }
 }
 
+/// <summary>Код ошибки OAuth</summary>
+[JsonConverter(typeof(OAuthErrorCodeConverter))]
+public readonly struct OAuthErrorCode : IEquatable<OAuthErrorCode>
+{
+    private readonly string? _value;
+
+    public OAuthErrorCode(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Токен не передан, не найден, истёк или отозван</summary>
+    public static OAuthErrorCode InvalidToken { get; } = new("invalid_token");
+    /// <summary>У токена нет скоупа, который нужен методу</summary>
+    public static OAuthErrorCode InsufficientScope { get; } = new("insufficient_scope");
+    /// <summary>Скоуп у токена есть, но роль его владельца не позволяет действие</summary>
+    public static OAuthErrorCode RoleForbidden { get; } = new("role_forbidden");
+    /// <summary>В запросе нет обязательного параметра или он передан неверно</summary>
+    public static OAuthErrorCode InvalidRequest { get; } = new("invalid_request");
+    /// <summary>Неверный `client_id` или `client_secret`</summary>
+    public static OAuthErrorCode InvalidClient { get; } = new("invalid_client");
+    /// <summary>Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`</summary>
+    public static OAuthErrorCode InvalidGrant { get; } = new("invalid_grant");
+    /// <summary>Значение `grant_type` не поддерживается</summary>
+    public static OAuthErrorCode UnsupportedGrantType { get; } = new("unsupported_grant_type");
+    /// <summary>Токен выдан другому боту или клиент не подтвердил себя</summary>
+    public static OAuthErrorCode UnauthorizedClient { get; } = new("unauthorized_client");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<OAuthErrorCode> Values { get; } = Array.AsReadOnly(new[] { InvalidToken, InsufficientScope, RoleForbidden, InvalidRequest, InvalidClient, InvalidGrant, UnsupportedGrantType, UnauthorizedClient });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(OAuthErrorCode left, OAuthErrorCode right) => left.Equals(right);
+    public static bool operator !=(OAuthErrorCode left, OAuthErrorCode right) => !left.Equals(right);
+    public static implicit operator OAuthErrorCode(string value) => new(value);
+    public bool Equals(OAuthErrorCode other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is OAuthErrorCode other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class OAuthErrorCodeConverter : JsonConverter<OAuthErrorCode>
+{
+    public override OAuthErrorCode Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, OAuthErrorCode value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
 /// <summary>Скоуп доступа OAuth токена</summary>
 [JsonConverter(typeof(OAuthScopeConverter))]
-public enum OAuthScope
+public readonly struct OAuthScope : IEquatable<OAuthScope>
 {
+    private readonly string? _value;
+
+    public OAuthScope(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Просмотр чатов и списка чатов</summary>
-    ChatsRead,
+    public static OAuthScope ChatsRead { get; } = new("chats:read");
     /// <summary>Создание новых чатов</summary>
-    ChatsCreate,
+    public static OAuthScope ChatsCreate { get; } = new("chats:create");
     /// <summary>Изменение настроек чата</summary>
-    ChatsUpdate,
+    public static OAuthScope ChatsUpdate { get; } = new("chats:update");
     /// <summary>Отметка чатов непрочитанными</summary>
-    ChatsMarkUnread,
+    public static OAuthScope ChatsMarkUnread { get; } = new("chats:mark_unread");
     /// <summary>Архивация и разархивация чатов</summary>
-    ChatsArchive,
+    public static OAuthScope ChatsArchive { get; } = new("chats:archive");
     /// <summary>Выход из чатов</summary>
-    ChatsLeave,
+    public static OAuthScope ChatsLeave { get; } = new("chats:leave");
     /// <summary>Просмотр участников чата</summary>
-    ChatMembersRead,
+    public static OAuthScope ChatMembersRead { get; } = new("chat_members:read");
     /// <summary>Добавление, изменение и удаление участников чата</summary>
-    ChatMembersWrite,
+    public static OAuthScope ChatMembersWrite { get; } = new("chat_members:write");
     /// <summary>Скачивание экспортов чата</summary>
-    ChatExportsRead,
+    public static OAuthScope ChatExportsRead { get; } = new("chat_exports:read");
     /// <summary>Создание экспортов чата</summary>
-    ChatExportsWrite,
+    public static OAuthScope ChatExportsWrite { get; } = new("chat_exports:write");
     /// <summary>Просмотр сообщений в чатах</summary>
-    MessagesRead,
+    public static OAuthScope MessagesRead { get; } = new("messages:read");
     /// <summary>Отправка сообщений</summary>
-    MessagesCreate,
+    public static OAuthScope MessagesCreate { get; } = new("messages:create");
     /// <summary>Редактирование сообщений</summary>
-    MessagesUpdate,
+    public static OAuthScope MessagesUpdate { get; } = new("messages:update");
     /// <summary>Удаление сообщений</summary>
-    MessagesDelete,
+    public static OAuthScope MessagesDelete { get; } = new("messages:delete");
     /// <summary>Просмотр реакций на сообщения</summary>
-    ReactionsRead,
+    public static OAuthScope ReactionsRead { get; } = new("reactions:read");
     /// <summary>Добавление и удаление реакций</summary>
-    ReactionsWrite,
+    public static OAuthScope ReactionsWrite { get; } = new("reactions:write");
     /// <summary>Закрепление и открепление сообщений</summary>
-    PinsWrite,
+    public static OAuthScope PinsWrite { get; } = new("pins:write");
     /// <summary>Просмотр тредов (комментариев)</summary>
-    ThreadsRead,
+    public static OAuthScope ThreadsRead { get; } = new("threads:read");
     /// <summary>Создание тредов (комментариев)</summary>
-    ThreadsCreate,
+    public static OAuthScope ThreadsCreate { get; } = new("threads:create");
     /// <summary>Unfurl (разворачивание ссылок)</summary>
-    LinkPreviewsWrite,
+    public static OAuthScope LinkPreviewsWrite { get; } = new("link_previews:write");
     /// <summary>Просмотр информации о сотрудниках и списка сотрудников</summary>
-    UsersRead,
+    public static OAuthScope UsersRead { get; } = new("users:read");
     /// <summary>Создание новых сотрудников</summary>
-    UsersCreate,
+    public static OAuthScope UsersCreate { get; } = new("users:create");
     /// <summary>Редактирование данных сотрудника</summary>
-    UsersUpdate,
+    public static OAuthScope UsersUpdate { get; } = new("users:update");
     /// <summary>Удаление сотрудников</summary>
-    UsersDelete,
+    public static OAuthScope UsersDelete { get; } = new("users:delete");
     /// <summary>Просмотр тегов</summary>
-    GroupTagsRead,
+    public static OAuthScope GroupTagsRead { get; } = new("group_tags:read");
     /// <summary>Создание, редактирование и удаление тегов</summary>
-    GroupTagsWrite,
+    public static OAuthScope GroupTagsWrite { get; } = new("group_tags:write");
     /// <summary>Просмотр ботов</summary>
-    BotsRead,
+    public static OAuthScope BotsRead { get; } = new("bots:read");
     /// <summary>Управление ботами</summary>
-    BotsWrite,
+    public static OAuthScope BotsWrite { get; } = new("bots:write");
     /// <summary>Самостоятельное управление адресом вебхука бота</summary>
-    BotSelfWebhookWrite,
+    public static OAuthScope BotSelfWebhookWrite { get; } = new("bot_self:webhook:write");
     /// <summary>Самостоятельное управление настройками бота</summary>
-    BotSelfWrite,
+    public static OAuthScope BotSelfWrite { get; } = new("bot_self:write");
     /// <summary>Просмотр информации о своем профиле</summary>
-    ProfileRead,
+    public static OAuthScope ProfileRead { get; } = new("profile:read");
     /// <summary>Просмотр статуса профиля</summary>
-    ProfileStatusRead,
+    public static OAuthScope ProfileStatusRead { get; } = new("profile_status:read");
     /// <summary>Изменение и удаление статуса профиля</summary>
-    ProfileStatusWrite,
+    public static OAuthScope ProfileStatusWrite { get; } = new("profile_status:write");
     /// <summary>Изменение и удаление аватара профиля</summary>
-    ProfileAvatarWrite,
+    public static OAuthScope ProfileAvatarWrite { get; } = new("profile_avatar:write");
     /// <summary>Просмотр статуса сотрудника</summary>
-    UserStatusRead,
+    public static OAuthScope UserStatusRead { get; } = new("user_status:read");
     /// <summary>Изменение и удаление статуса сотрудника</summary>
-    UserStatusWrite,
+    public static OAuthScope UserStatusWrite { get; } = new("user_status:write");
     /// <summary>Изменение и удаление аватара сотрудника</summary>
-    UserAvatarWrite,
+    public static OAuthScope UserAvatarWrite { get; } = new("user_avatar:write");
     /// <summary>Просмотр дополнительных полей</summary>
-    CustomPropertiesRead,
+    public static OAuthScope CustomPropertiesRead { get; } = new("custom_properties:read");
     /// <summary>Просмотр журнала аудита</summary>
-    AuditEventsRead,
+    public static OAuthScope AuditEventsRead { get; } = new("audit_events:read");
     /// <summary>Просмотр списка всех чатов пространства</summary>
-    CompanyChatsRead,
+    public static OAuthScope CompanyChatsRead { get; } = new("company_chats:read");
     /// <summary>Просмотр списка всех ботов пространства</summary>
-    CompanyBotsRead,
+    public static OAuthScope CompanyBotsRead { get; } = new("company_bots:read");
     /// <summary>Просмотр задач</summary>
-    TasksRead,
+    public static OAuthScope TasksRead { get; } = new("tasks:read");
     /// <summary>Создание задач</summary>
-    TasksCreate,
+    public static OAuthScope TasksCreate { get; } = new("tasks:create");
     /// <summary>Изменение задачи</summary>
-    TasksUpdate,
+    public static OAuthScope TasksUpdate { get; } = new("tasks:update");
     /// <summary>Удаление задачи</summary>
-    TasksDelete,
+    public static OAuthScope TasksDelete { get; } = new("tasks:delete");
     /// <summary>Скачивание файлов</summary>
-    FilesRead,
+    public static OAuthScope FilesRead { get; } = new("files:read");
     /// <summary>Загрузка файлов</summary>
-    FilesWrite,
+    public static OAuthScope FilesWrite { get; } = new("files:write");
     /// <summary>Получение данных для загрузки файлов</summary>
-    UploadsWrite,
+    public static OAuthScope UploadsWrite { get; } = new("uploads:write");
     /// <summary>Открытие форм (представлений)</summary>
-    ViewsWrite,
+    public static OAuthScope ViewsWrite { get; } = new("views:write");
     /// <summary>Просмотр вебхуков</summary>
-    WebhooksRead,
+    public static OAuthScope WebhooksRead { get; } = new("webhooks:read");
     /// <summary>Создание и управление вебхуками</summary>
-    WebhooksWrite,
+    public static OAuthScope WebhooksWrite { get; } = new("webhooks:write");
     /// <summary>Просмотр лога вебхуков</summary>
-    WebhooksEventsRead,
+    public static OAuthScope WebhooksEventsRead { get; } = new("webhooks:events:read");
     /// <summary>Удаление записи в логе вебхука</summary>
-    WebhooksEventsDelete,
+    public static OAuthScope WebhooksEventsDelete { get; } = new("webhooks:events:delete");
     /// <summary>Поиск сотрудников</summary>
-    SearchUsers,
+    public static OAuthScope SearchUsers { get; } = new("search:users");
     /// <summary>Поиск чатов</summary>
-    SearchChats,
+    public static OAuthScope SearchChats { get; } = new("search:chats");
     /// <summary>Поиск сообщений</summary>
-    SearchMessages,
+    public static OAuthScope SearchMessages { get; } = new("search:messages");
     /// <summary>Просмотр черновиков и отложенных сообщений</summary>
-    DraftsRead,
+    public static OAuthScope DraftsRead { get; } = new("drafts:read");
     /// <summary>Создание, изменение и удаление черновиков и отложенных сообщений</summary>
-    DraftsWrite,
+    public static OAuthScope DraftsWrite { get; } = new("drafts:write");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<OAuthScope> Values { get; } = Array.AsReadOnly(new[] { ChatsRead, ChatsCreate, ChatsUpdate, ChatsMarkUnread, ChatsArchive, ChatsLeave, ChatMembersRead, ChatMembersWrite, ChatExportsRead, ChatExportsWrite, MessagesRead, MessagesCreate, MessagesUpdate, MessagesDelete, ReactionsRead, ReactionsWrite, PinsWrite, ThreadsRead, ThreadsCreate, LinkPreviewsWrite, UsersRead, UsersCreate, UsersUpdate, UsersDelete, GroupTagsRead, GroupTagsWrite, BotsRead, BotsWrite, BotSelfWebhookWrite, BotSelfWrite, ProfileRead, ProfileStatusRead, ProfileStatusWrite, ProfileAvatarWrite, UserStatusRead, UserStatusWrite, UserAvatarWrite, CustomPropertiesRead, AuditEventsRead, CompanyChatsRead, CompanyBotsRead, TasksRead, TasksCreate, TasksUpdate, TasksDelete, FilesRead, FilesWrite, UploadsWrite, ViewsWrite, WebhooksRead, WebhooksWrite, WebhooksEventsRead, WebhooksEventsDelete, SearchUsers, SearchChats, SearchMessages, DraftsRead, DraftsWrite });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(OAuthScope left, OAuthScope right) => left.Equals(right);
+    public static bool operator !=(OAuthScope left, OAuthScope right) => !left.Equals(right);
+    public static implicit operator OAuthScope(string value) => new(value);
+    public bool Equals(OAuthScope other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is OAuthScope other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class OAuthScopeConverter : JsonConverter<OAuthScope>
 {
-    public override OAuthScope Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "chats:read" => OAuthScope.ChatsRead,
-            "chats:create" => OAuthScope.ChatsCreate,
-            "chats:update" => OAuthScope.ChatsUpdate,
-            "chats:mark_unread" => OAuthScope.ChatsMarkUnread,
-            "chats:archive" => OAuthScope.ChatsArchive,
-            "chats:leave" => OAuthScope.ChatsLeave,
-            "chat_members:read" => OAuthScope.ChatMembersRead,
-            "chat_members:write" => OAuthScope.ChatMembersWrite,
-            "chat_exports:read" => OAuthScope.ChatExportsRead,
-            "chat_exports:write" => OAuthScope.ChatExportsWrite,
-            "messages:read" => OAuthScope.MessagesRead,
-            "messages:create" => OAuthScope.MessagesCreate,
-            "messages:update" => OAuthScope.MessagesUpdate,
-            "messages:delete" => OAuthScope.MessagesDelete,
-            "reactions:read" => OAuthScope.ReactionsRead,
-            "reactions:write" => OAuthScope.ReactionsWrite,
-            "pins:write" => OAuthScope.PinsWrite,
-            "threads:read" => OAuthScope.ThreadsRead,
-            "threads:create" => OAuthScope.ThreadsCreate,
-            "link_previews:write" => OAuthScope.LinkPreviewsWrite,
-            "users:read" => OAuthScope.UsersRead,
-            "users:create" => OAuthScope.UsersCreate,
-            "users:update" => OAuthScope.UsersUpdate,
-            "users:delete" => OAuthScope.UsersDelete,
-            "group_tags:read" => OAuthScope.GroupTagsRead,
-            "group_tags:write" => OAuthScope.GroupTagsWrite,
-            "bots:read" => OAuthScope.BotsRead,
-            "bots:write" => OAuthScope.BotsWrite,
-            "bot_self:webhook:write" => OAuthScope.BotSelfWebhookWrite,
-            "bot_self:write" => OAuthScope.BotSelfWrite,
-            "profile:read" => OAuthScope.ProfileRead,
-            "profile_status:read" => OAuthScope.ProfileStatusRead,
-            "profile_status:write" => OAuthScope.ProfileStatusWrite,
-            "profile_avatar:write" => OAuthScope.ProfileAvatarWrite,
-            "user_status:read" => OAuthScope.UserStatusRead,
-            "user_status:write" => OAuthScope.UserStatusWrite,
-            "user_avatar:write" => OAuthScope.UserAvatarWrite,
-            "custom_properties:read" => OAuthScope.CustomPropertiesRead,
-            "audit_events:read" => OAuthScope.AuditEventsRead,
-            "company_chats:read" => OAuthScope.CompanyChatsRead,
-            "company_bots:read" => OAuthScope.CompanyBotsRead,
-            "tasks:read" => OAuthScope.TasksRead,
-            "tasks:create" => OAuthScope.TasksCreate,
-            "tasks:update" => OAuthScope.TasksUpdate,
-            "tasks:delete" => OAuthScope.TasksDelete,
-            "files:read" => OAuthScope.FilesRead,
-            "files:write" => OAuthScope.FilesWrite,
-            "uploads:write" => OAuthScope.UploadsWrite,
-            "views:write" => OAuthScope.ViewsWrite,
-            "webhooks:read" => OAuthScope.WebhooksRead,
-            "webhooks:write" => OAuthScope.WebhooksWrite,
-            "webhooks:events:read" => OAuthScope.WebhooksEventsRead,
-            "webhooks:events:delete" => OAuthScope.WebhooksEventsDelete,
-            "search:users" => OAuthScope.SearchUsers,
-            "search:chats" => OAuthScope.SearchChats,
-            "search:messages" => OAuthScope.SearchMessages,
-            "drafts:read" => OAuthScope.DraftsRead,
-            "drafts:write" => OAuthScope.DraftsWrite,
-            _ => throw new JsonException($"Unknown OAuthScope value: {value}"),
-        };
-    }
+    public override OAuthScope Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, OAuthScope value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            OAuthScope.ChatsRead => "chats:read",
-            OAuthScope.ChatsCreate => "chats:create",
-            OAuthScope.ChatsUpdate => "chats:update",
-            OAuthScope.ChatsMarkUnread => "chats:mark_unread",
-            OAuthScope.ChatsArchive => "chats:archive",
-            OAuthScope.ChatsLeave => "chats:leave",
-            OAuthScope.ChatMembersRead => "chat_members:read",
-            OAuthScope.ChatMembersWrite => "chat_members:write",
-            OAuthScope.ChatExportsRead => "chat_exports:read",
-            OAuthScope.ChatExportsWrite => "chat_exports:write",
-            OAuthScope.MessagesRead => "messages:read",
-            OAuthScope.MessagesCreate => "messages:create",
-            OAuthScope.MessagesUpdate => "messages:update",
-            OAuthScope.MessagesDelete => "messages:delete",
-            OAuthScope.ReactionsRead => "reactions:read",
-            OAuthScope.ReactionsWrite => "reactions:write",
-            OAuthScope.PinsWrite => "pins:write",
-            OAuthScope.ThreadsRead => "threads:read",
-            OAuthScope.ThreadsCreate => "threads:create",
-            OAuthScope.LinkPreviewsWrite => "link_previews:write",
-            OAuthScope.UsersRead => "users:read",
-            OAuthScope.UsersCreate => "users:create",
-            OAuthScope.UsersUpdate => "users:update",
-            OAuthScope.UsersDelete => "users:delete",
-            OAuthScope.GroupTagsRead => "group_tags:read",
-            OAuthScope.GroupTagsWrite => "group_tags:write",
-            OAuthScope.BotsRead => "bots:read",
-            OAuthScope.BotsWrite => "bots:write",
-            OAuthScope.BotSelfWebhookWrite => "bot_self:webhook:write",
-            OAuthScope.BotSelfWrite => "bot_self:write",
-            OAuthScope.ProfileRead => "profile:read",
-            OAuthScope.ProfileStatusRead => "profile_status:read",
-            OAuthScope.ProfileStatusWrite => "profile_status:write",
-            OAuthScope.ProfileAvatarWrite => "profile_avatar:write",
-            OAuthScope.UserStatusRead => "user_status:read",
-            OAuthScope.UserStatusWrite => "user_status:write",
-            OAuthScope.UserAvatarWrite => "user_avatar:write",
-            OAuthScope.CustomPropertiesRead => "custom_properties:read",
-            OAuthScope.AuditEventsRead => "audit_events:read",
-            OAuthScope.CompanyChatsRead => "company_chats:read",
-            OAuthScope.CompanyBotsRead => "company_bots:read",
-            OAuthScope.TasksRead => "tasks:read",
-            OAuthScope.TasksCreate => "tasks:create",
-            OAuthScope.TasksUpdate => "tasks:update",
-            OAuthScope.TasksDelete => "tasks:delete",
-            OAuthScope.FilesRead => "files:read",
-            OAuthScope.FilesWrite => "files:write",
-            OAuthScope.UploadsWrite => "uploads:write",
-            OAuthScope.ViewsWrite => "views:write",
-            OAuthScope.WebhooksRead => "webhooks:read",
-            OAuthScope.WebhooksWrite => "webhooks:write",
-            OAuthScope.WebhooksEventsRead => "webhooks:events:read",
-            OAuthScope.WebhooksEventsDelete => "webhooks:events:delete",
-            OAuthScope.SearchUsers => "search:users",
-            OAuthScope.SearchChats => "search:chats",
-            OAuthScope.SearchMessages => "search:messages",
-            OAuthScope.DraftsRead => "drafts:read",
-            OAuthScope.DraftsWrite => "drafts:write",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, OAuthScope value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Что передано в запросе на отзыв токена</summary>
@@ -1492,37 +1442,50 @@ internal class OAuthTokenTypeHintConverter : JsonConverter<OAuthTokenTypeHint>
 
 /// <summary>Тип события webhook для реакций</summary>
 [JsonConverter(typeof(ReactionEventTypeConverter))]
-public enum ReactionEventType
+public readonly struct ReactionEventType : IEquatable<ReactionEventType>
 {
+    private readonly string? _value;
+
+    public ReactionEventType(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Создание</summary>
-    New,
+    public static ReactionEventType New { get; } = new("new");
     /// <summary>Удаление</summary>
-    Delete,
+    public static ReactionEventType Delete { get; } = new("delete");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<ReactionEventType> Values { get; } = Array.AsReadOnly(new[] { New, Delete });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(ReactionEventType left, ReactionEventType right) => left.Equals(right);
+    public static bool operator !=(ReactionEventType left, ReactionEventType right) => !left.Equals(right);
+    public static implicit operator ReactionEventType(string value) => new(value);
+    public bool Equals(ReactionEventType other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is ReactionEventType other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class ReactionEventTypeConverter : JsonConverter<ReactionEventType>
 {
-    public override ReactionEventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "new" => ReactionEventType.New,
-            "delete" => ReactionEventType.Delete,
-            _ => throw new JsonException($"Unknown ReactionEventType value: {value}"),
-        };
-    }
+    public override ReactionEventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, ReactionEventType value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            ReactionEventType.New => "new",
-            ReactionEventType.Delete => "delete",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, ReactionEventType value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Тип сущности для поиска</summary>
@@ -1636,84 +1599,104 @@ internal class SortOrderConverter : JsonConverter<SortOrder>
 
 /// <summary>Тип задачи</summary>
 [JsonConverter(typeof(TaskKindConverter))]
-public enum TaskKind
+public readonly struct TaskKind : IEquatable<TaskKind>
 {
+    private readonly string? _value;
+
+    public TaskKind(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Позвонить контакту</summary>
-    Call,
+    public static TaskKind Call { get; } = new("call");
     /// <summary>Встреча</summary>
-    Meeting,
+    public static TaskKind Meeting { get; } = new("meeting");
     /// <summary>Простое напоминание</summary>
-    Reminder,
+    public static TaskKind Reminder { get; } = new("reminder");
     /// <summary>Событие</summary>
-    Event,
+    public static TaskKind Event { get; } = new("event");
     /// <summary>Написать письмо</summary>
-    Email,
+    public static TaskKind Email { get; } = new("email");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<TaskKind> Values { get; } = Array.AsReadOnly(new[] { Call, Meeting, Reminder, Event, Email });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(TaskKind left, TaskKind right) => left.Equals(right);
+    public static bool operator !=(TaskKind left, TaskKind right) => !left.Equals(right);
+    public static implicit operator TaskKind(string value) => new(value);
+    public bool Equals(TaskKind other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is TaskKind other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class TaskKindConverter : JsonConverter<TaskKind>
 {
-    public override TaskKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "call" => TaskKind.Call,
-            "meeting" => TaskKind.Meeting,
-            "reminder" => TaskKind.Reminder,
-            "event" => TaskKind.Event,
-            "email" => TaskKind.Email,
-            _ => throw new JsonException($"Unknown TaskKind value: {value}"),
-        };
-    }
+    public override TaskKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, TaskKind value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            TaskKind.Call => "call",
-            TaskKind.Meeting => "meeting",
-            TaskKind.Reminder => "reminder",
-            TaskKind.Event => "event",
-            TaskKind.Email => "email",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, TaskKind value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Статус напоминания</summary>
 [JsonConverter(typeof(TaskStatusConverter))]
-public enum TaskStatus
+public readonly struct TaskStatus : IEquatable<TaskStatus>
 {
+    private readonly string? _value;
+
+    public TaskStatus(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Выполнено</summary>
-    Done,
+    public static TaskStatus Done { get; } = new("done");
     /// <summary>Активно</summary>
-    Undone,
+    public static TaskStatus Undone { get; } = new("undone");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<TaskStatus> Values { get; } = Array.AsReadOnly(new[] { Done, Undone });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(TaskStatus left, TaskStatus right) => left.Equals(right);
+    public static bool operator !=(TaskStatus left, TaskStatus right) => !left.Equals(right);
+    public static implicit operator TaskStatus(string value) => new(value);
+    public bool Equals(TaskStatus other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is TaskStatus other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class TaskStatusConverter : JsonConverter<TaskStatus>
 {
-    public override TaskStatus Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "done" => TaskStatus.Done,
-            "undone" => TaskStatus.Undone,
-            _ => throw new JsonException($"Unknown TaskStatus value: {value}"),
-        };
-    }
+    public override TaskStatus Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, TaskStatus value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            TaskStatus.Done => "done",
-            TaskStatus.Undone => "undone",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, TaskStatus value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат.</summary>
@@ -1761,96 +1744,110 @@ internal class UserCreateRoleConverter : JsonConverter<UserCreateRole>
 
 /// <summary>Тип события webhook для пользователей</summary>
 [JsonConverter(typeof(UserEventTypeConverter))]
-public enum UserEventType
+public readonly struct UserEventType : IEquatable<UserEventType>
 {
+    private readonly string? _value;
+
+    public UserEventType(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Приглашение</summary>
-    Invite,
+    public static UserEventType Invite { get; } = new("invite");
     /// <summary>Подтверждение</summary>
-    Confirm,
+    public static UserEventType Confirm { get; } = new("confirm");
     /// <summary>Обновление</summary>
-    Update,
+    public static UserEventType Update { get; } = new("update");
     /// <summary>Приостановка</summary>
-    Suspend,
+    public static UserEventType Suspend { get; } = new("suspend");
     /// <summary>Активация</summary>
-    Activate,
+    public static UserEventType Activate { get; } = new("activate");
     /// <summary>Удаление</summary>
-    Delete,
+    public static UserEventType Delete { get; } = new("delete");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<UserEventType> Values { get; } = Array.AsReadOnly(new[] { Invite, Confirm, Update, Suspend, Activate, Delete });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(UserEventType left, UserEventType right) => left.Equals(right);
+    public static bool operator !=(UserEventType left, UserEventType right) => !left.Equals(right);
+    public static implicit operator UserEventType(string value) => new(value);
+    public bool Equals(UserEventType other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is UserEventType other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class UserEventTypeConverter : JsonConverter<UserEventType>
 {
-    public override UserEventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "invite" => UserEventType.Invite,
-            "confirm" => UserEventType.Confirm,
-            "update" => UserEventType.Update,
-            "suspend" => UserEventType.Suspend,
-            "activate" => UserEventType.Activate,
-            "delete" => UserEventType.Delete,
-            _ => throw new JsonException($"Unknown UserEventType value: {value}"),
-        };
-    }
+    public override UserEventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, UserEventType value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            UserEventType.Invite => "invite",
-            UserEventType.Confirm => "confirm",
-            UserEventType.Update => "update",
-            UserEventType.Suspend => "suspend",
-            UserEventType.Activate => "activate",
-            UserEventType.Delete => "delete",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, UserEventType value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Роль пользователя в системе</summary>
 [JsonConverter(typeof(UserRoleConverter))]
-public enum UserRole
+public readonly struct UserRole : IEquatable<UserRole>
 {
+    private readonly string? _value;
+
+    public UserRole(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Администратор</summary>
-    Admin,
+    public static UserRole Admin { get; } = new("admin");
     /// <summary>Сотрудник</summary>
-    User,
+    public static UserRole User { get; } = new("user");
     /// <summary>Мульти-гость</summary>
-    MultiGuest,
+    public static UserRole MultiGuest { get; } = new("multi_guest");
     /// <summary>Гость</summary>
-    Guest,
+    public static UserRole Guest { get; } = new("guest");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<UserRole> Values { get; } = Array.AsReadOnly(new[] { Admin, User, MultiGuest, Guest });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(UserRole left, UserRole right) => left.Equals(right);
+    public static bool operator !=(UserRole left, UserRole right) => !left.Equals(right);
+    public static implicit operator UserRole(string value) => new(value);
+    public bool Equals(UserRole other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is UserRole other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class UserRoleConverter : JsonConverter<UserRole>
 {
-    public override UserRole Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "admin" => UserRole.Admin,
-            "user" => UserRole.User,
-            "multi_guest" => UserRole.MultiGuest,
-            "guest" => UserRole.Guest,
-            _ => throw new JsonException($"Unknown UserRole value: {value}"),
-        };
-    }
+    public override UserRole Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, UserRole value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            UserRole.Admin => "admin",
-            UserRole.User => "user",
-            UserRole.MultiGuest => "multi_guest",
-            UserRole.Guest => "guest",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, UserRole value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`).</summary>
@@ -1894,339 +1891,262 @@ internal class UserRoleInputConverter : JsonConverter<UserRoleInput>
 
 /// <summary>Коды ошибок валидации</summary>
 [JsonConverter(typeof(ValidationErrorCodeConverter))]
-public enum ValidationErrorCode
+public readonly struct ValidationErrorCode : IEquatable<ValidationErrorCode>
 {
+    private readonly string? _value;
+
+    public ValidationErrorCode(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Обязательное поле (не может быть пустым)</summary>
-    Blank,
+    public static ValidationErrorCode Blank { get; } = new("blank");
     /// <summary>Слишком длинное значение (пояснения вы получите в поле message)</summary>
-    TooLong,
+    public static ValidationErrorCode TooLong { get; } = new("too_long");
     /// <summary>Поле не соответствует правилам (пояснения вы получите в поле message)</summary>
-    Invalid,
+    public static ValidationErrorCode Invalid { get; } = new("invalid");
     /// <summary>Поле имеет непредусмотренное значение</summary>
-    Inclusion,
+    public static ValidationErrorCode Inclusion { get; } = new("inclusion");
     /// <summary>Поле имеет недопустимое значение</summary>
-    Exclusion,
+    public static ValidationErrorCode Exclusion { get; } = new("exclusion");
     /// <summary>Название для этого поля уже существует</summary>
-    Taken,
+    public static ValidationErrorCode Taken { get; } = new("taken");
     /// <summary>Emoji статуса не может содержать значения отличные от Emoji символа</summary>
-    WrongEmoji,
+    public static ValidationErrorCode WrongEmoji { get; } = new("wrong_emoji");
     /// <summary>Объект не найден</summary>
-    NotFound,
+    public static ValidationErrorCode NotFound { get; } = new("not_found");
     /// <summary>Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить</summary>
-    AlreadyExists,
+    public static ValidationErrorCode AlreadyExists { get; } = new("already_exists");
     /// <summary>Ошибка личного чата (пояснения вы получите в поле message)</summary>
-    PersonalChat,
+    public static ValidationErrorCode PersonalChat { get; } = new("personal_chat");
     /// <summary>Отображаемая ошибка (пояснения вы получите в поле message)</summary>
-    DisplayedError,
+    public static ValidationErrorCode DisplayedError { get; } = new("displayed_error");
     /// <summary>Действие запрещено</summary>
-    NotAuthorized,
+    public static ValidationErrorCode NotAuthorized { get; } = new("not_authorized");
     /// <summary>Выбран слишком большой диапазон дат</summary>
-    InvalidDateRange,
+    public static ValidationErrorCode InvalidDateRange { get; } = new("invalid_date_range");
     /// <summary>Некорректный URL вебхука</summary>
-    InvalidWebhookUrl,
+    public static ValidationErrorCode InvalidWebhookUrl { get; } = new("invalid_webhook_url");
     /// <summary>Достигнут лимит запросов</summary>
-    RateLimit,
+    public static ValidationErrorCode RateLimit { get; } = new("rate_limit");
     /// <summary>Превышен лимит активных сотрудников (пояснения вы получите в поле message)</summary>
-    LicensesLimit,
+    public static ValidationErrorCode LicensesLimit { get; } = new("licenses_limit");
     /// <summary>Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)</summary>
-    UserLimit,
+    public static ValidationErrorCode UserLimit { get; } = new("user_limit");
     /// <summary>Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)</summary>
-    UniqueLimit,
+    public static ValidationErrorCode UniqueLimit { get; } = new("unique_limit");
     /// <summary>Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)</summary>
-    GeneralLimit,
+    public static ValidationErrorCode GeneralLimit { get; } = new("general_limit");
     /// <summary>Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий</summary>
-    Unhandled,
+    public static ValidationErrorCode Unhandled { get; } = new("unhandled");
     /// <summary>Не удалось найти идентификатор события</summary>
-    TriggerNotFound,
+    public static ValidationErrorCode TriggerNotFound { get; } = new("trigger_not_found");
     /// <summary>Время жизни идентификатора события истекло</summary>
-    TriggerExpired,
+    public static ValidationErrorCode TriggerExpired { get; } = new("trigger_expired");
     /// <summary>Обязательный параметр не передан</summary>
-    Required,
+    public static ValidationErrorCode Required { get; } = new("required");
     /// <summary>Недопустимое значение (не входит в список допустимых)</summary>
-    In,
+    public static ValidationErrorCode In { get; } = new("in");
     /// <summary>Значение неприменимо в данном контексте (пояснения вы получите в поле message)</summary>
-    NotApplicable,
+    public static ValidationErrorCode NotApplicable { get; } = new("not_applicable");
     /// <summary>Нельзя изменить свои собственные данные</summary>
-    SelfUpdate,
+    public static ValidationErrorCode SelfUpdate { get; } = new("self_update");
     /// <summary>Нельзя изменить данные владельца</summary>
-    OwnerProtected,
+    public static ValidationErrorCode OwnerProtected { get; } = new("owner_protected");
     /// <summary>Значение уже назначено</summary>
-    AlreadyAssigned,
+    public static ValidationErrorCode AlreadyAssigned { get; } = new("already_assigned");
     /// <summary>Ближайшая отправка отложенного сообщения приходится на прошлое</summary>
-    NextSendAtInvalid,
+    public static ValidationErrorCode NextSendAtInvalid { get; } = new("next_send_at_invalid");
     /// <summary>Расписание отложенного сообщения не складывается в повтор</summary>
-    ScheduleInvalid,
+    public static ValidationErrorCode ScheduleInvalid { get; } = new("schedule_invalid");
     /// <summary>Расписание заканчивается раньше ближайшей отправки</summary>
-    ScheduleEndDateInvalid,
+    public static ValidationErrorCode ScheduleEndDateInvalid { get; } = new("schedule_end_date_invalid");
     /// <summary>Превышен лимит отложенных сообщений на чат (50)</summary>
-    ScheduledMessagesLimit,
+    public static ValidationErrorCode ScheduledMessagesLimit { get; } = new("scheduled_messages_limit");
     /// <summary>Отложенное сообщение нельзя превратить обратно в черновик</summary>
-    DraftTypeChangeForbidden,
+    public static ValidationErrorCode DraftTypeChangeForbidden { get; } = new("draft_type_change_forbidden");
     /// <summary>Скачивание файла запрещено: нужен запрос из безопасного контура</summary>
-    ConfidentialDownloadDenied,
+    public static ValidationErrorCode ConfidentialDownloadDenied { get; } = new("confidential_download_denied");
     /// <summary>Не удалось расшифровать файл</summary>
-    DecryptionFailed,
+    public static ValidationErrorCode DecryptionFailed { get; } = new("decryption_failed");
     /// <summary>Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`</summary>
-    BotAddDenied,
+    public static ValidationErrorCode BotAddDenied { get; } = new("bot_add_denied");
     /// <summary>Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`</summary>
-    SingleChatBotOccupied,
+    public static ValidationErrorCode SingleChatBotOccupied { get; } = new("single_chat_bot_occupied");
     /// <summary>Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег</summary>
-    SingleChatBotTagDenied,
+    public static ValidationErrorCode SingleChatBotTagDenied { get; } = new("single_chat_bot_tag_denied");
     /// <summary>В тег можно добавить только бота, которого может добавить в чат любой сотрудник</summary>
-    RestrictedBotTagDenied,
+    public static ValidationErrorCode RestrictedBotTagDenied { get; } = new("restricted_bot_tag_denied");
     /// <summary>Настройки бота изменились во время запроса: повторите его</summary>
-    BotChangedConcurrently,
+    public static ValidationErrorCode BotChangedConcurrently { get; } = new("bot_changed_concurrently");
     /// <summary>Поиск не уложился по времени: сузьте запрос и повторите</summary>
-    Timeout,
+    public static ValidationErrorCode Timeout { get; } = new("timeout");
     /// <summary>Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`</summary>
-    DailyInvitesLimit,
+    public static ValidationErrorCode DailyInvitesLimit { get; } = new("daily_invites_limit");
     /// <summary>Недостаточно прав для выполнения действия (пояснения вы получите в поле message)</summary>
-    Forbidden,
+    public static ValidationErrorCode Forbidden { get; } = new("forbidden");
     /// <summary>Доступ запрещён (недостаточно прав)</summary>
-    PermissionDenied,
+    public static ValidationErrorCode PermissionDenied { get; } = new("permission_denied");
     /// <summary>Доступ запрещён</summary>
-    AccessDenied,
+    public static ValidationErrorCode AccessDenied { get; } = new("access_denied");
     /// <summary>Некорректные параметры запроса (пояснения вы получите в поле message)</summary>
-    WrongParams,
+    public static ValidationErrorCode WrongParams { get; } = new("wrong_params");
     /// <summary>Требуется оплата</summary>
-    PaymentRequired,
+    public static ValidationErrorCode PaymentRequired { get; } = new("payment_required");
     /// <summary>Значение слишком короткое (пояснения вы получите в поле message)</summary>
-    MinLength,
+    public static ValidationErrorCode MinLength { get; } = new("min_length");
     /// <summary>Значение слишком длинное (пояснения вы получите в поле message)</summary>
-    MaxLength,
+    public static ValidationErrorCode MaxLength { get; } = new("max_length");
     /// <summary>Использовано зарезервированное системное слово (here, all)</summary>
-    UseOfSystemWords,
+    public static ValidationErrorCode UseOfSystemWords { get; } = new("use_of_system_words");
     /// <summary>Файл экспорта не найден или ещё не готов</summary>
-    ExportFileNotFound,
+    public static ValidationErrorCode ExportFileNotFound { get; } = new("export_file_not_found");
     /// <summary>Нельзя исключить владельца чата</summary>
-    CannotKickOwner,
+    public static ValidationErrorCode CannotKickOwner { get; } = new("cannot_kick_owner");
     /// <summary>Не удалось закрепить сообщение</summary>
-    PinFailed,
+    public static ValidationErrorCode PinFailed { get; } = new("pin_failed");
     /// <summary>Сообщение удалено</summary>
-    MessageDeleted,
+    public static ValidationErrorCode MessageDeleted { get; } = new("message_deleted");
     /// <summary>Нельзя создать тред для сообщения, которое уже находится в треде</summary>
-    ThreadMessage,
+    public static ValidationErrorCode ThreadMessage { get; } = new("thread_message");
     /// <summary>Представление не найдено или принадлежит другому боту</summary>
-    ViewNotFound,
+    public static ValidationErrorCode ViewNotFound { get; } = new("view_not_found");
     /// <summary>Время на ответ об отправке формы истекло или ответ уже был принят</summary>
-    SubmitExpired,
+    public static ValidationErrorCode SubmitExpired { get; } = new("submit_expired");
     /// <summary>Сервис временно недоступен, повторите запрос</summary>
-    ServiceUnavailable,
+    public static ValidationErrorCode ServiceUnavailable { get; } = new("service_unavailable");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<ValidationErrorCode> Values { get; } = Array.AsReadOnly(new[] { Blank, TooLong, Invalid, Inclusion, Exclusion, Taken, WrongEmoji, NotFound, AlreadyExists, PersonalChat, DisplayedError, NotAuthorized, InvalidDateRange, InvalidWebhookUrl, RateLimit, LicensesLimit, UserLimit, UniqueLimit, GeneralLimit, Unhandled, TriggerNotFound, TriggerExpired, Required, In, NotApplicable, SelfUpdate, OwnerProtected, AlreadyAssigned, NextSendAtInvalid, ScheduleInvalid, ScheduleEndDateInvalid, ScheduledMessagesLimit, DraftTypeChangeForbidden, ConfidentialDownloadDenied, DecryptionFailed, BotAddDenied, SingleChatBotOccupied, SingleChatBotTagDenied, RestrictedBotTagDenied, BotChangedConcurrently, Timeout, DailyInvitesLimit, Forbidden, PermissionDenied, AccessDenied, WrongParams, PaymentRequired, MinLength, MaxLength, UseOfSystemWords, ExportFileNotFound, CannotKickOwner, PinFailed, MessageDeleted, ThreadMessage, ViewNotFound, SubmitExpired, ServiceUnavailable });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(ValidationErrorCode left, ValidationErrorCode right) => left.Equals(right);
+    public static bool operator !=(ValidationErrorCode left, ValidationErrorCode right) => !left.Equals(right);
+    public static implicit operator ValidationErrorCode(string value) => new(value);
+    public bool Equals(ValidationErrorCode other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is ValidationErrorCode other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class ValidationErrorCodeConverter : JsonConverter<ValidationErrorCode>
 {
-    public override ValidationErrorCode Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "blank" => ValidationErrorCode.Blank,
-            "too_long" => ValidationErrorCode.TooLong,
-            "invalid" => ValidationErrorCode.Invalid,
-            "inclusion" => ValidationErrorCode.Inclusion,
-            "exclusion" => ValidationErrorCode.Exclusion,
-            "taken" => ValidationErrorCode.Taken,
-            "wrong_emoji" => ValidationErrorCode.WrongEmoji,
-            "not_found" => ValidationErrorCode.NotFound,
-            "already_exists" => ValidationErrorCode.AlreadyExists,
-            "personal_chat" => ValidationErrorCode.PersonalChat,
-            "displayed_error" => ValidationErrorCode.DisplayedError,
-            "not_authorized" => ValidationErrorCode.NotAuthorized,
-            "invalid_date_range" => ValidationErrorCode.InvalidDateRange,
-            "invalid_webhook_url" => ValidationErrorCode.InvalidWebhookUrl,
-            "rate_limit" => ValidationErrorCode.RateLimit,
-            "licenses_limit" => ValidationErrorCode.LicensesLimit,
-            "user_limit" => ValidationErrorCode.UserLimit,
-            "unique_limit" => ValidationErrorCode.UniqueLimit,
-            "general_limit" => ValidationErrorCode.GeneralLimit,
-            "unhandled" => ValidationErrorCode.Unhandled,
-            "trigger_not_found" => ValidationErrorCode.TriggerNotFound,
-            "trigger_expired" => ValidationErrorCode.TriggerExpired,
-            "required" => ValidationErrorCode.Required,
-            "in" => ValidationErrorCode.In,
-            "not_applicable" => ValidationErrorCode.NotApplicable,
-            "self_update" => ValidationErrorCode.SelfUpdate,
-            "owner_protected" => ValidationErrorCode.OwnerProtected,
-            "already_assigned" => ValidationErrorCode.AlreadyAssigned,
-            "next_send_at_invalid" => ValidationErrorCode.NextSendAtInvalid,
-            "schedule_invalid" => ValidationErrorCode.ScheduleInvalid,
-            "schedule_end_date_invalid" => ValidationErrorCode.ScheduleEndDateInvalid,
-            "scheduled_messages_limit" => ValidationErrorCode.ScheduledMessagesLimit,
-            "draft_type_change_forbidden" => ValidationErrorCode.DraftTypeChangeForbidden,
-            "confidential_download_denied" => ValidationErrorCode.ConfidentialDownloadDenied,
-            "decryption_failed" => ValidationErrorCode.DecryptionFailed,
-            "bot_add_denied" => ValidationErrorCode.BotAddDenied,
-            "single_chat_bot_occupied" => ValidationErrorCode.SingleChatBotOccupied,
-            "single_chat_bot_tag_denied" => ValidationErrorCode.SingleChatBotTagDenied,
-            "restricted_bot_tag_denied" => ValidationErrorCode.RestrictedBotTagDenied,
-            "bot_changed_concurrently" => ValidationErrorCode.BotChangedConcurrently,
-            "timeout" => ValidationErrorCode.Timeout,
-            "daily_invites_limit" => ValidationErrorCode.DailyInvitesLimit,
-            "forbidden" => ValidationErrorCode.Forbidden,
-            "permission_denied" => ValidationErrorCode.PermissionDenied,
-            "access_denied" => ValidationErrorCode.AccessDenied,
-            "wrong_params" => ValidationErrorCode.WrongParams,
-            "payment_required" => ValidationErrorCode.PaymentRequired,
-            "min_length" => ValidationErrorCode.MinLength,
-            "max_length" => ValidationErrorCode.MaxLength,
-            "use_of_system_words" => ValidationErrorCode.UseOfSystemWords,
-            "export_file_not_found" => ValidationErrorCode.ExportFileNotFound,
-            "cannot_kick_owner" => ValidationErrorCode.CannotKickOwner,
-            "pin_failed" => ValidationErrorCode.PinFailed,
-            "message_deleted" => ValidationErrorCode.MessageDeleted,
-            "thread_message" => ValidationErrorCode.ThreadMessage,
-            "view_not_found" => ValidationErrorCode.ViewNotFound,
-            "submit_expired" => ValidationErrorCode.SubmitExpired,
-            "service_unavailable" => ValidationErrorCode.ServiceUnavailable,
-            _ => throw new JsonException($"Unknown ValidationErrorCode value: {value}"),
-        };
-    }
+    public override ValidationErrorCode Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, ValidationErrorCode value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            ValidationErrorCode.Blank => "blank",
-            ValidationErrorCode.TooLong => "too_long",
-            ValidationErrorCode.Invalid => "invalid",
-            ValidationErrorCode.Inclusion => "inclusion",
-            ValidationErrorCode.Exclusion => "exclusion",
-            ValidationErrorCode.Taken => "taken",
-            ValidationErrorCode.WrongEmoji => "wrong_emoji",
-            ValidationErrorCode.NotFound => "not_found",
-            ValidationErrorCode.AlreadyExists => "already_exists",
-            ValidationErrorCode.PersonalChat => "personal_chat",
-            ValidationErrorCode.DisplayedError => "displayed_error",
-            ValidationErrorCode.NotAuthorized => "not_authorized",
-            ValidationErrorCode.InvalidDateRange => "invalid_date_range",
-            ValidationErrorCode.InvalidWebhookUrl => "invalid_webhook_url",
-            ValidationErrorCode.RateLimit => "rate_limit",
-            ValidationErrorCode.LicensesLimit => "licenses_limit",
-            ValidationErrorCode.UserLimit => "user_limit",
-            ValidationErrorCode.UniqueLimit => "unique_limit",
-            ValidationErrorCode.GeneralLimit => "general_limit",
-            ValidationErrorCode.Unhandled => "unhandled",
-            ValidationErrorCode.TriggerNotFound => "trigger_not_found",
-            ValidationErrorCode.TriggerExpired => "trigger_expired",
-            ValidationErrorCode.Required => "required",
-            ValidationErrorCode.In => "in",
-            ValidationErrorCode.NotApplicable => "not_applicable",
-            ValidationErrorCode.SelfUpdate => "self_update",
-            ValidationErrorCode.OwnerProtected => "owner_protected",
-            ValidationErrorCode.AlreadyAssigned => "already_assigned",
-            ValidationErrorCode.NextSendAtInvalid => "next_send_at_invalid",
-            ValidationErrorCode.ScheduleInvalid => "schedule_invalid",
-            ValidationErrorCode.ScheduleEndDateInvalid => "schedule_end_date_invalid",
-            ValidationErrorCode.ScheduledMessagesLimit => "scheduled_messages_limit",
-            ValidationErrorCode.DraftTypeChangeForbidden => "draft_type_change_forbidden",
-            ValidationErrorCode.ConfidentialDownloadDenied => "confidential_download_denied",
-            ValidationErrorCode.DecryptionFailed => "decryption_failed",
-            ValidationErrorCode.BotAddDenied => "bot_add_denied",
-            ValidationErrorCode.SingleChatBotOccupied => "single_chat_bot_occupied",
-            ValidationErrorCode.SingleChatBotTagDenied => "single_chat_bot_tag_denied",
-            ValidationErrorCode.RestrictedBotTagDenied => "restricted_bot_tag_denied",
-            ValidationErrorCode.BotChangedConcurrently => "bot_changed_concurrently",
-            ValidationErrorCode.Timeout => "timeout",
-            ValidationErrorCode.DailyInvitesLimit => "daily_invites_limit",
-            ValidationErrorCode.Forbidden => "forbidden",
-            ValidationErrorCode.PermissionDenied => "permission_denied",
-            ValidationErrorCode.AccessDenied => "access_denied",
-            ValidationErrorCode.WrongParams => "wrong_params",
-            ValidationErrorCode.PaymentRequired => "payment_required",
-            ValidationErrorCode.MinLength => "min_length",
-            ValidationErrorCode.MaxLength => "max_length",
-            ValidationErrorCode.UseOfSystemWords => "use_of_system_words",
-            ValidationErrorCode.ExportFileNotFound => "export_file_not_found",
-            ValidationErrorCode.CannotKickOwner => "cannot_kick_owner",
-            ValidationErrorCode.PinFailed => "pin_failed",
-            ValidationErrorCode.MessageDeleted => "message_deleted",
-            ValidationErrorCode.ThreadMessage => "thread_message",
-            ValidationErrorCode.ViewNotFound => "view_not_found",
-            ValidationErrorCode.SubmitExpired => "submit_expired",
-            ValidationErrorCode.ServiceUnavailable => "service_unavailable",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, ValidationErrorCode value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Тип события видеозвонка</summary>
 [JsonConverter(typeof(VideoCallEventTypeConverter))]
-public enum VideoCallEventType
+public readonly struct VideoCallEventType : IEquatable<VideoCallEventType>
 {
+    private readonly string? _value;
+
+    public VideoCallEventType(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Видеозвонок начался</summary>
-    Started,
+    public static VideoCallEventType Started { get; } = new("started");
     /// <summary>Видеозвонок завершился</summary>
-    Finished,
+    public static VideoCallEventType Finished { get; } = new("finished");
     /// <summary>Запись видеозвонка готова</summary>
-    RecordingReady,
+    public static VideoCallEventType RecordingReady { get; } = new("recording_ready");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<VideoCallEventType> Values { get; } = Array.AsReadOnly(new[] { Started, Finished, RecordingReady });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(VideoCallEventType left, VideoCallEventType right) => left.Equals(right);
+    public static bool operator !=(VideoCallEventType left, VideoCallEventType right) => !left.Equals(right);
+    public static implicit operator VideoCallEventType(string value) => new(value);
+    public bool Equals(VideoCallEventType other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is VideoCallEventType other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class VideoCallEventTypeConverter : JsonConverter<VideoCallEventType>
 {
-    public override VideoCallEventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "started" => VideoCallEventType.Started,
-            "finished" => VideoCallEventType.Finished,
-            "recording_ready" => VideoCallEventType.RecordingReady,
-            _ => throw new JsonException($"Unknown VideoCallEventType value: {value}"),
-        };
-    }
+    public override VideoCallEventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, VideoCallEventType value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            VideoCallEventType.Started => "started",
-            VideoCallEventType.Finished => "finished",
-            VideoCallEventType.RecordingReady => "recording_ready",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, VideoCallEventType value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 /// <summary>Тип события webhook</summary>
 [JsonConverter(typeof(WebhookEventTypeConverter))]
-public enum WebhookEventType
+public readonly struct WebhookEventType : IEquatable<WebhookEventType>
 {
+    private readonly string? _value;
+
+    public WebhookEventType(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
     /// <summary>Создание</summary>
-    New,
+    public static WebhookEventType New { get; } = new("new");
     /// <summary>Обновление</summary>
-    Update,
+    public static WebhookEventType Update { get; } = new("update");
     /// <summary>Удаление</summary>
-    Delete,
+    public static WebhookEventType Delete { get; } = new("delete");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<WebhookEventType> Values { get; } = Array.AsReadOnly(new[] { New, Update, Delete });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(WebhookEventType left, WebhookEventType right) => left.Equals(right);
+    public static bool operator !=(WebhookEventType left, WebhookEventType right) => !left.Equals(right);
+    public static implicit operator WebhookEventType(string value) => new(value);
+    public bool Equals(WebhookEventType other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is WebhookEventType other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class WebhookEventTypeConverter : JsonConverter<WebhookEventType>
 {
-    public override WebhookEventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "new" => WebhookEventType.New,
-            "update" => WebhookEventType.Update,
-            "delete" => WebhookEventType.Delete,
-            _ => throw new JsonException($"Unknown WebhookEventType value: {value}"),
-        };
-    }
+    public override WebhookEventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, WebhookEventType value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            WebhookEventType.New => "new",
-            WebhookEventType.Update => "update",
-            WebhookEventType.Delete => "delete",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, WebhookEventType value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 [JsonConverter(typeof(AuditEventDetailsUnionConverter))]
@@ -4078,11 +3998,11 @@ public class MessageUpdateRequest
 public class OAuthError : Exception
 {
     [JsonPropertyName("error")]
-    public string Error { get; set; } = default!;
+    public OAuthErrorCode Error { get; set; } = default!;
     [JsonPropertyName("error_description")]
     public string ErrorDescription { get; set; } = default!;
 
-    public override string Message => Error ?? "oauth error";
+    public override string Message => string.IsNullOrEmpty(Error.Value) ? "oauth error" : Error.Value;
 }
 
 public class OAuthRevokeRequest

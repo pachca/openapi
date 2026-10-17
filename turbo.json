@@ -16,6 +16,7 @@
       "outputs": [
         "openapi.yaml",
         "generated/**",
+        "!generated/build.gradle.kts",
         "src/generated/**"
       ],
       "cache": true

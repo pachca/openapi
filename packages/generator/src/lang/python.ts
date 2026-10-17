@@ -117,8 +117,40 @@ function pyDefault(
   return null;
 }
 
+/** The open enum type of `OAuthError.error`, when the spec gives that field one. */
+function oauthErrorCodeEnum(ir: IR): string | undefined {
+  const field = ir.models.find((m) => m.name === 'OAuthError')?.fields.find((f) => f.name === 'error');
+  if (field?.type.kind !== 'enum' || !field.type.ref) return undefined;
+  return ir.enums.find((e) => e.name === field.type.ref)?.open ? field.type.ref : undefined;
+}
+
+/**
+ * Base of the open enums: a value the SDK does not list yet becomes a member that
+ * keeps it, instead of a `ValueError`. That member is not registered on the
+ * class, so `is_known` tells it apart even when the enum lists `unknown` itself;
+ * its name then becomes `UNKNOWN_VALUE`, as the Swift catch-all `unknownValue`.
+ */
+function emitOpenStrEnum(lines: string[]): void {
+  lines.push('class OpenStrEnum(StrEnum):');
+  lines.push('    """An enum of responses: a value this SDK does not list yet becomes a member that keeps it, with is_known False."""');
+  lines.push('');
+  lines.push('    @classmethod');
+  lines.push('    def _missing_(cls, value: object) -> OpenStrEnum | None:');
+  lines.push('        if not isinstance(value, str):');
+  lines.push('            return None');
+  lines.push('        member = str.__new__(cls, value)');
+  lines.push('        member._name_ = "UNKNOWN_VALUE" if "UNKNOWN" in cls.__members__ else "UNKNOWN"');
+  lines.push('        member._value_ = value');
+  lines.push('        return member');
+  lines.push('');
+  lines.push('    @property');
+  lines.push('    def is_known(self) -> bool:');
+  lines.push('        """Whether this SDK version lists the value."""');
+  lines.push('        return self._value_ in type(self)._value2member_map_');
+}
+
 function emitEnum(lines: string[], e: IREnum): void {
-  lines.push(`class ${e.name}(StrEnum):`);
+  lines.push(`class ${e.name}(${e.open ? 'OpenStrEnum' : 'StrEnum'}):`);
   if (e.description && e.hasDescriptions && e.members.length > 1) {
     lines.push(`    """${e.description}"""`);
     lines.push('');
@@ -199,7 +231,9 @@ function emitModel(
     if (errField) {
       lines.push('');
       lines.push('    def __str__(self) -> str:');
-      lines.push(`        return self.${pyFieldName(errField)}`);
+      lines.push(errField.type.kind === 'enum'
+        ? `        return str(self.${pyFieldName(errField)})`
+        : `        return self.${pyFieldName(errField)}`);
     }
   }
 }
@@ -265,6 +299,12 @@ function generateModels(ir: IR): string {
 
   const unionMembers = new Set<string>();
   for (const u of ir.unions) for (const ref of u.memberRefs) unionMembers.add(ref);
+
+  if (ir.enums.some((e) => e.open)) {
+    emitOpenStrEnum(lines);
+    lines.push('');
+    lines.push('');
+  }
 
   for (const e of ir.enums) {
     emitEnum(lines, e);
@@ -403,6 +443,9 @@ function collectClientImports(ir: IR): string[] {
       }
       if (op.hasOAuthError || ir.models.some((m) => m.name === 'OAuthError')) {
         add('OAuthError');
+        // `_error_from_body` builds the OAuthError itself, its code included.
+        const codeEnum = oauthErrorCodeEnum(ir);
+        if (codeEnum && pyPicksErrorByBody(ir)) add(codeEnum);
       }
       if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
         add('ApiError');
@@ -938,7 +981,9 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     lines.push('    # An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
     lines.push('    # which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.');
     lines.push('    if isinstance(body, dict) and isinstance(body.get("error"), str) and "errors" not in body:');
-    lines.push('        return OAuthError(body["error"], str(body.get("error_description") or ""))');
+    const codeEnum = oauthErrorCodeEnum(ir);
+    const code = codeEnum ? `${codeEnum}(body["error"])` : 'body["error"]';
+    lines.push(`        return OAuthError(${code}, str(body.get("error_description") or ""))`);
     lines.push('    return deserialize(ApiError, body)');
   }
 
@@ -1095,9 +1140,11 @@ function generateUtils(ir: IR): string {
     '',
     'import dataclasses',
     'import keyword',
+    'import types',
     'from dataclasses import asdict, fields',
     'from datetime import datetime',
-    'from typing import Callable, Type, TypeVar, get_args, get_origin, get_type_hints',
+    'from enum import Enum',
+    'from typing import Callable, Type, TypeVar, Union, get_args, get_origin, get_type_hints',
     '',
     'import httpx',
   ];
@@ -1176,12 +1223,15 @@ function generateUtils(ir: IR): string {
     '',
     '',
     'def _resolve_list_item_type(tp: object) -> object | None:',
-    '    """Extract the item type from list[X]."""',
+    '    """Extract the item type from list[X] or list[X] | None."""',
     '    origin = get_origin(tp)',
     '    if origin is list:',
     '        args = get_args(tp)',
-    '        if args:',
-    '            return args[0]',
+    '        return args[0] if args else None',
+    '    if origin is Union or origin is types.UnionType:',
+    '        for arg in get_args(tp):',
+    '            if get_origin(arg) is list and get_args(arg):',
+    '                return get_args(arg)[0]',
     '    return None',
     '',
     '',
@@ -1221,6 +1271,13 @@ function generateUtils(ir: IR): string {
     '                    break',
     '        if raw_tp is datetime:',
     '            return datetime.fromisoformat(value)',
+    '        if isinstance(raw_tp, type) and issubclass(raw_tp, Enum):',
+    '            # An open enum keeps a value it does not list in a member with is_known False;',
+    '            # a closed one refuses it, and the raw string is kept as is.',
+    '            try:',
+    '                return raw_tp(value)',
+    '            except ValueError:',
+    '                return value',
     '    return value',
     '',
     '',

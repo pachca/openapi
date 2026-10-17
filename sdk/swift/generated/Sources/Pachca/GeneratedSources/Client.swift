@@ -38,7 +38,7 @@ func pachcaFormBody<T: Encodable>(_ value: T) throws -> Data {
 func pachcaErrorFromBody(_ data: Data) -> Error {
     if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
        object["errors"] == nil, let code = object["error"] as? String {
-        return OAuthError(error: code, errorDescription: object["error_description"] as? String ?? "")
+        return OAuthError(error: OAuthErrorCode(code), errorDescription: object["error_description"] as? String ?? "")
     }
     if let apiError = try? deserialize(ApiError.self, from: data) { return apiError }
     return URLError(.badServerResponse)

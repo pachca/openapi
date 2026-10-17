@@ -15,6 +15,7 @@ const (
 	OAuthScopeUsersWrite OAuthScope = "users:write"
 )
 
+// EventType may hold a value this SDK does not list yet: a response keeps it as is.
 type EventType string
 
 const (

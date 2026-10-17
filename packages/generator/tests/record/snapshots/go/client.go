@@ -81,7 +81,7 @@ func (s *LinkPreviewsServiceImpl) CreateLinkPreviews(ctx context.Context, id int
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
 	default:

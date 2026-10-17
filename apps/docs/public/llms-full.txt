@@ -16,7 +16,7 @@
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 112–216 |
 | How-to Guides — рецепты задач с кодом TS/Python | 217–900 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 901–14605 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 901–14635 |
 | · Обзор | 906–1010 |
 | · Быстрый старт | 1011–1100 |
 | · AI-агенты | 1101–1242 |
@@ -65,49 +65,49 @@
 | · Прямые запросы | 7262–7372 |
 | · Команды | 7373–7536 |
 | · SDK и генератор | 7537–7644 |
-| · TypeScript | 7645–8091 |
-| · Python | 8092–8532 |
-| · Go | 8533–8998 |
-| · Kotlin | 8999–9455 |
-| · Swift | 9456–9881 |
-| · C# | 9882–10369 |
-| · n8n | 10370–10445 |
-| · Начало работы | 10446–10677 |
-| · Ресурсы и операции | 10678–11092 |
-| · Триггер | 11093–11344 |
-| · Тестирование | 11345–11618 |
-| · Примеры workflow | 11619–11833 |
-| · Продвинутые функции | 11834–12070 |
-| · Устранение ошибок | 12071–12252 |
-| · Миграция с v1 | 12253–12373 |
-| · Последние обновления | 12374–12383 |
-| · Обзор | 12384–12485 |
-| · Авторизация | 12486–12767 |
-| · Запросы и ответы | 12768–12960 |
-| · Пагинация | 12961–13197 |
-| · Загрузка файлов | 13198–13446 |
-| · Ошибки | 13447–13526 |
-| · Лимиты | 13527–13679 |
-| · Модели | 13680–14605 |
-| API-методы — все эндпоинты со схемами и примерами | 14606–36735 |
-| · OAuth | 14608–14985 |
-| · Chats | 14986–17238 |
-| · Profile | 17239–18138 |
-| · Users | 18139–20432 |
-| · Group tags | 20433–21662 |
-| · Members | 21663–23050 |
-| · Threads | 23051–23729 |
-| · Messages | 23730–25838 |
-| · Read members | 25839–26050 |
-| · Reactions | 26051–26674 |
-| · Search | 26675–27514 |
-| · Tasks | 27515–28702 |
-| · Drafts | 28703–30168 |
-| · Views | 30169–30939 |
-| · Bots | 30940–35791 |
-| · Security | 35792–36153 |
-| · Custom Properties | 36154–36334 |
-| · Files | 36335–36735 |
+| · TypeScript | 7645–8095 |
+| · Python | 8096–8540 |
+| · Go | 8541–9010 |
+| · Kotlin | 9011–9471 |
+| · Swift | 9472–9901 |
+| · C# | 9902–10393 |
+| · n8n | 10394–10469 |
+| · Начало работы | 10470–10701 |
+| · Ресурсы и операции | 10702–11116 |
+| · Триггер | 11117–11368 |
+| · Тестирование | 11369–11642 |
+| · Примеры workflow | 11643–11857 |
+| · Продвинутые функции | 11858–12094 |
+| · Устранение ошибок | 12095–12276 |
+| · Миграция с v1 | 12277–12397 |
+| · Последние обновления | 12398–12407 |
+| · Обзор | 12408–12509 |
+| · Авторизация | 12510–12796 |
+| · Запросы и ответы | 12797–12989 |
+| · Пагинация | 12990–13226 |
+| · Загрузка файлов | 13227–13475 |
+| · Ошибки | 13476–13556 |
+| · Лимиты | 13557–13709 |
+| · Модели | 13710–14635 |
+| API-методы — все эндпоинты со схемами и примерами | 14636–36765 |
+| · OAuth | 14638–15015 |
+| · Chats | 15016–17268 |
+| · Profile | 17269–18168 |
+| · Users | 18169–20462 |
+| · Group tags | 20463–21692 |
+| · Members | 21693–23080 |
+| · Threads | 23081–23759 |
+| · Messages | 23760–25868 |
+| · Read members | 25869–26080 |
+| · Reactions | 26081–26704 |
+| · Search | 26705–27544 |
+| · Tasks | 27545–28732 |
+| · Drafts | 28733–30198 |
+| · Views | 30199–30969 |
+| · Bots | 30970–35821 |
+| · Security | 35822–36183 |
+| · Custom Properties | 36184–36364 |
+| · Files | 36365–36765 |
 
 # LIBRARY RULES
 
@@ -2646,7 +2646,7 @@ Liquid также поддерживает:
 
 Текущие значения возвращаются в объекте бота и доступны через метод [Информация о боте](/api/bots/get). Если у токена есть скоуп `bots:write` и вы можете управлять токенами бота, этот метод отдаёт и адрес вебхука в поле `webhook.url`, и тело последнего запроса на него в поле `webhook.last_request_body`: по нему видно, что именно прислал сервис.
 
-Бот, созданный через API, принимает запросы в своём формате сразу, с шаблонизатором Liquid по умолчанию. Пустой бот, созданный с `empty: true`, входящего вебхука не имеет, пока ему не задали `kind`.
+Бот, созданный через API, принимает запросы в своём формате сразу, с шаблонизатором Liquid по умолчанию. Пустой бот, созданный с `empty: true`, входящего вебхука не имеет, пока ему не задали `kind`, а шаблонизатор у него по умолчанию Mustache. Mustache ставится и после удаления входящего вебхука, когда его включают снова. Чтобы шаблон работал на Liquid, передайте `template_engine: "liquid"` вместе с `kind`.
 
 ## Ограничения
 
@@ -4753,7 +4753,7 @@ await bot.oauth.revokeToken({
 - не учитываются вложения
 - не отражаются пересланные сообщения
 - максимальный период одной выгрузки: 45 дней (при запросе с указанием конкретных чатов - 366 дней)
-- максимальный количество запрашиваемых чатов (при указании): 50
+- максимальное количество запрашиваемых чатов (при указании): 50
 - следующий запрос экспорта пространство может отправить через 90 секунд после предыдущего независимо от того, завершился он или ещё идёт, а более ранний вернёт `422` с кодом `rate_limit`
 
 Для запроса экспорта используйте метод [Экспорт сообщений](/api/chats/request-export).
@@ -7960,6 +7960,8 @@ try {
 }
 ```
 
+Поле `error` — строка, её значения перечисляет `OAuthErrorCode`.
+
 ## Повторные запросы
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
@@ -8011,6 +8013,8 @@ import {
   ApiError, OAuthError,
 } from "@pachca/sdk"
 ```
+
+Перечисление в ответе принимает и значение, которого SDK ещё не знает: такое значение приходит строкой как есть.
 
 ## Примеры
 
@@ -8408,6 +8412,8 @@ except OAuthError as error:
     print(error.error_description)  # описание ошибки
 ```
 
+Поле `error` — перечисление `OAuthErrorCode`: его сравнивают с элементом, например `OAuthErrorCode.INSUFFICIENT_SCOPE`, или со строкой.
+
 ## Повторные запросы
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
@@ -8442,6 +8448,8 @@ from pachca.models import (
     ApiError, OAuthError,
 )
 ```
+
+Поле-перечисление в ответе приходит элементом своего перечисления, в том числе со значением, которого SDK ещё не знает: у такого элемента в `value` исходная строка, а `is_known` равно `False`. Так же работает и вызов вроде `OAuthScope("x")`: проверить, знает ли SDK значение, помогает `is_known`.
 
 ## Зависимости
 
@@ -8877,6 +8885,8 @@ if err != nil {
 }
 ```
 
+Поле `Err` — перечисление `OAuthErrorCode`: его сравнивают с константой, например `pachca.OAuthErrorCodeInsufficientScope`, а строкой оно становится через `string(oauthErr.Err)`. Если тело ответа `401` не разбирается, SDK возвращает обычную ошибку с текстом `HTTP 401: …`.
+
 ## Повторные запросы
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
@@ -8913,7 +8923,9 @@ var apiErr *pachca.ApiError
 var oauthErr *pachca.OAuthError
 ```
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Перечисление — строковый тип, поэтому значение, которого SDK ещё не знает, приходит в ответе как есть.
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Примеры
 
@@ -9322,6 +9334,8 @@ try {
 }
 ```
 
+Поле `error` — перечисление `OAuthErrorCode`: его сравнивают с константой, например `error.error == OAuthErrorCode.INSUFFICIENT_SCOPE`, а строку кода даёт `error.error.value`.
+
 ## Повторные запросы
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
@@ -9358,7 +9372,9 @@ val apiError: ApiError
 val oauthError: OAuthError
 ```
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Перечисление в ответе — `value class` со строкой `value`: значение, которого SDK ещё не знает, приходит как есть, и `isKnown` у него `false`. Поэтому `when` по такому перечислению заканчивается веткой `else`. Строку значения возвращает и `toString()`, а имя константы даёт `name`.
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Зависимости
 
@@ -9758,10 +9774,12 @@ do {
 do {
     try await client.profile.getProfile()
 } catch let error as OAuthError {
-    print(error.error)              // "insufficient_scope"
+    print(error.error.rawValue)     // "insufficient_scope"
     print(error.errorDescription)   // описание ошибки
 }
 ```
+
+Поле `error` — перечисление `OAuthErrorCode`: его сравнивают со случаем, например `error.error == .insufficientScope`, или со строковым литералом, а строку кода даёт `rawValue`.
 
 ## Повторные запросы
 
@@ -9796,7 +9814,9 @@ let apiError: ApiError
 let oauthError: OAuthError
 ```
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Перечисление в ответе принимает и значение, которого SDK ещё не знает: оно приходит случаем `.unknown(String)`, а `rawValue` возвращает исходную строку. Поэтому `switch` по такому перечислению включает `case .unknown` или `default`. Незнакомую строку и `init?(rawValue:)` превращает в случай `.unknown`: проверить, знает ли SDK значение, помогает `allCases.contains(value)`.
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Платформы
 
@@ -10197,6 +10217,8 @@ catch (OAuthError e)
 }
 ```
 
+Поле `Error` — структура `OAuthErrorCode`: её сравнивают через `==` с константой, например `OAuthErrorCode.InsufficientScope`, или со строкой, а строку кода даёт `Value`.
+
 ## Повторные запросы
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
@@ -10287,6 +10309,8 @@ ValidationErrorCode errorCode;
 ApiError apiError;
 OAuthError oauthError;
 ```
+
+Перечисление в ответе — структура со строкой `Value`: значение, которого SDK ещё не знает, приходит как есть, и `IsKnown` у него `false`. Значения такого перечисления сравниваются через `==`, а в `switch` — по `Value`. Ту же строку, что и `Value`, возвращает `ToString()`.
 
 ## Примеры
 
@@ -12733,13 +12757,18 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 
 ## Ошибки авторизации
 
-- `401 Unauthorized` — токен отсутствует, невалидный или отозван
-- `403 Forbidden` с `insufficient_scope` в поле `error` — у токена нет скоупа, который нужен методу
-- `403 Forbidden` с `role_forbidden` — скоуп у токена есть, но текущая роль владельца не позволяет это действие, например после понижения роли: новый токен или повторная авторизация этого не исправят
+Ошибка авторизации приходит в формате `OAuthError` с кодом в поле `error`. Все коды и их значения — в схеме ниже. Методы API отвечают тремя из них:
+
+- `401 Unauthorized` с `invalid_token`
+- `403 Forbidden` с `insufficient_scope`
+- `403 Forbidden` с `role_forbidden`: новый токен или повторная авторизация этот отказ не исправят
+
+Остальными кодами отвечают методы [Обмен кода на токен](/api/oauth/exchange-token) и [Отзыв токена](/api/oauth/revoke-token).
 
 #### OAuthError
 
-- `error: string` (required) — Код ошибки. Методы API отвечают кодами `invalid_token` (`401`, токен не передан, не найден или отозван), `insufficient_scope` (`403`, у токена нет нужного скоупа) и `role_forbidden` (`403`, роль владельца токена не позволяет действие). Коды обмена и отзыва токена описаны у этих методов. Пример: `"invalid_token"`
+- `error: string` (required) — Код ошибки. Методы API отвечают кодами `invalid_token` (`401`), `insufficient_scope` и `role_forbidden` (`403`). Остальными кодами отвечают методы обмена и отзыва токена.
+  Значения: `invalid_token` — Токен не передан, не найден, истёк или отозван, `insufficient_scope` — У токена нет скоупа, который нужен методу, `role_forbidden` — Скоуп у токена есть, но роль его владельца не позволяет действие, `invalid_request` — В запросе нет обязательного параметра или он передан неверно, `invalid_client` — Неверный `client_id` или `client_secret`, `invalid_grant` — Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, `unsupported_grant_type` — Значение `grant_type` не поддерживается, `unauthorized_client` — Токен выдан другому боту или клиент не подтвердил себя
 - `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 
@@ -13482,7 +13511,7 @@ await client.messages.create_message(MessageCreateRequest(
 
 > Код `403` может вернуть обе структуры:
 >
-> - `OAuthError` с кодом `insufficient_scope`, когда у токена нет нужного скоупа (scope) для вызываемого метода, или `role_forbidden`, когда скоуп есть, но роль владельца токена не позволяет действие. Ответ с `insufficient_scope` дополнительно содержит заголовок `WWW-Authenticate` с недостающим скоупом — подробнее в разделе [Авторизация](/api/authorization#oshibki-avtorizatsii).
+> - `OAuthError`, когда отказывает проверка самого токена: код `insufficient_scope` или `role_forbidden` из схемы ниже. Ответ с `insufficient_scope` дополнительно содержит заголовок `WWW-Authenticate` с недостающим скоупом — подробнее в разделе [Авторизация](/api/authorization#oshibki-avtorizatsii).
 > - `ApiError`, когда отказывает проверка доступа к самому объекту: чат закрыт, правило чата не разрешает действие, роль в пространстве не подходит. Так может ответить любой метод.
 
 ### ApiError (400, 402, 403, 404, 409, 410, 422, 429, 503, 504)
@@ -13499,7 +13528,8 @@ await client.messages.create_message(MessageCreateRequest(
 
 ### OAuthError (401, 403)
 
-- `error: string` (required) — Код ошибки. Методы API отвечают кодами `invalid_token` (`401`, токен не передан, не найден или отозван), `insufficient_scope` (`403`, у токена нет нужного скоупа) и `role_forbidden` (`403`, роль владельца токена не позволяет действие). Коды обмена и отзыва токена описаны у этих методов. Пример: `"invalid_token"`
+- `error: string` (required) — Код ошибки. Методы API отвечают кодами `invalid_token` (`401`), `insufficient_scope` и `role_forbidden` (`403`). Остальными кодами отвечают методы обмена и отзыва токена.
+  Значения: `invalid_token` — Токен не передан, не найден, истёк или отозван, `insufficient_scope` — У токена нет скоупа, который нужен методу, `role_forbidden` — Скоуп у токена есть, но роль его владельца не позволяет действие, `invalid_request` — В запросе нет обязательного параметра или он передан неверно, `invalid_client` — Неверный `client_id` или `client_secret`, `invalid_grant` — Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, `unsupported_grant_type` — Значение `grant_type` не поддерживается, `unauthorized_client` — Токен выдан другому боту или клиент не подтвердил себя
 - `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 

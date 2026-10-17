@@ -183,9 +183,13 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 
 ## Ошибки авторизации
 
-- `401 Unauthorized` — токен отсутствует, невалидный или отозван
-- `403 Forbidden` с `insufficient_scope` в поле `error` — у токена нет скоупа, который нужен методу
-- `403 Forbidden` с `role_forbidden` — скоуп у токена есть, но текущая роль владельца не позволяет это действие, например после понижения роли: новый токен или повторная авторизация этого не исправят
+Ошибка авторизации приходит в формате `OAuthError` с кодом в поле `error`. Все коды и их значения — в схеме ниже. Методы API отвечают тремя из них:
+
+- `401 Unauthorized` с `invalid_token`
+- `403 Forbidden` с `insufficient_scope`
+- `403 Forbidden` с `role_forbidden`: новый токен или повторная авторизация этот отказ не исправят
+
+Остальными кодами отвечают методы [Обмен кода на токен](POST /oauth/token) и [Отзыв токена](POST /oauth/revoke).
 
 <SchemaBlock name="OAuthError"/>
 

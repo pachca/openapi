@@ -18,6 +18,7 @@ from .models import (
     GetAuditEventsResponse,
     AuditEvent,
     OAuthError,
+    OAuthErrorCode,
     ApiError,
     AuditEventKey,
     ListBotsParams,
@@ -142,7 +143,7 @@ def _error_from_body(body: object) -> Exception:
     # An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
     # which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
     if isinstance(body, dict) and isinstance(body.get("error"), str) and "errors" not in body:
-        return OAuthError(body["error"], str(body.get("error_description") or ""))
+        return OAuthError(OAuthErrorCode(body["error"]), str(body.get("error_description") or ""))
     return deserialize(ApiError, body)
 
 

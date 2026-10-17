@@ -24,7 +24,7 @@ npx @pachca/generator --spec https://example.com/openapi.yaml --output ./sdk --l
 ### Параметры
 
 | Флаг | Описание |
-|------|----------|
+| --- | --- |
 | `--spec` | Путь или URL к OpenAPI 3.0 YAML спецификации (по умолчанию: `https://dev.pachca.com/openapi.yaml`) |
 | `--output` | Директория для сгенерированных файлов |
 | `--lang` | Целевые языки через запятую: `typescript`, `python`, `go`, `kotlin`, `swift`, `csharp` |
@@ -39,7 +39,7 @@ generate('openapi.yaml', './output', ['typescript', 'python']);
 
 ## Архитектура
 
-```
+```text
 OpenAPI YAML → @pachca/openapi-parser → IR (transform.ts) → Генераторы языков → Исходные файлы
 ```
 
@@ -50,7 +50,7 @@ OpenAPI YAML → @pachca/openapi-parser → IR (transform.ts) → Генерат
 ## Расширения OpenAPI
 
 | Расширение | Уровень | Описание |
-|------------|---------|----------|
+| --- | --- | --- |
 | `x-error: true` | Schema | Помечает схему как тип ошибки (выбрасывается/возвращается при не-2xx) |
 | `x-external-url: "paramName"` | Operation | Генерирует параметр `paramName` для динамических URL (например, загрузка в S3) |
 | `x-requirements` | Operation | `auth: false` пропускает заголовок Authorization; `scope`/`plan` для метаданных |
@@ -64,7 +64,7 @@ OpenAPI YAML → @pachca/openapi-parser → IR (transform.ts) → Генерат
 - **Типобезопасные клиенты** с методами для каждой операции
 - **Хелперы курсорной пагинации** (`listChatsAll`, `list_chats_all` и т.д.) для эндпоинтов с `x-paginated`
 - **Повторные запросы с `Retry-After`** при 429 Too Many Requests (до 3 попыток с экспоненциальной задержкой)
-- **Типы enum** с описаниями
+- **Типы enum** с описаниями, открытые для ответов: значение не из спеки разбирается без ошибки и сохраняется как есть
 - **Union/дискриминированные типы** (oneOf/anyOf)
 - **Разворачивание тела запроса** для обёрток с одним полем
 - **Поддержка multipart-загрузки**
@@ -74,7 +74,7 @@ OpenAPI YAML → @pachca/openapi-parser → IR (transform.ts) → Генерат
 ## Структура вывода
 
 | Язык | Файлы |
-|------|-------|
+| --- | --- |
 | TypeScript | `types.ts`, `client.ts`, `utils.ts` |
 | Python | `models.py`, `client.py`, `utils.py`, `__init__.py` |
 | Go | `types.go`, `client.go`, `utils.go` |

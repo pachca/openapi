@@ -45,9 +45,25 @@ function csClientTypeRef(name: string): string {
   return CS_BCL_CONFLICTS.has(name) ? `Pachca.Sdk.${name}` : name;
 }
 
-/** Sanitize enum member value into a valid C# identifier (PascalCase) */
-function csEnumMemberName(value: string): string {
-  return snakeToPascal(value.replace(/[^a-zA-Z0-9_]/g, '_'));
+/** Members of an open enum struct that a constant can't take the name of. */
+const CS_OPEN_ENUM_MEMBERS = new Set(['Value', 'Values', 'IsKnown', 'Equals', 'GetHashCode', 'ToString', 'GetType']);
+
+/** Open enums of the spec being generated: a struct over the raw string, not an `enum`. */
+let csOpenEnums = new Set<string>();
+
+/**
+ * Sanitize enum member value into a valid C# identifier (PascalCase). In an open
+ * enum struct, a name the struct already has, or its own type name, gets a
+ * `Member` suffix; a closed `enum` takes every such name as is.
+ */
+function csEnumMemberName(value: string, enumName?: string): string {
+  const name = snakeToPascal(value.replace(/[^a-zA-Z0-9_]/g, '_'));
+  if (!enumName || !csOpenEnums.has(enumName)) return name;
+  return CS_OPEN_ENUM_MEMBERS.has(name) || name === enumName ? `${name}Member` : name;
+}
+
+function isOpenEnumType(ft: IRFieldType | undefined): boolean {
+  return ft?.kind === 'enum' && !!ft.ref && csOpenEnums.has(ft.ref);
 }
 
 function csType(ft: IRFieldType): string {
@@ -114,7 +130,7 @@ function csDefaultValue(
 
   if (type.kind === 'enum' && typeof value === 'string') {
     const enumType = csType(type);
-    return `${enumType}.${csEnumMemberName(value)}`;
+    return `${enumType}.${csEnumMemberName(value, type.ref)}`;
   }
 
   if (typeof value === 'string') return `"${value.replace(/"/g, '\\"')}"`;
@@ -145,6 +161,7 @@ function queryParamValueExpr(p: IRParam): string {
     return `(${paramName}${valueSuffix} ? "true" : "false")`;
   if (p.type.kind === 'primitive' && p.type.primitive === 'string' && p.type.format === 'date-time')
     return `${paramName}${valueSuffix}.ToString("o")`;
+  if (isOpenEnumType(p.type)) return `${paramName}${valueSuffix}.Value`;
   if (p.type.kind === 'enum')
     return `PachcaUtils.EnumToApiString(${paramName}${valueSuffix})`;
   if (p.type.kind === 'primitive' && p.type.primitive === 'string')
@@ -230,9 +247,68 @@ function generateModels(ir: IR): string {
   return lines.join('\n');
 }
 
+/**
+ * An open enum is a struct over the raw string, the extensible-enum pattern: a
+ * value the SDK does not list yet decodes into it, where an `enum` converter
+ * would throw and lose the whole response.
+ */
+function emitOpenEnum(lines: string[], e: IREnum): void {
+  const name = e.name;
+  lines.push(`[JsonConverter(typeof(${name}Converter))]`);
+  lines.push(`public readonly struct ${name} : IEquatable<${name}>`);
+  lines.push('{');
+  lines.push('    private readonly string? _value;');
+  lines.push('');
+  lines.push(`    public ${name}(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));`);
+  lines.push('');
+  for (const m of e.members) {
+    if (m.description) lines.push(`    /// <summary>${m.description}</summary>`);
+    lines.push(`    public static ${name} ${csEnumMemberName(m.value, name)} { get; } = new(${JSON.stringify(m.value)});`);
+  }
+  lines.push('');
+  lines.push('    /// <summary>Every value this SDK version lists</summary>');
+  lines.push(`    public static IReadOnlyList<${name}> Values { get; } = Array.AsReadOnly(new[] { ${e.members.map((m) => csEnumMemberName(m.value, name)).join(', ')} });`);
+  lines.push('');
+  lines.push('    /// <summary>The value as it travels in JSON</summary>');
+  lines.push('    public string Value => _value ?? "";');
+  lines.push('');
+  lines.push('    /// <summary>Whether this SDK version lists the value</summary>');
+  lines.push('    public bool IsKnown');
+  lines.push('    {');
+  lines.push('        get');
+  lines.push('        {');
+  lines.push('            foreach (var known in Values)');
+  lines.push('                if (Equals(known)) return true;');
+  lines.push('            return false;');
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('');
+  lines.push(`    public static bool operator ==(${name} left, ${name} right) => left.Equals(right);`);
+  lines.push(`    public static bool operator !=(${name} left, ${name} right) => !left.Equals(right);`);
+  lines.push(`    public static implicit operator ${name}(string value) => new(value);`);
+  lines.push(`    public bool Equals(${name} other) => string.Equals(Value, other.Value, StringComparison.Ordinal);`);
+  lines.push(`    public override bool Equals(object? obj) => obj is ${name} other && Equals(other);`);
+  lines.push('    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);');
+  lines.push('    public override string ToString() => Value;');
+  lines.push('}');
+  lines.push('');
+  lines.push(`internal class ${name}Converter : JsonConverter<${name}>`);
+  lines.push('{');
+  lines.push(`    public override ${name} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>`);
+  lines.push('        new(reader.GetString() ?? "");');
+  lines.push('');
+  lines.push(`    public override void Write(Utf8JsonWriter writer, ${name} value, JsonSerializerOptions options) =>`);
+  lines.push('        writer.WriteStringValue(value.Value);');
+  lines.push('}');
+}
+
 function emitEnum(lines: string[], e: IREnum): void {
   if (e.description && e.hasDescriptions && e.members.length > 1) {
     lines.push(`/// <summary>${e.description}</summary>`);
+  }
+  if (e.open) {
+    emitOpenEnum(lines, e);
+    return;
   }
   lines.push(`[JsonConverter(typeof(${e.name}Converter))]`);
   lines.push(`public enum ${e.name}`);
@@ -241,7 +317,7 @@ function emitEnum(lines: string[], e: IREnum): void {
     if (m.description) {
       lines.push(`    /// <summary>${m.description}</summary>`);
     }
-    lines.push(`    ${csEnumMemberName(m.value)},`);
+    lines.push(`    ${csEnumMemberName(m.value, e.name)},`);
   }
   lines.push('}');
   lines.push('');
@@ -257,7 +333,7 @@ function emitEnumConverter(lines: string[], e: IREnum): void {
   lines.push('        return value switch');
   lines.push('        {');
   for (const m of e.members) {
-    lines.push(`            "${m.value}" => ${e.name}.${csEnumMemberName(m.value)},`);
+    lines.push(`            "${m.value}" => ${e.name}.${csEnumMemberName(m.value, e.name)},`);
   }
   lines.push(`            _ => throw new JsonException($"Unknown ${e.name} value: {value}"),`);
   lines.push('        };');
@@ -268,7 +344,7 @@ function emitEnumConverter(lines: string[], e: IREnum): void {
   lines.push('        var str = value switch');
   lines.push('        {');
   for (const m of e.members) {
-    lines.push(`            ${e.name}.${csEnumMemberName(m.value)} => "${m.value}",`);
+    lines.push(`            ${e.name}.${csEnumMemberName(m.value, e.name)} => "${m.value}",`);
   }
   lines.push(`            _ => value.ToString(),`);
   lines.push('        };');
@@ -533,7 +609,17 @@ function emitModel(
     const errField = m.fields.find((f) => f.name === 'error');
     if (errField) {
       lines.push('');
-      lines.push(`    public override string Message => ${fieldSdkName(errField)} ?? "oauth error";`);
+      const name = fieldSdkName(errField);
+      if (isOpenEnumType(errField.type)) {
+        const optional = !errField.required || errField.nullable;
+        lines.push(optional
+          ? `    public override string Message => ${name}?.Value is { Length: > 0 } code ? code : "oauth error";`
+          : `    public override string Message => string.IsNullOrEmpty(${name}.Value) ? "oauth error" : ${name}.Value;`);
+      } else if (errField.type.kind === 'enum') {
+        lines.push(`    public override string Message => ${name}.ToString();`);
+      } else {
+        lines.push(`    public override string Message => ${name} ?? "oauth error";`);
+      }
     }
   }
 
@@ -671,7 +757,7 @@ internal static class PachcaUtils
 
     internal static string EnumToApiString<T>(T value) where T : struct, Enum =>
         JsonSerializer.Serialize(value, JsonOptions).Trim('"');
-${csHasFormBody(ir) ? CS_FORM_HELPER : ''}${ir.services.length > 0 && csPicksErrorByBody(ir) ? CS_ERROR_HELPER : ''}${csNoAuthHelper(ir)}}
+${csHasFormBody(ir) ? CS_FORM_HELPER : ''}${ir.services.length > 0 && csPicksErrorByBody(ir) ? csErrorHelper(ir) : ''}${csNoAuthHelper(ir)}}
 `;
 }
 
@@ -721,6 +807,21 @@ const CS_FORM_HELPER = `
     }
 `;
 
+/** The OAuthError built from the code read off an error body. */
+function csOAuthErrorFromCode(ir: IR): string {
+  const field = ir.models.find((m) => m.name === 'OAuthError')?.fields.find((f) => f.name === 'error');
+  if (isOpenEnumType(field?.type)) {
+    return `return new OAuthError { Error = new ${field!.type.ref}(code.GetString()!), ErrorDescription = description };`;
+  }
+  // A closed enum takes only the values it lists: the converter refuses the rest.
+  if (field?.type.kind === 'enum') return 'return Deserialize<OAuthError>(json);';
+  return 'return new OAuthError { Error = code.GetString()!, ErrorDescription = description };';
+}
+
+function csErrorHelper(ir: IR): string {
+  return CS_ERROR_HELPER.replace('__OAUTH_ERROR_FROM_CODE__', csOAuthErrorFromCode(ir));
+}
+
 const CS_ERROR_HELPER = `
     // An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},
     // which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.
@@ -739,7 +840,7 @@ const CS_ERROR_HELPER = `
                     && text.ValueKind == JsonValueKind.String
                     ? text.GetString()!
                     : "";
-                return new OAuthError { Error = code.GetString()!, ErrorDescription = description };
+                __OAUTH_ERROR_FROM_CODE__
             }
         }
         catch (JsonException)
@@ -1191,7 +1292,9 @@ function emitMethodBody(
       const paramKey = p.name.replace(/\{/g, '{{').replace(/\}/g, '}}');
       if (p.isArray) {
         const itemIsEnum = p.type.kind === 'array' && p.type.items?.kind === 'enum';
-        const itemExpr = itemIsEnum ? 'PachcaUtils.EnumToApiString(item)' : 'item.ToString()!';
+        const itemExpr = isOpenEnumType(p.type.items)
+          ? 'item.Value'
+          : itemIsEnum ? 'PachcaUtils.EnumToApiString(item)' : 'item.ToString()!';
         if (p.required) {
           lines.push(`${indent2}foreach (var item in ${paramName})`);
           lines.push(`${indent2}    queryParts.Add($"${paramKey}={Uri.EscapeDataString(${itemExpr})}");`);
@@ -1549,7 +1652,7 @@ function csLiteral(
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
       const member = e?.members.find((m) => m.value === ft.example);
-      if (e && member) return `${e.name}.${csEnumMemberName(member.value)}`;
+      if (e && member) return `${e.name}.${csEnumMemberName(member.value, e.name)}`;
     }
   }
   switch (ft.kind) {
@@ -1566,7 +1669,7 @@ function csLiteral(
     case 'enum': {
       const e = ir.enums.find((en) => en.name === ft.ref);
       if (e && e.members.length > 0) {
-        return `${e.name}.${csEnumMemberName(e.members[0].value)}`;
+        return `${e.name}.${csEnumMemberName(e.members[0].value, e.name)}`;
       }
       return `default(${ft.ref ?? 'object'})`;
     }
@@ -1812,6 +1915,7 @@ export class CSharpGenerator implements LanguageGenerator {
   readonly dirName = 'cs';
 
   generate(ir: IR, options?: GenerateOptions): GeneratedFile[] {
+    csOpenEnums = new Set(ir.enums.filter((e) => e.open).map((e) => e.name));
     const files: GeneratedFile[] = [
       { path: 'Models.cs', content: generateModels(ir) },
       { path: 'Client.cs', content: generateClient(ir) },

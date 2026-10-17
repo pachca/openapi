@@ -2100,12 +2100,49 @@ model ApiErrorItem {
   payload: Record<unknown> | null;
 }
 
+@doc("Код ошибки OAuth")
+@extension("x-enum-descriptions", #{
+  invalid_token: "Токен не передан, не найден, истёк или отозван",
+  insufficient_scope: "У токена нет скоупа, который нужен методу",
+  role_forbidden: "Скоуп у токена есть, но роль его владельца не позволяет действие",
+  invalid_request: "В запросе нет обязательного параметра или он передан неверно",
+  invalid_client: "Неверный `client_id` или `client_secret`",
+  invalid_grant: "Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`",
+  unsupported_grant_type: "Значение `grant_type` не поддерживается",
+  unauthorized_client: "Токен выдан другому боту или клиент не подтвердил себя",
+})
+enum OAuthErrorCode {
+  @doc("Токен не передан, не найден, истёк или отозван")
+  invalid_token: "invalid_token",
+
+  @doc("У токена нет скоупа, который нужен методу")
+  insufficient_scope: "insufficient_scope",
+
+  @doc("Скоуп у токена есть, но роль его владельца не позволяет действие")
+  role_forbidden: "role_forbidden",
+
+  @doc("В запросе нет обязательного параметра или он передан неверно")
+  invalid_request: "invalid_request",
+
+  @doc("Неверный `client_id` или `client_secret`")
+  invalid_client: "invalid_client",
+
+  @doc("Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`")
+  invalid_grant: "invalid_grant",
+
+  @doc("Значение `grant_type` не поддерживается")
+  unsupported_grant_type: "unsupported_grant_type",
+
+  @doc("Токен выдан другому боту или клиент не подтвердил себя")
+  unauthorized_client: "unauthorized_client",
+}
+
 @extension("x-error", true)
 @doc("Ошибка OAuth авторизации (используется для 401 и 403)")
 model OAuthError {
-  @doc("Код ошибки. Методы API отвечают кодами `invalid_token` (`401`, токен не передан, не найден или отозван), `insufficient_scope` (`403`, у токена нет нужного скоупа) и `role_forbidden` (`403`, роль владельца токена не позволяет действие). Коды обмена и отзыва токена описаны у этих методов.")
-  @example("invalid_token")
-  error: string;
+  @doc("Код ошибки. Методы API отвечают кодами `invalid_token` (`401`), `insufficient_scope` и `role_forbidden` (`403`). Остальными кодами отвечают методы обмена и отзыва токена.")
+  @example(OAuthErrorCode.invalid_token)
+  error: OAuthErrorCode;
   
   @doc("Описание ошибки")
   @example("Access token is missing")

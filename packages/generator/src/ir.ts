@@ -57,6 +57,12 @@ export interface IREnum {
   members: IREnumMember[];
   /** Whether x-enum-descriptions was present */
   hasDescriptions: boolean;
+  /**
+   * Open enum: a value the spec does not list decodes without an error and keeps
+   * the raw string. Every enum a response, a webhook or nothing at all reaches is
+   * open; only an enum that appears in requests alone stays closed.
+   */
+  open: boolean;
 }
 
 export interface IRModel {

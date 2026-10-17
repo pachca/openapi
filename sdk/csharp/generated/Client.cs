@@ -77,7 +77,7 @@ public sealed class SecurityServiceImpl : SecurityService
         if (endTime != null)
             queryParts.Add($"end_time={Uri.EscapeDataString(endTime.Value.ToString("o"))}");
         if (eventKey != null)
-            queryParts.Add($"event_key={Uri.EscapeDataString(PachcaUtils.EnumToApiString(eventKey.Value))}");
+            queryParts.Add($"event_key={Uri.EscapeDataString(eventKey.Value.Value)}");
         if (actorId != null)
             queryParts.Add($"actor_id={Uri.EscapeDataString(actorId)}");
         if (actorType != null)
@@ -1757,7 +1757,7 @@ public sealed class DraftsServiceImpl : DraftsService
         if (type != null)
             queryParts.Add($"type={Uri.EscapeDataString(PachcaUtils.EnumToApiString(type.Value))}");
         if (entityType != null)
-            queryParts.Add($"entity_type={Uri.EscapeDataString(PachcaUtils.EnumToApiString(entityType.Value))}");
+            queryParts.Add($"entity_type={Uri.EscapeDataString(entityType.Value.Value)}");
         if (entityId != null)
             queryParts.Add($"entity_id={Uri.EscapeDataString(entityId.Value.ToString()!)}");
         if (limit != null)
@@ -3249,7 +3249,7 @@ public sealed class SearchServiceImpl : SearchService
             queryParts.Add($"created_to={Uri.EscapeDataString(createdTo.Value.ToString("o"))}");
         if (companyRoles != null)
             foreach (var item in companyRoles)
-                queryParts.Add($"company_roles[]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(item))}");
+                queryParts.Add($"company_roles[]={Uri.EscapeDataString(item.Value)}");
         var url = $"{_baseUrl}/search/users" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
@@ -3360,7 +3360,7 @@ public sealed class TasksServiceImpl : TasksService
     {
         var queryParts = new List<string>();
         if (status != null)
-            queryParts.Add($"status={Uri.EscapeDataString(PachcaUtils.EnumToApiString(status.Value))}");
+            queryParts.Add($"status={Uri.EscapeDataString(status.Value.Value)}");
         if (chatIds != null)
             foreach (var item in chatIds)
                 queryParts.Add($"chat_ids[]={Uri.EscapeDataString(item.ToString()!)}");

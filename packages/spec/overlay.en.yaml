@@ -3254,10 +3254,22 @@ actions:
       description: OAuth authorization error (used for 401 and 403)
   - target: $.components.schemas.OAuthError.properties.error
     update:
-      description: "Error code. API methods respond with `invalid_token` (`401`, the token is missing, not found, or revoked), `insufficient_scope` (`403`, the token lacks the required scope), and `role_forbidden` (`403`, the token owner's role does not allow the action). The codes of the token exchange and revoke methods are described with those methods."
+      description: "Error code. API methods respond with `invalid_token` (`401`), `insufficient_scope` and `role_forbidden` (`403`). The token exchange and revoke methods respond with the other codes."
   - target: $.components.schemas.OAuthError.properties.error_description
     update:
       description: Error description
+  - target: $.components.schemas.OAuthErrorCode
+    update:
+      description: OAuth error code
+      x-enum-descriptions:
+        invalid_token: The token is missing, not found, expired, or revoked
+        insufficient_scope: The token lacks the scope the method requires
+        role_forbidden: The token has the scope, but its owner's role does not allow the action
+        invalid_request: A required parameter is missing or malformed
+        invalid_client: Wrong `client_id` or `client_secret`
+        invalid_grant: The code has expired, has already been used, was issued for a different `redirect_uri`, or does not match `code_verifier`
+        unsupported_grant_type: The `grant_type` value is not supported
+        unauthorized_client: The token was issued to another bot, or the client did not authenticate
   - target: $.components.schemas.OAuthScope
     update:
       description: OAuth token access scope

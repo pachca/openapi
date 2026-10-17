@@ -3151,9 +3151,10 @@ function build(): void {
   // A refusal never reaches the model as a bare status: every status from 400 up
   // that an operation of a tool declares has its line, and a line no tool can be
   // answered with is advice for nothing. A code a line names in backticks is a
-  // code of the spec — of ValidationErrorCode, or one the OAuthError describes —
-  // so a code the API dropped, or one only the token exchange returns, cannot
-  // linger in what every refusal is read with.
+  // code of the spec — of ValidationErrorCode, or of OAuthErrorCode that the
+  // description of OAuthError.error names as an answer of API methods — so a code
+  // the API dropped, or one only the token exchange returns, cannot linger in
+  // what every refusal is read with.
   const refusedWith = new Map<string, string[]>();
   for (const tool of tools) {
     for (const status of Object.keys(byKey.get(tool.operation)?.nodeEn?.responses ?? {})) {
@@ -3168,11 +3169,19 @@ function build(): void {
   for (const status of Object.keys(REFUSALS)) {
     if (!refusedWith.has(status)) problems.push(`REFUSALS has a line for ${status}, which no operation of a tool answers`);
   }
+  const oauthCodes = new Set<string>((specResolve(docEn.components?.schemas?.OAuthErrorCode, docEn)?.enum ?? []) as string[]);
+  const methodOAuthCodes = [
+    ...String(docEn.components?.schemas?.OAuthError?.properties?.error?.description ?? '').matchAll(/`([a-z_]+)`/g),
+  ].map((m) => m[1]!);
+  if (!oauthCodes.size) problems.push('the spec has no OAuthErrorCode to hold the OAuth codes of REFUSALS against');
+  for (const code of methodOAuthCodes) {
+    if (!oauthCodes.has(code)) problems.push(`the description of OAuthError.error names \`${code}\`, which is no value of OAuthErrorCode`);
+  }
   const errorCodes = new Set<string>([
     ...((specResolve(docEn.components?.schemas?.ValidationErrorCode, docEn)?.enum ?? []) as string[]),
-    ...[...String(docEn.components?.schemas?.OAuthError?.properties?.error?.description ?? '').matchAll(/`([a-z_]+)`/g)].map((m) => m[1]!),
+    ...methodOAuthCodes.filter((code) => oauthCodes.has(code)),
   ]);
-  if (!errorCodes.size) problems.push('the spec gives no error codes to hold REFUSALS against (ValidationErrorCode, OAuthError.error)');
+  if (!errorCodes.size) problems.push('the spec gives no error codes to hold REFUSALS against (ValidationErrorCode, OAuthErrorCode)');
   for (const [status, line] of Object.entries(REFUSALS)) {
     for (const [, code] of line.matchAll(/`([^`]+)`/g)) {
       if (!errorCodes.has(code!)) problems.push(`REFUSALS['${status}'] names \`${code}\`, which is no error code of the spec`);

@@ -329,6 +329,8 @@ try {
 }
 ```
 
+Поле `error` — перечисление `OAuthErrorCode`: его сравнивают с константой, например `error.error == OAuthErrorCode.INSUFFICIENT_SCOPE`, а строку кода даёт `error.error.value`.
+
 ## Повторные запросы
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
@@ -365,7 +367,9 @@ val apiError: ApiError
 val oauthError: OAuthError
 ```
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Перечисление в ответе — `value class` со строкой `value`: значение, которого SDK ещё не знает, приходит как есть, и `isKnown` у него `false`. Поэтому `when` по такому перечислению заканчивается веткой `else`. Строку значения возвращает и `toString()`, а имя константы даёт `name`.
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Зависимости
 

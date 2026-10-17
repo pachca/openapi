@@ -1,0 +1,26 @@
+{
+  "Client_Init": {
+    "usage": "let client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "listMembers": {
+    "usage": "let roles = [.admin]\nlet response = try await client.members.listMembers(sort: .asc, role: .admin, roles: roles, region: .eu)",
+    "output": "ListMembersResponse(data: [Member])",
+    "imports": [
+      "MemberRole",
+      "Region",
+      "SortOrder"
+    ]
+  },
+  "updateMember": {
+    "usage": "let body = MemberUpdateRequest(role: .admin, kind: .regular)\nlet response = try await client.members.updateMember(id: 123, body: body)",
+    "output": "Member(id: Int, role: MemberRole, status: MemberStatus, previousStatuses: [MemberStatus]?)",
+    "imports": [
+      "MemberKind",
+      "MemberRole",
+      "MemberUpdateRequest"
+    ]
+  }
+}

@@ -12172,8 +12172,9 @@ components:
         - error_description
       properties:
         error:
-          type: string
-          description: Код ошибки. Методы API отвечают кодами `invalid_token` (`401`, токен не передан, не найден или отозван), `insufficient_scope` (`403`, у токена нет нужного скоупа) и `role_forbidden` (`403`, роль владельца токена не позволяет действие). Коды обмена и отзыва токена описаны у этих методов.
+          allOf:
+            - $ref: '#/components/schemas/OAuthErrorCode'
+          description: Код ошибки. Методы API отвечают кодами `invalid_token` (`401`), `insufficient_scope` и `role_forbidden` (`403`). Остальными кодами отвечают методы обмена и отзыва токена.
           example: invalid_token
         error_description:
           type: string
@@ -12181,6 +12182,27 @@ components:
           example: Access token is missing
       description: Ошибка OAuth авторизации (используется для 401 и 403)
       x-error: true
+    OAuthErrorCode:
+      type: string
+      enum:
+        - invalid_token
+        - insufficient_scope
+        - role_forbidden
+        - invalid_request
+        - invalid_client
+        - invalid_grant
+        - unsupported_grant_type
+        - unauthorized_client
+      description: Код ошибки OAuth
+      x-enum-descriptions:
+        invalid_token: Токен не передан, не найден, истёк или отозван
+        insufficient_scope: У токена нет скоупа, который нужен методу
+        role_forbidden: Скоуп у токена есть, но роль его владельца не позволяет действие
+        invalid_request: В запросе нет обязательного параметра или он передан неверно
+        invalid_client: Неверный `client_id` или `client_secret`
+        invalid_grant: Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`
+        unsupported_grant_type: Значение `grant_type` не поддерживается
+        unauthorized_client: Токен выдан другому боту или клиент не подтвердил себя
     OAuthRevokeRequest:
       type: object
       required:

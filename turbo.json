@@ -350,6 +350,21 @@
         "mcp-manifest.json"
       ],
       "cache": true
+    },
+    "@pachca/mcp-manifest#build": {
+      "dependsOn": [
+        "@pachca/spec#generate-mcp"
+      ],
+      "inputs": [
+        "package.json",
+        "../spec/mcp-manifest.json",
+        "../spec/mcp-manifest.schema.json"
+      ],
+      "outputs": [
+        "mcp-manifest.json",
+        "mcp-manifest.schema.json"
+      ],
+      "cache": true
     }
   }
 }

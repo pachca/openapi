@@ -6,6 +6,8 @@
 //
 // Why this exists: the repo has several generator → output relationships
 //   - packages/spec/typespec.tsp           → packages/spec/openapi.yaml
+//   - packages/spec/mcp-manifest{,.schema}.json
+//                                          → packages/mcp-manifest/ (npm copies)
 //   - packages/cli/src/data/changelog.json → packages/cli/CHANGELOG.md
 //   - apps/docs/content/**.mdx + apps/docs/data/releases.json
 //                                          → apps/docs/public/**, llms*.txt
@@ -43,6 +45,9 @@ const GENERATED_PATHS = [
   'packages/spec/openapi.yaml',
   'packages/spec/openapi.en.yaml',
   'packages/spec/mcp-manifest.json',
+  // MCP manifest package — the copies that ship to npm
+  'packages/mcp-manifest/mcp-manifest.json',
+  'packages/mcp-manifest/mcp-manifest.schema.json',
   // CLI
   'packages/cli/CHANGELOG.md',
   'packages/cli/oclif.manifest.json',
@@ -76,7 +81,7 @@ function sh(cmd) {
 // targets (C#, Go, Kotlin, Python, n8n) doesn't affect any path in
 // GENERATED_PATHS, and tying our sync check to those toolchains makes the
 // gate flaky for reasons unrelated to "is the generator output in sync".
-const BUILD_FILTERS = ['@pachca/spec', '@pachca/cli', '@pachca/docs'];
+const BUILD_FILTERS = ['@pachca/spec', '@pachca/mcp-manifest', '@pachca/cli', '@pachca/docs'];
 
 console.error('[check-generated-sync] regenerating artefacts via `bun turbo build`…');
 try {

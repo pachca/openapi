@@ -198,6 +198,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 | `check.yml` | PR в `main` | `bun turbo check` |
 | `sdk.yml` | Push в `main` | Генерация SDK → коммит → теги → публикация |
 | `generator.yml` | Push в `main` | Snapshot-тесты + npm publish `@pachca/generator` |
+| `mcp-manifest.yml` | Push/PR в `main` | Сборка MCP-манифеста → проверка по схеме → npm publish `@pachca/mcp-manifest` |
 | `n8n.yml` | Push/PR в `main` | Генерация n8n node → тест → npm publish → GitHub Release |
 | `deploy.yml` | Push в `main` | Docker build → GitLab registry → SSH deploy |
 | `gitlab.yml` | Push в `main` | Зеркало в GitLab |
@@ -230,6 +231,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 │   ├── spec/              # TypeSpec спецификация + workflows.ts + examples.ts (@pachca/spec)
 │   ├── generator/         # SDK код-генератор для 6 языков (@pachca/generator)
 │   ├── openapi-parser/    # Парсер OpenAPI-спеки (@pachca/openapi-parser)
+│   ├── mcp-manifest/      # MCP-манифест и его схема для npm (@pachca/mcp-manifest)
 │   └── cli/               # CLI для работы с API (@pachca/cli)
 ├── sdk/                   # SDK для 6 языков (генерируются @pachca/generator)
 │   ├── typescript/        # npm
@@ -244,7 +246,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 ├── docs/                  # Канонические процесс-доки (api-audit, updates-format, docs-conventions)
 ├── CONTRIBUTING.md        # Раскладка, пайплайн генерации, build/check, workflow
 ├── AGENTS.md              # Гайд для AI-агентов по работе с репозиторием (CLAUDE.md → симлинк)
-├── .github/workflows/     # CI/CD (check, sdk, generator, n8n, deploy, gitlab)
+├── .github/workflows/     # CI/CD (check, sdk, generator, mcp-manifest, n8n, deploy, gitlab)
 ├── Package.swift          # Корневой Swift Package (копируется из sdk/swift при CI)
 ├── jitpack.yml            # JitPack конфиг для Kotlin (JDK 17)
 ├── Dockerfile             # Multi-stage Docker-сборка docs

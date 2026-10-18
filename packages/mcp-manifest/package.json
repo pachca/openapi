@@ -1,0 +1,43 @@
+{
+  "name": "@pachca/mcp-manifest",
+  "version": "1.0.0",
+  "description": "Tool manifest of the Pachca MCP server and the JSON Schema it is validated against",
+  "license": "MIT",
+  "author": {
+    "name": "Pachca",
+    "email": "dev@pachca.com"
+  },
+  "keywords": [
+    "pachca",
+    "mcp",
+    "model-context-protocol",
+    "manifest",
+    "json-schema"
+  ],
+  "homepage": "https://github.com/pachca/openapi/tree/main/packages/mcp-manifest#readme",
+  "bugs": {
+    "url": "https://github.com/pachca/openapi/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pachca/openapi.git",
+    "directory": "packages/mcp-manifest"
+  },
+  "files": [
+    "mcp-manifest.json",
+    "mcp-manifest.schema.json",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    ".": "./mcp-manifest.json",
+    "./mcp-manifest.json": "./mcp-manifest.json",
+    "./mcp-manifest.schema.json": "./mcp-manifest.schema.json",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "cp ../spec/mcp-manifest.json ../spec/mcp-manifest.schema.json ."
+  }
+}

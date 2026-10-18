@@ -12,6 +12,8 @@
       },
       "devDependencies": {
         "@playwright/test": "^1.50.0",
+        "ajv": "^8.18.0",
+        "ajv-formats": "^3.0.1",
         "markdownlint-cli2": "^0.23.1",
         "prettier": "3.8.1",
         "turbo": "^2.8.1",
@@ -117,6 +119,10 @@
         "typescript": "^5.7.3",
         "vitest": "^3.1.1",
       },
+    },
+    "packages/mcp-manifest": {
+      "name": "@pachca/mcp-manifest",
+      "version": "1.0.0",
     },
     "packages/openapi-parser": {
       "name": "@pachca/openapi-parser",
@@ -701,6 +707,8 @@
     "@pachca/go": ["@pachca/go@workspace:sdk/go"],
 
     "@pachca/kotlin": ["@pachca/kotlin@workspace:sdk/kotlin"],
+
+    "@pachca/mcp-manifest": ["@pachca/mcp-manifest@workspace:packages/mcp-manifest"],
 
     "@pachca/openapi-parser": ["@pachca/openapi-parser@workspace:packages/openapi-parser"],
 

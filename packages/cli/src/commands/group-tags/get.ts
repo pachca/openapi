@@ -12,7 +12,7 @@ export default class GroupTagsGet extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор тега",
+      description: "Идентификатор тега: в ссылке веб-приложения это число из параметра `tag_id`",
       required: true,
     }),
   };

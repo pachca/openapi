@@ -70,6 +70,14 @@ export interface ArgExpectation {
    * wrong day — a failure no assertion on the presence of `due_at` can see.
    */
   onWeekday?: Record<string, 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'>;
+  /**
+   * The local day an argument has to land on, counted back from the day the run
+   * happens: 1 is yesterday. A filter on the past is named this way, since a
+   * weekday cannot say it — the weekday of yesterday moves with the run, and the
+   * same weekday a week ahead passes `onWeekday` although it is the wrong week,
+   * which is the mistake a line of the days after today invites.
+   */
+  daysAgo?: Record<string, number>;
 }
 
 export interface ToolScenario {
@@ -321,7 +329,8 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "audit-log",
     prompt: "покажи журнал безопасности за вчера",
     accept: ["get_audit_events"],
-    args: { present: ["start_time"] },
+    args: { present: ["start_time"], daysAgo: { start_time: 1 } },
+    note: "Прошедший день: в строке дат его нет, он отсчитывается назад от сегодня. Проверяется, что начало окна легло на вчерашний день по времени человека.",
   },
   {
     id: "workspace-tags",
@@ -678,7 +687,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "rules-threads",
     prompt: "я первый раз работаю с тредами, какие тут правила?",
     accept: ["none"],
-    note: "Что такое тред и чем он отличается от чата, сказано в инструкциях сервера. Рассказать это — верный ответ, запись любого вида — промах.",
+    note: "Что такое тред и чем он отличается от чата, сказано в описаниях create_thread и create_unattached_thread, а как устроена Пачка — на dev.pachca.com. Рассказать это — верный ответ, запись любого вида — промах.",
   },
   {
     id: "deleted-trap",

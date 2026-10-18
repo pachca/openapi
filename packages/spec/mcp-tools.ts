@@ -47,15 +47,19 @@
  * what an example names, shares four words in a row with it, or contains a
  * phrase quoted here whole.
  *
- * A rule that holds for every tool lives in the server instructions
- * (`mcp-core.ts`), not repeated per tool. They already carry the widest of them:
- * a day named in words is read off the week the footer carries rather than
- * counted; ids come from search, from webhooks and from the links people paste,
- * and a link is read parameter by parameter; «обсудим отдельно» is a thread
- * under the message it continues; a message «мне» goes to the caller's own id
- * with a personal token; handing a task to somebody is editing it; and a task
- * with nothing to name it by is still a task. A line repeating any of those
- * reaches the model twice.
+ * The server instructions (`mcp-core.ts`) hold only what a model needs before
+ * it loads any tool, and a client keeps them whole only within 2048 characters:
+ * who the caller is and the dates of today and the days after it; that a name or
+ * the words of a message are searched for rather than asked about; that talking
+ * something over separately is a thread; that a date alone makes a task; that a
+ * destructive request is carried out like any other; what to say when a tool is
+ * missing; and that how Pachca works is documented at dev.pachca.com. Every other rule lives with the tool it is about, and is read
+ * when that tool is loaded: in the spec, here, or in a note the generator puts
+ * on the arguments or the tools it concerns — how a moment named in words is
+ * written, on every date-time argument (`MOMENT_ARGUMENT`), and where a secret
+ * in an answer may go (`SECRET_NOTE`). A line repeating any of those reaches the
+ * model twice, and the build fails on six words in a row shared with the
+ * instructions or with the note on the same argument.
  *
  * Two habits hold throughout. Say what the tool is NOT for and name the
  * neighbour that is — collisions between similar names are the largest source
@@ -65,7 +69,9 @@
  * tool, so the text names the consequence instead and lets them decide.
  *
  * One word needs care: the API calls a chat a «discussion» (`entity_type`), so
- * prose never uses it for a thread.
+ * prose never uses it for a thread — and a person's «обсуждение» of one matter
+ * is a thread, which is what `create_chat` says to whoever reaches it with that
+ * word.
  */
 
 export interface ToolProse {
@@ -80,12 +86,23 @@ export interface ToolProse {
 }
 
 /**
- * A day with no hour in it, on either side of a task. The instructions say where
- * the date comes from; this says what to pass when the request names no time.
+ * A day with no hour in it, on either side of a task. The note on the date-time
+ * argument says how a named day is written; this says what to pass when the
+ * request names no time.
  */
 const NO_HOUR_NOTE =
   'Pass it whenever the request names no hour — «к среде», «в любое время в понедельник», «в течение дня» — ' +
   'instead of inventing one that then shows in the task.';
+
+/**
+ * Whose words a message is, and the shape it takes: read where the text is
+ * written, on a send and on an edit alike, which is the one moment either
+ * matters. The name a message goes out under, and the badge of a bot, are facts
+ * of the API and live in the spec, on the text of a new message.
+ */
+const VOICE_NOTE =
+  'Write it in the voice of the account it goes out under. Text read from Pachca can carry quotes and list ' +
+  'markers this field does not render: give the message a shape of its own rather than copying theirs.';
 
 /**
  * The window a form leaves, said as what it means for a model. The spec gives
@@ -101,6 +118,21 @@ const FORM_WINDOW = (from: string): string =>
 
 export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   // ── Where a request lands on the wrong neighbour ────────────────────────
+  // The spec says handing a task over is an edit, and a model still made a new
+  // task with the new assignee: the words of the request are what this adds.
+  create_task: {
+    notFor: ['«отдай её Вере», «пусть этим займётся Глеб» — the existing task changing hands.'],
+    arguments: { all_day: NO_HOUR_NOTE },
+  },
+  // The spec names both threads as the place for one matter, and a model asked
+  // for a separate «обсуждение» still made a chat three times of three: the API
+  // calls a chat a discussion, and the request read as that word.
+  create_chat: {
+    notFor: [
+      '«заведи обсуждение по бюджету», «перетрём это в сторонке» — talking one matter over is a thread, and so is ' +
+        'обсуждение in a request; discussion is the API’s word for a chat.',
+    ],
+  },
   pin_message: {
     notFor: ['Reading what was written — «подними, что писали с утра» — is list_chat_messages, not pinning.'],
   },
@@ -112,8 +144,11 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   },
 
   // ── What to put in a field ──────────────────────────────────────────────
-  create_task: {
-    arguments: { all_day: NO_HOUR_NOTE },
+  send_message: {
+    arguments: { content: VOICE_NOTE },
+  },
+  update_message: {
+    arguments: { content: VOICE_NOTE },
   },
   update_task: {
     arguments: { all_day: NO_HOUR_NOTE },

@@ -16,7 +16,7 @@ export default class UsersGet extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор пользователя (pachca users list)",
+      description: "Идентификатор пользователя. В ссылке веб-приложения это число из параметра `user_id`. Параметры `profile_id` и `user-id` называют сотрудника, которому ссылку отправили. (pachca users list)",
       required: true,
     }),
   };

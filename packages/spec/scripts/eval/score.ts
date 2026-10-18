@@ -37,6 +37,10 @@ interface Answer {
   id: string;
   calls: Call[];
   text?: string;
+  /** The tools the client's tool search handed back, whose descriptions the model could read before a call. */
+  loaded?: string[];
+  /** Calls the client refused before they reached the server. */
+  client_errors?: Array<{ name: string; error: string }>;
 }
 
 interface Expectation {
@@ -49,6 +53,7 @@ interface Expectation {
     absent?: string[];
     either?: Array<Record<string, unknown>>;
     onWeekday?: Record<string, string>;
+    daysAgo?: Record<string, number>;
   } | null;
 }
 
@@ -113,6 +118,24 @@ function landsOn(value: unknown, weekday: string): boolean {
 }
 
 /**
+ * A filter on the past is held to the local date a number of days before the day
+ * the run happened: 1 is yesterday. The run's day is when its answers were
+ * written, not when they are scored, so a pass scored the morning after still
+ * counts back from its own day. The time of day is the agent's to pick, so a
+ * window opened at 00:00 local and one opened at 00:00 UTC both land on that day
+ * for a person east of UTC; one opened on a day ahead does not.
+ */
+let ranAt = Date.now();
+function landsDaysAgo(value: unknown, days: number): boolean {
+  if (typeof value !== 'string') return false;
+  const at = new Date(value);
+  if (Number.isNaN(at.getTime())) return false;
+  const day = (moment: Date) =>
+    new Intl.DateTimeFormat('en-CA', { timeZone: PERSON_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(moment);
+  return day(at) === day(new Date(ranAt - days * 86_400_000));
+}
+
+/**
  * The values a call holds at a place: `entity_id`, `schedule.start_date`, or
  * `files.key`, which a list answers with the value of each item. An argument
  * left out is its default, unless the question is whether it was passed at all.
@@ -153,6 +176,9 @@ function argsOk(call: Call, spec: NonNullable<Expectation['args']>): boolean {
   }
   for (const [name, weekday] of Object.entries(spec.onWeekday ?? {})) {
     if (!valuesAt(call, name).some((value) => landsOn(value, weekday))) return false;
+  }
+  for (const [name, days] of Object.entries(spec.daysAgo ?? {})) {
+    if (!valuesAt(call, name).some((value) => landsDaysAgo(value, days))) return false;
   }
   if (spec.either?.length) {
     const any = spec.either.some((one) => Object.entries(one).every(([name, expected]) => holds(call, name, expected)));
@@ -212,7 +238,14 @@ function scorePass(answers: Answer[]): { tool: [number, number]; args: [number, 
             ? `в ответе нет ${unsaid.join(', ')}`
             : `${made}${turnedDown}`;
       const awaited = wantsWrite ? expectation.accept.filter((name) => writes.has(name)) : expectation.accept;
-      misses.push(`${answer.id}: ${why} (ждали ${awaited.join(' или ')})`);
+      // Which descriptions the model had loaded tells a rule it never read from
+      // one it read and passed over; a call the client stopped tells a made-up
+      // «готово» from one that was refused before the server.
+      const loaded = answer.loaded ? ` · loaded: ${answer.loaded.join(', ') || '—'}` : '';
+      const stopped = answer.client_errors?.length
+        ? ` · client_errors: ${answer.client_errors.map((e) => `${e.name} (${e.error.replace(/\s+/g, ' ').slice(0, 80)})`).join(', ')}`
+        : '';
+      misses.push(`${answer.id}: ${why} (ждали ${awaited.join(' или ')})${loaded}${stopped}`);
     }
     if (ok && expectation.args && reached.length) {
       const good = reached.some((c) => argsOk(c, expectation.args!));
@@ -237,6 +270,7 @@ const spread: Record<string, number[]> = { tool: [], args: [] };
 
 for (const file of files) {
   const answers: Answer[] = JSON.parse(fs.readFileSync(path.join(runDir, 'out', file), 'utf8'));
+  ranAt = fs.statSync(path.join(runDir, 'out', file)).mtimeMs;
   const { tool, args, misses } = scorePass(answers);
   spread.tool!.push(percent(tool));
   spread.args!.push(percent(args));

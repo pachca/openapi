@@ -15,7 +15,17 @@
 #        chain: the agent looks a person up by name, gets nothing back, and the
 #        prose takes the blame for the instrument.
 # Writes <run-dir>/out/<model>-<pass-label>.json — one record per request:
-#        {"id", "calls": [{"name", "arguments"}, …], "text"}
+#        {"id", "calls": [{"name", "arguments"}, …], "text",
+#         "searched", "loaded", "client_errors"}
+#        and <run-dir>/out/raw/<model>-<pass-label>/<ask-id>.jsonl — what the
+#        client streamed for that request, event by event.
+#
+# The client loads tools on demand, so a description is read only if its tool
+# was loaded. `searched` is what the model asked the tool search for, `loaded`
+# the tools it got back — which descriptions it could have read before a call —
+# and `client_errors` the calls the client refused before they reached the
+# server: a run that says «done» with no call recorded either made it up or was
+# stopped there, and only the stream tells which.
 #
 # Every call is kept, not only the first. Which call does the work is a property
 # of the shape of the set, not of the agent: where one shape acts at once,
@@ -44,6 +54,8 @@ STUB="$SPEC_DIR/scripts/eval/stub-server.ts"
 IN="$RUN_DIR/in"
 RESPONSES="$RUN_DIR/responses.json"
 OUT="$RUN_DIR/out/$MODEL-$PASS.json"
+RAW="$RUN_DIR/out/raw/$MODEL-$PASS"
+mkdir -p "$RAW"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -80,20 +92,75 @@ PY
     --mcp-config "$config" --strict-mcp-config \
     --allowed-tools "mcp__pachca" \
     --disallowed-tools "Bash Read Write Edit Glob Grep WebFetch WebSearch Task Agent AskUserQuestion TodoWrite Skill EnterPlanMode ExitPlanMode NotebookEdit EnterWorktree ExitWorktree CronCreate CronDelete CronList RemoteTrigger TaskOutput TaskStop" \
-    --output-format text < /dev/null > "$WORK/$id.txt" 2>/dev/null || true
+    --output-format stream-json --verbose < /dev/null > "$RAW/$id.jsonl" 2>/dev/null || true
 
-  python3 - "$OUT" "$id" "$record" "$first" "$WORK/$id.txt" <<'PY'
-import json, sys, os
-out, ask_id, record, first, answer = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4] == "1", sys.argv[5]
-text = open(answer, encoding="utf-8").read().strip() if os.path.exists(answer) else ""
+  python3 - "$OUT" "$id" "$record" "$first" "$RAW/$id.jsonl" <<'PY'
+import json, sys, os, re
+out, ask_id, record, first, stream = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4] == "1", sys.argv[5]
 calls = [json.loads(line) for line in open(record, encoding="utf-8")] if os.path.exists(record) else []
+
+events = []
+if os.path.exists(stream):
+    for line in open(stream, encoding="utf-8"):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            events.append(json.loads(line))
+        except ValueError:
+            pass
+
+def blocks(event):
+    content = (event.get("message") or {}).get("content")
+    return content if isinstance(content, list) else []
+
+def as_text(content):
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "\n".join(b.get("text", "") if isinstance(b, dict) and b.get("type") == "text" else json.dumps(b, ensure_ascii=False) for b in content)
+    return json.dumps(content, ensure_ascii=False)
+
+# The answer is what the result event says; every call the model made, and what
+# came back, is in the assistant and user events before it.
+text = next((e.get("result") or "" for e in reversed(events) if e.get("type") == "result"), "")
+uses = {}
+for e in events:
+    if e.get("type") == "assistant":
+        for b in blocks(e):
+            if b.get("type") == "tool_use":
+                uses[b.get("id")] = b
+searched, loaded, client_errors = [], [], []
+PREFIX = "mcp__pachca__"
+for e in events:
+    if e.get("type") != "user":
+        continue
+    for b in blocks(e):
+        if b.get("type") != "tool_result":
+            continue
+        use = uses.get(b.get("tool_use_id")) or {}
+        name = use.get("name") or ""
+        body = as_text(b.get("content"))
+        if name == "ToolSearch":
+            searched.append((use.get("input") or {}).get("query", ""))
+            for found in re.findall(PREFIX + r"(\w+)", json.dumps(b.get("content"), ensure_ascii=False)):
+                if found not in loaded:
+                    loaded.append(found)
+        # Every answer of the server ends with its footer, refusals included: an
+        # error without one never reached it.
+        elif name.startswith(PREFIX) and b.get("is_error") and "Now: " not in body:
+            client_errors.append({"name": name[len(PREFIX):], "error": body[:300]})
+
 row = {
     "id": ask_id,
     "calls": [
         {"name": c.get("name"), "arguments": c.get("arguments") or {}, **({"refused": c["refused"]} if c.get("refused") else {})}
         for c in calls
     ],
-    "text": text[:4000],
+    "text": text.strip()[:4000],
+    "searched": searched,
+    "loaded": loaded,
+    "client_errors": client_errors,
 }
 with open(out, "a", encoding="utf-8") as f:
     f.write(("" if first else ",\n") + json.dumps(row, ensure_ascii=False))
@@ -104,4 +171,4 @@ done
 
 echo "]" >> "$OUT"
 echo
-echo "written: $OUT"
+echo "written: $OUT (raw streams in $RAW)"

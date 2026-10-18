@@ -95,7 +95,7 @@ export const messageFields: INodeProperties[] = [
 		type: 'string',
 		typeOptions: { rows: 4 },
 		default: "",
-		description: 'Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes.',
+		description: 'Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes. The message goes out under the token owner\'s name, and a bot\'s with the Bot badge.',
 		displayOptions: { show: { resource: ['message'], operation: ['create'] } },
 		placeholder: 'Yesterday we sold 756 t-shirts (10% more than last Sunday)',
 	},
@@ -379,7 +379,7 @@ export const messageFields: INodeProperties[] = [
 		required: true,
 		default: 0,
 		displayOptions: { show: { resource: ['message'], operation: ['get'] } },
-		description: 'Message ID',
+		description: 'Message ID. A web app link points at a message with the `sidebar_message` parameter, and without it with `message`. The number from `thread_message_id` is the message the thread hangs under.',
 	},
 	{
 		displayName: 'Simplify',

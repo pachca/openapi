@@ -12,7 +12,7 @@ export default class ChatsGet extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор чата (pachca chats list)",
+      description: "Идентификатор чата: в ссылке веб-приложения это число из пути `/chats/{id}` (pachca chats list)",
       required: true,
     }),
   };

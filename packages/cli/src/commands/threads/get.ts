@@ -12,7 +12,7 @@ export default class ThreadsGet extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор треда",
+      description: "Идентификатор треда: в ссылке веб-приложения это число из параметра `thread_id`",
       required: true,
     }),
   };

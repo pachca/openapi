@@ -133,6 +133,7 @@ function rightPathRefusals(
       ...Object.keys(expected.must ?? {}),
       ...(expected.present ?? []),
       ...Object.keys(expected.onWeekday ?? {}),
+      ...Object.keys(expected.daysAgo ?? {}),
       ...Object.keys(expected.either?.[0] ?? {}),
     ].map((place) => place.split('.')[0]!);
     const candidates = scenario.accept
@@ -149,7 +150,7 @@ function rightPathRefusals(
       for (const name of schema.required ?? []) args[name] = dummy(schema.properties?.[name] ?? {});
       for (const place of expected.present ?? []) put(args, schema, place, dummy(schema.properties?.[place.split('.')[0]!] ?? {}));
       for (const [place, value] of Object.entries({ ...expected.must, ...choice })) put(args, schema, place, value);
-      for (const place of Object.keys(expected.onWeekday ?? {})) put(args, schema, place, '2026-09-18T10:00:00+03:00');
+      for (const place of [...Object.keys(expected.onWeekday ?? {}), ...Object.keys(expected.daysAgo ?? {})]) put(args, schema, place, '2026-09-18T10:00:00+03:00');
       const answer = pick(world[tool.replace(/^pachca_/, '')], args);
       if (typeof answer === 'string' && REFUSAL.test(answer)) {
         refused.push(`${scenario.id}: ${tool} ${JSON.stringify(args)} is refused by the world: ${answer.split('\n')[0]}`);

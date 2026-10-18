@@ -70,7 +70,7 @@ actions:
 
         The `query` parameter selects bots by part of the name, without typos. Bot tokens do not come in the list: a token value is shown once, and the bot's tokens themselves are returned by [Bot token list](GET /bots/{id}/tokens).
 
-        The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation" plan — [List workspace bots](GET /company/bots). There other people's bots come with only a name and a nickname, and the rest of the settings are hidden.
+        The list of all bots in the workspace, including other people's, is available to the workspace owner on the "Corporation" plan — [List workspace bots](GET /company/bots). There other people's bots come with only a name and a nickname, and the rest of the settings are hidden.
   - target: $.paths['/bots'].get.parameters[?(@.name=='query')]
     update:
       description: Search phrase to filter bots by name
@@ -132,6 +132,8 @@ actions:
         List chats
 
         By default — the conversations, channels, and direct messages the token owner belongs to. With `availability=public` the method returns instead all public chats of the workspace, including the ones the caller has not joined. For a multi-guest — only the public chats they are a member of.
+
+        Private chats are returned only to their members, whatever `availability` and `archived` are. The list of all chats in the workspace, including private ones, is available to the workspace owner on the "Corporation" plan — [List workspace chats](GET /company/chats).
 
         Threads never come in this list; for them there is [List threads](GET /threads).
 
@@ -238,7 +240,7 @@ actions:
         Only active members come in `member_ids`: suspended ones do not make it into the list, although their membership is kept.
   - target: $.paths['/chats/{id}'].get.parameters[?(@.name=='id')]
     update:
-      description: Chat ID
+      description: "Chat ID: in a web app link it is the number from the path `/chats/{id}`"
   - target: $.paths['/chats/{id}'].put
     update:
       description: |-
@@ -535,7 +537,7 @@ actions:
         Only the tags that come to a multi-guest in [List tags](GET /group_tags) are available to them; for the rest the method responds `404`.
   - target: $.paths['/group_tags/{id}'].get.parameters[?(@.name=='id')]
     update:
-      description: Tag ID
+      description: "Tag ID: in a web app link it is the number from the `tag_id` parameter"
   - target: $.paths['/group_tags/{id}'].put
     update:
       description: |-
@@ -572,7 +574,7 @@ actions:
         For a multi-guest the method responds `403`: the list of workspace employees is closed to them, as in the interface.
   - target: $.paths['/group_tags/{id}/users'].get.parameters[?(@.name=='id')]
     update:
-      description: Tag ID
+      description: "Tag ID: in a web app link it is the number from the `tag_id` parameter"
   - target: $.paths['/group_tags/{id}/users'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of records to return per request
@@ -638,7 +640,7 @@ actions:
         The file links in the response are temporary. An ordinary file is returned as a direct link to the storage, while a protected or an encrypted one comes as an API address that requires a token with the `files:read` scope.
   - target: $.paths['/messages/{id}'].get.parameters[?(@.name=='id')]
     update:
-      description: Message ID
+      description: "Message ID. A web app link points at a message with the `sidebar_message` parameter, and without it with `message`. The number from `thread_message_id` is the message the thread hangs under."
   - target: $.paths['/messages/{id}'].put
     update:
       description: |-
@@ -1044,7 +1046,7 @@ actions:
         A task is seen by its author, its assignees, and everyone who can access its chat. The rule is the same as for the `chat_ids` filter of [List tasks](GET /tasks): the chat members, and in open conversations and channels — any employee of the workspace. Access to the chat is enough only to read the task: it can be changed and deleted only by the author or one of the assignees.
   - target: $.paths['/tasks/{id}'].get.parameters[?(@.name=='id')]
     update:
-      description: Task ID
+      description: "Task ID: in a web app link it is the number from the path `/tasks/{id}` or from the `task_id` parameter"
   - target: $.paths['/tasks/{id}'].put
     update:
       description: |-
@@ -1083,9 +1085,11 @@ actions:
         The response carries identifiers only: a thread has no name and no message counter, and what it is about can be seen from the conversation inside. The messages of a thread are read with the [List chat messages](GET /messages) method, and its members with the [List chat members](GET /chats/{id}/members) method, both by the `chat_id` of the thread.
 
         Access to a thread is broader than the results of [List threads](GET /threads): a thread that opens by `id` may well not appear in the list.
+
+        In a web app link, `thread_message_id` is the ID of the message the thread hangs under. The thread itself is in the `thread` field of that message, and the message is returned by [Message info](GET /messages/{id}).
   - target: $.paths['/threads/{id}'].get.parameters[?(@.name=='id')]
     update:
-      description: Thread ID
+      description: "Thread ID: in a web app link it is the number from the `thread_id` parameter"
   - target: $.paths['/threads'].post
     update:
       description: |-
@@ -1189,7 +1193,7 @@ actions:
         Email and phone come back as `null` if the display of personal data is turned off in the workspace and the caller is not an administrator. For a multi-guest they always come back as `null`. An employee sees their own profile in full — the same one is returned by the [Own profile](GET /profile) method, and without the `users:read` scope.
   - target: $.paths['/users/{id}'].get.parameters[?(@.name=='id')]
     update:
-      description: User ID
+      description: "User ID. In a web app link it is the number from the `user_id` parameter. The `profile_id` and `user-id` parameters name the employee the link was sent to."
   - target: $.paths['/users/{id}'].put
     update:
       description: |-
@@ -1925,7 +1929,7 @@ actions:
 
         The method also answers a token with the `bots:write` scope and no `bots:read`. If you can also manage the bot's tokens (`permissions.recreate_token`), `webhook` carries the incoming webhook address `url`, the signing secret `secret_token` and the body of the last request to the incoming webhook `last_request_body`.
 
-        The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation" plan — [List workspace bots](GET /company/bots).
+        The list of all bots in the workspace, including other people's, is available to the workspace owner on the "Corporation" plan — [List workspace bots](GET /company/bots).
   - target: $.paths['/bots/{id}'].get.parameters[?(@.name=='id')]
     update:
       description: Bot ID
@@ -3110,7 +3114,7 @@ actions:
       description: "Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.content
     update:
-      description: "Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes."
+      description: "Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes. The message goes out under the token owner's name, and a bot's with the Bot badge."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files
     update:
       description: Files to attach

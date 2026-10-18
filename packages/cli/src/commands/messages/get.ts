@@ -18,7 +18,7 @@ export default class MessagesGet extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор сообщения (pachca messages list)",
+      description: "Идентификатор сообщения. Ссылка веб-приложения указывает на сообщение параметром `sidebar_message`, а без него — параметром `message`. Число из `thread_message_id` — сообщение, под которым висит тред. (pachca messages list)",
       required: true,
     }),
   };

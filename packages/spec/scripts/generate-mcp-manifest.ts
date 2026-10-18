@@ -107,15 +107,24 @@
  *   - a name is duplicated, is not snake_case, exceeds 64 characters, has a verb
  *     the pattern that finds names in prose does not know, or is the name a
  *     chain step would carry; a tool has no title or no description;
- *   - a description runs past what a client keeps (2048 characters), or the head
- *     of the instructions past 1950 with every placeholder filled by its longest
- *     example; a placeholder gives no example, or one in use is filled by nothing;
+ *   - a description runs past what a client keeps (2048 characters), or the
+ *     instructions past 1950 with every placeholder filled by its longest
+ *     example; a placeholder gives no example, is used by neither the
+ *     instructions, the footer nor a link into the web app, or one in use is
+ *     filled by nothing;
+ *   - a date-time argument, at any depth, lacks the note on how a moment named
+ *     in words is written (`MOMENT_ARGUMENT`) or carries it twice; a tool whose
+ *     answer reaches a field `TRUSTED_TEXT` marks secret lacks `SECRET_NOTE`, a
+ *     tool whose answer reaches none carries it, a field so marked is in no
+ *     answer of a tool, or a field of free text named as a token or a secret
+ *     is marked neither secret nor masked;
  *   - a description still carries a sentence written for an HTTP client, or a
  *     pattern written to cut one cuts nothing any more;
  *   - prose is written for a tool or an argument that does not exist, says
  *     again in six words what the spec or the argument says, or points at a
  *     neighbour the spec already names without the words of a request; the
- *     instructions repeat six words of the spec's text;
+ *     instructions repeat six words of what a tool says — its description,
+ *     prose and notes included, or any of its arguments;
  *   - a description or an argument names a tool the set does not have — a tool
  *     of another listing is a fact about rights, not a dead end — or the
  *     instructions, one text for every token, name a tool some listing lacks; a
@@ -134,8 +143,11 @@
  *     three writes or both a destructive and an ordinary one, or expects a
  *     weekday in a field that is not a moment;
  *   - a scenario's chat, id, wording or expected value appears in text the
- *     model reads, prose quotes a phrase a scenario asks in those words, or the
- *     key wants an id neither the request nor the fake workspace gives.
+ *     model reads; prose, the instructions, a generated note, an argument of
+ *     the server, a refusal or the response format quotes a phrase a scenario
+ *     asks in those words, unless `QUOTED_TERMS` says why that word is no
+ *     example, or an entry there excuses nothing; or the key wants an id
+ *     neither the request nor the fake workspace gives.
  *
  * And last, when the manifest and its schema disagree.
  *
@@ -168,7 +180,9 @@ import {
   UPLOAD_LIFTS,
   UPLOAD_UNAVAILABLE,
   INSTRUCTION_PLACEHOLDERS,
-  INSTRUCTIONS_HEAD,
+  MOMENT_ARGUMENT,
+  QUOTED_TERMS,
+  SECRET_NOTE,
   SERVER_INFO,
   SERVER_INSTRUCTIONS,
   SERVICE_TOOLS,
@@ -203,11 +217,12 @@ const SCHEMA_VERSION = '3.0.0';
  * How much of a text the strictest client keeps, in UTF-16 units. One widely
  * used client cuts both the instructions and every tool description there, and
  * says nothing: whatever stands after it never reaches the model. A description
- * has to fit whole; the instructions keep what must not be lost in their head
- * (`INSTRUCTIONS_HEAD`), which has to fit with room for a long name.
+ * has to fit whole, and so do the instructions, with their placeholders filled
+ * and room left for a long name: a rule that does not fit goes to the tools it
+ * is about.
  */
 const CLIENT_TEXT_LIMIT = 2048;
-const INSTRUCTIONS_HEAD_LIMIT = 1950;
+const INSTRUCTIONS_LIMIT = 1950;
 
 const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const;
 type Role = 'owner' | 'admin' | 'user' | 'multi_guest' | 'bot';
@@ -1324,11 +1339,24 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
     parent!.properties![use] = { ...neighbour, description: `${sentence(told)} Through this server it is how a preview gets its image.`.trim() };
   }
 
+  // A moment named in words is written the same way in every date-time argument
+  // (`MOMENT_ARGUMENT`), so the note goes after the spec's words of each, at any
+  // depth, where the value is written. It goes before prose, so prose is held
+  // against it as against the spec's own words.
+  const moment = (node?: JsonSchema): void => {
+    if (!node || typeof node !== 'object') return;
+    if (node.format === 'date-time') node.description = `${sentence(String(node.description ?? ''))} ${MOMENT_ARGUMENT.description}`.trim();
+    Object.values(node.properties ?? {}).forEach(moment);
+    if (node.items) moment(node.items);
+    if (node.additionalProperties && typeof node.additionalProperties === 'object') moment(node.additionalProperties);
+  };
+  Object.values(properties).forEach(moment);
+
   // Written argument text follows the spec's rather than replacing it: the spec
-  // says what the field is, prose what to put there — the day a deadline lands on,
-  // the id to take from a pasted link. Applied once every argument is in place,
-  // so prose for an upload or a link argument lands too, and prose for one the
-  // tool does not take fails the build.
+  // says what the field is, prose what to put there — the voice a message is
+  // written in, the flag a day without an hour takes. Applied once every
+  // argument is in place, so prose for an upload or a link argument lands too,
+  // and prose for one the tool does not take fails the build.
   const specWords: Record<string, string> = {};
   for (const [argument, text] of Object.entries(MCP_TOOL_PROSE[op.name]?.arguments ?? {})) {
     const field = properties[argument];
@@ -1460,22 +1488,30 @@ function outputSchema(op: Operation, docEn: YamlNode): JsonSchema | null {
  * it belongs to (`Message.content`) however deep a tool's answer holds it; a
  * variant of a union adds its fields under the same path, and a path any variant
  * leaves to other people is untrusted.
+ *
+ * The walk also names the secrets the answer can carry — the fields `TRUSTED_TEXT`
+ * marks secret that it meets — and a tool that answers with one carries
+ * `SECRET_NOTE`.
  */
 interface TextPaths {
   untrusted: string[];
   trusted: string[];
   closed: string[];
+  secrets: string[];
 }
 const TRUSTED_KEYS = new Set(TRUSTED_TEXT.flatMap((group) => group.fields));
+const SECRET_KEYS = new Set(TRUSTED_TEXT.filter((group) => group.secret).flatMap((group) => group.fields));
+const noText = (): TextPaths => ({ untrusted: [], trusted: [], closed: [], secrets: [] });
 /** Every key of free text the walks met, and every key a closed set bounds — what `TRUSTED_TEXT` is held against. */
 const FREE_TEXT_KEYS = new Set<string>();
 const CLOSED_KEYS = new Set<string>();
 
 function textPaths(schema: any, doc: YamlNode, owner: string): TextPaths {
-  const found: TextPaths = { untrusted: [], trusted: [], closed: [] };
+  const found = noText();
   const at = (base: string, name: string): string => (base ? `${base}.${name}` : name);
   const free = (key: string, where: string): void => {
     FREE_TEXT_KEYS.add(key);
+    if (SECRET_KEYS.has(key)) found.secrets.push(key);
     (TRUSTED_KEYS.has(key) ? found.trusted : found.untrusted).push(where);
   };
   const walk = (node: any, schemaName: string, inner: string, where: string, stack: string[]): void => {
@@ -1515,6 +1551,7 @@ function textPaths(schema: any, doc: YamlNode, owner: string): TextPaths {
     untrusted,
     trusted: unique(found.trusted).filter((p) => !untrusted.includes(p)),
     closed: unique(found.closed).filter((p) => !untrusted.includes(p)),
+    secrets: unique(found.secrets),
   };
 }
 
@@ -1524,7 +1561,7 @@ function answerTextPaths(op: Operation, output: JsonSchema | null, docEn: YamlNo
     const body = op.nodeEn?.responses?.[code]?.content?.['application/json']?.schema;
     if (body) return textPaths(body, docEn, op.key);
   }
-  if (!output) return { untrusted: [], trusted: [], closed: [] };
+  if (!output) return noText();
   return textPaths(output, { components: { schemas: {} } }, output.properties?.mime_type ? 'file' : 'redirect');
 }
 
@@ -1999,7 +2036,9 @@ function specText(op: Operation): string {
 
 /**
  * The description a model reads: what the spec says about the operation, then
- * whatever prose adds.
+ * whatever prose adds, and for a tool whose answer can carry a whole secret the
+ * note on where it may go (`SECRET_NOTE`), before the lines of when to use it
+ * and what it is not for.
  *
  * Prose used to replace the spec's text, and that lost facts only the spec had —
  * that asking for a thread twice returns the same thread, who may delete a
@@ -2010,13 +2049,13 @@ function specText(op: Operation): string {
  * what the consequence is worth knowing. What the spec says, prose no longer
  * repeats.
  */
-function describe(op: Operation): string {
+function describe(op: Operation, secret: boolean): string {
   const prose = MCP_TOOL_PROSE[op.name];
   const fromSpec = specText(op);
-  if (!prose?.description && !prose?.whenToUse && !prose?.notFor) return fromSpec;
-  const parts = [prose.description ? `${fromSpec} ${prose.description}` : fromSpec];
-  if (prose.whenToUse?.length) parts.push(`\n\nUse it when:\n${prose.whenToUse.map((l) => `- ${l}`).join('\n')}`);
-  if (prose.notFor?.length) parts.push(`\n\nNot for:\n${prose.notFor.map((l) => `- ${l}`).join('\n')}`);
+  const said = [fromSpec, prose?.description, secret ? SECRET_NOTE : ''].filter(Boolean).join(' ');
+  const parts = [said];
+  if (prose?.whenToUse?.length) parts.push(`\n\nUse it when:\n${prose.whenToUse.map((l) => `- ${l}`).join('\n')}`);
+  if (prose?.notFor?.length) parts.push(`\n\nNot for:\n${prose.notFor.map((l) => `- ${l}`).join('\n')}`);
   return parts.join('');
 }
 
@@ -2191,6 +2230,7 @@ function build(): void {
     .map((op) => {
       const input = inputSchema(op, absorbedBy.get(op.key) ?? [], docEn);
       const output = outputSchema(op, docEn);
+      const text = answerTextPaths(op, output, docEn);
       return {
         name: op.name,
         title: specTitle(op),
@@ -2200,7 +2240,7 @@ function build(): void {
         plan: op.plan,
         roles: op.roles,
         botTokenOnly: op.botTokenOnly,
-        description: describe(op),
+        description: describe(op, text.secrets.length > 0),
         annotations: annotations(op),
         inputSchema: input.schema,
         request: input.request,
@@ -2209,7 +2249,7 @@ function build(): void {
         specWords: input.specWords,
         outputSchema: output,
         entity: responseEntity(op, docEn),
-        text: answerTextPaths(op, output, docEn),
+        text,
       };
     });
 
@@ -2788,7 +2828,7 @@ function build(): void {
     for (const path of text.untrusted) if (!places.includes(path)) problems.push(`${name} lists ${path} as untrusted, and its answer has no text there`);
   };
   for (const tool of tools) classified(tool.name, tool.text, tool.outputSchema);
-  for (const service of SERVICE_TOOLS) classified(`service tool ${service.name}`, serviceText.get(service.name) ?? { untrusted: [], trusted: [], closed: [] }, service.outputSchema as JsonSchema | undefined);
+  for (const service of SERVICE_TOOLS) classified(`service tool ${service.name}`, serviceText.get(service.name) ?? noText(), service.outputSchema as JsonSchema | undefined);
   const trustedNamed = new Set<string>();
   for (const { fields, why } of TRUSTED_TEXT) {
     if (!why.trim()) problems.push(`TRUSTED_TEXT trusts ${fields.join(', ')} without a reason`);
@@ -2802,6 +2842,62 @@ function build(): void {
           : `TRUSTED_TEXT names ${name}, which no answer of a tool carries as free text`,
       );
     }
+  }
+
+  // ── Generated notes ──────────────────────────────────────────────────────
+  // A note the generator puts on what it is about holds only while it is on all
+  // of it, and once: a tool that hands out a secret without the note, or a
+  // date-time argument without the way to write a moment, is the gap the note
+  // was moved there to close.
+  const occurrences = (text: unknown, note: string): number => String(text ?? '').split(note).length - 1;
+  const secretsMet = new Set<string>();
+  for (const tool of tools) {
+    tool.text.secrets.forEach((key) => secretsMet.add(key));
+    const notes = occurrences(tool.description, SECRET_NOTE);
+    const expected = tool.text.secrets.length ? 1 : 0;
+    if (notes !== expected) {
+      problems.push(
+        expected
+          ? `${tool.name} answers with ${tool.text.secrets.join(', ')}, and its description carries SECRET_NOTE ${notes} times rather than once`
+          : `${tool.name} carries SECRET_NOTE, and its answer holds no field TRUSTED_TEXT marks secret`,
+      );
+    }
+    if (readSchemaText(tool.inputSchema).some((text) => occurrences(text, SECRET_NOTE))) problems.push(`${tool.name} carries SECRET_NOTE in an argument`);
+  }
+  for (const service of SERVICE_TOOLS) {
+    if (occurrences(service.description, SECRET_NOTE)) problems.push(`service tool ${service.name} carries SECRET_NOTE, and no secret is in its answer`);
+  }
+  for (const key of SECRET_KEYS) {
+    if (!secretsMet.has(key)) problems.push(`TRUSTED_TEXT marks ${key} secret, and no answer of a tool carries it`);
+  }
+  // The note rests on the flag, and a flag dropped by mistake would take the note
+  // off every tool that hands out a secret while the build stays green. So a
+  // field of free text whose name says it is a token or a secret has to be in a
+  // group that says which it is: whole, and carrying the note, or masked.
+  if (!SECRET_KEYS.size) problems.push('TRUSTED_TEXT marks no field secret, so no tool carries SECRET_NOTE');
+  const declared = new Set(TRUSTED_TEXT.filter((group) => group.secret || group.masked).flatMap((group) => group.fields));
+  for (const key of FREE_TEXT_KEYS) {
+    if (/(^|_)(token|secret)$/.test(key.split('.').pop()!) && !declared.has(key)) {
+      problems.push(`${key} is named as a token or a secret, and TRUSTED_TEXT marks it neither secret nor masked`);
+    }
+  }
+  for (const group of TRUSTED_TEXT) {
+    if (group.secret && group.masked) problems.push(`TRUSTED_TEXT marks ${group.fields.join(', ')} both secret and masked`);
+  }
+  for (const tool of tools) {
+    if (occurrences(tool.description, MOMENT_ARGUMENT.description)) problems.push(`${tool.name} carries MOMENT_ARGUMENT in its description rather than on an argument`);
+    const walk = (node: JsonSchema | undefined, at: string): void => {
+      if (!node || typeof node !== 'object') return;
+      const notes = occurrences(node.description, MOMENT_ARGUMENT.description);
+      if (node.format === 'date-time' && notes !== 1) {
+        problems.push(`${tool.name}: the date-time argument ${at} carries MOMENT_ARGUMENT ${notes} times rather than once`);
+      }
+      if (node.format !== 'date-time' && notes) problems.push(`${tool.name}: ${at} carries MOMENT_ARGUMENT and is no date-time`);
+      for (const [name, child] of Object.entries(node.properties ?? {})) walk(child, at ? `${at}.${name}` : name);
+      if (node.items) walk(node.items, `${at}[]`);
+      if (node.additionalProperties && typeof node.additionalProperties === 'object') walk(node.additionalProperties, `${at}{}`);
+    };
+    for (const [name, child] of Object.entries(tool.inputSchema.properties ?? {})) walk(child, name);
   }
 
   // ── Pages ────────────────────────────────────────────────────────────────
@@ -3077,9 +3173,15 @@ function build(): void {
     }
   }
 
-  // A placeholder the server does not know how to fill would reach the model raw.
+  // A placeholder the server does not know how to fill would reach the model raw,
+  // and one nothing uses is a value the server fills for nobody: the instructions,
+  // the footer and the links into the web app are where the server fills them.
   for (const [, name] of SERVER_INSTRUCTIONS.matchAll(/\{(\w+)\}/g)) {
     if (!(name! in INSTRUCTION_PLACEHOLDERS)) problems.push(`the server instructions use {${name}}, which nothing fills`);
+  }
+  const filledIn = [SERVER_INSTRUCTIONS, RESPONSE_FORMAT.footer, ...Object.values(WEB_LINKS)].join('\n');
+  for (const name of Object.keys(INSTRUCTION_PLACEHOLDERS)) {
+    if (!filledIn.includes(`{${name}}`)) problems.push(`INSTRUCTION_PLACEHOLDERS.${name} is used by neither the instructions, the footer nor WEB_LINKS`);
   }
 
   // The always-on block is one text for every token and is read before any
@@ -3097,12 +3199,20 @@ function build(): void {
     }
   }
 
-  // The instructions hold what no single tool can say, and a fact of a method
-  // has its home in the spec. Six words in a row shared with the text of any
-  // operation, or with what any argument says, is the same restatement the prose
-  // is held to — read before every listing, it would drift unseen.
+  // The instructions hold what no single tool can say, and a rule of one area
+  // has its home with the tools of that area. Six words in a row shared with the
+  // text of any operation, with what any tool says — its description with prose
+  // and notes, a service tool's own — or with what any argument says, is the same
+  // restatement the prose is held to: read before every listing, it would drift
+  // unseen.
   const specRuns = new Set<string>();
-  for (const text of [...operations.map((op) => specText(op)), ...tools.flatMap((t) => readSchemaText(t.inputSchema))]) {
+  for (const text of [
+    ...operations.map((op) => specText(op)),
+    ...tools.map((t) => t.description),
+    ...SERVICE_TOOLS.map((t) => t.description),
+    ...tools.flatMap((t) => readSchemaText(t.inputSchema)),
+    ...SERVICE_TOOLS.flatMap((t) => t.input.map((f) => f.description)),
+  ]) {
     const words = wordsIn(text);
     for (let i = 0; i + REPEAT_RUN <= words.length; i += 1) specRuns.add(words.slice(i, i + REPEAT_RUN).join(' '));
   }
@@ -3111,15 +3221,16 @@ function build(): void {
     for (let i = 0; i + REPEAT_RUN <= words.length; i += 1) {
       const run = words.slice(i, i + REPEAT_RUN).join(' ');
       if (specRuns.has(run)) {
-        problems.push(`the server instructions say again what the spec says: «${run}»`);
+        problems.push(`the server instructions say again what a tool says: «${run}»`);
         break;
       }
     }
   }
 
-  // What a client cuts never reaches the model. The head of the instructions is
-  // measured with every placeholder filled by the longest example it gives, and a
-  // description has to fit whole: a fact moved out of the way goes to the
+  // What a client cuts never reaches the model. The instructions are measured
+  // whole, with every placeholder filled by the longest example it gives, and a
+  // description has to fit whole too: a rule moved out of the instructions goes
+  // to the tools it is about, and a fact moved out of a description goes to the
   // argument it is about, in the spec, where no such limit holds.
   const longestExample = (description: string): string =>
     [...description.matchAll(/«([^»]+)»/g)].map((m) => m[1]!).sort((a, b) => b.length - a.length)[0] ?? '';
@@ -3127,15 +3238,14 @@ function build(): void {
     if (!longestExample(description)) problems.push(`INSTRUCTION_PLACEHOLDERS.${name} gives no example in «…» to measure the instructions with`);
   }
   const placeholderOf = (name: string): string | undefined => (INSTRUCTION_PLACEHOLDERS as Record<string, string>)[name];
-  const filledHead = INSTRUCTIONS_HEAD.replace(/\{(\w+)\}/g, (all, name: string) => {
+  const filledInstructions = SERVER_INSTRUCTIONS.replace(/\{(\w+)\}/g, (all, name: string) => {
     const description = placeholderOf(name);
     return description ? longestExample(description) : all;
   });
-  if (!SERVER_INSTRUCTIONS.startsWith(`${INSTRUCTIONS_HEAD}\n`)) problems.push('the server instructions do not open with INSTRUCTIONS_HEAD');
-  if (filledHead.length > INSTRUCTIONS_HEAD_LIMIT) {
+  if (filledInstructions.length > INSTRUCTIONS_LIMIT) {
     problems.push(
-      `the head of the server instructions runs to ${filledHead.length} characters with its placeholders filled, ` +
-        `past ${INSTRUCTIONS_HEAD_LIMIT} — a client that keeps ${CLIENT_TEXT_LIMIT} would lose its end`,
+      `the server instructions run to ${filledInstructions.length} characters with their placeholders filled, ` +
+        `past ${INSTRUCTIONS_LIMIT} — a client that keeps ${CLIENT_TEXT_LIMIT} would lose their end: move the rule to the tools it is about`,
     );
   }
   for (const tool of [...tools, ...SERVICE_TOOLS]) {
@@ -3234,6 +3344,7 @@ function build(): void {
       ...(scenario.args?.present ?? []),
       ...(scenario.args?.absent ?? []),
       ...Object.keys(scenario.args?.onWeekday ?? {}),
+      ...Object.keys(scenario.args?.daysAgo ?? {}),
       ...(scenario.args?.either ?? []).flatMap((one) => Object.keys(one)),
     ];
     // Folding several methods into one tool made a group of actions a single
@@ -3254,12 +3365,15 @@ function build(): void {
           `(${writes.map((t) => t.name).join(', ')}) — one of them is not what was asked for`,
       );
     }
-    // A weekday assertion on a field that is not a moment measures nothing.
-    for (const argument of Object.keys(scenario.args?.onWeekday ?? {})) {
+    // A day asserted on a field that is not a moment measures nothing.
+    for (const argument of [...Object.keys(scenario.args?.onWeekday ?? {}), ...Object.keys(scenario.args?.daysAgo ?? {})]) {
       const holders = accepted.map((t) => argumentAt(t.inputSchema, argument)).filter(Boolean) as JsonSchema[];
       if (holders.length && !holders.some((field) => field.format === 'date-time')) {
-        problems.push(`${scenario.id} expects a weekday in "${argument}", which the spec does not declare as a moment`);
+        problems.push(`${scenario.id} expects a day in "${argument}", which the spec does not declare as a moment`);
       }
+    }
+    for (const [argument, days] of Object.entries(scenario.args?.daysAgo ?? {})) {
+      if (!Number.isInteger(days) || days < 1) problems.push(`${scenario.id} counts "${argument}" ${days} days back, which is no day already past`);
     }
     const serviceArgs = new Set(
       scenario.accept.flatMap((n) => SERVICE_TOOLS.find((t) => t.name === n)?.input.map((f) => f.name) ?? []),
@@ -3319,19 +3433,44 @@ function build(): void {
         : typeof value === 'number' && /(^|_)ids?$/.test(key)
           ? [String(value)]
           : [];
-  // The other way round: a phrase prose quotes as the words of a request must not
-  // be the words of a scenario. Four words in a row miss a short one — «подними
-  // переписку» in prose, «подними переписку в Релизах» in the set — and a model
-  // that met the example would pass the scenario on recall.
-  for (const [name, prose] of Object.entries(MCP_TOOL_PROSE)) {
-    const lines = [prose.description ?? '', ...(prose.whenToUse ?? []), ...(prose.notFor ?? []), ...Object.values(prose.arguments ?? {})];
+  // The other way round: a phrase written text quotes as the words of a request
+  // must not be the words of a scenario. Four words in a row miss a short one —
+  // «подними переписку» in prose, «подними переписку в Релизах» in the set — and
+  // a model that met the example would pass the scenario on recall. Prose is not
+  // the only text that quotes: the instructions once quoted the very words of
+  // five scenarios, which then measured recall rather than understanding. So
+  // every hand-written text a model reads is held to it, and only `QUOTED_TERMS`
+  // excuses a word, with the reason it is no example to copy.
+  const quoting: Array<{ who: string; lines: string[] }> = [
+    ...Object.entries(MCP_TOOL_PROSE).map(([name, prose]) => ({
+      who: `prose of ${name} quotes`,
+      lines: [prose.description ?? '', ...(prose.whenToUse ?? []), ...(prose.notFor ?? []), ...Object.values(prose.arguments ?? {})],
+    })),
+    { who: 'the server instructions quote', lines: [SERVER_INSTRUCTIONS] },
+    { who: 'MOMENT_ARGUMENT quotes', lines: [MOMENT_ARGUMENT.description] },
+    { who: 'SECRET_NOTE quotes', lines: [SECRET_NOTE] },
+    { who: 'DRAFT_ARGUMENT quotes', lines: [DRAFT_ARGUMENT.description] },
+    { who: 'VIEW_ARGUMENT quotes', lines: Object.values(VIEW_ARGUMENT.description) },
+    { who: 'REFUSALS quote', lines: Object.values(REFUSALS) },
+    { who: 'RESPONSE_FORMAT quotes', lines: readable.filter((r) => r.where === 'the response format').map((r) => r.text) },
+  ];
+  const termsQuoted = new Set<string>();
+  for (const { who, lines } of quoting) {
     for (const line of lines) {
       for (const [, phrase] of line.matchAll(/«([^»]+)»/g)) {
+        if (phrase! in QUOTED_TERMS) {
+          termsQuoted.add(phrase!);
+          continue;
+        }
         const run = wordsOf(phrase!);
         const hit = run.length ? TOOL_SCENARIOS.find((s) => containsRun(wordsOf(s.prompt), run)) : undefined;
-        if (hit) problems.push(`prose of ${name} quotes «${phrase}», and ${hit.id} asks in those words — a copied example would pass`);
+        if (hit) problems.push(`${who} «${phrase}», and ${hit.id} asks in those words — a copied example would pass`);
       }
     }
+  }
+  for (const [term, why] of Object.entries(QUOTED_TERMS)) {
+    if (!why.trim()) problems.push(`QUOTED_TERMS excuses «${term}» without a reason`);
+    if (!termsQuoted.has(term)) problems.push(`QUOTED_TERMS excuses «${term}», which no written text quotes any more`);
   }
 
   const world = fs.readFileSync(WORLD_PATH, 'utf8');

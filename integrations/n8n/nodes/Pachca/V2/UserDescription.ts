@@ -244,7 +244,7 @@ export const userFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
-		description: 'User ID',
+		description: 'User ID. In a web app link it is the number from the `user_id` parameter. The `profile_id` and `user-ID` parameters name the employee the link was sent to.',
 		modes: [
 			{
 				displayName: 'From List',

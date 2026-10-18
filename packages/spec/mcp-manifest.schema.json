@@ -92,11 +92,11 @@
     },
     "instructions": {
       "type": "string",
-      "description": "The always-on block a model reads before its first call. Carries {placeholders} the server fills in every response that carries the instructions. Its head — the catalogue of tools, who the caller is and what day it is, then the rules on trust, secrets, authorship and asking — fits within 2048 characters with the placeholders filled, the most a widely used client keeps; the rest follows for clients that keep it all."
+      "description": "The always-on block a model reads before its first call: the catalogue of tools, who the caller is, today and the days after it, and the few rules a model needs before it loads a tool. Carries {placeholders} the server fills in every response that carries the instructions. One text, whole within 2048 characters with the placeholders filled — the most a widely used client keeps, and it drops the end silently, where the rule on honesty stands; the rules of one area live on the tools of that area. The build leaves room for a long name, and the server keeps the filled text within 2048 UTF-16 units all the same, shortening the name in {caller} when it has to."
     },
     "instruction_placeholders": {
       "type": "object",
-      "description": "What each placeholder in the instructions stands for, ending with an example in «…». They belong to the caller, to the day and to the installation, so the server fills them in every response that carries the instructions (the result of initialize or of server/discover), from the token of that request: the date has to be known before the first call, and nothing else is in front of the model then. The caller carries the kind of token and, for a personal token, the role. web_links carries {app_host} too.",
+      "description": "What each placeholder in the instructions stands for, ending with an example in «…». They belong to the caller, to the day and to the installation, so the server fills them in every response that carries the instructions (the result of initialize or of server/discover), from the token of that request: the date has to be known before the first call, and nothing else is in front of the model then. The caller carries the kind of token and, for a personal token, the role; today carries its UTC offset, and days the dates of the seven days after it. app_host is used by web_links rather than by the instructions.",
       "additionalProperties": {
         "type": "string"
       }

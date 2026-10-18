@@ -403,9 +403,9 @@ paths:
         /bots/{id}/tokens).
 
 
-        The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation"
-        plan — [List workspace bots](GET /company/bots). There other people's bots come with only a name and a nickname,
-        and the rest of the settings are hidden.
+        The list of all bots in the workspace, including other people's, is available to the workspace owner on the
+        "Corporation" plan — [List workspace bots](GET /company/bots). There other people's bots come with only a name
+        and a nickname, and the rest of the settings are hidden.
       parameters:
         - name: query
           in: query
@@ -718,8 +718,8 @@ paths:
         `secret_token` and the body of the last request to the incoming webhook `last_request_body`.
 
 
-        The list of all bots in the workspace, including other people's, is available to the owner on the "Corporation"
-        plan — [List workspace bots](GET /company/bots).
+        The list of all bots in the workspace, including other people's, is available to the workspace owner on the
+        "Corporation" plan — [List workspace bots](GET /company/bots).
       parameters:
         - name: id
           in: path
@@ -2077,6 +2077,11 @@ paths:
         caller has not joined. For a multi-guest — only the public chats they are a member of.
 
 
+        Private chats are returned only to their members, whatever `availability` and `archived` are. The list of all
+        chats in the workspace, including private ones, is available to the workspace owner on the "Corporation" plan —
+        [List workspace chats](GET /company/chats).
+
+
         Threads never come in this list; for them there is [List threads](GET /threads).
 
 
@@ -2427,7 +2432,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Chat ID
+          description: 'Chat ID: in a web app link it is the number from the path `/chats/{id}`'
           schema:
             type: integer
             format: int32
@@ -4633,7 +4638,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Tag ID
+          description: 'Tag ID: in a web app link it is the number from the `tag_id` parameter'
           schema:
             type: integer
             format: int32
@@ -4852,7 +4857,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Tag ID
+          description: 'Tag ID: in a web app link it is the number from the `tag_id` parameter'
           schema:
             type: integer
             format: int32
@@ -5215,7 +5220,9 @@ paths:
         - name: id
           in: path
           required: true
-          description: Message ID
+          description: >-
+            Message ID. A web app link points at a message with the `sidebar_message` parameter, and without it with
+            `message`. The number from `thread_message_id` is the message the thread hangs under.
           schema:
             type: integer
             format: int32
@@ -7362,7 +7369,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Task ID
+          description: 'Task ID: in a web app link it is the number from the path `/tasks/{id}` or from the `task_id` parameter'
           schema:
             type: integer
             format: int32
@@ -7771,11 +7778,15 @@ paths:
 
         Access to a thread is broader than the results of [List threads](GET /threads): a thread that opens by `id` may
         well not appear in the list.
+
+
+        In a web app link, `thread_message_id` is the ID of the message the thread hangs under. The thread itself is in
+        the `thread` field of that message, and the message is returned by [Message info](GET /messages/{id}).
       parameters:
         - name: id
           in: path
           required: true
-          description: Thread ID
+          description: 'Thread ID: in a web app link it is the number from the `thread_id` parameter'
           schema:
             type: integer
             format: int32
@@ -8126,7 +8137,9 @@ paths:
         - name: id
           in: path
           required: true
-          description: User ID
+          description: >-
+            User ID. In a web app link it is the number from the `user_id` parameter. The `profile_id` and `user-id`
+            parameters name the employee the link was sent to.
           schema:
             type: integer
             format: int32
@@ -12943,6 +12956,7 @@ components:
                 without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest,
                 `<@user_id>` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8,
                 which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes.
+                The message goes out under the token owner's name, and a bot's with the Bot badge.
               example: Yesterday we sold 756 t-shirts (10% more than last Sunday)
             files:
               type: array

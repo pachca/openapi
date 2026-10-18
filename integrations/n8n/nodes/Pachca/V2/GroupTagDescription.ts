@@ -102,7 +102,7 @@ export const groupTagFields: INodeProperties[] = [
 		required: true,
 		default: 0,
 		displayOptions: { show: { resource: ['groupTag'], operation: ['get'] } },
-		description: 'Tag ID',
+		description: 'Tag ID: in a web app link it is the number from the `tag_id` parameter',
 	},
 	{
 		displayName: 'Simplify',
@@ -161,7 +161,7 @@ export const groupTagFields: INodeProperties[] = [
 		required: true,
 		default: 0,
 		displayOptions: { show: { resource: ['groupTag'], operation: ['getAllUsers'] } },
-		description: 'Tag ID',
+		description: 'Tag ID: in a web app link it is the number from the `tag_id` parameter',
 	},
 	{
 		displayName: 'Return All',

@@ -324,7 +324,7 @@ export const chatFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
-		description: 'Chat ID',
+		description: 'Chat ID: in a web app link it is the number from the path `/chats/{ID}`',
 		modes: [
 			{
 				displayName: 'From List',

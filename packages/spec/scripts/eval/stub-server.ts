@@ -98,19 +98,24 @@ const onToday = (raw: string): string => {
   return raw.replace(/(?<!\d)(\d{4}-\d{2}-\d{2})(?!\d)/g, (date) => isoDay(Date.parse(date) + shift * DAY_MS));
 };
 
-/** The day of `@now`, its weekday and the dates of its week, as `RESPONSE_FORMAT.footer` spells them. */
-function calendar(world: World): { now: string; day: string; weekday: string; week: string } {
+/**
+ * The day of `@now`, its weekday, its UTC offset and the dates of the seven days
+ * after it, as `RESPONSE_FORMAT.footer` and `{today}` and `{days}` spell them.
+ */
+function calendar(world: World): { now: string; day: string; weekday: string; offset: string; days: string } {
   const now = String(world['@now'] ?? new Date().toISOString());
   const day = now.slice(0, 10);
   const at = Date.parse(day);
-  const monday = at - ((new Date(at).getUTCDay() + 6) % 7) * DAY_MS;
-  const week = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => `${d} ${isoDay(monday + i * DAY_MS)}`).join(' · ');
-  return { now, day, weekday: WEEKDAYS[new Date(at).getUTCDay()]!, week };
+  const zone = now.match(/([+-]\d{2}:\d{2})$/)?.[1] ?? '+00:00';
+  const days = [1, 2, 3, 4, 5, 6, 7]
+    .map((i) => `${WEEKDAYS[new Date(at + i * DAY_MS).getUTCDay()]!.slice(0, 3)} ${isoDay(at + i * DAY_MS)}`)
+    .join(' · ');
+  return { now, day, weekday: WEEKDAYS[new Date(at).getUTCDay()]!, offset: `UTC${zone}`, days };
 }
 
 const footerOf = (world: World): string => {
-  const { now, weekday, week } = calendar(world);
-  return `Now: ${now}, ${weekday} · you: ${String(world['@you'] ?? '')}\nWeek: ${week}`;
+  const { now, weekday, days } = calendar(world);
+  return `Now: ${now}, ${weekday} · you: ${String(world['@you'] ?? '')} · times above are UTC: tell them in the zone of Now\nDays: ${days}`;
 };
 
 /**
@@ -123,16 +128,14 @@ const readInstructions = (): string | undefined => {
   if (!process.env.EVAL_INSTRUCTIONS || !fs.existsSync(process.env.EVAL_INSTRUCTIONS)) return undefined;
   const text = fs.readFileSync(process.env.EVAL_INSTRUCTIONS, 'utf8');
   const world = readWorld();
-  const { day, weekday, week } = calendar(world);
+  const { day, weekday, offset, days } = calendar(world);
   const you = String(world['@you'] ?? 'the account whose token this is');
   const fill: Record<string, string> = {
     caller: world['@role'] ? `${you}, ${String(world['@role'])}` : you,
-    today: `${day}, ${weekday}`,
-    week,
-    // The fake workspace lives in the cloud, and its links are the cloud's.
-    app_host: 'app.pachca.com',
+    today: `${day}, ${weekday}, ${offset}`,
+    days,
   };
-  return text.replace(/\{(caller|today|week|app_host)\}/g, (_, name: string) => fill[name] ?? '');
+  return text.replace(/\{(caller|today|days)\}/g, (_, name: string) => fill[name] ?? '');
 };
 
 const send = (message: unknown) => process.stdout.write(`${JSON.stringify(message)}\n`);

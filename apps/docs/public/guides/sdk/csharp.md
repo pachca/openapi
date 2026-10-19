@@ -200,7 +200,7 @@ var request = new ChatCreateRequest
     }
 };
 var response = await client.Chats.CreateChatAsync(request);
-// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?)
+// → CreateChatResponse(Data: Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?), Meta: CreateChatResponseMeta(NotFoundMemberIds: List<int>))
 ```
 
 

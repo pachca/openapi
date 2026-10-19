@@ -2244,6 +2244,10 @@ type UpdateBotAvatarRequest struct {
 	Image io.Reader `json:"image"`
 }
 
+type CreateChatResponseMeta struct {
+	NotFoundMemberIDs []int32 `json:"not_found_member_ids"`
+}
+
 type UpdateChatAvatarRequest struct {
 	Image io.Reader `json:"image"`
 }
@@ -2900,6 +2904,11 @@ type ListBotsResponse struct {
 type ListBotTokensResponse struct {
 	Data []BotAccessToken `json:"data"`
 	Meta PaginationMeta   `json:"meta"`
+}
+
+type CreateChatResponse struct {
+	Data Chat                   `json:"data"`
+	Meta CreateChatResponseMeta `json:"meta"`
 }
 
 type ListChatsResponse struct {

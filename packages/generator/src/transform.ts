@@ -637,6 +637,13 @@ function transformRequestBody(
   return { contentType, schemaRef, unwrapMode, unwrapField };
 }
 
+/** A `meta` that names a type: a `$ref` or an inline object with properties. */
+function metaIsModel(meta: Schema | undefined): boolean {
+  if (!meta) return false;
+  if (meta.$ref) return true;
+  return getSchemaType(meta) === 'object' && !!meta.properties && Object.keys(meta.properties).length > 0;
+}
+
 function transformSuccessResponse(endpoint: Endpoint): IRSuccessResponse {
   // Find the success status code
   const successCodes = Object.keys(endpoint.responses)
@@ -718,8 +725,22 @@ function transformSuccessResponse(endpoint: Endpoint): IRSuccessResponse {
       };
     }
 
-    // { data: T } → unwrap single
     const dataRef = dataSchema.$ref ? refName(dataSchema.$ref) : undefined;
+
+    // { data: T, meta } → the response whole: unwrapping would drop meta
+    if (dataRef && metaIsModel(responseSchema.properties.meta)) {
+      return {
+        statusCode,
+        hasBody: true,
+        isList: false,
+        isUnwrap: false,
+        isSingleWithMeta: true,
+        dataRef,
+        isRedirect: false,
+      };
+    }
+
+    // { data: T } → unwrap single
     return {
       statusCode,
       hasBody: true,
@@ -833,21 +854,38 @@ function generateParamsType(op: IROperation): IRParamsType | undefined {
 function generateResponseType(
   op: IROperation,
   endpoint: Endpoint,
+  models: IRModel[],
 ): IRResponseType | undefined {
-  if (!op.successResponse.isList || !op.successResponse.dataRef) return undefined;
+  const { isList, isSingleWithMeta, dataRef } = op.successResponse;
+  if ((!isList && !isSingleWithMeta) || !dataRef) return undefined;
 
   const pascalMethod = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
+  const name = `${pascalMethod}Response`;
   const response = endpoint.responses[String(op.successResponse.statusCode)];
   const responseSchema = response?.content?.['application/json']?.schema;
 
   const metaSchema = responseSchema?.properties?.meta;
-  const metaRef = metaSchema?.$ref ? refName(metaSchema.$ref) : undefined;
+  let metaRef = metaSchema?.$ref ? refName(metaSchema.$ref) : undefined;
   const metaIsRequired = (responseSchema?.required || []).includes('meta');
 
+  // An inline `meta` of a single object becomes its own model, named the way an
+  // inline object field of `<Name>Response` would be: `CreateChatResponseMeta`.
+  if (isSingleWithMeta && !metaRef && metaSchema) {
+    const baseName = `${name}Meta`;
+    let modelName = baseName;
+    let n = 2;
+    while (models.some((m) => m.name === modelName)) {
+      modelName = `${baseName}${n}`;
+      n += 1;
+    }
+    models.push(transformModel(modelName, metaSchema));
+    metaRef = modelName;
+  }
+
   return {
-    name: `${pascalMethod}Response`,
-    dataRef: op.successResponse.dataRef,
-    dataIsArray: true,
+    name,
+    dataRef,
+    dataIsArray: !!isList,
     metaRef,
     metaIsRequired,
   };
@@ -893,7 +931,7 @@ export function transform(spec: ParsedAPI): IR {
     const paramsType = generateParamsType(op);
     if (paramsType) params.push(paramsType);
 
-    const responseType = generateResponseType(op, endpoint);
+    const responseType = generateResponseType(op, endpoint, models);
     if (responseType) {
       responses.push(responseType);
       op.successResponse.responseRef = responseType.name;

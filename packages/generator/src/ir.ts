@@ -121,9 +121,14 @@ export interface IRSuccessResponse {
   isList: boolean;
   /** { data: T } → return T */
   isUnwrap: boolean;
+  /**
+   * { data: T, meta } with one object in `data`: the method returns the response
+   * whole, data and meta, the way a list method does — `meta` is not dropped.
+   */
+  isSingleWithMeta?: boolean;
   /** Referenced model name for data */
   dataRef?: string;
-  /** For list responses: generated Response type name */
+  /** For list and single-with-meta responses: generated Response type name */
   responseRef?: string;
   /** 302 redirect → return Location header */
   isRedirect: boolean;
@@ -200,6 +205,7 @@ export interface IRParamsType {
 export interface IRResponseType {
   name: string;
   dataRef: string;
+  /** `data: T[]` for a list, `data: T` for a single object with meta */
   dataIsArray: boolean;
   metaRef?: string;
   metaIsRequired: boolean;

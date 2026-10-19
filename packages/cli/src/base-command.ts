@@ -229,6 +229,18 @@ export abstract class BaseCommand extends Command {
   }
 
   /**
+   * Warn about a non-empty list from the response `meta` (e.g. `not_found_member_ids`).
+   *
+   * stdout keeps printing only `data`, so `-o json` output keeps its shape. The list
+   * goes to stderr in every output mode, like the other `⚠` notices.
+   */
+  protected warnMetaList(meta: unknown, field: string, message: string, hint: string): void {
+    const value = meta && typeof meta === 'object' ? (meta as Record<string, unknown>)[field] : undefined;
+    if (!Array.isArray(value) || value.length === 0) return;
+    process.stderr.write(`⚠ ${message}: ${value.join(', ')}.\n  ${hint}\n`);
+  }
+
+  /**
    * Output a success message to stderr.
    */
   protected success(message: string): void {

@@ -2154,6 +2154,10 @@ export interface UpdateBotAvatarRequest {
   image: Blob;
 }
 
+export interface CreateChatResponseMeta {
+  notFoundMemberIds: number[];
+}
+
 export interface UpdateChatAvatarRequest {
   image: Blob;
 }
@@ -2351,6 +2355,11 @@ export interface ListBotsResponse {
 export interface ListBotTokensResponse {
   data: BotAccessToken[];
   meta: PaginationMeta;
+}
+
+export interface CreateChatResponse {
+  data: Chat;
+  meta: CreateChatResponseMeta;
 }
 
 export interface ListChatsResponse {

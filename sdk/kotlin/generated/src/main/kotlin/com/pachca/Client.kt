@@ -708,7 +708,7 @@ interface ChatsService {
         throw NotImplementedError("Chats.listCompanyChatsAll is not implemented")
     }
 
-    suspend fun createChat(request: ChatCreateRequest): Chat {
+    suspend fun createChat(request: ChatCreateRequest): CreateChatResponse {
         throw NotImplementedError("Chats.createChat is not implemented")
     }
 
@@ -857,13 +857,13 @@ class ChatsServiceImpl internal constructor(
         return items
     }
 
-    override suspend fun createChat(request: ChatCreateRequest): Chat {
+    override suspend fun createChat(request: ChatCreateRequest): CreateChatResponse {
         val response = client.post("$baseUrl/chats") {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
         return when (response.status.value) {
-            201 -> response.body<ChatDataWrapper>().data
+            201 -> response.body()
             401 -> throw response.body<OAuthError>()
             else -> throw errorFromResponse(response)
         }

@@ -321,6 +321,39 @@ interface CommandGenParams {
 }
 
 /**
+ * Поля `meta` в ответе метода с одним объектом в `data`. stdout печатает только
+ * `data`, как у остальных команд, а непустой список из такого поля уходит
+ * предупреждением в stderr. Поле `meta`, которого здесь нет, останавливает
+ * генерацию: иначе оно молча пропадёт из вывода.
+ */
+const META_NOTICES: Record<string, { message: string; hint: string }> = {
+  'POST /chats meta.not_found_member_ids': {
+    message: 'Не удалось добавить в чат',
+    hint: 'Таких сотрудников нет в пространстве, либо они приостановлены или удалены.',
+  },
+};
+
+function responseMetaNotices(endpoint: Endpoint): { field: string; message: string; hint: string }[] {
+  const okResponse = endpoint.responses['200'] || endpoint.responses['201'] || endpoint.responses['202'];
+  const schema = okResponse?.content?.['application/json']?.schema;
+  if (!schema) return [];
+  const meta = resolveAllOf(schema).properties?.meta;
+  if (!meta) return [];
+  return Object.entries(resolveAllOf(meta).properties ?? {}).map(([field, fieldSchema]) => {
+    // Слова — про один метод, поэтому ключ называет его: то же поле у другого
+    // метода получит свой текст, а не «в чат».
+    const notice = META_NOTICES[`${endpoint.method} ${endpoint.path} meta.${field}`];
+    if (!notice) {
+      throw new Error(`${endpoint.method} ${endpoint.path}: ответ несёт meta.${field} — добавьте предупреждение в META_NOTICES с ключом «${endpoint.method} ${endpoint.path} meta.${field}»`);
+    }
+    if (getSchemaType(fieldSchema) !== 'array') {
+      throw new Error(`${endpoint.method} ${endpoint.path}: meta.${field} не массив — предупреждение печатает только списки`);
+    }
+    return { field, ...notice };
+  });
+}
+
+/**
  * Заголовок с единственным допустимым значением (`Prefer: return=representation`)
  * — выбор уже сделан, флагом он не становится: команда шлёт его всегда.
  */
@@ -924,6 +957,9 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`    const responseBody = (data ?? {}) as Record<string, unknown>;`);
     runBodyLines.push(`    const result = responseBody.data ?? responseBody;`);
     runBodyLines.push(`    this.output(result);`);
+    for (const n of responseMetaNotices(p.endpoint)) {
+      runBodyLines.push(`    this.warnMetaList(responseBody.meta, ${JSON.stringify(n.field)}, ${JSON.stringify(n.message)}, ${JSON.stringify(n.hint)});`);
+    }
   }
 
   // Put it all together

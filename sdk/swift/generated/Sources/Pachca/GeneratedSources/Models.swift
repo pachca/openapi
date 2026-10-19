@@ -5623,6 +5623,18 @@ public struct UpdateBotAvatarRequest: Codable {
     }
 }
 
+public struct CreateChatResponseMeta: Codable {
+    public let notFoundMemberIds: [Int]
+
+    public init(notFoundMemberIds: [Int]) {
+        self.notFoundMemberIds = notFoundMemberIds
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case notFoundMemberIds = "not_found_member_ids"
+    }
+}
+
 public struct UpdateChatAvatarRequest: Codable {
     public var image: Data
 
@@ -6012,100 +6024,209 @@ public enum WebhookPayloadUnion: Codable {
 public struct GetAuditEventsResponse: Codable {
     public let data: [AuditEvent]
     public let meta: PaginationMeta
+
+    public init(data: [AuditEvent], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListBotsResponse: Codable {
     public let data: [BotResponse]
     public let meta: PaginationMeta
+
+    public init(data: [BotResponse], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListBotTokensResponse: Codable {
     public let data: [BotAccessToken]
     public let meta: PaginationMeta
+
+    public init(data: [BotAccessToken], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
+}
+
+public struct CreateChatResponse: Codable {
+    public let data: Chat
+    public let meta: CreateChatResponseMeta
+
+    public init(data: Chat, meta: CreateChatResponseMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListChatsResponse: Codable {
     public let data: [Chat]
     public let meta: PaginationMeta
+
+    public init(data: [Chat], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListMembersResponse: Codable {
     public let data: [User]
     public let meta: PaginationMeta
+
+    public init(data: [User], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListCompanyBotsResponse: Codable {
     public let data: [CompanyBotResponse]
     public let meta: PaginationMeta
+
+    public init(data: [CompanyBotResponse], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListCompanyChatsResponse: Codable {
     public let data: [Chat]
     public let meta: PaginationMeta
+
+    public init(data: [Chat], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListPropertiesResponse: Codable {
     public let data: [CustomPropertyDefinition]
+
+    public init(data: [CustomPropertyDefinition]) {
+        self.data = data
+    }
 }
 
 public struct ListDraftsResponse: Codable {
     public let data: [Draft]
     public let meta: PaginationMeta
+
+    public init(data: [Draft], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListTagsResponse: Codable {
     public let data: [GroupTag]
     public let meta: PaginationMeta
+
+    public init(data: [GroupTag], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct GetTagUsersResponse: Codable {
     public let data: [User]
     public let meta: PaginationMeta
+
+    public init(data: [User], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListChatMessagesResponse: Codable {
     public let data: [Message]
     public let meta: PaginationMeta
+
+    public init(data: [Message], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListReactionsResponse: Codable {
     public let data: [Reaction]
     public let meta: PaginationMeta
+
+    public init(data: [Reaction], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct SearchChatsResponse: Codable {
     public let data: [Chat]
     public let meta: SearchPaginationMeta
+
+    public init(data: [Chat], meta: SearchPaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct SearchMessagesResponse: Codable {
     public let data: [Message]
     public let meta: SearchPaginationMeta
+
+    public init(data: [Message], meta: SearchPaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct SearchUsersResponse: Codable {
     public let data: [User]
     public let meta: SearchPaginationMeta
+
+    public init(data: [User], meta: SearchPaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListTasksResponse: Codable {
     public let data: [Task]
     public let meta: PaginationMeta
+
+    public init(data: [Task], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListThreadsResponse: Codable {
     public let data: [Thread]
     public let meta: PaginationMeta
+
+    public init(data: [Thread], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListUsersResponse: Codable {
     public let data: [User]
     public let meta: PaginationMeta
+
+    public init(data: [User], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct GetWebhookEventsResponse: Codable {
     public let data: [WebhookEvent]
     public let meta: PaginationMeta
+
+    public init(data: [WebhookEvent], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 struct BotResponseDataWrapper: Codable {

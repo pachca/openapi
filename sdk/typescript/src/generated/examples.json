@@ -154,7 +154,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"🤿 aqua\",\n    memberIds: [123],\n    groupTagIds: [123],\n    channel: true,\n    public: false\n  }\n}\nconst response = client.chats.createChat(request)",
-    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null })",
+    "output": "CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[] }) })",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"

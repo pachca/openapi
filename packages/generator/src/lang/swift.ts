@@ -380,9 +380,20 @@ function generateModels(ir: IR): string {
     lines.push('');
   }
   for (const rt of ir.responses) {
+    const dataType = rt.dataIsArray ? `[${rt.dataRef}]` : rt.dataRef;
+    const metaType = rt.metaRef ? `${rt.metaRef}${rt.metaIsRequired ? '' : '?'}` : undefined;
     lines.push(`public struct ${rt.name}: Codable {`);
-    lines.push(`    public let data: [${rt.dataRef}]`);
-    if (rt.metaRef) lines.push(`    public let meta: ${rt.metaRef}${rt.metaIsRequired ? '' : '?'}${rt.metaIsRequired ? '' : ' = nil'}`);
+    lines.push(`    public let data: ${dataType}`);
+    // No default for an optional meta: Codable skips a `let` that has an initial value.
+    if (metaType) lines.push(`    public let meta: ${metaType}`);
+    // Public memberwise init, as every model has: a service stub in tests builds the response with it.
+    lines.push('');
+    const initParams = [`data: ${dataType}`];
+    if (metaType) initParams.push(`meta: ${metaType}${rt.metaIsRequired ? '' : ' = nil'}`);
+    lines.push(`    public init(${initParams.join(', ')}) {`);
+    lines.push('        self.data = data');
+    if (metaType) lines.push('        self.meta = meta');
+    lines.push('    }');
     lines.push('}');
     lines.push('');
   }
@@ -407,7 +418,7 @@ function opReturn(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'String';
   if (op.successResponse.isBinary) return 'Data';
   if (!op.successResponse.hasBody) return 'Void';
-  if (op.successResponse.isList) {
+  if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return rt?.name ?? 'String';
   }
@@ -586,7 +597,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
   lines.push(`        case ${okCode}:`);
   if (op.successResponse.isBinary) lines.push(`            return ${resVar}`);
   else if (!op.successResponse.hasBody) lines.push('            return');
-  else if (op.successResponse.isList) lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
+  else if (op.successResponse.isList || op.successResponse.isSingleWithMeta) lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
   else if (op.successResponse.isUnwrap && op.successResponse.dataRef) lines.push(`            return try deserialize(${op.successResponse.dataRef}DataWrapper.self, from: ${resVar}).data`);
   else lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
 
@@ -1360,6 +1371,23 @@ function swiftBuildOutputFingerprint(
     }
   }
 
+  // A single object with meta: both sides spelled out, the object as an unwrapped method shows it.
+  if (resp.isSingleWithMeta && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const fp = (ref: string): string => {
+        const model = models.get(ref);
+        return model ? swiftModelFp(model, ir, models, new Set()) : ref;
+      };
+      const parts: string[] = [`data: ${fp(rt.dataRef)}`];
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : '?';
+        parts.push(`meta: ${fp(rt.metaRef)}${opt}`);
+      }
+      return `${rt.name}(${parts.join(', ')})`;
+    }
+  }
+
   if (resp.dataRef) {
     const model = models.get(resp.dataRef);
     if (model) return swiftModelFp(model, ir, models, new Set());
@@ -1394,7 +1422,7 @@ function swiftBuildOperationExample(
       callArgs.push({ label: sdkName, value: swiftLiteral(rb.unwrapField.type, ir, models) });
       for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
     } else if (rb.schemaRef) {
-      callArgs.push({ label: 'body', value: swiftLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
+      callArgs.push({ label: 'request', value: swiftLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
       for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
     }
   }

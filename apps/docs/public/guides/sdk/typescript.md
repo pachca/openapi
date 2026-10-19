@@ -206,7 +206,7 @@ const request: ChatCreateRequest = {
   }
 }
 const response = client.chats.createChat(request)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null })
+// → CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[] }) })
 ```
 
 
@@ -363,7 +363,7 @@ import {
   // Параметры
   ListChatsParams, ListUsersParams, SearchMessagesParams,
   // Ответы
-  ListChatsResponse, ListMembersResponse,
+  ListChatsResponse, ListMembersResponse, CreateChatResponse,
   // Перечисления
   AuditEventKey, ChatAvailability, ChatMemberRole, ChatMemberRoleFilter,
   ChatSubtype, CustomPropertyDataType, FileType, InviteStatus,

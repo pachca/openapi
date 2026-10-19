@@ -112,6 +112,7 @@ export const chatFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				description: 'Array of user IDs who will become members',
+				hint: 'IDs that could not be added (not in the workspace, suspended or deleted) are returned in not_found_member_ids',
 				placeholder: '186,187',
 			},
 			{

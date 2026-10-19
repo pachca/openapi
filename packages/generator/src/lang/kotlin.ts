@@ -643,7 +643,7 @@ function emitModel(
 function emitResponseType(lines: string[], rt: IRResponseType): void {
   lines.push('@Serializable');
   lines.push(`data class ${rt.name}(`);
-  lines.push(`    val data: List<${rt.dataRef}>,`);
+  lines.push(rt.dataIsArray ? `    val data: List<${rt.dataRef}>,` : `    val data: ${rt.dataRef},`);
   if (rt.metaRef) {
     const opt = rt.metaIsRequired ? '' : '?';
     const default_ = rt.metaIsRequired ? '' : ' = null';
@@ -1058,7 +1058,7 @@ function getReturnType(
   if (resp.isRedirect) return 'String';
   if (resp.isBinary) return 'ByteArray';
   if (!resp.hasBody) return null;
-  if (resp.isList) {
+  if (resp.isList || resp.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === resp.responseRef);
     return rt?.name ?? 'Any';
   }
@@ -1314,7 +1314,7 @@ function emitResponseHandling(
     lines.push(`${indent3}${resp.statusCode} -> response.body<ByteArray>()`);
   } else if (!resp.hasBody) {
     lines.push(`${indent3}${resp.statusCode} -> return`);
-  } else if (resp.isList) {
+  } else if (resp.isList || resp.isSingleWithMeta) {
     lines.push(`${indent3}${resp.statusCode} -> response.body()`);
   } else if (resp.isUnwrap && resp.dataRef) {
     lines.push(
@@ -1662,6 +1662,23 @@ function buildOutputFingerprint(
       if (rt.metaRef) {
         const opt = rt.metaIsRequired ? '' : '?';
         parts.push(`meta: ${rt.metaRef}${opt}`);
+      }
+      return `${rt.name}(${parts.join(', ')})`;
+    }
+  }
+
+  // A single object with meta: both sides spelled out, the object as an unwrapped method shows it.
+  if (resp.isSingleWithMeta && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const fp = (ref: string): string => {
+        const model = models.get(ref);
+        return model ? ktModelFingerprint(model, ir, models, new Set()) : ref;
+      };
+      const parts: string[] = [`data: ${fp(rt.dataRef)}`];
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : '?';
+        parts.push(`meta: ${fp(rt.metaRef)}${opt}`);
       }
       return `${rt.name}(${parts.join(', ')})`;
     }

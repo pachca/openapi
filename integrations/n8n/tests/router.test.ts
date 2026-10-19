@@ -403,6 +403,66 @@ describe('noDataWrapper operations', () => {
 });
 
 // ============================================================================
+// metaFields: meta of a single-object response joins the output item
+// ============================================================================
+
+describe('metaFields operations', () => {
+	it('chat.create adds meta.not_found_member_ids to the chat fields', async () => {
+		const ctx = createMockContext({
+			resource: 'chat',
+			operation: 'create',
+			params: { chatName: 'Releases', additionalFields: { memberIds: '3,5,7' } },
+		});
+		mockResponse(ctx, {
+			statusCode: 201,
+			body: { data: { id: 334, name: 'Releases', channel: false }, meta: { not_found_member_ids: [5, 7] } },
+		});
+		const result = await runRouter(ctx);
+		expect(ctx._calls[0].body).toEqual({ chat: { name: 'Releases', member_ids: [3, 5, 7] } });
+		expect(result[0][0].json).toEqual({ id: 334, name: 'Releases', channel: false, not_found_member_ids: [5, 7] });
+	});
+
+	it('chat.create keeps an empty not_found_member_ids', async () => {
+		const ctx = createMockContext({
+			resource: 'chat',
+			operation: 'create',
+			params: { chatName: 'Releases' },
+		});
+		mockResponse(ctx, {
+			statusCode: 201,
+			body: { data: { id: 334, name: 'Releases' }, meta: { not_found_member_ids: [] } },
+		});
+		const result = await runRouter(ctx);
+		expect(result[0][0].json).toEqual({ id: 334, name: 'Releases', not_found_member_ids: [] });
+	});
+
+	it('v1 chat.create gets the field too', async () => {
+		const ctx = createMockContext({
+			resource: 'chat',
+			operation: 'create',
+			nodeVersion: 1,
+			params: { chatName: 'Releases' },
+		});
+		mockResponse(ctx, {
+			statusCode: 201,
+			body: { data: { id: 334 }, meta: { not_found_member_ids: [5] } },
+		});
+		const result = await runRouter(ctx);
+		expect(result[0][0].json).toEqual({ id: 334, not_found_member_ids: [5] });
+	});
+
+	it('operations without metaFields keep returning data only', async () => {
+		const ctx = createMockContext({ resource: 'chat', operation: 'get', params: { id: 334 } });
+		mockResponse(ctx, {
+			statusCode: 200,
+			body: { data: { id: 334 }, meta: { anything: [1] } },
+		});
+		const result = await runRouter(ctx);
+		expect(result[0][0].json).toEqual({ id: 334 });
+	});
+});
+
+// ============================================================================
 // SPECIAL HANDLERS
 // ============================================================================
 

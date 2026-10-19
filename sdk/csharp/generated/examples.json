@@ -157,7 +157,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "var request = new ChatCreateRequest\n{\n    Chat = new ChatCreateRequestChat\n    {\n        Name = \"🤿 aqua\",\n        MemberIds = new List<int> { 123 },\n        GroupTagIds = new List<int> { 123 },\n        Channel = true,\n        @Public = false\n    }\n};\nvar response = await client.Chats.CreateChatAsync(request);",
-    "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?)",
+    "output": "CreateChatResponse(Data: Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?), Meta: CreateChatResponseMeta(NotFoundMemberIds: List<int>))",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"

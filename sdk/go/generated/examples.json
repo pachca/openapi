@@ -169,7 +169,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"🤿 aqua\",\n\t\tMemberIDs: []int32{int32(123)},\n\t\tGroupTagIDs: []int32{int32(123)},\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(false),\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
-    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}",
+    "output": "CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32}}",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"

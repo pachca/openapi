@@ -144,7 +144,12 @@ public struct PaginationMeta: Codable {
 
 public struct ListChatsResponse: Codable {
     public let data: [Chat]
-    public let meta: PaginationMeta? = nil
+    public let meta: PaginationMeta?
+
+    public init(data: [Chat], meta: PaginationMeta? = nil) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 struct ChatDataWrapper: Codable {

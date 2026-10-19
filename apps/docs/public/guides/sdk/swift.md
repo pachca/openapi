@@ -194,7 +194,7 @@ let response = try await client.chats.listChats(sort: .id, order: .desc, availab
 import PachcaSDK
 
 // Создание чата
-let body = ChatCreateRequest(
+let request = ChatCreateRequest(
     chat: ChatCreateRequestChat(
         name: "🤿 aqua",
         memberIds: [123],
@@ -203,8 +203,8 @@ let body = ChatCreateRequest(
         `public`: false
     )
 )
-let response = try await client.chats.createChat(body: body)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String, avatarUrl: String?)
+let response = try await client.chats.createChat(request: request)
+// → CreateChatResponse(data: Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String, avatarUrl: String?), meta: CreateChatResponseMeta(notFoundMemberIds: [Int]))
 ```
 
 
@@ -281,7 +281,7 @@ SDK выбрасывает два типа ошибок (реализуют пр
 
 ```swift
 do {
-    try await client.chats.createChat(request)
+    _ = try await client.chats.createChat(request: request)
 } catch let error as ApiError {
     for e in error.errors {
         print("\(e.key): \(e.message)")  // "name: не может быть пустым"
@@ -368,7 +368,7 @@ import PachcaSDK
 let client = PachcaClient(token: "YOUR_TOKEN")
 
 // Отправка сообщения
-let body = MessageCreateRequest(
+let request = MessageCreateRequest(
     message: MessageCreateRequestMessage(
         entityType: .discussion,
         entityId: 334,
@@ -395,7 +395,7 @@ let body = MessageCreateRequest(
     ),
     linkPreview: false
 )
-let response = try await client.messages.createMessage(body: body)
+let response = try await client.messages.createMessage(request: request)
 // → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)
 
 // Список сотрудников
@@ -403,7 +403,7 @@ let response = try await client.users.listUsers(query: "Олег", limit: 1, cur
 // → ListUsersResponse(data: [User], meta: PaginationMeta)
 
 // Создание задачи
-let body = TaskCreateRequest(
+let request = TaskCreateRequest(
     task: TaskCreateRequestTask(
         kind: .reminder,
         content: "Забрать со склада 21 заказ",
@@ -415,7 +415,7 @@ let body = TaskCreateRequest(
         customProperties: [TaskCreateRequestCustomProperty(id: 78, value: "Синий склад")]
     )
 )
-let response = try await client.tasks.createTask(body: body)
+let response = try await client.tasks.createTask(request: request)
 // → Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)])
 ```
 

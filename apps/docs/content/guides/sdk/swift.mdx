@@ -154,7 +154,7 @@ SDK выбрасывает два типа ошибок (реализуют пр
 
 ```swift
 do {
-    try await client.chats.createChat(request)
+    _ = try await client.chats.createChat(request: request)
 } catch let error as ApiError {
     for e in error.errors {
         print("\(e.key): \(e.message)")  // "name: не может быть пустым"

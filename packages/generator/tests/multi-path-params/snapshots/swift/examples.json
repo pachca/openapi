@@ -10,7 +10,7 @@
     "output": "Task(id: Int, title: String, isDone: Bool?)"
   },
   "TaskOperations_updateTask": {
-    "usage": "let body = TaskUpdateRequest(task: TaskUpdateRequestTask(title: \"example\", isDone: true))\nlet response = try await client.tasks.updateTask(projectId: 123, taskId: 123, body: body)",
+    "usage": "let request = TaskUpdateRequest(task: TaskUpdateRequestTask(title: \"example\", isDone: true))\nlet response = try await client.tasks.updateTask(projectId: 123, taskId: 123, request: request)",
     "output": "Task(id: Int, title: String, isDone: Bool?)",
     "imports": [
       "TaskUpdateRequest",

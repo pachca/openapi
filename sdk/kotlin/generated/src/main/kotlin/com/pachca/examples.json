@@ -161,7 +161,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"🤿 aqua\",\n        memberIds = listOf(123),\n        groupTagIds = listOf(123),\n        channel = true,\n        public = false\n    )\n)\nval response = client.chats.createChat(request = request)",
-    "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String, avatarUrl: String?)",
+    "output": "CreateChatResponse(data: Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String, avatarUrl: String?), meta: CreateChatResponseMeta(notFoundMemberIds: List<Int>))",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"

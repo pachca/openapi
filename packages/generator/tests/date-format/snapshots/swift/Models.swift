@@ -75,6 +75,10 @@ public struct OAuthError: Codable, Error {
 
 public struct ListEventsResponse: Codable {
     public let data: [Event]
+
+    public init(data: [Event]) {
+        self.data = data
+    }
 }
 
 struct ExportDataWrapper: Codable {

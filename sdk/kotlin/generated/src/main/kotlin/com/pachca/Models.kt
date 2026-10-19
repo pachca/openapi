@@ -2947,6 +2947,11 @@ data class UpdateBotAvatarRequest(
 )
 
 @Serializable
+data class CreateChatResponseMeta(
+    @SerialName("not_found_member_ids") val notFoundMemberIds: List<Int>,
+)
+
+@Serializable
 data class UpdateChatAvatarRequest(
     @Transient val image: ByteArray = ByteArray(0),
 )
@@ -2977,6 +2982,12 @@ data class ListBotsResponse(
 data class ListBotTokensResponse(
     val data: List<BotAccessToken>,
     val meta: PaginationMeta,
+)
+
+@Serializable
+data class CreateChatResponse(
+    val data: Chat,
+    val meta: CreateChatResponseMeta,
 )
 
 @Serializable

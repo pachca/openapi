@@ -21,7 +21,7 @@
     ]
   },
   "createUpload": {
-    "usage": "let body = UploadRequest(file: Data(), ContentDisposition: \"example\")\ntry await client.uploads.createUpload(body: body)",
+    "usage": "let request = UploadRequest(file: Data(), ContentDisposition: \"example\")\ntry await client.uploads.createUpload(request: request)",
     "imports": [
       "UploadRequest"
     ]

@@ -216,7 +216,7 @@ request := ChatCreateRequest{
 	},
 }
 response, err := client.Chats.CreateChat(ctx, request)
-// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}
+// → CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32}}
 ```
 
 
@@ -313,7 +313,7 @@ SDK возвращает два типа ошибок (реализуют инт
 Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```go
-chat, err := client.Chats.CreateChat(ctx, request)
+_, err := client.Chats.CreateChat(ctx, request)
 if err != nil {
     var apiErr *pachca.ApiError
     if errors.As(err, &apiErr) {

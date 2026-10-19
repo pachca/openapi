@@ -218,7 +218,7 @@ val request = ChatCreateRequest(
     )
 )
 val response = client.chats.createChat(request = request)
-// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String, avatarUrl: String?)
+// → CreateChatResponse(data: Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String, avatarUrl: String?), meta: CreateChatResponseMeta(notFoundMemberIds: List<Int>))
 ```
 
 

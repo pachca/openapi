@@ -175,7 +175,7 @@ SDK возвращает два типа ошибок (реализуют инт
 Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```go
-chat, err := client.Chats.CreateChat(ctx, request)
+_, err := client.Chats.CreateChat(ctx, request)
 if err != nil {
     var apiErr *pachca.ApiError
     if errors.As(err, &apiErr) {

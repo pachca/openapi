@@ -7,6 +7,7 @@
 ### Features
 
 - Chat: `Request Export` returns the export number in `id` right away — `Download Export` fetches the archive with it once it is assembled
+- Chat: `Create` returns `not_found_member_ids` — the IDs from `Member IDs` that could not be added to the chat
 - Bot: new `Update Avatar` and `Delete Avatar` operations — the bot's avatar
 - Bot: `Get` returns the incoming webhook address, the signing secret and the body of the last request in `Webhook` when the token has the `bots:write` scope and you can manage the bot's tokens
 

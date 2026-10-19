@@ -2005,6 +2005,11 @@ class UpdateBotAvatarRequest:
 
 
 @dataclass
+class CreateChatResponseMeta:
+    not_found_member_ids: list[int]
+
+
+@dataclass
 class UpdateChatAvatarRequest:
     image: bytes
 
@@ -2233,6 +2238,12 @@ class ListBotsResponse:
 class ListBotTokensResponse:
     data: list[BotAccessToken]
     meta: PaginationMeta
+
+
+@dataclass
+class CreateChatResponse:
+    data: Chat
+    meta: CreateChatResponseMeta
 
 
 @dataclass

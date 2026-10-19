@@ -54,6 +54,7 @@ from .models import (
     ListCompanyChatsResponse,
     ChatActivity,
     ChatCreateRequest,
+    CreateChatResponse,
     ExportRequest,
     ChatExport,
     ChatUpdateRequest,
@@ -958,7 +959,7 @@ class ChatsService:
     async def create_chat(
         self,
         request: ChatCreateRequest,
-    ) -> Chat:
+    ) -> CreateChatResponse:
         raise NotImplementedError("Chats.createChat is not implemented")
 
     async def request_export(
@@ -1151,7 +1152,7 @@ class ChatsServiceImpl(ChatsService):
     async def create_chat(
         self,
         request: ChatCreateRequest,
-    ) -> Chat:
+    ) -> CreateChatResponse:
         response = await self._client.post(
             "/chats",
             json=serialize(request),
@@ -1159,7 +1160,7 @@ class ChatsServiceImpl(ChatsService):
         body = response.json()
         match response.status_code:
             case 201:
-                return deserialize(Chat, body["data"])
+                return deserialize(CreateChatResponse, body)
             case 401:
                 raise deserialize(OAuthError, body)
             case _:

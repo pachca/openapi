@@ -15,7 +15,7 @@
     ]
   },
   "updateMember": {
-    "usage": "let body = MemberUpdateRequest(role: .admin, kind: .regular)\nlet response = try await client.members.updateMember(id: 123, body: body)",
+    "usage": "let request = MemberUpdateRequest(role: .admin, kind: .regular)\nlet response = try await client.members.updateMember(id: 123, request: request)",
     "output": "Member(id: Int, role: MemberRole, status: MemberStatus, previousStatuses: [MemberStatus]?)",
     "imports": [
       "MemberKind",

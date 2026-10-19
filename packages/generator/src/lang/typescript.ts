@@ -230,7 +230,7 @@ function emitParamsType(lines: string[], p: { name: string; params: IRParam[] })
 
 function emitResponseType(lines: string[], rt: IRResponseType): void {
   lines.push(`export interface ${rt.name} {`);
-  lines.push(`  data: ${rt.dataRef}[];`);
+  lines.push(`  data: ${rt.dataRef}${rt.dataIsArray ? '[]' : ''};`);
   if (rt.metaRef) {
     const opt = rt.metaIsRequired ? '' : '?';
     lines.push(`  meta${opt}: ${rt.metaRef};`);
@@ -412,7 +412,7 @@ function responseTypeName(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'string';
   if (op.successResponse.isBinary) return 'Blob';
   if (!op.successResponse.hasBody) return 'void';
-  if (op.successResponse.isList) {
+  if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return rt?.name ?? 'unknown';
   }
@@ -480,6 +480,9 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
             if (op.isPaginated && op.successResponse.dataRef) {
               addImport(op.successResponse.dataRef);
             }
+          } else if (op.successResponse.isSingleWithMeta && op.successResponse.dataRef) {
+            addImport(responseTypeName(op, ir));
+            addImport(op.successResponse.dataRef);
           } else if (op.successResponse.dataRef) {
             addImport(op.successResponse.dataRef);
           }
@@ -991,6 +994,10 @@ function emitResponseSwitch(
     } else {
       lines.push(`        return deserialize(body) as ${responseTypeName(op, ir)};`);
     }
+  } else if (op.successResponse.isSingleWithMeta && op.successResponse.dataRef) {
+    // The response whole: `meta` as is, the object in `data` decoded by its type.
+    lines.push(`      case ${op.successResponse.statusCode}:`);
+    lines.push(`        return { ...(deserialize(body) as ${responseTypeName(op, ir)}), data: deserializeType(${JSON.stringify(op.successResponse.dataRef)}, body.data) as ${op.successResponse.dataRef} };`);
   } else if (op.successResponse.isUnwrap && op.successResponse.dataRef) {
     lines.push(`      case ${op.successResponse.statusCode}:`);
     lines.push(`        return deserializeType(${JSON.stringify(op.successResponse.dataRef)}, body.data) as ${op.successResponse.dataRef};`);
@@ -1438,6 +1445,23 @@ function tsBuildOutputFingerprint(
       if (rt.metaRef) {
         const opt = rt.metaIsRequired ? '' : '?';
         parts.push(`meta${opt}: ${rt.metaRef}`);
+      }
+      return `${rt.name}({ ${parts.join(', ')} })`;
+    }
+  }
+
+  // A single object with meta: both sides spelled out, the object as an unwrapped method shows it.
+  if (resp.isSingleWithMeta && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const fp = (ref: string): string => {
+        const model = models.get(ref);
+        return model ? tsModelFingerprint(model, ir, models, new Set()) : ref;
+      };
+      const parts: string[] = [`data: ${fp(rt.dataRef)}`];
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : '?';
+        parts.push(`meta${opt}: ${fp(rt.metaRef)}`);
       }
       return `${rt.name}({ ${parts.join(', ')} })`;
     }

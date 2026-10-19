@@ -414,7 +414,7 @@ function emitParamsType(lines: string[], name: string, params: IROperation['quer
 function emitResponseType(lines: string[], rt: IRResponseType): void {
   lines.push(`type ${rt.name} struct {`);
   const rows: string[][] = [];
-  rows.push(['Data', `[]${rt.dataRef}`, '`json:"data"`']);
+  rows.push(['Data', `${rt.dataIsArray ? '[]' : ''}${rt.dataRef}`, '`json:"data"`']);
   if (rt.metaRef) {
     const opt = rt.metaIsRequired ? '' : '*';
     const tag = rt.metaIsRequired ? 'meta' : 'meta,omitempty';
@@ -501,7 +501,7 @@ function goReturn(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return '(string, error)';
   if (op.successResponse.isBinary) return '([]byte, error)';
   if (!op.successResponse.hasBody) return 'error';
-  if (op.successResponse.isList) {
+  if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return `(*${rt?.name ?? 'any'}, error)`;
   }
@@ -732,7 +732,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
   } else if (!op.successResponse.hasBody) {
     lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
     lines.push('\t\treturn nil');
-  } else if (op.successResponse.isList) {
+  } else if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
     lines.push(`\t\tvar result ${rt?.name ?? 'any'}`);
@@ -1647,6 +1647,23 @@ function goBuildOutputFingerprint(
       if (rt.metaRef) {
         const opt = rt.metaIsRequired ? '' : '*';
         parts.push(`Meta: ${opt}${rt.metaRef}`);
+      }
+      return `${rt.name}{${parts.join(', ')}}`;
+    }
+  }
+
+  // A single object with meta: both sides spelled out, the object as an unwrapped method shows it.
+  if (resp.isSingleWithMeta && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const fp = (ref: string): string => {
+        const model = models.get(ref);
+        return model ? goModelFp(model, ir, models, new Set()) : ref;
+      };
+      const parts: string[] = [`Data: ${fp(rt.dataRef)}`];
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : '*';
+        parts.push(`Meta: ${opt}${fp(rt.metaRef)}`);
       }
       return `${rt.name}{${parts.join(', ')}}`;
     }

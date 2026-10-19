@@ -214,7 +214,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None)
+# → CreateChatResponse(data: Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None), meta: CreateChatResponseMeta(not_found_member_ids: list[int]))
 ```
 
 
@@ -347,7 +347,7 @@ from pachca.models import (
     # Параметры
     ListChatsParams, ListUsersParams, SearchMessagesParams,
     # Ответы
-    ListChatsResponse, ListMembersResponse,
+    ListChatsResponse, ListMembersResponse, CreateChatResponse,
     # Перечисления
     AuditEventKey, ChatAvailability, ChatMemberRole, ChatMemberRoleFilter,
     ChatSubtype, CustomPropertyDataType, FileType, InviteStatus,

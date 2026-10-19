@@ -18,7 +18,7 @@
     "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String, memberIds: [Int]?)"
   },
   "ChatOperations_createChat": {
-    "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        channel: true,\n        `public`: true,\n        memberIds: [123]\n    )\n)\nlet response = try await client.chats.createChat(body: body)",
+    "usage": "let request = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        channel: true,\n        `public`: true,\n        memberIds: [123]\n    )\n)\nlet response = try await client.chats.createChat(request: request)",
     "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String, memberIds: [Int]?)",
     "imports": [
       "ChatCreateRequest",
@@ -26,7 +26,7 @@
     ]
   },
   "ChatOperations_updateChat": {
-    "usage": "let body = ChatUpdateRequest(chat: ChatUpdateRequestChat(name: \"example\", `public`: true))\nlet response = try await client.chats.updateChat(id: 123, body: body)",
+    "usage": "let request = ChatUpdateRequest(chat: ChatUpdateRequestChat(name: \"example\", `public`: true))\nlet response = try await client.chats.updateChat(id: 123, request: request)",
     "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String, memberIds: [Int]?)",
     "imports": [
       "ChatUpdateRequest",

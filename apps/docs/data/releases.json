@@ -10,6 +10,10 @@
       },
       {
         "type": "+",
+        "description": "`Chat`: операция `Create` отдаёт в `not_found_member_ids` идентификаторы из `Member IDs`, которых не удалось добавить в чат"
+      },
+      {
+        "type": "+",
         "description": "`Bot`: операции `Update Avatar` и `Delete Avatar` — аватар бота"
       },
       {
@@ -41,6 +45,10 @@
       },
       {
         "type": "+",
+        "description": "`pachca chats create` предупреждает в stderr об идентификаторах из `--member-ids`, которых не удалось добавить в чат"
+      },
+      {
+        "type": "+",
         "description": "`pachca bots update-avatar` и `bots remove-avatar` — аватар бота"
       },
       {
@@ -69,6 +77,10 @@
       {
         "type": "~",
         "description": "Метод `Скачивание файла` (`GET /files/{id}`) возвращает содержимое файла: `Blob` в TypeScript, `bytes` в Python, `[]byte` в Go, `ByteArray` в Kotlin, `Data` в Swift и `byte[]` в C#"
+      },
+      {
+        "type": "~",
+        "description": "Метод `Новый чат` (`POST /chats`) возвращает ответ целиком в модели `CreateChatResponse`: чат в `data`, а в `meta.not_found_member_ids` — идентификаторы из `member_ids`, которых не удалось добавить. Код, который брал поля чата из результата, берёт их из `data`."
       },
       {
         "type": "~",
@@ -105,6 +117,10 @@
       {
         "type": "+",
         "description": "Коды ошибок `daily_invites_limit` и `restricted_bot_tag_denied`"
+      },
+      {
+        "type": "+",
+        "description": "Swift: типы ответов, например `CreateChatResponse` и `ListChatsResponse`, создаются в коде публичным инициализатором — так заглушка сервиса в тесте возвращает ответ"
       },
       {
         "type": "~",
@@ -158,6 +174,14 @@
         "description": "Ответ с файлом (`application/octet-stream`) становится результатом метода: сгенерированный метод возвращает содержимое файла в типе своего языка"
       },
       {
+        "type": "~",
+        "description": "Ответ `{ data: T, meta }` с одним объектом в `data` сгенерированный метод возвращает целиком, как ответ списка: в типе ответа, например `CreateChatResponse`, есть `data` и `meta`. Описанный прямо в ответе `meta` становится отдельной моделью, например `CreateChatResponseMeta`."
+      },
+      {
+        "type": "+",
+        "description": "Swift: у типов ответов есть публичный инициализатор, как у моделей"
+      },
+      {
         "type": "+",
         "description": "Тело `application/x-www-form-urlencoded`: сгенерированный метод передаёт поля запроса формой"
       },
@@ -208,6 +232,14 @@
       {
         "type": "-",
         "description": "C# и Kotlin: операция без авторизации (`x-requirements: { auth: false }`) уходит без заголовка `Authorization`, даже если токен задан в заголовках клиента по умолчанию"
+      },
+      {
+        "type": "-",
+        "description": "Swift: необязательный `meta` в типе ответа разбирается из тела, когда ответ его содержит"
+      },
+      {
+        "type": "-",
+        "description": "Swift: пример вызова передаёт тело запроса с меткой `request:`, как в сигнатуре метода"
       }
     ]
   },

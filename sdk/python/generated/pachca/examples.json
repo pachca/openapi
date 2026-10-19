@@ -169,7 +169,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"🤿 aqua\",\n        member_ids=[123],\n        group_tag_ids=[123],\n        channel=True,\n        public=False\n    )\n)\nresponse = await client.chats.create_chat(request=request)",
-    "output": "Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None)",
+    "output": "CreateChatResponse(data: Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None), meta: CreateChatResponseMeta(not_found_member_ids: list[int]))",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"

@@ -1238,7 +1238,7 @@ type ChatsService interface {
 	DownloadExport(ctx context.Context, id int32) (string, error)
 	ListCompanyChats(ctx context.Context, params *ListCompanyChatsParams) (*ListCompanyChatsResponse, error)
 	ListCompanyChatsAll(ctx context.Context, params *ListCompanyChatsParams) ([]Chat, error)
-	CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error)
+	CreateChat(ctx context.Context, request ChatCreateRequest) (*CreateChatResponse, error)
 	RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error)
 	UpdateChat(ctx context.Context, id int32, request ChatUpdateRequest) (*Chat, error)
 	ArchiveChat(ctx context.Context, id int32) error
@@ -1274,7 +1274,7 @@ func (s *ChatsServiceStub) ListCompanyChatsAll(ctx context.Context, params *List
 	return nil, NotImplementedError{Method: "Chats.listCompanyChatsAll"}
 }
 
-func (s *ChatsServiceStub) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
+func (s *ChatsServiceStub) CreateChat(ctx context.Context, request ChatCreateRequest) (*CreateChatResponse, error) {
 	return nil, NotImplementedError{Method: "Chats.createChat"}
 }
 
@@ -1525,7 +1525,7 @@ func (s *ChatsServiceImpl) ListCompanyChatsAll(ctx context.Context, params *List
 	return items, nil
 }
 
-func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
+func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateRequest) (*CreateChatResponse, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -1542,13 +1542,11 @@ func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateReq
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusCreated:
-		var result struct {
-			Data Chat `json:"data"`
-		}
+		var result CreateChatResponse
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err
 		}
-		return &result.Data, nil
+		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {

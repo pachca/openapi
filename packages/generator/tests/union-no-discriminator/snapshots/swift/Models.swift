@@ -115,4 +115,8 @@ public enum EventDetailsUnion: Codable {
 
 public struct GetEventsResponse: Codable {
     public let data: [Event]
+
+    public init(data: [Event]) {
+        self.data = data
+    }
 }

@@ -265,3 +265,51 @@ describe('backward-compat alias services (IA rename)', () => {
     expect(svc('OAuth')!.operations.some((o) => o.path === '/oauth/token/info' && !o.isAlias)).toBe(true);
   });
 });
+
+// A response `{ data: T, meta }` with one object in `data` is returned whole, the
+// way a list is: unwrapping it to `T` would drop `meta`. A `{ data: T }` without
+// meta is still unwrapped to `T`.
+describe('single object with meta', () => {
+  const ir = transform(parseOpenAPI(path.join(TESTS_DIR, 'single-with-meta', 'fixture.yaml')));
+  const op = (name: string) => ir.services.flatMap((s) => s.operations).find((o) => o.methodName === name)!;
+  const response = (name: string) => ir.responses.find((r) => r.name === name);
+
+  it('returns the response whole, an inline meta as its own model', () => {
+    const resp = op('createChat').successResponse;
+    expect(resp.isSingleWithMeta).toBe(true);
+    expect(resp.isUnwrap).toBe(false);
+    expect(resp.responseRef).toBe('CreateChatResponse');
+    expect(response('CreateChatResponse')).toEqual({
+      name: 'CreateChatResponse',
+      dataRef: 'Chat',
+      dataIsArray: false,
+      metaRef: 'CreateChatResponseMeta',
+      metaIsRequired: true,
+    });
+    const meta = ir.models.find((m) => m.name === 'CreateChatResponseMeta');
+    expect(meta?.fields.map((f) => [f.name, f.required])).toEqual([['not_found_member_ids', true]]);
+  });
+
+  it('keeps a referenced meta and its optionality', () => {
+    expect(response('UpdateChatResponse')).toMatchObject({ dataIsArray: false, metaRef: 'ChatUpdateMeta', metaIsRequired: false });
+    expect(ir.models.some((m) => m.name === 'UpdateChatResponseMeta')).toBe(false);
+  });
+
+  it('still unwraps { data: T } without meta', () => {
+    const resp = op('getChat').successResponse;
+    expect(resp.isUnwrap).toBe(true);
+    expect(resp.isSingleWithMeta).toBeUndefined();
+    expect(resp.responseRef).toBeUndefined();
+  });
+
+  // Pinned by hand: a method of the Pachca spec that starts answering a single
+  // object with meta changes what its SDK method returns, so it is added on purpose.
+  it('in the Pachca spec, only POST /chats answers a single object with meta', () => {
+    const pachca = transform(parseOpenAPI(path.resolve(__dirname, '..', '..', 'spec', 'openapi.yaml')));
+    const whole = pachca.services
+      .flatMap((s) => s.operations)
+      .filter((o) => o.successResponse.isSingleWithMeta)
+      .map((o) => `${o.method} ${o.path}`);
+    expect(whole).toEqual(['POST /chats']);
+  });
+});

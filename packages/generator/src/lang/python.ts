@@ -267,7 +267,7 @@ function emitParamsType(lines: string[], name: string, params: IROperation['quer
 function emitResponseType(lines: string[], rt: IRResponseType): void {
   lines.push('@dataclass');
   lines.push(`class ${rt.name}:`);
-  lines.push(`    data: list[${rt.dataRef}]`);
+  lines.push(rt.dataIsArray ? `    data: list[${rt.dataRef}]` : `    data: ${rt.dataRef}`);
   if (rt.metaRef) {
     if (rt.metaIsRequired) lines.push(`    meta: ${rt.metaRef}`);
     else lines.push(`    meta: ${rt.metaRef} | None = None`);
@@ -356,7 +356,7 @@ function opReturnType(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'str';
   if (op.successResponse.isBinary) return 'bytes';
   if (!op.successResponse.hasBody) return 'None';
-  if (op.successResponse.isList) {
+  if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return rt?.name ?? 'object';
   }
@@ -428,7 +428,7 @@ function collectClientImports(ir: IR): string[] {
         add(`${pascal}Params`);
       }
       if (op.successResponse.hasBody && !op.successResponse.isRedirect) {
-        if (op.successResponse.isList) {
+        if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
           const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
           if (rt) add(rt.name);
           if (op.isPaginated && op.successResponse.dataRef) {
@@ -678,7 +678,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   } else if (!op.successResponse.hasBody) {
     lines.push(`            case ${op.successResponse.statusCode}:`);
     lines.push('                return');
-  } else if (op.successResponse.isList) {
+  } else if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     lines.push(`            case ${op.successResponse.statusCode}:`);
     lines.push(`                return deserialize(${rt?.name ?? 'object'}, body)`);
@@ -1596,6 +1596,23 @@ function pyBuildOutputFingerprint(
       if (rt.metaRef) {
         const opt = rt.metaIsRequired ? '' : ' | None';
         parts.push(`meta: ${rt.metaRef}${opt}`);
+      }
+      return `${rt.name}(${parts.join(', ')})`;
+    }
+  }
+
+  // A single object with meta: both sides spelled out, the object as an unwrapped method shows it.
+  if (resp.isSingleWithMeta && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const fp = (ref: string): string => {
+        const model = models.get(ref);
+        return model ? pyModelFingerprint(model, ir, models, new Set()) : ref;
+      };
+      const parts: string[] = [`data: ${fp(rt.dataRef)}`];
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : ' | None';
+        parts.push(`meta: ${fp(rt.metaRef)}${opt}`);
       }
       return `${rt.name}(${parts.join(', ')})`;
     }

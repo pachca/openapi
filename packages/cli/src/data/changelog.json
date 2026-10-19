@@ -10,6 +10,11 @@
       },
       {
         "type": "+",
+        "command": "chats create",
+        "description": "Команда предупреждает в stderr об идентификаторах из `--member-ids`, которых не удалось добавить в чат"
+      },
+      {
+        "type": "+",
         "command": "bots update-avatar, bots remove-avatar",
         "description": "Новые команды — аватар бота: загрузка файла флагом `--file` и удаление"
       },

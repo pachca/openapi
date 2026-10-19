@@ -4567,6 +4567,12 @@ public class UpdateBotAvatarRequest
     public byte[] Image { get; set; } = Array.Empty<byte>();
 }
 
+public class CreateChatResponseMeta
+{
+    [JsonPropertyName("not_found_member_ids")]
+    public List<int> NotFoundMemberIds { get; set; } = default!;
+}
+
 public class UpdateChatAvatarRequest
 {
     [JsonIgnore]
@@ -4607,6 +4613,14 @@ public class ListBotTokensResponse
     public List<BotAccessToken> Data { get; set; } = new();
     [JsonPropertyName("meta")]
     public PaginationMeta Meta { get; set; } = default!;
+}
+
+public class CreateChatResponse
+{
+    [JsonPropertyName("data")]
+    public Chat Data { get; set; } = default!;
+    [JsonPropertyName("meta")]
+    public CreateChatResponseMeta Meta { get; set; } = default!;
 }
 
 public class ListChatsResponse

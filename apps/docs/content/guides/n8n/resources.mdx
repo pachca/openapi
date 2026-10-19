@@ -86,6 +86,8 @@ related:
 | Update Avatar | [Загрузка аватара чата](PUT /chats/{id}/avatar) |
 | Delete Avatar | [Удаление аватара чата](DELETE /chats/{id}/avatar) |
 
+**Create** возвращает созданный чат и поле `not_found_member_ids` с идентификаторами из **Member IDs**, которых не удалось добавить в чат.
+
 **Сортировка в Get Many:** параметры `sort` (`id` или `last_message_at`) и `order` (`asc` / `desc`). Также доступны фильтры `availability`, `lastMessageAtAfter`, `lastMessageAtBefore`.
 
 **Get Many Workspace Chats** отдаёт беседы и каналы всего пространства, включая закрытые, где владелец токена не состоит. Фильтр `Activity` оставляет только активные или только архивные. Доступно владельцу пространства на тарифе «Корпорация».

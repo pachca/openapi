@@ -333,6 +333,10 @@ public struct OAuthError: Codable, Error {
 
 public struct ListMembersResponse: Codable {
     public let data: [Member]
+
+    public init(data: [Member]) {
+        self.data = data
+    }
 }
 
 struct MemberDataWrapper: Codable {

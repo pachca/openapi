@@ -920,7 +920,7 @@ public class ChatsService
         throw new NotImplementedException("Chats.listCompanyChatsAll is not implemented");
     }
 
-    public virtual async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
+    public virtual async System.Threading.Tasks.Task<CreateChatResponse> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Chats.createChat is not implemented");
     }
@@ -1134,7 +1134,7 @@ public sealed class ChatsServiceImpl : ChatsService
         return items;
     }
 
-    public override async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<CreateChatResponse> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -1144,7 +1144,7 @@ public sealed class ChatsServiceImpl : ChatsService
         switch ((int)response.StatusCode)
         {
             case 201:
-                return PachcaUtils.Deserialize<ChatDataWrapper>(json).Data;
+                return PachcaUtils.Deserialize<CreateChatResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:

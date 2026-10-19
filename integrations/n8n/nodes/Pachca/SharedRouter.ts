@@ -58,6 +58,7 @@ interface RouteConfig {
 	siblingFields?: string[];
 	paginated?: boolean;
 	noDataWrapper?: boolean;
+	metaFields?: string[];
 	bodyMap?: FieldMap[];
 	optionalBodyMap?: FieldMap[];
 	queryMap?: QueryMap[];
@@ -279,6 +280,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/chats',
 			wrapperKey: 'chat',
+			metaFields: ['not_found_member_ids'],
 			bodyMap: [
 				{ api: 'name', n8n: 'chatName' },
 			],
@@ -1314,7 +1316,17 @@ async function executeRoute(
 		return [{ json: response }];
 	}
 
-	const data = (response.data as IDataObject) ?? response;
+	let data = (response.data as IDataObject) ?? response;
+
+	// meta fields of a single-object response (e.g. not_found_member_ids) go next to the object's fields
+	if (route.metaFields?.length) {
+		const meta = (response.meta as IDataObject | undefined) ?? {};
+		const extra: IDataObject = {};
+		for (const field of route.metaFields) {
+			if (meta[field] !== undefined) extra[field] = meta[field];
+		}
+		data = { ...data, ...extra };
+	}
 
 	// Simplify for GET single item (v2 only)
 	if (nodeVersion >= 2 && route.method === 'GET' && !route.paginated) {

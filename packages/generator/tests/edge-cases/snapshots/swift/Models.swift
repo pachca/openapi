@@ -156,6 +156,10 @@ public enum NotificationUnion: Codable {
 
 public struct ListEventsResponse: Codable {
     public let data: [Event]
+
+    public init(data: [Event]) {
+        self.data = data
+    }
 }
 
 struct EventDataWrapper: Codable {

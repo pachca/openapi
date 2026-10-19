@@ -33,6 +33,7 @@ import {
   ListCompanyChatsParams,
   ListCompanyChatsResponse,
   ChatCreateRequest,
+  CreateChatResponse,
   ExportRequest,
   ChatExport,
   ChatUpdateRequest,
@@ -806,7 +807,7 @@ export class ChatsService {
     throw new Error("Chats.listCompanyChatsAll is not implemented");
   }
 
-  async createChat(request: ChatCreateRequest): Promise<Chat> {
+  async createChat(request: ChatCreateRequest): Promise<CreateChatResponse> {
     throw new Error("Chats.createChat is not implemented");
   }
 
@@ -956,7 +957,7 @@ export class ChatsServiceImpl extends ChatsService {
     return items;
   }
 
-  async createChat(request: ChatCreateRequest): Promise<Chat> {
+  async createChat(request: ChatCreateRequest): Promise<CreateChatResponse> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -965,7 +966,7 @@ export class ChatsServiceImpl extends ChatsService {
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserializeType("Chat", body.data) as Chat;
+        return { ...(deserialize(body) as CreateChatResponse), data: deserializeType("Chat", body.data) as Chat };
       case 401:
         throw new OAuthError(body.error);
       default:

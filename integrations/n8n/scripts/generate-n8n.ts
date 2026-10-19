@@ -433,6 +433,9 @@ const SEARCHABLE_QUERY_PARAMS: Record<string, { method: string }> = {
 
 /** Hints for fields — contextual tips for no-code users (resource.field → hint) */
 const FIELD_HINTS: Record<string, Record<string, string>> = {
+  chat: {
+    member_ids: 'IDs that could not be added (not in the workspace, suspended or deleted) are returned in not_found_member_ids',
+  },
   message: {
     files: 'Upload a file first using File > Create, then use the returned key here',
   },
@@ -2813,6 +2816,32 @@ function buildFieldMapStr(resource: string, op: OperationInfo, f: BodyField): st
   return `{ ${parts.join(', ')} }`;
 }
 
+/**
+ * Поля `meta` в ответе с одним объектом в `data`. Нода добавляет их в элемент
+ * вывода рядом с полями объекта, поэтому совпадение имени с полем объекта
+ * останавливает генерацию.
+ */
+function responseMetaFields(endpoint: Endpoint): string[] {
+  const okResponse = endpoint.responses['200'] || endpoint.responses['201'] || endpoint.responses['202'];
+  const schema = okResponse?.content?.['application/json']?.schema;
+  if (!schema) return [];
+  const resolved = resolveAllOf(schema);
+  const meta = resolved.properties?.meta;
+  const data = resolved.properties?.data;
+  if (!meta || !data) return [];
+  const fields = Object.keys(resolveAllOf(meta).properties ?? {});
+  if (fields.length && getSchemaType(resolveAllOf(data)) === 'array') {
+    throw new Error(`${endpoint.method} ${endpoint.path}: meta у списка без пагинации — элемента вывода для него нет`);
+  }
+  const dataProps = resolveAllOf(data).properties ?? {};
+  for (const f of fields) {
+    if (f in dataProps) {
+      throw new Error(`${endpoint.method} ${endpoint.path}: meta.${f} совпадает с полем data — элемент вывода потеряет одно из них`);
+    }
+  }
+  return fields;
+}
+
 /** Build one RouteConfig entry for a regular operation */
 function buildRouteEntry(resource: string, op: OperationInfo): string {
   const { v2Op, endpoint, fields, queryParams, pathParams, hasPagination, wrapperKey } = op;
@@ -2846,6 +2875,10 @@ function buildRouteEntry(resource: string, op: OperationInfo): string {
   if (hasPagination) parts.push('paginated: true');
   // Скачивание архива отдаёт ссылку, а не { data }.
   if (resource === 'chat' && v2Op === 'downloadExport') parts.push('noDataWrapper: true');
+
+  // Поля meta ответа без пагинации (`not_found_member_ids` у нового чата) уходят в элемент вывода рядом с data
+  const metaFields = hasPagination ? [] : responseMetaFields(endpoint);
+  if (metaFields.length) parts.push(`metaFields: [${metaFields.map(f => `'${f}'`).join(', ')}]`);
 
   // Заголовок с единственным допустимым значением (`Prefer: return=representation`)
   // — выбор уже сделан, полем ноды он не становится: операция шлёт его всегда.
@@ -3126,6 +3159,7 @@ interface RouteConfig {
 \tsiblingFields?: string[];
 \tpaginated?: boolean;
 \tnoDataWrapper?: boolean;
+\tmetaFields?: string[];
 \tbodyMap?: FieldMap[];
 \toptionalBodyMap?: FieldMap[];
 \tqueryMap?: QueryMap[];
@@ -3520,7 +3554,17 @@ async function executeRoute(
 \t\treturn [{ json: response }];
 \t}
 
-\tconst data = (response.data as IDataObject) ?? response;
+\tlet data = (response.data as IDataObject) ?? response;
+
+\t// meta fields of a single-object response (e.g. not_found_member_ids) go next to the object's fields
+\tif (route.metaFields?.length) {
+\t\tconst meta = (response.meta as IDataObject | undefined) ?? {};
+\t\tconst extra: IDataObject = {};
+\t\tfor (const field of route.metaFields) {
+\t\t\tif (meta[field] !== undefined) extra[field] = meta[field];
+\t\t}
+\t\tdata = { ...data, ...extra };
+\t}
 
 \t// Simplify for GET single item (v2 only)
 \tif (nodeVersion >= 2 && route.method === 'GET' && !route.paginated) {

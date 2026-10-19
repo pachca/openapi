@@ -630,7 +630,11 @@ function emitResponseType(lines: string[], rt: IRResponseType): void {
   lines.push(`public class ${rt.name}`);
   lines.push('{');
   lines.push(`    [JsonPropertyName("data")]`);
-  lines.push(`    public List<${rt.dataRef}> Data { get; set; } = new();`);
+  lines.push(
+    rt.dataIsArray
+      ? `    public List<${rt.dataRef}> Data { get; set; } = new();`
+      : `    public ${rt.dataRef} Data { get; set; } = default!;`,
+  );
   if (rt.metaRef) {
     const nullSuffix = rt.metaIsRequired ? '' : '?';
     lines.push(`    [JsonPropertyName("meta")]`);
@@ -1211,7 +1215,7 @@ function getReturnType(
   if (resp.isRedirect) return 'string';
   if (resp.isBinary) return 'byte[]';
   if (!resp.hasBody) return null;
-  if (resp.isList) {
+  if (resp.isList || resp.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === resp.responseRef);
     return rt?.name ?? 'object';
   }
@@ -1452,7 +1456,7 @@ function emitResponseHandling(
   } else if (!resp.hasBody) {
     lines.push(`${indent2}    case ${resp.statusCode}:`);
     lines.push(`${indent2}        return;`);
-  } else if (resp.isList) {
+  } else if (resp.isList || resp.isSingleWithMeta) {
     lines.push(`${indent2}    case ${resp.statusCode}:`);
     // Use same lookup as getReturnType for consistency
     const foundResp = ir.responses.find((r) => r.name === resp.responseRef);
@@ -1803,6 +1807,23 @@ function buildOutputFingerprint(
       if (rt.metaRef) {
         const opt = rt.metaIsRequired ? '' : '?';
         parts.push(`Meta: ${rt.metaRef}${opt}`);
+      }
+      return `${rt.name}(${parts.join(', ')})`;
+    }
+  }
+
+  // A single object with meta: both sides spelled out, the object as an unwrapped method shows it.
+  if (resp.isSingleWithMeta && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const fp = (ref: string): string => {
+        const model = models.get(ref);
+        return model ? csModelFingerprint(model, ir, models, new Set()) : ref;
+      };
+      const parts: string[] = [`Data: ${fp(rt.dataRef)}`];
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : '?';
+        parts.push(`Meta: ${fp(rt.metaRef)}${opt}`);
       }
       return `${rt.name}(${parts.join(', ')})`;
     }

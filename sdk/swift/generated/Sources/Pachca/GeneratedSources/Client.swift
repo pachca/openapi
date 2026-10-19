@@ -806,7 +806,7 @@ open class ChatsService {
         throw pachcaNotImplemented("Chats.listCompanyChatsAll")
     }
 
-    open func createChat(request body: ChatCreateRequest) async throws -> Chat {
+    open func createChat(request body: ChatCreateRequest) async throws -> CreateChatResponse {
         throw pachcaNotImplemented("Chats.createChat")
     }
 
@@ -961,7 +961,7 @@ public final class ChatsServiceImpl: ChatsService {
         return items
     }
 
-    public override func createChat(request body: ChatCreateRequest) async throws -> Chat {
+    public override func createChat(request body: ChatCreateRequest) async throws -> CreateChatResponse {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -971,7 +971,7 @@ public final class ChatsServiceImpl: ChatsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return try deserialize(ChatDataWrapper.self, from: data).data
+            return try deserialize(CreateChatResponse.self, from: data)
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:

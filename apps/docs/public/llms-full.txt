@@ -15,99 +15,99 @@
 | Раздел | Строки |
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 112–216 |
-| How-to Guides — рецепты задач с кодом TS/Python | 217–900 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 901–14640 |
-| · Обзор | 906–1010 |
-| · Быстрый старт | 1011–1100 |
-| · AI-агенты | 1101–1242 |
-| · Взаимодействие с агентом | 1243–1317 |
-| · Черновик вместо отправки | 1318–1400 |
-| · Оформление ответов | 1401–1471 |
-| · Треды | 1472–1615 |
-| · Теги | 1616–1742 |
-| · Боты | 1743–1836 |
-| · Создание бота | 1837–1934 |
-| · Настройки бота | 1935–2026 |
-| · Токены бота | 2027–2122 |
-| · Доступы к чатам и сообщениям | 2123–2213 |
-| · Общение с ботом | 2214–2378 |
-| · Витрина | 2379–2472 |
-| · Готовые примеры реализации | 2473–2507 |
-| · Входящие вебхуки | 2508–2677 |
-| · Исходящие вебхуки | 2678–2731 |
-| · Настройка и типы событий | 2732–3017 |
-| · Безопасность и обработчик | 3018–3207 |
-| · Поллинг | 3208–3395 |
-| · Кнопки в сообщениях | 3396–3557 |
-| · Формы | 3558–3629 |
-| · Блоки представления | 3630–3844 |
-| · Обработка форм | 3845–4024 |
-| · Разворачивание ссылок | 4025–4149 |
-| · Авторизация от имени сотрудника | 4150–4232 |
-| · Чек-лист запуска | 4233–4285 |
-| · Настройка авторизации | 4286–4406 |
-| · Получение токена сотрудника | 4407–4653 |
-| · Согласие и отзыв | 4654–4728 |
-| · Экспорт сообщений | 4729–4875 |
-| · DLP-система | 4876–5080 |
-| · Шифрование и безопасный контур | 5081–5175 |
-| · Журнал аудита событий | 5176–5428 |
-| · Права и роли | 5429–5708 |
-| · Форматирование текста | 5709–5806 |
-| · Сценарии | 5807–6384 |
-| · CLI | 6385–6480 |
-| · Установка | 6481–6588 |
-| · Авторизация | 6589–6829 |
-| · Вывод | 6830–6933 |
-| · Флаги и скрипты | 6934–7162 |
-| · Сценарии | 7163–7210 |
-| · Файлы | 7211–7261 |
-| · Прямые запросы | 7262–7372 |
-| · Команды | 7373–7536 |
-| · SDK и генератор | 7537–7644 |
-| · TypeScript | 7645–8095 |
-| · Python | 8096–8540 |
-| · Go | 8541–9010 |
-| · Kotlin | 9011–9471 |
-| · Swift | 9472–9901 |
-| · C# | 9902–10393 |
-| · n8n | 10394–10469 |
-| · Начало работы | 10470–10701 |
-| · Ресурсы и операции | 10702–11116 |
-| · Триггер | 11117–11368 |
-| · Тестирование | 11369–11642 |
-| · Примеры workflow | 11643–11857 |
-| · Продвинутые функции | 11858–12094 |
-| · Устранение ошибок | 12095–12276 |
-| · Миграция с v1 | 12277–12397 |
-| · Последние обновления | 12398–12407 |
-| · Обзор | 12408–12509 |
-| · Авторизация | 12510–12796 |
-| · Запросы и ответы | 12797–12991 |
-| · Пагинация | 12992–13231 |
-| · Загрузка файлов | 13232–13480 |
-| · Ошибки | 13481–13561 |
-| · Лимиты | 13562–13714 |
-| · Модели | 13715–14640 |
-| API-методы — все эндпоинты со схемами и примерами | 14641–36919 |
-| · OAuth | 14643–15040 |
-| · Chats | 15041–17320 |
-| · Profile | 17321–18260 |
-| · Users | 18261–20594 |
-| · Group tags | 20595–21824 |
-| · Members | 21825–23212 |
-| · Threads | 23213–23893 |
-| · Messages | 23894–26002 |
-| · Read members | 26003–26214 |
-| · Reactions | 26215–26838 |
-| · Search | 26839–27678 |
-| · Tasks | 27679–28866 |
-| · Drafts | 28867–30332 |
-| · Views | 30333–31103 |
-| · Bots | 31104–35975 |
-| · Security | 35976–36337 |
-| · Custom Properties | 36338–36518 |
-| · Files | 36519–36919 |
+| How-to Guides — рецепты задач с кодом TS/Python | 217–905 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 906–14647 |
+| · Обзор | 911–1015 |
+| · Быстрый старт | 1016–1105 |
+| · AI-агенты | 1106–1247 |
+| · Взаимодействие с агентом | 1248–1322 |
+| · Черновик вместо отправки | 1323–1405 |
+| · Оформление ответов | 1406–1476 |
+| · Треды | 1477–1620 |
+| · Теги | 1621–1747 |
+| · Боты | 1748–1841 |
+| · Создание бота | 1842–1939 |
+| · Настройки бота | 1940–2031 |
+| · Токены бота | 2032–2127 |
+| · Доступы к чатам и сообщениям | 2128–2218 |
+| · Общение с ботом | 2219–2383 |
+| · Витрина | 2384–2477 |
+| · Готовые примеры реализации | 2478–2512 |
+| · Входящие вебхуки | 2513–2682 |
+| · Исходящие вебхуки | 2683–2736 |
+| · Настройка и типы событий | 2737–3022 |
+| · Безопасность и обработчик | 3023–3212 |
+| · Поллинг | 3213–3400 |
+| · Кнопки в сообщениях | 3401–3562 |
+| · Формы | 3563–3634 |
+| · Блоки представления | 3635–3849 |
+| · Обработка форм | 3850–4029 |
+| · Разворачивание ссылок | 4030–4154 |
+| · Авторизация от имени сотрудника | 4155–4237 |
+| · Чек-лист запуска | 4238–4290 |
+| · Настройка авторизации | 4291–4411 |
+| · Получение токена сотрудника | 4412–4658 |
+| · Согласие и отзыв | 4659–4733 |
+| · Экспорт сообщений | 4734–4880 |
+| · DLP-система | 4881–5085 |
+| · Шифрование и безопасный контур | 5086–5180 |
+| · Журнал аудита событий | 5181–5433 |
+| · Права и роли | 5434–5713 |
+| · Форматирование текста | 5714–5811 |
+| · Сценарии | 5812–6389 |
+| · CLI | 6390–6485 |
+| · Установка | 6486–6593 |
+| · Авторизация | 6594–6834 |
+| · Вывод | 6835–6938 |
+| · Флаги и скрипты | 6939–7167 |
+| · Сценарии | 7168–7215 |
+| · Файлы | 7216–7266 |
+| · Прямые запросы | 7267–7377 |
+| · Команды | 7378–7541 |
+| · SDK и генератор | 7542–7649 |
+| · TypeScript | 7650–8100 |
+| · Python | 8101–8545 |
+| · Go | 8546–9015 |
+| · Kotlin | 9016–9476 |
+| · Swift | 9477–9906 |
+| · C# | 9907–10398 |
+| · n8n | 10399–10474 |
+| · Начало работы | 10475–10706 |
+| · Ресурсы и операции | 10707–11123 |
+| · Триггер | 11124–11375 |
+| · Тестирование | 11376–11649 |
+| · Примеры workflow | 11650–11864 |
+| · Продвинутые функции | 11865–12101 |
+| · Устранение ошибок | 12102–12283 |
+| · Миграция с v1 | 12284–12404 |
+| · Последние обновления | 12405–12414 |
+| · Обзор | 12415–12516 |
+| · Авторизация | 12517–12803 |
+| · Запросы и ответы | 12804–12998 |
+| · Пагинация | 12999–13238 |
+| · Загрузка файлов | 13239–13487 |
+| · Ошибки | 13488–13568 |
+| · Лимиты | 13569–13721 |
+| · Модели | 13722–14647 |
+| API-методы — все эндпоинты со схемами и примерами | 14648–36926 |
+| · OAuth | 14650–15047 |
+| · Chats | 15048–17327 |
+| · Profile | 17328–18267 |
+| · Users | 18268–20601 |
+| · Group tags | 20602–21831 |
+| · Members | 21832–23219 |
+| · Threads | 23220–23900 |
+| · Messages | 23901–26009 |
+| · Read members | 26010–26221 |
+| · Reactions | 26222–26845 |
+| · Search | 26846–27685 |
+| · Tasks | 27686–28873 |
+| · Drafts | 28874–30339 |
+| · Views | 30340–31110 |
+| · Bots | 31111–35982 |
+| · Security | 35983–36344 |
+| · Custom Properties | 36345–36525 |
+| · Files | 36526–36926 |
 
 # LIBRARY RULES
 
@@ -186,7 +186,7 @@
 ## SDK (Typed Clients for 6 Languages)
 - Unified pattern: `PachcaClient(token)` → `client.service.method(request)`
 - **Input**: path params and body fields (≤2) expand to method arguments; otherwise a single request object
-- **Output**: if API response has a single `data` field, SDK returns its contents directly
+- **Output**: if API response has a single `data` field, SDK returns its contents directly. If `meta` comes next to `data` (lists and the `New chat` method), SDK returns the whole response: `data` and `meta`
 - Service, method, and field names match operationId and parameters from OpenAPI
 
 | Language | Package | Install |
@@ -320,11 +320,13 @@ import { PachcaClient, MessageEntityType } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
-// Create a group chat with initial members
-const chat = await client.chats.createChat({
+// Create a group chat with initial members: the chat comes in data
+const { data: chat, meta } = await client.chats.createChat({
   chat: { name: "Project Discussion", memberIds: [1, 2, 3], channel: false, public: false }
 })
 console.log("Created chat:", chat.id, chat.name)
+// IDs from memberIds that could not be added (not in the workspace, suspended or deleted)
+console.log("Not added:", meta.notFoundMemberIds)
 
 // Add more members later
 await client.members.addMembers(chat.id, { memberIds: [4, 5] })
@@ -349,11 +351,14 @@ from pachca.models import ChatCreateRequest, ChatCreateRequestChat, MessageCreat
 
 client = PachcaClient("YOUR_TOKEN")
 
-# Create a group chat with initial members
-chat = await client.chats.create_chat(ChatCreateRequest(
+# Create a group chat with initial members: the chat comes in data
+response = await client.chats.create_chat(ChatCreateRequest(
     chat=ChatCreateRequestChat(name="Project Discussion", member_ids=[1, 2, 3], channel=False, public=False)
 ))
+chat = response.data
 print("Created chat:", chat.id, chat.name)
+# IDs from member_ids that could not be added (not in the workspace, suspended or deleted)
+print("Not added:", response.meta.not_found_member_ids)
 
 # Add more members later
 await client.members.add_members(chat.id, AddMembersRequest(member_ids=[4, 5]))
@@ -814,7 +819,7 @@ async function createProjectWorkspace(projectName: string, memberIds: number[]) 
     {
       name: "create-chat",
       execute: async () => {
-        const chat = await client.chats.createChat({
+        const { data: chat } = await client.chats.createChat({
           chat: { name: projectName, memberIds, channel: false, public: false }
         })
         chatId = chat.id
@@ -6879,7 +6884,7 @@ pachca users list --plain --columns email,role
 
 ### Пайпы и перенаправление
 
-В пайпах CLI автоматически выводит JSON и отключает цвет и спиннер. Данные идут в stdout, ошибки и прогресс — в stderr.
+В пайпах CLI автоматически выводит JSON и отключает цвет и спиннер. Данные идут в stdout, а ошибки, предупреждения и прогресс — в stderr.
 
 ```bash
 # Передать в jq
@@ -7845,7 +7850,7 @@ const request: ChatCreateRequest = {
   }
 }
 const response = client.chats.createChat(request)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null })
+// → CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[] }) })
 ```
 
 
@@ -8002,7 +8007,7 @@ import {
   // Параметры
   ListChatsParams, ListUsersParams, SearchMessagesParams,
   // Ответы
-  ListChatsResponse, ListMembersResponse,
+  ListChatsResponse, ListMembersResponse, CreateChatResponse,
   // Перечисления
   AuditEventKey, ChatAvailability, ChatMemberRole, ChatMemberRoleFilter,
   ChatSubtype, CustomPropertyDataType, FileType, InviteStatus,
@@ -8304,7 +8309,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None)
+# → CreateChatResponse(data: Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None), meta: CreateChatResponseMeta(not_found_member_ids: list[int]))
 ```
 
 
@@ -8437,7 +8442,7 @@ from pachca.models import (
     # Параметры
     ListChatsParams, ListUsersParams, SearchMessagesParams,
     # Ответы
-    ListChatsResponse, ListMembersResponse,
+    ListChatsResponse, ListMembersResponse, CreateChatResponse,
     # Перечисления
     AuditEventKey, ChatAvailability, ChatMemberRole, ChatMemberRoleFilter,
     ChatSubtype, CustomPropertyDataType, FileType, InviteStatus,
@@ -8751,7 +8756,7 @@ request := ChatCreateRequest{
 	},
 }
 response, err := client.Chats.CreateChat(ctx, request)
-// → Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}
+// → CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32}}
 ```
 
 
@@ -8848,7 +8853,7 @@ SDK возвращает два типа ошибок (реализуют инт
 Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```go
-chat, err := client.Chats.CreateChat(ctx, request)
+_, err := client.Chats.CreateChat(ctx, request)
 if err != nil {
     var apiErr *pachca.ApiError
     if errors.As(err, &apiErr) {
@@ -9223,7 +9228,7 @@ val request = ChatCreateRequest(
     )
 )
 val response = client.chats.createChat(request = request)
-// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String, avatarUrl: String?)
+// → CreateChatResponse(data: Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, archived: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String, avatarUrl: String?), meta: CreateChatResponseMeta(notFoundMemberIds: List<Int>))
 ```
 
 
@@ -9660,7 +9665,7 @@ let response = try await client.chats.listChats(sort: .id, order: .desc, availab
 import PachcaSDK
 
 // Создание чата
-let body = ChatCreateRequest(
+let request = ChatCreateRequest(
     chat: ChatCreateRequestChat(
         name: "🤿 aqua",
         memberIds: [123],
@@ -9669,8 +9674,8 @@ let body = ChatCreateRequest(
         `public`: false
     )
 )
-let response = try await client.chats.createChat(body: body)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String, avatarUrl: String?)
+let response = try await client.chats.createChat(request: request)
+// → CreateChatResponse(data: Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String, avatarUrl: String?), meta: CreateChatResponseMeta(notFoundMemberIds: [Int]))
 ```
 
 
@@ -9747,7 +9752,7 @@ SDK выбрасывает два типа ошибок (реализуют пр
 
 ```swift
 do {
-    try await client.chats.createChat(request)
+    _ = try await client.chats.createChat(request: request)
 } catch let error as ApiError {
     for e in error.errors {
         print("\(e.key): \(e.message)")  // "name: не может быть пустым"
@@ -9834,7 +9839,7 @@ import PachcaSDK
 let client = PachcaClient(token: "YOUR_TOKEN")
 
 // Отправка сообщения
-let body = MessageCreateRequest(
+let request = MessageCreateRequest(
     message: MessageCreateRequestMessage(
         entityType: .discussion,
         entityId: 334,
@@ -9861,7 +9866,7 @@ let body = MessageCreateRequest(
     ),
     linkPreview: false
 )
-let response = try await client.messages.createMessage(body: body)
+let response = try await client.messages.createMessage(request: request)
 // → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)
 
 // Список сотрудников
@@ -9869,7 +9874,7 @@ let response = try await client.users.listUsers(query: "Олег", limit: 1, cur
 // → ListUsersResponse(data: [User], meta: PaginationMeta)
 
 // Создание задачи
-let body = TaskCreateRequest(
+let request = TaskCreateRequest(
     task: TaskCreateRequestTask(
         kind: .reminder,
         content: "Забрать со склада 21 заказ",
@@ -9881,7 +9886,7 @@ let body = TaskCreateRequest(
         customProperties: [TaskCreateRequestCustomProperty(id: 78, value: "Синий склад")]
     )
 )
-let response = try await client.tasks.createTask(body: body)
+let response = try await client.tasks.createTask(request: request)
 // → Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)])
 ```
 
@@ -10096,7 +10101,7 @@ var request = new ChatCreateRequest
     }
 };
 var response = await client.Chats.CreateChatAsync(request);
-// → Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?)
+// → CreateChatResponse(Data: Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Archived: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string, AvatarUrl: string?), Meta: CreateChatResponseMeta(NotFoundMemberIds: List<int>))
 ```
 
 
@@ -10787,6 +10792,8 @@ Workflow — визуальный редактор, в котором выстр
 | Mark Unread | [Отметка чата непрочитанным](/api/chats/mark-unread) |
 | Update Avatar | [Загрузка аватара чата](/api/chats/update-avatar) |
 | Delete Avatar | [Удаление аватара чата](/api/chats/remove-avatar) |
+
+**Create** возвращает созданный чат и поле `not_found_member_ids` с идентификаторами из **Member IDs**, которых не удалось добавить в чат.
 
 **Сортировка в Get Many:** параметры `sort` (`id` или `last_message_at`) и `order` (`asc` / `desc`). Также доступны фильтры `availability`, `lastMessageAtAfter`, `lastMessageAtBefore`.
 
@@ -15303,7 +15310,7 @@ const request: ChatCreateRequest = {
   }
 }
 const response = client.chats.createChat(request)
-// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null })
+// → CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[] }) })
 ```
 
 ### Python
@@ -15324,7 +15331,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None)
+# → CreateChatResponse(data: Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None), meta: CreateChatResponseMeta(not_found_member_ids: list[int]))
 ```
 
 ---

@@ -200,7 +200,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content +=
     '- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.\n';
   content +=
-    '- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.\n';
+    '- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую. Если рядом с `data` есть `meta` (списки и метод `Новый чат`), SDK возвращает ответ целиком: `data` и `meta`.\n';
   content +=
     '- Имена сервисов, методов и полей соответствуют operationId и параметрам из OpenAPI.\n\n';
   content += '```\n';
@@ -432,7 +432,7 @@ function generateLibraryRules(): string {
 ## SDK (Typed Clients for 6 Languages)
 - Unified pattern: \`PachcaClient(token)\` → \`client.service.method(request)\`
 - **Input**: path params and body fields (≤2) expand to method arguments; otherwise a single request object
-- **Output**: if API response has a single \`data\` field, SDK returns its contents directly
+- **Output**: if API response has a single \`data\` field, SDK returns its contents directly. If \`meta\` comes next to \`data\` (lists and the \`New chat\` method), SDK returns the whole response: \`data\` and \`meta\`
 - Service, method, and field names match operationId and parameters from OpenAPI
 
 | Language | Package | Install |
@@ -669,11 +669,13 @@ import { PachcaClient, MessageEntityType } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
-// Create a group chat with initial members
-const chat = await client.chats.createChat({
+// Create a group chat with initial members: the chat comes in data
+const { data: chat, meta } = await client.chats.createChat({
   chat: { name: "Project Discussion", memberIds: [1, 2, 3], channel: false, public: false }
 })
 console.log("Created chat:", chat.id, chat.name)
+// IDs from memberIds that could not be added (not in the workspace, suspended or deleted)
+console.log("Not added:", meta.notFoundMemberIds)
 
 // Add more members later
 await client.members.addMembers(chat.id, { memberIds: [4, 5] })
@@ -698,11 +700,14 @@ from pachca.models import ChatCreateRequest, ChatCreateRequestChat, MessageCreat
 
 client = PachcaClient("YOUR_TOKEN")
 
-# Create a group chat with initial members
-chat = await client.chats.create_chat(ChatCreateRequest(
+# Create a group chat with initial members: the chat comes in data
+response = await client.chats.create_chat(ChatCreateRequest(
     chat=ChatCreateRequestChat(name="Project Discussion", member_ids=[1, 2, 3], channel=False, public=False)
 ))
+chat = response.data
 print("Created chat:", chat.id, chat.name)
+# IDs from member_ids that could not be added (not in the workspace, suspended or deleted)
+print("Not added:", response.meta.not_found_member_ids)
 
 # Add more members later
 await client.members.add_members(chat.id, AddMembersRequest(member_ids=[4, 5]))
@@ -1178,7 +1183,7 @@ async function createProjectWorkspace(projectName: string, memberIds: number[]) 
     {
       name: "create-chat",
       execute: async () => {
-        const chat = await client.chats.createChat({
+        const { data: chat } = await client.chats.createChat({
           chat: { name: projectName, memberIds, channel: false, public: false }
         })
         chatId = chat.id

@@ -54,6 +54,26 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/profile/avatar" \
 }
 ```
 
+### 400: The server could not understand the request due to invalid syntax.
+
+**Схема ответа при ошибке:** `ApiError`. Поля и коды описаны в разделе [Ошибки](/api/errors).
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
+
 ### 401: Access is unauthorized.
 
 **Схема ответа при ошибке:** `OAuthError`. Поля и коды описаны в разделе [Ошибки](/api/errors).

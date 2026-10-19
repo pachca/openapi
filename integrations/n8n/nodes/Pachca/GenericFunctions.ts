@@ -461,7 +461,7 @@ export async function makeApiRequestAllPages(
     const paginate = meta?.paginate as IDataObject | undefined;
     const nextCursor = (paginate?.next_page as string) ?? undefined;
 
-    // Termination: списочные методы — has_next === false; legacy meta без has_next (например, /users?query=) — пустой data
+    // Termination: списочные методы и /users?query= — has_next === false; meta без has_next (методы поиска) — пустой data
     const hasNext = paginate?.has_next as boolean | undefined;
     if (typeof hasNext === 'boolean') {
       if (!hasNext) break;

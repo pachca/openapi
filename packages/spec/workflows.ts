@@ -355,8 +355,8 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
             '`last_message_at_after`/`last_message_at_before` — ISO-8601, UTC+0. `limit` 1-50 (default 50). Sorted by last message time descending.',
         },
         {
-          description: 'Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`',
-          descriptionEn: 'If `meta.paginate.next_page` is set — iterate pages via `--cursor`',
+          description: 'Пока `meta.paginate.has_next` равен `true`, бери следующую страницу через `--cursor=<next_page>`',
+          descriptionEn: 'While `meta.paginate.has_next` is `true`, fetch the next page with `--cursor=<next_page>`',
           command:
             'pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --cursor=<next_page>',
           apiMethod: 'GET',
@@ -1105,9 +1105,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       steps: [
         {
           description:
-            'Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`, следующую страницу бери из `meta.paginate.next_page`',
+            'Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`. Пока `meta.paginate.has_next` равен `true`, следующую страницу бери из `meta.paginate.next_page`',
           descriptionEn:
-            'With a user token (scope `bots:read`) get the list of bots you can edit: those you created and those whose settings grant you edit access. Filter by name with `query`, take the next page from `meta.paginate.next_page`',
+            'With a user token (scope `bots:read`) get the list of bots you can edit: those you created and those whose settings grant you edit access. Filter by name with `query`. While `meta.paginate.has_next` is `true`, take the next page from `meta.paginate.next_page`',
           command: 'pachca bots list --query="задач"',
           apiMethod: 'GET',
           apiPath: '/bots',

@@ -55,6 +55,7 @@ const TEXT_KEYS = new Set(['description', 'summary', 'title', 'x-enum-descriptio
 const RESPONSE_WRAPPERS: Record<string, string> = {
 	'Обертка ответа с данными и пагинацией': 'Response wrapper with data and pagination',
 	'Обертка ответа с данными': 'Response wrapper with data',
+	'Обертка ответа с данными и метаданными': 'Response wrapper with data and metadata',
 	'Обертка ответа поисковых результатов с данными и пагинацией': 'Search results response wrapper with data and pagination',
 };
 

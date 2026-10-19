@@ -41,7 +41,7 @@
       "type": "skill-md",
       "description": "Pachca — управление ботами и вебхуки. Используй этот скилл, когда пользователь хочет настроить бота, создать бота, настроить вебхуки, обработать вебхук, проверить подпись вебхука (X-Signature), обработать callback нажатия кнопки или создать дайджест-бота. НЕ для отправки обычных сообщений, показа форм или модальных окон. Разворачивание ссылок (unfurl) — в pachca-messages.",
       "url": "/.well-known/skills/pachca-bots/SKILL.md",
-      "digest": "sha256:f41dfa35a6bb55d92bf5ba2f5294407b5cdd7b8dabb7cf53e3c784e8a95e4011"
+      "digest": "sha256:eefca381b3b6d1436bc1b0ad5ed4981cea5ad4fb6717cc4cbe742f1cfeaf2d53"
     },
     {
       "name": "pachca-forms",

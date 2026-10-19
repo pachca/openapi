@@ -123,9 +123,15 @@ actions:
 
         To create a 1-on-1 direct message with a user, use the [New message](POST /messages) method. To discuss a particular message there is no need to create a chat — a thread is started under it with the [New thread](POST /messages/{id}/thread) method. A conversation on a single topic needs no permanent place either: there is the [New unattached thread](POST /threads) method for it.
 
-        Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, are silently dropped — the response is successful but the employee is not in the chat, so check the membership in the response. Bots are stricter: if a bot's "Who can add the bot to chats" setting does not let you add it, the chat is not created, and the method responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel stops the request too if it is in `member_ids` or creates the chat itself: the chat is not created, and the method responds `409` with the `single_chat_bot_occupied` code and the IDs of such bots in `value`.
+        Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as well as suspended and deleted employees, do not stop the request: the chat is created with the other members, and such IDs come back in `meta.not_found_member_ids`. Tags that do not exist are skipped silently. Bots are stricter: if a bot's "Who can add the bot to chats" setting does not let you add it, the chat is not created, and the method responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. A bot with the "Restrict to a single chat" setting that already belongs to another conversation or channel stops the request too if it is in `member_ids` or creates the chat itself: the chat is not created, and the method responds `409` with the `single_chat_bot_occupied` code and the IDs of such bots in `value`.
 
         The chat's avatar is set after creation with the [Upload chat avatar](PUT /chats/{id}/avatar) method.
+  - target: $.paths['/chats'].post.responses['201'].content['application/json'].schema.properties.meta
+    update:
+      description: Response metadata
+  - target: $.paths['/chats'].post.responses['201'].content['application/json'].schema.properties.meta.properties.not_found_member_ids
+    update:
+      description: "IDs from `member_ids` that could not be added: the employee is not in the workspace, is suspended, or is deleted. An empty array when everyone was added."
   - target: $.paths['/chats'].get
     update:
       description: |-
@@ -600,7 +606,7 @@ actions:
 
         No more than 10 files can be attached to a message. A link preview is built only if `link_preview` is passed at the root of the request body.
 
-        A daily limit applies to the number of messages into one chat from one sender. When it is exceeded the method responds `429`, and the `Retry-After` header carries the pause before the next attempt. The limit values are in the [Limits](/api/limits) section.
+        Sending has rate limits and a daily cap on messages into one chat from one sender. When one is exceeded the method responds `429`, and the `Retry-After` header carries the pause before the next attempt. The limit values are in the [Limits](/api/limits) section.
   - target: $.paths['/messages'].get
     update:
       description: |-
@@ -800,7 +806,7 @@ actions:
 
         The token does not expire: there is no `expires_in` in the response, and the token works until the employee revokes access. If the employee has already authorized the bot before, their existing token comes back. Whose token it is, [Token info](GET /oauth/token/info) shows.
 
-        Errors come in the OAuth format: `invalid_grant` — the code has expired, has already been used, was issued for a different `redirect_uri`, or the `code_verifier` does not match, and `invalid_client` — a wrong `client_id` or `client_secret`. The exchange has its own [limit](/api/limits).
+        Errors come in the OAuth format: `invalid_grant` — the code has expired, has already been used, was issued for a different `redirect_uri`, or the `code_verifier` does not match, and `invalid_client` — a wrong `client_id` or `client_secret`. The exchange has its own [limit](/api/limits): when it is exceeded, the method responds `429` with the `rate_limit` code in the regular API error format.
   - target: $.paths['/oauth/revoke'].post
     update:
       description: |-

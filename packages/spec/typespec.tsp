@@ -1639,6 +1639,13 @@ model PaginatedDataResponse<T> {
   meta: PaginationMeta;
 }
 
+@doc("Обертка ответа с данными и метаданными")
+model DataMetaResponse<T, M> {
+  data: T;
+  @doc("Метаданные ответа")
+  meta: M;
+}
+
 
 @doc("Данные аватара")
 model AvatarData {
@@ -5056,7 +5063,7 @@ interface OAuthFlowOperations {
 
 Токен бессрочный: `expires_in` в ответе нет, и работает токен, пока сотрудник не отзовёт доступ. Если сотрудник уже авторизовал бота раньше, приходит его прежний токен. Чей это токен, показывает [Информация о токене](GET /oauth/token/info).
 
-Ошибки приходят в формате OAuth: `invalid_grant` — код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, а `invalid_client` — неверный `client_id` или `client_secret`. У обмена свой [лимит](/api/limits).
+Ошибки приходят в формате OAuth: `invalid_grant` — код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, а `invalid_client` — неверный `client_id` или `client_secret`. У обмена свой [лимит](/api/limits): при его превышении метод отвечает `429` с кодом `rate_limit` в обычном формате ошибок API.
 """)
   @route("/token")
   @post
@@ -5095,6 +5102,10 @@ interface OAuthFlowOperations {
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
+  } | {
+    @statusCode _: 429;
+    @header("Retry-After") retryAfter: int32;
+    @body body: ApiError;
   };
 
   @extension("x-oauth-flow", true)
@@ -5470,6 +5481,9 @@ interface ProfileAvatarOperations {
     @statusCode _: 403;
     @body body: ForbiddenError;
   } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
     @statusCode _: 402;
     @body body: ApiError;
   } | {
@@ -5495,6 +5509,9 @@ interface ProfileAvatarOperations {
   } | {
     @statusCode _: 403;
     @body body: ForbiddenError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
   } | {
     @statusCode _: 402;
     @body body: ApiError;
@@ -5904,6 +5921,9 @@ interface UserAvatarOperations {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
     @statusCode _: 402;
     @body body: ApiError;
   } | {
@@ -5937,6 +5957,9 @@ interface UserAvatarOperations {
     @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 400;
     @body body: ApiError;
   } | {
     @statusCode _: 402;
@@ -6220,14 +6243,18 @@ interface ChatOperations {
 
 Для создания личной переписки 1 на 1 с пользователем пользуйтесь методом [Новое сообщение](POST /messages). Чтобы обсудить конкретное сообщение, чат заводить не нужно — под ним заводят тред методом [Новый тред](POST /messages/{id}/thread). Разговору на одну тему постоянное место тоже не нужно: для него есть метод [Новый самостоятельный тред](POST /threads).
 
-Участников можно передать сразу: `member_ids` добавляет поимённо, `group_tag_ids` приводит всех, кто состоит в теге, и дальше поддерживает состав сам. Идентификаторы, которых в пространстве нет, а также приостановленные и удалённые сотрудники молча отбрасываются — ответ приходит успешным, а сотрудника в чате не оказывается, поэтому сверяйте состав в ответе. С ботами строже: если настройка бота «Кто может добавлять бота в чаты» не разрешает вам его добавить, чат не создаётся, а метод отвечает `403` с кодом `bot_add_denied` и идентификаторами таких ботов в `value`. Бот с настройкой «Ограничить одним чатом», который уже состоит в другой беседе или канале, тоже останавливает запрос, если он есть в `member_ids` или создаёт чат сам: чат не создаётся, а метод отвечает `409` с кодом `single_chat_bot_occupied` и идентификаторами таких ботов в `value`.
+Участников можно передать сразу: `member_ids` добавляет поимённо, `group_tag_ids` приводит всех, кто состоит в теге, и дальше поддерживает состав сам. Идентификаторы, которых в пространстве нет, а также приостановленные и удалённые сотрудники запрос не останавливают: чат создаётся с остальными участниками, а такие идентификаторы приходят в `meta.not_found_member_ids`. Несуществующие теги пропускаются молча. С ботами строже: если настройка бота «Кто может добавлять бота в чаты» не разрешает вам его добавить, чат не создаётся, а метод отвечает `403` с кодом `bot_add_denied` и идентификаторами таких ботов в `value`. Бот с настройкой «Ограничить одним чатом», который уже состоит в другой беседе или канале, тоже останавливает запрос, если он есть в `member_ids` или создаёт чат сам: чат не создаётся, а метод отвечает `409` с кодом `single_chat_bot_occupied` и идентификаторами таких ботов в `value`.
 
 Аватар чату ставят после создания методом [Загрузка аватара чата](PUT /chats/{id}/avatar).
 """)
   @post
   createChat(@body request: ChatCreateRequest): {
     @statusCode _: 201;
-    @body body: DataResponse<Chat>;
+    @body body: DataMetaResponse<Chat, {
+      @doc("Идентификаторы из `member_ids`, которые не удалось добавить: такого сотрудника нет в пространстве, он приостановлен или удалён. Пустой массив, если добавлены все.")
+      @example(#[])
+      not_found_member_ids: int32[];
+    }>;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -6582,6 +6609,9 @@ interface ChatOperations {
     @body body: ForbiddenError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 400;
     @body body: ApiError;
   } | {
     @statusCode _: 402;
@@ -7126,7 +7156,7 @@ interface MessageOperations {
 
 К сообщению можно приложить не больше 10 файлов. Превью ссылки строится, только если передать `link_preview` в корне тела запроса.
 
-Действует суточный предел на число сообщений в один чат от одного отправителя. При превышении метод отвечает `429`, а в заголовке `Retry-After` приходит пауза до следующей попытки. Значения пределов — в разделе [Лимиты](/api/limits).
+Действуют лимиты на частоту отправки и суточный предел на число сообщений в один чат от одного отправителя. При превышении любого из них метод отвечает `429`, а в заголовке `Retry-After` приходит пауза до следующей попытки. Значения пределов — в разделе [Лимиты](/api/limits).
 """)
   @post
   createMessage(@body request: MessageCreateRequest): {
@@ -7692,7 +7722,7 @@ interface SearchOperations {
     @query query?: string,
     @doc("Количество возвращаемых результатов за один запрос")
     @extension("example", 10)
-    @query @maxValue(200)
+    @query @minValue(1) @maxValue(200)
     limit?: int32 = 200,
     @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
@@ -7756,7 +7786,7 @@ interface SearchOperations {
     @query query?: string,
     @doc("Количество возвращаемых результатов за один запрос")
     @extension("example", 10)
-    @query @maxValue(100)
+    @query @minValue(1) @maxValue(100)
     limit?: int32 = 100,
     @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
@@ -7822,7 +7852,7 @@ interface SearchOperations {
     @query query?: string,
     @doc("Количество возвращаемых результатов за один запрос")
     @extension("example", 10)
-    @query @maxValue(200)
+    @query @minValue(1) @maxValue(200)
     limit?: int32 = 200,
     @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
@@ -8522,6 +8552,9 @@ interface BotOperations {
   } | {
     @statusCode _: 403;
     @body body: ForbiddenError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
   } | {
     @statusCode _: 402;
     @body body: ApiError;

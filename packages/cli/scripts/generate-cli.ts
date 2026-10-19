@@ -738,7 +738,7 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`        const paginate = meta?.paginate as Record<string, unknown> | undefined;`);
     runBodyLines.push(`        nextCursor = paginate?.next_page as string | undefined;`);
     runBodyLines.push(`        pages++;`);
-    runBodyLines.push(`        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data`);
+    runBodyLines.push(`        // Условие конца: списочные методы и /users?query= — has_next === false; методы поиска (без has_next) — пустой data`);
     runBodyLines.push(`        const hasNext = paginate?.has_next;`);
     runBodyLines.push(`        if (typeof hasNext === 'boolean') {`);
     runBodyLines.push(`          if (!hasNext) break;`);

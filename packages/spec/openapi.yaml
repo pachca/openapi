@@ -480,6 +480,12 @@ paths:
                 meta:
                   paginate:
                     next_page: eyJpZCI6MTczODgxNn0
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -1837,7 +1843,7 @@ paths:
 
         Для создания личной переписки 1 на 1 с пользователем пользуйтесь методом [Новое сообщение](POST /messages). Чтобы обсудить конкретное сообщение, чат заводить не нужно — под ним заводят тред методом [Новый тред](POST /messages/{id}/thread). Разговору на одну тему постоянное место тоже не нужно: для него есть метод [Новый самостоятельный тред](POST /threads).
 
-        Участников можно передать сразу: `member_ids` добавляет поимённо, `group_tag_ids` приводит всех, кто состоит в теге, и дальше поддерживает состав сам. Идентификаторы, которых в пространстве нет, а также приостановленные и удалённые сотрудники молча отбрасываются — ответ приходит успешным, а сотрудника в чате не оказывается, поэтому сверяйте состав в ответе. С ботами строже: если настройка бота «Кто может добавлять бота в чаты» не разрешает вам его добавить, чат не создаётся, а метод отвечает `403` с кодом `bot_add_denied` и идентификаторами таких ботов в `value`. Бот с настройкой «Ограничить одним чатом», который уже состоит в другой беседе или канале, тоже останавливает запрос, если он есть в `member_ids` или создаёт чат сам: чат не создаётся, а метод отвечает `409` с кодом `single_chat_bot_occupied` и идентификаторами таких ботов в `value`.
+        Участников можно передать сразу: `member_ids` добавляет поимённо, `group_tag_ids` приводит всех, кто состоит в теге, и дальше поддерживает состав сам. Идентификаторы, которых в пространстве нет, а также приостановленные и удалённые сотрудники запрос не останавливают: чат создаётся с остальными участниками, а такие идентификаторы приходят в `meta.not_found_member_ids`. Несуществующие теги пропускаются молча. С ботами строже: если настройка бота «Кто может добавлять бота в чаты» не разрешает вам его добавить, чат не создаётся, а метод отвечает `403` с кодом `bot_add_denied` и идентификаторами таких ботов в `value`. Бот с настройкой «Ограничить одним чатом», который уже состоит в другой беседе или канале, тоже останавливает запрос, если он есть в `member_ids` или создаёт чат сам: чат не создаётся, а метод отвечает `409` с кодом `single_chat_bot_occupied` и идентификаторами таких ботов в `value`.
 
         Аватар чату ставят после создания методом [Загрузка аватара чата](PUT /chats/{id}/avatar).
       parameters: []
@@ -1850,10 +1856,24 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     $ref: '#/components/schemas/Chat'
-                description: Обертка ответа с данными
+                  meta:
+                    type: object
+                    properties:
+                      not_found_member_ids:
+                        type: array
+                        items:
+                          type: integer
+                          format: int32
+                        description: 'Идентификаторы из `member_ids`, которые не удалось добавить: такого сотрудника нет в пространстве, он приостановлен или удалён. Пустой массив, если добавлены все.'
+                        example: []
+                    required:
+                      - not_found_member_ids
+                    description: Метаданные ответа
+                description: Обертка ответа с данными и метаданными
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -2517,6 +2537,12 @@ paths:
       responses:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -4540,7 +4566,7 @@ paths:
 
         К сообщению можно приложить не больше 10 файлов. Превью ссылки строится, только если передать `link_preview` в корне тела запроса.
 
-        Действует суточный предел на число сообщений в один чат от одного отправителя. При превышении метод отвечает `429`, а в заголовке `Retry-After` приходит пауза до следующей попытки. Значения пределов — в разделе [Лимиты](/api/limits).
+        Действуют лимиты на частоту отправки и суточный предел на число сообщений в один чат от одного отправителя. При превышении любого из них метод отвечает `429`, а в заголовке `Retry-After` приходит пауза до следующей попытки. Значения пределов — в разделе [Лимиты](/api/limits).
       parameters: []
       responses:
         '201':
@@ -5615,7 +5641,7 @@ paths:
 
         Токен бессрочный: `expires_in` в ответе нет, и работает токен, пока сотрудник не отзовёт доступ. Если сотрудник уже авторизовал бота раньше, приходит его прежний токен. Чей это токен, показывает [Информация о токене](GET /oauth/token/info).
 
-        Ошибки приходят в формате OAuth: `invalid_grant` — код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, а `invalid_client` — неверный `client_id` или `client_secret`. У обмена свой [лимит](/api/limits).
+        Ошибки приходят в формате OAuth: `invalid_grant` — код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, а `invalid_client` — неверный `client_id` или `client_secret`. У обмена свой [лимит](/api/limits): при его превышении метод отвечает `429` с кодом `rate_limit` в обычном формате ошибок API.
       parameters: []
       responses:
         '200':
@@ -5642,6 +5668,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '429':
+          description: Client error
+          headers:
+            Retry-After:
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
       tags:
         - OAuth
       requestBody:
@@ -5772,6 +5810,12 @@ paths:
                   data:
                     $ref: '#/components/schemas/AvatarData'
                 description: Обертка ответа с данными
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -5825,6 +5869,12 @@ paths:
       responses:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -6031,6 +6081,7 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
             maximum: 100
             example: 10
             default: 100
@@ -6186,6 +6237,7 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
             maximum: 200
             example: 10
             default: 200
@@ -6369,6 +6421,7 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
             maximum: 200
             example: 10
             default: 200
@@ -7626,6 +7679,12 @@ paths:
                   data:
                     $ref: '#/components/schemas/AvatarData'
                 description: Обертка ответа с данными
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -7696,6 +7755,12 @@ paths:
       responses:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:

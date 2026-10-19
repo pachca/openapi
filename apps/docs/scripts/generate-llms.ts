@@ -109,10 +109,9 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     'остальное ~50 rps, чтение `/webhooks/events` ~5 req / 2s. ' +
     'Входящие вебхуки — ~10 rps на webhook id (по идентификатору в пути). ' +
     'Плюс суточный предел: 7500 сообщений в один чат от одного отправителя за скользящие ' +
-    '24 часа; при превышении отправка в этот чат встаёт на час, и каждая попытка во время ' +
-    'паузы удваивает её. На `429` — жди `Retry-After`. Тело `429` бывает двух видов: ' +
-    'суточный предел приходит обычным JSON с кодом `rate_limit`, а частотный отказывает ' +
-    'до входа в метод и отвечает текстом — проверяй `Content-Type` перед разбором.\n';
+    '24 часа. При превышении отправка в этот чат встаёт на час, и каждая попытка во время ' +
+    'паузы удваивает её. На `429` — жди `Retry-After`. Тело `429` — обычный JSON с кодом ' +
+    '`rate_limit` и у частотных лимитов, и у суточного предела (входящие вебхуки отвечают текстом).\n';
   content +=
     '- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), ' +
     '`401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.\n';
@@ -372,7 +371,7 @@ function generateLibraryRules(): string {
 - Sending messages (POST /messages): about 4 per second per chat, 30 requests per 5 seconds across all chats, and 7,500 messages per chat per rolling day from one sender. Hitting the daily cap pauses that chat for an hour and every further attempt doubles the pause. Editing and deleting messages fall under the general limit
 - Reading messages (GET methods under /messages): about 10 per second per token. Event history (GET /webhooks/events): about 5 per 2 seconds per token. Other endpoints: about 50 per second per token
 - Incoming webhooks: about 10 per second per webhook id (counted by the identifier in the path, e.g. \`/webhooks/user123\`)
-- A \`429\` body comes in two shapes: the daily cap answers with ordinary JSON carrying \`rate_limit\`, the per-second limit is refused before the method and answers with plain text. Check \`Content-Type\` before parsing. \`Retry-After\` is present in both
+- A \`429\` comes as ordinary JSON with the code \`rate_limit\` and a \`Retry-After\` header, from the per-second limits and the daily cap alike. Incoming webhooks answer \`429\` with plain text
 - Retries: never wait less than \`Retry-After\` and add jitter upward only. Do not retry pauses longer than a minute (the daily cap, overload protection): return the error with \`Retry-After\` instead. Retry \`5xx\` with exponential backoff and jitter, at most 3 times. The SDK (@pachca/sdk, pachca-sdk), CLI and n8n node retry by themselves
 
 ## Pagination

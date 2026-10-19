@@ -128,9 +128,11 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 {
   "errors": [
     {
-      "key": "invalid",
-      "message": "Не может быть пустым",
-      "value": "first_name"
+      "key": "image",
+      "value": null,
+      "message": "Поле обязательно для заполнения",
+      "code": "blank",
+      "payload": null
     }
   ]
 }

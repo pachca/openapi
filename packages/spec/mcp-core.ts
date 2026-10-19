@@ -681,14 +681,15 @@ export const RESPONSE_FORMAT = {
    * platform builds its whole rendering on the structured half, and declaring a
    * schema without returning the data breaks another — an obligation, not an
    * option. The structured half is the response body as the API gives it, so a
-   * list keeps its `data` and `meta`, and a tool's schema is that body's schema.
+   * list keeps its `data` and `meta` (and so does a new chat), and a tool's
+   * schema is that body's schema.
    *
    * It goes without the untrusted wrapper: a wrapper inside the values would
    * break the schema they are checked against, so the boundary is the text
    * half's to hold.
    */
   structured_content:
-    'on success, required whenever the tool declares outputSchema: the API response body — data, and meta for a list — with each record of a list cut to its card unless view is full, and a single read without the fields single_read_omit names for its entity unless view is full; a cut keeps a null parent null and cuts a list item by item, and the cut record still fits outputSchema; a body of null comes back as data: null. The structured half carries no untrusted wrapper: the text half holds that boundary',
+    'on success, required whenever the tool declares outputSchema: the API response body — data, and meta where the body has it — with each record of a list cut to its card unless view is full, and a single read without the fields single_read_omit names for its entity unless view is full; a cut keeps a null parent null and cuts a list item by item, and the cut record still fits outputSchema; a body of null comes back as data: null. The structured half carries no untrusted wrapper: the text half holds that boundary',
 
   /**
    * Content written by other people is wrapped before it enters the model's
@@ -819,14 +820,14 @@ export const RESPONSE_FORMAT = {
     'a refusal — any API answer from 400 up, invalid_arguments, rate_limit, a link the server refuses or cannot download (files) — is a result with isError: true, text only, without structuredContent: the line of refusals for its status, then every item of errors[] whole — code, key, message, value, payload. An OAuthError reads the same way, error as code and error_description as message; key system means the error is about no field. A refusal the server makes before calling the API has no status and nothing is sent: invalid_arguments reads its own line, and a link it refuses or cannot download reads «The link in {argument} was not used: {reason}.», the reason naming the rule of files it broke — not https, not a public address, too many redirects, over max_download_bytes — or the failed download. An unknown tool, a request that is no valid call and a failure of this server itself are JSON-RPC errors instead',
 
   /**
-   * A 429 reaches the server in two shapes: the daily cap on one sender's
-   * messages to one chat as JSON with the code rate_limit, and the per-second
-   * limits as plain text refused before the method runs. Either way the wait is
-   * in Retry-After, which the model never sees — so the server reads it and
-   * names it in the refusal, and the refusal tells the model to wait that long.
+   * A 429 reaches the server as JSON with the code rate_limit, from the
+   * per-second limits and from the daily cap on one sender's messages to one
+   * chat alike. The wait is in Retry-After, which the model never sees — so the
+   * server reads it and names it in the refusal, and the refusal tells the model
+   * to wait that long.
    */
   rate_limit:
-    'a 429 comes as JSON with code rate_limit (the daily cap) or as plain text (per-second limits); read the wait from Retry-After and name it in the refusal: «Wait {seconds} s before repeating.»',
+    'a 429 comes as JSON with code rate_limit; read the wait from Retry-After and name it in the refusal: «Wait {seconds} s before repeating.»',
 
   /**
    * A redirect is not followed. The archive of an export answers with where it

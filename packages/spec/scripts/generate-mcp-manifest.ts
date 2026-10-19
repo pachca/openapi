@@ -210,8 +210,12 @@ const SCHEMA_PATH = path.join(HERE, '..', 'mcp-manifest.schema.json');
 /** The fake workspace a judged run answers from; the ids a scenario's key wants live in it. */
 const WORLD_PATH = path.join(HERE, 'eval', 'world.json');
 
-/** Manifest schema version. Bump the major when consumers must be updated. */
-const SCHEMA_VERSION = '3.0.0';
+/**
+ * Manifest schema version: the contract a server that executes the manifest is
+ * written for. 1.0.0 is the first one published; bump the major when such a
+ * server has to change before it loads the file.
+ */
+const SCHEMA_VERSION = '1.0.0';
 
 /**
  * How much of a text the strictest client keeps, in UTF-16 units. One widely
@@ -1416,7 +1420,7 @@ function responseEntity(op: Operation, docEn: YamlNode): string | null {
 
 /**
  * The structured half of an answer: the response body as the API gives it —
- * `data`, and `meta` where a list pages — with every field down to the bottom.
+ * `data`, and `meta` where the body has it — with every field down to the bottom.
  * A list or a search cuts each record to its compact card unless view is full,
  * a single read leaves out only what SINGLE_READ_OMIT names, a write answers with
  * the whole record it made or changed, and all of them fit, because nothing in an

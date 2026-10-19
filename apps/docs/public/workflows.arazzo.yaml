@@ -145,7 +145,7 @@ workflows:
           50). Sorted by last message time descending.)
         operationId: ThreadOperations_listThreads
       - stepId: list-active-threads-in-a-time-window-2
-        description: If `meta.paginate.next_page` is set — iterate pages via `--cursor`
+        description: While `meta.paginate.has_next` is `true`, fetch the next page with `--cursor=<next_page>`
         operationId: ThreadOperations_listThreads
       - stepId: list-active-threads-in-a-time-window-3
         description: For each thread take `chat_id` and fetch messages
@@ -493,8 +493,8 @@ workflows:
       - stepId: find-and-delete-a-bot-1
         description: >-
           With a user token (scope `bots:read`) get the list of bots you can edit: those you created
-          and those whose settings grant you edit access. Filter by name with `query`, take the next
-          page from `meta.paginate.next_page`
+          and those whose settings grant you edit access. Filter by name with `query`. While
+          `meta.paginate.has_next` is `true`, take the next page from `meta.paginate.next_page`
         operationId: BotOperations_listBots
       - stepId: find-and-delete-a-bot-2
         description: >-

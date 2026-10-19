@@ -511,6 +511,12 @@ paths:
                 meta:
                   paginate:
                     next_page: eyJpZCI6MTczODgxNn0
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -1994,13 +2000,13 @@ paths:
 
         Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who
         belongs to the tag and keeps the membership up to date afterwards. IDs that do not exist in the workspace, as
-        well as suspended and deleted employees, are silently dropped — the response is successful but the employee is
-        not in the chat, so check the membership in the response. Bots are stricter: if a bot's "Who can add the bot to
-        chats" setting does not let you add it, the chat is not created, and the method responds `403` with the
-        `bot_add_denied` code and the IDs of such bots in `value`. A bot with the "Restrict to a single chat" setting
-        that already belongs to another conversation or channel stops the request too if it is in `member_ids` or
-        creates the chat itself: the chat is not created, and the method responds `409` with the
-        `single_chat_bot_occupied` code and the IDs of such bots in `value`.
+        well as suspended and deleted employees, do not stop the request: the chat is created with the other members,
+        and such IDs come back in `meta.not_found_member_ids`. Tags that do not exist are skipped silently. Bots are
+        stricter: if a bot's "Who can add the bot to chats" setting does not let you add it, the chat is not created,
+        and the method responds `403` with the `bot_add_denied` code and the IDs of such bots in `value`. A bot with the
+        "Restrict to a single chat" setting that already belongs to another conversation or channel stops the request
+        too if it is in `member_ids` or creates the chat itself: the chat is not created, and the method responds `409`
+        with the `single_chat_bot_occupied` code and the IDs of such bots in `value`.
 
 
         The chat's avatar is set after creation with the [Upload chat avatar](PUT /chats/{id}/avatar) method.
@@ -2014,10 +2020,26 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     $ref: '#/components/schemas/Chat'
-                description: Response wrapper with data
+                  meta:
+                    type: object
+                    properties:
+                      not_found_member_ids:
+                        type: array
+                        items:
+                          type: integer
+                          format: int32
+                        description: >-
+                          IDs from `member_ids` that could not be added: the employee is not in the workspace, is
+                          suspended, or is deleted. An empty array when everyone was added.
+                        example: []
+                    required:
+                      - not_found_member_ids
+                    description: Response metadata
+                description: Response wrapper with data and metadata
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -2752,6 +2774,12 @@ paths:
       responses:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -4990,9 +5018,9 @@ paths:
         the root of the request body.
 
 
-        A daily limit applies to the number of messages into one chat from one sender. When it is exceeded the method
-        responds `429`, and the `Retry-After` header carries the pause before the next attempt. The limit values are in
-        the [Limits](/api/limits) section.
+        Sending has rate limits and a daily cap on messages into one chat from one sender. When one is exceeded the
+        method responds `429`, and the `Retry-After` header carries the pause before the next attempt. The limit values
+        are in the [Limits](/api/limits) section.
       parameters: []
       responses:
         '201':
@@ -6168,7 +6196,8 @@ paths:
 
         Errors come in the OAuth format: `invalid_grant` — the code has expired, has already been used, was issued for a
         different `redirect_uri`, or the `code_verifier` does not match, and `invalid_client` — a wrong `client_id` or
-        `client_secret`. The exchange has its own [limit](/api/limits).
+        `client_secret`. The exchange has its own [limit](/api/limits): when it is exceeded, the method responds `429`
+        with the `rate_limit` code in the regular API error format.
       parameters: []
       responses:
         '200':
@@ -6195,6 +6224,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '429':
+          description: Client error
+          headers:
+            Retry-After:
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
       tags:
         - OAuth
       requestBody:
@@ -6345,6 +6386,12 @@ paths:
                   data:
                     $ref: '#/components/schemas/AvatarData'
                 description: Response wrapper with data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -6400,6 +6447,12 @@ paths:
       responses:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -6631,6 +6684,7 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
             maximum: 100
             example: 10
             default: 100
@@ -6797,6 +6851,7 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
             maximum: 200
             example: 10
             default: 200
@@ -6988,6 +7043,7 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
             maximum: 200
             example: 10
             default: 200
@@ -8411,6 +8467,12 @@ paths:
                   data:
                     $ref: '#/components/schemas/AvatarData'
                 description: Response wrapper with data
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -8484,6 +8546,12 @@ paths:
       responses:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:

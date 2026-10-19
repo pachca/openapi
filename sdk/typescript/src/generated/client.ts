@@ -1332,8 +1332,9 @@ export class FilesServiceImpl extends FilesService {
 
   async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
     const form = new FormData();
+    if (request.acl !== undefined) form.set("acl", request.acl);
+    if (request.bucket !== undefined) form.set("bucket", request.bucket);
     form.set("Content-Disposition", request.contentDisposition);
-    form.set("acl", request.acl);
     form.set("policy", request.policy);
     form.set("x-amz-credential", request.xAmzCredential);
     form.set("x-amz-algorithm", request.xAmzAlgorithm);
@@ -2965,8 +2966,9 @@ export class CommonServiceImpl extends CommonService {
 
   async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
     const form = new FormData();
+    if (request.acl !== undefined) form.set("acl", request.acl);
+    if (request.bucket !== undefined) form.set("bucket", request.bucket);
     form.set("Content-Disposition", request.contentDisposition);
-    form.set("acl", request.acl);
     form.set("policy", request.policy);
     form.set("x-amz-credential", request.xAmzCredential);
     form.set("x-amz-algorithm", request.xAmzAlgorithm);

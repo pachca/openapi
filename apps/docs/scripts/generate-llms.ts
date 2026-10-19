@@ -915,10 +915,12 @@ const filePath = "./report.pdf"
 const fileName = path.basename(filePath)
 const fileBuffer = fs.readFileSync(filePath)
 
-// Step 1: Get S3 presigned upload parameters
+// Step 1: Get S3 presigned upload parameters, put the file name into the key
 const params = await client.files.getUploadParams()
+const fileKey = params.key.replace("${'$'}{filename}", fileName)
 
 // Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+// A workspace gets acl or bucket, depending on its storage: both are optional
 await client.files.uploadFile(params.directUrl, {
   contentDisposition: params.contentDisposition,
   acl: params.acl,
@@ -927,12 +929,12 @@ await client.files.uploadFile(params.directUrl, {
   xAmzAlgorithm: params.xAmzAlgorithm,
   xAmzDate: params.xAmzDate,
   xAmzSignature: params.xAmzSignature,
-  key: params.key,
+  key: fileKey,
+  bucket: params.bucket,
   file: new File([fileBuffer], fileName)
 })
 
-// Step 3: Attach file to message (replace ${'$'}{filename} in key with actual name)
-const fileKey = params.key.replace("${'$'}{filename}", fileName)
+// Step 3: Attach file to message
 await client.messages.createMessage({
   message: {
     entityId: 12345,
@@ -956,10 +958,12 @@ client = PachcaClient("YOUR_TOKEN")
 file_path = "report.pdf"
 file_name = os.path.basename(file_path)
 
-# Step 1: Get S3 presigned upload parameters
+# Step 1: Get S3 presigned upload parameters, put the file name into the key
 params = await client.files.get_upload_params()
+file_key = params.key.replace("${'$'}{filename}", file_name)
 
 # Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+# A workspace gets acl or bucket, depending on its storage: both are optional
 with open(file_path, "rb") as f:
     await client.files.upload_file(
         direct_url=params.direct_url,
@@ -971,13 +975,13 @@ with open(file_path, "rb") as f:
             x_amz_algorithm=params.x_amz_algorithm,
             x_amz_date=params.x_amz_date,
             x_amz_signature=params.x_amz_signature,
-            key=params.key,
+            key=file_key,
+            bucket=params.bucket,
             file=f.read()
         )
     )
 
-# Step 3: Attach file to message (replace ${'$'}{filename} in key with actual name)
-file_key = params.key.replace("${'$'}{filename}", file_name)
+# Step 3: Attach file to message
 await client.messages.create_message(MessageCreateRequest(
     message=MessageCreateRequestMessage(
         entity_id=12345,

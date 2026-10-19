@@ -534,12 +534,13 @@ class AccessTokenInfo:
     revoked_at: datetime | None = None
     expires_in: int | None = None
     last_used_at: datetime | None = None
+    authorized_at: datetime | None = None
 
 
 @dataclass
 class AddMembersRequest:
     member_ids: list[int]
-    silent: bool | None = None
+    silent: bool | None = False
 
 
 @dataclass
@@ -1298,7 +1299,6 @@ class File:
 @dataclass
 class FileUploadRequest:
     content_disposition: str
-    acl: str
     policy: str
     x_amz_credential: str
     x_amz_algorithm: str
@@ -1306,6 +1306,8 @@ class FileUploadRequest:
     x_amz_signature: str
     key: str
     file: bytes
+    acl: str | None = None
+    bucket: str | None = None
 
 
 @dataclass
@@ -1689,7 +1691,6 @@ class UpdateMemberRoleRequest:
 @dataclass
 class UploadParams:
     content_disposition: str
-    acl: str
     policy: str
     x_amz_credential: str
     x_amz_algorithm: str
@@ -1697,6 +1698,8 @@ class UploadParams:
     x_amz_signature: str
     key: str
     direct_url: str
+    acl: str | None = None
+    bucket: str | None = None
 
 
 @dataclass

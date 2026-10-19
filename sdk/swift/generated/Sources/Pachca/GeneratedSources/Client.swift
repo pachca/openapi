@@ -1399,13 +1399,14 @@ public final class FilesServiceImpl: FilesService {
             data.append("\(value)\r\n".data(using: .utf8)!)
         }
         appendField("Content-Disposition", String(describing: body.ContentDisposition))
-        appendField("acl", String(describing: body.acl))
+        if let v = body.acl { appendField("acl", String(describing: v)) }
         appendField("policy", String(describing: body.policy))
         appendField("x-amz-credential", String(describing: body.xAmzCredential))
         appendField("x-amz-algorithm", String(describing: body.xAmzAlgorithm))
         appendField("x-amz-date", String(describing: body.xAmzDate))
         appendField("x-amz-signature", String(describing: body.xAmzSignature))
         appendField("key", String(describing: body.key))
+        if let v = body.bucket { appendField("bucket", String(describing: v)) }
         data.append("--\(boundary)\r\n".data(using: .utf8)!)
         data.append("Content-Disposition: form-data; name=\"file\"; filename=\"upload\"\r\n".data(using: .utf8)!)
         data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
@@ -3182,13 +3183,14 @@ public final class CommonServiceImpl: CommonService {
             data.append("\(value)\r\n".data(using: .utf8)!)
         }
         appendField("Content-Disposition", String(describing: body.ContentDisposition))
-        appendField("acl", String(describing: body.acl))
+        if let v = body.acl { appendField("acl", String(describing: v)) }
         appendField("policy", String(describing: body.policy))
         appendField("x-amz-credential", String(describing: body.xAmzCredential))
         appendField("x-amz-algorithm", String(describing: body.xAmzAlgorithm))
         appendField("x-amz-date", String(describing: body.xAmzDate))
         appendField("x-amz-signature", String(describing: body.xAmzSignature))
         appendField("key", String(describing: body.key))
+        if let v = body.bucket { appendField("bucket", String(describing: v)) }
         data.append("--\(boundary)\r\n".data(using: .utf8)!)
         data.append("Content-Disposition: form-data; name=\"file\"; filename=\"upload\"\r\n".data(using: .utf8)!)
         data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)

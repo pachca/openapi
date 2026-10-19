@@ -16,6 +16,7 @@
 - Form: in `Create`, the `Close Text` and `Submit Text` fields are empty by default — the buttons then get the labels Pachca sets: "Отменить" and "Отправить"
 - Message: `Content` in `Create` is optional — a message can carry files alone
 - Profile and User: in `Update Status`, `Emoji` and `Title` are needed only when there is no status yet — `Expires At` alone extends the status
+- File: `Create` sends `acl` and `bucket` in the upload form only when they came — some workspaces get `bucket` instead of `acl`
 
 ## 2.1.4 (2026-10-13)
 

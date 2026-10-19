@@ -869,10 +869,12 @@ export interface AccessTokenInfo {
   revokedAt: string | null;
   expiresIn: number | null;
   lastUsedAt: string | null;
+  authorizedAt: string | null;
 }
 
 export interface AddMembersRequest {
   memberIds: number[];
+  /** @default false */
   silent?: boolean;
 }
 
@@ -1537,13 +1539,14 @@ export interface File {
 
 export interface FileUploadRequest {
   contentDisposition: string;
-  acl: string;
+  acl?: string;
   policy: string;
   xAmzCredential: string;
   xAmzAlgorithm: string;
   xAmzDate: string;
   xAmzSignature: string;
   key: string;
+  bucket?: string;
   file: Blob;
 }
 
@@ -1867,13 +1870,14 @@ export interface UpdateMemberRoleRequest {
 
 export interface UploadParams {
   contentDisposition: string;
-  acl: string;
+  acl?: string;
   policy: string;
   xAmzCredential: string;
   xAmzAlgorithm: string;
   xAmzDate: string;
   xAmzSignature: string;
   key: string;
+  bucket?: string;
   directUrl: string;
 }
 

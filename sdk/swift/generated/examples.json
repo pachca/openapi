@@ -240,14 +240,14 @@
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "let request = FileUploadRequest(\n    ContentDisposition: \"example\",\n    acl: \"example\",\n    policy: \"example\",\n    xAmzCredential: \"example\",\n    xAmzAlgorithm: \"example\",\n    xAmzDate: \"example\",\n    xAmzSignature: \"example\",\n    key: \"example\",\n    file: Data()\n)\ntry await client.files.uploadFile(directUrl: \"https://example.com\", request: request)",
+    "usage": "let request = FileUploadRequest(\n    ContentDisposition: \"example\",\n    acl: \"example\",\n    policy: \"example\",\n    xAmzCredential: \"example\",\n    xAmzAlgorithm: \"example\",\n    xAmzDate: \"example\",\n    xAmzSignature: \"example\",\n    key: \"example\",\n    bucket: \"example\",\n    file: Data()\n)\ntry await client.files.uploadFile(directUrl: \"https://example.com\", request: request)",
     "imports": [
       "FileUploadRequest"
     ]
   },
   "UploadOperations_getUploadParams": {
     "usage": "let response = try await client.files.getUploadParams()",
-    "output": "UploadParams(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
+    "output": "UploadParams(ContentDisposition: String, acl: String?, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, bucket: String?, directUrl: String)"
   },
   "DraftOperations_listDrafts": {
     "usage": "let response = try await client.drafts.listDrafts(type: .all, entityType: .discussion, entityId: 334, limit: 25, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -410,7 +410,7 @@
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "let response = try await client.oauth.getTokenInfo()",
-    "output": "AccessTokenInfo(id: Int64, token: String, name: String?, userId: Int64, scopes: [OAuthScope], createdAt: String, revokedAt: String?, expiresIn: Int?, lastUsedAt: String?)"
+    "output": "AccessTokenInfo(id: Int64, token: String, name: String?, userId: Int64, scopes: [OAuthScope], createdAt: String, revokedAt: String?, expiresIn: Int?, lastUsedAt: String?, authorizedAt: String?)"
   },
   "OAuthFlowOperations_revokeToken": {
     "usage": "let request = OAuthRevokeRequest(\n    token: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n    tokenTypeHint: .accessToken,\n    clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n)\ntry await client.oauth.revokeToken(request: request)",

@@ -7213,6 +7213,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UploadParams'
+              example:
+                Content-Disposition: attachment
+                acl: private
+                policy: eyJloNBpcmF0aW9uIjoiMjAyPi0xMi0wOFQwNjo1NzozNFHusCJjb82kaXRpb25zIjpbeyJidWNrZXQiOiJwYWNoY2EtcHJhYy11cGxvYWRzOu0sWyJzdGFydHMtd3l4aCIsIiRrZXkiLCJhdHRhY8hlcy9maWxlcy1xODUyMSJdLHsiQ29udGVudC1EaXNwb3NpdGlvbiI6ImF0dGFjaG1lbnQifSx2ImFjbCI3InByaXZhdGUifSx7IngtYW16LWNyZWRlbnRpYWwi2iIxNDIxNTVfc3RhcGx4LzIwMjIxMTI0L2J1LTFhL5MzL1F2czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjytQVdTNC1ITUFDLVNIQTI1NiJ7LHsieC1hbXotZGF0ZSI6IjIwMjIxMTI0VDA2NTczNFoifV12
+                x-amz-credential: 286471_server/20211122/kz-6x/s3/aws4_request
+                x-amz-algorithm: AWS4-HMAC-SHA256
+                x-amz-date: 20211122T065734Z
+                x-amz-signature: 87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475
+                key: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}
+                direct_url: https://uploads.storage.example.com
         '401':
           description: Access is unauthorized.
           content:
@@ -8306,6 +8316,7 @@ components:
         - revoked_at
         - expires_in
         - last_used_at
+        - authorized_at
       properties:
         id:
           type: integer
@@ -8319,7 +8330,7 @@ components:
         name:
           type: string
           nullable: true
-          description: Пользовательское имя токена. `null` у токена бота — имя задаётся только при создании токена вручную.
+          description: Имя токена. У входа из CLI это имя устройства, у токена внешнего приложения — имя приложения. `null`, если имени нет, например у токена, который сотрудник выдал боту на экране согласия.
           example: Мой API токен
         user_id:
           type: integer
@@ -8349,7 +8360,7 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: 'Время жизни токена в секундах. `null` у бессрочного токена — такие выдаёт интерфейс. У токена, полученного входом из CLI, здесь `3600`: он живёт час и продлевается сам.'
+          description: 'Время жизни токена в секундах. У входа из CLI и у токена внешнего приложения, которому сотрудник выдал доступ, здесь `3600`: токен живёт час и продлевается токеном обновления, CLI делает это сам. У остальных токенов `null`: они бессрочные.'
           example: null
         last_used_at:
           type: string
@@ -8357,6 +8368,12 @@ components:
           nullable: true
           description: Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в минуту, поэтому может отставать.
           example: '2025-02-24T14:20:00.000Z'
+        authorized_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата входа из CLI или выдачи доступа внешнему приложению. При продлении токена не меняется. У остальных токенов `null`.
+          example: null
       description: Токен доступа
     AddMembersRequest:
       type: object
@@ -8375,8 +8392,9 @@ components:
             - 187
         silent:
           type: boolean
-          description: Не создавать в чате системное сообщение о добавлении участника
+          description: При `true` в чат не приходит системное сообщение о добавлении, а добавленные сотрудники не получают письмо с приглашением. Сообщение бывает только в закрытой беседе, письмо — в беседах и каналах у тех, кто не отключил такие письма. В треде параметр ничего не меняет.
           example: true
+          default: false
       description: Запрос на добавление участников в чат
     AddTagsRequest:
       type: object
@@ -11502,7 +11520,7 @@ components:
           description: Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
         acl:
           type: string
-          description: Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+          description: Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads). Передаётся, если пришёл в ответе.
         policy:
           type: string
           description: Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
@@ -11521,13 +11539,15 @@ components:
         key:
           type: string
           description: Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+        bucket:
+          type: string
+          description: Параметр bucket, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads). Передаётся, если пришёл в ответе.
         file:
           type: string
           format: binary
           description: Файл для загрузки
       required:
         - Content-Disposition
-        - acl
         - policy
         - x-amz-credential
         - x-amz-algorithm
@@ -13400,7 +13420,6 @@ components:
       type: object
       required:
         - Content-Disposition
-        - acl
         - policy
         - x-amz-credential
         - x-amz-algorithm
@@ -13415,7 +13434,7 @@ components:
           example: attachment
         acl:
           type: string
-          description: Уровень безопасности (в данном запросе — private)
+          description: 'Уровень безопасности, `private`. Приходит не во всех пространствах: если поле есть в ответе, его передают в форме загрузки.'
           example: private
         policy:
           type: string
@@ -13439,12 +13458,16 @@ components:
           example: 87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475
         key:
           type: string
-          description: Уникальный ключ для загрузки файла
+          description: 'Уникальный ключ для загрузки файла. Чтобы приложить файл, в ключе заменяют `${filename}` на имя файла, а остальное передают как есть: начало ключа бывает разным.'
           example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}
+        bucket:
+          type: string
+          description: 'Имя хранилища. Приходит не во всех пространствах: если поле есть в ответе, его передают в форме загрузки.'
+          example: uploads
         direct_url:
           type: string
-          description: Адрес для загрузки файла
-          example: https://api.pachca.com/api/v3/direct_upload
+          description: Адрес хранилища, куда отправляется форма загрузки
+          example: https://uploads.storage.example.com
       description: Параметры для загрузки файла
     User:
       type: object

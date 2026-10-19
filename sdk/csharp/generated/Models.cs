@@ -2936,6 +2936,8 @@ public class AccessTokenInfo
     public int? ExpiresIn { get; set; }
     [JsonPropertyName("last_used_at")]
     public DateTimeOffset? LastUsedAt { get; set; }
+    [JsonPropertyName("authorized_at")]
+    public DateTimeOffset? AuthorizedAt { get; set; }
 }
 
 public class AddMembersRequest
@@ -3764,7 +3766,7 @@ public class FileUploadRequest
     [JsonPropertyName("Content-Disposition")]
     public string ContentDisposition { get; set; } = default!;
     [JsonPropertyName("acl")]
-    public string Acl { get; set; } = default!;
+    public string? Acl { get; set; }
     [JsonPropertyName("policy")]
     public string Policy { get; set; } = default!;
     [JsonPropertyName("x-amz-credential")]
@@ -3777,6 +3779,8 @@ public class FileUploadRequest
     public string XAmzSignature { get; set; } = default!;
     [JsonPropertyName("key")]
     public string Key { get; set; } = default!;
+    [JsonPropertyName("bucket")]
+    public string? Bucket { get; set; }
     [JsonIgnore]
     public byte[] File { get; set; } = Array.Empty<byte>();
 }
@@ -4282,7 +4286,7 @@ public class UploadParams
     [JsonPropertyName("Content-Disposition")]
     public string ContentDisposition { get; set; } = default!;
     [JsonPropertyName("acl")]
-    public string Acl { get; set; } = default!;
+    public string? Acl { get; set; }
     [JsonPropertyName("policy")]
     public string Policy { get; set; } = default!;
     [JsonPropertyName("x-amz-credential")]
@@ -4295,6 +4299,8 @@ public class UploadParams
     public string XAmzSignature { get; set; } = default!;
     [JsonPropertyName("key")]
     public string Key { get; set; } = default!;
+    [JsonPropertyName("bucket")]
+    public string? Bucket { get; set; }
     [JsonPropertyName("direct_url")]
     public string DirectUrl { get; set; } = default!;
 }

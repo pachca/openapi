@@ -258,14 +258,14 @@
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "request := FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: \"example\",\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tFile: bytes.NewReader(nil),\n}\nclient.Files.UploadFile(ctx, \"https://example.com\", request)",
+    "usage": "request := FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: Ptr(\"example\"),\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tBucket: Ptr(\"example\"),\n\tFile: bytes.NewReader(nil),\n}\nclient.Files.UploadFile(ctx, \"https://example.com\", request)",
     "imports": [
       "FileUploadRequest"
     ]
   },
   "UploadOperations_getUploadParams": {
     "usage": "response, err := client.Files.GetUploadParams(ctx)",
-    "output": "UploadParams{ContentDisposition: string, ACL: string, Policy: string, XAMZCredential: string, XAMZAlgorithm: string, XAMZDate: string, XAMZSignature: string, Key: string, DirectURL: string}"
+    "output": "UploadParams{ContentDisposition: string, ACL: *string, Policy: string, XAMZCredential: string, XAMZAlgorithm: string, XAMZDate: string, XAMZSignature: string, Key: string, Bucket: *string, DirectURL: string}"
   },
   "DraftOperations_listDrafts": {
     "usage": "params := &ListDraftsParams{\n\tType: Ptr(DraftTypeAll),\n\tEntityType: Ptr(MessageEntityTypeDiscussion),\n\tEntityID: Ptr(int32(334)),\n\tLimit: Ptr(int32(25)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Drafts.ListDrafts(ctx, params)",
@@ -448,7 +448,7 @@
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "response, err := client.Oauth.GetTokenInfo(ctx)",
-    "output": "AccessTokenInfo{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []OAuthScope, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string}"
+    "output": "AccessTokenInfo{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []OAuthScope, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}"
   },
   "OAuthFlowOperations_revokeToken": {
     "usage": "request := OAuthRevokeRequest{\n\tToken: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n\tTokenTypeHint: Ptr(OAuthTokenTypeHintAccessToken),\n\tClientID: Ptr(\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\"),\n\tClientSecret: Ptr(\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"),\n}\nclient.Oauth.RevokeToken(ctx, request)",

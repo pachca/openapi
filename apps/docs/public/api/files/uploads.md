@@ -30,14 +30,15 @@ curl -X POST "https://api.pachca.com/api/shared/v1/uploads" \
 **Схема ответа:**
 
 - `Content-Disposition: string` (required) — Используемый заголовок (в данном запросе — attachment). Пример: `"attachment"`
-- `acl: string` (required) — Уровень безопасности (в данном запросе — private). Пример: `"private"`
+- `acl: string` — Уровень безопасности, `private`. Приходит не во всех пространствах: если поле есть в ответе, его передают в форме загрузки. Пример: `"private"`
 - `policy: string` (required) — Уникальная policy для загрузки файла. Пример: `"eyJloNBpcmF0aW9uIjoiMjAyPi0xMi0wOFQwNjo1NzozNFHusCJjb82kaXRpb25zIjpbeyJidWNrZXQiOiJwYWNoY2EtcHJhYy11cGxvYWRzOu0sWyJzdGFydHMtd3l4aCIsIiRrZXkiLCJhdHRhY8hlcy9maWxlcy1xODUyMSJdLHsiQ29udGVudC1EaXNwb3NpdGlvbiI6ImF0dGFjaG1lbnQifSx2ImFjbCI3InByaXZhdGUifSx7IngtYW16LWNyZWRlbnRpYWwi2iIxNDIxNTVfc3RhcGx4LzIwMjIxMTI0L2J1LTFhL5MzL1F2czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjytQVdTNC1ITUFDLVNIQTI1NiJ7LHsieC1hbXotZGF0ZSI6IjIwMjIxMTI0VDA2NTczNFoifV12"`
 - `x-amz-credential: string` (required) — x-amz-credential для загрузки файла. Пример: `"286471_server/20211122/kz-6x/s3/aws4_request"`
 - `x-amz-algorithm: string` (required) — Используемый алгоритм (в данном запросе — AWS4-HMAC-SHA256). Пример: `"AWS4-HMAC-SHA256"`
 - `x-amz-date: string` (required) — Уникальный x-amz-date для загрузки файла. Пример: `"20211122T065734Z"`
 - `x-amz-signature: string` (required) — Уникальная подпись для загрузки файла. Пример: `"87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475"`
-- `key: string` (required) — Уникальный ключ для загрузки файла. Пример: `"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}"`
-- `direct_url: string` (required) — Адрес для загрузки файла. Пример: `"https://api.pachca.com/api/v3/direct_upload"`
+- `key: string` (required) — Уникальный ключ для загрузки файла. Чтобы приложить файл, в ключе заменяют `${filename}` на имя файла, а остальное передают как есть: начало ключа бывает разным. Пример: `"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}"`
+- `bucket: string` — Имя хранилища. Приходит не во всех пространствах: если поле есть в ответе, его передают в форме загрузки. Пример: `"uploads"`
+- `direct_url: string` (required) — Адрес хранилища, куда отправляется форма загрузки. Пример: `"https://uploads.storage.example.com"`
 
 **Пример ответа:**
 
@@ -51,7 +52,7 @@ curl -X POST "https://api.pachca.com/api/shared/v1/uploads" \
   "x-amz-date": "20211122T065734Z",
   "x-amz-signature": "87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475",
   "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}",
-  "direct_url": "https://api.pachca.com/api/v3/direct_upload"
+  "direct_url": "https://uploads.storage.example.com"
 }
 ```
 

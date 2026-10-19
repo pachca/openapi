@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "generated_from": {
-    "digest": "eac962eb9be0312d"
+    "digest": "b34d6531f956747c"
   },
   "server": {
     "name": "pachca",
@@ -6743,7 +6743,8 @@
           },
           "silent": {
             "type": "boolean",
-            "description": "Whether to skip creating a system message about adding members",
+            "description": "With `true`, no system message about the addition appears in the chat, and the added employees get no invitation email. The message exists only in a private group chat, the email in group chats and channels for those who have not turned such emails off. In a thread the parameter changes nothing.",
+            "default": false,
             "examples": [
               true
             ]
@@ -12593,7 +12594,7 @@
                   "string",
                   "null"
                 ],
-                "description": "User-defined token name. `null` for a bot token — a name is only set when a token is created manually."
+                "description": "Token name. For a CLI sign-in it is the device name, for a token of an external application the application name. `null` when there is no name, for example for a token an employee gave a bot on the consent screen."
               },
               "user_id": {
                 "type": "integer",
@@ -12625,7 +12626,7 @@
                   "integer",
                   "null"
                 ],
-                "description": "Token lifetime in seconds. `null` for a token without an expiry — those are issued by the interface. For a token obtained by signing in from the CLI it is `3600`: it lives for an hour and renews itself."
+                "description": "Token lifetime in seconds. For a CLI sign-in and for a token of an external application an employee granted access to, it is `3600`: the token lives for an hour and is renewed with the refresh token, which the CLI does by itself. For other tokens it is `null`: they do not expire."
               },
               "last_used_at": {
                 "type": [
@@ -12633,6 +12634,14 @@
                   "null"
                 ],
                 "description": "Token last used date. `null` until the token has been used at least once. Updated at most once a minute, so it may lag behind.",
+                "format": "date-time"
+              },
+              "authorized_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Date of the CLI sign-in or of granting access to an external application. It stays the same when the token is renewed. `null` for other tokens.",
                 "format": "date-time"
               }
             }
@@ -18686,7 +18695,7 @@
         "pachca_update_user_status",
         "pachca_delete_user_status"
       ],
-      "model_tokens": 45349
+      "model_tokens": 45417
     },
     "owner": {
       "role": "owner",
@@ -18777,7 +18786,7 @@
         "pachca_update_user_status",
         "pachca_delete_user_status"
       ],
-      "model_tokens": 41745
+      "model_tokens": 41813
     },
     "admin": {
       "role": "admin",
@@ -18868,7 +18877,7 @@
         "pachca_update_user_status",
         "pachca_delete_user_status"
       ],
-      "model_tokens": 41745
+      "model_tokens": 41813
     },
     "user": {
       "role": "user",
@@ -18949,7 +18958,7 @@
         "pachca_get_user",
         "pachca_get_user_status"
       ],
-      "model_tokens": 37434
+      "model_tokens": 37502
     },
     "multi_guest": {
       "role": "multi_guest",
@@ -19078,7 +19087,7 @@
         "pachca_get_webhook_events",
         "pachca_delete_webhook_event"
       ],
-      "model_tokens": 28219
+      "model_tokens": 28287
     }
   }
 }

@@ -762,7 +762,7 @@ export async function uploadFileToS3(
 ): Promise<IDataObject> {
   // Step 1: Get presigned S3 params
   const uploadParams = await makeApiRequest.call(ctx, 'POST', '/uploads', undefined, undefined, itemIndex);
-  const presigned = uploadParams as IDataObject;
+  let presigned = uploadParams as IDataObject;
 
   const fileSource = ctx.getNodeParameter('fileSource', itemIndex, 'binary') as string;
   // V2 stores in additionalFields collection; V1 stores as top-level params
@@ -800,7 +800,6 @@ export async function uploadFileToS3(
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     const s3Fields: Record<string, string> = {
       'Content-Disposition': String(presigned['Content-Disposition']),
-      acl: String(presigned.acl),
       policy: String(presigned.policy),
       'x-amz-credential': String(presigned['x-amz-credential']),
       'x-amz-algorithm': String(presigned['x-amz-algorithm']),
@@ -808,6 +807,9 @@ export async function uploadFileToS3(
       'x-amz-signature': String(presigned['x-amz-signature']),
       key: String(presigned.key).replace('${filename}', () => resolvedFileName),
     };
+    // A workspace gets `acl` or `bucket`, depending on its storage: send each one only when it came
+    if (presigned.acl !== undefined) s3Fields.acl = String(presigned.acl);
+    if (presigned.bucket !== undefined) s3Fields.bucket = String(presigned.bucket);
 
     const multipart = buildMultipartBody(s3Fields, fileBuffer, resolvedFileName, contentType);
 
@@ -822,9 +824,9 @@ export async function uploadFileToS3(
       break;
     } catch (error) {
       if (attempt === MAX_RETRIES - 1) throw error;
-      // Re-request presigned URL on retry (it may have expired)
-      const retryParams = await makeApiRequest.call(ctx, 'POST', '/uploads', undefined, undefined, itemIndex);
-      Object.assign(presigned, retryParams);
+      // Re-request presigned URL on retry (it may have expired). Replace the params whole:
+      // a field of the old answer, `acl` or `bucket`, must not stay in the new form
+      presigned = (await makeApiRequest.call(ctx, 'POST', '/uploads', undefined, undefined, itemIndex)) as IDataObject;
     }
   }
 

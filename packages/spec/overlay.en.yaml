@@ -1367,7 +1367,7 @@ actions:
       description: Masked token (first 8 and last 4 characters visible)
   - target: $.components.schemas.AccessTokenInfo.properties.name
     update:
-      description: "User-defined token name. `null` for a bot token — a name is only set when a token is created manually."
+      description: "Token name. For a CLI sign-in it is the device name, for a token of an external application the application name. `null` when there is no name, for example for a token an employee gave a bot on the consent screen."
   - target: $.components.schemas.AccessTokenInfo.properties.user_id
     update:
       description: Token owner ID
@@ -1382,10 +1382,13 @@ actions:
       description: "Token revocation date. Always `null`: the method returns 401 for a revoked token."
   - target: $.components.schemas.AccessTokenInfo.properties.expires_in
     update:
-      description: "Token lifetime in seconds. `null` for a token without an expiry — those are issued by the interface. For a token obtained by signing in from the CLI it is `3600`: it lives for an hour and renews itself."
+      description: "Token lifetime in seconds. For a CLI sign-in and for a token of an external application an employee granted access to, it is `3600`: the token lives for an hour and is renewed with the refresh token, which the CLI does by itself. For other tokens it is `null`: they do not expire."
   - target: $.components.schemas.AccessTokenInfo.properties.last_used_at
     update:
       description: "Token last used date. `null` until the token has been used at least once. Updated at most once a minute, so it may lag behind."
+  - target: $.components.schemas.AccessTokenInfo.properties.authorized_at
+    update:
+      description: "Date of the CLI sign-in or of granting access to an external application. It stays the same when the token is renewed. `null` for other tokens."
   - target: $.components.schemas.OAuthToken
     update:
       description: An employee's token issued to the bot in exchange for an authorization code
@@ -1454,7 +1457,7 @@ actions:
       description: Array of user IDs who will become members
   - target: $.components.schemas.AddMembersRequest.properties.silent
     update:
-      description: Whether to skip creating a system message about adding members
+      description: "With `true`, no system message about the addition appears in the chat, and the added employees get no invitation email. The message exists only in a private group chat, the email in group chats and channels for those who have not turned such emails off. In a thread the parameter changes nothing."
   - target: $.components.schemas.AddTagsRequest
     update:
       description: Request to add tags to a chat
@@ -2804,7 +2807,7 @@ actions:
         /uploads)
   - target: $.components.schemas.FileUploadRequest.properties.acl
     update:
-      description: acl parameter received in the response to [Get signature, key and other parameters](POST /uploads)
+      description: acl parameter received in the response to [Get signature, key and other parameters](POST /uploads). Sent when the response has it.
   - target: $.components.schemas.FileUploadRequest.properties.policy
     update:
       description: policy parameter received in the response to [Get signature, key and other parameters](POST /uploads)
@@ -2823,6 +2826,9 @@ actions:
   - target: $.components.schemas.FileUploadRequest.properties.key
     update:
       description: key parameter received in the response to [Get signature, key and other parameters](POST /uploads)
+  - target: $.components.schemas.FileUploadRequest.properties.bucket
+    update:
+      description: bucket parameter received in the response to [Get signature, key and other parameters](POST /uploads). Sent when the response has it.
   - target: $.components.schemas.FileUploadRequest.properties.file
     update:
       description: File to upload
@@ -3700,7 +3706,7 @@ actions:
       description: Header used (attachment for this request)
   - target: $.components.schemas.UploadParams.properties.acl
     update:
-      description: Security level (private for this request)
+      description: "Security level, `private`. Not every workspace gets it: when the response has the field, it is sent in the upload form."
   - target: $.components.schemas.UploadParams.properties.policy
     update:
       description: Unique policy for file upload
@@ -3718,10 +3724,13 @@ actions:
       description: Unique signature for file upload
   - target: $.components.schemas.UploadParams.properties.key
     update:
-      description: Unique key for file upload
+      description: "Unique key for file upload. To attach the file, replace `${filename}` in the key with the file name and pass the rest as is: the start of the key varies."
+  - target: $.components.schemas.UploadParams.properties.bucket
+    update:
+      description: "Storage name. Not every workspace gets it: when the response has the field, it is sent in the upload form."
   - target: $.components.schemas.UploadParams.properties.direct_url
     update:
-      description: File upload URL
+      description: Storage address the upload form is sent to
   - target: $.components.schemas.User
     update:
       description: Employee

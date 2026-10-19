@@ -55,6 +55,7 @@ fun main() = runBlocking {
             xAmzDate = params.xAmzDate,
             xAmzSignature = params.xAmzSignature,
             key = key,
+            bucket = params.bucket,
             file = fileBytes,
         ),
     )

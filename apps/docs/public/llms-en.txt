@@ -454,10 +454,12 @@ const filePath = "./report.pdf"
 const fileName = path.basename(filePath)
 const fileBuffer = fs.readFileSync(filePath)
 
-// Step 1: Get S3 presigned upload parameters
+// Step 1: Get S3 presigned upload parameters, put the file name into the key
 const params = await client.files.getUploadParams()
+const fileKey = params.key.replace("${filename}", fileName)
 
 // Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+// A workspace gets acl or bucket, depending on its storage: both are optional
 await client.files.uploadFile(params.directUrl, {
   contentDisposition: params.contentDisposition,
   acl: params.acl,
@@ -466,12 +468,12 @@ await client.files.uploadFile(params.directUrl, {
   xAmzAlgorithm: params.xAmzAlgorithm,
   xAmzDate: params.xAmzDate,
   xAmzSignature: params.xAmzSignature,
-  key: params.key,
+  key: fileKey,
+  bucket: params.bucket,
   file: new File([fileBuffer], fileName)
 })
 
-// Step 3: Attach file to message (replace ${filename} in key with actual name)
-const fileKey = params.key.replace("${filename}", fileName)
+// Step 3: Attach file to message
 await client.messages.createMessage({
   message: {
     entityId: 12345,
@@ -495,10 +497,12 @@ client = PachcaClient("YOUR_TOKEN")
 file_path = "report.pdf"
 file_name = os.path.basename(file_path)
 
-# Step 1: Get S3 presigned upload parameters
+# Step 1: Get S3 presigned upload parameters, put the file name into the key
 params = await client.files.get_upload_params()
+file_key = params.key.replace("${filename}", file_name)
 
 # Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+# A workspace gets acl or bucket, depending on its storage: both are optional
 with open(file_path, "rb") as f:
     await client.files.upload_file(
         direct_url=params.direct_url,
@@ -510,13 +514,13 @@ with open(file_path, "rb") as f:
             x_amz_algorithm=params.x_amz_algorithm,
             x_amz_date=params.x_amz_date,
             x_amz_signature=params.x_amz_signature,
-            key=params.key,
+            key=file_key,
+            bucket=params.bucket,
             file=f.read()
         )
     )
 
-# Step 3: Attach file to message (replace ${filename} in key with actual name)
-file_key = params.key.replace("${filename}", file_name)
+# Step 3: Attach file to message
 await client.messages.create_message(MessageCreateRequest(
     message=MessageCreateRequestMessage(
         entity_id=12345,
@@ -1245,7 +1249,7 @@ Parameters: entity_type
 
 ### POST /api/shared/v1/direct_url
 The second step of the upload: the file itself goes to the storage as a `multipart/form-data` form. The form fields and the address are taken from the response of the [Get signature, key and other parameters](/api/files/uploads) method and passed as they are, in the same order, with the file as the last field. The request goes not to the Pachca API but straight to the storage, and `204` with no body comes back in response. After that the file is attached by passing its `key` in the `files` field — to [New message](/api/messages/create) or [New draft](/api/drafts/create), and when editing either of them. The file name in `name` must have the same extension as the `key`, otherwise the message will be rejected.
-Body: { Content-Disposition*, acl*, policy*, x-amz-credential*, x-amz-algorithm*, x-amz-date*, x-amz-signature*, key*, file* }
+Body: { Content-Disposition*, acl, policy*, x-amz-credential*, x-amz-algorithm*, x-amz-date*, x-amz-signature*, key*, bucket, file* }
 
 ### GET /api/shared/v1/files/{id}
 Returns the file itself, not a link to it, and works for any attachment the token can see. For attachments without a direct storage link it is the only way: their `url` field holds the address of this method, and it can only be opened with a token. Encrypted files and files sent from the workspace secure perimeter are served this way — both settings are covered in [Encryption and the secure perimeter](/guides/data-protection). A refusal comes as `403` with the `confidential_download_denied` code. The address being checked is the one the request came from, that is the address of your server, not of the employee whose token you use: for a server integration that is the most common reason to be refused. The response is the body of the file and a `Content-Disposition` header with its name, not `JSON`. An encrypted file is decrypted on the fly and comes as a whole attachment: `target` does not apply to it. If it could not be decrypted, the answer is `400` with the `decryption_failed` code. An attachment of a message is available to whoever sees the message itself, and an attachment of a draft only to its author.

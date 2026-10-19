@@ -534,15 +534,16 @@ const (
 )
 
 type AccessTokenInfo struct {
-	ID         int64        `json:"id"`
-	Token      string       `json:"token"`
-	UserID     int64        `json:"user_id"`
-	Scopes     []OAuthScope `json:"scopes"`
-	CreatedAt  time.Time    `json:"created_at"`
-	Name       *string      `json:"name"`
-	RevokedAt  *string      `json:"revoked_at"`
-	ExpiresIn  *int32       `json:"expires_in"`
-	LastUsedAt *string      `json:"last_used_at"`
+	ID           int64        `json:"id"`
+	Token        string       `json:"token"`
+	UserID       int64        `json:"user_id"`
+	Scopes       []OAuthScope `json:"scopes"`
+	CreatedAt    time.Time    `json:"created_at"`
+	Name         *string      `json:"name"`
+	RevokedAt    *string      `json:"revoked_at"`
+	ExpiresIn    *int32       `json:"expires_in"`
+	LastUsedAt   *string      `json:"last_used_at"`
+	AuthorizedAt *string      `json:"authorized_at"`
 }
 
 type AddMembersRequest struct {
@@ -1447,7 +1448,6 @@ type File struct {
 
 type FileUploadRequest struct {
 	ContentDisposition string    `json:"Content-Disposition"`
-	ACL                string    `json:"acl"`
 	Policy             string    `json:"policy"`
 	XAMZCredential     string    `json:"x-amz-credential"`
 	XAMZAlgorithm      string    `json:"x-amz-algorithm"`
@@ -1455,6 +1455,8 @@ type FileUploadRequest struct {
 	XAMZSignature      string    `json:"x-amz-signature"`
 	Key                string    `json:"key"`
 	File               io.Reader `json:"file"`
+	ACL                *string   `json:"acl,omitempty"`
+	Bucket             *string   `json:"bucket,omitempty"`
 }
 
 type Forwarding struct {
@@ -1888,15 +1890,16 @@ type UpdateMemberRoleRequest struct {
 }
 
 type UploadParams struct {
-	ContentDisposition string `json:"Content-Disposition"`
-	ACL                string `json:"acl"`
-	Policy             string `json:"policy"`
-	XAMZCredential     string `json:"x-amz-credential"`
-	XAMZAlgorithm      string `json:"x-amz-algorithm"`
-	XAMZDate           string `json:"x-amz-date"`
-	XAMZSignature      string `json:"x-amz-signature"`
-	Key                string `json:"key"`
-	DirectURL          string `json:"direct_url"`
+	ContentDisposition string  `json:"Content-Disposition"`
+	Policy             string  `json:"policy"`
+	XAMZCredential     string  `json:"x-amz-credential"`
+	XAMZAlgorithm      string  `json:"x-amz-algorithm"`
+	XAMZDate           string  `json:"x-amz-date"`
+	XAMZSignature      string  `json:"x-amz-signature"`
+	Key                string  `json:"key"`
+	DirectURL          string  `json:"direct_url"`
+	ACL                *string `json:"acl,omitempty"`
+	Bucket             *string `json:"bucket,omitempty"`
 }
 
 type User struct {

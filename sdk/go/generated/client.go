@@ -2172,8 +2172,13 @@ func (s *FilesServiceImpl) UploadFile(ctx context.Context, directUrl string, req
 	go func() {
 		defer pw.Close()
 		defer writer.Close()
+		if request.ACL != nil {
+			writer.WriteField("acl", fmt.Sprintf("%v", *request.ACL))
+		}
+		if request.Bucket != nil {
+			writer.WriteField("bucket", fmt.Sprintf("%v", *request.Bucket))
+		}
 		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.ContentDisposition))
-		writer.WriteField("acl", fmt.Sprintf("%v", request.ACL))
 		writer.WriteField("policy", fmt.Sprintf("%v", request.Policy))
 		writer.WriteField("x-amz-credential", fmt.Sprintf("%v", request.XAMZCredential))
 		writer.WriteField("x-amz-algorithm", fmt.Sprintf("%v", request.XAMZAlgorithm))
@@ -5018,8 +5023,13 @@ func (s *CommonServiceImpl) UploadFile(ctx context.Context, directUrl string, re
 	go func() {
 		defer pw.Close()
 		defer writer.Close()
+		if request.ACL != nil {
+			writer.WriteField("acl", fmt.Sprintf("%v", *request.ACL))
+		}
+		if request.Bucket != nil {
+			writer.WriteField("bucket", fmt.Sprintf("%v", *request.Bucket))
+		}
 		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.ContentDisposition))
-		writer.WriteField("acl", fmt.Sprintf("%v", request.ACL))
 		writer.WriteField("policy", fmt.Sprintf("%v", request.Policy))
 		writer.WriteField("x-amz-credential", fmt.Sprintf("%v", request.XAMZCredential))
 		writer.WriteField("x-amz-algorithm", fmt.Sprintf("%v", request.XAMZAlgorithm))

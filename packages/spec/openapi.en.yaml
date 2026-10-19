@@ -7919,6 +7919,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UploadParams'
+              example:
+                Content-Disposition: attachment
+                acl: private
+                policy: >-
+                  eyJloNBpcmF0aW9uIjoiMjAyPi0xMi0wOFQwNjo1NzozNFHusCJjb82kaXRpb25zIjpbeyJidWNrZXQiOiJwYWNoY2EtcHJhYy11cGxvYWRzOu0sWyJzdGFydHMtd3l4aCIsIiRrZXkiLCJhdHRhY8hlcy9maWxlcy1xODUyMSJdLHsiQ29udGVudC1EaXNwb3NpdGlvbiI6ImF0dGFjaG1lbnQifSx2ImFjbCI3InByaXZhdGUifSx7IngtYW16LWNyZWRlbnRpYWwi2iIxNDIxNTVfc3RhcGx4LzIwMjIxMTI0L2J1LTFhL5MzL1F2czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjytQVdTNC1ITUFDLVNIQTI1NiJ7LHsieC1hbXotZGF0ZSI6IjIwMjIxMTI0VDA2NTczNFoifV12
+                x-amz-credential: 286471_server/20211122/kz-6x/s3/aws4_request
+                x-amz-algorithm: AWS4-HMAC-SHA256
+                x-amz-date: 20211122T065734Z
+                x-amz-signature: 87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475
+                key: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}
+                direct_url: https://uploads.storage.example.com
         '401':
           description: Access is unauthorized.
           content:
@@ -9155,6 +9166,7 @@ components:
         - revoked_at
         - expires_in
         - last_used_at
+        - authorized_at
       properties:
         id:
           type: integer
@@ -9168,7 +9180,9 @@ components:
         name:
           type: string
           nullable: true
-          description: User-defined token name. `null` for a bot token — a name is only set when a token is created manually.
+          description: >-
+            Token name. For a CLI sign-in it is the device name, for a token of an external application the application
+            name. `null` when there is no name, for example for a token an employee gave a bot on the consent screen.
           example: My API Token
         user_id:
           type: integer
@@ -9199,8 +9213,9 @@ components:
           format: int32
           nullable: true
           description: >-
-            Token lifetime in seconds. `null` for a token without an expiry — those are issued by the interface. For a
-            token obtained by signing in from the CLI it is `3600`: it lives for an hour and renews itself.
+            Token lifetime in seconds. For a CLI sign-in and for a token of an external application an employee granted
+            access to, it is `3600`: the token lives for an hour and is renewed with the refresh token, which the CLI
+            does by itself. For other tokens it is `null`: they do not expire.
           example: null
         last_used_at:
           type: string
@@ -9210,6 +9225,14 @@ components:
             Token last used date. `null` until the token has been used at least once. Updated at most once a minute, so
             it may lag behind.
           example: '2025-02-24T14:20:00.000Z'
+        authorized_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Date of the CLI sign-in or of granting access to an external application. It stays the same when the token
+            is renewed. `null` for other tokens.
+          example: null
       description: Access token
     AddMembersRequest:
       type: object
@@ -9228,8 +9251,12 @@ components:
             - 187
         silent:
           type: boolean
-          description: Whether to skip creating a system message about adding members
+          description: >-
+            With `true`, no system message about the addition appears in the chat, and the added employees get no
+            invitation email. The message exists only in a private group chat, the email in group chats and channels for
+            those who have not turned such emails off. In a thread the parameter changes nothing.
           example: true
+          default: false
       description: Request to add members to a chat
     AddTagsRequest:
       type: object
@@ -12550,7 +12577,9 @@ components:
             /uploads)
         acl:
           type: string
-          description: acl parameter received in the response to [Get signature, key and other parameters](POST /uploads)
+          description: >-
+            acl parameter received in the response to [Get signature, key and other parameters](POST /uploads). Sent
+            when the response has it.
         policy:
           type: string
           description: policy parameter received in the response to [Get signature, key and other parameters](POST /uploads)
@@ -12575,13 +12604,17 @@ components:
         key:
           type: string
           description: key parameter received in the response to [Get signature, key and other parameters](POST /uploads)
+        bucket:
+          type: string
+          description: >-
+            bucket parameter received in the response to [Get signature, key and other parameters](POST /uploads). Sent
+            when the response has it.
         file:
           type: string
           format: binary
           description: File to upload
       required:
         - Content-Disposition
-        - acl
         - policy
         - x-amz-credential
         - x-amz-algorithm
@@ -14578,7 +14611,6 @@ components:
       type: object
       required:
         - Content-Disposition
-        - acl
         - policy
         - x-amz-credential
         - x-amz-algorithm
@@ -14593,7 +14625,9 @@ components:
           example: attachment
         acl:
           type: string
-          description: Security level (private for this request)
+          description: >-
+            Security level, `private`. Not every workspace gets it: when the response has the field, it is sent in the
+            upload form.
           example: private
         policy:
           type: string
@@ -14618,12 +14652,18 @@ components:
           example: 87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475
         key:
           type: string
-          description: Unique key for file upload
+          description: >-
+            Unique key for file upload. To attach the file, replace `${filename}` in the key with the file name and pass
+            the rest as is: the start of the key varies.
           example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}
+        bucket:
+          type: string
+          description: 'Storage name. Not every workspace gets it: when the response has the field, it is sent in the upload form.'
+          example: uploads
         direct_url:
           type: string
-          description: File upload URL
-          example: https://api.pachca.com/api/v3/direct_upload
+          description: Storage address the upload form is sent to
+          example: https://uploads.storage.example.com
       description: File upload parameters
     User:
       type: object

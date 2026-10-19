@@ -1964,8 +1964,9 @@ public struct AccessTokenInfo: Codable {
     public let revokedAt: String?
     public let expiresIn: Int?
     public let lastUsedAt: String?
+    public let authorizedAt: String?
 
-    public init(id: Int64, token: String, name: String? = nil, userId: Int64, scopes: [OAuthScope], createdAt: String, revokedAt: String? = nil, expiresIn: Int? = nil, lastUsedAt: String? = nil) {
+    public init(id: Int64, token: String, name: String? = nil, userId: Int64, scopes: [OAuthScope], createdAt: String, revokedAt: String? = nil, expiresIn: Int? = nil, lastUsedAt: String? = nil, authorizedAt: String? = nil) {
         self.id = id
         self.token = token
         self.name = name
@@ -1975,6 +1976,7 @@ public struct AccessTokenInfo: Codable {
         self.revokedAt = revokedAt
         self.expiresIn = expiresIn
         self.lastUsedAt = lastUsedAt
+        self.authorizedAt = authorizedAt
     }
 
     enum CodingKeys: String, CodingKey {
@@ -1987,6 +1989,7 @@ public struct AccessTokenInfo: Codable {
         case revokedAt = "revoked_at"
         case expiresIn = "expires_in"
         case lastUsedAt = "last_used_at"
+        case authorizedAt = "authorized_at"
     }
 }
 
@@ -3895,16 +3898,17 @@ public struct File: Codable {
 
 public struct FileUploadRequest: Codable {
     public let ContentDisposition: String
-    public let acl: String
+    public let acl: String?
     public let policy: String
     public let xAmzCredential: String
     public let xAmzAlgorithm: String
     public let xAmzDate: String
     public let xAmzSignature: String
     public let key: String
+    public let bucket: String?
     public var file: Data
 
-    public init(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, file: Data) {
+    public init(ContentDisposition: String, acl: String? = nil, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, bucket: String? = nil, file: Data) {
         self.ContentDisposition = ContentDisposition
         self.acl = acl
         self.policy = policy
@@ -3913,6 +3917,7 @@ public struct FileUploadRequest: Codable {
         self.xAmzDate = xAmzDate
         self.xAmzSignature = xAmzSignature
         self.key = key
+        self.bucket = bucket
         self.file = file
     }
 
@@ -3925,6 +3930,7 @@ public struct FileUploadRequest: Codable {
         case xAmzDate = "x-amz-date"
         case xAmzSignature = "x-amz-signature"
         case key
+        case bucket
         case file
     }
 }
@@ -4868,16 +4874,17 @@ public struct UpdateMemberRoleRequest: Codable {
 
 public struct UploadParams: Codable {
     public let ContentDisposition: String
-    public let acl: String
+    public let acl: String?
     public let policy: String
     public let xAmzCredential: String
     public let xAmzAlgorithm: String
     public let xAmzDate: String
     public let xAmzSignature: String
     public let key: String
+    public let bucket: String?
     public let directUrl: String
 
-    public init(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String) {
+    public init(ContentDisposition: String, acl: String? = nil, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, bucket: String? = nil, directUrl: String) {
         self.ContentDisposition = ContentDisposition
         self.acl = acl
         self.policy = policy
@@ -4886,6 +4893,7 @@ public struct UploadParams: Codable {
         self.xAmzDate = xAmzDate
         self.xAmzSignature = xAmzSignature
         self.key = key
+        self.bucket = bucket
         self.directUrl = directUrl
     }
 
@@ -4898,6 +4906,7 @@ public struct UploadParams: Codable {
         case xAmzDate = "x-amz-date"
         case xAmzSignature = "x-amz-signature"
         case key
+        case bucket
         case directUrl = "direct_url"
     }
 }

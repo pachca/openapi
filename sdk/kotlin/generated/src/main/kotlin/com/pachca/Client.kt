@@ -1165,8 +1165,9 @@ class FilesServiceImpl internal constructor(
         val response = client.submitFormWithBinaryData(
             directUrl,
             formData {
+                request.acl?.let { append("acl", it) }
+                request.bucket?.let { append("bucket", it) }
                 append("Content-Disposition", request.contentDisposition)
-                append("acl", request.acl)
                 append("policy", request.policy)
                 append("x-amz-credential", request.xAmzCredential)
                 append("x-amz-algorithm", request.xAmzAlgorithm)
@@ -2698,8 +2699,9 @@ class CommonServiceImpl internal constructor(
         val response = client.submitFormWithBinaryData(
             directUrl,
             formData {
+                request.acl?.let { append("acl", it) }
+                request.bucket?.let { append("bucket", it) }
                 append("Content-Disposition", request.contentDisposition)
-                append("acl", request.acl)
                 append("policy", request.policy)
                 append("x-amz-credential", request.xAmzCredential)
                 append("x-amz-algorithm", request.xAmzAlgorithm)

@@ -258,14 +258,14 @@
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "request = FileUploadRequest(\n    content_disposition=\"example\",\n    acl=\"example\",\n    policy=\"example\",\n    x_amz_credential=\"example\",\n    x_amz_algorithm=\"example\",\n    x_amz_date=\"example\",\n    x_amz_signature=\"example\",\n    key=\"example\",\n    file=b\"\"\n)\nawait client.files.upload_file(direct_url=\"https://example.com\", request=request)",
+    "usage": "request = FileUploadRequest(\n    content_disposition=\"example\",\n    acl=\"example\",\n    policy=\"example\",\n    x_amz_credential=\"example\",\n    x_amz_algorithm=\"example\",\n    x_amz_date=\"example\",\n    x_amz_signature=\"example\",\n    key=\"example\",\n    bucket=\"example\",\n    file=b\"\"\n)\nawait client.files.upload_file(direct_url=\"https://example.com\", request=request)",
     "imports": [
       "FileUploadRequest"
     ]
   },
   "UploadOperations_getUploadParams": {
     "usage": "response = await client.files.get_upload_params()",
-    "output": "UploadParams(content_disposition: str, acl: str, policy: str, x_amz_credential: str, x_amz_algorithm: str, x_amz_date: str, x_amz_signature: str, key: str, direct_url: str)"
+    "output": "UploadParams(content_disposition: str, acl: str | None, policy: str, x_amz_credential: str, x_amz_algorithm: str, x_amz_date: str, x_amz_signature: str, key: str, bucket: str | None, direct_url: str)"
   },
   "DraftOperations_listDrafts": {
     "usage": "params = ListDraftsParams(\n    type=DraftType.ALL,\n    entity_type=MessageEntityType.DISCUSSION,\n    entity_id=334,\n    limit=25,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.drafts.list_drafts(params=params)",
@@ -448,7 +448,7 @@
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "response = await client.oauth.get_token_info()",
-    "output": "AccessTokenInfo(id: int, token: str, name: str | None, user_id: int, scopes: list[OAuthScope], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None)"
+    "output": "AccessTokenInfo(id: int, token: str, name: str | None, user_id: int, scopes: list[OAuthScope], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None, authorized_at: datetime | None)"
   },
   "OAuthFlowOperations_revokeToken": {
     "usage": "request = OAuthRevokeRequest(\n    token=\"pato_bm90X2FfcmVhbF90b2tlbg\",\n    token_type_hint=OAuthTokenTypeHint.ACCESS_TOKEN,\n    client_id=\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    client_secret=\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n)\nawait client.oauth.revoke_token(request=request)",

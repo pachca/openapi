@@ -1965,7 +1965,7 @@ model AccessTokenInfo {
   @example("cH5kR9mN...x7Qp")
   token: string;
 
-  @doc("Пользовательское имя токена. `null` у токена бота — имя задаётся только при создании токена вручную.")
+  @doc("Имя токена. У входа из CLI это имя устройства, у токена внешнего приложения — имя приложения. `null`, если имени нет, например у токена, который сотрудник выдал боту на экране согласия.")
   @example("Мой API токен")
   name: string | null;
 
@@ -1985,13 +1985,17 @@ model AccessTokenInfo {
   @example(null)
   revoked_at: utcDateTime | null;
 
-  @doc("Время жизни токена в секундах. `null` у бессрочного токена — такие выдаёт интерфейс. У токена, полученного входом из CLI, здесь `3600`: он живёт час и продлевается сам.")
+  @doc("Время жизни токена в секундах. У входа из CLI и у токена внешнего приложения, которому сотрудник выдал доступ, здесь `3600`: токен живёт час и продлевается токеном обновления, CLI делает это сам. У остальных токенов `null`: они бессрочные.")
   @example(null)
   expires_in: int32 | null;
 
   @doc("Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в минуту, поэтому может отставать.")
   @example(utcDateTime.fromISO("2025-02-24T14:20:00.000Z"))
   last_used_at: utcDateTime | null;
+
+  @doc("Дата входа из CLI или выдачи доступа внешнему приложению. При продлении токена не меняется. У остальных токенов `null`.")
+  @example(null)
+  authorized_at: utcDateTime | null;
 }
 
 @doc("Токен сотрудника, выданный боту в обмен на код авторизации")
@@ -2167,9 +2171,9 @@ model UploadParams {
   @encodedName("application/json", "Content-Disposition")
   contentDisposition: string;
   
-  @doc("Уровень безопасности (в данном запросе — private)")
+  @doc("Уровень безопасности, `private`. Приходит не во всех пространствах: если поле есть в ответе, его передают в форме загрузки.")
   @example("private")
-  acl: string;
+  acl?: string;
   
   @doc("Уникальная policy для загрузки файла")
   @example("eyJloNBpcmF0aW9uIjoiMjAyPi0xMi0wOFQwNjo1NzozNFHusCJjb82kaXRpb25zIjpbeyJidWNrZXQiOiJwYWNoY2EtcHJhYy11cGxvYWRzOu0sWyJzdGFydHMtd3l4aCIsIiRrZXkiLCJhdHRhY8hlcy9maWxlcy1xODUyMSJdLHsiQ29udGVudC1EaXNwb3NpdGlvbiI6ImF0dGFjaG1lbnQifSx2ImFjbCI3InByaXZhdGUifSx7IngtYW16LWNyZWRlbnRpYWwi2iIxNDIxNTVfc3RhcGx4LzIwMjIxMTI0L2J1LTFhL5MzL1F2czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjytQVdTNC1ITUFDLVNIQTI1NiJ7LHsieC1hbXotZGF0ZSI6IjIwMjIxMTI0VDA2NTczNFoifV12")
@@ -2195,12 +2199,16 @@ model UploadParams {
   @encodedName("application/json", "x-amz-signature")
   xAmzSignature: string;
   
-  @doc("Уникальный ключ для загрузки файла")
+  @doc("Уникальный ключ для загрузки файла. Чтобы приложить файл, в ключе заменяют `\${filename}` на имя файла, а остальное передают как есть: начало ключа бывает разным.")
   @example("attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/\${filename}")
   key: string;
 
-  @doc("Адрес для загрузки файла")
-  @example("https://api.pachca.com/api/v3/direct_upload")
+  @doc("Имя хранилища. Приходит не во всех пространствах: если поле есть в ответе, его передают в форме загрузки.")
+  @example("uploads")
+  bucket?: string;
+
+  @doc("Адрес хранилища, куда отправляется форма загрузки")
+  @example("https://uploads.storage.example.com")
   @encodedName("application/json", "direct_url")
   directUrl: string;
 }
@@ -2435,9 +2443,9 @@ model AddMembersRequest {
   @minItems(1)
   member_ids: int32[];
   
-  @doc("Не создавать в чате системное сообщение о добавлении участника")
+  @doc("При `true` в чат не приходит системное сообщение о добавлении, а добавленные сотрудники не получают письмо с приглашением. Сообщение бывает только в закрытой беседе, письмо — в беседах и каналах у тех, кто не отключил такие письма. В треде параметр ничего не меняет.")
   @example(true)
-  silent?: boolean;
+  silent?: boolean = false;
 }
 
 @doc("Запрос на добавление тегов в чат")
@@ -10033,6 +10041,24 @@ interface UploadOperations {
 
 Параметры выдаются на один файл: для каждого следующего запрашивайте их заново. Подпись действует 14 дней, а `key` привязан к владельцу токена, поэтому чужой ключ приложить к своему сообщению не получится.
 """)
+  // The usual answer: `acl` without `bucket`. Built from the fields' own
+  // examples, the sample would show both, and no workspace gets both.
+  @opExample(#{
+    returnType: #{
+      _: 201,
+      body: #{
+        contentDisposition: "attachment",
+        acl: "private",
+        policy: "eyJloNBpcmF0aW9uIjoiMjAyPi0xMi0wOFQwNjo1NzozNFHusCJjb82kaXRpb25zIjpbeyJidWNrZXQiOiJwYWNoY2EtcHJhYy11cGxvYWRzOu0sWyJzdGFydHMtd3l4aCIsIiRrZXkiLCJhdHRhY8hlcy9maWxlcy1xODUyMSJdLHsiQ29udGVudC1EaXNwb3NpdGlvbiI6ImF0dGFjaG1lbnQifSx2ImFjbCI3InByaXZhdGUifSx7IngtYW16LWNyZWRlbnRpYWwi2iIxNDIxNTVfc3RhcGx4LzIwMjIxMTI0L2J1LTFhL5MzL1F2czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjytQVdTNC1ITUFDLVNIQTI1NiJ7LHsieC1hbXotZGF0ZSI6IjIwMjIxMTI0VDA2NTczNFoifV12",
+        xAmzCredential: "286471_server/20211122/kz-6x/s3/aws4_request",
+        xAmzAlgorithm: "AWS4-HMAC-SHA256",
+        xAmzDate: "20211122T065734Z",
+        xAmzSignature: "87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475",
+        key: "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/\${filename}",
+        directUrl: "https://uploads.storage.example.com",
+      },
+    },
+  })
   @post
   getUploadParams(): {
     @statusCode _: 201;
@@ -10054,8 +10080,8 @@ model FileUploadRequest {
   @doc("Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
   `Content-Disposition`: HttpPart<string>;
 
-  @doc("Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  acl: HttpPart<string>;
+  @doc("Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads). Передаётся, если пришёл в ответе.")
+  acl?: HttpPart<string>;
 
   @doc("Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
   policy: HttpPart<string>;
@@ -10074,7 +10100,10 @@ model FileUploadRequest {
   
   @doc("Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
   key: HttpPart<string>;
-  
+
+  @doc("Параметр bucket, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads). Передаётся, если пришёл в ответе.")
+  bucket?: HttpPart<string>;
+
   @doc("Файл для загрузки")
   file: HttpPart<bytes>;
 }

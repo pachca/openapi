@@ -243,14 +243,14 @@
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "var request = new FileUploadRequest\n{\n    ContentDisposition = \"example\",\n    Acl = \"example\",\n    Policy = \"example\",\n    XAmzCredential = \"example\",\n    XAmzAlgorithm = \"example\",\n    XAmzDate = \"example\",\n    XAmzSignature = \"example\",\n    Key = \"example\",\n    File = Array.Empty<byte>()\n};\nawait client.Files.UploadFileAsync(\"https://example.com\", request);",
+    "usage": "var request = new FileUploadRequest\n{\n    ContentDisposition = \"example\",\n    Acl = \"example\",\n    Policy = \"example\",\n    XAmzCredential = \"example\",\n    XAmzAlgorithm = \"example\",\n    XAmzDate = \"example\",\n    XAmzSignature = \"example\",\n    Key = \"example\",\n    Bucket = \"example\",\n    File = Array.Empty<byte>()\n};\nawait client.Files.UploadFileAsync(\"https://example.com\", request);",
     "imports": [
       "FileUploadRequest"
     ]
   },
   "UploadOperations_getUploadParams": {
     "usage": "var response = await client.Files.GetUploadParamsAsync();",
-    "output": "UploadParams(ContentDisposition: string, Acl: string, Policy: string, XAmzCredential: string, XAmzAlgorithm: string, XAmzDate: string, XAmzSignature: string, Key: string, DirectUrl: string)"
+    "output": "UploadParams(ContentDisposition: string, Acl: string?, Policy: string, XAmzCredential: string, XAmzAlgorithm: string, XAmzDate: string, XAmzSignature: string, Key: string, Bucket: string?, DirectUrl: string)"
   },
   "DraftOperations_listDrafts": {
     "usage": "var response = await client.Drafts.ListDraftsAsync(DraftType.All, MessageEntityType.Discussion, 334, 25, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
@@ -413,7 +413,7 @@
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "var response = await client.Oauth.GetTokenInfoAsync();",
-    "output": "AccessTokenInfo(Id: long, Token: string, Name: string?, UserId: long, Scopes: List<OAuthScope>, CreatedAt: DateTimeOffset, RevokedAt: DateTimeOffset?, ExpiresIn: int?, LastUsedAt: DateTimeOffset?)"
+    "output": "AccessTokenInfo(Id: long, Token: string, Name: string?, UserId: long, Scopes: List<OAuthScope>, CreatedAt: DateTimeOffset, RevokedAt: DateTimeOffset?, ExpiresIn: int?, LastUsedAt: DateTimeOffset?, AuthorizedAt: DateTimeOffset?)"
   },
   "OAuthFlowOperations_revokeToken": {
     "usage": "var request = new OAuthRevokeRequest\n{\n    Token = \"pato_bm90X2FfcmVhbF90b2tlbg\",\n    TokenTypeHint = OAuthTokenTypeHint.AccessToken,\n    ClientId = \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    ClientSecret = \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n};\nawait client.Oauth.RevokeTokenAsync(request);",

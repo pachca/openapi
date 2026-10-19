@@ -1576,13 +1576,16 @@ class FilesServiceImpl(FilesService):
     ) -> None:
         data: dict[str, str] = {}
         data["Content-Disposition"] = request.content_disposition
-        data["acl"] = request.acl
         data["policy"] = request.policy
         data["x-amz-credential"] = request.x_amz_credential
         data["x-amz-algorithm"] = request.x_amz_algorithm
         data["x-amz-date"] = request.x_amz_date
         data["x-amz-signature"] = request.x_amz_signature
         data["key"] = request.key
+        if request.acl is not None:
+            data["acl"] = request.acl
+        if request.bucket is not None:
+            data["bucket"] = request.bucket
         async with httpx.AsyncClient() as _no_auth:
             response = await _no_auth.post(
                 direct_url,
@@ -3448,13 +3451,16 @@ class CommonServiceImpl(CommonService):
     ) -> None:
         data: dict[str, str] = {}
         data["Content-Disposition"] = request.content_disposition
-        data["acl"] = request.acl
         data["policy"] = request.policy
         data["x-amz-credential"] = request.x_amz_credential
         data["x-amz-algorithm"] = request.x_amz_algorithm
         data["x-amz-date"] = request.x_amz_date
         data["x-amz-signature"] = request.x_amz_signature
         data["key"] = request.key
+        if request.acl is not None:
+            data["acl"] = request.acl
+        if request.bucket is not None:
+            data["bucket"] = request.bucket
         async with httpx.AsyncClient() as _no_auth:
             response = await _no_auth.post(
                 direct_url,

@@ -247,14 +247,14 @@
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "val request = FileUploadRequest(\n    contentDisposition = \"example\",\n    acl = \"example\",\n    policy = \"example\",\n    xAmzCredential = \"example\",\n    xAmzAlgorithm = \"example\",\n    xAmzDate = \"example\",\n    xAmzSignature = \"example\",\n    key = \"example\",\n    file = ByteArray(0)\n)\nclient.files.uploadFile(directUrl = \"https://example.com\", request = request)",
+    "usage": "val request = FileUploadRequest(\n    contentDisposition = \"example\",\n    acl = \"example\",\n    policy = \"example\",\n    xAmzCredential = \"example\",\n    xAmzAlgorithm = \"example\",\n    xAmzDate = \"example\",\n    xAmzSignature = \"example\",\n    key = \"example\",\n    bucket = \"example\",\n    file = ByteArray(0)\n)\nclient.files.uploadFile(directUrl = \"https://example.com\", request = request)",
     "imports": [
       "FileUploadRequest"
     ]
   },
   "UploadOperations_getUploadParams": {
     "usage": "val response = client.files.getUploadParams()",
-    "output": "UploadParams(contentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
+    "output": "UploadParams(contentDisposition: String, acl: String?, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, bucket: String?, directUrl: String)"
   },
   "DraftOperations_listDrafts": {
     "usage": "val response = client.drafts.listDrafts(type = DraftType.ALL, entityType = MessageEntityType.DISCUSSION, entityId = 334, limit = 25, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
@@ -417,7 +417,7 @@
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "val response = client.oauth.getTokenInfo()",
-    "output": "AccessTokenInfo(id: Long, token: String, name: String?, userId: Long, scopes: List<OAuthScope>, createdAt: OffsetDateTime, revokedAt: OffsetDateTime?, expiresIn: Int?, lastUsedAt: OffsetDateTime?)"
+    "output": "AccessTokenInfo(id: Long, token: String, name: String?, userId: Long, scopes: List<OAuthScope>, createdAt: OffsetDateTime, revokedAt: OffsetDateTime?, expiresIn: Int?, lastUsedAt: OffsetDateTime?, authorizedAt: OffsetDateTime?)"
   },
   "OAuthFlowOperations_revokeToken": {
     "usage": "val request = OAuthRevokeRequest(\n    token = \"pato_bm90X2FfcmVhbF90b2tlbg\",\n    tokenTypeHint = OAuthTokenTypeHint.ACCESS_TOKEN,\n    clientId = \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    clientSecret = \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n)\nclient.oauth.revokeToken(request = request)",

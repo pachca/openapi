@@ -846,3 +846,101 @@ describe('uploadFileToS3 retry rebuilds multipart body', () => {
     expect(result.key).toBe('uploads/test.txt');
   });
 });
+
+describe('uploadFileToS3 sends acl and bucket only when they came', () => {
+  it('sends bucket and leaves acl out for a storage that answers so', async () => {
+    const presigned = {
+      'Content-Disposition': 'attachment',
+      policy: 'policy-1',
+      'x-amz-credential': 'cred-1',
+      'x-amz-algorithm': 'AWS4-HMAC-SHA256',
+      'x-amz-date': '20260101T000000Z',
+      'x-amz-signature': 'sig-1',
+      key: 'disk/uploads/${filename}',
+      bucket: 'uploads',
+      direct_url: 'https://storage.example.com/uploads',
+    };
+    const s3Bodies: Buffer[] = [];
+
+    const mockCtx = {
+      getNodeParameter: vi.fn((name: string) => {
+        if (name === 'fileSource') return 'url';
+        if (name === 'fileName') return 'test.txt';
+        if (name === 'contentType') return 'text/plain';
+        if (name === 'fileUrl') return 'https://example.com/test.txt';
+        return '';
+      }),
+      getNode: vi.fn(() => MOCK_NODE),
+      getCredentials: vi.fn(async () => ({
+        baseUrl: 'https://api.pachca.com/api/shared/v1',
+        accessToken: 'test-token',
+      })),
+      helpers: {
+        httpRequestWithAuthentication: vi.fn(async () => ({ statusCode: 200, body: presigned })),
+        httpRequest: vi.fn(async (opts: { method?: string; body?: Buffer }) => {
+          if (opts.method === 'GET') return Buffer.from('file-content');
+          s3Bodies.push(opts.body as Buffer);
+          return {};
+        }),
+      },
+    } as unknown as IExecuteFunctions;
+
+    const result = await uploadFileToS3(mockCtx, 0);
+
+    const body = s3Bodies[0].toString();
+    expect(body).toContain('name="bucket"');
+    expect(body).not.toContain('name="acl"');
+    expect(body).not.toContain('undefined');
+    expect(result.key).toBe('disk/uploads/test.txt');
+  });
+
+  it('drops a field of the first answer when the retry answer has no such field', async () => {
+    const common = {
+      'Content-Disposition': 'attachment',
+      policy: 'policy-1',
+      'x-amz-credential': 'cred-1',
+      'x-amz-algorithm': 'AWS4-HMAC-SHA256',
+      'x-amz-date': '20260101T000000Z',
+      key: 'uploads/${filename}',
+      direct_url: 'https://storage.example.com/a',
+    };
+    const withAcl = { ...common, acl: 'private', 'x-amz-signature': 'sig-1' };
+    const withBucket = { ...common, bucket: 'uploads', 'x-amz-signature': 'sig-2' };
+    let apiCalls = 0;
+    const s3Bodies: Buffer[] = [];
+
+    const mockCtx = {
+      getNodeParameter: vi.fn((name: string) => {
+        if (name === 'fileSource') return 'url';
+        if (name === 'fileName') return 'test.txt';
+        if (name === 'contentType') return 'text/plain';
+        if (name === 'fileUrl') return 'https://example.com/test.txt';
+        return '';
+      }),
+      getNode: vi.fn(() => MOCK_NODE),
+      getCredentials: vi.fn(async () => ({
+        baseUrl: 'https://api.pachca.com/api/shared/v1',
+        accessToken: 'test-token',
+      })),
+      helpers: {
+        httpRequestWithAuthentication: vi.fn(async () => {
+          apiCalls++;
+          return { statusCode: 200, body: apiCalls === 1 ? withAcl : withBucket };
+        }),
+        httpRequest: vi.fn(async (opts: { method?: string; body?: Buffer }) => {
+          if (opts.method === 'GET') return Buffer.from('file-content');
+          s3Bodies.push(opts.body as Buffer);
+          if (s3Bodies.length === 1) throw new Error('S3 temporary failure');
+          return {};
+        }),
+      },
+    } as unknown as IExecuteFunctions;
+
+    await uploadFileToS3(mockCtx, 0);
+
+    const retryBody = s3Bodies[1].toString();
+    expect(retryBody).toContain('name="bucket"');
+    expect(retryBody).not.toContain('name="acl"');
+    expect(retryBody).toContain('sig-2');
+  });
+});

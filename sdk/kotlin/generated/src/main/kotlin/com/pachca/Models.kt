@@ -1886,12 +1886,13 @@ data class AccessTokenInfo(
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("revoked_at") val revokedAt: OffsetDateTime? = null,
     @SerialName("expires_in") val expiresIn: Int? = null,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_used_at") val lastUsedAt: OffsetDateTime? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("authorized_at") val authorizedAt: OffsetDateTime? = null,
 )
 
 @Serializable
 data class AddMembersRequest(
     @SerialName("member_ids") val memberIds: List<Int>,
-    val silent: Boolean? = null,
+    val silent: Boolean? = false,
 )
 
 @Serializable
@@ -2417,13 +2418,14 @@ data class File(
 @Serializable
 data class FileUploadRequest(
     @SerialName("Content-Disposition") val contentDisposition: String,
-    val acl: String,
     val policy: String,
     @SerialName("x-amz-credential") val xAmzCredential: String,
     @SerialName("x-amz-algorithm") val xAmzAlgorithm: String,
     @SerialName("x-amz-date") val xAmzDate: String,
     @SerialName("x-amz-signature") val xAmzSignature: String,
     val key: String,
+    val acl: String? = null,
+    val bucket: String? = null,
     @Transient val file: ByteArray = ByteArray(0),
 )
 
@@ -2762,13 +2764,14 @@ data class UpdateMemberRoleRequest(
 @Serializable
 data class UploadParams(
     @SerialName("Content-Disposition") val contentDisposition: String,
-    val acl: String,
+    val acl: String? = null,
     val policy: String,
     @SerialName("x-amz-credential") val xAmzCredential: String,
     @SerialName("x-amz-algorithm") val xAmzAlgorithm: String,
     @SerialName("x-amz-date") val xAmzDate: String,
     @SerialName("x-amz-signature") val xAmzSignature: String,
     val key: String,
+    val bucket: String? = null,
     @SerialName("direct_url") val directUrl: String,
 )
 

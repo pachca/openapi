@@ -1647,13 +1647,16 @@ public sealed class FilesServiceImpl : FilesService
         var url = directUrl;
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent($"{request.ContentDisposition}"), "Content-Disposition");
-        content.Add(new StringContent($"{request.Acl}"), "acl");
+        if (request.Acl != null)
+            content.Add(new StringContent($"{request.Acl}"), "acl");
         content.Add(new StringContent($"{request.Policy}"), "policy");
         content.Add(new StringContent($"{request.XAmzCredential}"), "x-amz-credential");
         content.Add(new StringContent($"{request.XAmzAlgorithm}"), "x-amz-algorithm");
         content.Add(new StringContent($"{request.XAmzDate}"), "x-amz-date");
         content.Add(new StringContent($"{request.XAmzSignature}"), "x-amz-signature");
         content.Add(new StringContent($"{request.Key}"), "key");
+        if (request.Bucket != null)
+            content.Add(new StringContent($"{request.Bucket}"), "bucket");
         content.Add(new ByteArrayContent(request.File), "file", "file");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
         httpRequest.Content = content;
@@ -3923,13 +3926,16 @@ public sealed class CommonServiceImpl : CommonService
         var url = directUrl;
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent($"{request.ContentDisposition}"), "Content-Disposition");
-        content.Add(new StringContent($"{request.Acl}"), "acl");
+        if (request.Acl != null)
+            content.Add(new StringContent($"{request.Acl}"), "acl");
         content.Add(new StringContent($"{request.Policy}"), "policy");
         content.Add(new StringContent($"{request.XAmzCredential}"), "x-amz-credential");
         content.Add(new StringContent($"{request.XAmzAlgorithm}"), "x-amz-algorithm");
         content.Add(new StringContent($"{request.XAmzDate}"), "x-amz-date");
         content.Add(new StringContent($"{request.XAmzSignature}"), "x-amz-signature");
         content.Add(new StringContent($"{request.Key}"), "key");
+        if (request.Bucket != null)
+            content.Add(new StringContent($"{request.Bucket}"), "bucket");
         content.Add(new ByteArrayContent(request.File), "file", "file");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
         httpRequest.Content = content;

@@ -15,99 +15,99 @@
 | Раздел | Строки |
 |--------|--------|
 | LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 112–216 |
-| How-to Guides — рецепты задач с кодом TS/Python | 217–905 |
-| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 906–14647 |
-| · Обзор | 911–1015 |
-| · Быстрый старт | 1016–1105 |
-| · AI-агенты | 1106–1247 |
-| · Взаимодействие с агентом | 1248–1322 |
-| · Черновик вместо отправки | 1323–1405 |
-| · Оформление ответов | 1406–1476 |
-| · Треды | 1477–1620 |
-| · Теги | 1621–1747 |
-| · Боты | 1748–1841 |
-| · Создание бота | 1842–1939 |
-| · Настройки бота | 1940–2031 |
-| · Токены бота | 2032–2127 |
-| · Доступы к чатам и сообщениям | 2128–2218 |
-| · Общение с ботом | 2219–2383 |
-| · Витрина | 2384–2477 |
-| · Готовые примеры реализации | 2478–2512 |
-| · Входящие вебхуки | 2513–2682 |
-| · Исходящие вебхуки | 2683–2736 |
-| · Настройка и типы событий | 2737–3022 |
-| · Безопасность и обработчик | 3023–3212 |
-| · Поллинг | 3213–3400 |
-| · Кнопки в сообщениях | 3401–3562 |
-| · Формы | 3563–3634 |
-| · Блоки представления | 3635–3849 |
-| · Обработка форм | 3850–4029 |
-| · Разворачивание ссылок | 4030–4154 |
-| · Авторизация от имени сотрудника | 4155–4237 |
-| · Чек-лист запуска | 4238–4290 |
-| · Настройка авторизации | 4291–4411 |
-| · Получение токена сотрудника | 4412–4658 |
-| · Согласие и отзыв | 4659–4733 |
-| · Экспорт сообщений | 4734–4880 |
-| · DLP-система | 4881–5085 |
-| · Шифрование и безопасный контур | 5086–5180 |
-| · Журнал аудита событий | 5181–5433 |
-| · Права и роли | 5434–5713 |
-| · Форматирование текста | 5714–5811 |
-| · Сценарии | 5812–6389 |
-| · CLI | 6390–6485 |
-| · Установка | 6486–6593 |
-| · Авторизация | 6594–6834 |
-| · Вывод | 6835–6938 |
-| · Флаги и скрипты | 6939–7167 |
-| · Сценарии | 7168–7215 |
-| · Файлы | 7216–7266 |
-| · Прямые запросы | 7267–7377 |
-| · Команды | 7378–7541 |
-| · SDK и генератор | 7542–7649 |
-| · TypeScript | 7650–8100 |
-| · Python | 8101–8545 |
-| · Go | 8546–9015 |
-| · Kotlin | 9016–9476 |
-| · Swift | 9477–9906 |
-| · C# | 9907–10398 |
-| · n8n | 10399–10474 |
-| · Начало работы | 10475–10706 |
-| · Ресурсы и операции | 10707–11123 |
-| · Триггер | 11124–11375 |
-| · Тестирование | 11376–11649 |
-| · Примеры workflow | 11650–11864 |
-| · Продвинутые функции | 11865–12101 |
-| · Устранение ошибок | 12102–12283 |
-| · Миграция с v1 | 12284–12404 |
-| · Последние обновления | 12405–12414 |
-| · Обзор | 12415–12516 |
-| · Авторизация | 12517–12803 |
-| · Запросы и ответы | 12804–12998 |
-| · Пагинация | 12999–13238 |
-| · Загрузка файлов | 13239–13487 |
-| · Ошибки | 13488–13568 |
-| · Лимиты | 13569–13721 |
-| · Модели | 13722–14647 |
-| API-методы — все эндпоинты со схемами и примерами | 14648–36926 |
-| · OAuth | 14650–15047 |
-| · Chats | 15048–17327 |
-| · Profile | 17328–18267 |
-| · Users | 18268–20601 |
-| · Group tags | 20602–21831 |
-| · Members | 21832–23219 |
-| · Threads | 23220–23900 |
-| · Messages | 23901–26009 |
-| · Read members | 26010–26221 |
-| · Reactions | 26222–26845 |
-| · Search | 26846–27685 |
-| · Tasks | 27686–28873 |
-| · Drafts | 28874–30339 |
-| · Views | 30340–31110 |
-| · Bots | 31111–35982 |
-| · Security | 35983–36344 |
-| · Custom Properties | 36345–36525 |
-| · Files | 36526–36926 |
+| How-to Guides — рецепты задач с кодом TS/Python | 217–909 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 910–14655 |
+| · Обзор | 915–1019 |
+| · Быстрый старт | 1020–1109 |
+| · AI-агенты | 1110–1251 |
+| · Взаимодействие с агентом | 1252–1326 |
+| · Черновик вместо отправки | 1327–1409 |
+| · Оформление ответов | 1410–1480 |
+| · Треды | 1481–1624 |
+| · Теги | 1625–1751 |
+| · Боты | 1752–1845 |
+| · Создание бота | 1846–1943 |
+| · Настройки бота | 1944–2035 |
+| · Токены бота | 2036–2131 |
+| · Доступы к чатам и сообщениям | 2132–2222 |
+| · Общение с ботом | 2223–2387 |
+| · Витрина | 2388–2481 |
+| · Готовые примеры реализации | 2482–2516 |
+| · Входящие вебхуки | 2517–2686 |
+| · Исходящие вебхуки | 2687–2740 |
+| · Настройка и типы событий | 2741–3026 |
+| · Безопасность и обработчик | 3027–3216 |
+| · Поллинг | 3217–3404 |
+| · Кнопки в сообщениях | 3405–3566 |
+| · Формы | 3567–3638 |
+| · Блоки представления | 3639–3853 |
+| · Обработка форм | 3854–4033 |
+| · Разворачивание ссылок | 4034–4158 |
+| · Авторизация от имени сотрудника | 4159–4241 |
+| · Чек-лист запуска | 4242–4294 |
+| · Настройка авторизации | 4295–4415 |
+| · Получение токена сотрудника | 4416–4662 |
+| · Согласие и отзыв | 4663–4737 |
+| · Экспорт сообщений | 4738–4884 |
+| · DLP-система | 4885–5089 |
+| · Шифрование и безопасный контур | 5090–5184 |
+| · Журнал аудита событий | 5185–5437 |
+| · Права и роли | 5438–5717 |
+| · Форматирование текста | 5718–5815 |
+| · Сценарии | 5816–6393 |
+| · CLI | 6394–6489 |
+| · Установка | 6490–6597 |
+| · Авторизация | 6598–6838 |
+| · Вывод | 6839–6942 |
+| · Флаги и скрипты | 6943–7171 |
+| · Сценарии | 7172–7219 |
+| · Файлы | 7220–7270 |
+| · Прямые запросы | 7271–7381 |
+| · Команды | 7382–7545 |
+| · SDK и генератор | 7546–7653 |
+| · TypeScript | 7654–8104 |
+| · Python | 8105–8549 |
+| · Go | 8550–9019 |
+| · Kotlin | 9020–9480 |
+| · Swift | 9481–9910 |
+| · C# | 9911–10402 |
+| · n8n | 10403–10478 |
+| · Начало работы | 10479–10710 |
+| · Ресурсы и операции | 10711–11127 |
+| · Триггер | 11128–11379 |
+| · Тестирование | 11380–11653 |
+| · Примеры workflow | 11654–11868 |
+| · Продвинутые функции | 11869–12105 |
+| · Устранение ошибок | 12106–12287 |
+| · Миграция с v1 | 12288–12408 |
+| · Последние обновления | 12409–12418 |
+| · Обзор | 12419–12520 |
+| · Авторизация | 12521–12807 |
+| · Запросы и ответы | 12808–13002 |
+| · Пагинация | 13003–13242 |
+| · Загрузка файлов | 13243–13494 |
+| · Ошибки | 13495–13575 |
+| · Лимиты | 13576–13728 |
+| · Модели | 13729–14655 |
+| API-методы — все эндпоинты со схемами и примерами | 14656–36940 |
+| · OAuth | 14658–15057 |
+| · Chats | 15058–17337 |
+| · Profile | 17338–18277 |
+| · Users | 18278–20611 |
+| · Group tags | 20612–21841 |
+| · Members | 21842–23229 |
+| · Threads | 23230–23910 |
+| · Messages | 23911–26019 |
+| · Read members | 26020–26231 |
+| · Reactions | 26232–26855 |
+| · Search | 26856–27695 |
+| · Tasks | 27696–28883 |
+| · Drafts | 28884–30349 |
+| · Views | 30350–31120 |
+| · Bots | 31121–35992 |
+| · Security | 35993–36354 |
+| · Custom Properties | 36355–36535 |
+| · Files | 36536–36940 |
 
 # LIBRARY RULES
 
@@ -557,10 +557,12 @@ const filePath = "./report.pdf"
 const fileName = path.basename(filePath)
 const fileBuffer = fs.readFileSync(filePath)
 
-// Step 1: Get S3 presigned upload parameters
+// Step 1: Get S3 presigned upload parameters, put the file name into the key
 const params = await client.files.getUploadParams()
+const fileKey = params.key.replace("${filename}", fileName)
 
 // Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+// A workspace gets acl or bucket, depending on its storage: both are optional
 await client.files.uploadFile(params.directUrl, {
   contentDisposition: params.contentDisposition,
   acl: params.acl,
@@ -569,12 +571,12 @@ await client.files.uploadFile(params.directUrl, {
   xAmzAlgorithm: params.xAmzAlgorithm,
   xAmzDate: params.xAmzDate,
   xAmzSignature: params.xAmzSignature,
-  key: params.key,
+  key: fileKey,
+  bucket: params.bucket,
   file: new File([fileBuffer], fileName)
 })
 
-// Step 3: Attach file to message (replace ${filename} in key with actual name)
-const fileKey = params.key.replace("${filename}", fileName)
+// Step 3: Attach file to message
 await client.messages.createMessage({
   message: {
     entityId: 12345,
@@ -598,10 +600,12 @@ client = PachcaClient("YOUR_TOKEN")
 file_path = "report.pdf"
 file_name = os.path.basename(file_path)
 
-# Step 1: Get S3 presigned upload parameters
+# Step 1: Get S3 presigned upload parameters, put the file name into the key
 params = await client.files.get_upload_params()
+file_key = params.key.replace("${filename}", file_name)
 
 # Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+# A workspace gets acl or bucket, depending on its storage: both are optional
 with open(file_path, "rb") as f:
     await client.files.upload_file(
         direct_url=params.direct_url,
@@ -613,13 +617,13 @@ with open(file_path, "rb") as f:
             x_amz_algorithm=params.x_amz_algorithm,
             x_amz_date=params.x_amz_date,
             x_amz_signature=params.x_amz_signature,
-            key=params.key,
+            key=file_key,
+            bucket=params.bucket,
             file=f.read()
         )
     )
 
-# Step 3: Attach file to message (replace ${filename} in key with actual name)
-file_key = params.key.replace("${filename}", file_name)
+# Step 3: Attach file to message
 await client.messages.create_message(MessageCreateRequest(
     message=MessageCreateRequestMessage(
         entity_id=12345,
@@ -13255,12 +13259,12 @@ curl -X POST "https://api.pachca.com/api/shared/v1/uploads" \
 ```
 
 
-В ответе вы получите параметры для следующего шага: `Content-Disposition`, `acl`, `policy`, `x-amz-credential`, `x-amz-algorithm`, `x-amz-date`, `x-amz-signature`, `key` и `direct_url`.
+В ответе вы получите параметры для следующего шага: `Content-Disposition`, `acl`, `policy`, `x-amz-credential`, `x-amz-algorithm`, `x-amz-date`, `x-amz-signature`, `key` и `direct_url`. В части пространств вместо `acl` приходит `bucket`.
 
 
   ### Шаг 2. Загрузка файла
 
-Отправьте запрос к методу [Загрузка файла](/api/files/direct-url) с форматом `multipart/form-data` на адрес `direct_url`. Включите все полученные параметры и сам файл. При успешной загрузке сервер вернёт `HTTP 201 Created`.
+Отправьте запрос к методу [Загрузка файла](/api/files/direct-url) с форматом `multipart/form-data` на адрес `direct_url`. Включите все полученные параметры, кроме самого `direct_url`, и файл. При успешной загрузке хранилище ответит `204` без тела.
 
 **Загрузка файла**
 
@@ -13286,7 +13290,7 @@ curl "$DIRECT_URL" \
 
 После загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `${filename}` на фактическое имя файла.
 
-Пример: если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/${filename}`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
+Пример: если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/${filename}`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`. Начало ключа бывает разным, поэтому меняйте в нём только `${filename}`.
 
 ```json title="Файл в сообщении"
 {
@@ -13374,8 +13378,9 @@ const filePath = "./report.pdf"
 const fileName = path.basename(filePath)
 const fileBuffer = fs.readFileSync(filePath)
 
-// Шаг 1: Получить параметры загрузки
+// Шаг 1: Получить параметры загрузки и подставить имя файла в ключ
 const params = await client.files.getUploadParams()
+const fileKey = params.key.replace("${filename}", fileName)
 
 // Шаг 2: Загрузить файл на S3 (direct_url — внешний presigned URL)
 await client.files.uploadFile(params.directUrl, {
@@ -13386,12 +13391,12 @@ await client.files.uploadFile(params.directUrl, {
   xAmzAlgorithm: params.xAmzAlgorithm,
   xAmzDate: params.xAmzDate,
   xAmzSignature: params.xAmzSignature,
-  key: params.key,
+  key: fileKey,
+  bucket: params.bucket,
   file: new File([fileBuffer], fileName)
 })
 
 // Шаг 3: Отправить сообщение с файлом
-const fileKey = params.key.replace("${filename}", fileName)
 await client.messages.createMessage({
   message: {
     entityType: "discussion",
@@ -13414,8 +13419,9 @@ client = PachcaClient("YOUR_TOKEN")
 file_path = "report.pdf"
 file_name = os.path.basename(file_path)
 
-# Шаг 1: Получить параметры загрузки
+# Шаг 1: Получить параметры загрузки и подставить имя файла в ключ
 params = await client.files.get_upload_params()
+file_key = params.key.replace("${filename}", file_name)
 
 # Шаг 2: Загрузить файл на S3 (direct_url — внешний presigned URL)
 with open(file_path, "rb") as f:
@@ -13429,13 +13435,13 @@ with open(file_path, "rb") as f:
             x_amz_algorithm=params.x_amz_algorithm,
             x_amz_date=params.x_amz_date,
             x_amz_signature=params.x_amz_signature,
-            key=params.key,
+            key=file_key,
+            bucket=params.bucket,
             file=f.read()
         )
     )
 
 # Шаг 3: Отправить сообщение с файлом
-file_key = params.key.replace("${filename}", file_name)
 await client.messages.create_message(MessageCreateRequest(
     message=MessageCreateRequestMessage(
         entity_type="discussion",
@@ -13448,18 +13454,19 @@ await client.messages.create_message(MessageCreateRequest(
 
 ## Поля multipart-формы для S3
 
-Все поля из ответа метода [Получение подписи, ключа и других параметров](/api/files/uploads) передаются на S3 **как есть** в multipart-форме:
+Все поля из ответа метода [Получение подписи, ключа и других параметров](/api/files/uploads), кроме `direct_url`, передаются на S3 **как есть** в multipart-форме. В `key` можно сразу заменить `${filename}` на имя файла:
 
 | Поле | Описание |
 |------|----------|
 | `Content-Disposition` | Заголовок для скачивания |
-| `acl` | Права доступа S3 |
+| `acl` | Права доступа S3, приходит не во всех пространствах |
 | `policy` | Base64-кодированная политика загрузки |
 | `x-amz-credential` | AWS credential |
 | `x-amz-algorithm` | Всегда `AWS4-HMAC-SHA256` |
 | `x-amz-date` | Дата подписи |
 | `x-amz-signature` | Подпись запроса |
 | `key` | Путь файла на S3 (содержит `${filename}` — заменить на реальное имя) |
+| `bucket` | Имя хранилища, приходит в части пространств вместо `acl` |
 | `file` | Сам файл — **обязательно последнее поле** |
 
 > **Внимание:** `direct_url` — это внешний presigned URL от S3. Он **не** является эндпоинтом Пачки, не требует заголовка `Authorization` и имеет ограниченное время действия.
@@ -13615,7 +13622,7 @@ await client.messages.create_message(MessageCreateRequest(
 
 ## Защита от перегрузки
 
-Если приложение продолжает отправлять сообщения выше лимитов даже после `429`, отправку с этого токена могут временно заблокировать — это защита от сбойных циклов и случайной перегрузки. Порог высокий, в обычной работе до него не доходит: около 22 000 запросов на отправку сообщений за час с одним токеном. Дальше отправка сообщений с этим токеном на час блокируется, а остальные методы продолжают работать. Ответ — тот же `429` с кодом `rate_limit` и `Retry-After` около часа. Чтобы этого избежать:
+Если приложение продолжает отправлять сообщения выше лимитов даже после `429`, отправку с этого токена могут временно заблокировать — это защита от сбойных циклов и случайной перегрузки. Порог высокий, в обычной работе до него не доходит: около 22 000 запросов на отправку сообщений за час с одним токеном. Дальше отправка сообщений с этим токеном на час блокируется, а остальные методы продолжают работать. Ответ — тот же `429` с кодом `rate_limit`, а в `Retry-After` приходит, сколько секунд осталось до снятия блокировки: сразу после неё около часа, потом меньше. Чтобы этого избежать:
 
 - Соблюдайте `Retry-After` — он указывает, через сколько секунд имеет смысл повторить
 - Используйте экспоненциальный backoff с jitter — готовые примеры ниже в разделе [Повторные запросы](#povtornye-zaprosy-retry)
@@ -13746,13 +13753,14 @@ users = await with_retry(lambda: client.users.list_users())
 
 - `id: integer, int64` (required) — Идентификатор токена. Пример: `4827`
 - `token: string` (required) — Маскированный токен (видны первые 8 и последние 4 символа). Пример: `"cH5kR9mN...x7Qp"`
-- `name: string` (required, nullable) — Пользовательское имя токена. `null` у токена бота — имя задаётся только при создании токена вручную. Пример: `"Мой API токен"`
+- `name: string` (required, nullable) — Имя токена. У входа из CLI это имя устройства, у токена внешнего приложения — имя приложения. `null`, если имени нет, например у токена, который сотрудник выдал боту на экране согласия. Пример: `"Мой API токен"`
 - `user_id: integer, int64` (required) — Идентификатор владельца токена. Пример: `12`
 - `scopes: array of string` (required) — Список скоупов токена. Пример: `["messages:read","chats:read"]`
 - `created_at: date-time` (required) — Дата создания токена. Пример: `"2025-01-15T10:30:00.000Z"`
 - `revoked_at: date-time` (required, nullable) — Дата отзыва токена. Всегда `null`: по отозванному токену метод возвращает 401. Пример: `null`
-- `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. `null` у бессрочного токена — такие выдаёт интерфейс. У токена, полученного входом из CLI, здесь `3600`: он живёт час и продлевается сам. Пример: `null`
+- `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. У входа из CLI и у токена внешнего приложения, которому сотрудник выдал доступ, здесь `3600`: токен живёт час и продлевается токеном обновления, CLI делает это сам. У остальных токенов `null`: они бессрочные. Пример: `null`
 - `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в минуту, поэтому может отставать. Пример: `"2025-02-24T14:20:00.000Z"`
+- `authorized_at: date-time` (required, nullable) — Дата входа из CLI или выдачи доступа внешнему приложению. При продлении токена не меняется. У остальных токенов `null`. Пример: `null`
 
 
 ## Токен сотрудника
@@ -14956,13 +14964,14 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
 - `data: object` (required) — Токен доступа
   - `id: integer, int64` (required) — Идентификатор токена. Пример: `4827`
   - `token: string` (required) — Маскированный токен (видны первые 8 и последние 4 символа). Пример: `"cH5kR9mN...x7Qp"`
-  - `name: string` (required, nullable) — Пользовательское имя токена. `null` у токена бота — имя задаётся только при создании токена вручную. Пример: `"Мой API токен"`
+  - `name: string` (required, nullable) — Имя токена. У входа из CLI это имя устройства, у токена внешнего приложения — имя приложения. `null`, если имени нет, например у токена, который сотрудник выдал боту на экране согласия. Пример: `"Мой API токен"`
   - `user_id: integer, int64` (required) — Идентификатор владельца токена. Пример: `12`
   - `scopes: array of string` (required) — Список скоупов токена. Пример: `["messages:read","chats:read"]`
   - `created_at: date-time` (required) — Дата создания токена. Пример: `"2025-01-15T10:30:00.000Z"`
   - `revoked_at: date-time` (required, nullable) — Дата отзыва токена. Всегда `null`: по отозванному токену метод возвращает 401. Пример: `null`
-  - `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. `null` у бессрочного токена — такие выдаёт интерфейс. У токена, полученного входом из CLI, здесь `3600`: он живёт час и продлевается сам. Пример: `null`
+  - `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. У входа из CLI и у токена внешнего приложения, которому сотрудник выдал доступ, здесь `3600`: токен живёт час и продлевается токеном обновления, CLI делает это сам. У остальных токенов `null`: они бессрочные. Пример: `null`
   - `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в минуту, поэтому может отставать. Пример: `"2025-02-24T14:20:00.000Z"`
+  - `authorized_at: date-time` (required, nullable) — Дата входа из CLI или выдачи доступа внешнему приложению. При продлении токена не меняется. У остальных токенов `null`. Пример: `null`
 
 **Пример ответа:**
 
@@ -14980,7 +14989,8 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
     "created_at": "2025-01-15T10:30:00.000Z",
     "revoked_at": null,
     "expires_in": null,
-    "last_used_at": "2025-02-24T14:20:00.000Z"
+    "last_used_at": "2025-02-24T14:20:00.000Z",
+    "authorized_at": null
   }
 }
 ```
@@ -15029,7 +15039,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.oauth.getTokenInfo()
-// → AccessTokenInfo({ id: number, token: string, name: string | null, userId: number, scopes: OAuthScope[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null })
+// → AccessTokenInfo({ id: number, token: string, name: string | null, userId: number, scopes: OAuthScope[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null, authorizedAt: string | null })
 ```
 
 ### Python
@@ -15040,7 +15050,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.oauth.get_token_info()
-# → AccessTokenInfo(id: int, token: str, name: str | None, user_id: int, scopes: list[OAuthScope], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None)
+# → AccessTokenInfo(id: int, token: str, name: str | None, user_id: int, scopes: list[OAuthScope], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None, authorized_at: datetime | None)
 ```
 
 ---
@@ -22673,7 +22683,7 @@ response = await client.members.list_members(id=334, params=params)
 ### Схема
 
 - `member_ids: array of integer` (required) — Массив идентификаторов пользователей, которые станут участниками. Пример: `[186,187]`
-- `silent: boolean` — Не создавать в чате системное сообщение о добавлении участника. Пример: `true`
+- `silent: boolean` (default: false) — При `true` в чат не приходит системное сообщение о добавлении, а добавленные сотрудники не получают письмо с приглашением. Сообщение бывает только в закрытой беседе, письмо — в беседах и каналах у тех, кто не отключил такие письма. В треде параметр ничего не меняет. Пример: `true`
 
 ### Пример
 
@@ -36548,13 +36558,14 @@ response = await client.custom_properties.list_properties(params=params)
 ### Схема
 
 - `Content-Disposition: string` (required) — Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
-- `acl: string` (required) — Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
+- `acl: string` — Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads). Передаётся, если пришёл в ответе.
 - `policy: string` (required) — Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
 - `x-amz-credential: string` (required) — Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
 - `x-amz-algorithm: string` (required) — Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
 - `x-amz-date: string` (required) — Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
 - `x-amz-signature: string` (required) — Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
 - `key: string` (required) — Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads)
+- `bucket: string` — Параметр bucket, полученный в ответе на запрос [Получение подписи, ключа и других параметров](/api/files/uploads). Передаётся, если пришёл в ответе.
 - `file: binary` (required) — Файл для загрузки
 
 
@@ -36597,6 +36608,7 @@ const request: FileUploadRequest = {
   xAmzDate: "example",
   xAmzSignature: "example",
   key: "example",
+  bucket: "example",
   file: new Blob([])
 }
 client.files.uploadFile("https://example.com", request)
@@ -36619,6 +36631,7 @@ request = FileUploadRequest(
     x_amz_date="example",
     x_amz_signature="example",
     key="example",
+    bucket="example",
     file=b""
 )
 await client.files.upload_file(direct_url="https://example.com", request=request)
@@ -36819,14 +36832,15 @@ curl -X POST "https://api.pachca.com/api/shared/v1/uploads" \
 **Схема ответа:**
 
 - `Content-Disposition: string` (required) — Используемый заголовок (в данном запросе — attachment). Пример: `"attachment"`
-- `acl: string` (required) — Уровень безопасности (в данном запросе — private). Пример: `"private"`
+- `acl: string` — Уровень безопасности, `private`. Приходит не во всех пространствах: если поле есть в ответе, его передают в форме загрузки. Пример: `"private"`
 - `policy: string` (required) — Уникальная policy для загрузки файла. Пример: `"eyJloNBpcmF0aW9uIjoiMjAyPi0xMi0wOFQwNjo1NzozNFHusCJjb82kaXRpb25zIjpbeyJidWNrZXQiOiJwYWNoY2EtcHJhYy11cGxvYWRzOu0sWyJzdGFydHMtd3l4aCIsIiRrZXkiLCJhdHRhY8hlcy9maWxlcy1xODUyMSJdLHsiQ29udGVudC1EaXNwb3NpdGlvbiI6ImF0dGFjaG1lbnQifSx2ImFjbCI3InByaXZhdGUifSx7IngtYW16LWNyZWRlbnRpYWwi2iIxNDIxNTVfc3RhcGx4LzIwMjIxMTI0L2J1LTFhL5MzL1F2czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjytQVdTNC1ITUFDLVNIQTI1NiJ7LHsieC1hbXotZGF0ZSI6IjIwMjIxMTI0VDA2NTczNFoifV12"`
 - `x-amz-credential: string` (required) — x-amz-credential для загрузки файла. Пример: `"286471_server/20211122/kz-6x/s3/aws4_request"`
 - `x-amz-algorithm: string` (required) — Используемый алгоритм (в данном запросе — AWS4-HMAC-SHA256). Пример: `"AWS4-HMAC-SHA256"`
 - `x-amz-date: string` (required) — Уникальный x-amz-date для загрузки файла. Пример: `"20211122T065734Z"`
 - `x-amz-signature: string` (required) — Уникальная подпись для загрузки файла. Пример: `"87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475"`
-- `key: string` (required) — Уникальный ключ для загрузки файла. Пример: `"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}"`
-- `direct_url: string` (required) — Адрес для загрузки файла. Пример: `"https://api.pachca.com/api/v3/direct_upload"`
+- `key: string` (required) — Уникальный ключ для загрузки файла. Чтобы приложить файл, в ключе заменяют `${filename}` на имя файла, а остальное передают как есть: начало ключа бывает разным. Пример: `"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}"`
+- `bucket: string` — Имя хранилища. Приходит не во всех пространствах: если поле есть в ответе, его передают в форме загрузки. Пример: `"uploads"`
+- `direct_url: string` (required) — Адрес хранилища, куда отправляется форма загрузки. Пример: `"https://uploads.storage.example.com"`
 
 **Пример ответа:**
 
@@ -36840,7 +36854,7 @@ curl -X POST "https://api.pachca.com/api/shared/v1/uploads" \
   "x-amz-date": "20211122T065734Z",
   "x-amz-signature": "87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475",
   "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}",
-  "direct_url": "https://api.pachca.com/api/v3/direct_upload"
+  "direct_url": "https://uploads.storage.example.com"
 }
 ```
 
@@ -36908,7 +36922,7 @@ import { PachcaClient } from "@pachca/sdk"
 const client = new PachcaClient("YOUR_TOKEN")
 
 const response = client.files.getUploadParams()
-// → UploadParams({ contentDisposition: string, acl: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, directUrl: string })
+// → UploadParams({ contentDisposition: string, acl?: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, bucket?: string, directUrl: string })
 ```
 
 ### Python
@@ -36919,7 +36933,7 @@ from pachca.client import PachcaClient
 client = PachcaClient("YOUR_TOKEN")
 
 response = await client.files.get_upload_params()
-# → UploadParams(content_disposition: str, acl: str, policy: str, x_amz_credential: str, x_amz_algorithm: str, x_amz_date: str, x_amz_signature: str, key: str, direct_url: str)
+# → UploadParams(content_disposition: str, acl: str | None, policy: str, x_amz_credential: str, x_amz_algorithm: str, x_amz_date: str, x_amz_signature: str, key: str, bucket: str | None, direct_url: str)
 ```
 
 ---

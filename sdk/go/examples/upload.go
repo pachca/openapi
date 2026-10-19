@@ -68,6 +68,7 @@ func main() {
 		XAMZDate:           params.XAMZDate,
 		XAMZSignature:      params.XAMZSignature,
 		Key:                key,
+		Bucket:             params.Bucket,
 		File:               bytes.NewReader(fileData),
 	})
 	if err != nil {

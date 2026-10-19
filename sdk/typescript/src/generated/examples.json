@@ -240,14 +240,14 @@
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "const request: FileUploadRequest = {\n  contentDisposition: \"example\",\n  acl: \"example\",\n  policy: \"example\",\n  xAmzCredential: \"example\",\n  xAmzAlgorithm: \"example\",\n  xAmzDate: \"example\",\n  xAmzSignature: \"example\",\n  key: \"example\",\n  file: new Blob([])\n}\nclient.files.uploadFile(\"https://example.com\", request)",
+    "usage": "const request: FileUploadRequest = {\n  contentDisposition: \"example\",\n  acl: \"example\",\n  policy: \"example\",\n  xAmzCredential: \"example\",\n  xAmzAlgorithm: \"example\",\n  xAmzDate: \"example\",\n  xAmzSignature: \"example\",\n  key: \"example\",\n  bucket: \"example\",\n  file: new Blob([])\n}\nclient.files.uploadFile(\"https://example.com\", request)",
     "imports": [
       "FileUploadRequest"
     ]
   },
   "UploadOperations_getUploadParams": {
     "usage": "const response = client.files.getUploadParams()",
-    "output": "UploadParams({ contentDisposition: string, acl: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, directUrl: string })"
+    "output": "UploadParams({ contentDisposition: string, acl?: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, bucket?: string, directUrl: string })"
   },
   "DraftOperations_listDrafts": {
     "usage": "const response = client.drafts.listDrafts({\n  type: DraftType.All,\n  entityType: MessageEntityType.Discussion,\n  entityId: 334,\n  limit: 25,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
@@ -410,7 +410,7 @@
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "const response = client.oauth.getTokenInfo()",
-    "output": "AccessTokenInfo({ id: number, token: string, name: string | null, userId: number, scopes: OAuthScope[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null })"
+    "output": "AccessTokenInfo({ id: number, token: string, name: string | null, userId: number, scopes: OAuthScope[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null, authorizedAt: string | null })"
   },
   "OAuthFlowOperations_revokeToken": {
     "usage": "const request: OAuthRevokeRequest = {\n  token: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n  tokenTypeHint: OAuthTokenTypeHint.AccessToken,\n  clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n  clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n}\nclient.oauth.revokeToken(request)",

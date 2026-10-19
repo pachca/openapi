@@ -226,7 +226,7 @@ export const memberFields: INodeProperties[] = [
 { name: 'Member', value: 'member', description: 'Member/subscriber' },
 { name: 'Owner', value: 'owner' }],
 		default: "all",
-		description: 'Role in the chat',
+		description: 'Role in the chat. In a channel the owner, admins and editors write, and a member there is a subscriber.',
 		displayOptions: { show: { resource: ['member'], operation: ['getAll'] } },
 	},
 	{

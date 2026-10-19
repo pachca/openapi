@@ -15,8 +15,11 @@
 #        chain: the agent looks a person up by name, gets nothing back, and the
 #        prose takes the blame for the instrument.
 # Writes <run-dir>/out/<model>-<pass-label>.json — one record per request:
-#        {"id", "calls": [{"name", "arguments"}, …], "text",
+#        {"id", "ran_at", "calls": [{"name", "arguments"}, …], "text",
 #         "searched", "loaded", "client_errors"}
+#        where ran_at is when the request started, in milliseconds since the
+#        epoch: relative dates in it are read against that day, and the time
+#        survives merging and re-running parts of a pass.
 #        and <run-dir>/out/raw/<model>-<pass-label>/<ask-id>.jsonl — what the
 #        client streamed for that request, event by event.
 #
@@ -59,6 +62,18 @@ mkdir -p "$RAW"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
+# A client signed in to an account puts that account's email into the context,
+# and the model then looks the operator up in the workspace instead of acting as
+# the caller the instructions name. Neither a system prompt nor the environment
+# removes it. With an API key the client runs bare: no account, hooks, CLAUDE.md
+# or memory; the MCP config and the tool list still apply.
+BARE=()
+if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+  BARE=(--bare)
+else
+  echo "ANTHROPIC_API_KEY is not set: the client signs in with the operator's account and puts its email into the context, which can pull self-addressed requests (write-dm-self, self-id, word-remind, bot-write-me) off the caller" >&2
+fi
+
 echo "[" > "$OUT"
 first=1
 count=$(python3 -c "import json;print(len(json.load(open('$IN/asks.json'))))")
@@ -80,23 +95,32 @@ if os.path.exists(responses):
 json.dump({"mcpServers": {"pachca": {"command": "bun", "args": [stub], "env": env}}}, open(config, "w"))
 PY
 
+  # The request's start time goes into its record: the scorer reads relative
+  # dates against the day the request ran, not the day its file was written.
+  started=$(python3 -c 'import time;print(int(time.time()*1000))')
+
   # User settings bring hooks that inject earlier sessions and plugins with skills
   # of their own; either puts text in front of the model that no client of the
-  # server would. Only the empty directory's settings load, and no skills. The
-  # built-in tools a client of the server does not offer are denied too — a
-  # question dialogue invites asking instead of doing; tool search stays, since
-  # a client with a long listing loads tools through it.
+  # server would. Only the empty directory's settings load, and no skills.
+  # Of the client's own tools only tool search is offered, through --tools: a
+  # deny list falls behind every release. 2.1.292 added TaskCreate, TaskList,
+  # TaskGet, TaskUpdate, SendMessage, Artifact, Monitor, Workflow and more, and a
+  # request to set a task went to the client's own task list. Tool search stays,
+  # since a client with a long listing loads tools through it. An allow list also
+  # keeps the host's environment from adding tools of its own to a run.
   cd "$WORK" && claude -p "$prompt" \
     --model "$MODEL" \
+    ${BARE[@]+"${BARE[@]}"} \
     --setting-sources project --disable-slash-commands \
     --mcp-config "$config" --strict-mcp-config \
     --allowed-tools "mcp__pachca" \
-    --disallowed-tools "Bash Read Write Edit Glob Grep WebFetch WebSearch Task Agent AskUserQuestion TodoWrite Skill EnterPlanMode ExitPlanMode NotebookEdit EnterWorktree ExitWorktree CronCreate CronDelete CronList RemoteTrigger TaskOutput TaskStop" \
+    --tools "ToolSearch" \
     --output-format stream-json --verbose < /dev/null > "$RAW/$id.jsonl" 2>/dev/null || true
 
-  python3 - "$OUT" "$id" "$record" "$first" "$RAW/$id.jsonl" <<'PY'
+  python3 - "$OUT" "$id" "$record" "$first" "$RAW/$id.jsonl" "$started" <<'PY'
 import json, sys, os, re
 out, ask_id, record, first, stream = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4] == "1", sys.argv[5]
+ran_at = int(sys.argv[6])
 calls = [json.loads(line) for line in open(record, encoding="utf-8")] if os.path.exists(record) else []
 
 events = []
@@ -153,6 +177,7 @@ for e in events:
 
 row = {
     "id": ask_id,
+    "ran_at": ran_at,
     "calls": [
         {"name": c.get("name"), "arguments": c.get("arguments") or {}, **({"refused": c["refused"]} if c.get("refused") else {})}
         for c in calls

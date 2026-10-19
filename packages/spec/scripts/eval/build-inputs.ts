@@ -51,7 +51,10 @@ function worldFor(audience: string, role: string, scopes: string[]): string {
     typeof card === 'string' ? card.replace(/^\*\*scopes\*\* .*$/m, `**scopes** ${scopes.join(', ')}`) : card;
   world.get_token_info = withScopes(world.get_token_info);
   asBot.get_token_info = withScopes(asBot.get_token_info);
-  if (audience !== 'bot') return `${JSON.stringify({ ...world, '@role': role }, null, 2)}\n`;
+  // A record's role is the workspace role as the API spells it: an owner is an
+  // admin there, and «owner» never comes back in a record.
+  const companyRole = role === 'owner' ? 'admin' : role;
+  if (audience !== 'bot') return `${JSON.stringify({ ...world, '@role': role, '@company_role': companyRole }, null, 2)}\n`;
   const person = String(world['@me']);
   const bot = String(asBot['@me']);
   const author = '((?:user_id|creator_id|actor_id)(?:\\*\\*)? ';

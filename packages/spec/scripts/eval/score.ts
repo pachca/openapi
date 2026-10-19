@@ -35,6 +35,8 @@ interface Call {
 }
 interface Answer {
   id: string;
+  /** When the request started, in milliseconds since the epoch; older runs lack it. */
+  ran_at?: number;
   calls: Call[];
   text?: string;
   /** The tools the client's tool search handed back, whose descriptions the model could read before a call. */
@@ -119,11 +121,13 @@ function landsOn(value: unknown, weekday: string): boolean {
 
 /**
  * A filter on the past is held to the local date a number of days before the day
- * the run happened: 1 is yesterday. The run's day is when its answers were
- * written, not when they are scored, so a pass scored the morning after still
- * counts back from its own day. The time of day is the agent's to pick, so a
- * window opened at 00:00 local and one opened at 00:00 UTC both land on that day
- * for a person east of UTC; one opened on a day ahead does not.
+ * the run happened: 1 is yesterday. The run's day is when that request ran, as
+ * its record says, not when its file was written or when it is scored: a pass
+ * merged or scored after midnight still counts back from the day each request
+ * saw. A record without that time falls back to its file's. The time of day is
+ * the agent's to pick, so a window opened at 00:00 local and one opened at 00:00
+ * UTC both land on that day for a person east of UTC; one opened on a day ahead
+ * does not.
  */
 let ranAt = Date.now();
 function landsDaysAgo(value: unknown, days: number): boolean {
@@ -136,13 +140,40 @@ function landsDaysAgo(value: unknown, days: number): boolean {
 }
 
 /**
+ * An all-day task can be written either way the spec describes: with the flag,
+ * or with a `due_at` at exactly 23:59:59 in its own offset. The API keeps those
+ * seconds, reads a task with them as an all-day one and answers `all_day: true`
+ * for it, so a call that leaves the flag out and writes the end of the day has
+ * made the same task.
+ */
+const endOfDay = (args: Record<string, unknown>): unknown => {
+  const due = args.due_at;
+  return typeof due === 'string' && /T23:59:59(\.0+)?(Z|[+-]\d{2}:?\d{2})?$/.test(due) ? true : undefined;
+};
+
+/**
+ * What the server reads an argument left out as when it follows from another
+ * argument rather than from a fixed default: read like a default, and only for
+ * an argument the call did not pass. Keyed by the tool name without its prefix.
+ */
+const READINGS: Record<string, Record<string, (args: Record<string, unknown>) => unknown>> = {
+  create_task: { all_day: endOfDay },
+  update_task: { all_day: endOfDay },
+};
+const readingOf = (call: Call, name: string): unknown => READINGS[call.name.replace(/^pachca_/, '')]?.[name]?.(call.arguments);
+
+/**
  * The values a call holds at a place: `entity_id`, `schedule.start_date`, or
  * `files.key`, which a list answers with the value of each item. An argument
- * left out is its default, unless the question is whether it was passed at all.
+ * left out is what the server reads it as — a value it follows from another
+ * argument (`READINGS`), or its default — unless the question is whether it was
+ * passed at all.
  */
 function valuesAt(call: Call, place: string, asRead = true): unknown[] {
   const [head, ...rest] = place.split('.');
-  const given = call.arguments[head!] ?? (asRead ? defaults[call.name]?.[head!] : undefined);
+  const given =
+    call.arguments[head!] ??
+    (asRead ? (readingOf(call, head!) ?? defaults[call.name]?.[head!]) : undefined);
   let found: unknown[] = given === undefined ? [] : [given];
   for (const step of rest) {
     found = found
@@ -187,13 +218,17 @@ function argsOk(call: Call, spec: NonNullable<Expectation['args']>): boolean {
   return true;
 }
 
-function scorePass(answers: Answer[]): { tool: [number, number]; args: [number, number]; misses: string[] } {
+function scorePass(
+  answers: Answer[],
+  fileMtime: number,
+): { tool: [number, number]; args: [number, number]; misses: string[] } {
   const tool: [number, number] = [0, 0];
   const args: [number, number] = [0, 0];
   const misses: string[] = [];
   for (const answer of answers) {
     const expectation = key[answer.id];
     if (!expectation) continue;
+    ranAt = answer.ran_at ?? fileMtime;
     const calls = answer.calls ?? [];
     // A call the server refused changed nothing and found nothing: it neither
     // reaches the answer nor counts as a write. What it shows is on the next call.
@@ -270,8 +305,7 @@ const spread: Record<string, number[]> = { tool: [], args: [] };
 
 for (const file of files) {
   const answers: Answer[] = JSON.parse(fs.readFileSync(path.join(runDir, 'out', file), 'utf8'));
-  ranAt = fs.statSync(path.join(runDir, 'out', file)).mtimeMs;
-  const { tool, args, misses } = scorePass(answers);
+  const { tool, args, misses } = scorePass(answers, fs.statSync(path.join(runDir, 'out', file)).mtimeMs);
   spread.tool!.push(percent(tool));
   spread.args!.push(percent(args));
   console.log(`${file.replace(/\.json$/, '').padEnd(20)} дошёл ${share(tool).padEnd(14)} аргументы ${share(args)}`);

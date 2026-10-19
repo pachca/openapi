@@ -25,7 +25,7 @@ export default class MembersList extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'role': Flags.string({
-      description: "Роль в чате",
+      description: "Роль в чате. В канале пишут создатель, админы и редакторы, а участник там — подписчик.",
       options: ["all","owner","admin","editor","member"],
       default: "all",
     }),

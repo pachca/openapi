@@ -113,11 +113,14 @@
  *     instructions, the footer nor a link into the web app, or one in use is
  *     filled by nothing;
  *   - a date-time argument, at any depth, lacks the note on how a moment named
- *     in words is written (`MOMENT_ARGUMENT`) or carries it twice; a tool whose
- *     answer reaches a field `TRUSTED_TEXT` marks secret lacks `SECRET_NOTE`, a
- *     tool whose answer reaches none carries it, a field so marked is in no
- *     answer of a tool, or a field of free text named as a token or a secret
- *     is marked neither secret nor masked;
+ *     in words is written (`MOMENT_ARGUMENT`) or carries it twice; a top-level
+ *     text argument named `query` lacks the note that a search takes the words
+ *     of the request (`QUERY_ARGUMENT`) or carries it twice, or any other
+ *     argument or tool carries it; a tool whose answer reaches a field
+ *     `TRUSTED_TEXT` marks secret lacks `SECRET_NOTE`, a tool whose answer
+ *     reaches none carries it, a field so marked is in no answer of a tool, or a
+ *     field of free text named as a token or a secret is marked neither secret
+ *     nor masked;
  *   - a description still carries a sentence written for an HTTP client, or a
  *     pattern written to cut one cuts nothing any more;
  *   - prose is written for a tool or an argument that does not exist, says
@@ -181,6 +184,7 @@ import {
   UPLOAD_UNAVAILABLE,
   INSTRUCTION_PLACEHOLDERS,
   MOMENT_ARGUMENT,
+  QUERY_ARGUMENT,
   QUOTED_TERMS,
   SECRET_NOTE,
   SERVER_INFO,
@@ -1355,6 +1359,14 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
     if (node.additionalProperties && typeof node.additionalProperties === 'object') moment(node.additionalProperties);
   };
   Object.values(properties).forEach(moment);
+
+  // A search phrase is written in the words of the request (`QUERY_ARGUMENT`):
+  // the note goes after the spec's words of every top-level text argument named
+  // `query`, before prose, the same way.
+  const query = properties.query;
+  if (query && [query.type ?? []].flat().includes('string')) {
+    properties.query = { ...query, description: `${sentence(String(query.description ?? ''))} ${QUERY_ARGUMENT.description}`.trim() };
+  }
 
   // Written argument text follows the spec's rather than replacing it: the spec
   // says what the field is, prose what to put there — the voice a message is
@@ -2903,6 +2915,23 @@ function build(): void {
     };
     for (const [name, child] of Object.entries(tool.inputSchema.properties ?? {})) walk(child, name);
   }
+  for (const tool of tools) {
+    if (occurrences(tool.description, QUERY_ARGUMENT.description)) problems.push(`${tool.name} carries QUERY_ARGUMENT in its description rather than on an argument`);
+    const walk = (node: JsonSchema | undefined, at: string): void => {
+      if (!node || typeof node !== 'object') return;
+      const notes = occurrences(node.description, QUERY_ARGUMENT.description);
+      const phrase = at === 'query' && [node.type ?? []].flat().includes('string');
+      if (phrase && notes !== 1) problems.push(`${tool.name}: the search phrase query carries QUERY_ARGUMENT ${notes} times rather than once`);
+      if (!phrase && notes) problems.push(`${tool.name}: ${at} carries QUERY_ARGUMENT and is no top-level search phrase`);
+      for (const [name, child] of Object.entries(node.properties ?? {})) walk(child, at ? `${at}.${name}` : name);
+      if (node.items) walk(node.items, `${at}[]`);
+      if (node.additionalProperties && typeof node.additionalProperties === 'object') walk(node.additionalProperties, `${at}{}`);
+    };
+    for (const [name, child] of Object.entries(tool.inputSchema.properties ?? {})) walk(child, name);
+  }
+  for (const service of SERVICE_TOOLS) {
+    if (occurrences(JSON.stringify(service), QUERY_ARGUMENT.description)) problems.push(`service tool ${service.name} carries QUERY_ARGUMENT, which only the search phrase of an API tool takes`);
+  }
 
   // ── Pages ────────────────────────────────────────────────────────────────
   // A cursor comes from the answer before, and the server asks for a page cut
@@ -3452,6 +3481,7 @@ function build(): void {
     })),
     { who: 'the server instructions quote', lines: [SERVER_INSTRUCTIONS] },
     { who: 'MOMENT_ARGUMENT quotes', lines: [MOMENT_ARGUMENT.description] },
+    { who: 'QUERY_ARGUMENT quotes', lines: [QUERY_ARGUMENT.description] },
     { who: 'SECRET_NOTE quotes', lines: [SECRET_NOTE] },
     { who: 'DRAFT_ARGUMENT quotes', lines: [DRAFT_ARGUMENT.description] },
     { who: 'VIEW_ARGUMENT quotes', lines: Object.values(VIEW_ARGUMENT.description) },

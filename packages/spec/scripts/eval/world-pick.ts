@@ -21,9 +21,12 @@ const spelled = (value: unknown): string => (typeof value === 'object' ? JSON.st
  * Which answer of a set a call gets. A key is one value the call passed, or
  * several joined by `+` that must all be among its values — `thread+87215` is a
  * send to thread 87215, while `87215` alone is the same number sent as a chat.
- * A part written `name=value` matches only that argument. The key with more
- * parts wins, an exact value before a word found inside free text, and then the
- * order of the set. A key of one Russian word such as «ревью» also matches a
+ * A part written `name=value` matches only that argument, and `name=*` any
+ * non-empty value of it: the answer to a query the world has no key for, which
+ * the API answers with nothing rather than the whole list. The key with more
+ * parts wins, an exact value before a word found inside free text or a `*`
+ * part, and then the order of the set, so a word key written earlier still wins
+ * over `name=*`. A key of one Russian word such as «ревью» also matches a
  * longer query that contains it — what a person types is never the key exactly —
  * while an enum value has to be exact: «undone» is not «done». A call that pages
  * on with a cursor the world does not know has reached the end, whether the
@@ -50,7 +53,9 @@ export function pick(entry: unknown, given: Record<string, unknown>): unknown {
       const named = part.match(/^([a-z_]+)=(.+)$/);
       if (named) {
         const value = given[named[1]!];
-        if (value === undefined || value === null || spelled(value) !== named[2]) return false;
+        if (value === undefined || value === null) return false;
+        if (named[2] === '*') return spelled(value) !== '';
+        if (spelled(value) !== named[2]) return false;
         exactParts += 1;
         return true;
       }

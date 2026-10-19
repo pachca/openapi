@@ -297,7 +297,11 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "pair-thread-new",
     prompt: "давай обсудим переезд офиса отдельно, ни к чему не привязывая",
     accept: ["create_unattached_thread", "send_message"],
-    note: "У треда без сообщения нет названия, поэтому тему задаёт первое сообщение — отправить его сразу входит в дело. Промах — завести чат.",
+    args: { present: ["content"], either: [{ entity_type: "thread", entity_id: 265170 }, { entity_type: "discussion", entity_id: 341170 }] },
+    note:
+      "У треда без сообщения нет названия, поэтому тему задаёт первое сообщение — отправить его сразу входит в дело. " +
+      "Отправка должна попасть в новый тред одним из двух верных путей: по его id с entity_type thread или по его " +
+      "chat_id как в обсуждение. Промах — завести чат.",
   },
   {
     id: "pair-my-chats",
@@ -433,9 +437,10 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   },
   {
     id: "read-one-message",
-    prompt: "покажи целиком сообщение Ани про сентябрьский отчёт",
+    prompt: "покажи целиком моё сообщение про сентябрьский отчёт",
     accept: ["get_chat", "list_chat_messages", "get_thread", "search_messages", "list_chats", "search_chats", "list_company_chats", "get_message", "list_reactions", "list_message_readers"],
-    args: { must: { id: 603390 } },
+    says: ["за сентябрь готов", "report.md"],
+    note: "Показать целиком — значит показать текст и вложение. Поиск с view full и get_message оба отдают запись целиком.",
   },
   {
     id: "my-tasks",
@@ -472,8 +477,8 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "chain-reply",
     prompt: "ответь Пете в самих «Релизах», не уводя в тред, что посмотрю завтра",
     accept: ["get_chat", "list_chat_messages", "get_thread", "search_messages", "list_chats", "search_chats", "list_company_chats", "send_message"],
-    args: { must: { entity_id: 4719, parent_message_id: 603381 }},
-    note: "Оба числа разные и оба обязательны: без parent_message_id это просто новое сообщение, а не ответ цепочкой.",
+    args: { must: { entity_id: 4719 }, either: [{ parent_message_id: 603381 }, { parent_message_id: 603402 }] },
+    note: "У Пети (48217) в «Релизах» три сообщения: 603402, 603381 и 1058906882. Два самых новых, 603402 и 603381, написаны в один день, и просьба не говорит, на какое из них отвечать. Засчитывается ответ цепочкой на любое из двух. Без parent_message_id это просто новое сообщение, а не ответ.",
   },
   {
     id: "send-report",
@@ -485,6 +490,10 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "start-discussion",
     prompt: "заведи отдельное обсуждение по теме переезда, без привязки к сообщению",
     accept: ["create_unattached_thread", "send_message"],
+    args: { present: ["content"], either: [{ entity_type: "thread", entity_id: 265170 }, { entity_type: "discussion", entity_id: 341170 }] },
+    note:
+      "Первое сообщение задаёт тему треда, и отправка должна попасть в новый тред одним из двух верных путей: по его " +
+      "id с entity_type thread или по его chat_id как в обсуждение.",
   },
   {
     id: "react",
@@ -641,10 +650,10 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   },
   {
     id: "thin-add-who",
-    prompt: "добавь ребят из соседней команды в «Релизы»",
+    prompt: "добавь в «Релизы» ребят из логистики",
     accept: ["list_chats", "search_chats", "list_company_chats", "list_members", "list_users", "search_users", "list_tags", "get_tag", "get_tag_users", "add_members", "add_tags_to_chat"],
     args: { must: { id: 4719 }, either: [{ member_ids: [3571, 3572] }, { group_tag_ids: [9112] }] },
-    note: "«Ребята из соседней команды» — не список. Команда находится тегом: «Логистика», в которой нет никого из «Релизов». Верно добавить её людей или подключить сам тег; добавить наугад того, кто под руку попался, — промах.",
+    note: "Команда названа, а её сотрудники — нет: их находят по тегу или отделу «Логистика», в которых нет никого из «Релизов». Верно добавить этих сотрудников или подключить сам тег. Промах — добавить наугад первого попавшегося.",
   },
 
   // ── Видимая запись: делаем, а не переспрашиваем ─────────────────────────
@@ -666,7 +675,12 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "write-new-thread",
     prompt: "заведи отдельное обсуждение по переезду и позови туда Петю",
     accept: ["create_unattached_thread", "add_members", "send_message", "list_users", "search_users"],
-    note: "Тред заводится, сотрудников зовут вторым вызовом или упоминанием в первом сообщении, оно же задаёт тему: цепочка из нескольких шагов, а не один инструмент. Засчитывается запись: поиск Пети без неё сценарий не проходит.",
+    args: { either: [{ entity_type: "thread", entity_id: 265170 }, { entity_type: "discussion", entity_id: 341170 }, { id: 341170 }] },
+    note:
+      "Тред заводится, сотрудников зовут вторым вызовом или упоминанием в первом сообщении, оно же задаёт тему: " +
+      "цепочка из нескольких шагов, а не один инструмент. Засчитывается запись, адресованная новому треду одним из " +
+      "верных путей: отправка по его id с entity_type thread или по его chat_id как в обсуждение, либо добавление " +
+      "участников по chat_id треда. Поиск Пети без записи сценарий не проходит.",
   },
   {
     id: "write-edit-own",
@@ -754,8 +768,11 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "method-channel-editors",
     prompt: "кто может писать в канале «Релизы»?",
     accept: ["list_chats", "search_chats", "list_company_chats", "list_members"],
-    args: { must: { id: 4719 } },
-    note: "Писать в канале могут владелец, админы и редакторы — это роли в чате из списка участников, а не роль сотрудника в пространстве. Фильтр берёт одну роль, поэтому один список со всеми ролями — тоже верный путь.",
+    args: { must: { id: 4719 }, either: [{ role: "owner" }, { role: "admin" }, { role: "editor" }] },
+    note:
+      "Писать в канале могут владелец, админы и редакторы — это роли в чате, а не роль сотрудника в пространстве. " +
+      "Роли участника в чате список не отдаёт, она работает только фильтром, поэтому ответить можно лишь списком с " +
+      "фильтром по роли: по одному вызову на роль.",
   },
   {
     id: "method-one-task",
@@ -799,7 +816,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
   },
   {
     id: "method-unpin",
-    prompt: "открепи в «Релизах» закреплённое сообщение Пети",
+    prompt: "открепи в «Релизах» закреплённое сообщение Пети про ревью",
     accept: ["get_chat", "list_chat_messages", "get_thread", "search_messages", "list_chats", "search_chats", "list_company_chats", "unpin_message"],
     args: { must: { id: 603381} },
   },
@@ -1144,6 +1161,7 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
     id: "role-guest-new-chat",
     prompt: "заведи новую беседу для нас с Ольгой и Игорем",
     accept: ["none"],
+    says: ["гост"],
     audience: "multi_guest",
     note: "Создавать чаты мультигостю нельзя. Промах — завести вместо беседы тред или написать каждому в личку.",
   },

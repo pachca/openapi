@@ -49,17 +49,25 @@
  *
  * The server instructions (`mcp-core.ts`) hold only what a model needs before
  * it loads any tool, and a client keeps them whole only within 2048 characters:
- * who the caller is and the dates of today and the days after it; that a name or
- * the words of a message are searched for rather than asked about; that talking
- * something over separately is a thread; that a date alone makes a task; that a
- * destructive request is carried out like any other; what to say when a tool is
- * missing; and that how Pachca works is documented at dev.pachca.com. Every other rule lives with the tool it is about, and is read
- * when that tool is loaded: in the spec, here, or in a note the generator puts
- * on the arguments or the tools it concerns — how a moment named in words is
- * written, on every date-time argument (`MOMENT_ARGUMENT`), and where a secret
- * in an answer may go (`SECRET_NOTE`). A line repeating any of those reaches the
- * model twice, and the build fails on six words in a row shared with the
- * instructions or with the note on the same argument.
+ * the catalogue, where tasks are handed over by editing; what to say when a tool
+ * is missing — the caller's role, or the plan or kind of token it takes, in a
+ * partial answer too, with nothing done in its place; who the caller is and the
+ * dates of today and the days after it; that the model loads the tool before it
+ * asks anything; that a request is about Pachca; that a chat, a person or a task
+ * is found by name and a message or a thread by its words across the caller's
+ * chats rather than asked about; that talking a matter over separately is
+ * posting it for colleagues in the thread of the message it continues, else in
+ * an unattached one; that a date alone makes a task, even with no subject; that a destructive request is carried out at
+ * once; that facts of the workspace and of the token come from responses; and
+ * that how Pachca works is documented at dev.pachca.com. Every other rule lives
+ * with the tool it is about, and is read when that tool is loaded: in the spec,
+ * here, or in a note the generator puts on the arguments or the tools it
+ * concerns — how a moment named in words is written, on every date-time argument
+ * (`MOMENT_ARGUMENT`), that a search phrase takes the words of the request, on
+ * every `query` (`QUERY_ARGUMENT`), and where a secret in an answer may go
+ * (`SECRET_NOTE`). A line repeating any of those reaches the model twice, and the
+ * build fails on six words in a row shared with the instructions or with the
+ * note on the same argument.
  *
  * Two habits hold throughout. Say what the tool is NOT for and name the
  * neighbour that is — collisions between similar names are the largest source
@@ -121,8 +129,13 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
   // The spec says handing a task over is an edit, and a model still made a new
   // task with the new assignee: the words of the request are what this adds.
   create_task: {
-    notFor: ['«отдай её Вере», «пусть этим займётся Глеб» — the existing task changing hands.'],
-    arguments: { all_day: NO_HOUR_NOTE },
+    notFor: [
+      '«отдай её Вере», «пусть этим займётся Глеб» — the existing task changing hands.',
+    ],
+    arguments: {
+      kind: 'When the request names no call, meeting, event or email, take reminder.',
+      all_day: NO_HOUR_NOTE,
+    },
   },
   // The spec names both threads as the place for one matter, and a model asked
   // for a separate «обсуждение» still made a chat three times of three: the API
@@ -145,7 +158,19 @@ export const MCP_TOOL_PROSE: Record<string, ToolProse> = {
 
   // ── What to put in a field ──────────────────────────────────────────────
   send_message: {
-    arguments: { content: VOICE_NOTE },
+    arguments: {
+      content: VOICE_NOTE,
+      parent_message_id:
+        'To answer a person, pass their message here: the latest one carrying their user_id, which search_users ' +
+        'gives for their name, unless the request points at another.',
+    },
+  },
+  request_export: {
+    arguments: {
+      start_at:
+        'When the request names no period, take the longest one the limit allows, ending today, and say which days ' +
+        'the archive covers.',
+    },
   },
   update_message: {
     arguments: { content: VOICE_NOTE },

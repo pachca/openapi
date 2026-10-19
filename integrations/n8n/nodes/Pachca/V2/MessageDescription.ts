@@ -72,7 +72,7 @@ export const messageFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
-		description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user',
+		description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user. A thread has two: its ID goes with `entity_type: "thread"`, and its `chat_id` with `discussion`, like any chat.',
 		modes: [
 			{
 				displayName: 'From List',
@@ -120,7 +120,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'displayName',
 				type: 'string',
 				default: "",
-				description: 'Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else\'s name and avatar, and only this message. The Bot badge stays, and the sender\'s profile still shows the real bot. This is how the original author is shown when a conversation is carried over from another system. With a personal token the field is not available and the response is `403`. Details are in the <a href="https://dev.pachca.com/guides/bots/overview">Bots</a> section.',
+				description: 'Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else\'s name and avatar, and only this message. The Bot badge stays, and the sender\'s profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Details are in the <a href="https://dev.pachca.com/guides/bots/overview">Bots</a> section.',
 				placeholder: 'Support Bot',
 			},
 			{
@@ -210,7 +210,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'parentMessageId',
 				type: 'number',
 				default: 0,
-				description: 'ID of the message you are replying to with a quote. You can reply to a message in any chat, including a thread: send the reply to the same chat or thread where that message is, otherwise the request returns a `422` error. To write into the thread under a message, set `entity_type: "thread"` and the thread ID in `entity_id`.',
+				description: 'ID of the message you are replying to with a quote. You can reply to a message in any chat, including a thread: send the reply to the same chat or thread where that message is, otherwise the request returns a `422` error. To write into the thread under a message, set `entity_type: "thread"` and the thread\'s ID in `entity_id`.',
 				placeholder: '194270',
 			},
 			{

@@ -1994,8 +1994,8 @@ paths:
 
         To create a 1-on-1 direct message with a user, use the [New message](POST /messages) method. To discuss a
         particular message there is no need to create a chat — a thread is started under it with the [New thread](POST
-        /messages/{id}/thread) method. A conversation on a single topic needs no permanent place either: there is the
-        [New unattached thread](POST /threads) method for it.
+        /messages/{id}/thread) method. Talking over a single topic needs no permanent place either: there is the [New
+        unattached thread](POST /threads) method for it.
 
 
         Members can be passed right away: `member_ids` adds them one by one, `group_tag_ids` brings in everyone who
@@ -2099,9 +2099,9 @@ paths:
         caller has not joined. For a multi-guest — only the public chats they are a member of.
 
 
-        Private chats are returned only to their members, whatever `availability` and `archived` are. The list of all
-        chats in the workspace, including private ones, is available to the workspace owner on the "Corporation" plan —
-        [List workspace chats](GET /company/chats).
+        Private (closed) chats are returned only to their members, whatever `availability` and `archived` are. The list
+        of all chats in the workspace, including private ones, is available to the workspace owner on the "Corporation"
+        plan — [List workspace chats](GET /company/chats).
 
 
         Threads never come in this list; for them there is [List threads](GET /threads).
@@ -3060,7 +3060,8 @@ paths:
 
 
         Only active employees make it into the results: suspended ones do not come, although their membership is kept.
-        The method does not return a member's role in the chat — the `role` parameter works only as a filter.
+        The `role` field of a record is the employee's role in the workspace. The method does not return a member's role
+        in the chat: who holds which is shown only by the `role` filter, one request per role.
       parameters:
         - name: id
           in: path
@@ -3074,7 +3075,7 @@ paths:
         - name: role
           in: query
           required: false
-          description: Role in the chat
+          description: Role in the chat. In a channel the owner, admins and editors write, and a member there is a subscriber.
           schema:
             allOf:
               - $ref: '#/components/schemas/ChatMemberRoleFilter'
@@ -3582,7 +3583,8 @@ paths:
 
 
         Every bot in the workspace, including the ones you cannot edit. For those, only the name and the nickname are
-        returned, the rest of the settings come as `null`.
+        returned, the rest of the settings come as `null`. Only those bots that you can configure are returned by the
+        [List bots](GET /bots) method.
 
 
         The method is available to the workspace owner. Every request is written to the [audit
@@ -4994,9 +4996,9 @@ paths:
         message by the user's ID, but then the matching `entity_type` is needed: `thread` or `user`.
 
 
-        There is no need to create the direct chat for this: it appears by itself if there has been no prior
-        conversation between you. Only one direct chat can exist between two users. Your own ID writes to the chat with
-        yourself, where notes to oneself go. With a bot token that is a chat with the bot alone: no employee sees it.
+        There is no need to create the direct chat for this: it appears by itself if you have not written to each other
+        before. Only one direct chat can exist between two users. Your own ID writes to the chat with yourself, where
+        notes to oneself go. With a bot token that is a chat with the bot alone: no employee sees it.
 
 
         Unlike a direct chat, a thread does not appear by itself: if a message has no thread yet, it is first created
@@ -5397,10 +5399,10 @@ paths:
 
 
         The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a "Message
-        deleted" note stays in place of the message in the conversation.
+        deleted" note stays in place of the message in the chat.
 
 
-        The thread created under this message stays, together with the whole conversation inside it. A repeated deletion
+        The thread created under this message stays, together with all the messages inside it. A repeated deletion
         responds `204` and no longer changes anything.
       parameters:
         - name: id
@@ -5453,8 +5455,7 @@ paths:
 
 
         Inserts into a message a link preview assembled by the bot itself: a title, a description, and an image. This
-        way the company's internal addresses, which Pachca cannot open on its own, are shown in the conversation as a
-        card.
+        way the company's internal addresses, which Pachca cannot open on its own, are shown in the chat as a card.
 
 
         The method is available only to a bot whose outgoing webhook is configured for link previews. Such a bot
@@ -6057,9 +6058,9 @@ paths:
         who is not in the chat itself is not picked up either.
 
 
-        An empty thread is not a conversation yet: send the first message into it right away with the [New message](POST
-        /messages) method and `entity_type: "thread"`. A thread has no name, and it cannot be deleted either through the
-        API or in the app.
+        An empty thread holds no talk yet: send the first message into it right away with the [New message](POST
+        /messages) method, `entity_type: "thread"` and the thread's `id` from the response. A thread has no name, and it
+        cannot be deleted either through the API or in the app.
 
 
         If a thread has already been created for the message, the response will return information about the previously
@@ -7630,8 +7631,8 @@ paths:
         New unattached thread
 
 
-        Creates a thread that is not linked to anything: a place for a conversation, a dialogue with an agent, or a call
-        that needs no chat of its own. Any employees can be gathered in it.
+        Creates a thread that is not linked to anything: a place to talk, a dialogue with an agent, or a call that needs
+        no chat of its own. Any employees can be gathered in it.
 
 
         The thread creator becomes its only member, and the `message_id` and `message_chat_id` fields in the response
@@ -7641,9 +7642,10 @@ paths:
 
 
         A thread has no name, so send the first message into it right away — that is how employees will understand what
-        it is about. A thread cannot be deleted. If what needs discussing is a particular message in a chat, start a
-        thread under it with the [New thread](POST /messages/{id}/thread) method, and if a permanent place with a name
-        is needed, use the [New chat](POST /chats) method.
+        it is about. It is addressed by the thread's `id` with `entity_type: "thread"`. A thread cannot be deleted. If
+        what needs discussing is a particular message in a chat, start a thread under it with the [New thread](POST
+        /messages/{id}/thread) method, and if a permanent place with a name is needed, use the [New chat](POST /chats)
+        method.
       parameters: []
       responses:
         '201':
@@ -7827,9 +7829,9 @@ paths:
 
 
         The response carries identifiers only: a thread has no name and no message counter, and what it is about can be
-        seen from the conversation inside. The messages of a thread are read with the [List chat messages](GET
-        /messages) method, and its members with the [List chat members](GET /chats/{id}/members) method, both by the
-        `chat_id` of the thread.
+        seen from the messages inside. The messages of a thread are read with the [List chat messages](GET /messages)
+        method, and its members with the [List chat members](GET /chats/{id}/members) method, both by the `chat_id` of
+        the thread.
 
 
         Access to a thread is broader than the results of [List threads](GET /threads): a thread that opens by `id` may
@@ -13013,7 +13015,10 @@ components:
             entity_id:
               type: integer
               format: int32
-              description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user.'
+              description: >-
+                Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user. A
+                thread has two: its `id` goes with `entity_type: "thread"`, and its `chat_id` with `discussion`, like
+                any chat.
               example: 334
             content:
               type: string
@@ -13106,8 +13111,8 @@ components:
               description: >-
                 ID of the message you are replying to with a quote. You can reply to a message in any chat, including a
                 thread: send the reply to the same chat or thread where that message is, otherwise the request returns a
-                `422` error. To write into the thread under a message, set `entity_type: "thread"` and the thread ID in
-                `entity_id`.
+                `422` error. To write into the thread under a message, set `entity_type: "thread"` and the thread's `id`
+                in `entity_id`.
               example: 194270
             display_avatar_url:
               type: string
@@ -13120,9 +13125,9 @@ components:
               description: >-
                 Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message
                 with someone else's name and avatar, and only this message. The Bot badge stays, and the sender's
-                profile still shows the real bot. This is how the original author is shown when a conversation is
-                carried over from another system. With a personal token the field is not available and the response is
-                `403`. Details are in the [Bots](/guides/bots/overview) section.
+                profile still shows the real bot. This is how the original author is shown when messages are carried
+                over from another system. With a personal token the field is not available and the response is `403`.
+                Details are in the [Bots](/guides/bots/overview) section.
               example: Support Bot
             skip_invite_mentions:
               type: boolean

@@ -294,6 +294,25 @@ const shapeOf = (field: Field, depth: number): string => {
   return `(${types.join(' | ') || 'any'}${orNull})`;
 };
 
+/**
+ * Rules of the API that a key of the world cannot spell. The export period is
+ * at most 45 days from start to end, 366 with `chat_ids`, and cannot end before
+ * it starts; the API refuses any other with `422 invalid_date_range`. A stub
+ * that answers such a call with an export number rewards a call that fails in
+ * production.
+ */
+function ruleRefusal(name: string, read: Record<string, unknown>): string | undefined {
+  if (name !== 'request_export') return undefined;
+  const day = (value: unknown) => (typeof value === 'string' ? Date.parse(value.slice(0, 10)) : Number.NaN);
+  const start = day(read.start_at);
+  const end = day(read.end_at);
+  if (Number.isNaN(start) || Number.isNaN(end)) return undefined;
+  const allowed = Array.isArray(read.chat_ids) && read.chat_ids.length > 0 ? 366 : 45;
+  const days = Math.round((end - start) / 86_400_000);
+  if (days >= 0 && days <= allowed) return undefined;
+  return `!422 invalid_date_range · key system · message Выбран слишком большой диапазон дат: максимум ${allowed} дней.`;
+}
+
 function handle(request: { id?: number | string; method: string; params?: any }): void {
   const { id, method, params } = request;
   if (method === 'initialize') {
@@ -343,7 +362,7 @@ function handle(request: { id?: number | string; method: string; params?: any })
     // to hand back an id, or the next step is impossible for reasons that have
     // nothing to do with what is being measured.
     const name = String(params?.name ?? '').replace(/^.*pachca_/, '');
-    const answer = pick(world[name], read) ?? pick(world['*'], read) ?? 'Done.';
+    const answer = ruleRefusal(name, read) ?? pick(world[name], read) ?? pick(world['*'], read) ?? 'Done.';
     // A canned answer that states an id of its own contradicts the call that
     // asked for another one, and the agent believes the answer: it read person
     // 3560 and then wrote to 18521. `{{user_id|18521}}` echoes what was asked,

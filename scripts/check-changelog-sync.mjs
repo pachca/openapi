@@ -25,6 +25,9 @@
  *   - changelog written = the top `## X.Y.Z` heading of the CHANGELOG names a
  *     version the baseline CHANGELOG does not have (fixing the text of an
  *     entry that already shipped declares nothing);
+ *   - a code change with the top version unchanged passes while that version
+ *     is not on npm yet: the release is still pending, and the change goes out
+ *     with it (npm is asked; when it cannot be asked, the gate fails closed);
  *   - the top CHANGELOG version must equal package.json `version`, and
  *     releases.json must have no entry for the product.
  *
@@ -254,6 +257,21 @@ function onlyVersionChanged(base, file) {
   }
 }
 
+/**
+ * Whether a version of a package is on npm: true or false, or null when npm
+ * could not be asked. `npm view` fails with E404 both for a version the
+ * package does not have and for a package that is not there at all; an older
+ * npm printed nothing for a missing version instead.
+ */
+function npmHasVersion(name, version) {
+  try {
+    return sh(`npm view ${name}@${version} version`).length > 0;
+  } catch (error) {
+    const output = `${error.stdout ?? ''}${error.stderr ?? ''}`;
+    return /E404|404 Not Found/.test(output) ? false : null;
+  }
+}
+
 /** The gate for a package released outside the portal (see the header). */
 function checkSelfVersioned(pkg) {
   const { changelog, packageJson } = pkg.selfVersioned;
@@ -266,11 +284,22 @@ function checkSelfVersioned(pkg) {
   const known = changelogVersions(showFile(base, changelog));
   const changelogWritten = declared !== null && !known.includes(declared);
 
-  if (codeChanged && !changelogWritten) {
+  // The version on top is still unreleased: the change goes out with it.
+  let onNpm = null;
+  if (codeChanged && !changelogWritten && declared !== null && declared === known[0]) {
+    const name = JSON.parse(showFile('HEAD', packageJson) ?? '{}').name;
+    onNpm = name ? npmHasVersion(name, declared) : null;
+  }
+  const pending = onNpm === false;
+
+  if (codeChanged && !changelogWritten && !pending) {
     errors.push(
       `${pkg.label}: code changed (${code.length} file(s), e.g. ${code[0]}) but no new entry in ${changelog}.\n` +
         `      Add \`## X.Y.Z (date)\` on top of ${changelog} and the same version in ${packageJson},\n` +
-        `      or revert the package change.`
+        `      or revert the package change.` +
+        (onNpm === null && declared === known[0]
+          ? `\n      npm could not be asked whether ${declared} is out: a version not on npm yet takes the change.`
+          : '')
     );
   }
   if (changelogWritten && !codeChanged) {

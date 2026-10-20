@@ -272,7 +272,7 @@
         "authorization"
       ],
       "additionalProperties": false,
-      "description": "Where the compatibility pair (service tools with compat: true) is served: the same server at its own address, the address of the main endpoint with path_suffix appended. A listing has to stay the same per connection and may differ only by authorization, and a client's description of itself is no ground for behaving differently; another address is another server, so a client that needs the pair is connected there. A server may serve nothing at this address until it serves the pair: the pair needs code of its own, and the main address does not depend on it.",
+      "description": "Where the compatibility pair (service tools with compat: true) is served: the same server at its own address, the address of the main endpoint with path_suffix appended. A listing has to stay the same per connection and may differ only by authorization, and a client's description of itself is no ground for behaving differently; another address is another server, so a client that needs the pair is connected there. Serving the pair is the server’s choice, and a server may serve nothing at this address: the pair needs code of its own, and the main address does not depend on it.",
       "properties": {
         "path_suffix": {
           "type": "string",
@@ -291,39 +291,14 @@
     },
     "files": {
       "type": "object",
-      "description": "Files crossing the server. A file argument takes its contents in base64 or a link, and the server downloads a link itself, so the limits on links are the server’s to keep. A file handed back to the model (response_format.binary_body) is held to what the strictest client takes, not to what the server can download.",
+      "description": "Files crossing the server. A file argument takes its contents in base64 or the key of a file already in Pachca: the server downloads no link a model passes, since fetching it would send whatever the link carries to its host before the API has a say. A file handed back to the model (response_format.binary_body) is held to what the strictest client takes.",
       "required": [
-        "url_schemes",
-        "public_hosts_only",
-        "max_redirects",
-        "max_download_bytes",
         "max_return_bytes",
         "max_image_bytes",
         "unnamed_file"
       ],
       "additionalProperties": false,
       "properties": {
-        "url_schemes": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "The only schemes a link may use."
-        },
-        "public_hosts_only": {
-          "type": "boolean",
-          "description": "true: a link to a private, loopback or link-local address is refused, and so is one that redirects there."
-        },
-        "max_redirects": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "How many redirects a download follows, each one checked like the link itself."
-        },
-        "max_download_bytes": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "The largest file downloaded from a link a model passes."
-        },
         "max_return_bytes": {
           "type": "integer",
           "minimum": 1,
@@ -336,7 +311,7 @@
         },
         "unnamed_file": {
           "type": "string",
-          "description": "The name of a file the model gave no name for — contents in base64 or a link — sent as the filename of the multipart part that carries it; the part keeps the field name its place gives it. {argument} is the file argument the bytes go into, for a download the argument its into names, and {extension} the extension of the file's type. The type comes from the signature of the bytes, else from the last segment of the link's path, else from the Content-Type of the download, and it is the Content-Type of the part. A file of no known type is named {argument} alone, with no dot, and goes as application/octet-stream; the API refuses it where it must."
+          "description": "The name of a file the model gave no name for, sent as the filename of the multipart part that carries its contents; the part keeps the field name its place gives it. {argument} is the file argument the bytes go into, and {extension} the extension of the file's type. The type comes from the signature of the bytes, and it is the Content-Type of the part. A file of no known type is named {argument} alone, with no dot, and goes as application/octet-stream; the API refuses it where it must."
         }
       }
     },
@@ -619,7 +594,7 @@
                   "file",
                   "key"
                 ],
-                "description": "upload: what each item becomes once uploaded — file, the file object with its key and size filled in; key, the key alone, where the API takes a list of keys. An item gives its contents in base64 or a link the server downloads first (files), or the key of a file already in Pachca: an item that carries key goes as it is, without an upload, and an id is meaningful only beside a key. An item carries exactly one of key, content and url: one with none of them or with two is refused as invalid_arguments before the first upload, the problem naming the item."
+                "description": "upload: what each item becomes once uploaded — file, the file object with its key and size filled in; key, the key alone, where the API takes a list of keys. An item gives its contents in base64, or the key of a file already in Pachca: an item that carries key goes as it is, without an upload, and an id is meaningful only beside a key. An item carries exactly one of key and content: one with neither or with both is refused as invalid_arguments before the first upload, the problem naming the item."
               },
               "effect": {
                 "description": "server: what the runtime does with an argument the API has no field for. Declared rather than known by name, so a new argument of this kind is a new version of the package and not a change in the backend.",
@@ -690,23 +665,6 @@
                           "type": "string"
                         },
                         "description": "The scopes that operation needs beyond the tool's own. Passing the argument without them is refused before the tool's own call, so the call never succeeds and leaves this operation undone."
-                      }
-                    }
-                  },
-                  {
-                    "type": "object",
-                    "required": [
-                      "kind",
-                      "into"
-                    ],
-                    "additionalProperties": false,
-                    "properties": {
-                      "kind": {
-                        "const": "download"
-                      },
-                      "into": {
-                        "type": "string",
-                        "description": "The file argument the downloaded bytes fill: the server fetches the link under the files policy and sends the bytes as that field. The link and the argument it fills are alternatives: passing both is refused as invalid_arguments, and passing neither is left to the API."
                       }
                     }
                   }

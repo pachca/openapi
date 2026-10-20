@@ -39,6 +39,13 @@ const NPM_NAME = '@pachca/mcp-manifest';
 const AGAINST_NPM = process.argv.includes('--against-npm');
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+
+/**
+ * Releases no server in use was built on, so a tool or an argument of theirs may
+ * go in a minor step. 1.0.0 was replaced before any server in use took it:
+ * 1.1.0 removed the arguments that let the server fetch a link a model wrote.
+ */
+const UNUSED_RELEASES = new Set(['1.0.0']);
 const major = (version) => Number(String(version).split('.')[0]);
 const minor = (version) => Number(String(version).split('.')[1]);
 
@@ -180,7 +187,7 @@ async function checkStep() {
     if (!args) removed.push(tool.name);
     else for (const arg of argsOf(tool)) if (!args.has(arg)) removed.push(`${tool.name}.${arg}`);
   }
-  if (removed.length > 0 && major(declared) <= major(latest)) {
+  if (removed.length > 0 && major(declared) <= major(latest) && !UNUSED_RELEASES.has(latest)) {
     problems.push(
       `gone since ${latest}: ${removed.slice(0, 20).join(', ')}${removed.length > 20 ? ', …' : ''} — ` +
         `removing a tool or an argument is a major step (${major(latest) + 1}.0.0)`

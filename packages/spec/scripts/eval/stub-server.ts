@@ -15,12 +15,13 @@
  * inside the untrusted wrapper, the footer on every result, a refusal as a
  * result with `isError` and the line of `REFUSALS` for its status.
  *
- * What it does not serve: a tool's title, annotations and outputSchema, and the
- * structured half of a result. Claude Code shows none of them to the model, and
- * declaring an outputSchema without returning structuredContent that fits it
- * would make the client throw the result away. Whether a real answer fits its
- * outputSchema is the build's to check, against the spec's own examples — not
- * this stub's.
+ * What it does not serve: a tool's title, annotations and outputSchema, and a
+ * structured half of a result. The server does not publish outputSchema or
+ * return structuredContent either (response_format.structured_content): with
+ * structuredContent in a result, Claude Code hands the model that JSON alone and
+ * drops the text. This stub answers with the text half alone, as the real
+ * server does; its wording is the hand-written text of world.json, not the
+ * templates of response_format.
  *
  * Usage (through --mcp-config, never by hand):
  *   EVAL_TOOLS=<listing.json> EVAL_RECORD=<calls.jsonl> bun stub-server.ts
@@ -34,6 +35,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { REFUSALS, RESPONSE_FORMAT } from '../../mcp-core';
 import { pick, REFUSAL } from './world-pick';
+import { toolSignature } from '../mcp-signature';
 
 const TOOLS_PATH = process.env.EVAL_TOOLS;
 const RECORD_PATH = process.env.EVAL_RECORD;
@@ -237,7 +239,7 @@ const readValue = (field: Field, value: unknown): unknown => {
         }
         break;
       case 'string':
-        return value;
+        return field.enum?.find((v) => typeof v === 'string' && v.toLowerCase() === text.toLowerCase()) ?? value;
     }
   }
   return value;
@@ -264,34 +266,6 @@ const problemsOf = (schema: Field, given: Record<string, unknown>): string[] => 
     if (wrong) problems.push(`${name} ${wrong}`);
   }
   return problems;
-};
-
-/**
- * What a tool takes, spelled the way `RESPONSE_FORMAT.signature` asks: a
- * star on what is required, an object with its fields, a list of objects with
- * the fields of one item, two levels down. A refusal that said only
- * `view (object, required)` sent the agent off to ask the person what a form
- * looks like.
- */
-const signatureOf = (schema: Field, depth = 0): string =>
-  Object.entries(schema.properties ?? {})
-    .map(([name, field]) => `${name}${schema.required?.includes(name) ? '*' : ''} ${shapeOf(field, depth)}`)
-    .join(', ');
-
-const shapeOf = (field: Field, depth: number): string => {
-  if (field.enum) return `(${field.enum.join(' | ')})`;
-  const types = typesOf(field);
-  const orNull = nullable(field) ? ' or null' : '';
-  if (types.includes('object') && field.properties && depth < 2) return `{${signatureOf(field, depth + 1)}}${orNull}`;
-  if (types.includes('array')) {
-    const item = field.items ?? {};
-    const itemTypes = typesOf(item);
-    if (itemTypes.includes('object') && item.properties && depth < 2) return `[{${signatureOf(item, depth + 1)}}]${orNull}`;
-    // A list of lists — the rows of buttons — spells its inner list the same way.
-    if (itemTypes.includes('array')) return `[${shapeOf(item, depth)}]${orNull}`;
-    return `[${itemTypes.join(' | ') || 'any'}]${orNull}`;
-  }
-  return `(${types.join(' | ') || 'any'}${orNull})`;
 };
 
 /**
@@ -354,7 +328,7 @@ function handle(request: { id?: number | string; method: string; params?: any })
       const text = RESPONSE_FORMAT.invalid_arguments
         .replace('{tool}', tool.name)
         .replace('{problems}', problems.join('; '))
-        .replace('{signature}', signatureOf(tool.inputSchema as Field));
+        .replace('{signature}', toolSignature(tool.inputSchema as Field));
       send({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: `${text}\n\n${footer}` }], isError: true } });
       return;
     }
@@ -397,7 +371,7 @@ function handle(request: { id?: number | string; method: string; params?: any })
     if (refusal) {
       const [, status, code, rest] = refusal;
       record(`${status} ${code}`);
-      const text = `${REFUSALS[status!] ?? `Refused with ${status}.`}\n\nerrors: code ${code}${rest}\n\n${footer}`;
+      const text = `${REFUSALS[status!] ?? `The API answered ${status}.`}\n\nerrors: code ${code}${rest}\n\n${footer}`;
       send({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: wrapped(text) }], isError: true } });
       return;
     }

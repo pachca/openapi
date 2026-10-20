@@ -203,8 +203,7 @@ export const UPLOAD_LIFTS: Record<OperationKey, Array<{ at: string; argument: st
  * what the strictest client takes, not to what the server can download. An image
  * goes as an image only while its base64 stays within `max_image_bytes` — 5 MB is
  * the smallest limit a client sets for one image — and any other file only while
- * its base64 stays within `max_return_bytes`; text is cut by
- * `RESPONSE_FORMAT.truncation` before that.
+ * its base64 stays within `max_return_bytes`.
  */
 export const FILE_SOURCES = {
   url_schemes: ['https'],
@@ -213,6 +212,25 @@ export const FILE_SOURCES = {
   max_download_bytes: 20_000_000,
   max_return_bytes: 5_000_000,
   max_image_bytes: 5_000_000,
+  // A file the model gave no name for still needs one: the API takes an avatar
+  // or an attachment by the extension of its name, so the name follows the type.
+  unnamed_file: '{argument}.{extension}',
+};
+
+/**
+ * Operations that reach outside the workspace: Pachca posts to an address the
+ * caller gives, or writes to an address outside it. A tool that downloads a
+ * link the model passes reaches out too, and the build marks it by its
+ * arguments. Every other tool works inside the workspace, and its
+ * openWorldHint is false.
+ */
+export const OPEN_WORLD: Partial<Record<OperationKey, string>> = {
+  'PUT /bot/webhook': 'Events of the chats go to outgoing_url, an address of the caller’s choosing.',
+  'POST /bots': 'Events go to outgoing_url, an address of the caller’s choosing.',
+  'PUT /bots/{id}': 'Events go to outgoing_url, an address of the caller’s choosing.',
+  'POST /chats/exports': 'The finished export is announced at webhook_url, an address of the caller’s choosing.',
+  'POST /users': 'The invitation email goes to any address the caller names.',
+  'PUT /users/{id}': 'A changed email is announced at the new address, one of the caller’s choosing.',
 };
 
 /**
@@ -604,6 +622,7 @@ export const SECRET_NOTE =
  */
 export const QUOTED_TERMS: Record<string, string> = {
   мне: 'The word the rule in the instructions is about — who it means with each kind of token — and no request to copy.',
+  '[{id}]': 'A slot of the response format the server fills with a record id, not words of a request.',
 };
 
 /**
@@ -697,11 +716,10 @@ export const REFUSALS: Record<string, string> = {
  * How a tool answers.
  *
  * The protocol lets a result carry two halves: text the model reads and quotes,
- * and structured data it can parse. Both matter and they are not the same job.
- * The structured half follows the response schema of each tool; this is the
- * contract for everything else about an answer — the text half, which is what the
- * person eventually sees retold, how arguments are read and refused, what happens
- * to a redirect.
+ * and structured data a program parses. A tool of the API answers with the text
+ * alone (`structured_content`): this is the contract for that text, which is what
+ * the person eventually sees retold, for how arguments are read and refused, and
+ * for what happens to a redirect.
  *
  * The rules are here rather than in the server because the server must not
  * invent them: a result formatted differently by each handler is how an agent
@@ -710,20 +728,19 @@ export const REFUSALS: Record<string, string> = {
  */
 export const RESPONSE_FORMAT = {
   /**
-   * Both halves are returned together: the formatted text and, where the tool
-   * declares a response schema, the structured value conforming to it. One
-   * platform builds its whole rendering on the structured half, and declaring a
-   * schema without returning the data breaks another — an obligation, not an
-   * option. The structured half is the response body as the API gives it, so a
-   * list keeps its `data` and `meta` (and so does a new chat), and a tool's
-   * schema is that body's schema.
-   *
-   * It goes without the untrusted wrapper: a wrapper inside the values would
-   * break the schema they are checked against, so the boundary is the text
-   * half's to hold.
+   * The text half is the whole answer. Claude Code, Codex and VS Code hand the
+   * model only the structured half when a result carries one and drop every text
+   * block (code.claude.com/docs/en/agent-sdk/custom-tools: «Text blocks in content
+   * are not forwarded»; Claude Code closed it as not planned), while ChatGPT shows
+   * both. Everything a model relies on is in the text — the wrapper around other
+   * people's text, the footer, «(you)», the cursor, the note of a cut card — so a
+   * structured half would either push it out or sit beside it unwrapped. Other
+   * MCP servers answer with text alone too, or put the very same JSON into the
+   * text. A tool's outputSchema stays in the manifest as the build's description
+   * of the body the text is made from; the server does not publish it.
    */
   structured_content:
-    'on success, required whenever the tool declares outputSchema: the API response body — data, and meta where the body has it — with each record of a list cut to its card unless view is full, and a single read without the fields single_read_omit names for its entity unless view is full; a cut keeps a null parent null and cuts a list item by item, and the cut record still fits outputSchema; a body of null comes back as data: null. The structured half carries no untrusted wrapper: the text half holds that boundary',
+    'except in compat, tools/list carries no outputSchema and a result carries no structuredContent: the text half is the whole answer. It is made from the API body and carries only the fields outputSchema declares, every key of a map (additionalProperties) among them, so a field the API adds later stays out until a version of this manifest declares it; each record of a list is cut to its card unless view is full, a single read leaves out the fields single_read_omit names for its entity unless view is full, and a cut keeps a null parent null and cuts a list item by item. A success with no body reads the heading and «Done.»; a body of null, or data that is null, reads the heading and «**data:** null», as the tool’s description says; the fields of meta other than total and paginate go after the records, each as «**meta.{field}:** {value}». outputSchema describes the body for the build and the server, and is not published',
 
   /**
    * Content written by other people is wrapped before it enters the model's
@@ -794,7 +811,7 @@ export const RESPONSE_FORMAT = {
    * end; a search has no has_next, and its end is the first empty page.
    */
   pagination_footer:
-    'except in compat, a page of a list ends with «Showing {shown} of {total}.», or «Showing {shown}.» where the API counts no total, then «Continue with cursor={next}.» while meta.paginate.has_next is true — or, in an answer without has_next, while the page is not empty — and «End of list.» once it is not; a page truncation cut offers no cursor',
+    'except in compat, the text half of an answer whose data is a list closes, just before the footer (shape), with «Showing {shown} of {total}.», or «Showing {shown}.» where meta has no total, {shown} being the number of records in data and {total} meta.total; then «Continue with cursor={next}.», {next} being meta.paginate.next_page, while it is present and either meta.paginate.has_next is true or, in an answer without has_next, data is not empty; and «End of list.» otherwise. Empty data takes the place of the Showing line with empty_result when the call passed no cursor, and with nothing when it passed one: a search paged to its end is not a search that found nothing',
 
   /**
    * An empty result is an answer, not an absence. Returning an empty array
@@ -802,17 +819,19 @@ export const RESPONSE_FORMAT = {
    * looked in the wrong chat; saying what was looked for and where is what lets
    * the next try differ.
    */
-  empty_result: 'except in compat, «Nothing matched {what was looked for, with its filters}.»',
+  empty_result:
+    'except in compat, «Nothing matched: {tool.title}{filters}.», {filters} being « · {name} {value}» for each path and query argument passed except limit and cursor, in the order of inputSchema.properties, and empty when there is none',
 
   /**
-   * A record cut by the default view says what it lost. The structured half has
-   * the same schema for a card and for the whole record, so nothing there tells a
-   * model a field was cut, and the instructions tell it to say only what a
+   * A record cut by the default view says it was cut. Nothing in a card tells a
+   * model a field was left out, and the instructions tell it to say only what a
    * response holds: without the note, a phone the card leaves out is reported as
-   * no phone at all.
+   * no phone at all. One fixed line per answer does it: what a card carries is in
+   * the description of view, and counting per record what each one lost is work
+   * for the server that buys nothing more.
    */
   card_note:
-    'a record the default view cut — to its card in a list, or by single_read_omit on a single read — ends its entry in the text half with the fields it lost that hold a value, by name up to three and then a count, and how to get them: «buttons · files.key · +2 fields — view: full»; a record that lost only empty fields carries no note',
+    'a list cut to cards closes its entries, when data holds at least one, with «Records are cards: view: full returns every field.»; a single read from which single_read_omit removed a field the API sent with a value closes with «Left out: {the fields single_read_omit names for the entity, joined by « · »} — view: full returns them.», and one that lost no value carries no line',
 
   /**
    * Values are read the way the schema declares them before anything is refused.
@@ -821,11 +840,14 @@ export const RESPONSE_FORMAT = {
    * buttons. Refusing those cost one measured run fourteen calls to send a single
    * message; the model fixed the names at once and kept sending text.
    */
-  argument_reading: 'text that reads as the declared type — digits, true or false, JSON of a list — is taken as that type',
+  argument_reading:
+    'before anything is checked, each value is read by its declared type, in items and fields alike: integer or number from a number in text, spaces trimmed; boolean from true or false; array or object from JSON text of that kind; null from null where the field allows null; a string that matches a value of its enum in another case, as that value. A value that does not read stays as sent and is checked as it is. The server then checks itself an argument the tool does not have at the top level, a required one missing, a value not of its type and a string outside its enum, in items and fields alike, and the exactly-one rule of an upload item and the at-most-one rule of a download (request.arguments): each is a problem of invalid_arguments. A link that breaks a rule of files and a scope the server checks itself are refused as errors says; every other limit of a value is the API’s to refuse',
 
   /**
-   * What is refused is what cannot be read: an argument the tool does not have,
-   * a required one left out, a value that is not its type even as text. The
+   * What is refused is what cannot be read or sent as it is: an argument the
+   * tool does not have, a required one left out, a value that is not its type
+   * even as text, a string outside its enum, an upload item without exactly one
+   * of key, content and url, a download given both the link and the file. The
    * refusal comes before anything happens and says what is wrong and what the
    * tool takes, so the next call can be right without another search — in the
    * same run `thread_id` and `text` became `entity_id` and `content` on the very
@@ -840,7 +862,7 @@ export const RESPONSE_FORMAT = {
    * fields of one button inside its row.
    */
   signature:
-    'every argument of the tool, a star on what is required: an object spelled with its fields, a list with the shape of one item — a list of lists too — down to the fields of objects two levels deep, «buttons [[{text*, url, data}]]»',
+    'the tool’s signature, which the build writes beside each tool (tool.signature): every argument with its type in parentheses — an enum as its values, «(a | b)», and « or null» where null is allowed — and a star on what is required; an object spelled with its fields, a list with the shape of one item — a list of lists too — and a map with the shape of one value under «{<key>: …}», down to the fields of objects two levels deep, «buttons [[{text* (string), url (string), data (string)}]]»; a tool without arguments reads «no arguments»',
 
   /**
    * A refusal is a result the model reads, not a failure of the protocol. A tool
@@ -851,7 +873,15 @@ export const RESPONSE_FORMAT = {
    * there.
    */
   errors:
-    'a refusal — any API answer from 400 up, invalid_arguments, rate_limit, a link the server refuses or cannot download (files) — is a result with isError: true, text only, without structuredContent: the line of refusals for its status, then every item of errors[] whole — code, key, message, value, payload. An OAuthError reads the same way, error as code and error_description as message; key system means the error is about no field. A refusal the server makes before calling the API has no status and nothing is sent: invalid_arguments reads its own line, and a link it refuses or cannot download reads «The link in {argument} was not used: {reason}.», the reason naming the rule of files it broke — not https, not a public address, too many redirects, over max_download_bytes — or the failed download. An unknown tool, a request that is no valid call and a failure of this server itself are JSON-RPC errors instead',
+    'a refusal is a result with isError: true, text only, without the heading of shape. It comes from an API answer from 400 up to the tool’s own operation or to an upload step before it (an after step reads by after_effect), from invalid_arguments, from rate_limit, from a scope the server checks itself, and from a link the server refuses or cannot download (files). An API answer reads the line of refusals for its status, then every item of errors[] whole — code, key, message, value, payload; an OAuthError reads the same way, error as code and error_description as message, and key system means the error is about no field. A status refusals has no line for reads «The API answered {status}.» in place of that line. From 500 up, a 503 reads its line and a 504 whose errors[] carries the code timeout — a search, or a list of employees with query, that ran out of time — reads the line of 504; any other answer from 500 up reads «The API answered {status}.», then the line of 503 on a tool whose annotations.idempotentHint is true and «The action may have gone through: check with a read before repeating.» on any other. A body that carries neither errors[] nor an OAuthError adds nothing after these lines. The storage’s answer to the direct upload step reads «The upload of {argument} failed: {status}.» and nothing else, {argument} naming an item of a list by its index from 0, as files[1]. A refusal the server makes before calling the API has no status and nothing is sent: invalid_arguments reads its own line; a scope the server checks itself — of an upload argument, of an after effect, or the tool’s own where it checks that first — reads as the API’s 403 would, the line of refusals 403, then the code the API gives for it, insufficient_scope or role_forbidden, with the API’s message for that scope and key naming the argument that brought the scope, or system for the tool’s own; a link it refuses or cannot download reads «The link in {argument} was not used: {reason}.», {argument} named as in the upload line, the reason naming the rule of files it broke — not https, not a public address, too many redirects, over max_download_bytes — or the failed download. An unknown tool, a request that is no valid call and a failure of this server itself are JSON-RPC errors instead',
+
+  /**
+   * An after effect is housekeeping on top of an action that already happened.
+   * Reported as a refusal, the failed cleanup of a draft would tell a model its
+   * message was not sent — and it sends it again, into somebody's chat.
+   */
+  after_effect:
+    'an effect of kind after runs once, after the tool’s own call succeeded, and is never retried. When its call answers 400 or above, or does not reach the API, the result stays a success, the answer of the tool’s own call, with the line «{argument} {value} was not applied: {status} {code}.», {code} being the code of the first item of errors[] or of an OAuthError and left out when the body has neither, or «{argument} {value} was not applied: the API did not answer.»; shape places the line, and the tool’s own call is never repeated',
 
   /**
    * A 429 reaches the server as JSON with the code rate_limit, from the
@@ -868,16 +898,18 @@ export const RESPONSE_FORMAT = {
    * lies, and that link is for the person to open — following it would pour an
    * archive into the model's context.
    */
-  redirect: 'not followed: the answer is its Location, as url in the structured half',
+  redirect: 'not followed: the answer is its Location, as the line «**url:** {Location}» of the text half',
 
   /**
    * A body that is not JSON is the file itself. Only one method answers with
    * one, and it exists for the attachments that have no link to follow —
    * encrypted, or sent from the secure perimeter — so refusing to carry it
-   * would leave them unreadable by any means. Base64 text in the structured half
-   * is what a model cannot read: an image has to arrive as an image to be seen,
-   * a text file as text. The protocol has a content type for each, so the bytes
-   * travel as that, and the structured half says what came.
+   * would leave them unreadable by any means. Base64 text is what a model cannot
+   * read: an image has to arrive as an image to be seen, a text file as text. The
+   * protocol has a content type for each, so the bytes travel as that, and the
+   * text half says what came. Every branch has a ceiling: bytes are held to the
+   * limits of files, and the text of a file to size_limit, like any text a chat
+   * client reads.
    *
    * Only the image formats every client reads go as an image, and only within
    * the smallest limit a client sets: an image block a client cannot decode
@@ -886,7 +918,7 @@ export const RESPONSE_FORMAT = {
    * past the wrapper left. Audio has no block here, since models take no audio.
    */
   binary_body:
-    'the bytes go as one content block, and the structured half names file_name, mime_type and size. image/jpeg, image/png, image/gif and image/webp go as an image block while their base64 stays within files.max_image_bytes; text/* and JSON go as a text block inside the untrusted wrapper, cut by truncation; anything else whose base64 stays within files.max_return_bytes — another image format, or an image over its limit, included — goes as an embedded blob resource with the uri pachca://files/{id}. A larger file is not passed: the text names its size and says it opens in Pachca. An image cannot be wrapped, so text inside a picture reaches the model unmarked',
+    'the text half names file_name, mime_type and size, and the bytes follow as one content block while their base64 stays within files.max_return_bytes: image/jpeg, image/png, image/gif and image/webp go as an image block while their base64 stays within files.max_image_bytes; text/* and JSON go as a text block inside the untrusted wrapper, held to size_limit; anything else — another image format, or an image over its own limit, included — goes as an embedded blob resource with the uri pachca://files/{id}. The footer goes after the block of bytes, as a text block of its own. A larger file is not passed: the text names its size and says it opens in Pachca. An image cannot be wrapped, so text inside a picture reaches the model unmarked',
 
   /**
    * One platform's research mode accepts only a search and a fetch of its own
@@ -894,24 +926,26 @@ export const RESPONSE_FORMAT = {
    * as JSON and into the structured half. Anything appended outside the JSON
    * — a footer, a notice — and the text no longer parses; the wrapper therefore
    * goes inside the values, where the JSON stays JSON. What id and url look like
-   * is said once, in the outputSchema of the pair.
+   * is said once, in the outputSchema of the pair. The pair is served by code of
+   * its own, and a server can serve nothing at compat_address until it has that
+   * code: the main address does not depend on it.
    */
   compat:
-    'search and fetch, served at compat_address, answer the object their outputSchema describes as structuredContent and as its JSON in exactly one text block, with nothing outside the JSON; the untrusted wrapper goes inside the string values the tool’s untrusted list names, and url comes from the API where the record has one, else from web_links',
+    'search and fetch, served at compat_address, answer the object their outputSchema describes as structuredContent and as its JSON in exactly one text block, with nothing outside the JSON; the untrusted wrapper goes inside the string values the tool’s untrusted list names, and url comes from the API where the record has one, else from web_links. The pair needs code of its own, and a server may serve nothing at compat_address until it has that code',
 
   /**
-   * Long content is cut rather than allowed to flood the context, and the cut
-   * is announced. The budget is the worst case one client allows for a single
-   * result. A list is cut between records, never inside one. The cursor of a
-   * page stands after its last record, so the server itself asks for the page
-   * again with a limit that fits and answers with that page and its cursor: one
-   * more call to the API, and no records the model has already read sent twice.
+   * A ceiling in characters, which a server counts without a tokenizer. Claude
+   * Code keeps a large result itself, saving it to a file the model reads from,
+   * but a chat client takes about 150 000 characters of one result, and what
+   * holds an answer small first is a page with `limit` and a card per record. A
+   * list cut short sends the model back for the same page with a smaller limit,
+   * so no record is skipped, rather than the server asking again on its own.
    */
-  truncation: {
-    max_tokens: 25_000,
+  size_limit: {
+    max_chars: 100_000,
     rule:
-      'except in compat, a result over max_tokens is cut. A list keeps the whole records that fit: the server asks for the same page again with limit set to their number and answers with that page, list_notice and its own footer and cursor, so nothing is skipped; when not even the first record fits, it asks with limit=1 and cuts that record as text, with text_notice. A list that takes no limit is cut by whole records with no cursor. Any other text is cut where the budget ends',
-    list_notice: 'Cut to {shown} of {page} records to fit.',
+      'except in compat, a text half over max_chars characters is cut, and so is the text of a file (binary_body), counted on its own. A character is a Unicode code point. max_chars counts the whole text half, the notice and the footer included, so the part above them is cut to leave them room; the footer and the other closing lines of shape are never cut. A list of a tool that takes limit keeps the whole entries that fit, at least the first: an entry that does not fit alone is cut where the room ends and closes with text_notice. When the list keeps fewer entries than data holds, list_notice takes the place of both lines of pagination_footer, so that the next call asks for the same page with limit={shown}; when it keeps them all, pagination_footer stays, so a page of one record too large still leads on. Any other text is cut where the room ends and closes with text_notice. A cut never leaves the untrusted wrapper open: a cut inside a wrapped value closes it with its closing tag before the notice, and a cut inside a tag of the wrapper moves back to before that tag. In list_notice {shown} is the number of entries kept and {page} the number of records in data; in text_notice {shown} is the number of characters kept and {total} the length before the cut',
+    list_notice: 'Cut to {shown} of {page} records to fit: repeat this call with limit={shown}, then go on from the cursor it gives.',
     text_notice: 'Truncated at {shown} of {total} characters.',
   },
 
@@ -920,10 +954,11 @@ export const RESPONSE_FORMAT = {
    * fragment without restating the whole answer.
    */
   shape: [
-    'A heading naming what was asked for.',
-    'Scalar facts as bold labels, one per line.',
-    'Repeated items as a list, each with its identifier so a follow-up call is possible.',
-    'A closing note only for a genuine next step or for what was cut: card_note per record, the truncation notice for the result.',
+    'A heading: «## {tool.title}», then « · {name} {value}» for each path and query argument passed except limit and cursor, in the order of inputSchema.properties; body, upload and server arguments are not repeated.',
+    'A value goes as it is when it is a scalar and as compact JSON when it is an object or a list; a field that is null is left out. An object or a list that a path of the tool’s untrusted list reaches into goes, as its compact JSON, inside the untrusted wrapper whole.',
+    'One record as bold labels, one per line: «**{field}:** {value}», in the order of outputSchema; «(you)» follows the heading where own_items marks the record.',
+    'Repeated items as a list, one entry per record: «[{id}]» first where the record has an id, «(you)» after it where own_items marks the record, then a space and «{name} {value}» joined by « · » for the other top-level fields of the record as cut, in the order their names first appear in compact_projections, or, with view: full or where the entity has no card, in the order of outputSchema. An item that is a scalar, such as a reader’s user id, is an entry of its value alone.',
+    'The end of the text, in this order: the card_note line, then the labels of meta, then the after_effect line, then the notice of size_limit, then the lines of pagination_footer, then the footer.',
   ],
 };
 
@@ -1037,8 +1072,9 @@ export const COMPACT_PROJECTIONS: Record<string, string[]> = {
  * named neither there nor here fails the build, so a field the API adds is a
  * decision to make rather than a field the default answer silently lacks. A name
  * here is a whole field, or a dotted part of a nested object the card reaches
- * into. What is cut is never dropped from sight: the text half names the fields
- * a record lost that hold a value (`RESPONSE_FORMAT.card_note`).
+ * into. What is cut is never dropped from sight: the description of view names
+ * what a card carries, and the text half says the records are cards
+ * (`RESPONSE_FORMAT.card_note`).
  */
 export const COMPACT_OMIT: Record<string, Array<{ fields: string[]; why: string }>> = {
   Message: [
@@ -1149,7 +1185,7 @@ export const SINGLE_READ_OMIT: Record<string, Array<{ fields: string[]; why: str
         'server, and the last request it received is written by anyone outside.',
       named:
         "get_bot's description, from the spec, says what webhook carries for a caller who manages the bot's tokens; its view " +
-        'names these fields as left out of compact, and the note at the end of the record names the ones it cut.',
+        'names these fields as left out of compact, and the line that closes a single read («Left out: … — view: full returns them.») names them when it cut any.',
     },
   ],
 };

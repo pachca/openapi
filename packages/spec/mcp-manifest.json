@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "generated_from": {
-    "digest": "b34d6531f956747c"
+    "digest": "ef3590d85c255bb1"
   },
   "server": {
     "name": "pachca",
@@ -37,32 +37,34 @@
     "discover": "the answer of server/discover carries the instructions filled for the token of its request: cacheScope private, and ttlMs no further than the caller’s next local midnight, when {today} and {days} change"
   },
   "response_format": {
-    "structured_content": "on success, required whenever the tool declares outputSchema: the API response body — data, and meta where the body has it — with each record of a list cut to its card unless view is full, and a single read without the fields single_read_omit names for its entity unless view is full; a cut keeps a null parent null and cuts a list item by item, and the cut record still fits outputSchema; a body of null comes back as data: null. The structured half carries no untrusted wrapper: the text half holds that boundary",
+    "structured_content": "except in compat, tools/list carries no outputSchema and a result carries no structuredContent: the text half is the whole answer. It is made from the API body and carries only the fields outputSchema declares, every key of a map (additionalProperties) among them, so a field the API adds later stays out until a version of this manifest declares it; each record of a list is cut to its card unless view is full, a single read leaves out the fields single_read_omit names for its entity unless view is full, and a cut keeps a null parent null and cuts a list item by item. A success with no body reads the heading and «Done.»; a body of null, or data that is null, reads the heading and «**data:** null», as the tool’s description says; the fields of meta other than total and paginate go after the records, each as «**meta.{field}:** {value}». outputSchema describes the body for the build and the server, and is not published",
     "untrusted_wrapper": "in the text half, every value at a path of the tool’s untrusted list, and the text of a file (binary_body), goes inside <pachca_content_{nonce}> … </pachca_content_{nonce}>, with a random nonce per response",
     "footer": "every result except compat ends with two lines: «Now: {iso8601 in the caller’s zone, or in the workspace zone when theirs is empty — always so for a bot}, {weekday} · you: {name} ({id}), {personal token or bot token} · times above are UTC: tell them in the zone of Now» and «Days: Thu {date} · Fri {date} · Sat {date} · Sun {date} · Mon {date} · Tue {date} · Wed {date}», the seven days after the date of Now, each with its weekday",
     "own_items": "except in compat, a record whose author is the caller is marked «(you)» in the text half; the author is the field authors names for the entity of the tool, compared with the caller’s id as text",
-    "pagination_footer": "except in compat, a page of a list ends with «Showing {shown} of {total}.», or «Showing {shown}.» where the API counts no total, then «Continue with cursor={next}.» while meta.paginate.has_next is true — or, in an answer without has_next, while the page is not empty — and «End of list.» once it is not; a page truncation cut offers no cursor",
-    "empty_result": "except in compat, «Nothing matched {what was looked for, with its filters}.»",
-    "card_note": "a record the default view cut — to its card in a list, or by single_read_omit on a single read — ends its entry in the text half with the fields it lost that hold a value, by name up to three and then a count, and how to get them: «buttons · files.key · +2 fields — view: full»; a record that lost only empty fields carries no note",
-    "argument_reading": "text that reads as the declared type — digits, true or false, JSON of a list — is taken as that type",
+    "pagination_footer": "except in compat, the text half of an answer whose data is a list closes, just before the footer (shape), with «Showing {shown} of {total}.», or «Showing {shown}.» where meta has no total, {shown} being the number of records in data and {total} meta.total; then «Continue with cursor={next}.», {next} being meta.paginate.next_page, while it is present and either meta.paginate.has_next is true or, in an answer without has_next, data is not empty; and «End of list.» otherwise. Empty data takes the place of the Showing line with empty_result when the call passed no cursor, and with nothing when it passed one: a search paged to its end is not a search that found nothing",
+    "empty_result": "except in compat, «Nothing matched: {tool.title}{filters}.», {filters} being « · {name} {value}» for each path and query argument passed except limit and cursor, in the order of inputSchema.properties, and empty when there is none",
+    "card_note": "a list cut to cards closes its entries, when data holds at least one, with «Records are cards: view: full returns every field.»; a single read from which single_read_omit removed a field the API sent with a value closes with «Left out: {the fields single_read_omit names for the entity, joined by « · »} — view: full returns them.», and one that lost no value carries no line",
+    "argument_reading": "before anything is checked, each value is read by its declared type, in items and fields alike: integer or number from a number in text, spaces trimmed; boolean from true or false; array or object from JSON text of that kind; null from null where the field allows null; a string that matches a value of its enum in another case, as that value. A value that does not read stays as sent and is checked as it is. The server then checks itself an argument the tool does not have at the top level, a required one missing, a value not of its type and a string outside its enum, in items and fields alike, and the exactly-one rule of an upload item and the at-most-one rule of a download (request.arguments): each is a problem of invalid_arguments. A link that breaks a rule of files and a scope the server checks itself are refused as errors says; every other limit of a value is the API’s to refuse",
     "invalid_arguments": "These arguments do not fit {tool}: {problems}. It takes: {signature}.",
-    "signature": "every argument of the tool, a star on what is required: an object spelled with its fields, a list with the shape of one item — a list of lists too — down to the fields of objects two levels deep, «buttons [[{text*, url, data}]]»",
-    "errors": "a refusal — any API answer from 400 up, invalid_arguments, rate_limit, a link the server refuses or cannot download (files) — is a result with isError: true, text only, without structuredContent: the line of refusals for its status, then every item of errors[] whole — code, key, message, value, payload. An OAuthError reads the same way, error as code and error_description as message; key system means the error is about no field. A refusal the server makes before calling the API has no status and nothing is sent: invalid_arguments reads its own line, and a link it refuses or cannot download reads «The link in {argument} was not used: {reason}.», the reason naming the rule of files it broke — not https, not a public address, too many redirects, over max_download_bytes — or the failed download. An unknown tool, a request that is no valid call and a failure of this server itself are JSON-RPC errors instead",
+    "signature": "the tool’s signature, which the build writes beside each tool (tool.signature): every argument with its type in parentheses — an enum as its values, «(a | b)», and « or null» where null is allowed — and a star on what is required; an object spelled with its fields, a list with the shape of one item — a list of lists too — and a map with the shape of one value under «{<key>: …}», down to the fields of objects two levels deep, «buttons [[{text* (string), url (string), data (string)}]]»; a tool without arguments reads «no arguments»",
+    "errors": "a refusal is a result with isError: true, text only, without the heading of shape. It comes from an API answer from 400 up to the tool’s own operation or to an upload step before it (an after step reads by after_effect), from invalid_arguments, from rate_limit, from a scope the server checks itself, and from a link the server refuses or cannot download (files). An API answer reads the line of refusals for its status, then every item of errors[] whole — code, key, message, value, payload; an OAuthError reads the same way, error as code and error_description as message, and key system means the error is about no field. A status refusals has no line for reads «The API answered {status}.» in place of that line. From 500 up, a 503 reads its line and a 504 whose errors[] carries the code timeout — a search, or a list of employees with query, that ran out of time — reads the line of 504; any other answer from 500 up reads «The API answered {status}.», then the line of 503 on a tool whose annotations.idempotentHint is true and «The action may have gone through: check with a read before repeating.» on any other. A body that carries neither errors[] nor an OAuthError adds nothing after these lines. The storage’s answer to the direct upload step reads «The upload of {argument} failed: {status}.» and nothing else, {argument} naming an item of a list by its index from 0, as files[1]. A refusal the server makes before calling the API has no status and nothing is sent: invalid_arguments reads its own line; a scope the server checks itself — of an upload argument, of an after effect, or the tool’s own where it checks that first — reads as the API’s 403 would, the line of refusals 403, then the code the API gives for it, insufficient_scope or role_forbidden, with the API’s message for that scope and key naming the argument that brought the scope, or system for the tool’s own; a link it refuses or cannot download reads «The link in {argument} was not used: {reason}.», {argument} named as in the upload line, the reason naming the rule of files it broke — not https, not a public address, too many redirects, over max_download_bytes — or the failed download. An unknown tool, a request that is no valid call and a failure of this server itself are JSON-RPC errors instead",
+    "after_effect": "an effect of kind after runs once, after the tool’s own call succeeded, and is never retried. When its call answers 400 or above, or does not reach the API, the result stays a success, the answer of the tool’s own call, with the line «{argument} {value} was not applied: {status} {code}.», {code} being the code of the first item of errors[] or of an OAuthError and left out when the body has neither, or «{argument} {value} was not applied: the API did not answer.»; shape places the line, and the tool’s own call is never repeated",
     "rate_limit": "a 429 comes as JSON with code rate_limit; read the wait from Retry-After and name it in the refusal: «Wait {seconds} s before repeating.»",
-    "redirect": "not followed: the answer is its Location, as url in the structured half",
-    "binary_body": "the bytes go as one content block, and the structured half names file_name, mime_type and size. image/jpeg, image/png, image/gif and image/webp go as an image block while their base64 stays within files.max_image_bytes; text/* and JSON go as a text block inside the untrusted wrapper, cut by truncation; anything else whose base64 stays within files.max_return_bytes — another image format, or an image over its limit, included — goes as an embedded blob resource with the uri pachca://files/{id}. A larger file is not passed: the text names its size and says it opens in Pachca. An image cannot be wrapped, so text inside a picture reaches the model unmarked",
-    "compat": "search and fetch, served at compat_address, answer the object their outputSchema describes as structuredContent and as its JSON in exactly one text block, with nothing outside the JSON; the untrusted wrapper goes inside the string values the tool’s untrusted list names, and url comes from the API where the record has one, else from web_links",
-    "truncation": {
-      "max_tokens": 25000,
-      "rule": "except in compat, a result over max_tokens is cut. A list keeps the whole records that fit: the server asks for the same page again with limit set to their number and answers with that page, list_notice and its own footer and cursor, so nothing is skipped; when not even the first record fits, it asks with limit=1 and cuts that record as text, with text_notice. A list that takes no limit is cut by whole records with no cursor. Any other text is cut where the budget ends",
-      "list_notice": "Cut to {shown} of {page} records to fit.",
+    "redirect": "not followed: the answer is its Location, as the line «**url:** {Location}» of the text half",
+    "binary_body": "the text half names file_name, mime_type and size, and the bytes follow as one content block while their base64 stays within files.max_return_bytes: image/jpeg, image/png, image/gif and image/webp go as an image block while their base64 stays within files.max_image_bytes; text/* and JSON go as a text block inside the untrusted wrapper, held to size_limit; anything else — another image format, or an image over its own limit, included — goes as an embedded blob resource with the uri pachca://files/{id}. The footer goes after the block of bytes, as a text block of its own. A larger file is not passed: the text names its size and says it opens in Pachca. An image cannot be wrapped, so text inside a picture reaches the model unmarked",
+    "compat": "search and fetch, served at compat_address, answer the object their outputSchema describes as structuredContent and as its JSON in exactly one text block, with nothing outside the JSON; the untrusted wrapper goes inside the string values the tool’s untrusted list names, and url comes from the API where the record has one, else from web_links. The pair needs code of its own, and a server may serve nothing at compat_address until it has that code",
+    "size_limit": {
+      "max_chars": 100000,
+      "rule": "except in compat, a text half over max_chars characters is cut, and so is the text of a file (binary_body), counted on its own. A character is a Unicode code point. max_chars counts the whole text half, the notice and the footer included, so the part above them is cut to leave them room; the footer and the other closing lines of shape are never cut. A list of a tool that takes limit keeps the whole entries that fit, at least the first: an entry that does not fit alone is cut where the room ends and closes with text_notice. When the list keeps fewer entries than data holds, list_notice takes the place of both lines of pagination_footer, so that the next call asks for the same page with limit={shown}; when it keeps them all, pagination_footer stays, so a page of one record too large still leads on. Any other text is cut where the room ends and closes with text_notice. A cut never leaves the untrusted wrapper open: a cut inside a wrapped value closes it with its closing tag before the notice, and a cut inside a tag of the wrapper moves back to before that tag. In list_notice {shown} is the number of entries kept and {page} the number of records in data; in text_notice {shown} is the number of characters kept and {total} the length before the cut",
+      "list_notice": "Cut to {shown} of {page} records to fit: repeat this call with limit={shown}, then go on from the cursor it gives.",
       "text_notice": "Truncated at {shown} of {total} characters."
     },
     "shape": [
-      "A heading naming what was asked for.",
-      "Scalar facts as bold labels, one per line.",
-      "Repeated items as a list, each with its identifier so a follow-up call is possible.",
-      "A closing note only for a genuine next step or for what was cut: card_note per record, the truncation notice for the result."
+      "A heading: «## {tool.title}», then « · {name} {value}» for each path and query argument passed except limit and cursor, in the order of inputSchema.properties; body, upload and server arguments are not repeated.",
+      "A value goes as it is when it is a scalar and as compact JSON when it is an object or a list; a field that is null is left out. An object or a list that a path of the tool’s untrusted list reaches into goes, as its compact JSON, inside the untrusted wrapper whole.",
+      "One record as bold labels, one per line: «**{field}:** {value}», in the order of outputSchema; «(you)» follows the heading where own_items marks the record.",
+      "Repeated items as a list, one entry per record: «[{id}]» first where the record has an id, «(you)» after it where own_items marks the record, then a space and «{name} {value}» joined by « · » for the other top-level fields of the record as cut, in the order their names first appear in compact_projections, or, with view: full or where the entity has no card, in the order of outputSchema. An item that is a scalar, such as a reader’s user id, is an entry of its value alone.",
+      "The end of the text, in this order: the card_note line, then the labels of meta, then the after_effect line, then the notice of size_limit, then the lines of pagination_footer, then the footer."
     ]
   },
   "refusals": {
@@ -219,7 +221,8 @@
     "max_redirects": 3,
     "max_download_bytes": 20000000,
     "max_return_bytes": 5000000,
-    "max_image_bytes": 5000000
+    "max_image_bytes": 5000000,
+    "unnamed_file": "{argument}.{extension}"
   },
   "tools": [
     {
@@ -238,7 +241,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -364,7 +367,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -381,6 +384,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "start_time (string), end_time (string), event_key (user_login | user_logout | user_2fa_fail | user_2fa_success | user_2fa_disabled | user_created | user_deleted | user_role_changed | user_updated | tag_created | tag_deleted | user_added_to_tag | user_removed_from_tag | chat_created | chat_renamed | chat_permission_changed | user_chat_join | user_chat_leave | tag_added_to_chat | tag_removed_from_chat | message_updated | message_deleted | message_created | reaction_created | reaction_deleted | thread_created | access_token_created | access_token_updated | access_token_destroy | kms_encrypt | kms_decrypt | audit_events_accessed | company_chats_accessed | company_bots_accessed | dlp_violation_detected | search_users_api | search_chats_api | search_messages_api | bot_scopes_updated | bot_webhook_settings_updated | bot_token_recreated | bot_deleted | bot_oauth_client_updated | bot_oauth_client_disabled | bot_oauth_client_secret_rotated | bot_oauth_client_secret_issued | bot_token_created | bot_token_updated | bot_token_reissued | bot_token_deleted | oauth_authorization_granted | oauth_authorization_revoked | oauth_token_revoked | oauth_device_authorization_approved | oauth_device_authorization_denied | video_call_started | video_call_finished | video_call_recording_ready | exchange_disabled), actor_id (string), actor_type (string), entity_id (string), entity_type (string), limit (integer), cursor (string), view (compact | full)",
       "request": {
         "arguments": {
           "start_time": {
@@ -759,13 +763,14 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
         "properties": {},
         "additionalProperties": false
       },
+      "signature": "no arguments",
       "request": {
         "arguments": {}
       },
@@ -962,6 +967,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "outgoing_url* (string)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -1144,7 +1150,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -1169,7 +1175,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTczODgxNn0"
             ]
@@ -1186,6 +1192,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "query (string), limit (integer), cursor (string), view (compact | full)",
       "request": {
         "arguments": {
           "query": {
@@ -1872,6 +1879,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "empty (boolean), name* (string), nickname (string), outgoing_url (string), events [string], trigger_on (commands | all_messages | unfurl), commands [string], scopes [string], template (string), template_engine (liquid | mustache), challenge_key (string), link_preview_enabled (boolean), ignore_self_messages (boolean), events_history_enabled (boolean), who_can_add (creator | creator_admin | creator_admin_user | anyone), can_edit [string], single_chat (boolean), kind (simple | gitlab | grafana), unfurl_domains [string], oauth_client {confidential (boolean), redirect_uris [string], scopes [string]}, promo {description (string), published (boolean)}, promo_images [{name (string), content (string), url (string), key (string)}]",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -2301,7 +2309,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -2329,6 +2337,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), view (compact | full)",
       "request": {
         "arguments": {
           "id": {
@@ -2975,6 +2984,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), name (string), nickname (string), outgoing_url (string), events [string], trigger_on (commands | all_messages | unfurl), commands [string], scopes [string], template (string), template_engine (liquid | mustache), challenge_key (string), link_preview_enabled (boolean), ignore_self_messages (boolean), events_history_enabled (boolean), who_can_add (creator | creator_admin | creator_admin_user | anyone), can_edit [string], single_chat (boolean), kind (simple | gitlab | grafana), unfurl_domains [string], oauth_client {confidential (boolean), redirect_uris [string], scopes [string]} or null, promo {description (string), published (boolean)}, promo_images [{name (string), content (string), url (string), key (string)}]",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -3399,7 +3409,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -3418,6 +3428,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -3473,6 +3484,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), image (string), image_url (string)",
       "request": {
         "media_type": "multipart/form-data",
         "arguments": {
@@ -3531,7 +3543,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -3550,6 +3562,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -3577,7 +3590,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -3596,6 +3609,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -3931,7 +3945,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -3950,6 +3964,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -4281,7 +4296,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -4300,6 +4315,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -4403,7 +4419,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -4429,7 +4445,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6NDgyN30"
             ]
@@ -4440,6 +4456,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), limit (integer), cursor (string)",
       "request": {
         "arguments": {
           "id": {
@@ -4581,7 +4598,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -4622,6 +4639,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), name* (string), scopes [string]",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -4735,7 +4753,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -4784,6 +4802,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), token_id* (integer), name (string), scopes [string]",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -4900,7 +4919,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -4928,6 +4947,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), token_id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -4958,7 +4978,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -4986,6 +5006,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), token_id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -5095,7 +5116,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -5171,7 +5192,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -5188,6 +5209,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "sort (id | last_message_at), order (asc | desc), availability (is_member | public), archived (boolean), last_message_at_after (string), last_message_at_before (string), personal (boolean), limit (integer), cursor (string), view (compact | full)",
       "request": {
         "arguments": {
           "sort": {
@@ -5357,7 +5379,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -5420,6 +5442,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "name* (string), member_ids [integer], group_tag_ids [integer], channel (boolean), public (boolean)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -5612,6 +5635,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "start_at* (string), end_at* (string), webhook_url (string), chat_ids [integer], skip_chats_file (boolean)",
       "request": {
         "media_type": "application/json",
         "headers": {
@@ -5675,7 +5699,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -5694,6 +5718,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -5732,7 +5757,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -5751,6 +5776,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -5859,7 +5885,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -5893,6 +5919,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), name (string), public (boolean)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -6010,7 +6037,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -6029,6 +6056,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -6086,6 +6114,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), image (string), image_url (string)",
       "request": {
         "media_type": "multipart/form-data",
         "arguments": {
@@ -6146,7 +6175,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -6165,6 +6194,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -6193,7 +6223,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -6228,6 +6258,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), group_tag_ids* [integer]",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -6262,7 +6293,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -6290,6 +6321,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), tag_id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -6321,7 +6353,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -6340,6 +6372,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -6369,7 +6402,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -6407,7 +6440,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -6427,6 +6460,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), role (all | owner | admin | editor | member), limit (integer), cursor (string), view (compact | full)",
       "request": {
         "arguments": {
           "id": {
@@ -6713,7 +6747,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -6756,6 +6790,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), member_ids* [integer], silent (boolean)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -6794,7 +6829,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -6835,6 +6870,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), user_id* (integer), role* (admin | editor | member)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -6872,7 +6908,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -6900,6 +6936,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), user_id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -6932,7 +6969,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -6951,6 +6988,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -6980,7 +7018,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -7008,6 +7046,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), message_id (integer)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -7038,7 +7077,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -7063,7 +7102,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTczODgxNn0"
             ]
@@ -7080,6 +7119,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "query (string), limit (integer), cursor (string), view (compact | full)",
       "request": {
         "arguments": {
           "query": {
@@ -7335,7 +7375,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -7361,7 +7401,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -7378,6 +7418,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "activity (active | archived), limit (integer), cursor (string), view (compact | full)",
       "request": {
         "arguments": {
           "activity": {
@@ -7530,7 +7571,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -7549,6 +7590,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "entity_type* (User | Task)",
       "request": {
         "arguments": {
           "entity_type": {
@@ -7607,7 +7649,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -7652,7 +7694,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -7660,6 +7702,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "type (regular | scheduled | all), entity_type (discussion | thread | user), entity_id (integer), limit (integer), cursor (string)",
       "request": {
         "arguments": {
           "type": {
@@ -8158,6 +8201,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "entity_type* (discussion | thread | user), entity_id* (integer), content (string), parent_message_id (integer or null), files [{id (integer), key (string), name* (string), file_type (file | image | audio | voice | video), width (integer), height (integer), duration_ms (integer), waveform (string), content (string), url (string)}], schedule {start_date* (string), end_date (string or null), repetition* {interval* (once | daily | weekly | monthly | every_2_months | every_3_months | every_4_months | every_6_months | yearly), days [integer], nth_day (integer or null)}} or null",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -8411,7 +8455,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -8430,6 +8474,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -8872,6 +8917,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), content (string), parent_message_id (integer or null), files [{id (integer), key (string), name* (string), file_type (file | image | audio | voice | video), width (integer), height (integer), duration_ms (integer), waveform (string), content (string), url (string)}], schedule {start_date* (string), end_date (string or null), repetition* {interval* (once | daily | weekly | monthly | every_2_months | every_3_months | every_4_months | every_6_months | yearly), days [integer], nth_day (integer or null)}} or null",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -9120,7 +9166,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -9139,6 +9185,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -9168,7 +9215,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -9197,6 +9244,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), target (pdf_preview | pdf_first_page | thumb | image)",
       "request": {
         "arguments": {
           "id": {
@@ -9249,7 +9297,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -9281,7 +9329,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -9289,6 +9337,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "names [string], limit (integer), cursor (string)",
       "request": {
         "arguments": {
           "names": {
@@ -9380,7 +9429,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -9399,6 +9448,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "name* (string)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -9457,7 +9507,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -9476,6 +9526,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -9529,7 +9580,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -9557,6 +9608,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), name* (string)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -9615,7 +9667,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -9634,6 +9686,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -9662,7 +9715,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -9688,7 +9741,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -9708,6 +9761,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), limit (integer), cursor (string), view (compact | full)",
       "request": {
         "arguments": {
           "id": {
@@ -9992,7 +10046,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -10035,7 +10089,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -10055,6 +10109,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "chat_id* (integer), sort (id), order (asc | desc), limit (integer), cursor (string), view (compact | full)",
       "request": {
         "arguments": {
           "chat_id": {
@@ -10627,6 +10682,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "entity_type (discussion | thread | user), entity_id* (integer), content (string), files [{key (string), name* (string), file_type* (file | image | audio | voice | video), width (integer), height (integer), duration_ms (integer), waveform (string), content (string), url (string)}], buttons [[{text* (string), url (string), data (string)}]], parent_message_id (integer), display_avatar_url (string), display_name (string), skip_invite_mentions (boolean), link_preview (boolean), draft_id (integer)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -10980,7 +11036,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -10999,6 +11055,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -11473,6 +11530,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), content (string), files [{key (string), name* (string), file_type (file | image | audio | voice | video), width (integer), height (integer), duration_ms (integer), waveform (string), content (string), url (string)}], buttons [[{text* (string), url (string), data (string)}]], display_avatar_url (string), display_name (string)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -11797,7 +11855,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -11816,6 +11874,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -11841,7 +11900,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -11928,6 +11987,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), link_previews* {<key>: {title* (string), description* (string), image_url (string), image {key* (string), name* (string), size (integer)}}}",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -11962,7 +12022,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -11981,6 +12041,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -12010,7 +12071,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -12029,6 +12090,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -12058,7 +12120,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -12084,7 +12146,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -12095,6 +12157,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), limit (integer), cursor (string)",
       "request": {
         "arguments": {
           "id": {
@@ -12194,7 +12257,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -12228,6 +12291,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), code* (string), name (string)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -12293,7 +12357,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -12327,6 +12391,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), code* (string), name (string)",
       "request": {
         "arguments": {
           "id": {
@@ -12362,7 +12427,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -12388,7 +12453,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -12399,6 +12464,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), limit (integer), cursor (string)",
       "request": {
         "arguments": {
           "id": {
@@ -12474,7 +12540,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -12493,6 +12559,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -12562,13 +12629,14 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
         "properties": {},
         "additionalProperties": false
       },
+      "signature": "no arguments",
       "request": {
         "arguments": {}
       },
@@ -12672,13 +12740,14 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
         "properties": {},
         "additionalProperties": false
       },
+      "signature": "no arguments",
       "request": {
         "arguments": {}
       },
@@ -12932,6 +13001,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "image (string), image_url (string)",
       "request": {
         "media_type": "multipart/form-data",
         "arguments": {
@@ -12989,13 +13059,14 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
         "properties": {},
         "additionalProperties": false
       },
+      "signature": "no arguments",
       "request": {
         "arguments": {}
       },
@@ -13021,13 +13092,14 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
         "properties": {},
         "additionalProperties": false
       },
+      "signature": "no arguments",
       "request": {
         "arguments": {}
       },
@@ -13106,7 +13178,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -13152,6 +13224,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "emoji (string), title (string), expires_at (string), is_away (boolean), away_message (string)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -13249,13 +13322,14 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
         "properties": {},
         "additionalProperties": false
       },
+      "signature": "no arguments",
       "request": {
         "arguments": {}
       },
@@ -13281,7 +13355,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -13306,7 +13380,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -13369,6 +13443,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "query (string), limit (integer), cursor (string), order (asc | desc), created_from (string), created_to (string), active (boolean), chat_subtype (discussion | thread), personal (boolean), view (compact | full)",
       "request": {
         "arguments": {
           "query": {
@@ -13531,7 +13606,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -13556,7 +13631,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -13641,6 +13716,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "query (string), limit (integer), cursor (string), order (asc | desc), sort (created_at | relevance), created_from (string), created_to (string), chat_ids [integer], user_ids [integer], active (boolean), view (compact | full)",
       "request": {
         "arguments": {
           "query": {
@@ -13995,7 +14071,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -14020,7 +14096,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -14090,6 +14166,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "query (string), limit (integer), cursor (string), sort (by_score | alphabetical | creation), order (asc | desc), created_from (string), created_to (string), company_roles [string], view (compact | full)",
       "request": {
         "arguments": {
           "query": {
@@ -14382,7 +14459,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -14446,7 +14523,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -14463,6 +14540,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "status (done | undone), chat_ids [integer], performer_ids [integer], author_id (integer), limit (integer), cursor (string), view (compact | full)",
       "request": {
         "arguments": {
           "status": {
@@ -14648,7 +14726,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -14756,6 +14834,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "kind* (call | meeting | reminder | event | email), content (string), due_at (string), priority (integer), performer_ids [integer], chat_id (integer), all_day (boolean), custom_properties [{id* (integer), value* (string)}]",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -14916,7 +14995,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -14935,6 +15014,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -15065,7 +15145,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -15190,6 +15270,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), kind (call | meeting | reminder | event | email), content (string), due_at (string), priority (integer), performer_ids [integer], status (done | undone), all_day (boolean), done_at (string), custom_properties [{id* (integer), value* (string)}]",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -15357,7 +15438,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -15376,6 +15457,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -15405,7 +15487,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -15439,7 +15521,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -15447,6 +15529,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "last_message_at_after (string), last_message_at_before (string), limit (integer), cursor (string)",
       "request": {
         "arguments": {
           "last_message_at_after": {
@@ -15556,13 +15639,14 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
         "properties": {},
         "additionalProperties": false
       },
+      "signature": "no arguments",
       "request": {
         "arguments": {}
       },
@@ -15628,7 +15712,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -15647,6 +15731,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -15716,7 +15801,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -15741,7 +15826,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -15758,6 +15843,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "query (string), limit (integer), cursor (string), view (compact | full)",
       "request": {
         "arguments": {
           "query": {
@@ -16189,6 +16275,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "first_name (string), last_name (string), email* (string), phone_number (string), nickname (string), department (string), title (string), role (admin | user | multi_guest | guest), suspended (boolean), list_tags [string], chat_ids [integer], custom_properties [{id* (integer), value* (string)}], skip_email_notify (boolean)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -16479,7 +16566,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -16498,6 +16585,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -16870,6 +16958,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer), first_name (string), last_name (string), email (string), phone_number (string), nickname (string), department (string), title (string), role (admin | user | multi_guest), suspended (boolean), list_tags [string], custom_properties [{id* (integer), value* (string)}]",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -17152,7 +17241,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -17171,6 +17260,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (integer)",
       "request": {
         "arguments": {
           "id": {
@@ -17225,6 +17315,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "user_id* (integer), image (string), image_url (string)",
       "request": {
         "media_type": "multipart/form-data",
         "arguments": {
@@ -17282,7 +17373,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -17301,6 +17392,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "user_id* (integer)",
       "request": {
         "arguments": {
           "user_id": {
@@ -17330,7 +17422,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -17349,6 +17441,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "user_id* (integer)",
       "request": {
         "arguments": {
           "user_id": {
@@ -17428,7 +17521,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -17485,6 +17578,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "user_id* (integer), emoji (string), title (string), expires_at (string), is_away (boolean), away_message (string)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -17582,7 +17676,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -17601,6 +17695,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "user_id* (integer)",
       "request": {
         "arguments": {
           "user_id": {
@@ -17626,7 +17721,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -17927,6 +18022,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "type* (modal), trigger_id* (string), private_metadata (string), callback_id (string), view* {title* (string), close_text (string), submit_text (string), blocks* [{type* (header | plain_text | markdown | divider | input | select | radio | checkbox | date | time | file_input), text (string), name (string), label (string), placeholder (string), multiline (boolean), initial_value (string), min_length (integer), max_length (integer), required (boolean), hint (string), options [object], initial_date (string), initial_time (string), filetypes [string], max_files (integer)}]}",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -17970,7 +18066,7 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -18008,6 +18104,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "view_id* (string), submit_id* (string), errors {<key>: (string)}",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -18053,7 +18150,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -18071,7 +18168,7 @@
           },
           "cursor": {
             "type": "string",
-            "description": "Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)",
+            "description": "Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page",
             "examples": [
               "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
             ]
@@ -18079,6 +18176,7 @@
         },
         "additionalProperties": false
       },
+      "signature": "limit (integer), cursor (string)",
       "request": {
         "arguments": {
           "limit": {
@@ -18425,7 +18523,7 @@
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -18443,6 +18541,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (string)",
       "request": {
         "arguments": {
           "id": {
@@ -18474,7 +18573,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -18489,6 +18588,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "query* (string)",
       "outputSchema": {
         "type": "object",
         "properties": {
@@ -18546,7 +18646,7 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": true
+        "openWorldHint": false
       },
       "inputSchema": {
         "type": "object",
@@ -18561,6 +18661,7 @@
         ],
         "additionalProperties": false
       },
+      "signature": "id* (string)",
       "outputSchema": {
         "type": "object",
         "properties": {
@@ -18694,8 +18795,7 @@
         "pachca_get_user_status",
         "pachca_update_user_status",
         "pachca_delete_user_status"
-      ],
-      "model_tokens": 45417
+      ]
     },
     "owner": {
       "role": "owner",
@@ -18785,8 +18885,7 @@
         "pachca_get_user_status",
         "pachca_update_user_status",
         "pachca_delete_user_status"
-      ],
-      "model_tokens": 41813
+      ]
     },
     "admin": {
       "role": "admin",
@@ -18876,8 +18975,7 @@
         "pachca_get_user_status",
         "pachca_update_user_status",
         "pachca_delete_user_status"
-      ],
-      "model_tokens": 41813
+      ]
     },
     "user": {
       "role": "user",
@@ -18957,8 +19055,7 @@
         "pachca_list_users",
         "pachca_get_user",
         "pachca_get_user_status"
-      ],
-      "model_tokens": 37502
+      ]
     },
     "multi_guest": {
       "role": "multi_guest",
@@ -19018,8 +19115,7 @@
         "pachca_list_users",
         "pachca_get_user",
         "pachca_get_user_status"
-      ],
-      "model_tokens": 25855
+      ]
     },
     "bot": {
       "role": "bot",
@@ -19086,8 +19182,7 @@
         "pachca_answer_form",
         "pachca_get_webhook_events",
         "pachca_delete_webhook_event"
-      ],
-      "model_tokens": 28287
+      ]
     }
   }
 }

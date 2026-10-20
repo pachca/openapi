@@ -341,6 +341,7 @@
         "openapi.yaml",
         "openapi.en.yaml",
         "scripts/generate-mcp-manifest.ts",
+        "scripts/mcp-signature.ts",
         "scripts/eval/world.json",
         "../../apps/docs/redirects.ts",
         "../../apps/docs/lib/utils/transliterate.ts",

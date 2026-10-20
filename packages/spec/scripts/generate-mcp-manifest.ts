@@ -96,7 +96,7 @@
  *     bounded by a closed set of values, or a name declared trusted is not free
  *     text any answer carries;
  *   - a tool takes a cursor and its answer carries no next one, or takes no
- *     limit the server asks for a page cut short again with; a link into the web app starts
+ *     limit to keep a page small; a link into the web app starts
  *     elsewhere or uses a placeholder nothing fills;
  *   - a schema does not compile as JSON Schema 2020-12 and draft-07, is no
  *     object at the root, or uses composition keywords some clients drop; an
@@ -166,6 +166,7 @@ import addFormats from 'ajv-formats';
 import {
   ACCESS_EXCEPTIONS,
   ADDITIVE,
+  OPEN_WORLD,
   AUDIENCES,
   AUTHOR_FIELDS,
   CACHE_POLICY,
@@ -200,6 +201,7 @@ import {
   type OperationKey,
   type ToolKind,
 } from '../mcp-core';
+import { toolSignature } from './mcp-signature';
 import siteRedirects from '../../../apps/docs/redirects';
 import { toSlug } from '../../../apps/docs/lib/utils/transliterate';
 import { TOOL_SCENARIOS } from '../mcp-scenarios';
@@ -335,9 +337,9 @@ const LOWER_LIMITS = new Set(['minLength', 'minimum', 'minItems', 'exclusiveMini
 const SPEC_SHAPE = ['format', 'example'] as const;
 
 /**
- * The one format an answer keeps: a moment, which a client may parse. Numeric
- * formats describe what the API takes; on an answer a validator would hold an id
- * that has outgrown 32 bits against them and refuse the whole result.
+ * The one format an answer keeps: a moment, which the server reads as one.
+ * Numeric formats describe what the API takes; on an answer they would promise
+ * more than the API does — an id that has outgrown 32 bits is still an id.
  */
 const OUTPUT_FORMATS = ['date-time'];
 
@@ -383,9 +385,8 @@ function enumValueOf(key: string, values: unknown[]): unknown {
  *
  * The two sides differ. An argument carries what the API refuses: enums, limits,
  * patterns, formats and one example. An answer carries types and the null a
- * field may be, and no enum, no limit and no format but a moment: a client checks
- * an answer against its schema and refuses the whole result over one value
- * outside it, while the API's own process leaves values out of its enums — a
+ * field may be, and no enum, no limit and no format but a moment: it describes
+ * what the API may send, and the API's own process leaves values out of its enums — a
  * scope still in beta, an event no bot is meant to hear, a key the backend has
  * not yet been documented with. The values and what each means stay in the
  * description, where a model reads them. An answer declares no required fields
@@ -418,8 +419,8 @@ function property(schema: any, doc: YamlNode, depth = 0, shape: Shape = { side: 
         ? values.map(String).join(', ')
         : '';
   if (spelled) out.description = `${sentence(String(out.description ?? ''))} Values: ${spelled}.`.trim();
-  // A field the API answers with null has to allow null: a client that checks an
-  // answer against its schema refuses the whole answer over one empty field.
+  // A field the API answers with null has to allow null: the schema describes the
+  // body the server reads, empty fields included.
   if (source?.nullable && out.type) {
     out.type = [out.type, 'null'].flat();
     if (out.enum) out.enum = [...out.enum, null];
@@ -1151,8 +1152,14 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
       continue;
     }
     // The parameter's own wording leads, and what the values of its schema mean
-    // still follows it.
-    const worded = param.description ? { ...flatten(param.schema, docEn), description: param.description } : param.schema;
+    // still follows it. A cursor is named by where the text half gives it, the
+    // next one alone (`RESPONSE_FORMAT.pagination_footer`): the spec's «from
+    // meta.paginate» points at a body the model does not see.
+    const wording = param.name === 'cursor' && CURSOR_FROM_META.test(param.description ?? '') ? CURSOR_WORDING : param.description;
+    if (param.name === 'cursor' && wording !== CURSOR_WORDING) {
+      problems.push(`${op.name}: the cursor is worded «${param.description}», which CURSOR_FROM_META does not read, so the model would be sent to meta.paginate it never sees`);
+    }
+    const worded = wording ? { ...flatten(param.schema, docEn), description: wording } : param.schema;
     const schema = property(worded, docEn);
     // A list in the query travels the way the spec declares (`queryListProblems`),
     // never the way OpenAPI's explode would put it: the emitter writes
@@ -1431,8 +1438,10 @@ function responseEntity(op: Operation, docEn: YamlNode): string | null {
 }
 
 /**
- * The structured half of an answer: the response body as the API gives it —
+ * The body an answer is made from: the response body as the API gives it —
  * `data`, and `meta` where the body has it — with every field down to the bottom.
+ * The server reads the body by it and does not publish it
+ * (`RESPONSE_FORMAT.structured_content`).
  * A list or a search cuts each record to its compact card unless view is full,
  * a single read leaves out only what SINGLE_READ_OMIT names, a write answers with
  * the whole record it made or changed, and all of them fit, because nothing in an
@@ -1445,9 +1454,8 @@ function outputSchema(op: Operation, docEn: YamlNode): JsonSchema | null {
     const body = op.nodeEn?.responses?.[code]?.content?.['application/json']?.schema;
     if (!body) continue;
     const schema = property(body, docEn, 0, { side: 'output' });
-    // The structured half is an object by the protocol, whatever the body may be.
-    // A body that is null — no status set — comes back as `{data: null}`
-    // (`RESPONSE_FORMAT.structured_content`), so that is what the schema allows.
+    // The schema describes an object, whatever the body may be: a body that is
+    // null — no status set — reads as `{data: null}`, so that is what it allows.
     if (![schema.type].flat().includes('object')) return null;
     if (flatten(body, docEn)?.nullable && schema.properties?.data) {
       const data = schema.properties.data;
@@ -1614,17 +1622,22 @@ function textPlaces(schema: JsonSchema | null | undefined): string[] {
  * nobody has looked at yet. Repeating a read, a PUT or a DELETE changes nothing
  * more, so those are idempotent by method; a POST is not, whatever its
  * description says about a second call — the flag is optional, and false is the
- * cautious value. The world is open, the protocol's default: a workspace holds
- * guests and people of other companies in shared chats, and some tools fetch
- * a public link the model passes.
+ * cautious value. The world is open only where Pachca reaches outside the
+ * workspace (`OPEN_WORLD`), or where the server downloads a link the model passes
+ * (`reachesOut`); everything else stays inside it.
  */
 function annotations(op: Operation): Record<string, boolean> {
   return {
     readOnlyHint: op.kind === 'read',
     destructiveHint: op.kind === 'write' && !(op.key in ADDITIVE),
     idempotentHint: op.kind === 'read' || op.method === 'PUT' || op.method === 'DELETE',
-    openWorldHint: true,
+    openWorldHint: op.key in OPEN_WORLD,
   };
+}
+
+/** A tool whose arguments the server may download from a link: an upload item or a download effect. */
+function reachesOut(request: { arguments?: Record<string, { in?: string; effect?: { kind?: string } }> }): boolean {
+  return Object.values(request.arguments ?? {}).some((arg) => arg.in === 'upload' || arg.effect?.kind === 'download');
 }
 
 /** Roughly how many tokens a text costs: the ratio measured on the manifest's English. */
@@ -1769,9 +1782,10 @@ function lostAcross(
 }
 
 /**
- * An answer carries types, null, descriptions and a moment's format, and nothing
- * a client could refuse a value over (`property`): no enum, no limit or rule and
- * no other format. Walks every node of a built outputSchema, whatever made it.
+ * An answer's schema carries types, null, descriptions and a moment's format,
+ * and no enum, limit, rule or other format (`property`): it describes what the
+ * API may send, and the values a field takes are in its description. Walks every
+ * node of a built outputSchema, whatever made it.
  */
 function outputKeywords(tool: string, schema: JsonSchema | undefined): string[] {
   const problems: string[] = [];
@@ -1890,17 +1904,21 @@ const HTTP_REWRITES: Array<[RegExp, string]> = [
     'The answer contains only a link to the new image.',
   ],
   // The answer of a download is the file itself (`binary_body`), not an HTTP body
-  // with a header: the name rides in the structured half.
+  // with a header: the name rides in the text half.
   [/The response is the body of the file and a\s+`Content-Disposition`\s+header with its name, not\s+`JSON`\.\s*/g, ''],
   // The wait is in a header a model never sees; the server names it in the refusal.
   [
     /responds\s+`429`,\s+and the\s+`Retry-After`\s+header carries the pause before the next attempt\./g,
     'responds `429` and says how long to wait before the next attempt.',
   ],
-  // An empty body comes back wrapped (`RESPONSE_FORMAT.structured_content`), so
-  // what a model reads is `data` and nothing else.
+  // A body of null reads «**data:** null» (`RESPONSE_FORMAT.structured_content`),
+  // which is what this sentence says.
   [/the method returns\s+`200`\s+and\s+`null`\s+in the response body\s+—\s+with no wrapper object\./g, '`data` comes back as `null`.'],
 ];
+/** The spec's wording of a cursor, and what the text half lets a model read it from. */
+const CURSOR_FROM_META = /^Pagination cursor \(from\s+`meta\.paginate\.next_page`(?:\s+or\s+`meta\.paginate\.prev_page`)?\)$/;
+const CURSOR_WORDING = 'Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page';
+
 /** How often each pattern above changed a description — a pattern that never does fails the build. */
 const HTTP_HITS = new Map<RegExp, number>();
 
@@ -2076,9 +2094,9 @@ function describe(op: Operation, secret: boolean): string {
 }
 
 /**
- * A validator the way a client builds one: JSON Schema 2020-12 with formats, as
- * the MCP TypeScript SDK checks a structured answer, lenient about keywords it
- * does not know so a description-only keyword is not an error.
+ * A validator for the schemas of the set: JSON Schema 2020-12 with formats, as
+ * the MCP TypeScript SDK compiles an inputSchema, lenient about keywords it does
+ * not know so a description-only keyword is not an error.
  */
 function validator(): Ajv2020 {
   const ajv = new Ajv2020({ allErrors: true, strict: false });
@@ -2215,6 +2233,10 @@ function build(): void {
   for (const k of Object.keys(NAME_OVERRIDES)) {
     stale('NAME_OVERRIDES', k);
     if (k in CHAIN_STEPS) problems.push(`NAME_OVERRIDES names ${k}, which is a chain step and no tool`);
+  }
+  for (const k of Object.keys(OPEN_WORLD)) {
+    stale('OPEN_WORLD', k);
+    if (!OPEN_WORLD[k]!.trim()) problems.push(`OPEN_WORLD names ${k} without saying what it reaches outside`);
   }
   for (const k of Object.keys(ADDITIVE)) {
     stale('ADDITIVE', k);
@@ -2934,15 +2956,15 @@ function build(): void {
   }
 
   // ── Pages ────────────────────────────────────────────────────────────────
-  // A cursor comes from the answer before, and the server asks for a page cut
-  // short again with a smaller limit (`RESPONSE_FORMAT.truncation`), so a tool
-  // that pages answers with the next cursor and takes a limit.
+  // A cursor comes from the answer before, and the model keeps an answer small
+  // with the limit it pages with, so a tool that pages answers with the next
+  // cursor and takes a limit.
   for (const tool of tools) {
     if (!tool.inputSchema.properties?.cursor) continue;
     if (!tool.outputSchema?.properties?.meta?.properties?.paginate?.properties?.next_page) {
       problems.push(`${tool.name} takes a cursor, and its answer has no meta.paginate.next_page to take it from`);
     }
-    if (!tool.inputSchema.properties?.limit) problems.push(`${tool.name} takes a cursor and no limit, which a page cut short is repeated with`);
+    if (!tool.inputSchema.properties?.limit) problems.push(`${tool.name} takes a cursor and no limit to keep a page small`);
   }
 
   // A link the server builds carries only what it can fill: the host of the
@@ -2954,12 +2976,11 @@ function build(): void {
     }
   }
 
-  // Every schema a client receives compiles the way a client compiles it, every
-  // example passes the schema it illustrates, and an answer the spec shows passes
-  // the tool's outputSchema — whole, cut by the default view, and with each
-  // nullable parent a card reaches into set to null. A record cut naively,
-  // `thread: {id: null}`, or a schema that refuses a field the API leaves empty, is
-  // a result the client throws away.
+  // Every schema of the set compiles, every example passes the schema it
+  // illustrates, and an answer the spec shows passes the tool's outputSchema —
+  // whole, cut by the default view, and with each nullable parent a card reaches
+  // into set to null. A record cut naively, `thread: {id: null}`, or a schema that
+  // refuses a field the API leaves empty, would describe a body the API never sends.
   const ajv = validator();
   const compile = (where: string, schema: unknown): ValidateFunction | null => {
     try {
@@ -3566,7 +3587,14 @@ function build(): void {
 
   // ── Listings per token ───────────────────────────────────────────────────
   // A service tool is listed the way it is served, and costs what it is served as.
-  const serviceListing = SERVICE_TOOLS.map((t: McpServiceTool) => ({
+  const serviceListing = SERVICE_TOOLS.map((t: McpServiceTool) => {
+    const inputSchema = {
+      type: 'object',
+      properties: Object.fromEntries(t.input.map(({ name, required: _r, ...rest }) => [name, rest as JsonSchema])),
+      ...(t.input.some((f) => f.required) ? { required: t.input.filter((f) => f.required).map((f) => f.name) } : {}),
+      additionalProperties: false,
+    } as JsonSchema;
+    return {
     // One platform's research mode looks for search and fetch by these exact
     // names, so a compatibility tool goes without the prefix.
     name: t.compat ? t.name : `${TOOL_PREFIX}${t.name}`,
@@ -3580,17 +3608,14 @@ function build(): void {
       readOnlyHint: t.kind === 'read',
       destructiveHint: t.kind === 'write',
       idempotentHint: t.kind === 'read',
-      openWorldHint: true,
+      openWorldHint: false,
     },
-    inputSchema: {
-      type: 'object',
-      properties: Object.fromEntries(t.input.map(({ name, required: _r, ...rest }) => [name, rest as JsonSchema])),
-      ...(t.input.some((f) => f.required) ? { required: t.input.filter((f) => f.required).map((f) => f.name) } : {}),
-      additionalProperties: false,
-    } as JsonSchema,
+    inputSchema,
+    signature: toolSignature(inputSchema),
     ...(t.outputSchema ? { outputSchema: t.outputSchema as JsonSchema } : {}),
     untrusted: serviceText.get(t.name)?.untrusted ?? [],
-  }));
+    };
+  });
   for (const service of serviceListing) {
     problems.push(...lintSchema(`service tool ${service.name}`, service.inputSchema));
     compile(`service tool ${service.name}`, service.inputSchema);
@@ -3600,18 +3625,20 @@ function build(): void {
   const serviceCost = serviceListing
     .filter((t) => !t.compat)
     .reduce((sum, t) => sum + modelTokens({ name: t.name.replace(TOOL_PREFIX, ''), description: t.description, inputSchema: t.inputSchema }), 0);
+  // What each listing costs a model that loads it whole: for the log, not the manifest.
+  const listingCost = new Map<string, number>();
   const audiences = Object.fromEntries(
     AUDIENCES.map((audience) => {
       const open = tools.filter(
         (t) => t.roles.includes(audience.role) && (!t.plan || t.plan === audience.plan),
       );
+      listingCost.set(audience.key, open.reduce((sum, t) => sum + modelTokens(t), 0) + serviceCost);
       return [
         audience.key,
         {
           role: audience.role,
           plan: audience.plan,
           tools: [...open, ...served].map((t) => `${TOOL_PREFIX}${t.name}`),
-          model_tokens: open.reduce((sum, t) => sum + modelTokens(t), 0) + serviceCost,
         },
       ];
     }),
@@ -3661,8 +3688,9 @@ function build(): void {
       roles: t.roles,
       bot_token_only: t.botTokenOnly,
       description: t.description,
-      annotations: t.annotations,
+      annotations: { ...t.annotations, openWorldHint: t.annotations.openWorldHint || reachesOut(t.request) },
       inputSchema: t.inputSchema,
+      signature: toolSignature(t.inputSchema),
       request: t.request,
       ...(t.entity ? { entity: t.entity } : {}),
       ...(t.outputSchema ? { outputSchema: t.outputSchema } : {}),
@@ -3691,7 +3719,7 @@ function build(): void {
   fs.writeFileSync(OUT_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
   const withProse = tools.filter((t) => MCP_TOOL_PROSE[t.name]).length;
   const listings = Object.entries(audiences)
-    .map(([k, v]) => `${k} ${v.tools.length} tools ~${v.model_tokens}`)
+    .map(([k, v]) => `${k} ${v.tools.length} tools ~${listingCost.get(k)}`)
     .join(', ');
   const scopes = new Set([
     ...tools.flatMap((t) => [
@@ -3701,8 +3729,9 @@ function build(): void {
     ...[...serviceScopes.values()].flat(),
   ].filter(Boolean));
   // What a client that loads tools on demand pays: the names of the widest
-  // listing up front, then one tool at a time. The answer schemas are the
-  // client's to check results against and never reach the model.
+  // listing up front, then one tool at a time. The answer schemas stay with the
+  // server (`RESPONSE_FORMAT.structured_content`) and reach neither a client nor
+  // the model.
   const costs = tools.map((t) => ({ name: t.name, tokens: modelTokens(t) })).sort((a, b) => a.tokens - b.tokens);
   const middle = costs.length >> 1;
   const median = costs.length % 2 ? costs[middle]!.tokens : Math.round((costs[middle - 1]!.tokens + costs[middle]!.tokens) / 2);

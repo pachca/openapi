@@ -96,7 +96,7 @@
  *     bounded by a closed set of values, or a name declared trusted is not free
  *     text any answer carries;
  *   - a tool takes a cursor and its answer carries no next one, or takes no
- *     limit the server asks for a page cut short again with; a link into the web app starts
+ *     limit to keep a page small; a link into the web app starts
  *     elsewhere or uses a placeholder nothing fills;
  *   - a schema does not compile as JSON Schema 2020-12 and draft-07, is no
  *     object at the root, or uses composition keywords some clients drop; an

@@ -128,7 +128,7 @@
     },
     "response_format": {
       "type": "object",
-      "description": "How a tool answers: the rules live here rather than in the server, so results do not differ per handler. Most entries are one line of text, with a template in «…» where the server writes exact words; the shape of the text half is a list of lines, and the cut of a long result carries its budget beside its rule and notices. Which values of an answer are text of other people, each tool lists itself (tool.untrusted).",
+      "description": "How a tool answers: the rules live here rather than in the server, so results do not differ per handler. Most entries are one line of text, with a template in «…» where the server writes exact words; the shape of the text half is a list of lines. Which values of an answer are text of other people, each tool lists itself (tool.untrusted).",
       "required": [
         "structured_content",
         "untrusted_wrapper",

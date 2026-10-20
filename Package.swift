@@ -14,6 +14,7 @@ let package = Package(
             exclude: [
                 "node_modules",
                 "examples",
+                "tests",
                 "package.json",
                 "README.md",
                 "generated/examples.json",

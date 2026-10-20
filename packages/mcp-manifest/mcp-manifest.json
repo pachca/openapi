@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "generated_from": {
-    "digest": "b34d6531f956747c"
+    "digest": "2fd78ef91c611ad0"
   },
   "server": {
     "name": "pachca",
@@ -41,7 +41,7 @@
     "untrusted_wrapper": "in the text half, every value at a path of the tool’s untrusted list, and the text of a file (binary_body), goes inside <pachca_content_{nonce}> … </pachca_content_{nonce}>, with a random nonce per response",
     "footer": "every result except compat ends with two lines: «Now: {iso8601 in the caller’s zone, or in the workspace zone when theirs is empty — always so for a bot}, {weekday} · you: {name} ({id}), {personal token or bot token} · times above are UTC: tell them in the zone of Now» and «Days: Thu {date} · Fri {date} · Sat {date} · Sun {date} · Mon {date} · Tue {date} · Wed {date}», the seven days after the date of Now, each with its weekday",
     "own_items": "except in compat, a record whose author is the caller is marked «(you)» in the text half; the author is the field authors names for the entity of the tool, compared with the caller’s id as text",
-    "pagination_footer": "except in compat, a page of a list ends with «Showing {shown} of {total}.», or «Showing {shown}.» where the API counts no total, then «Continue with cursor={next}.» while meta.paginate.has_next is true — or, in an answer without has_next, while the page is not empty — and «End of list.» once it is not; a page truncation cut offers no cursor",
+    "pagination_footer": "except in compat, a page of a list ends with «Showing {shown} of {total}.», or «Showing {shown}.» where the API counts no total, then «Continue with cursor={next}.» while meta.paginate.has_next is true — or, in an answer without has_next, while the page is not empty — and «End of list.» once it is not",
     "empty_result": "except in compat, «Nothing matched {what was looked for, with its filters}.»",
     "card_note": "a record the default view cut — to its card in a list, or by single_read_omit on a single read — ends its entry in the text half with the fields it lost that hold a value, by name up to three and then a count, and how to get them: «buttons · files.key · +2 fields — view: full»; a record that lost only empty fields carries no note",
     "argument_reading": "text that reads as the declared type — digits, true or false, JSON of a list — is taken as that type",
@@ -50,19 +50,13 @@
     "errors": "a refusal — any API answer from 400 up, invalid_arguments, rate_limit, a link the server refuses or cannot download (files) — is a result with isError: true, text only, without structuredContent: the line of refusals for its status, then every item of errors[] whole — code, key, message, value, payload. An OAuthError reads the same way, error as code and error_description as message; key system means the error is about no field. A refusal the server makes before calling the API has no status and nothing is sent: invalid_arguments reads its own line, and a link it refuses or cannot download reads «The link in {argument} was not used: {reason}.», the reason naming the rule of files it broke — not https, not a public address, too many redirects, over max_download_bytes — or the failed download. An unknown tool, a request that is no valid call and a failure of this server itself are JSON-RPC errors instead",
     "rate_limit": "a 429 comes as JSON with code rate_limit; read the wait from Retry-After and name it in the refusal: «Wait {seconds} s before repeating.»",
     "redirect": "not followed: the answer is its Location, as url in the structured half",
-    "binary_body": "the bytes go as one content block, and the structured half names file_name, mime_type and size. image/jpeg, image/png, image/gif and image/webp go as an image block while their base64 stays within files.max_image_bytes; text/* and JSON go as a text block inside the untrusted wrapper, cut by truncation; anything else whose base64 stays within files.max_return_bytes — another image format, or an image over its limit, included — goes as an embedded blob resource with the uri pachca://files/{id}. A larger file is not passed: the text names its size and says it opens in Pachca. An image cannot be wrapped, so text inside a picture reaches the model unmarked",
+    "binary_body": "the bytes go as one content block, and the structured half names file_name, mime_type and size. image/jpeg, image/png, image/gif and image/webp go as an image block while their base64 stays within files.max_image_bytes; text/* and JSON go as a text block inside the untrusted wrapper; anything else whose base64 stays within files.max_return_bytes — another image format, or an image over its limit, included — goes as an embedded blob resource with the uri pachca://files/{id}. A larger file is not passed: the text names its size and says it opens in Pachca. An image cannot be wrapped, so text inside a picture reaches the model unmarked",
     "compat": "search and fetch, served at compat_address, answer the object their outputSchema describes as structuredContent and as its JSON in exactly one text block, with nothing outside the JSON; the untrusted wrapper goes inside the string values the tool’s untrusted list names, and url comes from the API where the record has one, else from web_links",
-    "truncation": {
-      "max_tokens": 25000,
-      "rule": "except in compat, a result over max_tokens is cut. A list keeps the whole records that fit: the server asks for the same page again with limit set to their number and answers with that page, list_notice and its own footer and cursor, so nothing is skipped; when not even the first record fits, it asks with limit=1 and cuts that record as text, with text_notice. A list that takes no limit is cut by whole records with no cursor. Any other text is cut where the budget ends",
-      "list_notice": "Cut to {shown} of {page} records to fit.",
-      "text_notice": "Truncated at {shown} of {total} characters."
-    },
     "shape": [
       "A heading naming what was asked for.",
       "Scalar facts as bold labels, one per line.",
       "Repeated items as a list, each with its identifier so a follow-up call is possible.",
-      "A closing note only for a genuine next step or for what was cut: card_note per record, the truncation notice for the result."
+      "A closing note only for a genuine next step or for what a card cut: card_note per record."
     ]
   },
   "refusals": {

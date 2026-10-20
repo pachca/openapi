@@ -2934,15 +2934,15 @@ function build(): void {
   }
 
   // ── Pages ────────────────────────────────────────────────────────────────
-  // A cursor comes from the answer before, and the server asks for a page cut
-  // short again with a smaller limit (`RESPONSE_FORMAT.truncation`), so a tool
-  // that pages answers with the next cursor and takes a limit.
+  // A cursor comes from the answer before, and the model keeps an answer small
+  // with the limit it pages with, so a tool that pages answers with the next
+  // cursor and takes a limit.
   for (const tool of tools) {
     if (!tool.inputSchema.properties?.cursor) continue;
     if (!tool.outputSchema?.properties?.meta?.properties?.paginate?.properties?.next_page) {
       problems.push(`${tool.name} takes a cursor, and its answer has no meta.paginate.next_page to take it from`);
     }
-    if (!tool.inputSchema.properties?.limit) problems.push(`${tool.name} takes a cursor and no limit, which a page cut short is repeated with`);
+    if (!tool.inputSchema.properties?.limit) problems.push(`${tool.name} takes a cursor and no limit to keep a page small`);
   }
 
   // A link the server builds carries only what it can fill: the host of the

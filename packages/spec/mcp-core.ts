@@ -203,8 +203,7 @@ export const UPLOAD_LIFTS: Record<OperationKey, Array<{ at: string; argument: st
  * what the strictest client takes, not to what the server can download. An image
  * goes as an image only while its base64 stays within `max_image_bytes` — 5 MB is
  * the smallest limit a client sets for one image — and any other file only while
- * its base64 stays within `max_return_bytes`; text is cut by
- * `RESPONSE_FORMAT.truncation` before that.
+ * its base64 stays within `max_return_bytes`.
  */
 export const FILE_SOURCES = {
   url_schemes: ['https'],
@@ -794,7 +793,7 @@ export const RESPONSE_FORMAT = {
    * end; a search has no has_next, and its end is the first empty page.
    */
   pagination_footer:
-    'except in compat, a page of a list ends with «Showing {shown} of {total}.», or «Showing {shown}.» where the API counts no total, then «Continue with cursor={next}.» while meta.paginate.has_next is true — or, in an answer without has_next, while the page is not empty — and «End of list.» once it is not; a page truncation cut offers no cursor',
+    'except in compat, a page of a list ends with «Showing {shown} of {total}.», or «Showing {shown}.» where the API counts no total, then «Continue with cursor={next}.» while meta.paginate.has_next is true — or, in an answer without has_next, while the page is not empty — and «End of list.» once it is not',
 
   /**
    * An empty result is an answer, not an absence. Returning an empty array
@@ -886,7 +885,7 @@ export const RESPONSE_FORMAT = {
    * past the wrapper left. Audio has no block here, since models take no audio.
    */
   binary_body:
-    'the bytes go as one content block, and the structured half names file_name, mime_type and size. image/jpeg, image/png, image/gif and image/webp go as an image block while their base64 stays within files.max_image_bytes; text/* and JSON go as a text block inside the untrusted wrapper, cut by truncation; anything else whose base64 stays within files.max_return_bytes — another image format, or an image over its limit, included — goes as an embedded blob resource with the uri pachca://files/{id}. A larger file is not passed: the text names its size and says it opens in Pachca. An image cannot be wrapped, so text inside a picture reaches the model unmarked',
+    'the bytes go as one content block, and the structured half names file_name, mime_type and size. image/jpeg, image/png, image/gif and image/webp go as an image block while their base64 stays within files.max_image_bytes; text/* and JSON go as a text block inside the untrusted wrapper; anything else whose base64 stays within files.max_return_bytes — another image format, or an image over its limit, included — goes as an embedded blob resource with the uri pachca://files/{id}. A larger file is not passed: the text names its size and says it opens in Pachca. An image cannot be wrapped, so text inside a picture reaches the model unmarked',
 
   /**
    * One platform's research mode accepts only a search and a fetch of its own
@@ -899,21 +898,9 @@ export const RESPONSE_FORMAT = {
   compat:
     'search and fetch, served at compat_address, answer the object their outputSchema describes as structuredContent and as its JSON in exactly one text block, with nothing outside the JSON; the untrusted wrapper goes inside the string values the tool’s untrusted list names, and url comes from the API where the record has one, else from web_links',
 
-  /**
-   * Long content is cut rather than allowed to flood the context, and the cut
-   * is announced. The budget is the worst case one client allows for a single
-   * result. A list is cut between records, never inside one. The cursor of a
-   * page stands after its last record, so the server itself asks for the page
-   * again with a limit that fits and answers with that page and its cursor: one
-   * more call to the API, and no records the model has already read sent twice.
-   */
-  truncation: {
-    max_tokens: 25_000,
-    rule:
-      'except in compat, a result over max_tokens is cut. A list keeps the whole records that fit: the server asks for the same page again with limit set to their number and answers with that page, list_notice and its own footer and cursor, so nothing is skipped; when not even the first record fits, it asks with limit=1 and cuts that record as text, with text_notice. A list that takes no limit is cut by whole records with no cursor. Any other text is cut where the budget ends',
-    list_notice: 'Cut to {shown} of {page} records to fit.',
-    text_notice: 'Truncated at {shown} of {total} characters.',
-  },
+  // No cut by size: a client keeps a large result itself (Claude Code saves it
+  // to a file the model reads from), and what holds an answer small is a page
+  // with `limit` and a card per record in a list.
 
   /**
    * The shape of the text half. Predictable structure lets a model quote a
@@ -923,7 +910,7 @@ export const RESPONSE_FORMAT = {
     'A heading naming what was asked for.',
     'Scalar facts as bold labels, one per line.',
     'Repeated items as a list, each with its identifier so a follow-up call is possible.',
-    'A closing note only for a genuine next step or for what was cut: card_note per record, the truncation notice for the result.',
+    'A closing note only for a genuine next step or for what a card cut: card_note per record.',
   ],
 };
 

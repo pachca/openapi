@@ -145,7 +145,6 @@
         "redirect",
         "binary_body",
         "compat",
-        "truncation",
         "shape"
       ],
       "properties": {
@@ -153,34 +152,6 @@
           "type": "array",
           "items": {
             "type": "string"
-          }
-        },
-        "truncation": {
-          "type": "object",
-          "required": [
-            "max_tokens",
-            "rule",
-            "list_notice",
-            "text_notice"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "max_tokens": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "rule": {
-              "type": "string",
-              "description": "When and how a result is cut."
-            },
-            "list_notice": {
-              "type": "string",
-              "description": "What a list cut between records says. The page under it is the one the server asked for again with the smaller limit, so the cursor in its footer goes on right after the last record shown."
-            },
-            "text_notice": {
-              "type": "string",
-              "description": "What any other text cut where the budget ends says."
-            }
           }
         }
       },

@@ -55,8 +55,8 @@
  *     the spec lacks, or the tool it runs in does not name it with its scope.
  *
  * Arguments and answers
- *   - anything the spec lets a call send or answer does not reach the tool: a
- *     parameter, a field of the body or of a file, a variant of a union, the
+ *   - anything the spec lets a call send or answer does not reach the tool,
+ *     unless `WITHHELD` keeps it out: a parameter, a field of the body or of a file, a variant of a union, the
  *     values of a map, a field of the answer — or reaches it without its type,
  *     an enum value, what that value means, or the null it may be; an argument
  *     loses a limit, a pattern or a format the API checks, gets another one —
@@ -73,8 +73,11 @@
  *     of the path is no path argument, a header is not sent, a list in the query
  *     has no array form or a non-list has one; an argument the API has no field
  *     for does not say what the server does with it, or says what cannot hold —
- *     a card for an entity without one, a single read cut to a card, a download
- *     into a field that is no file; an edit declares a default;
+ *     a card for an entity without one, a single read cut to a card; an edit
+ *     declares a default;
+ *   - a field kept out (`WITHHELD`) is gone from the spec or required by it, has
+ *     no reason or a sentence that matches nothing, or a tool still takes or
+ *     names it;
  *   - an answer with a body declares no schema, a redirect no url, a file no
  *     description of what comes back; a body that may be null has a data that
  *     may not; any node of an outputSchema declares an enum, a limit or rule,
@@ -183,6 +186,7 @@ import {
   TRUSTED_TEXT,
   UPLOAD_LIFTS,
   UPLOAD_UNAVAILABLE,
+  WITHHELD,
   INSTRUCTION_PLACEHOLDERS,
   MOMENT_ARGUMENT,
   QUERY_ARGUMENT,
@@ -219,9 +223,12 @@ const WORLD_PATH = path.join(HERE, 'eval', 'world.json');
 /**
  * Manifest schema version: the contract a server that executes the manifest is
  * written for. 1.0.0 is the first one published; bump the major when such a
- * server has to change before it loads the file.
+ * server has to change before it loads the file, the minor when it still loads
+ * it. 1.1.0 dropped the links the server downloaded (`FILE_SOURCES`) in a minor
+ * step although a server has to drop its download: no server in use was built
+ * on 1.0.0.
  */
-const SCHEMA_VERSION = '1.0.0';
+const SCHEMA_VERSION = '1.1.0';
 
 /**
  * How much of a text the strictest client keeps, in UTF-16 units. One widely
@@ -1002,8 +1009,8 @@ function requestBodySchema(op: Operation): any {
  * query, a place in the body, an upload the server makes first, or nowhere —
  * the detail level is the server's own. Arguments are flat for the model and
  * the body is not, so without this a manifest could not be turned back into a
- * call: `{message: {…}, link_preview}` and a form beside its trigger both reach
- * the model as one list of names.
+ * call: a wrapped body such as `{message: {…}}` with a field beside it, and a
+ * form beside its trigger, both reach the model as one list of names.
  */
 interface ArgumentPlace {
   in: 'path' | 'query' | 'body' | 'upload' | 'server';
@@ -1041,8 +1048,7 @@ interface ArgumentPlace {
   effect?:
     | { kind: 'projection'; entity: string }
     | { kind: 'omission'; entity: string }
-    | { kind: 'after'; operation: OperationKey; at: string; on: 'success'; scopes: string[] }
-    | { kind: 'download'; into: string };
+    | { kind: 'after'; operation: OperationKey; at: string; on: 'success'; scopes: string[] };
 }
 
 /** The operations an upload runs, in order: the chain steps of the set. */
@@ -1052,22 +1058,21 @@ const UPLOAD_STEPS = Object.keys(CHAIN_STEPS) as OperationKey[];
 const UPLOAD_FILLS = ['key', 'size'];
 
 /**
- * A file the model hands over: its contents, a link the server downloads
- * (`FILE_SOURCES`), or the key of a file already in Pachca, which goes as it is.
+ * A file the model hands over: its contents, or the key of a file already in
+ * Pachca, which goes as it is. No link: the server downloads none (`FILE_SOURCES`).
  */
 const FILE_CONTENT: JsonSchema = {
   type: 'string',
   description: 'The file contents, base64-encoded — for text you wrote yourself.',
 };
 const IMAGE_CONTENT: JsonSchema = { type: 'string', description: 'The image contents, base64-encoded.' };
-const FILE_URL: JsonSchema = { type: 'string', description: 'A public https link to the file; the server downloads it.' };
 
 /**
  * The spec's `name` of a file sends a model to the `key` it has no part in when
- * it hands over contents or a link. Counted, so a rewrite that no longer finds
+ * it hands over contents. Counted, so a rewrite that no longer finds
  * its sentence fails the build instead of rewriting nothing.
  */
-const FILE_NAME_REWRITE: [RegExp, string] = [/the file in `key`/g, 'the file you pass (content, url or key)'];
+const FILE_NAME_REWRITE: [RegExp, string] = [/the file in `key`/g, 'the file you pass (content or key)'];
 let fileNameRewrites = 0;
 
 /**
@@ -1180,12 +1185,16 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
     unwraps(body, name, child) ||
     (Boolean(created?.properties?.[name]) && unwraps(created, name, flatten(created.properties[name], docEn)) && unwraps({ required: [name] }, name, child));
   for (const [name, raw] of Object.entries<any>(body?.properties ?? {})) {
+    // A field kept out for safety (`WITHHELD`) reaches no argument, and the
+    // build checks below that it is still in the spec and still optional.
+    if (withheld(op.key, name)) continue;
     const child = flatten(raw, docEn);
     if (wrapperOf(name, child)) {
       for (const [inner, innerRaw] of Object.entries<any>(child.properties)) {
+        if (withheld(op.key, `${name}.${inner}`)) continue;
         claim(inner, { in: 'body', at: `${name}.${inner}` }, property(innerRaw, docEn));
       }
-      if (bodyRequired.includes(name)) for (const r of child.required ?? []) required.push(r);
+      if (bodyRequired.includes(name)) for (const r of child.required ?? []) if (!withheld(op.key, `${name}.${r}`)) required.push(r);
     } else {
       claim(name, { in: 'body', at: name }, property(raw, docEn));
       if (bodyRequired.includes(name)) required.push(name);
@@ -1270,13 +1279,13 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
       ...(field.minItems !== undefined ? { minItems: field.minItems } : {}),
       items: {
         type: 'object',
-        description: 'One of content, url or key.',
-        properties: { ...Object.fromEntries(kept), content: FILE_CONTENT, url: FILE_URL },
+        description: 'Either content or key.',
+        properties: { ...Object.fromEntries(kept), content: FILE_CONTENT },
         required: (item.required ?? []).filter((name: string) => !UPLOAD_FILLS.includes(name)),
       },
       description:
-        `${sentence(said)} Each file goes as its contents, a public link, or the key of a file already in Pachca: ` +
-        'the server uploads contents and links, filling in key and size.',
+        `${sentence(said)} Each file goes as its contents or as the key of a file already in Pachca: ` +
+        'the server uploads contents, filling in key and size.',
     });
   }
 
@@ -1299,11 +1308,10 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
       ...(field.minItems !== undefined ? { minItems: field.minItems } : {}),
       items: {
         type: 'object',
-        description: 'One of content, url or key.',
+        description: 'Either content or key.',
         properties: {
-          name: { type: 'string', description: 'File name with its extension, for content or url.' },
+          name: { type: 'string', description: 'File name with its extension, when you pass content.' },
           content: IMAGE_CONTENT,
-          url: FILE_URL,
           key: {
             type: 'string',
             description: `The key of an image already in place, as the full record carries it in ${lift.at}. It goes as it is.`,
@@ -1315,25 +1323,12 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
       description: (() => {
         const said = String(field.description ?? '').trim();
         const passed =
-          'each image as its contents, a public link, or the key of an image already in place; the server uploads ' +
-          'contents and links and puts their keys in place.';
+          'each image as its contents or as the key of an image already in place; the server uploads ' +
+          'contents and puts their keys in place.';
         const told = said.replace(LIFT_KEYS_CLAUSE, `: ${passed}`);
-        return told !== said ? told : `${sentence(said)} Each image goes as its contents, a public link, or the key of an image already in place.`;
+        return told !== said ? told : `${sentence(said)} Each image goes as its contents or as the key of an image already in place.`;
       })(),
     });
-  }
-
-  // A file the API takes as bytes can come as a link too: the server downloads it
-  // (`FILE_SOURCES`). The bytes stay optional then — one of the two is enough.
-  for (const [name, place] of Object.entries({ ...places })) {
-    if (place.in !== 'body' || properties[name]?.contentEncoding !== 'base64') continue;
-    const url = `${name}_url`;
-    claim(url, { in: 'server', effect: { kind: 'download', into: name } }, {
-      type: 'string',
-      description: `A public https link to the file instead of ${name}; the server downloads it. Pass one of the two.`,
-    });
-    properties[name] = { ...properties[name], description: `${properties[name]!.description} Or pass ${url} instead.` };
-    for (let i = required.length - 1; i >= 0; i--) if (required[i] === name) required.splice(i, 1);
   }
 
   // A field that takes an upload key this server makes no upload for
@@ -1378,7 +1373,7 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
   // Written argument text follows the spec's rather than replacing it: the spec
   // says what the field is, prose what to put there — the voice a message is
   // written in, the flag a day without an hour takes. Applied once every
-  // argument is in place, so prose for an upload or a link argument lands too,
+  // argument is in place, so prose for an upload argument lands too,
   // and prose for one the tool does not take fails the build.
   const specWords: Record<string, string> = {};
   for (const [argument, text] of Object.entries(MCP_TOOL_PROSE[op.name]?.arguments ?? {})) {
@@ -1623,8 +1618,7 @@ function textPlaces(schema: JsonSchema | null | undefined): string[] {
  * more, so those are idempotent by method; a POST is not, whatever its
  * description says about a second call — the flag is optional, and false is the
  * cautious value. The world is open only where Pachca reaches outside the
- * workspace (`OPEN_WORLD`), or where the server downloads a link the model passes
- * (`reachesOut`); everything else stays inside it.
+ * workspace (`OPEN_WORLD`); everything else stays inside it, files included.
  */
 function annotations(op: Operation): Record<string, boolean> {
   return {
@@ -1633,11 +1627,6 @@ function annotations(op: Operation): Record<string, boolean> {
     idempotentHint: op.kind === 'read' || op.method === 'PUT' || op.method === 'DELETE',
     openWorldHint: op.key in OPEN_WORLD,
   };
-}
-
-/** A tool whose arguments the server may download from a link: an upload item or a download effect. */
-function reachesOut(request: { arguments?: Record<string, { in?: string; effect?: { kind?: string } }> }): boolean {
-  return Object.values(request.arguments ?? {}).some((arg) => arg.in === 'upload' || arg.effect?.kind === 'download');
 }
 
 /** Roughly how many tokens a text costs: the ratio measured on the manifest's English. */
@@ -1885,19 +1874,18 @@ const HTTP_ONLY_SENTENCES = [
  * an export answers with is temporary — and prose had to say the rest again.
  * Each one has to rewrite something, the same as above.
  */
+// The sentence about `link_preview` is no plumbing: `WITHHELD` drops it together
+// with the field, which stays out of the tool for safety.
 const HTTP_REWRITES: Array<[RegExp, string]> = [
   // How long the link lives the spec says in a sentence of its own.
   [/In response to the request the server returns `302 Found` with a `Location` header containing ([^.]*)\./g, 'The answer is $1.'],
-  // Where a field sits in the HTTP body is the client's business; the tool takes
-  // an argument, and the fact worth keeping is that the preview needs asking for.
-  [/ at the root of the request body\./g, '.'],
   // The server sends the preference with every call (`request.headers`), so a
   // model always gets the identifier: the header and the empty 204 are plumbing.
   [
     /With the `Prefer: return=representation` header the response comes with status `202` and the export identifier in `data\.id`\. Without the header the response is empty, with status `204`\./g,
     'The answer carries the export identifier in `data.id`.',
   ],
-  // An avatar is an argument here, bytes or a link; how the file travels is the
+  // An avatar is an argument here, passed as its bytes; how the file travels is the
   // server's business, and the fact worth keeping is what comes back.
   [
     /The file is sent in\s+`multipart\/form-data`\s+format, and the response contains only a link to the new image\./g,
@@ -1921,6 +1909,12 @@ const CURSOR_WORDING = 'Pagination cursor: the value «Continue with cursor=…�
 
 /** How often each pattern above changed a description — a pattern that never does fails the build. */
 const HTTP_HITS = new Map<RegExp, number>();
+
+/** Whether a field of a body is kept out of the tool (`WITHHELD`): a top-level name, or `wrapper.field`. */
+const withheld = (op: OperationKey, at: string): boolean => (WITHHELD[op] ?? []).some((w) => w.at === at);
+
+/** How often the sentence of each withheld field was dropped from a description — one that never is fails the build. */
+const WITHHELD_HITS = new Map<RegExp, number>();
 
 // A webhook has a `URL` of its own, so only the plumbing phrasings count.
 const HTTP_LEFTOVER =
@@ -2058,7 +2052,13 @@ function specText(op: Operation): string {
     if (next !== text) HTTP_HITS.set(pattern, (HTTP_HITS.get(pattern) ?? 0) + 1);
     return next;
   };
-  const rewritten = HTTP_REWRITES.reduce((text, [pattern, to]) => applied(text, pattern, to), linked);
+  // The sentence that tells how to use a withheld field goes with the field.
+  const kept = (WITHHELD[op.key] ?? []).reduce((text, { drop }) => {
+    const next = text.replace(drop, '');
+    if (next !== text) WITHHELD_HITS.set(drop, (WITHHELD_HITS.get(drop) ?? 0) + 1);
+    return next;
+  }, linked);
+  const rewritten = HTTP_REWRITES.reduce((text, [pattern, to]) => applied(text, pattern, to), kept);
   const raw = HTTP_ONLY_SENTENCES.reduce((text, pattern) => applied(text, pattern, ''), rewritten);
   const [head, ...rest] = raw.split(/\n\s*\n/);
   const title = summary || one(head);
@@ -2487,6 +2487,7 @@ function build(): void {
     const body = specResolve(requestBodySchema(op), docEn);
     const bodyRequired: string[] = body?.required ?? [];
     for (const [name, raw] of Object.entries<any>(body?.properties ?? {})) {
+      if (withheld(op.key, name)) continue;
       const placed = Object.entries(tool.request.arguments);
       const place = placed.find(([, p]) => p.at === name) ?? placed.find(([, p]) => p.at?.startsWith(`${name}.`));
       if (!place) {
@@ -2537,6 +2538,7 @@ function build(): void {
       } else {
         const wrapper = specResolve(raw, docEn);
         for (const [inner, innerRaw] of Object.entries<any>(wrapper?.properties ?? {})) {
+          if (withheld(op.key, `${name}.${inner}`)) continue;
           const arg = Object.entries(tool.request.arguments).find(([, p]) => p.at === `${name}.${inner}`);
           if (!arg) {
             problems.push(`${tool.name}: the body field ${name}.${inner} reaches no argument`);
@@ -2548,9 +2550,7 @@ function build(): void {
         }
       }
     }
-    // What the API requires, the tool requires, and nothing more — except a file
-    // that a link may stand in for, where one of the two is enough.
-    for (const place of Object.values(tool.request.arguments)) if (place.effect?.kind === 'download') expected.delete(place.effect.into);
+    // What the API requires, the tool requires, and nothing more.
     const required = new Set(tool.inputSchema.required ?? []);
     for (const name of expected) if (!required.has(name)) problems.push(`${tool.name}: ${name} is required by the spec and not by the tool`);
     for (const name of required) if (!expected.has(name)) problems.push(`${tool.name}: ${name} is required by the tool and not by the spec`);
@@ -3061,6 +3061,35 @@ function build(): void {
     if (!HTTP_HITS.get(pattern)) problems.push(`the HTTP pattern ${pattern.source.slice(0, 60)}… matches no description of the spec — drop it`);
   }
 
+  // A field kept out (`WITHHELD`) has to be a field the spec still has, one a
+  // call may leave out, and nothing a tool says may still send the model to it.
+  for (const [key, fields] of Object.entries(WITHHELD) as Array<[OperationKey, NonNullable<(typeof WITHHELD)[OperationKey]>]>) {
+    const op = byKey.get(key);
+    const tool = tools.find((t) => t.operation === key);
+    if (!op || !tool) {
+      problems.push(`WITHHELD names ${key}, which is no operation of a tool`);
+      continue;
+    }
+    const body = specResolve(requestBodySchema(op), docEn);
+    for (const { at, drop, reason } of fields) {
+      const [head, inner] = at.split('.') as [string, string | undefined];
+      const holder = inner ? specResolve(body?.properties?.[head], docEn) : body;
+      const field = holder?.properties?.[inner ?? head];
+      if (!field) problems.push(`${tool.name}: ${at} is withheld, and the spec has no such field — drop it from WITHHELD`);
+      if ((holder?.required ?? []).includes(inner ?? head)) problems.push(`${tool.name}: ${at} is withheld, and the spec requires it`);
+      if (!WITHHELD_HITS.get(drop)) problems.push(`${tool.name}: the sentence about ${at} matches nothing in the description of ${key}`);
+      if (!reason.trim()) problems.push(`${tool.name}: ${at} is withheld without a reason`);
+      const name = inner ?? head;
+      if (Object.values(tool.request.arguments).some((p) => p.at === at || at.startsWith(`${p.at}.`))) {
+        problems.push(`${tool.name} still places ${at}: only a top-level field or a field of an unwrapped wrapper can be withheld`);
+      }
+      if (tool.inputSchema.properties?.[name]) problems.push(`${tool.name} still takes ${name}, which is withheld`);
+      if (new RegExp(`\\b${name}\\b`).test(`${tool.description}${JSON.stringify(tool.inputSchema)}`)) {
+        problems.push(`${tool.name} still names ${name}, which is withheld`);
+      }
+    }
+  }
+
   // A body the generator could not read leaves a tool with nothing to pass. An
   // empty schema is a valid schema, so nothing else would notice.
   for (const op of operations) {
@@ -3137,12 +3166,6 @@ function build(): void {
         if (!SINGLE_READ_OMIT[effect.entity]) problems.push(`${tool.name} keeps fields of ${effect.entity} out by ${name}, and SINGLE_READ_OMIT names none`);
         if (tool.entity !== effect.entity) problems.push(`${tool.name} answers with ${tool.entity ?? 'nothing named'} and leaves out fields of ${effect.entity}`);
         if (isListAnswer(tool)) problems.push(`${tool.name} answers with a list, which a card cuts, and declares a single read's omissions`);
-      }
-      if (effect.kind === 'download') {
-        const into = tool.request.arguments[effect.into];
-        if (!into || into.in !== 'body' || tool.inputSchema.properties?.[effect.into]?.contentEncoding !== 'base64') {
-          problems.push(`${tool.name} downloads ${name} into ${effect.into}, which is not a file field of the body`);
-        }
       }
       if (effect.kind === 'after' && !byKey.has(effect.operation)) {
         problems.push(`${tool.name} runs ${effect.operation} after ${name}, which is not an operation of the spec`);
@@ -3688,7 +3711,7 @@ function build(): void {
       roles: t.roles,
       bot_token_only: t.botTokenOnly,
       description: t.description,
-      annotations: { ...t.annotations, openWorldHint: t.annotations.openWorldHint || reachesOut(t.request) },
+      annotations: t.annotations,
       inputSchema: t.inputSchema,
       signature: toolSignature(t.inputSchema),
       request: t.request,

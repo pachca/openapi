@@ -1076,13 +1076,6 @@ export const TOOL_SCENARIOS: ToolScenario[] = [
 
   // ── Аватар бота, перенос отложенного, файл без ссылки, права подключения ──
   {
-    id: "bot-avatar-by-link",
-    prompt: "поставь боту «Дежурный» аватар — вот картинка: https://img.example.org/duty-bot.png",
-    accept: ["list_bots", "get_bot", "update_bot_avatar"],
-    args: { must: { id: 7801, image_url: "https://img.example.org/duty-bot.png" }, absent: ["image"] },
-    note: "Картинку по ссылке скачивает сервер: переписывать её в base64 не нужно и не получится.",
-  },
-  {
     id: "bot-avatar-remove",
     prompt: "убери аватар у бота «Дежурный»",
     accept: ["list_bots", "get_bot", "delete_bot_avatar"],

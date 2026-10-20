@@ -11,8 +11,12 @@
  *      differs from the one in the `latest` release on npm, the server has to
  *      change before it loads the file, and when a tool or an argument of that
  *      release is gone, a client loses what it called: either way the declared
- *      version must be a major step. check-release only checks that the step is
- *      exact; which step is right is decided here.
+ *      version must be a major step. A schema that changed beyond its
+ *      descriptions needs a new schema_version, and a rule the server executes
+ *      that changed (response_format, refusals, files and the rest) is a minor
+ *      step at least: the README keeps patch for texts a model reads.
+ *      check-release only checks that the step is exact; which step is right is
+ *      decided here.
  *
  * The package files are copies of what packages/spec generates; that they are
  * in sync is check-generated-sync's job (and the workflow's).
@@ -36,6 +40,50 @@ const AGAINST_NPM = process.argv.includes('--against-npm');
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const major = (version) => Number(String(version).split('.')[0]);
+const minor = (version) => Number(String(version).split('.')[1]);
+
+/** A value with its keys in order, so that moving a key is no change. */
+const canonical = (node) =>
+  Array.isArray(node)
+    ? node.map(canonical)
+    : node && typeof node === 'object'
+      ? Object.fromEntries(
+          Object.keys(node)
+            .sort()
+            .map((key) => [key, canonical(node[key])])
+        )
+      : node;
+
+/**
+ * A schema without its descriptions: what a server executes, not what it reads.
+ * A description is dropped as text only, so a property named description stays.
+ */
+const structureOf = (node) =>
+  Array.isArray(node)
+    ? node.map(structureOf)
+    : node && typeof node === 'object'
+      ? Object.fromEntries(
+          Object.keys(node)
+            .filter((key) => !(key === 'description' && typeof node[key] === 'string'))
+            .sort()
+            .map((key) => [key, structureOf(node[key])])
+        )
+      : node;
+
+/** The parts of the manifest the server executes rather than hands to a model. */
+const RULES = [
+  'response_format',
+  'refusals',
+  'files',
+  'cache',
+  'instruction_placeholders',
+  'compat_address',
+  'web_links',
+  'authors',
+  'compact_projections',
+  'single_read_omit',
+  'audiences',
+];
 
 const manifest = readJson(path.join(PKG_DIR, 'mcp-manifest.json'));
 const schema = readJson(path.join(PKG_DIR, 'mcp-manifest.schema.json'));
@@ -124,9 +172,10 @@ async function checkStep() {
   // A tool or an argument that is gone takes away something a client of the
   // server may call, so it is a major step too, whatever the contract says.
   const argsOf = (tool) => Object.keys(tool.inputSchema?.properties ?? {});
-  const current = new Map(manifest.tools.map((tool) => [tool.name, new Set(argsOf(tool))]));
+  const allTools = (m) => [...(m.tools ?? []), ...(m.service_tools ?? [])];
+  const current = new Map(allTools(manifest).map((tool) => [tool.name, new Set(argsOf(tool))]));
   const removed = [];
-  for (const tool of previous.tools ?? []) {
+  for (const tool of allTools(previous)) {
     const args = current.get(tool.name);
     if (!args) removed.push(tool.name);
     else for (const arg of argsOf(tool)) if (!args.has(arg)) removed.push(`${tool.name}.${arg}`);
@@ -145,6 +194,47 @@ async function checkStep() {
     problems.push(
       `schema_version moved from ${before} to ${now}: the server has to change, so ` +
         `${declared} must be a major step after ${latest} (${major(latest) + 1}.0.0)`
+    );
+  }
+  // The contract itself: a schema that changed beyond its descriptions is a new
+  // schema_version, whatever the manifest says.
+  const publishedSchema = fileFromTar(tar, 'package/mcp-manifest.schema.json');
+  if (
+    publishedSchema &&
+    before === now &&
+    JSON.stringify(structureOf(JSON.parse(publishedSchema))) !== JSON.stringify(structureOf(schema))
+  ) {
+    problems.push(
+      `mcp-manifest.schema.json changed since ${latest} beyond its descriptions, and schema_version ` +
+        `is still ${now}: raise it — the minor when a server built for ${before} still loads the ` +
+        `file, the major when it has to change`
+    );
+  }
+  // A patch is for texts a model reads: a rule the server executes, a tool or an
+  // argument beyond its wording, and the contract version are no text fix.
+  const changedRules = RULES.filter(
+    (key) =>
+      JSON.stringify(canonical(previous[key] ?? null)) !==
+      JSON.stringify(canonical(manifest[key] ?? null))
+  );
+  const toolShape = (m) =>
+    JSON.stringify(
+      allTools(m).map(({ title: _t, description: _d, signature: _s, ...tool }) => ({
+        ...canonical(tool),
+        inputSchema: structureOf(tool.inputSchema ?? null),
+        outputSchema: structureOf(tool.outputSchema ?? null),
+      }))
+    );
+  const reasons = [
+    ...changedRules,
+    ...(before !== now ? [`schema_version ${before} → ${now}`] : []),
+    ...(toolShape(previous) !== toolShape(manifest) ? ['tools or arguments'] : []),
+  ];
+  const patchStep = major(declared) === major(latest) && minor(declared) === minor(latest);
+  if (reasons.length > 0 && patchStep) {
+    problems.push(
+      `changed since ${latest} beyond texts (${reasons.join(', ')}): ${declared} is a patch ` +
+        `step, and this is a minor step at least (${major(latest)}.${minor(latest) + 1}.0)`
     );
   }
 }

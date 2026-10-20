@@ -35,6 +35,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { REFUSALS, RESPONSE_FORMAT } from '../../mcp-core';
 import { pick, REFUSAL } from './world-pick';
+import { toolSignature } from '../mcp-signature';
 
 const TOOLS_PATH = process.env.EVAL_TOOLS;
 const RECORD_PATH = process.env.EVAL_RECORD;
@@ -268,34 +269,6 @@ const problemsOf = (schema: Field, given: Record<string, unknown>): string[] => 
 };
 
 /**
- * What a tool takes, spelled the way `RESPONSE_FORMAT.signature` asks: a
- * star on what is required, an object with its fields, a list of objects with
- * the fields of one item, two levels down. A refusal that said only
- * `view (object, required)` sent the agent off to ask the person what a form
- * looks like.
- */
-const signatureOf = (schema: Field, depth = 0): string =>
-  Object.entries(schema.properties ?? {})
-    .map(([name, field]) => `${name}${schema.required?.includes(name) ? '*' : ''} ${shapeOf(field, depth)}`)
-    .join(', ');
-
-const shapeOf = (field: Field, depth: number): string => {
-  if (field.enum) return `(${field.enum.join(' | ')})`;
-  const types = typesOf(field);
-  const orNull = nullable(field) ? ' or null' : '';
-  if (types.includes('object') && field.properties && depth < 2) return `{${signatureOf(field, depth + 1)}}${orNull}`;
-  if (types.includes('array')) {
-    const item = field.items ?? {};
-    const itemTypes = typesOf(item);
-    if (itemTypes.includes('object') && item.properties && depth < 2) return `[{${signatureOf(item, depth + 1)}}]${orNull}`;
-    // A list of lists — the rows of buttons — spells its inner list the same way.
-    if (itemTypes.includes('array')) return `[${shapeOf(item, depth)}]${orNull}`;
-    return `[${itemTypes.join(' | ') || 'any'}]${orNull}`;
-  }
-  return `(${types.join(' | ') || 'any'}${orNull})`;
-};
-
-/**
  * Rules of the API that a key of the world cannot spell. The export period is
  * at most 45 days from start to end, 366 with `chat_ids`, and cannot end before
  * it starts; the API refuses any other with `422 invalid_date_range`. A stub
@@ -355,7 +328,7 @@ function handle(request: { id?: number | string; method: string; params?: any })
       const text = RESPONSE_FORMAT.invalid_arguments
         .replace('{tool}', tool.name)
         .replace('{problems}', problems.join('; '))
-        .replace('{signature}', signatureOf(tool.inputSchema as Field));
+        .replace('{signature}', toolSignature(tool.inputSchema as Field));
       send({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: `${text}\n\n${footer}` }], isError: true } });
       return;
     }

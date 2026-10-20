@@ -146,6 +146,7 @@
         "redirect",
         "binary_body",
         "compat",
+        "size_limit",
         "shape"
       ],
       "properties": {
@@ -153,6 +154,35 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "size_limit": {
+          "type": "object",
+          "required": [
+            "max_chars",
+            "rule",
+            "list_notice",
+            "text_notice"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "max_chars": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The most characters a text half carries, the notice and the footer included, counted as Unicode code points, not tokens; the text of a file is held to it on its own."
+            },
+            "rule": {
+              "type": "string",
+              "description": "When and how a text half over max_chars is cut."
+            },
+            "list_notice": {
+              "type": "string",
+              "description": "What a list of a tool that takes limit says when it keeps fewer entries than data holds, in place of both lines of pagination_footer: the model asks for the same page again with the smaller limit, so no record is skipped."
+            },
+            "text_notice": {
+              "type": "string",
+              "description": "What a text cut at max_chars says, a single list entry that does not fit alone included."
+            }
           }
         }
       },
@@ -297,7 +327,7 @@
         "max_return_bytes": {
           "type": "integer",
           "minimum": 1,
-          "description": "The largest file a result carries, measured as its base64: an image over max_image_bytes, a text file and any other file all go only within it (response_format.binary_body); a larger one is not passed."
+          "description": "The largest file a result carries, measured as its base64: an image over max_image_bytes, a text file and any other file all go only within it, and the text of a file is cut further at response_format.size_limit.max_chars (response_format.binary_body); a larger one is not passed."
         },
         "max_image_bytes": {
           "type": "integer",
@@ -421,14 +451,13 @@
         "name",
         "title",
         "operation",
-        "kind",
         "scope",
         "plan",
         "roles",
-        "bot_token_only",
         "description",
         "annotations",
         "inputSchema",
+        "signature",
         "request",
         "untrusted"
       ],
@@ -453,7 +482,8 @@
           "enum": [
             "read",
             "write"
-          ]
+          ],
+          "description": "read or write, as the method of the operation gives it. For reference only: the annotations carry what a client needs."
         },
         "scope": {
           "type": [
@@ -483,7 +513,7 @@
         },
         "bot_token_only": {
           "type": "boolean",
-          "description": "Only a bot token reaches the operation: roles is bot alone."
+          "description": "Only a bot token reaches the operation: roles is bot alone. For reference only: roles and the listings already say it."
         },
         "description": {
           "type": "string",
@@ -494,6 +524,10 @@
         },
         "inputSchema": {
           "$ref": "#/$defs/jsonSchema"
+        },
+        "signature": {
+          "type": "string",
+          "description": "The tool's arguments spelled the way response_format.signature says, written by the build: the server quotes it in invalid_arguments as it is."
         },
         "request": {
           "$ref": "#/$defs/request"
@@ -688,13 +722,13 @@
       "required": [
         "name",
         "title",
-        "kind",
         "compat",
         "operations",
         "scopes",
         "description",
         "annotations",
         "inputSchema",
+        "signature",
         "untrusted"
       ],
       "additionalProperties": false,
@@ -713,7 +747,8 @@
           "enum": [
             "read",
             "write"
-          ]
+          ],
+          "description": "read or write, as the method of the operation gives it. For reference only: the annotations carry what a client needs."
         },
         "description": {
           "type": "string",
@@ -744,6 +779,10 @@
         "inputSchema": {
           "$ref": "#/$defs/jsonSchema"
         },
+        "signature": {
+          "type": "string",
+          "description": "The tool's arguments spelled the way response_format.signature says, written by the build: the server quotes it in invalid_arguments as it is."
+        },
         "outputSchema": {
           "$ref": "#/$defs/jsonSchema",
           "description": "The answer a platform prescribes, when it prescribes one: the compatibility pair answers in this shape (response_format.compat), and its descriptions say what id and url look like."
@@ -762,8 +801,7 @@
       "required": [
         "role",
         "plan",
-        "tools",
-        "model_tokens"
+        "tools"
       ],
       "additionalProperties": false,
       "properties": {
@@ -788,10 +826,6 @@
             "type": "string",
             "pattern": "^pachca_"
           }
-        },
-        "model_tokens": {
-          "type": "integer",
-          "description": "Roughly what this listing costs a model if a client loads it whole. Clients that fetch a schema when it is needed pay a fraction of it."
         }
       }
     }

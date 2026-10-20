@@ -166,6 +166,7 @@ import addFormats from 'ajv-formats';
 import {
   ACCESS_EXCEPTIONS,
   ADDITIVE,
+  OPEN_WORLD,
   AUDIENCES,
   AUTHOR_FIELDS,
   CACHE_POLICY,
@@ -200,6 +201,7 @@ import {
   type OperationKey,
   type ToolKind,
 } from '../mcp-core';
+import { toolSignature } from './mcp-signature';
 import siteRedirects from '../../../apps/docs/redirects';
 import { toSlug } from '../../../apps/docs/lib/utils/transliterate';
 import { TOOL_SCENARIOS } from '../mcp-scenarios';
@@ -1150,8 +1152,14 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
       continue;
     }
     // The parameter's own wording leads, and what the values of its schema mean
-    // still follows it.
-    const worded = param.description ? { ...flatten(param.schema, docEn), description: param.description } : param.schema;
+    // still follows it. A cursor is named by where the text half gives it, the
+    // next one alone (`RESPONSE_FORMAT.pagination_footer`): the spec's «from
+    // meta.paginate» points at a body the model does not see.
+    const wording = param.name === 'cursor' && CURSOR_FROM_META.test(param.description ?? '') ? CURSOR_WORDING : param.description;
+    if (param.name === 'cursor' && wording !== CURSOR_WORDING) {
+      problems.push(`${op.name}: the cursor is worded «${param.description}», which CURSOR_FROM_META does not read, so the model would be sent to meta.paginate it never sees`);
+    }
+    const worded = wording ? { ...flatten(param.schema, docEn), description: wording } : param.schema;
     const schema = property(worded, docEn);
     // A list in the query travels the way the spec declares (`queryListProblems`),
     // never the way OpenAPI's explode would put it: the emitter writes
@@ -1614,17 +1622,22 @@ function textPlaces(schema: JsonSchema | null | undefined): string[] {
  * nobody has looked at yet. Repeating a read, a PUT or a DELETE changes nothing
  * more, so those are idempotent by method; a POST is not, whatever its
  * description says about a second call — the flag is optional, and false is the
- * cautious value. The world is open, the protocol's default: a workspace holds
- * guests and people of other companies in shared chats, and some tools fetch
- * a public link the model passes.
+ * cautious value. The world is open only where Pachca reaches outside the
+ * workspace (`OPEN_WORLD`), or where the server downloads a link the model passes
+ * (`reachesOut`); everything else stays inside it.
  */
 function annotations(op: Operation): Record<string, boolean> {
   return {
     readOnlyHint: op.kind === 'read',
     destructiveHint: op.kind === 'write' && !(op.key in ADDITIVE),
     idempotentHint: op.kind === 'read' || op.method === 'PUT' || op.method === 'DELETE',
-    openWorldHint: true,
+    openWorldHint: op.key in OPEN_WORLD,
   };
+}
+
+/** A tool whose arguments the server may download from a link: an upload item or a download effect. */
+function reachesOut(request: { arguments?: Record<string, { in?: string; effect?: { kind?: string } }> }): boolean {
+  return Object.values(request.arguments ?? {}).some((arg) => arg.in === 'upload' || arg.effect?.kind === 'download');
 }
 
 /** Roughly how many tokens a text costs: the ratio measured on the manifest's English. */
@@ -1902,6 +1915,10 @@ const HTTP_REWRITES: Array<[RegExp, string]> = [
   // which is what this sentence says.
   [/the method returns\s+`200`\s+and\s+`null`\s+in the response body\s+—\s+with no wrapper object\./g, '`data` comes back as `null`.'],
 ];
+/** The spec's wording of a cursor, and what the text half lets a model read it from. */
+const CURSOR_FROM_META = /^Pagination cursor \(from\s+`meta\.paginate\.next_page`(?:\s+or\s+`meta\.paginate\.prev_page`)?\)$/;
+const CURSOR_WORDING = 'Pagination cursor: the value «Continue with cursor=…» gives at the end of the previous page';
+
 /** How often each pattern above changed a description — a pattern that never does fails the build. */
 const HTTP_HITS = new Map<RegExp, number>();
 
@@ -2216,6 +2233,10 @@ function build(): void {
   for (const k of Object.keys(NAME_OVERRIDES)) {
     stale('NAME_OVERRIDES', k);
     if (k in CHAIN_STEPS) problems.push(`NAME_OVERRIDES names ${k}, which is a chain step and no tool`);
+  }
+  for (const k of Object.keys(OPEN_WORLD)) {
+    stale('OPEN_WORLD', k);
+    if (!OPEN_WORLD[k]!.trim()) problems.push(`OPEN_WORLD names ${k} without saying what it reaches outside`);
   }
   for (const k of Object.keys(ADDITIVE)) {
     stale('ADDITIVE', k);
@@ -3566,7 +3587,14 @@ function build(): void {
 
   // ── Listings per token ───────────────────────────────────────────────────
   // A service tool is listed the way it is served, and costs what it is served as.
-  const serviceListing = SERVICE_TOOLS.map((t: McpServiceTool) => ({
+  const serviceListing = SERVICE_TOOLS.map((t: McpServiceTool) => {
+    const inputSchema = {
+      type: 'object',
+      properties: Object.fromEntries(t.input.map(({ name, required: _r, ...rest }) => [name, rest as JsonSchema])),
+      ...(t.input.some((f) => f.required) ? { required: t.input.filter((f) => f.required).map((f) => f.name) } : {}),
+      additionalProperties: false,
+    } as JsonSchema;
+    return {
     // One platform's research mode looks for search and fetch by these exact
     // names, so a compatibility tool goes without the prefix.
     name: t.compat ? t.name : `${TOOL_PREFIX}${t.name}`,
@@ -3580,17 +3608,14 @@ function build(): void {
       readOnlyHint: t.kind === 'read',
       destructiveHint: t.kind === 'write',
       idempotentHint: t.kind === 'read',
-      openWorldHint: true,
+      openWorldHint: false,
     },
-    inputSchema: {
-      type: 'object',
-      properties: Object.fromEntries(t.input.map(({ name, required: _r, ...rest }) => [name, rest as JsonSchema])),
-      ...(t.input.some((f) => f.required) ? { required: t.input.filter((f) => f.required).map((f) => f.name) } : {}),
-      additionalProperties: false,
-    } as JsonSchema,
+    inputSchema,
+    signature: toolSignature(inputSchema),
     ...(t.outputSchema ? { outputSchema: t.outputSchema as JsonSchema } : {}),
     untrusted: serviceText.get(t.name)?.untrusted ?? [],
-  }));
+    };
+  });
   for (const service of serviceListing) {
     problems.push(...lintSchema(`service tool ${service.name}`, service.inputSchema));
     compile(`service tool ${service.name}`, service.inputSchema);
@@ -3600,18 +3625,20 @@ function build(): void {
   const serviceCost = serviceListing
     .filter((t) => !t.compat)
     .reduce((sum, t) => sum + modelTokens({ name: t.name.replace(TOOL_PREFIX, ''), description: t.description, inputSchema: t.inputSchema }), 0);
+  // What each listing costs a model that loads it whole: for the log, not the manifest.
+  const listingCost = new Map<string, number>();
   const audiences = Object.fromEntries(
     AUDIENCES.map((audience) => {
       const open = tools.filter(
         (t) => t.roles.includes(audience.role) && (!t.plan || t.plan === audience.plan),
       );
+      listingCost.set(audience.key, open.reduce((sum, t) => sum + modelTokens(t), 0) + serviceCost);
       return [
         audience.key,
         {
           role: audience.role,
           plan: audience.plan,
           tools: [...open, ...served].map((t) => `${TOOL_PREFIX}${t.name}`),
-          model_tokens: open.reduce((sum, t) => sum + modelTokens(t), 0) + serviceCost,
         },
       ];
     }),
@@ -3661,8 +3688,9 @@ function build(): void {
       roles: t.roles,
       bot_token_only: t.botTokenOnly,
       description: t.description,
-      annotations: t.annotations,
+      annotations: { ...t.annotations, openWorldHint: t.annotations.openWorldHint || reachesOut(t.request) },
       inputSchema: t.inputSchema,
+      signature: toolSignature(t.inputSchema),
       request: t.request,
       ...(t.entity ? { entity: t.entity } : {}),
       ...(t.outputSchema ? { outputSchema: t.outputSchema } : {}),
@@ -3691,7 +3719,7 @@ function build(): void {
   fs.writeFileSync(OUT_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
   const withProse = tools.filter((t) => MCP_TOOL_PROSE[t.name]).length;
   const listings = Object.entries(audiences)
-    .map(([k, v]) => `${k} ${v.tools.length} tools ~${v.model_tokens}`)
+    .map(([k, v]) => `${k} ${v.tools.length} tools ~${listingCost.get(k)}`)
     .join(', ');
   const scopes = new Set([
     ...tools.flatMap((t) => [

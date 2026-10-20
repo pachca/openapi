@@ -218,6 +218,22 @@ export const FILE_SOURCES = {
 };
 
 /**
+ * Operations that reach outside the workspace: Pachca posts to an address the
+ * caller gives, or writes to an address outside it. A tool that downloads a
+ * link the model passes reaches out too, and the build marks it by its
+ * arguments. Every other tool works inside the workspace, and its
+ * openWorldHint is false.
+ */
+export const OPEN_WORLD: Partial<Record<OperationKey, string>> = {
+  'PUT /bot/webhook': 'Events of the chats go to outgoing_url, an address of the caller’s choosing.',
+  'POST /bots': 'Events go to outgoing_url, an address of the caller’s choosing.',
+  'PUT /bots/{id}': 'Events go to outgoing_url, an address of the caller’s choosing.',
+  'POST /chats/exports': 'The finished export is announced at webhook_url, an address of the caller’s choosing.',
+  'POST /users': 'The invitation email goes to any address the caller names.',
+  'PUT /users/{id}': 'A changed email is announced at the new address, one of the caller’s choosing.',
+};
+
+/**
  * Writes that only add. Every other write is marked destructive.
  *
  * The flag means what the protocol says it means: a write is destructive unless
@@ -807,13 +823,15 @@ export const RESPONSE_FORMAT = {
     'except in compat, «Nothing matched: {tool.title}{filters}.», {filters} being « · {name} {value}» for each path and query argument passed except limit and cursor, in the order of inputSchema.properties, and empty when there is none',
 
   /**
-   * A record cut by the default view says what it lost. Nothing in a card tells
-   * a model a field was cut, and the instructions tell it to say only what a
+   * A record cut by the default view says it was cut. Nothing in a card tells a
+   * model a field was left out, and the instructions tell it to say only what a
    * response holds: without the note, a phone the card leaves out is reported as
-   * no phone at all.
+   * no phone at all. One fixed line per answer does it: what a card carries is in
+   * the description of view, and counting per record what each one lost is work
+   * for the server that buys nothing more.
    */
   card_note:
-    'a record the default view cut — to its card in a list, or by single_read_omit on a single read — ends its entry in the text half with the fields it lost that hold a value, by name up to three and then a count, and how to get them: «buttons · files.key · +2 fields — view: full»; a record that lost only empty fields carries no note',
+    'a list cut to cards closes its entries, when data holds at least one, with «Records are cards: view: full returns every field.»; a single read from which single_read_omit removed a field the API sent with a value closes with «Left out: {the fields single_read_omit names for the entity, joined by « · »} — view: full returns them.», and one that lost no value carries no line',
 
   /**
    * Values are read the way the schema declares them before anything is refused.
@@ -844,7 +862,7 @@ export const RESPONSE_FORMAT = {
    * fields of one button inside its row.
    */
   signature:
-    'every argument of the tool, a star on what is required: an object spelled with its fields, a list with the shape of one item — a list of lists too — down to the fields of objects two levels deep, «buttons [[{text*, url, data}]]»',
+    'the tool’s signature, which the build writes beside each tool (tool.signature): every argument with its type in parentheses — an enum as its values, «(a | b)», and « or null» where null is allowed — and a star on what is required; an object spelled with its fields, a list with the shape of one item — a list of lists too — and a map with the shape of one value under «{<key>: …}», down to the fields of objects two levels deep, «buttons [[{text* (string), url (string), data (string)}]]»; a tool without arguments reads «no arguments»',
 
   /**
    * A refusal is a result the model reads, not a failure of the protocol. A tool
@@ -889,8 +907,9 @@ export const RESPONSE_FORMAT = {
    * would leave them unreadable by any means. Base64 text is what a model cannot
    * read: an image has to arrive as an image to be seen, a text file as text. The
    * protocol has a content type for each, so the bytes travel as that, and the
-   * text half says what came. Every branch has a ceiling, a text file too: a
-   * client drops an answer over 16 MiB whole.
+   * text half says what came. Every branch has a ceiling: bytes are held to the
+   * limits of files, and the text of a file to size_limit, like any text a chat
+   * client reads.
    *
    * Only the image formats every client reads go as an image, and only within
    * the smallest limit a client sets: an image block a client cannot decode
@@ -899,7 +918,7 @@ export const RESPONSE_FORMAT = {
    * past the wrapper left. Audio has no block here, since models take no audio.
    */
   binary_body:
-    'the text half names file_name, mime_type and size, and the bytes follow as one content block while their base64 stays within files.max_return_bytes: image/jpeg, image/png, image/gif and image/webp go as an image block while their base64 stays within files.max_image_bytes; text/* and JSON go as a text block inside the untrusted wrapper; anything else — another image format, or an image over its own limit, included — goes as an embedded blob resource with the uri pachca://files/{id}. The footer goes after the block of bytes, as a text block of its own. A larger file is not passed: the text names its size and says it opens in Pachca. An image cannot be wrapped, so text inside a picture reaches the model unmarked',
+    'the text half names file_name, mime_type and size, and the bytes follow as one content block while their base64 stays within files.max_return_bytes: image/jpeg, image/png, image/gif and image/webp go as an image block while their base64 stays within files.max_image_bytes; text/* and JSON go as a text block inside the untrusted wrapper, held to size_limit; anything else — another image format, or an image over its own limit, included — goes as an embedded blob resource with the uri pachca://files/{id}. The footer goes after the block of bytes, as a text block of its own. A larger file is not passed: the text names its size and says it opens in Pachca. An image cannot be wrapped, so text inside a picture reaches the model unmarked',
 
   /**
    * One platform's research mode accepts only a search and a fetch of its own
@@ -914,9 +933,21 @@ export const RESPONSE_FORMAT = {
   compat:
     'search and fetch, served at compat_address, answer the object their outputSchema describes as structuredContent and as its JSON in exactly one text block, with nothing outside the JSON; the untrusted wrapper goes inside the string values the tool’s untrusted list names, and url comes from the API where the record has one, else from web_links. The pair needs code of its own, and a server may serve nothing at compat_address until it has that code',
 
-  // No cut by size: a client keeps a large result itself (Claude Code saves it
-  // to a file the model reads from), and what holds an answer small is a page
-  // with `limit` and a card per record in a list.
+  /**
+   * A ceiling in characters, which a server counts without a tokenizer. Claude
+   * Code keeps a large result itself, saving it to a file the model reads from,
+   * but a chat client takes about 150 000 characters of one result, and what
+   * holds an answer small first is a page with `limit` and a card per record. A
+   * list cut short sends the model back for the same page with a smaller limit,
+   * so no record is skipped, rather than the server asking again on its own.
+   */
+  size_limit: {
+    max_chars: 100_000,
+    rule:
+      'except in compat, a text half over max_chars characters is cut, and so is the text of a file (binary_body), counted on its own. A character is a Unicode code point. max_chars counts the whole text half, the notice and the footer included, so the part above them is cut to leave them room; the footer and the other closing lines of shape are never cut. A list of a tool that takes limit keeps the whole entries that fit, at least the first: an entry that does not fit alone is cut where the room ends and closes with text_notice. When the list keeps fewer entries than data holds, list_notice takes the place of both lines of pagination_footer, so that the next call asks for the same page with limit={shown}; when it keeps them all, pagination_footer stays, so a page of one record too large still leads on. Any other text is cut where the room ends and closes with text_notice. A cut never leaves the untrusted wrapper open: a cut inside a wrapped value closes it with its closing tag before the notice, and a cut inside a tag of the wrapper moves back to before that tag. In list_notice {shown} is the number of entries kept and {page} the number of records in data; in text_notice {shown} is the number of characters kept and {total} the length before the cut',
+    list_notice: 'Cut to {shown} of {page} records to fit: repeat this call with limit={shown}, then go on from the cursor it gives.',
+    text_notice: 'Truncated at {shown} of {total} characters.',
+  },
 
   /**
    * The shape of the text half. Predictable structure lets a model quote a
@@ -927,7 +958,7 @@ export const RESPONSE_FORMAT = {
     'A value goes as it is when it is a scalar and as compact JSON when it is an object or a list; a field that is null is left out. An object or a list that a path of the tool’s untrusted list reaches into goes, as its compact JSON, inside the untrusted wrapper whole.',
     'One record as bold labels, one per line: «**{field}:** {value}», in the order of outputSchema; «(you)» follows the heading where own_items marks the record.',
     'Repeated items as a list, one entry per record: «[{id}]» first where the record has an id, «(you)» after it where own_items marks the record, then a space and «{name} {value}» joined by « · » for the other top-level fields of the record as cut, in the order their names first appear in compact_projections, or, with view: full or where the entity has no card, in the order of outputSchema. An item that is a scalar, such as a reader’s user id, is an entry of its value alone.',
-    'The end of the text, in this order: the card_note of a record closes its own entry, then the labels of meta, then the after_effect line, then the lines of pagination_footer, then the footer.',
+    'The end of the text, in this order: the card_note line, then the labels of meta, then the after_effect line, then the notice of size_limit, then the lines of pagination_footer, then the footer.',
   ],
 };
 
@@ -1041,8 +1072,9 @@ export const COMPACT_PROJECTIONS: Record<string, string[]> = {
  * named neither there nor here fails the build, so a field the API adds is a
  * decision to make rather than a field the default answer silently lacks. A name
  * here is a whole field, or a dotted part of a nested object the card reaches
- * into. What is cut is never dropped from sight: the text half names the fields
- * a record lost that hold a value (`RESPONSE_FORMAT.card_note`).
+ * into. What is cut is never dropped from sight: the description of view names
+ * what a card carries, and the text half says the records are cards
+ * (`RESPONSE_FORMAT.card_note`).
  */
 export const COMPACT_OMIT: Record<string, Array<{ fields: string[]; why: string }>> = {
   Message: [
@@ -1153,7 +1185,7 @@ export const SINGLE_READ_OMIT: Record<string, Array<{ fields: string[]; why: str
         'server, and the last request it received is written by anyone outside.',
       named:
         "get_bot's description, from the spec, says what webhook carries for a caller who manages the bot's tokens; its view " +
-        'names these fields as left out of compact, and the note at the end of the record names the ones it cut.',
+        'names these fields as left out of compact, and the line that closes a single read («Left out: … — view: full returns them.») names them when it cut any.',
     },
   ],
 };

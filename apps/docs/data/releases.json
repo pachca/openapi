@@ -2,7 +2,7 @@
   {
     "product": "n8n",
     "version": "2.2.0",
-    "date": "2026-10-19",
+    "date": "2026-10-20",
     "changes": [
       {
         "type": "~",
@@ -41,7 +41,7 @@
   {
     "product": "cli",
     "version": "2026.10.1",
-    "date": "2026-10-19",
+    "date": "2026-10-20",
     "changes": [
       {
         "type": "~",
@@ -76,7 +76,7 @@
   {
     "product": "sdk",
     "version": "1.6.0",
-    "date": "2026-10-19",
+    "date": "2026-10-20",
     "changes": [
       {
         "type": "~",
@@ -179,7 +179,7 @@
   {
     "product": "generator",
     "version": "1.3.0",
-    "date": "2026-10-19",
+    "date": "2026-10-20",
     "changes": [
       {
         "type": "+",

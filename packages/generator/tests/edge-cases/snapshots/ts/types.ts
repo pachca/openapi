@@ -5,6 +5,9 @@ export enum OAuthScope {
   UsersWrite = "users:write",
 }
 
+/**
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum EventType {
   Message = "message",
   Reaction = "reaction",
@@ -39,6 +42,11 @@ export interface MessageNotification {
 export interface ReactionNotification {
   kind: "message";
   emoji: string;
+}
+
+export interface Schedule {
+  days: number[];
+  value: unknown | null;
 }
 
 export type NotificationUnion = MessageNotification | ReactionNotification;

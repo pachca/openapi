@@ -17,6 +17,7 @@ everything else is generated.** Read this before changing anything.
 | `packages/cli` | oclif CLI `@pachca/cli`, generated from OpenAPI |
 | `packages/generator` | Multi-language SDK generator |
 | `packages/openapi-parser` | Shared OpenAPI parser |
+| `packages/mcp-manifest` | npm package `@pachca/mcp-manifest`: the MCP tool manifest and its JSON Schema, copied from `packages/spec` by the build |
 | `apps/docs` | Next.js 16 docs site (dev.pachca.com): `content/` MDX, `lib/`, `scripts/` generators, `public/` generated artifacts |
 | `n8n-nodes-pachca` / `integrations/n8n` | n8n community node |
 | `skills/` | Agent Skills (generated) |
@@ -36,6 +37,7 @@ Targeted regeneration:
 | Regenerate | Command |
 |------------|---------|
 | OpenAPI only (after editing `typespec.tsp`) | `npx turbo build --filter=@pachca/spec --force` |
+| MCP manifest and its npm copies | `npx turbo build --filter=@pachca/mcp-manifest` |
 | llms / skills / postman / per-page md | `cd apps/docs && bun run generate-llms` |
 | CLI commands | `cd packages/cli && bun run generate-cli` |
 | Generator test snapshots | `cd packages/generator && npm run regen-snapshots` |
@@ -57,6 +59,8 @@ Edit **only** the source; never hand-edit generated output:
 | Generated | Source of truth |
 |-----------|-----------------|
 | `packages/spec/openapi.yaml` | `packages/spec/typespec.tsp` |
+| `packages/spec/mcp-manifest.json` | the spec + `packages/spec/mcp-core.ts`, `mcp-tools.ts`, `scripts/generate-mcp-manifest.ts` |
+| `packages/mcp-manifest/mcp-manifest.json`, `mcp-manifest.schema.json` | copies of `packages/spec/mcp-manifest.json` and `mcp-manifest.schema.json` |
 | `apps/docs/public/llms*.txt`, `public/**/*.md`, `public/skill.md`, `public/.well-known/**`, `public/workflows.arazzo.yaml`, Postman collection | `apps/docs/scripts/generate-llms.ts` + `scripts/skills/` + `apps/docs/content/**` |
 | `packages/cli/src/commands/**` (except `auth/`, `config/`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
 | `skills/**`, `AGENTS.md` | `apps/docs/scripts/skills/generate.ts` |
@@ -88,6 +92,7 @@ ad-hoc `bun -e` commands or the old `bin/` / `tests/` helpers.
 | API audit & sync with backend (the full canonical process) | [docs/api-audit.md](docs/api-audit.md) |
 | `updates.mdx` / `releases.json` / changelog format | [docs/updates-format.md](docs/updates-format.md) |
 | MDX/component conventions, Turbopack & TypeSpec gotchas, design system | [docs/docs-conventions.md](docs/docs-conventions.md) |
+| Publishing packages (CLI, n8n, generator, SDK, MCP manifest) and versions | [docs/releases.md](docs/releases.md) |
 
 Agent-facing repo entry point: `AGENTS.md` (generated). Claude project
 instructions: `CLAUDE.md`.

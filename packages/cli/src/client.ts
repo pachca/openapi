@@ -83,8 +83,9 @@ function buildUrl(apiPath: string, query?: Record<string, string | number | bool
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined) {
         if (Array.isArray(value)) {
+          // The key already carries the form the spec declares, `name[]` for a list.
           for (const v of value) {
-            url.searchParams.append(`${key}[]`, String(v));
+            url.searchParams.append(key, String(v));
           }
         } else {
           url.searchParams.set(key, String(value));

@@ -1,0 +1,26 @@
+{
+  "Client_Init": {
+    "usage": "val client = PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "listMembers": {
+    "usage": "val roles = listOf(MemberRole.ADMIN)\nval response = client.members.listMembers(sort = SortOrder.ASC, role = MemberRole.ADMIN, roles = roles, region = Region.EU)",
+    "output": "ListMembersResponse(data: List<Member>)",
+    "imports": [
+      "MemberRole",
+      "Region",
+      "SortOrder"
+    ]
+  },
+  "updateMember": {
+    "usage": "val request = MemberUpdateRequest(role = MemberRole.ADMIN, kind = MemberKind.REGULAR)\nval response = client.members.updateMember(id = 123, request = request)",
+    "output": "Member(id: Int, role: MemberRole, status: MemberStatus, previousStatuses: List<MemberStatus>?)",
+    "imports": [
+      "MemberKind",
+      "MemberRole",
+      "MemberUpdateRequest"
+    ]
+  }
+}

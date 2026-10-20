@@ -19,7 +19,7 @@ export default class ChatsDownloadExport extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор экспорта (pachca chats list)",
+      description: "Идентификатор экспорта: `export_id` из вебхука о готовом архиве или число из ссылки вида `/full_exports/{id}` в уведомлении в Пачке (pachca chats list)",
       required: true,
     }),
   };

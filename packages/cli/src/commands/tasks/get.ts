@@ -16,7 +16,7 @@ export default class TasksGet extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор напоминания (pachca tasks list)",
+      description: "Идентификатор напоминания: в ссылке веб-приложения это число из пути `/tasks/{id}` или из параметра `task_id` (pachca tasks list)",
       required: true,
     }),
   };

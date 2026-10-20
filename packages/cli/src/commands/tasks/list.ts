@@ -61,8 +61,8 @@ export default class TasksList extends BaseCommand {
       while (pages < 500) {
         const query: Record<string, string | number | boolean | string[] | undefined> = {
         status: flags['status'],
-        'chat_ids': flags['chat-ids']?.split(','),
-        'performer_ids': flags['performer-ids']?.split(','),
+        'chat_ids[]': flags['chat-ids']?.split(','),
+        'performer_ids[]': flags['performer-ids']?.split(','),
         'author_id': flags['author-id'],
         limit: flags.limit,
           cursor: nextCursor,
@@ -75,7 +75,7 @@ export default class TasksList extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
-        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data
+        // Условие конца: списочные методы и /users?query= — has_next === false; методы поиска (без has_next) — пустой data
         const hasNext = paginate?.has_next;
         if (typeof hasNext === 'boolean') {
           if (!hasNext) break;
@@ -110,8 +110,8 @@ export default class TasksList extends BaseCommand {
       path: '/tasks',
       query: {
       status: flags['status'],
-      'chat_ids': flags['chat-ids']?.split(','),
-      'performer_ids': flags['performer-ids']?.split(','),
+      'chat_ids[]': flags['chat-ids']?.split(','),
+      'performer_ids[]': flags['performer-ids']?.split(','),
       'author_id': flags['author-id'],
       limit: flags.limit,
       cursor: flags.cursor,

@@ -24,6 +24,16 @@ const CLI_SRC = path.join(ROOT, 'packages', 'cli', 'src');
 const COMMANDS_DIR = path.join(CLI_SRC, 'commands');
 const DATA_DIR = path.join(CLI_SRC, 'data');
 
+/**
+ * The spec links into the docs site by path (`[Buttons](/guides/buttons)`). A
+ * terminal has no site to resolve such a path against, so flag help carries the
+ * whole address.
+ */
+const DOCS_SITE = 'https://dev.pachca.com';
+function absoluteLinks<T extends string | undefined>(text: T): T {
+  return (text?.replace(/\]\((\/(?:guides|api)\/[^)\s]*)\)/g, `](${DOCS_SITE}$1)`) ?? text) as T;
+}
+
 // URL generation — single source of truth from apps/docs/lib/openapi/mapper.ts
 import { generateUrlFromOperation, generateTitle } from '../../../apps/docs/lib/openapi/mapper.js';
 
@@ -198,7 +208,7 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
           type: getSchemaType(propSchema),
           format: propSchema.format,
           required: innerRequired.has(name),
-          description: propSchema.description,
+          description: absoluteLinks(propSchema.description),
           enum: propSchema.enum,
           maxLength: propSchema.maxLength,
           maximum: propSchema.maximum,
@@ -214,7 +224,7 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
           type: getSchemaType(propSchema),
           format: propSchema.format,
           required: requiredFields.has(key),
-          description: propSchema.description,
+          description: absoluteLinks(propSchema.description),
           enum: propSchema.enum,
           maxLength: propSchema.maxLength,
           maximum: propSchema.maximum,
@@ -235,7 +245,7 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
       type: getSchemaType(propSchema),
       format: propSchema.format,
       required: requiredFields.has(name),
-      description: propSchema.description,
+      description: absoluteLinks(propSchema.description),
       enum: propSchema.enum,
       maxLength: propSchema.maxLength,
       maximum: propSchema.maximum,
@@ -247,7 +257,7 @@ export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
 
 function computeDefaultColumns(endpoint: Endpoint): string[] {
   // Find response schema properties
-  const okResponse = endpoint.responses['200'] || endpoint.responses['201'];
+  const okResponse = endpoint.responses['200'] || endpoint.responses['201'] || endpoint.responses['202'];
   if (!okResponse?.content?.['application/json']) return [];
 
   const schema = okResponse.content['application/json'].schema;
@@ -310,7 +320,57 @@ interface CommandGenParams {
   examples?: string[];
 }
 
+/**
+ * Поля `meta` в ответе метода с одним объектом в `data`. stdout печатает только
+ * `data`, как у остальных команд, а непустой список из такого поля уходит
+ * предупреждением в stderr. Поле `meta`, которого здесь нет, останавливает
+ * генерацию: иначе оно молча пропадёт из вывода.
+ */
+const META_NOTICES: Record<string, { message: string; hint: string }> = {
+  'POST /chats meta.not_found_member_ids': {
+    message: 'Не удалось добавить в чат',
+    hint: 'Таких сотрудников нет в пространстве, либо они приостановлены или удалены.',
+  },
+};
+
+function responseMetaNotices(endpoint: Endpoint): { field: string; message: string; hint: string }[] {
+  const okResponse = endpoint.responses['200'] || endpoint.responses['201'] || endpoint.responses['202'];
+  const schema = okResponse?.content?.['application/json']?.schema;
+  if (!schema) return [];
+  const meta = resolveAllOf(schema).properties?.meta;
+  if (!meta) return [];
+  return Object.entries(resolveAllOf(meta).properties ?? {}).map(([field, fieldSchema]) => {
+    // Слова — про один метод, поэтому ключ называет его: то же поле у другого
+    // метода получит свой текст, а не «в чат».
+    const notice = META_NOTICES[`${endpoint.method} ${endpoint.path} meta.${field}`];
+    if (!notice) {
+      throw new Error(`${endpoint.method} ${endpoint.path}: ответ несёт meta.${field} — добавьте предупреждение в META_NOTICES с ключом «${endpoint.method} ${endpoint.path} meta.${field}»`);
+    }
+    if (getSchemaType(fieldSchema) !== 'array') {
+      throw new Error(`${endpoint.method} ${endpoint.path}: meta.${field} не массив — предупреждение печатает только списки`);
+    }
+    return { field, ...notice };
+  });
+}
+
+/**
+ * Заголовок с единственным допустимым значением (`Prefer: return=representation`)
+ * — выбор уже сделан, флагом он не становится: команда шлёт его всегда.
+ */
+function fixedHeadersLine(endpoint: Endpoint): string | undefined {
+  const headers: string[] = [];
+  for (const param of endpoint.parameters) {
+    const only = param.in === 'header' && param.schema.enum?.length === 1 ? param.schema.enum[0] : undefined;
+    if (typeof only === 'string') headers.push(`${JSON.stringify(param.name)}: ${JSON.stringify(only)}`);
+  }
+  return headers.length > 0 ? `      headers: { ${headers.join(', ')} },` : undefined;
+}
+
 function generateCommandCode(p: CommandGenParams): string {
+  const headersLine = fixedHeadersLine(p.endpoint);
+  if (headersLine && p.hasPagination) {
+    throw new Error(`${p.endpoint.method} ${p.endpoint.path}: постраничный обход не умеет слать заголовки запроса`);
+  }
   // Collect required flags for interactive prompting
   const requiredQueryFlags: { flagName: string; description: string; type: string }[] = [];
   for (const param of p.queryParams) {
@@ -319,7 +379,7 @@ function generateCommandCode(p: CommandGenParams): string {
     if (param.required) {
       requiredQueryFlags.push({
         flagName: toKebabCase(param.name),
-        description: param.description || param.name,
+        description: absoluteLinks(param.description) || param.name,
         type: getOclifFlagType(param.schema),
       });
     }
@@ -361,7 +421,7 @@ function generateCommandCode(p: CommandGenParams): string {
   // Build args
   const argsCode = p.pathParams.map((param) => {
     const argName = param.name.replace(/[{}]/g, '');
-    let desc = param.description || 'ID';
+    let desc = absoluteLinks(param.description) || 'ID';
     // Add related list command hint for ID args
     if (argName === 'id') {
       const relatedCmd = ENTITY_HINTS[p.section];
@@ -388,7 +448,7 @@ function generateCommandCode(p: CommandGenParams): string {
         argType: getOclifArgType(param.schema),
       };
       argsCode.push(`    ${param.name}: Args.${shortcutArg.argType}({
-      description: ${JSON.stringify(param.description || param.name)},
+      description: ${JSON.stringify(absoluteLinks(param.description) || param.name)},
       required: false,
     }),`);
     }
@@ -432,7 +492,7 @@ function generateCommandCode(p: CommandGenParams): string {
     const extrasStr = extras.length > 0 ? '\n' + extras.join('\n') : '';
     const arrayHint = resolvedParamSchema.type === 'array' ? ' (через запятую)' : '';
     queryFlagLines.push(`    '${flagName}': Flags.${flagType}({
-      description: ${JSON.stringify(param.description || param.name)}${arrayHint ? ` + ${JSON.stringify(arrayHint)}` : ''},${extrasStr}
+      description: ${JSON.stringify(absoluteLinks(param.description) || param.name)}${arrayHint ? ` + ${JSON.stringify(arrayHint)}` : ''},${extrasStr}
     }),`);
   }
 
@@ -647,7 +707,14 @@ function generateCommandCode(p: CommandGenParams): string {
     const isArrayParam = getSchemaType(resolveAllOf(param.schema)) === 'array';
     const flagRef = flagName !== param.name ? `flags['${flagName}']` : `flags['${param.name}']`;
     const value = isArrayParam ? `${flagRef}?.split(',')` : flagRef;
-    const key = flagName !== param.name ? `'${param.name}'` : param.name;
+    // A list travels as the spec declares it (`x-query-array`): `brackets` is the
+    // `name[]` key, each value its own pair. A list without the declaration has
+    // no form the API reads, so the build stops rather than guess one.
+    if (isArrayParam && param['x-query-array'] !== 'brackets') {
+      throw new Error(`${p.endpoint.method} ${p.endpoint.path}: query list ${param.name} has no x-query-array`);
+    }
+    const wireName = isArrayParam ? `${param.name}[]` : param.name;
+    const key = isArrayParam || flagName !== param.name ? `'${wireName}'` : wireName;
     queryEntries.push(`      ${key}: ${value},`);
   }
   if (p.hasPagination) {
@@ -704,7 +771,7 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`        const paginate = meta?.paginate as Record<string, unknown> | undefined;`);
     runBodyLines.push(`        nextCursor = paginate?.next_page as string | undefined;`);
     runBodyLines.push(`        pages++;`);
-    runBodyLines.push(`        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data`);
+    runBodyLines.push(`        // Условие конца: списочные методы и /users?query= — has_next === false; методы поиска (без has_next) — пустой data`);
     runBodyLines.push(`        const hasNext = paginate?.has_next;`);
     runBodyLines.push(`        if (typeof hasNext === 'boolean') {`);
     runBodyLines.push(`          if (!hasNext) break;`);
@@ -774,6 +841,7 @@ function generateCommandCode(p: CommandGenParams): string {
       runBodyLines.push(`      },`);
     }
     runBodyLines.push(`      formData,`);
+    if (headersLine) runBodyLines.push(headersLine);
     if (p.endpoint.externalUrl) {
       runBodyLines.push(`      noAuth: true,`);
     }
@@ -827,6 +895,7 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`      method: '${p.endpoint.method}',`);
     runBodyLines.push(`      path: ${apiPath},`);
     runBodyLines.push(`      body,`);
+    if (headersLine) runBodyLines.push(headersLine);
     if (queryEntries.length > 0) {
       runBodyLines.push(`      query: {`);
       runBodyLines.push(...queryEntries);
@@ -848,6 +917,7 @@ function generateCommandCode(p: CommandGenParams): string {
     if (p.isBinaryResponse) {
       runBodyLines.push(`      isBinary: true,`);
     }
+    if (headersLine) runBodyLines.push(headersLine);
     runBodyLines.push(`    });`);
   }
 
@@ -887,6 +957,9 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`    const responseBody = (data ?? {}) as Record<string, unknown>;`);
     runBodyLines.push(`    const result = responseBody.data ?? responseBody;`);
     runBodyLines.push(`    this.output(result);`);
+    for (const n of responseMetaNotices(p.endpoint)) {
+      runBodyLines.push(`    this.warnMetaList(responseBody.meta, ${JSON.stringify(n.field)}, ${JSON.stringify(n.message)}, ${JSON.stringify(n.hint)});`);
+    }
   }
 
   // Put it all together
@@ -977,7 +1050,20 @@ function toPascalCase(str: string): string {
 
 // ----- Workflow & Alternative Data Generation -----
 
-async function generateWorkflowsData(): Promise<void> {
+/**
+ * A workflow with an OAuth flow step (`x-oauth-flow`) is not a CLI recipe: the CLI has no
+ * command for that step, and its other steps alone would look like the whole flow.
+ */
+function hasOAuthFlowStep(
+  workflow: { steps: { apiMethod?: string; apiPath?: string }[] },
+  endpoints: Endpoint[],
+): boolean {
+  return workflow.steps.some((step) =>
+    endpoints.some((ep) => ep.oauthFlow && ep.method === step.apiMethod && ep.path === step.apiPath),
+  );
+}
+
+async function generateWorkflowsData(endpoints: Endpoint[]): Promise<void> {
   try {
     // Dynamic import of workflows from packages/spec
     const workflowsPath = path.join(ROOT, 'packages', 'spec', 'workflows.ts');
@@ -987,8 +1073,9 @@ async function generateWorkflowsData(): Promise<void> {
 
     const entries: { title: string; skill: string; steps: { description: string; command?: string; notes?: string }[] }[] = [];
 
-    for (const [skill, workflows] of Object.entries(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string; notes?: string }[] }[]>)) {
+    for (const [skill, workflows] of Object.entries(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string; notes?: string; apiMethod?: string; apiPath?: string }[] }[]>)) {
       for (const w of workflows) {
+        if (hasOAuthFlowStep(w, endpoints)) continue;
         // Only include steps that have a command (skip text-only steps for CLI)
         const cliSteps = w.steps
           .filter((step) => step.command)
@@ -1067,6 +1154,7 @@ async function generateEndpointsData(): Promise<void> {
       '../../../apps/docs/lib/markdown-generator.js'
     );
     const { generateCLI } = await import('../../../apps/docs/lib/code-generators/cli.js');
+    const { generateCurl } = await import('../../../apps/docs/lib/code-generators/curl.js');
 
     const SITE_URL = 'https://dev.pachca.com';
     const api = await parseDocsOpenAPI();
@@ -1076,7 +1164,8 @@ async function generateEndpointsData(): Promise<void> {
       const segments = url.split('/');
       const section = segments[2] ?? '';
       const action = segments[3] ?? '';
-      const command = `pachca ${section} ${action}`.trim();
+      // Шаг OAuth команды не имеет: его делают библиотеки OAuth, а CLI входит через `auth login`.
+      const command = ep.oauthFlow ? '' : `pachca ${section} ${action}`.trim();
       const docLink = `${SITE_URL}${url}`;
 
       const req = (ep.requirements ?? {}) as { scope?: string; plan?: string; auth?: boolean };
@@ -1087,9 +1176,10 @@ async function generateEndpointsData(): Promise<void> {
       const paginated = ep.paginated ?? false;
 
       const docs = generateEndpointMarkdown(ep);
-      const equivalentCmd = generateCLI(ep);
+      const equivalentCmd = ep.oauthFlow ? '' : generateCLI(ep);
+      const curlExample = ep.oauthFlow ? generateCurl(ep) : '';
       const describe = buildDescribe(ep, {
-        summary, scope, plan, auth, paginated, command, docLink, equivalentCmd, schemaToMarkdown,
+        summary, scope, plan, auth, paginated, command, docLink, equivalentCmd, curlExample, schemaToMarkdown,
       });
 
       const spec = {
@@ -1133,6 +1223,7 @@ function buildDescribe(
     command: string;
     docLink: string;
     equivalentCmd: string;
+    curlExample: string;
     schemaToMarkdown: (s: unknown, depth?: number, required?: string[], examples?: boolean) => string;
   },
 ): string {
@@ -1164,7 +1255,8 @@ function buildDescribe(
     if (bodyMd) md += `## Тело запроса\n\n${bodyMd}\n\n`;
   }
 
-  md += `## Эквивалентная команда\n\n\`\`\`bash\n${ctx.equivalentCmd}\n\`\`\`\n\n`;
+  if (ctx.equivalentCmd) md += `## Эквивалентная команда\n\n\`\`\`bash\n${ctx.equivalentCmd}\n\`\`\`\n\n`;
+  else if (ctx.curlExample) md += `## Пример запроса\n\n\`\`\`bash\n${ctx.curlExample}\n\`\`\`\n\n`;
   md += `Документация: ${ctx.docLink}\n`;
   md += `Полная справка: \`pachca api ${ep.method} ${ep.path} --docs\` · схема: \`--spec\`\n`;
   return md;
@@ -1303,6 +1395,7 @@ async function loadWorkflowExamples(endpoints: Endpoint[]): Promise<Map<string, 
     const { WORKFLOWS } = await import(workflowsPath);
     for (const workflows of Object.values(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string; apiMethod?: string; apiPath?: string }[] }[]>)) {
       for (const w of workflows) {
+        if (hasOAuthFlowStep(w, endpoints)) continue;
         for (const step of w.steps) {
           // Key examples by "METHOD /path", not path alone — otherwise operations
           // sharing a path (e.g. GET and POST /threads) inherit each other's examples.
@@ -1342,6 +1435,8 @@ async function main(): Promise<void> {
   const commands: GeneratedCommand[] = [];
 
   for (const endpoint of endpoints) {
+    // Шаг OAuth (`x-oauth-flow`) описан в справке, но команды под него нет: вход в CLI — `auth login`.
+    if (endpoint.oauthFlow) continue;
     const examples = workflowExamples.get(`${endpoint.method} ${endpoint.path}`)?.slice(0, 3);
     const cmd = generateCommand(endpoint, examples);
     commands.push(cmd);
@@ -1396,7 +1491,7 @@ async function main(): Promise<void> {
   }
 
   // Generate data files
-  await generateWorkflowsData();
+  await generateWorkflowsData(endpoints);
   console.log('  Generated workflows.json');
 
   await generateAlternativesData(commands);

@@ -108,6 +108,55 @@ function ktDefaultValue(
 }
 
 /** Check if ApiError model exists in IR */
+/** Some operation takes no token (`x-requirements: { auth: false }`). */
+function ktHasNoAuth(ir: IR): boolean {
+  return ir.services.some((s) => s.operations.some((op) => op.noAuth));
+}
+
+/** Both error models exist, so an error's class is read off its body. */
+function ktPicksErrorByBody(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+}
+
+/** The authorization link and the PKCE pair for the OAuth flow (`x-oauth-authorize-url`). */
+function emitKotlinOAuthHelpers(lines: string[], authorizeUrl: string): void {
+  lines.push('/** The authorization link and the PKCE pair of the OAuth flow. */');
+  lines.push('object PachcaOAuth {');
+  lines.push(`    const val AUTHORIZE_URL = ${JSON.stringify(authorizeUrl)}`);
+  lines.push('');
+  lines.push('    /** Keep [codeVerifier] until the code exchange, put [codeChallenge] into the link. */');
+  lines.push('    data class Pkce(val codeVerifier: String, val codeChallenge: String)');
+  lines.push('');
+  lines.push('    /** A random code verifier and its SHA-256 challenge. */');
+  lines.push('    fun createPkce(): Pkce {');
+  lines.push('        val bytes = ByteArray(32).also { java.security.SecureRandom().nextBytes(it) }');
+  lines.push('        val encoder = java.util.Base64.getUrlEncoder().withoutPadding()');
+  lines.push('        val verifier = encoder.encodeToString(bytes)');
+  lines.push('        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray(Charsets.US_ASCII))');
+  lines.push('        return Pkce(verifier, encoder.encodeToString(digest))');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    /** The authorization link for a message button: the consent screen with PKCE (S256). */');
+  lines.push('    fun buildAuthorizeUrl(');
+  lines.push('        clientId: String,');
+  lines.push('        redirectUri: String,');
+  lines.push('        state: String,');
+  lines.push('        codeChallenge: String,');
+  lines.push('        authorizeUrl: String = AUTHORIZE_URL,');
+  lines.push('    ): String {');
+  lines.push('        val query = listOf(');
+  lines.push('            "client_id" to clientId,');
+  lines.push('            "redirect_uri" to redirectUri,');
+  lines.push('            "response_type" to "code",');
+  lines.push('            "state" to state,');
+  lines.push('            "code_challenge" to codeChallenge,');
+  lines.push('            "code_challenge_method" to "S256",');
+  lines.push('        ).joinToString("&") { (key, value) -> "$key=${java.net.URLEncoder.encode(value, "UTF-8")}" }');
+  lines.push('        return "$authorizeUrl?$query"');
+  lines.push('    }');
+  lines.push('}');
+}
+
 function hasApiErrorModel(ir: IR): boolean {
   return ir.models.some((m) => m.name === 'ApiError');
 }
@@ -145,7 +194,8 @@ function generateModels(ir: IR): string {
       m.inlineObjects.some((i) => i.fields.some((f) => usesAny(f.type)))) ||
     ir.params.some((p) => p.params.some((q) => usesAny(q.type)));
 
-  if (ir.enums.length > 0) needSerialName = true;
+  // An open enum is a value class and names no entries.
+  if (ir.enums.some((e) => !e.open)) needSerialName = true;
   if (ir.unions.length > 0) needSerialName = true;
 
   for (const m of ir.models) {
@@ -240,9 +290,58 @@ function generateModels(ir: IR): string {
   return lines.join('\n');
 }
 
+/** The enum type of `OAuthError.error`, when the spec gives that field one. */
+function oauthErrorCodeEnum(ir: IR): IREnum | undefined {
+  const field = ir.models.find((m) => m.name === 'OAuthError')?.fields.find((f) => f.name === 'error');
+  return field?.type.kind === 'enum' ? ir.enums.find((e) => e.name === field.type.ref) : undefined;
+}
+
+/**
+ * An open enum is a value class over the raw string: a value the SDK does not
+ * list yet decodes into it, where an `enum class` would fail the whole response.
+ * The constants, `value`, `name`, `entries`, `values()` and `valueOf` keep the
+ * shape of an enum class. What a value class cannot keep: `ordinal`,
+ * `enumValueOf`, a `when` without `else`, and `toString()` returning the
+ * constant name — it returns the raw value.
+ */
+function emitOpenEnum(lines: string[], e: IREnum): void {
+  const name = e.name;
+  lines.push('@Serializable');
+  lines.push('@JvmInline');
+  lines.push(`value class ${name}(val value: String) {`);
+  lines.push('    /** Whether this SDK version lists the value */');
+  lines.push('    val isKnown: Boolean get() = value in knownNames');
+  lines.push('    /** Constant name of a listed value, the raw value otherwise */');
+  lines.push('    val name: String get() = knownNames[value] ?: value');
+  lines.push('    override fun toString(): String = value');
+  lines.push('');
+  lines.push('    companion object {');
+  for (const m of e.members) {
+    if (m.description) lines.push(`        /** ${m.description} */`);
+    lines.push(`        val ${snakeToUpperSnake(m.value)} = ${name}(${JSON.stringify(m.value)})`);
+  }
+  lines.push('');
+  lines.push('        /** Every value this SDK version lists */');
+  lines.push(`        val entries: List<${name}> = listOf(${e.members.map((m) => snakeToUpperSnake(m.value)).join(', ')})`);
+  lines.push('');
+  lines.push('        /** The same values as an array, like `values()` of an enum class */');
+  lines.push(`        fun values(): Array<${name}> = entries.toTypedArray()`);
+  lines.push('');
+  lines.push(`        private val knownNames: Map<String, String> = mapOf(${e.members.map((m) => `${JSON.stringify(m.value)} to ${JSON.stringify(snakeToUpperSnake(m.value))}`).join(', ')})`);
+  lines.push('');
+  lines.push(`        fun valueOf(name: String): ${name} =`);
+  lines.push(`            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No ${name} constant $name")`);
+  lines.push('    }');
+  lines.push('}');
+}
+
 function emitEnum(lines: string[], e: IREnum): void {
   if (e.description && e.hasDescriptions && e.members.length > 1) {
     lines.push(`/** ${e.description} */`);
+  }
+  if (e.open) {
+    emitOpenEnum(lines, e);
+    return;
   }
   lines.push('@Serializable');
   lines.push(`enum class ${e.name}(val value: String) {`);
@@ -534,7 +633,8 @@ function emitModel(
     const errField = m.fields.find((f) => f.name === 'error');
     if (errField) {
       lines.push(' {');
-      lines.push(`    override val message: String get() = ${fieldSdkName(errField)}`);
+      const code = errField.type.kind === 'enum' ? `${fieldSdkName(errField)}.value` : fieldSdkName(errField);
+      lines.push(`    override val message: String get() = ${code}`);
       lines.push('}');
     }
   }
@@ -543,7 +643,7 @@ function emitModel(
 function emitResponseType(lines: string[], rt: IRResponseType): void {
   lines.push('@Serializable');
   lines.push(`data class ${rt.name}(`);
-  lines.push(`    val data: List<${rt.dataRef}>,`);
+  lines.push(rt.dataIsArray ? `    val data: List<${rt.dataRef}>,` : `    val data: ${rt.dataRef},`);
   if (rt.metaRef) {
     const opt = rt.metaIsRequired ? '' : '?';
     const default_ = rt.metaIsRequired ? '' : ' = null';
@@ -565,6 +665,8 @@ function generateClient(ir: IR): string {
   const hasMultipart = ir.services.some((s) =>
     s.operations.some((op) => op.requestBody?.contentType === 'multipart'),
   );
+  const hasForm = ir.services.some((s) => s.operations.some((op) => op.requestBody?.contentType === 'form'));
+  const errorByBody = ktPicksErrorByBody(ir);
   const hasRedirect = ir.services.some((s) =>
     s.operations.some((op) => op.successResponse.isRedirect),
   );
@@ -582,12 +684,13 @@ function generateClient(ir: IR): string {
   lines.push('import io.ktor.client.plugins.auth.providers.*');
   lines.push('import io.ktor.client.plugins.contentnegotiation.*');
   lines.push('import io.ktor.client.request.*');
-  if (hasMultipart) {
+  if (hasMultipart || hasForm) {
     lines.push('import io.ktor.client.request.forms.*');
   }
   lines.push('import io.ktor.client.statement.*');
   lines.push('import io.ktor.http.*');
   lines.push('import io.ktor.serialization.kotlinx.json.*');
+  if (ktHasNoAuth(ir)) lines.push('import io.ktor.util.AttributeKey');
   const clientNeedDateTime = ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
   const needPolling = ir.services.some(hasWebhookPolling);
   if (needPolling) {
@@ -599,6 +702,12 @@ function generateClient(ir: IR): string {
     lines.push('import kotlinx.coroutines.flow.mapNotNull');
   }
   lines.push('import kotlinx.serialization.json.Json');
+  if (hasForm) lines.push('import kotlinx.serialization.json.JsonElement');
+  if (hasForm || errorByBody) {
+    lines.push('import kotlinx.serialization.json.JsonNull');
+    lines.push('import kotlinx.serialization.json.JsonObject');
+    lines.push('import kotlinx.serialization.json.JsonPrimitive');
+  }
   lines.push('import java.io.Closeable');
   if (clientNeedDateTime) {
     lines.push('import java.time.OffsetDateTime');
@@ -606,6 +715,67 @@ function generateClient(ir: IR): string {
   if (needPolling) {
     lines.push('import kotlin.time.Duration');
     lines.push('import kotlin.time.Duration.Companion.seconds');
+  }
+
+  if (hasForm || errorByBody) {
+    lines.push('');
+    lines.push('internal val pachcaJson = Json { explicitNulls = false; ignoreUnknownKeys = true }');
+  }
+  if (hasForm) {
+    lines.push('');
+    lines.push('/** A form body (application/x-www-form-urlencoded): the fields go by their wire names, empty ones are left out. */');
+    lines.push('internal fun formParameters(element: JsonElement): Parameters = Parameters.build {');
+    lines.push('    (element as? JsonObject)?.forEach { (key, value) ->');
+    lines.push('        if (value is JsonPrimitive && value !is JsonNull) append(key, value.content)');
+    lines.push('    }');
+    lines.push('}');
+  }
+  if (errorByBody) {
+    lines.push('');
+    lines.push('/**');
+    lines.push(' * An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
+    lines.push(' * which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.');
+    lines.push(' */');
+    lines.push('internal suspend fun errorFromResponse(response: HttpResponse): Exception {');
+    lines.push('    val text = response.bodyAsText()');
+    lines.push('    val element = runCatching { pachcaJson.parseToJsonElement(text) }.getOrNull()');
+    lines.push('    val code = (element as? JsonObject)?.get("error") as? JsonPrimitive');
+    lines.push('    if (element is JsonObject && element["errors"] == null && code != null && code.isString) {');
+    const codeEnum = oauthErrorCodeEnum(ir);
+    if (codeEnum && !codeEnum.open) {
+      // A closed enum takes only the values it lists: the decoder refuses the rest.
+      lines.push('        return pachcaJson.decodeFromJsonElement(OAuthError.serializer(), element)');
+    } else {
+      const code = codeEnum ? `${codeEnum.name}(code.content)` : 'code.content';
+      lines.push('        val description = element["error_description"] as? JsonPrimitive');
+      lines.push(`        return OAuthError(error = ${code}, errorDescription = description?.content ?: "")`);
+    }
+    lines.push('    }');
+    lines.push('    return pachcaJson.decodeFromString(ApiError.serializer(), text)');
+    lines.push('}');
+  }
+  if (ir.oauthAuthorizeUrl) {
+    lines.push('');
+    emitKotlinOAuthHelpers(lines, ir.oauthAuthorizeUrl);
+  }
+  if (ktHasNoAuth(ir)) {
+    lines.push('');
+    lines.push('/** Marks a request that takes no token, such as the upload to storage. */');
+    lines.push('internal val PachcaNoAuth = AttributeKey<Unit>("PachcaNoAuth")');
+    lines.push('');
+    lines.push('private val PachcaNoAuthInstalled = AttributeKey<Unit>("PachcaNoAuthInstalled")');
+    lines.push('');
+    lines.push('/**');
+    lines.push(' * A request marked [PachcaNoAuth] goes without `Authorization`, whoever set it: `defaultRequest`');
+    lines.push(' * adds the header after the request block, so it is taken off in the send pipeline.');
+    lines.push(' */');
+    lines.push('internal fun dropAuthorizationOfNoAuthRequests(client: HttpClient) {');
+    lines.push('    if (client.attributes.contains(PachcaNoAuthInstalled)) return');
+    lines.push('    client.attributes.put(PachcaNoAuthInstalled, Unit)');
+    lines.push('    client.sendPipeline.intercept(HttpSendPipeline.Before) {');
+    lines.push('        if (context.attributes.contains(PachcaNoAuth)) context.headers.remove(HttpHeaders.Authorization)');
+    lines.push('    }');
+    lines.push('}');
   }
 
   // Services
@@ -886,8 +1056,9 @@ function getReturnType(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'String';
+  if (resp.isBinary) return 'ByteArray';
   if (!resp.hasBody) return null;
-  if (resp.isList) {
+  if (resp.isList || resp.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === resp.responseRef);
     return rt?.name ?? 'Any';
   }
@@ -959,7 +1130,9 @@ function emitMethodBody(
   const hasQueryParams = op.queryParams.length > 0;
   const hasJsonBody =
     op.requestBody && op.requestBody.contentType === 'json';
-  const needsBlock = hasQueryParams || hasJsonBody;
+  const fixedHeaders = op.requestHeaders ?? [];
+  const hasFormBody = op.requestBody?.contentType === 'form';
+  const needsBlock = hasQueryParams || hasJsonBody || hasFormBody || fixedHeaders.length > 0;
 
   const urlExpr = op.externalUrl ? op.externalUrl : `"$baseUrl${urlPath}"`;
 
@@ -1010,14 +1183,24 @@ function emitMethodBody(
         lines.push(`${indent3}setBody(request)`);
       }
     }
-    if (op.noAuth) lines.push(`${indent3}headers.remove(HttpHeaders.Authorization)`);
+    if (hasFormBody) {
+      const rb = op.requestBody!;
+      if (shouldUnwrapBody(rb)) {
+        const f = rb.unwrapField!;
+        lines.push(`${indent3}setBody(FormDataContent(Parameters.build { append("${f.name}", ${snakeToCamel(f.name)}.toString()) }))`);
+      } else {
+        lines.push(`${indent3}setBody(FormDataContent(formParameters(pachcaJson.encodeToJsonElement(${rb.schemaRef}.serializer(), request))))`);
+      }
+    }
+    for (const h of fixedHeaders) lines.push(`${indent3}header(${JSON.stringify(h.name)}, ${JSON.stringify(h.value)})`);
+    if (op.noAuth) lines.push(`${indent3}attributes.put(PachcaNoAuth, Unit)`);
     lines.push(`${indent2}}`);
   } else {
     if (op.noAuth) {
       lines.push(
         `${indent2}val response = client.${httpMethod}(${urlExpr}) {`,
       );
-      lines.push(`${indent3}headers.remove(HttpHeaders.Authorization)`);
+      lines.push(`${indent3}attributes.put(PachcaNoAuth, Unit)`);
       lines.push(`${indent2}}`);
     } else {
       lines.push(
@@ -1097,7 +1280,7 @@ function emitMultipartBody(
   lines.push(`${indent3}},`);
   if (op.noAuth) {
     lines.push(`${indent2}) {`);
-    lines.push(`${indent3}headers.remove(HttpHeaders.Authorization)`);
+    lines.push(`${indent3}attributes.put(PachcaNoAuth, Unit)`);
     lines.push(`${indent2}}`);
   } else {
     lines.push(`${indent2})`);
@@ -1115,7 +1298,7 @@ function emitResponseHandling(
   const indent3 = '            ';
 
   const resp = op.successResponse;
-  const hasReturn = resp.hasBody || resp.isRedirect;
+  const hasReturn = resp.hasBody || resp.isRedirect || resp.isBinary;
   const keyword = hasReturn ? 'return when' : 'when';
 
   lines.push(`${indent2}${keyword} (response.status.value) {`);
@@ -1127,9 +1310,11 @@ function emitResponseHandling(
     lines.push(
       `${indent3}    ?: error("Missing Location header in redirect response")`,
     );
+  } else if (resp.isBinary) {
+    lines.push(`${indent3}${resp.statusCode} -> response.body<ByteArray>()`);
   } else if (!resp.hasBody) {
     lines.push(`${indent3}${resp.statusCode} -> return`);
-  } else if (resp.isList) {
+  } else if (resp.isList || resp.isSingleWithMeta) {
     lines.push(`${indent3}${resp.statusCode} -> response.body()`);
   } else if (resp.isUnwrap && resp.dataRef) {
     lines.push(
@@ -1146,7 +1331,9 @@ function emitResponseHandling(
     );
   }
   // Use ApiError if the operation declares it OR if ApiError exists in the spec
-  if (op.hasApiError || globalHasApiError) {
+  if (globalHasApiError && op.hasOAuthError) {
+    lines.push(`${indent3}else -> throw errorFromResponse(response)`);
+  } else if (op.hasApiError || globalHasApiError) {
     lines.push(
       `${indent3}else -> throw response.body<ApiError>()`,
     );
@@ -1186,6 +1373,12 @@ function emitPachcaClient(
   }
   lines.push(') : Closeable {');
   lines.push('');
+  if (ktHasNoAuth(ir)) {
+    lines.push('    init {');
+    lines.push('        _client?.let(::dropAuthorizationOfNoAuthRequests)');
+    lines.push('    }');
+    lines.push('');
+  }
   lines.push('    companion object {');
 
   // operator fun invoke - creates HttpClient and real services
@@ -1458,6 +1651,7 @@ function buildOutputFingerprint(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'String';
+  if (resp.isBinary) return 'ByteArray';
   if (!resp.hasBody) return null;
 
   if (resp.isList && resp.responseRef) {
@@ -1468,6 +1662,23 @@ function buildOutputFingerprint(
       if (rt.metaRef) {
         const opt = rt.metaIsRequired ? '' : '?';
         parts.push(`meta: ${rt.metaRef}${opt}`);
+      }
+      return `${rt.name}(${parts.join(', ')})`;
+    }
+  }
+
+  // A single object with meta: both sides spelled out, the object as an unwrapped method shows it.
+  if (resp.isSingleWithMeta && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const fp = (ref: string): string => {
+        const model = models.get(ref);
+        return model ? ktModelFingerprint(model, ir, models, new Set()) : ref;
+      };
+      const parts: string[] = [`data: ${fp(rt.dataRef)}`];
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : '?';
+        parts.push(`meta: ${fp(rt.metaRef)}${opt}`);
       }
       return `${rt.name}(${parts.join(', ')})`;
     }

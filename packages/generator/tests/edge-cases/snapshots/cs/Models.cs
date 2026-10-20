@@ -47,35 +47,48 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
 }
 
 [JsonConverter(typeof(EventTypeConverter))]
-public enum EventType
+public readonly struct EventType : IEquatable<EventType>
 {
-    Message,
-    Reaction,
+    private readonly string? _value;
+
+    public EventType(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    public static EventType Message { get; } = new("message");
+    public static EventType Reaction { get; } = new("reaction");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<EventType> Values { get; } = Array.AsReadOnly(new[] { Message, Reaction });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(EventType left, EventType right) => left.Equals(right);
+    public static bool operator !=(EventType left, EventType right) => !left.Equals(right);
+    public static implicit operator EventType(string value) => new(value);
+    public bool Equals(EventType other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is EventType other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
 }
 
 internal class EventTypeConverter : JsonConverter<EventType>
 {
-    public override EventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return value switch
-        {
-            "message" => EventType.Message,
-            "reaction" => EventType.Reaction,
-            _ => throw new JsonException($"Unknown EventType value: {value}"),
-        };
-    }
+    public override EventType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
 
-    public override void Write(Utf8JsonWriter writer, EventType value, JsonSerializerOptions options)
-    {
-        var str = value switch
-        {
-            EventType.Message => "message",
-            EventType.Reaction => "reaction",
-            _ => value.ToString(),
-        };
-        writer.WriteStringValue(str);
-    }
+    public override void Write(Utf8JsonWriter writer, EventType value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "kind")]
@@ -131,6 +144,14 @@ public class Notification
 {
     [JsonPropertyName("kind")]
     public string Kind { get; set; } = default!;
+}
+
+public class Schedule
+{
+    [JsonPropertyName("days")]
+    public List<int> Days { get; set; } = default!;
+    [JsonPropertyName("value")]
+    public object? Value { get; set; }
 }
 
 public class ListEventsResponse

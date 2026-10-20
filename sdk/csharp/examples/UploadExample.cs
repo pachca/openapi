@@ -52,6 +52,7 @@ public static class UploadExample
                 XAmzDate = uploadParams.XAmzDate,
                 XAmzSignature = uploadParams.XAmzSignature,
                 Key = key,
+                Bucket = uploadParams.Bucket,
                 File = fileBytes,
             });
         Console.WriteLine($"   Uploaded, key: {key}");

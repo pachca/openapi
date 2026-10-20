@@ -212,7 +212,7 @@ export const taskFields: INodeProperties[] = [
 		required: true,
 		default: 0,
 		displayOptions: { show: { resource: ['task'], operation: ['get'] } },
-		description: 'Task ID',
+		description: 'Task ID: in a web app link it is the number from the path `/tasks/{ID}` or from the `task_id` parameter',
 	},
 	{
 		displayName: 'Simplify',
@@ -309,7 +309,7 @@ export const taskFields: INodeProperties[] = [
 { name: 'Event', value: 'event' },
 { name: 'Meeting', value: 'meeting' },
 { name: 'Reminder', value: 'reminder', description: 'Simple reminder' }],
-				default: "reminder",
+				default: "call",
 			},
 			{
 				displayName: 'Performer IDs',

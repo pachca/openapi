@@ -111,9 +111,15 @@ export function schemaToMarkdown(
         prop.additionalProperties &&
         typeof prop.additionalProperties !== 'boolean';
 
+      // A union of bare types (`string | number | …`) has nothing to list per
+      // variant: its type is the list itself, not a block of unnamed «Вариант».
+      const plainUnion = hasUnion ? plainUnionLabel(prop.anyOf ?? prop.oneOf ?? []) : null;
+
       // Determine type info
       let typeInfo = '';
-      if (hasUnion) {
+      if (plainUnion) {
+        typeInfo = plainUnion;
+      } else if (hasUnion) {
         typeInfo = prop.anyOf ? 'anyOf' : 'oneOf';
       } else if (hasAdditionalProperties) {
         typeInfo = 'Record<string, object>';
@@ -193,7 +199,7 @@ export function schemaToMarkdown(
       }
 
       // Handle anyOf/oneOf on property level
-      if (hasUnion) {
+      if (hasUnion && !plainUnion) {
         const variants = prop.anyOf ?? prop.oneOf ?? [];
         content += `${indent}  **Возможные варианты:**\n\n`;
         for (const variant of variants) {
@@ -280,6 +286,36 @@ export function schemaToMarkdown(
 /** Well-known formats that replace the base type (e.g. "date" instead of "string, date") */
 const SELF_DESCRIBING_FORMATS = new Set(['date', 'date-time', 'uri', 'email', 'uuid', 'binary']);
 
+/**
+ * The type of a union whose variants are bare types, e.g. `string | number |
+ * array | object`; null when any variant is a named or structured schema.
+ */
+function plainUnionLabel(variants: Schema[]): string | null {
+  const types: string[] = [];
+  for (const variant of variants) {
+    const resolved = resolveSchema(variant);
+    if (variant.$ref || resolved.title || resolved.properties || resolved.anyOf || resolved.oneOf) {
+      return null;
+    }
+    const type = Array.isArray(resolved.type) ? resolved.type.join(' | ') : resolved.type || 'any';
+    if (!types.includes(type)) types.push(type);
+  }
+  return types.length > 0 ? types.join(' | ') : null;
+}
+
+/**
+ * Error bodies every method shares. They are described once on the errors
+ * page; spelling them out under each status repeated the same field list and
+ * the whole code table dozens of times per page.
+ */
+const SHARED_ERROR_SCHEMAS = new Set(['ApiError', 'OAuthError']);
+
+function sharedErrorNames(schema: Schema): string[] | null {
+  const variants = schema.anyOf ?? schema.oneOf ?? [schema];
+  const names = variants.map((variant) => variant.$ref?.split('/').pop());
+  return names.every((name) => name && SHARED_ERROR_SCHEMAS.has(name)) ? (names as string[]) : null;
+}
+
 /** Format parameter type string, e.g. "integer" or "date" */
 function formatParamType(schema?: Schema): string {
   if (!schema) return 'string';
@@ -345,6 +381,9 @@ function formatParameters(endpoint: Endpoint): string {
       content += `- \`${param.name}: ${type}\`${meta}`;
       if (description) content += ` — ${description}`;
       content += '\n';
+      if (param.schema?.enum) {
+        content += `  Значения: ${param.schema.enum.map((v: unknown) => `\`${String(v)}\``).join(', ')}\n`;
+      }
     }
     content += '\n';
   }
@@ -363,11 +402,14 @@ function formatRequestBody(endpoint: Endpoint): string {
   let content = '\n## Тело запроса\n\n';
 
   // Prefer application/json, fall back to multipart/form-data (e.g. avatar upload)
+  // and to a form body (the OAuth flow)
   const contentType = endpoint.requestBody.content?.['application/json']
     ? 'application/json'
     : endpoint.requestBody.content?.['multipart/form-data']
       ? 'multipart/form-data'
-      : null;
+      : endpoint.requestBody.content?.['application/x-www-form-urlencoded']
+        ? 'application/x-www-form-urlencoded'
+        : null;
   if (!contentType) return content;
 
   const mediaContent = endpoint.requestBody.content?.[contentType];
@@ -394,8 +436,9 @@ function formatRequestBody(endpoint: Endpoint): string {
       content += '\n';
     }
 
-    // Generate JSON example (skip for multipart — binary blob makes no sense as JSON)
-    if (contentType === 'application/json') {
+    // Generate JSON example (skip for multipart — binary blob makes no sense as JSON).
+    // A form body shows its fields the same way; the curl example sends them as `-d name=value`.
+    if (contentType !== 'multipart/form-data') {
       const example = generateRequestExample(endpoint.requestBody);
       if (example) {
         content += '### Пример\n\n';
@@ -455,16 +498,21 @@ function formatResponses(endpoint: Endpoint): string {
     else if (statusCode.startsWith('4') || statusCode.startsWith('5')) {
       // Format error schema if available
       if (jsonContent?.schema) {
-        content += '**Схема ответа при ошибке:**\n\n';
-        const schemaFormatted = schemaToMarkdown(
-          jsonContent.schema,
-          0,
-          jsonContent.schema.required || [],
-          true
-        );
-        if (schemaFormatted) {
-          content += schemaFormatted;
-          content += '\n';
+        const shared = sharedErrorNames(jsonContent.schema);
+        if (shared) {
+          content += `**Схема ответа при ошибке:** ${shared.map((name) => `\`${name}\``).join(' или ')}. Поля и коды описаны в разделе [Ошибки](/api/errors).\n\n`;
+        } else {
+          content += '**Схема ответа при ошибке:**\n\n';
+          const schemaFormatted = schemaToMarkdown(
+            jsonContent.schema,
+            0,
+            jsonContent.schema.required || [],
+            true
+          );
+          if (schemaFormatted) {
+            content += schemaFormatted;
+            content += '\n';
+          }
         }
 
         // Add example for error response

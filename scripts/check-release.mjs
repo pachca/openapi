@@ -1,15 +1,24 @@
 #!/usr/bin/env node
 /**
- * Unified release gate for all published packages (CLI, n8n, SDK, generator).
+ * Unified release gate for all published packages (CLI, n8n, SDK, generator,
+ * MCP manifest).
  *
  * A package is published for version V only when ALL hold:
  *   1. V is declared in the portal changelog apps/docs/data/releases.json
  *      (the latest entry for this product) — this is the single source of
- *      the version number.
- *   2. V is NOT yet on npm (no duplicate re-publish).
+ *      the version number. A package released outside the portal passes
+ *      `--package-dir <dir>` instead: V is `version` in <dir>/package.json
+ *      (MCP manifest).
+ *   2. V is NOT yet on npm (no duplicate re-publish), and it is exactly the
+ *      next step after the `latest` dist-tag.
  *   3. If the package keeps its own changelog (CLI: changelog.json,
- *      n8n: CHANGELOG.md), V must also appear there. SDK/generator have no
- *      own changelog — the portal entry is enough.
+ *      n8n: CHANGELOG.md, with `--package-dir`: <dir>/CHANGELOG.md), V must
+ *      also appear there. SDK and generator have no own changelog — the
+ *      portal entry is enough.
+ *   4. The package already exists on npm. Trusted publishing cannot create a
+ *      package, so a first publish from CI would fail with a 404: the gate
+ *      skips it with `first_publish=true`, and the package is bootstrapped by
+ *      hand with scripts/npm-bootstrap.mjs (see docs/releases.md).
  *
  * Whether the package code changed in this very push is deliberately NOT a
  * condition. It used to be, and it made a failed publish unrecoverable: the
@@ -22,10 +31,13 @@
  * Usage:
  *   node scripts/check-release.mjs --product cli --npm @pachca/cli \
  *     --dir packages/cli --changelog packages/cli/src/data/changelog.json --changelog-type json
+ *   node scripts/check-release.mjs --product mcp-manifest --npm @pachca/mcp-manifest \
+ *     --package-dir packages/mcp-manifest
  *
  * Prints to stdout (GITHUB_OUTPUT format):
  *   version=<V>
  *   should_publish=<true|false>
+ *   first_publish=<true|false>
  * Diagnostics go to stderr.
  */
 
@@ -40,8 +52,11 @@ function arg(name) {
 const product = arg('product');
 const npmPkg = arg('npm');
 const dir = arg('dir');
-const changelog = arg('changelog');
-const changelogType = arg('changelog-type') || 'json';
+// A package released outside the portal: version from its package.json,
+// changelog check against its CHANGELOG.md (unless --changelog says otherwise).
+const packageDir = arg('package-dir');
+const changelog = arg('changelog') ?? (packageDir ? `${packageDir}/CHANGELOG.md` : undefined);
+const changelogType = arg('changelog-type') || (packageDir && !arg('changelog') ? 'md' : 'json');
 // Version format rule per library: 'calver' (CLI: YYYY.M.patch) or 'semver'.
 const versionRule = arg('version-rule') || 'semver';
 
@@ -142,19 +157,34 @@ function allPublishedVersions() {
   }
 }
 
-const releases = JSON.parse(fs.readFileSync('apps/docs/data/releases.json', 'utf-8'));
-// releases.json is ordered newest-first; the first entry for a product is its
-// current declared version.
-const entry = releases.find((r) => r.product === product);
-
-if (!entry) {
-  console.error(`[check-release] ${product}: no portal entry in releases.json → skip`);
-  console.log('version=');
-  console.log('should_publish=false');
-  process.exit(0);
+/** The declared version: package.json with --package-dir, releases.json otherwise. */
+function declaredVersion() {
+  if (packageDir) {
+    const pkg = JSON.parse(fs.readFileSync(`${packageDir}/package.json`, 'utf-8'));
+    if (pkg.name !== npmPkg) {
+      console.error(
+        `[check-release] ${product}: ${packageDir}/package.json is "${pkg.name}", not ${npmPkg}`
+      );
+      process.exit(1);
+    }
+    return pkg.version || null;
+  }
+  const releases = JSON.parse(fs.readFileSync('apps/docs/data/releases.json', 'utf-8'));
+  // releases.json is ordered newest-first; the first entry for a product is its
+  // current declared version.
+  return releases.find((r) => r.product === product)?.version ?? null;
 }
 
-const version = entry.version;
+const version = declaredVersion();
+
+if (!version) {
+  const source = packageDir ? `${packageDir}/package.json` : 'releases.json';
+  console.error(`[check-release] ${product}: no version declared in ${source} → skip`);
+  console.log('version=');
+  console.log('should_publish=false');
+  console.log('first_publish=false');
+  process.exit(0);
+}
 
 // Rule 1: version must match the library's format (CLI=CalVer, others=semver).
 const formatOk = validFormat(version);
@@ -180,13 +210,24 @@ if (changelog) {
   }
 }
 
-const shouldPublish = formatOk && stepOk && !onNpm && inChangelog;
+// Rule 4: the package exists on npm. Only a real E404 gets here as null.
+const firstPublish = published === null;
+
+const shouldPublish = formatOk && stepOk && !onNpm && inChangelog && !firstPublish;
 
 console.error(
   `[check-release] ${product}: version=${version} (rule=${versionRule}) ` +
     `formatOk=${formatOk} stepOk=${stepOk} (npm-latest=${published ?? 'none'}) ` +
-    `onNpm=${onNpm} inChangelog=${inChangelog} → publish=${shouldPublish}`
+    `onNpm=${onNpm} inChangelog=${inChangelog} firstPublish=${firstPublish} → publish=${shouldPublish}`
 );
+if (firstPublish) {
+  const bootstrapDir = packageDir ?? dir?.split(',')[0] ?? '<package-dir>';
+  console.error(
+    `[check-release] ${product}: ${npmPkg} is not on npm yet, and trusted publishing cannot ` +
+      `create a package. First publish: run \`node scripts/npm-bootstrap.mjs ${bootstrapDir}\`, ` +
+      `add the trusted publisher on npmjs.com, then run this workflow (docs/releases.md).`
+  );
+}
 if (!formatOk) {
   console.error(
     `[check-release] ${product}: version "${version}" violates ${versionRule} format rule`
@@ -206,3 +247,4 @@ if (!stepOk && !onNpm) {
 }
 console.log(`version=${version}`);
 console.log(`should_publish=${shouldPublish}`);
+console.log(`first_publish=${firstPublish}`);

@@ -1,6 +1,266 @@
 [
   {
     "product": "n8n",
+    "version": "2.2.0",
+    "date": "2026-10-20",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`Chat`: операция `Request Export` сразу возвращает номер выгрузки в `id` — с ним `Download Export` забирает архив, когда тот соберётся"
+      },
+      {
+        "type": "+",
+        "description": "`Chat`: операция `Create` отдаёт в `not_found_member_ids` идентификаторы из `Member IDs`, которых не удалось добавить в чат"
+      },
+      {
+        "type": "+",
+        "description": "`Bot`: операции `Update Avatar` и `Delete Avatar` — аватар бота"
+      },
+      {
+        "type": "+",
+        "description": "`Bot`: операция `Get` отдаёт в `Webhook` адрес входящего вебхука, секрет подписи и тело последнего запроса, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота"
+      },
+      {
+        "type": "~",
+        "description": "`Form`: в операции `Create` поля `Close Text` и `Submit Text` по умолчанию пустые — тогда кнопки подписывает Пачка: «Отменить» и «Отправить»"
+      },
+      {
+        "type": "~",
+        "description": "`Message`: в операции `Create` поле `Content` необязательно — сообщение можно отправить из одних файлов"
+      },
+      {
+        "type": "~",
+        "description": "`Profile` и `User`: в операции `Update Status` поля `Emoji` и `Title` нужны, только когда статуса ещё нет — продлить статус можно одним `Expires At`"
+      },
+      {
+        "type": "~",
+        "description": "`File`: операция `Create` передаёт в форме загрузки `acl` и `bucket`, только если они пришли: в части пространств метод `Получение подписи, ключа и других параметров` отдаёт `bucket` вместо `acl`"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.10.1",
+    "date": "2026-10-20",
+    "changes": [
+      {
+        "type": "~",
+        "description": "`pachca chats request-export` выводит номер выгрузки `id`: с ним `pachca chats download-export` забирает архив, когда тот соберётся"
+      },
+      {
+        "type": "+",
+        "description": "`pachca chats create` предупреждает в stderr об идентификаторах из `--member-ids`, которых не удалось добавить в чат"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots update-avatar` и `bots remove-avatar` — аватар бота"
+      },
+      {
+        "type": "+",
+        "description": "`pachca bots get`: в `webhook` приходят адрес входящего вебхука `url`, секрет подписи `secret_token` и тело последнего запроса `last_request_body`, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота"
+      },
+      {
+        "type": "~",
+        "description": "`pachca messages create` отправляет сообщение без `--content`, если к нему приложены файлы"
+      },
+      {
+        "type": "~",
+        "description": "`pachca profile update-status` и `pachca users update-status`: `--emoji` и `--title` нужны, только когда статуса ещё нет — продлить статус можно одним `--expires-at`"
+      },
+      {
+        "type": "~",
+        "description": "`pachca upload` передаёт в форме загрузки `acl` и `bucket`, только если они пришли, а у `pachca files direct-url` флаг `--acl` необязателен и есть флаг `--bucket`: в части пространств метод `Получение подписи, ключа и других параметров` отдаёт `bucket` вместо `acl`"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.6.0",
+    "date": "2026-10-20",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Метод `Экспорт сообщений` (`POST /chats/exports`) возвращает модель `ChatExport` с идентификатором выгрузки: SDK передаёт заголовок `Prefer: return=representation`"
+      },
+      {
+        "type": "~",
+        "description": "Метод `Скачивание файла` (`GET /files/{id}`) возвращает содержимое файла: `Blob` в TypeScript, `bytes` в Python, `[]byte` в Go, `ByteArray` в Kotlin, `Data` в Swift и `byte[]` в C#"
+      },
+      {
+        "type": "~",
+        "description": "Метод `Новый чат` (`POST /chats`) возвращает ответ целиком в модели `CreateChatResponse`: чат в `data`, а в `meta.not_found_member_ids` — идентификаторы из `member_ids`, которых не удалось добавить. Код, который брал поля чата из результата, берёт их из `data`."
+      },
+      {
+        "type": "~",
+        "description": "Класс ошибки SDK выбирает по телу ответа: `ApiError` — для ответа с массивом `errors`, `OAuthError` — для ответа с кодом в поле `error`, в том числе `403` с `insufficient_scope` или `role_forbidden`"
+      },
+      {
+        "type": "~",
+        "description": "Перечисления в ответах принимают и значения, которых SDK ещё не знает: такое значение приходит как есть. В Kotlin такое перечисление — `value class` со строкой `value`, в Swift — `enum` со случаем `unknown(String)`, в C# — структура со строкой `Value`. В Python такое значение — элемент перечисления с исходной строкой в `value` и `is_known`, равным `False`. Код, который перебирает значения такого перечисления, дописывает ветку для незнакомого: `else` в `when` в Kotlin, `default` или `case .unknown` в `switch` в Swift, а в C# сравнивает через `==` или `switch` по `Value` вместо `case`. Перечисления, которые встречаются только в запросах, прежние."
+      },
+      {
+        "type": "~",
+        "description": "Поле `error` в `OAuthError` — перечисление `OAuthErrorCode`. В TypeScript поле — строка, а `OAuthErrorCode` перечисляет её значения."
+      },
+      {
+        "type": "~",
+        "description": "Поле `acl` в `UploadParams` и `FileUploadRequest` необязательно, и добавлено поле `bucket`: в части пространств метод `Получение подписи, ключа и других параметров` отдаёт `bucket` вместо `acl`, а метод `Загрузка файла` передаёт в форме только заданные поля"
+      },
+      {
+        "type": "~",
+        "description": "Go: ответ `401`, тело которого не разбирается, приходит обычной ошибкой `HTTP 401: …`, как ответы с другими кодами"
+      },
+      {
+        "type": "+",
+        "description": "Методы `Обмен кода на токен` (`POST /oauth/token`) и `Отзыв токена` (`POST /oauth/revoke`) в сервисе `oauth` — для бота, который получает токен сотрудника"
+      },
+      {
+        "type": "+",
+        "description": "Функции для кнопки авторизации: ссылка на экран согласия и пара PKCE — `buildAuthorizeUrl` и `createPkce` в TypeScript, в остальных языках по их правилам"
+      },
+      {
+        "type": "+",
+        "description": "Методы `Загрузка аватара бота` (`PUT /bots/{id}/avatar`) и `Удаление аватара бота` (`DELETE /bots/{id}/avatar`)"
+      },
+      {
+        "type": "+",
+        "description": "Поля `url`, `secret_token` и `last_request_body` в объекте `webhook` бота — приходят в методе `Информация о боте` (`GET /bots/{id}`)"
+      },
+      {
+        "type": "+",
+        "description": "Поле `authorized_at` в `AccessTokenInfo` — дата входа из CLI или выдачи доступа внешнему приложению, приходит в методе `Информация о токене` (`GET /oauth/token/info`)"
+      },
+      {
+        "type": "+",
+        "description": "Коды ошибок `daily_invites_limit` и `restricted_bot_tag_denied`"
+      },
+      {
+        "type": "+",
+        "description": "Swift: типы ответов, например `CreateChatResponse` и `ListChatsResponse`, создаются в коде публичным инициализатором — так заглушка сервиса в тесте возвращает ответ"
+      },
+      {
+        "type": "~",
+        "description": "Поле `value` в `ApiErrorItem` принимает любое JSON-значение, как его отдаёт API: строку, число, массив, а иногда логическое значение или объект, например список `id` ботов у кода `bot_add_denied`. Тип поля — `unknown` в TypeScript, `Any` в Python, `any` в Go, `JsonElement` в Kotlin, `AnyCodable` в Swift и `object` в C#."
+      },
+      {
+        "type": "~",
+        "description": "Необязательны `content` в `MessageCreateRequest` — для сообщения из одних файлов — и `emoji` с `title` в `StatusUpdateRequest` — для продления статуса одним `expires_at`"
+      },
+      {
+        "type": "~",
+        "description": "Поле `size` у файла в `MessageCreateRequest` необязательно, как при правке сообщения и в черновике: черновик отправляют, передав `key`, `name` и `file_type` его файлов"
+      },
+      {
+        "type": "~",
+        "description": "Поля `started_at` и `duration` в `VideoCallWebhookPayload` и `duration` в `AuditDetailsVideoCallFinished` бывают `null` — у звонка, который завершился, так и не начавшись. В Go `StartedAt` — `*string`, как остальные даты, которые бывают `null`."
+      },
+      {
+        "type": "~",
+        "description": "Python: запросы правки сотрудника, задачи, бота и сообщения, а также создания бота передают только те поля, которые вы задали"
+      },
+      {
+        "type": "-",
+        "description": "Python: поле-перечисление в ответе приходит элементом своего перечисления, как в аннотации типа"
+      },
+      {
+        "type": "-",
+        "description": "Python: необязательный список в ответе разбирается по типу своих элементов, например `members` в `VideoCallWebhookPayload` — список `WebhookVideoCallMember`"
+      },
+      {
+        "type": "+",
+        "description": "Модель `ExportWebhookPayload` — тело вебхука о готовой выгрузке"
+      },
+      {
+        "type": "-",
+        "description": "C# и Kotlin: загрузка файла в хранилище и обмен кода на токен идут без заголовка `Authorization`. В C# такой запрос через переданный `HttpClient` с токеном в `DefaultRequestHeaders` уходит через отдельный клиент."
+      }
+    ]
+  },
+  {
+    "product": "generator",
+    "version": "1.3.0",
+    "date": "2026-10-20",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Заголовок запроса с единственным допустимым значением, например `Prefer: return=representation`, сгенерированный метод передаёт сам, а ответ `202` с телом становится его результатом"
+      },
+      {
+        "type": "+",
+        "description": "Ответ с файлом (`application/octet-stream`) становится результатом метода: сгенерированный метод возвращает содержимое файла в типе своего языка"
+      },
+      {
+        "type": "~",
+        "description": "Ответ `{ data: T, meta }` с одним объектом в `data` сгенерированный метод возвращает целиком, как ответ списка: в типе ответа, например `CreateChatResponse`, есть `data` и `meta`. Описанный прямо в ответе `meta` становится отдельной моделью, например `CreateChatResponseMeta`."
+      },
+      {
+        "type": "+",
+        "description": "Swift: у типов ответов есть публичный инициализатор, как у моделей"
+      },
+      {
+        "type": "+",
+        "description": "Тело `application/x-www-form-urlencoded`: сгенерированный метод передаёт поля запроса формой"
+      },
+      {
+        "type": "+",
+        "description": "Расширение `x-oauth-authorize-url` у операции: SDK получает функции, которые собирают ссылку авторизации и пару PKCE"
+      },
+      {
+        "type": "~",
+        "description": "Класс ошибки выбирается по телу ответа, если в спеке есть обе модели ошибок: `ApiError` для массива `errors`, `OAuthError` для кода в поле `error`"
+      },
+      {
+        "type": "+",
+        "description": "Перечисление, которое встречается в ответе, генерируется открытым: значение не из спеки разбирается без ошибки и сохраняется. Закрытыми остаются перечисления, которые встречаются только в запросах."
+      },
+      {
+        "type": "~",
+        "description": "Если поле `error` в `OAuthError` ссылается на перечисление, поле получает тип этого перечисления во всех языках, кроме TypeScript"
+      },
+      {
+        "type": "~",
+        "description": "Go: ответ `401`, тело которого не разбирается, приходит ошибкой `HTTP 401: …` с причиной через `%w`, как ответы с другими кодами"
+      },
+      {
+        "type": "-",
+        "description": "Python: поле-перечисление в ответе разбирается в элемент своего перечисления"
+      },
+      {
+        "type": "-",
+        "description": "Python: необязательный список (`list[X] | None`) в ответе разбирается по типу своих элементов"
+      },
+      {
+        "type": "~",
+        "description": "Массив в query уходит парами `name[]=value` по расширению `x-query-array: brackets` у параметра. Без расширения значение повторяется под тем же именем: `name=a&name=b`."
+      },
+      {
+        "type": "+",
+        "description": "Ссылка на схему-скаляр с ограничениями, например целое от 0 до 6, становится примитивом своего языка, а не моделью"
+      },
+      {
+        "type": "~",
+        "description": "Объединение простых значений — `anyOf` из строк, чисел, логических значений, массивов и объектов без `$ref` — становится открытым JSON-значением: `unknown` в TypeScript, `Any` в Python, `any` без указателя в Go, `JsonElement` в Kotlin, `AnyCodable` в Swift и `object` в C#"
+      },
+      {
+        "type": "-",
+        "description": "Go: код успешного ответа берётся из спеки — `200`, `201`, `202` или `204`"
+      },
+      {
+        "type": "-",
+        "description": "C# и Kotlin: операция без авторизации (`x-requirements: { auth: false }`) уходит без заголовка `Authorization`, даже если токен задан в заголовках клиента по умолчанию"
+      },
+      {
+        "type": "-",
+        "description": "Swift: необязательный `meta` в типе ответа разбирается из тела, когда ответ его содержит"
+      },
+      {
+        "type": "-",
+        "description": "Swift: пример вызова передаёт тело запроса с меткой `request:`, как в сигнатуре метода"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
     "version": "2.1.4",
     "date": "2026-10-13",
     "changes": [

@@ -93,7 +93,7 @@ export const threadFields: INodeProperties[] = [
 		required: true,
 		default: 0,
 		displayOptions: { show: { resource: ['thread'], operation: ['get'] } },
-		description: 'Thread ID',
+		description: 'Thread ID: in a web app link it is the number from the `thread_id` parameter',
 	},
 	{
 		displayName: 'Simplify',

@@ -27,11 +27,23 @@ sourceSets {
         compileClasspath += sourceSets.main.get().output + configurations.runtimeClasspath.get()
         runtimeClasspath += sourceSets.main.get().output + configurations.runtimeClasspath.get()
     }
+    // Runtime checks of the SDK against canned responses, kept beside the examples
+    // so they never reach the published library.
+    create("tests") {
+        kotlin.srcDirs("../tests")
+        compileClasspath += sourceSets.main.get().output + configurations.runtimeClasspath.get()
+        runtimeClasspath += sourceSets.main.get().output + configurations.runtimeClasspath.get()
+    }
 }
 
 tasks.register<JavaExec>("runExample") {
     classpath = sourceSets["examples"].runtimeClasspath
     mainClass.set(System.getProperty("example", "examples.echobot.MainKt"))
+}
+
+tasks.register<JavaExec>("runTests") {
+    classpath = sourceSets["tests"].runtimeClasspath
+    mainClass.set("tests.OpenEnums")
 }
 
 val ktorVersion = "3.2.3"

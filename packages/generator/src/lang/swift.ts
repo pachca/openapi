@@ -62,7 +62,67 @@ function isOptionalField(field: IRField): boolean {
   return !field.required || field.nullable;
 }
 
+/** The enum type of `OAuthError.error`, when the spec gives that field one. */
+function oauthErrorCodeEnum(ir: IR): IREnum | undefined {
+  const field = ir.models.find((m) => m.name === 'OAuthError')?.fields.find((f) => f.name === 'error');
+  return field?.type.kind === 'enum' ? ir.enums.find((e) => e.name === field.type.ref) : undefined;
+}
+
+/**
+ * An open enum keeps a value the SDK does not list yet in its catch-all case,
+ * where a `String` raw-value enum would fail the whole response. `rawValue`,
+ * `init?(rawValue:)` and `allCases` keep the shape of a raw-value enum, and a
+ * string literal converts into it, so a field that was a `String` still compares
+ * with `"insufficient_scope"`.
+ */
+function emitOpenEnum(lines: string[], e: IREnum): void {
+  const cases = e.members.map((m) => ({ id: swiftIdentifier(m.value), value: m.value, description: m.description }));
+  const unknown = cases.some((c) => c.id === 'unknown') ? 'unknownValue' : 'unknown';
+  lines.push(`public enum ${e.name}: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {`);
+  for (const c of cases) {
+    if (c.description) lines.push(`    /// ${c.description}`);
+    lines.push(`    case ${c.id}`);
+  }
+  lines.push('    /// A value this SDK version does not list yet');
+  lines.push(`    case ${unknown}(String)`);
+  lines.push('');
+  lines.push('    /// Every value this SDK version lists');
+  lines.push(`    public static let allCases: [${e.name}] = [${cases.map((c) => `.${c.id}`).join(', ')}]`);
+  lines.push('');
+  lines.push('    public init(_ rawValue: String) {');
+  lines.push('        switch rawValue {');
+  for (const c of cases) lines.push(`        case ${JSON.stringify(c.value)}: self = .${c.id}`);
+  lines.push(`        default: self = .${unknown}(rawValue)`);
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    public init?(rawValue: String) { self.init(rawValue) }');
+  lines.push('');
+  lines.push('    public init(stringLiteral value: String) { self.init(value) }');
+  lines.push('');
+  lines.push('    public var rawValue: String {');
+  lines.push('        switch self {');
+  for (const c of cases) lines.push(`        case .${c.id}: return ${JSON.stringify(c.value)}`);
+  lines.push(`        case .${unknown}(let value): return value`);
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    public init(from decoder: Decoder) throws {');
+  lines.push('        self.init(try decoder.singleValueContainer().decode(String.self))');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    public func encode(to encoder: Encoder) throws {');
+  lines.push('        var container = encoder.singleValueContainer()');
+  lines.push('        try container.encode(rawValue)');
+  lines.push('    }');
+  lines.push('}');
+}
+
 function emitEnum(lines: string[], e: IREnum): void {
+  if (e.open) {
+    emitOpenEnum(lines, e);
+    return;
+  }
   lines.push(`public enum ${e.name}: String, Codable, CaseIterable {`);
   for (const m of e.members) {
     const id = swiftIdentifier(m.value);
@@ -158,7 +218,8 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
     const errField = m.fields.find((f) => f.name === 'error');
     if (errField) {
       lines.push('');
-      lines.push(`    public var localizedDescription: String { ${swiftIdentifier(errField.name)} }`);
+      const code = errField.type.kind === 'enum' ? `${swiftIdentifier(errField.name)}.rawValue` : swiftIdentifier(errField.name);
+      lines.push(`    public var localizedDescription: String { ${code} }`);
     }
   }
 
@@ -319,9 +380,20 @@ function generateModels(ir: IR): string {
     lines.push('');
   }
   for (const rt of ir.responses) {
+    const dataType = rt.dataIsArray ? `[${rt.dataRef}]` : rt.dataRef;
+    const metaType = rt.metaRef ? `${rt.metaRef}${rt.metaIsRequired ? '' : '?'}` : undefined;
     lines.push(`public struct ${rt.name}: Codable {`);
-    lines.push(`    public let data: [${rt.dataRef}]`);
-    if (rt.metaRef) lines.push(`    public let meta: ${rt.metaRef}${rt.metaIsRequired ? '' : '?'}${rt.metaIsRequired ? '' : ' = nil'}`);
+    lines.push(`    public let data: ${dataType}`);
+    // No default for an optional meta: Codable skips a `let` that has an initial value.
+    if (metaType) lines.push(`    public let meta: ${metaType}`);
+    // Public memberwise init, as every model has: a service stub in tests builds the response with it.
+    lines.push('');
+    const initParams = [`data: ${dataType}`];
+    if (metaType) initParams.push(`meta: ${metaType}${rt.metaIsRequired ? '' : ' = nil'}`);
+    lines.push(`    public init(${initParams.join(', ')}) {`);
+    lines.push('        self.data = data');
+    if (metaType) lines.push('        self.meta = meta');
+    lines.push('    }');
     lines.push('}');
     lines.push('');
   }
@@ -344,8 +416,9 @@ function generateModels(ir: IR): string {
 
 function opReturn(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'String';
+  if (op.successResponse.isBinary) return 'Data';
   if (!op.successResponse.hasBody) return 'Void';
-  if (op.successResponse.isList) {
+  if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return rt?.name ?? 'String';
   }
@@ -421,6 +494,20 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
   }
   if (op.method !== 'GET') lines.push(`        request.httpMethod = ${JSON.stringify(op.method)}`);
   if (!op.noAuth) lines.push('        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }');
+  for (const h of op.requestHeaders ?? []) {
+    lines.push(`        request.setValue(${JSON.stringify(h.value)}, forHTTPHeaderField: ${JSON.stringify(h.name)})`);
+  }
+
+  if (op.requestBody?.contentType === 'form') {
+    const rb = op.requestBody!;
+    lines.push('        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")');
+    if (shouldUnwrapBody(rb)) {
+      const f = rb.unwrapField!;
+      lines.push(`        request.httpBody = Data("${f.name}=\\(pachcaFormEncode(String(describing: ${swiftIdentifier(f.name)})))".utf8)`);
+    } else {
+      lines.push('        request.httpBody = try pachcaFormBody(body)');
+    }
+  }
 
   if (op.requestBody?.contentType === 'json') {
     const rb = op.requestBody!;
@@ -487,7 +574,10 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
       lines.push('        case 401:');
       lines.push('            throw try deserialize(OAuthError.self, from: data)');
     }
-    if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
+    if (swPicksErrorByBody(ir)) {
+      lines.push('        default:');
+      lines.push('            throw pachcaErrorFromBody(data)');
+    } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
       lines.push('        default:');
       lines.push('            throw try deserialize(ApiError.self, from: data)');
     } else {
@@ -505,8 +595,9 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
   lines.push('        switch statusCode {');
   const okCode = op.successResponse.statusCode;
   lines.push(`        case ${okCode}:`);
-  if (!op.successResponse.hasBody) lines.push('            return');
-  else if (op.successResponse.isList) lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
+  if (op.successResponse.isBinary) lines.push(`            return ${resVar}`);
+  else if (!op.successResponse.hasBody) lines.push('            return');
+  else if (op.successResponse.isList || op.successResponse.isSingleWithMeta) lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
   else if (op.successResponse.isUnwrap && op.successResponse.dataRef) lines.push(`            return try deserialize(${op.successResponse.dataRef}DataWrapper.self, from: ${resVar}).data`);
   else lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
 
@@ -514,7 +605,10 @@ function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'pub
     lines.push('        case 401:');
     lines.push(`            throw try deserialize(OAuthError.self, from: ${resVar})`);
   }
-  if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
+  if (swPicksErrorByBody(ir)) {
+    lines.push('        default:');
+    lines.push(`            throw pachcaErrorFromBody(${resVar})`);
+  } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
     lines.push('        default:');
     lines.push(`            throw try deserialize(ApiError.self, from: ${resVar})`);
   } else {
@@ -709,9 +803,73 @@ function emitWebhookPollingMethods(lines: string[], prefix: string): void {
   lines.push('    }');
 }
 
+/** Both error models exist, so an error's class is read off its body. */
+function swPicksErrorByBody(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+}
+
+/** The authorization link and the PKCE pair for the OAuth flow (`x-oauth-authorize-url`). */
+function emitSwiftOAuthHelpers(lines: string[], authorizeUrl: string): void {
+  lines.push('/// The authorization link and the PKCE pair of the OAuth flow.');
+  lines.push('public enum PachcaOAuth {');
+  lines.push(`    public static let authorizeURL = ${JSON.stringify(authorizeUrl)}`);
+  lines.push('');
+  lines.push('    /// Keep `codeVerifier` until the code exchange, put `codeChallenge` into the link.');
+  lines.push('    public struct PKCE {');
+  lines.push('        public let codeVerifier: String');
+  lines.push('        public let codeChallenge: String');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    /// The authorization link for a message button: the consent screen with PKCE (S256).');
+  lines.push('    public static func buildAuthorizeURL(');
+  lines.push('        clientId: String,');
+  lines.push('        redirectUri: String,');
+  lines.push('        state: String,');
+  lines.push('        codeChallenge: String,');
+  lines.push('        authorizeURL: String = PachcaOAuth.authorizeURL');
+  lines.push('    ) -> String {');
+  lines.push('        let query = [');
+  lines.push('            ("client_id", clientId),');
+  lines.push('            ("redirect_uri", redirectUri),');
+  lines.push('            ("response_type", "code"),');
+  lines.push('            ("state", state),');
+  lines.push('            ("code_challenge", codeChallenge),');
+  lines.push('            ("code_challenge_method", "S256"),');
+  lines.push('        ].map { "\\($0.0)=\\(pachcaFormEncode($0.1))" }.joined(separator: "&")');
+  lines.push('        return "\\(authorizeURL)?\\(query)"');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    #if canImport(CryptoKit) || canImport(Crypto)');
+  lines.push('    /// A random code verifier and its SHA-256 challenge.');
+  lines.push('    public static func createPKCE() -> PKCE {');
+  lines.push('        var generator = SystemRandomNumberGenerator()');
+  lines.push('        let bytes = (0..<32).map { _ in UInt8.random(in: .min ... .max, using: &generator) }');
+  lines.push('        let verifier = base64URL(Data(bytes))');
+  lines.push('        let digest = SHA256.hash(data: Data(verifier.utf8))');
+  lines.push('        return PKCE(codeVerifier: verifier, codeChallenge: base64URL(Data(digest)))');
+  lines.push('    }');
+  lines.push('    #endif');
+  lines.push('');
+  lines.push('    private static func base64URL(_ data: Data) -> String {');
+  lines.push('        data.base64EncodedString()');
+  lines.push('            .replacingOccurrences(of: "+", with: "-")');
+  lines.push('            .replacingOccurrences(of: "/", with: "_")');
+  lines.push('            .replacingOccurrences(of: "=", with: "")');
+  lines.push('    }');
+  lines.push('}');
+  lines.push('');
+}
+
 function generateClient(ir: IR): string {
   const lines: string[] = [];
   lines.push(...FOUNDATION_IMPORTS);
+  if (ir.oauthAuthorizeUrl) {
+    lines.push('#if canImport(CryptoKit)');
+    lines.push('import CryptoKit');
+    lines.push('#elseif canImport(Crypto)');
+    lines.push('import Crypto');
+    lines.push('#endif');
+  }
   lines.push('');
   const hasServices = ir.services.length > 0;
   if (hasServices) {
@@ -720,6 +878,55 @@ function generateClient(ir: IR): string {
     lines.push('}');
     lines.push('');
   }
+  const hasForm = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'form'));
+  if (hasForm || ir.oauthAuthorizeUrl) {
+    lines.push('/// Percent-encodes a form or query value: only unreserved ASCII stays as is.');
+    lines.push('func pachcaFormEncode(_ value: String) -> String {');
+    lines.push('    let unreserved = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")');
+    lines.push('    return value.addingPercentEncoding(withAllowedCharacters: unreserved) ?? value');
+    lines.push('}');
+    lines.push('');
+  }
+  if (hasForm) {
+    lines.push('/// A form body (application/x-www-form-urlencoded): the fields go by their wire names, empty ones are left out.');
+    lines.push('func pachcaFormBody<T: Encodable>(_ value: T) throws -> Data {');
+    lines.push('    let object = try JSONSerialization.jsonObject(with: serialize(value)) as? [String: Any] ?? [:]');
+    lines.push('    let pairs = object.compactMap { key, item -> String? in');
+    lines.push('        if item is NSNull { return nil }');
+    lines.push('        // Numbers and booleans go as their JSON text: true, not 1');
+    lines.push('        let text = item as? String');
+    lines.push('            ?? (try? JSONSerialization.data(withJSONObject: item, options: .fragmentsAllowed))');
+    lines.push('                .flatMap { String(data: $0, encoding: .utf8) }');
+    lines.push('            ?? "\\(item)"');
+    lines.push('        return "\\(key)=\\(pachcaFormEncode(text))"');
+    lines.push('    }');
+    lines.push('    return Data(pairs.joined(separator: "&").utf8)');
+    lines.push('}');
+    lines.push('');
+  }
+  if (hasServices && swPicksErrorByBody(ir)) {
+    lines.push('/// An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
+    lines.push('/// which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the type.');
+    lines.push('func pachcaErrorFromBody(_ data: Data) -> Error {');
+    const codeEnum = oauthErrorCodeEnum(ir);
+    lines.push('    if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],');
+    if (codeEnum && !codeEnum.open) {
+      // A closed enum takes only the values it lists: the decoder refuses the rest.
+      lines.push('       object["errors"] == nil, object["error"] is String,');
+      lines.push('       let oauthError = try? deserialize(OAuthError.self, from: data) {');
+      lines.push('        return oauthError');
+    } else {
+      const code = codeEnum ? `${codeEnum.name}(code)` : 'code';
+      lines.push('       object["errors"] == nil, let code = object["error"] as? String {');
+      lines.push(`        return OAuthError(error: ${code}, errorDescription: object["error_description"] as? String ?? "")`);
+    }
+    lines.push('    }');
+    lines.push('    if let apiError = try? deserialize(ApiError.self, from: data) { return apiError }');
+    lines.push('    return URLError(.badServerResponse)');
+    lines.push('}');
+    lines.push('');
+  }
+  if (ir.oauthAuthorizeUrl) emitSwiftOAuthHelpers(lines, ir.oauthAuthorizeUrl);
   if (ir.services.some(hasWebhookPolling)) {
     lines.push('private func pachcaParseWebhookDate(_ value: String) -> Date? {');
     lines.push('    let fractionalFormatter = ISO8601DateFormatter()');
@@ -1148,6 +1355,7 @@ function swiftBuildOutputFingerprint(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'String';
+  if (resp.isBinary) return 'Data';
   if (!resp.hasBody) return null;
 
   if (resp.isList && resp.responseRef) {
@@ -1158,6 +1366,23 @@ function swiftBuildOutputFingerprint(
       if (rt.metaRef) {
         const opt = rt.metaIsRequired ? '' : '?';
         parts.push(`meta: ${rt.metaRef}${opt}`);
+      }
+      return `${rt.name}(${parts.join(', ')})`;
+    }
+  }
+
+  // A single object with meta: both sides spelled out, the object as an unwrapped method shows it.
+  if (resp.isSingleWithMeta && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const fp = (ref: string): string => {
+        const model = models.get(ref);
+        return model ? swiftModelFp(model, ir, models, new Set()) : ref;
+      };
+      const parts: string[] = [`data: ${fp(rt.dataRef)}`];
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : '?';
+        parts.push(`meta: ${fp(rt.metaRef)}${opt}`);
       }
       return `${rt.name}(${parts.join(', ')})`;
     }
@@ -1197,7 +1422,7 @@ function swiftBuildOperationExample(
       callArgs.push({ label: sdkName, value: swiftLiteral(rb.unwrapField.type, ir, models) });
       for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
     } else if (rb.schemaRef) {
-      callArgs.push({ label: 'body', value: swiftLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
+      callArgs.push({ label: 'request', value: swiftLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
       for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
     }
   }

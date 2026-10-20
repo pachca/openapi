@@ -36,7 +36,7 @@ public final class SearchServiceImpl: SearchService {
         var queryItems: [URLQueryItem] = []
         queryItems.append(URLQueryItem(name: "query", value: String(query)))
         chatIds.forEach { queryItems.append(URLQueryItem(name: "chat_ids[]", value: String($0))) }
-        if let userIds { userIds.forEach { queryItems.append(URLQueryItem(name: "user_ids[]", value: String($0))) } }
+        if let userIds { userIds.forEach { queryItems.append(URLQueryItem(name: "user_ids", value: String($0))) } }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
         if !queryItems.isEmpty { components.queryItems = queryItems }

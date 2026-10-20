@@ -226,7 +226,7 @@ export const memberFields: INodeProperties[] = [
 { name: 'Member', value: 'member', description: 'Member/subscriber' },
 { name: 'Owner', value: 'owner' }],
 		default: "all",
-		description: 'Role in the chat',
+		description: 'Role in the chat. In a channel the owner, admins and editors write, and a member there is a subscriber.',
 		displayOptions: { show: { resource: ['member'], operation: ['getAll'] } },
 	},
 	{
@@ -283,7 +283,7 @@ export const memberFields: INodeProperties[] = [
 				name: 'silent',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to skip creating a system message about adding members',
+				description: 'Whether to with `true`, no system message about the addition appears in the chat, and the added employees get no invitation email. The message exists only in a private group chat, the email in group chats and channels for those who have not turned such emails off. In a thread the parameter changes nothing.',
 			},
 		],
 	},

@@ -11,12 +11,13 @@ single source of truth; everything else is generated from it.
 
 | Path | What |
 |------|------|
-| `packages/spec` | TypeSpec (`typespec.tsp`) → `openapi.yaml`; overlay, `workflows.ts`, examples |
+| `packages/spec` | TypeSpec (`typespec.tsp`) → `openapi.yaml`; English overlay → `openapi.en.yaml`; MCP tool manifest (`mcp-manifest.json`); `workflows.ts`, examples |
 | `packages/cli` | oclif CLI `@pachca/cli`, generated from OpenAPI |
 | `packages/generator` | Multi-language SDK generator |
 | `packages/openapi-parser` | Shared OpenAPI parser |
+| `packages/mcp-manifest` | npm package `@pachca/mcp-manifest`: the MCP tool manifest and its JSON Schema, copied from `packages/spec` by the build |
 | `apps/docs` | Next.js 16 docs site (dev.pachca.com): `content/` MDX, `lib/`, `scripts/` generators, `public/` generated artifacts |
-| `n8n-nodes-pachca` | n8n community node |
+| `integrations/n8n` | n8n community node |
 
 ## Build & check
 
@@ -35,9 +36,12 @@ review generated diffs → commit. Branch from `origin/main`; open a PR
 | Generated | Source of truth |
 |-----------|-----------------|
 | `packages/spec/openapi.yaml` | `packages/spec/typespec.tsp` (then `npx turbo build --filter=@pachca/spec --force`) |
+| `packages/spec/openapi.en.yaml` | `packages/spec/overlay.en.yaml` + `scripts/apply-overlay.ts` (a changed Russian text also needs `bun run overlay:fingerprints` in `packages/spec`) |
+| `packages/spec/mcp-manifest.json` | the spec + `packages/spec/mcp-core.ts`, `mcp-tools.ts`, `scripts/generate-mcp-manifest.ts` (then `bun run generate-mcp` in `packages/spec`) |
+| `packages/mcp-manifest/mcp-manifest.json`, `mcp-manifest.schema.json` | copies of `packages/spec/mcp-manifest.json` and `mcp-manifest.schema.json` (`npx turbo build --filter=@pachca/mcp-manifest`); a changed manifest needs a new version on top of `packages/mcp-manifest/CHANGELOG.md` and in its `package.json` (the package is not in `releases.json`) |
 | `apps/docs/public/llms*.txt`, `public/**/*.md`, `public/skill.md`, `public/.well-known/**`, `public/workflows.arazzo.yaml`, Postman collection, root `SKILL.md` + `skill.json` | `apps/docs/scripts/generate-llms.ts` + `scripts/skills/` |
 | `packages/cli/src/commands/**` (except `auth`/`config`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
-| n8n node files | `n8n-nodes-pachca` generator |
+| n8n node files | `integrations/n8n/scripts/generate-n8n.ts` |
 | `AGENTS.md` (this file) | `apps/docs/scripts/skills/generate.ts` (`generateAgentsMd()`) |
 
 CI enforces this: `scripts/check-generated-sync.mjs` runs `bun turbo build`
@@ -60,4 +64,4 @@ change to a published package ships with a release entry (and vice versa).
 - `docs/api-audit.md` — **canonical** API-audit & backend-sync process (run on "проверь API"): scope, what to check, version/changelog bumps, backend sync checkpoint.
 - `docs/updates-format.md` — rules for the per-date entry files in `apps/docs/content/updates/<date>.md` and the package release entries in `apps/docs/data/releases.json` (breaking the parser rules breaks the updates page).
 - `docs/docs-conventions.md` — MDX 3-place registration, Turbopack/TypeSpec gotchas, headings & design-system rules.
-- `docs/releases.md` — **canonical** package publishing & versioning: how CLI/n8n/generator/SDK reach the registries, the `check-changelog-sync` build gate and `check-release` publish gate, version rules (CalVer/semver, exact next step), and how to cut a release.
+- `docs/releases.md` — **canonical** package publishing & versioning: how CLI/n8n/generator/SDK/MCP manifest reach the registries, the `check-changelog-sync` build gate and `check-release` publish gate, version rules (CalVer/semver, exact next step), and how to cut a release.

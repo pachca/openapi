@@ -1,0 +1,222 @@
+openapi: 3.0.0
+info:
+  title: Test API — Open Enums
+  version: 1.0.0
+
+# Which enums decode a value the spec does not list:
+#   SortOrder, MemberKind — requests only: closed (MemberKind has a value named `value`)
+#   MemberRole            — requests and responses: open
+#   Region                — a query parameter and a response header: open
+#   MemberStatus          — responses only: open (has a value named `unknown`)
+#   ErrorCode             — in the error body only: open
+#   OAuthErrorCode        — the code of OAuthError: open
+#   PayloadKind           — in a schema no operation reaches: open (has a value named `value`)
+
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      tags: [Members]
+      summary: List members
+      parameters:
+        - name: sort
+          in: query
+          schema:
+            $ref: "#/components/schemas/SortOrder"
+        - name: role
+          in: query
+          schema:
+            $ref: "#/components/schemas/MemberRole"
+        - name: roles
+          in: query
+          x-query-array: brackets
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/MemberRole"
+        - name: region
+          in: query
+          schema:
+            $ref: "#/components/schemas/Region"
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Region:
+              description: Region that served the request
+              schema:
+                $ref: "#/components/schemas/Region"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Member"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /members/{id}:
+    put:
+      operationId: updateMember
+      tags: [Members]
+      summary: Update a member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberUpdateRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Member"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+        "422":
+          description: Unprocessable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+components:
+  schemas:
+    SortOrder:
+      type: string
+      enum: [asc, desc]
+      description: Sort order
+
+    MemberKind:
+      type: string
+      enum: [regular, guest, value]
+      description: Kind of a new member
+
+    MemberRole:
+      type: string
+      enum: [admin, user]
+      description: Member role
+      x-enum-descriptions:
+        admin: Administrator
+        user: Member
+
+    Region:
+      type: string
+      enum: [eu, us]
+      description: Data region
+
+    MemberStatus:
+      type: string
+      enum: [active, suspended, unknown]
+      description: Member status
+
+    ErrorCode:
+      type: string
+      enum: [blank, taken]
+      description: Validation error code
+
+    OAuthErrorCode:
+      type: string
+      enum: [invalid_token, insufficient_scope]
+      description: OAuth error code
+      x-enum-descriptions:
+        invalid_token: The token is missing or revoked
+        insufficient_scope: The token lacks the scope
+
+    PayloadKind:
+      type: string
+      enum: [created, value]
+      description: Kind of an event payload
+
+    Member:
+      type: object
+      required: [id, role, status]
+      properties:
+        id:
+          type: integer
+          format: int32
+        role:
+          $ref: "#/components/schemas/MemberRole"
+        status:
+          $ref: "#/components/schemas/MemberStatus"
+        previous_statuses:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberStatus"
+
+    MemberUpdateRequest:
+      type: object
+      properties:
+        role:
+          $ref: "#/components/schemas/MemberRole"
+        kind:
+          $ref: "#/components/schemas/MemberKind"
+
+    MemberEventPayload:
+      type: object
+      required: [kind]
+      properties:
+        kind:
+          $ref: "#/components/schemas/PayloadKind"
+
+    ApiError:
+      type: object
+      x-error: true
+      required: [errors]
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            required: [key, message, code]
+            properties:
+              key:
+                type: string
+              message:
+                type: string
+              code:
+                $ref: "#/components/schemas/ErrorCode"
+
+    OAuthError:
+      type: object
+      x-error: true
+      required: [error, error_description]
+      properties:
+        error:
+          allOf:
+            - $ref: "#/components/schemas/OAuthErrorCode"
+          description: Error code
+        error_description:
+          type: string
+          description: Error description

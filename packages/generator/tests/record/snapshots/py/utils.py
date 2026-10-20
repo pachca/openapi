@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import dataclasses
 import keyword
+import types
 from dataclasses import asdict, fields
 from datetime import datetime
-from typing import Callable, Type, TypeVar, get_args, get_origin, get_type_hints
+from enum import Enum
+from typing import Callable, Type, TypeVar, Union, get_args, get_origin, get_type_hints
 
 import httpx
 
@@ -59,12 +61,15 @@ def _match_union_member(members: list[type], data: dict) -> type:
 
 
 def _resolve_list_item_type(tp: object) -> object | None:
-    """Extract the item type from list[X]."""
+    """Extract the item type from list[X] or list[X] | None."""
     origin = get_origin(tp)
     if origin is list:
         args = get_args(tp)
-        if args:
-            return args[0]
+        return args[0] if args else None
+    if origin is Union or origin is types.UnionType:
+        for arg in get_args(tp):
+            if get_origin(arg) is list and get_args(arg):
+                return get_args(arg)[0]
     return None
 
 
@@ -104,6 +109,13 @@ def _deserialize_instance(tp: object, value: object) -> object:
                     break
         if raw_tp is datetime:
             return datetime.fromisoformat(value)
+        if isinstance(raw_tp, type) and issubclass(raw_tp, Enum):
+            # An open enum keeps a value it does not list in a member with is_known False;
+            # a closed one refuses it, and the raw string is kept as is.
+            try:
+                return raw_tp(value)
+            except ValueError:
+                return value
     return value
 
 

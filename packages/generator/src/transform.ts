@@ -17,6 +17,7 @@ import type {
   IROperation,
   IRParam,
   IRRequestBody,
+  IRRequestHeader,
   IRSuccessResponse,
   IRErrorResponse,
   IRParamsType,
@@ -38,6 +39,20 @@ function isUnion(schema: Schema): boolean {
     (!!schema.oneOf && schema.oneOf.length > 0);
 }
 
+const SCALAR_TYPES = ['integer', 'number', 'boolean', 'string'];
+
+/** A named scalar (`scalar Weekday extends int32`): a primitive with limits, not a model. */
+function isScalarSchema(schema: Schema): boolean {
+  return typeof schema.type === 'string' && SCALAR_TYPES.includes(schema.type) &&
+    !schema.enum && !schema.properties && !schema.additionalProperties && !schema.allOf && !isUnion(schema);
+}
+
+function containsRef(schema: Schema | undefined): boolean {
+  if (!schema) return false;
+  if (schema.$ref) return true;
+  return [schema.items, ...(schema.anyOf ?? []), ...(schema.oneOf ?? []), ...(schema.allOf ?? [])].some(containsRef);
+}
+
 // ----- Field type resolution -----
 
 function resolveFieldType(schema: Schema): IRFieldType {
@@ -49,11 +64,20 @@ function resolveFieldType(schema: Schema): IRFieldType {
     if (getSchemaType(schema) === 'array' && schema.items) {
       return { kind: 'array', items: resolveFieldType(schema.items) };
     }
+    // Scalar refs (e.g. Weekday: integer, 0..6) are inlined as their primitive
+    if (isScalarSchema(schema)) {
+      return { kind: 'primitive', primitive: schema.type as string, format: schema.format };
+    }
     return { kind: 'model', ref: name };
   }
 
   // anyOf / oneOf → union
   const unionMembers = schema.anyOf || schema.oneOf;
+  // A union of plain values (a string, a number or a list of them) names no type
+  // to generate: it is an open JSON value.
+  if (unionMembers && unionMembers.length > 0 && !unionMembers.some(containsRef)) {
+    return { kind: 'primitive', primitive: 'any' };
+  }
   if (unionMembers) {
     return {
       kind: 'union',
@@ -292,14 +316,85 @@ function extractInlineModel(
 
 // ----- Schema → IR -----
 
-function transformEnum(name: string, schema: Schema): IREnum {
+function transformEnum(name: string, schema: Schema, open: boolean): IREnum {
   const descriptions = schema['x-enum-descriptions'] || {};
   const hasDescriptions = !!schema['x-enum-descriptions'];
   const members: IREnumMember[] = (schema.enum || []).map((value) => ({
     value: String(value),
     description: descriptions[String(value)],
   }));
-  return { name, description: schema.description, members, hasDescriptions };
+  return { name, description: schema.description, members, hasDescriptions, open };
+}
+
+// ----- Enum usage -----
+
+/** Component names a schema refers to directly: the walk stops at every nested `$ref`. */
+function collectDirectRefs(schema: Schema | undefined, out: Set<string>): void {
+  if (!schema) return;
+  if (schema.$ref) {
+    out.add(refName(schema.$ref));
+    return;
+  }
+  for (const prop of Object.values(schema.properties ?? {})) collectDirectRefs(prop, out);
+  collectDirectRefs(schema.items, out);
+  if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+    collectDirectRefs(schema.additionalProperties, out);
+  }
+  for (const sub of [...(schema.allOf ?? []), ...(schema.anyOf ?? []), ...(schema.oneOf ?? [])]) {
+    collectDirectRefs(sub, out);
+  }
+}
+
+/** Every component reachable from the given roots through the component graph. */
+function reachableComponents(roots: Set<string>, graph: Map<string, Set<string>>): Set<string> {
+  const seen = new Set<string>();
+  const queue = [...roots];
+  while (queue.length > 0) {
+    const name = queue.pop()!;
+    if (seen.has(name)) continue;
+    seen.add(name);
+    for (const next of graph.get(name) ?? []) if (!seen.has(next)) queue.push(next);
+  }
+  return seen;
+}
+
+/**
+ * Which side of the API each component is reached from: `request` — parameters
+ * and request bodies, `response` — response bodies and headers. Webhook payloads
+ * are on the response side through the event history that returns them.
+ */
+export function classifyEnumUsage(spec: ParsedAPI): { request: Set<string>; response: Set<string> } {
+  const graph = new Map<string, Set<string>>();
+  for (const [name, schema] of Object.entries(spec.schemas)) {
+    const refs = new Set<string>();
+    collectDirectRefs(schema, refs);
+    graph.set(name, refs);
+  }
+  const requestRoots = new Set<string>();
+  const responseRoots = new Set<string>();
+  for (const endpoint of spec.endpoints) {
+    for (const param of endpoint.parameters) collectDirectRefs(param.schema, requestRoots);
+    for (const media of Object.values(endpoint.requestBody?.content ?? {})) {
+      collectDirectRefs(media.schema, requestRoots);
+    }
+    for (const response of Object.values(endpoint.responses)) {
+      for (const media of Object.values(response.content ?? {})) collectDirectRefs(media.schema, responseRoots);
+      for (const header of Object.values(response.headers ?? {})) collectDirectRefs(header.schema, responseRoots);
+    }
+  }
+  return {
+    request: reachableComponents(requestRoots, graph),
+    response: reachableComponents(responseRoots, graph),
+  };
+}
+
+/**
+ * An enum stays closed only when requests reach it and responses never do: a
+ * value the SDK sends is checked by its compiler, a value it receives may be one
+ * the server added after this SDK was generated.
+ */
+function isOpenEnum(name: string, usage: { request: Set<string>; response: Set<string> }): boolean {
+  return !(usage.request.has(name) && !usage.response.has(name));
 }
 
 function transformModel(name: string, schema: Schema): IRModel {
@@ -449,8 +544,10 @@ function transformParam(param: Parameter): IRParam {
 
   const isArrayParam = isArray || type.kind === 'array';
 
-  // Array query params need [] suffix for Rails/Rack to parse as arrays
-  if (isArrayParam && !wireName.endsWith('[]')) {
+  // A list in the query travels as the spec declares it. `x-query-array: brackets`
+  // sends each value as `name[]=value`, the form Rails/Rack reads as a list.
+  // Without it the value repeats under the plain name, OpenAPI's default.
+  if (isArrayParam && param['x-query-array'] === 'brackets' && !wireName.endsWith('[]')) {
     wireName += '[]';
   }
 
@@ -482,10 +579,12 @@ function transformRequestBody(
 
   const contentTypes = Object.keys(endpoint.requestBody.content);
   const isMultipart = contentTypes.some((ct) => ct.includes('multipart'));
-  const contentType: 'json' | 'multipart' = isMultipart ? 'multipart' : 'json';
+  const isForm = !isMultipart && contentTypes.includes('application/x-www-form-urlencoded');
+  const contentType: IRRequestBody['contentType'] = isMultipart ? 'multipart' : isForm ? 'form' : 'json';
 
   const mediaType =
     endpoint.requestBody.content['multipart/form-data'] ||
+    endpoint.requestBody.content['application/x-www-form-urlencoded'] ||
     endpoint.requestBody.content['application/json'];
   if (!mediaType) return undefined;
 
@@ -538,6 +637,13 @@ function transformRequestBody(
   return { contentType, schemaRef, unwrapMode, unwrapField };
 }
 
+/** A `meta` that names a type: a `$ref` or an inline object with properties. */
+function metaIsModel(meta: Schema | undefined): boolean {
+  if (!meta) return false;
+  if (meta.$ref) return true;
+  return getSchemaType(meta) === 'object' && !!meta.properties && Object.keys(meta.properties).length > 0;
+}
+
 function transformSuccessResponse(endpoint: Endpoint): IRSuccessResponse {
   // Find the success status code
   const successCodes = Object.keys(endpoint.responses)
@@ -581,12 +687,14 @@ function transformSuccessResponse(endpoint: Endpoint): IRSuccessResponse {
 
   const mediaType = response.content['application/json'];
   if (!mediaType) {
+    // A body that is not JSON is the file itself (`GET /files/{id}`): the method returns its bytes.
     return {
       statusCode,
       hasBody: false,
       isList: false,
       isUnwrap: false,
       isRedirect: false,
+      isBinary: Object.keys(response.content).length > 0 || undefined,
     };
   }
 
@@ -617,8 +725,22 @@ function transformSuccessResponse(endpoint: Endpoint): IRSuccessResponse {
       };
     }
 
-    // { data: T } → unwrap single
     const dataRef = dataSchema.$ref ? refName(dataSchema.$ref) : undefined;
+
+    // { data: T, meta } → the response whole: unwrapping would drop meta
+    if (dataRef && metaIsModel(responseSchema.properties.meta)) {
+      return {
+        statusCode,
+        hasBody: true,
+        isList: false,
+        isUnwrap: false,
+        isSingleWithMeta: true,
+        dataRef,
+        isRedirect: false,
+      };
+    }
+
+    // { data: T } → unwrap single
     return {
       statusCode,
       hasBody: true,
@@ -663,9 +785,14 @@ function transformOperation(
   const methodName = operationIdToMethod(endpoint.id);
   const tag = endpoint.tags[0] || 'Common';
 
-  // Warn about unsupported parameter locations
+  // A header that allows exactly one value is sent as is; any other header or
+  // cookie parameter is not supported and skipped.
+  const requestHeaders: IRRequestHeader[] = [];
   for (const p of endpoint.parameters) {
-    if (p.in === 'header' || p.in === 'cookie') {
+    const only = p.in === 'header' && p.schema.enum?.length === 1 ? p.schema.enum[0] : undefined;
+    if (typeof only === 'string') {
+      requestHeaders.push({ name: p.name, value: only });
+    } else if (p.in === 'header' || p.in === 'cookie') {
       console.warn(`Warning: ${endpoint.id} — ${p.in} parameter "${p.name}" is not supported by the generator and will be skipped`);
     }
   }
@@ -679,6 +806,9 @@ function transformOperation(
     .map(transformParam);
 
   const requestBody = transformRequestBody(endpoint, schemas, models);
+  if (requestHeaders.length > 0 && requestBody?.contentType === 'multipart') {
+    throw new Error(`${endpoint.id}: a fixed request header on a multipart body is not supported by the generator`);
+  }
   const successResponse = transformSuccessResponse(endpoint);
   const errorResponses = transformErrorResponses(endpoint);
 
@@ -703,6 +833,7 @@ function transformOperation(
     noAuth: endpoint.requirements?.auth === false ? true : undefined,
     isPaginated: endpoint.paginated || undefined,
     deprecated: endpoint.deprecated || undefined,
+    requestHeaders: requestHeaders.length > 0 ? requestHeaders : undefined,
   };
 }
 
@@ -723,21 +854,38 @@ function generateParamsType(op: IROperation): IRParamsType | undefined {
 function generateResponseType(
   op: IROperation,
   endpoint: Endpoint,
+  models: IRModel[],
 ): IRResponseType | undefined {
-  if (!op.successResponse.isList || !op.successResponse.dataRef) return undefined;
+  const { isList, isSingleWithMeta, dataRef } = op.successResponse;
+  if ((!isList && !isSingleWithMeta) || !dataRef) return undefined;
 
   const pascalMethod = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
+  const name = `${pascalMethod}Response`;
   const response = endpoint.responses[String(op.successResponse.statusCode)];
   const responseSchema = response?.content?.['application/json']?.schema;
 
   const metaSchema = responseSchema?.properties?.meta;
-  const metaRef = metaSchema?.$ref ? refName(metaSchema.$ref) : undefined;
+  let metaRef = metaSchema?.$ref ? refName(metaSchema.$ref) : undefined;
   const metaIsRequired = (responseSchema?.required || []).includes('meta');
 
+  // An inline `meta` of a single object becomes its own model, named the way an
+  // inline object field of `<Name>Response` would be: `CreateChatResponseMeta`.
+  if (isSingleWithMeta && !metaRef && metaSchema) {
+    const baseName = `${name}Meta`;
+    let modelName = baseName;
+    let n = 2;
+    while (models.some((m) => m.name === modelName)) {
+      modelName = `${baseName}${n}`;
+      n += 1;
+    }
+    models.push(transformModel(modelName, metaSchema));
+    metaRef = modelName;
+  }
+
   return {
-    name: `${pascalMethod}Response`,
-    dataRef: op.successResponse.dataRef,
-    dataIsArray: true,
+    name,
+    dataRef,
+    dataIsArray: !!isList,
     metaRef,
     metaIsRequired,
   };
@@ -749,15 +897,19 @@ export function transform(spec: ParsedAPI): IR {
   const enums: IREnum[] = [];
   const models: IRModel[] = [];
   const unions: IRUnion[] = [];
+  const enumUsage = classifyEnumUsage(spec);
 
   // Classify and transform schemas
   for (const [name, schema] of Object.entries(spec.schemas)) {
     if (isUnion(schema)) {
       unions.push(transformUnion(name, schema, spec.schemas));
     } else if (isEnumSchema(schema)) {
-      enums.push(transformEnum(name, schema));
+      enums.push(transformEnum(name, schema, isOpenEnum(name, enumUsage)));
     } else if (getSchemaType(schema) === 'array') {
       // Array-type schemas (e.g. TagNamesFilter) are inlined as array types in field references
+      continue;
+    } else if (isScalarSchema(schema)) {
+      // Named scalars (e.g. Weekday) are inlined as primitives in field references
       continue;
     } else {
       models.push(transformModel(name, schema));
@@ -779,7 +931,7 @@ export function transform(spec: ParsedAPI): IR {
     const paramsType = generateParamsType(op);
     if (paramsType) params.push(paramsType);
 
-    const responseType = generateResponseType(op, endpoint);
+    const responseType = generateResponseType(op, endpoint, models);
     if (responseType) {
       responses.push(responseType);
       op.successResponse.responseRef = responseType.name;
@@ -852,11 +1004,13 @@ export function transform(spec: ParsedAPI): IR {
   }
 
   const baseUrl = spec.servers[0]?.url;
+  const oauthAuthorizeUrl = spec.endpoints.find((e) => e.oauthAuthorizeUrl)?.oauthAuthorizeUrl;
 
   return {
     title: spec.info.title,
     version: spec.info.version,
     baseUrl,
+    oauthAuthorizeUrl,
     enums,
     models,
     unions,

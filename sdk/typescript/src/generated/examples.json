@@ -18,7 +18,7 @@
   },
   "BotOperations_getBot": {
     "usage": "const response = client.bots.getBot(1738816)",
-    "output": "BotResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string })"
+    "output": "BotResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null, url?: string | null, secretToken?: string, lastRequestBody?: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string })"
   },
   "BotOperations_getBotScopes": {
     "usage": "const response = client.bots.getBotScopes(1738816)",
@@ -47,8 +47,8 @@
     "output": "BotSelfTokenResponse({ id: number, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, webhook: BotSelfWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }), accessToken: string })"
   },
   "BotOperations_createBot": {
-    "usage": "const request: BotCreateRequest = {\n  empty: false,\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true,\n    ignoreSelfMessages: false,\n    eventsHistoryEnabled: false,\n    whoCanAdd: BotWhoCanAdd.Creator,\n    canEdit: [BotCanEdit.Admin],\n    singleChat: false,\n    kind: BotWebhookKind.Simple,\n    unfurlDomains: [\"example\"]\n  },\n  oauthClient: {\n    confidential: true,\n    redirectUris: [\"example\"],\n    scopes: [\"example\"]\n  },\n  promo: {\n    description: \"Собирает сводку по задачам Jira и присылает её в чат\",\n    published: true,\n    promoImages: [\"example\"]\n  }\n}\nconst response = client.bots.createBot(request)",
-    "output": "BotCreateResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string, accessToken?: string })",
+    "usage": "const request: BotCreateRequest = {\n  empty: false,\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://example.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true,\n    ignoreSelfMessages: false,\n    eventsHistoryEnabled: false,\n    whoCanAdd: BotWhoCanAdd.Creator,\n    canEdit: [BotCanEdit.Admin],\n    singleChat: false,\n    kind: BotWebhookKind.Simple,\n    unfurlDomains: [\"example\"]\n  },\n  oauthClient: {\n    confidential: true,\n    redirectUris: [\"example\"],\n    scopes: [\"example\"]\n  },\n  promo: {\n    description: \"Собирает сводку по задачам Jira и присылает её в чат\",\n    published: true,\n    promoImages: [\"example\"]\n  }\n}\nconst response = client.bots.createBot(request)",
+    "output": "BotCreateResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null, url?: string | null, secretToken?: string, lastRequestBody?: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string, accessToken?: string })",
     "imports": [
       "BotCanEdit",
       "BotCreateRequest",
@@ -64,11 +64,11 @@
   },
   "BotOperations_recreateBotToken": {
     "usage": "const response = client.bots.recreateBotToken(1738816)",
-    "output": "BotCreateResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string, accessToken?: string })"
+    "output": "BotCreateResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null, url?: string | null, secretToken?: string, lastRequestBody?: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string, accessToken?: string })"
   },
   "BotOperations_rotateBotClientSecret": {
     "usage": "const response = client.bots.rotateBotClientSecret(1738816)",
-    "output": "BotResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string })"
+    "output": "BotResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null, url?: string | null, secretToken?: string, lastRequestBody?: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string })"
   },
   "BotOperations_createBotToken": {
     "usage": "const request: BotTokenCreateRequest = { name: \"Сервер уведомлений\", scopes: [\"example\"] }\nconst response = client.bots.createBotToken(1738816, request)",
@@ -82,7 +82,7 @@
     "output": "BotAccessToken({ id: number, token: string, name: string | null, userId: number, scopes: string[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null, authorizedAt: string | null })"
   },
   "BotOperations_selfUpdateBotWebhook": {
-    "usage": "const request: BotWebhookSelfUpdateRequest = { webhook: { outgoingUrl: \"https://www.website.com/tasks/new\" } }\nconst response = client.bots.selfUpdateBotWebhook(request)",
+    "usage": "const request: BotWebhookSelfUpdateRequest = { webhook: { outgoingUrl: \"https://example.com/tasks/new\" } }\nconst response = client.bots.selfUpdateBotWebhook(request)",
     "output": "BotSelfResponse({ id: number, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, webhook: BotSelfWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd }) })",
     "imports": [
       "BotWebhookSelfUpdateRequest",
@@ -90,8 +90,8 @@
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "const request: BotUpdateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://www.website.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true,\n    ignoreSelfMessages: false,\n    eventsHistoryEnabled: false,\n    whoCanAdd: BotWhoCanAdd.Creator,\n    canEdit: [BotCanEdit.Admin],\n    singleChat: false,\n    kind: BotWebhookKind.Simple,\n    unfurlDomains: [\"example\"]\n  },\n  oauthClient: {\n    confidential: true,\n    redirectUris: [\"example\"],\n    scopes: [\"example\"]\n  },\n  promo: {\n    description: \"Собирает сводку по задачам Jira и присылает её в чат\",\n    published: true,\n    promoImages: [\"example\"]\n  }\n}\nconst response = client.bots.updateBot(1738816, request)",
-    "output": "BotResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string })",
+    "usage": "const request: BotUpdateRequest = {\n  webhook: {\n    name: \"Бот задач\",\n    nickname: \"tasks_bot\",\n    outgoingUrl: \"https://example.com/tasks/new\",\n    events: [BotEventName.MessageNew],\n    triggerOn: BotTriggerOn.Commands,\n    commands: [\"example\"],\n    scopes: [\"example\"],\n    template: \"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n    templateEngine: BotTemplateEngine.Liquid,\n    challengeKey: \"challenge\",\n    linkPreviewEnabled: true,\n    ignoreSelfMessages: false,\n    eventsHistoryEnabled: false,\n    whoCanAdd: BotWhoCanAdd.Creator,\n    canEdit: [BotCanEdit.Admin],\n    singleChat: false,\n    kind: BotWebhookKind.Simple,\n    unfurlDomains: [\"example\"]\n  },\n  oauthClient: {\n    confidential: true,\n    redirectUris: [\"example\"],\n    scopes: [\"example\"]\n  },\n  promo: {\n    description: \"Собирает сводку по задачам Jira и присылает её в чат\",\n    published: true,\n    promoImages: [\"example\"]\n  }\n}\nconst response = client.bots.updateBot(1738816, request)",
+    "output": "BotResponse({ id: number, name: string, nickname: string, avatarUrl: string | null, creatorId: number | null, createdAt: string, authorizedUsersCount: number, lastUsedAt: string | null, webhook: BotWebhook({ name: string, nickname: string, outgoingUrl: string | null, events: BotEventName[], triggerOn: BotTriggerOn, commands: string[], scopes: string[], template: string | null, templateEngine: BotTemplateEngine, challengeKey: string | null, linkPreviewEnabled: boolean, ignoreSelfMessages: boolean, eventsHistoryEnabled: boolean, singleChat: boolean, canEdit: BotCanEdit[], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind | null, unfurlDomains: string[], lastRequestAt: string | null, url?: string | null, secretToken?: string, lastRequestBody?: string | null }), oauthClientEnabled: boolean, oauthClient: BotOAuthClient({ clientId: string, clientSecretPreview: string, confidential: boolean, redirectUris: string[], scopes: string[] }) | null, promo: BotPromo({ description: string | null, published: boolean, promoImages: BotPromoImage({ key: string, url: string })[] }) | null, permissions: BotPermissions({ updateOauthClient: boolean, recreateToken: boolean, destroy: boolean }), clientSecret?: string })",
     "imports": [
       "BotCanEdit",
       "BotEventName",
@@ -105,6 +105,10 @@
       "BotWhoCanAdd"
     ]
   },
+  "BotOperations_updateBotAvatar": {
+    "usage": "const image = new Blob([])\nconst response = client.bots.updateBotAvatar(1738816, image)",
+    "output": "AvatarData({ imageUrl: string })"
+  },
   "BotOperations_updateBotToken": {
     "usage": "const request: BotTokenUpdateRequest = { name: \"Сервер уведомлений\", scopes: [\"example\"] }\nconst response = client.bots.updateBotToken(1738816, 4827, request)",
     "output": "BotAccessToken({ id: number, token: string, name: string | null, userId: number, scopes: string[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null, authorizedAt: string | null })",
@@ -114,6 +118,9 @@
   },
   "BotOperations_deleteBot": {
     "usage": "client.bots.deleteBot(1738816)"
+  },
+  "BotOperations_deleteBotAvatar": {
+    "usage": "client.bots.deleteBotAvatar(1738816)"
   },
   "BotOperations_deleteBotToken": {
     "usage": "client.bots.deleteBotToken(1738816, 4827)"
@@ -147,14 +154,15 @@
   },
   "ChatOperations_createChat": {
     "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"🤿 aqua\",\n    memberIds: [123],\n    groupTagIds: [123],\n    channel: true,\n    public: false\n  }\n}\nconst response = client.chats.createChat(request)",
-    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null })",
+    "output": "CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, archived: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string, avatarUrl: string | null }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[] }) })",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "const request: ExportRequest = {\n  startAt: \"2025-03-20\",\n  endAt: \"2025-03-20\",\n  webhookUrl: \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n  chatIds: [123],\n  skipChatsFile: false\n}\nclient.chats.requestExport(request)",
+    "usage": "const request: ExportRequest = {\n  startAt: \"2025-03-20\",\n  endAt: \"2025-03-20\",\n  webhookUrl: \"https://example.com/webhooks/export\",\n  chatIds: [123],\n  skipChatsFile: false\n}\nconst response = client.chats.requestExport(request)",
+    "output": "ChatExport({ id: number })",
     "imports": [
       "ExportRequest"
     ]
@@ -225,20 +233,21 @@
     ]
   },
   "FileOperations_downloadFile": {
-    "usage": "client.files.downloadFile(3560, { target: FileTarget.Thumb })",
+    "usage": "const response = client.files.downloadFile(3560, { target: FileTarget.Thumb })",
+    "output": "Blob",
     "imports": [
       "FileTarget"
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "const request: FileUploadRequest = {\n  contentDisposition: \"example\",\n  acl: \"example\",\n  policy: \"example\",\n  xAmzCredential: \"example\",\n  xAmzAlgorithm: \"example\",\n  xAmzDate: \"example\",\n  xAmzSignature: \"example\",\n  key: \"example\",\n  file: new Blob([])\n}\nclient.files.uploadFile(\"https://example.com\", request)",
+    "usage": "const request: FileUploadRequest = {\n  contentDisposition: \"example\",\n  acl: \"example\",\n  policy: \"example\",\n  xAmzCredential: \"example\",\n  xAmzAlgorithm: \"example\",\n  xAmzDate: \"example\",\n  xAmzSignature: \"example\",\n  key: \"example\",\n  bucket: \"example\",\n  file: new Blob([])\n}\nclient.files.uploadFile(\"https://example.com\", request)",
     "imports": [
       "FileUploadRequest"
     ]
   },
   "UploadOperations_getUploadParams": {
     "usage": "const response = client.files.getUploadParams()",
-    "output": "UploadParams({ contentDisposition: string, acl: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, directUrl: string })"
+    "output": "UploadParams({ contentDisposition: string, acl?: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, bucket?: string, directUrl: string })"
   },
   "DraftOperations_listDrafts": {
     "usage": "const response = client.drafts.listDrafts({\n  type: DraftType.All,\n  entityType: MessageEntityType.Discussion,\n  entityId: 334,\n  limit: 25,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
@@ -338,7 +347,7 @@
     ]
   },
   "LinkPreviewOperations_unfurl": {
-    "usage": "const request: LinkPreviewsRequest = {\n  linkPreviews: { key: {\n    title: \"Статья: Отправка файлов\",\n    description: \"Пример отправки файлов на удаленный сервер\",\n    imageUrl: \"https://website.com/img/landing.png\",\n    image: {\n      key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n      name: \"files-to-server.jpg\",\n      size: 695604\n    }\n  } }\n}\nclient.messages.unfurl(194275, request)",
+    "usage": "const request: LinkPreviewsRequest = {\n  linkPreviews: { key: {\n    title: \"Статья: Отправка файлов\",\n    description: \"Пример отправки файлов на удаленный сервер\",\n    imageUrl: \"https://example.com/img/landing.png\",\n    image: {\n      key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n      name: \"files-to-server.jpg\",\n      size: 695604\n    }\n  } }\n}\nclient.messages.unfurl(194275, request)",
     "imports": [
       "LinkPreview",
       "LinkPreviewImage",
@@ -401,7 +410,21 @@
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "const response = client.oauth.getTokenInfo()",
-    "output": "AccessTokenInfo({ id: number, token: string, name: string | null, userId: number, scopes: OAuthScope[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null })"
+    "output": "AccessTokenInfo({ id: number, token: string, name: string | null, userId: number, scopes: OAuthScope[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null, authorizedAt: string | null })"
+  },
+  "OAuthFlowOperations_revokeToken": {
+    "usage": "const request: OAuthRevokeRequest = {\n  token: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n  tokenTypeHint: OAuthTokenTypeHint.AccessToken,\n  clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n  clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n}\nclient.oauth.revokeToken(request)",
+    "imports": [
+      "OAuthRevokeRequest",
+      "OAuthTokenTypeHint"
+    ]
+  },
+  "OAuthFlowOperations_exchangeToken": {
+    "usage": "const request: OAuthTokenRequest = {\n  grantType: \"authorization_code\",\n  code: \"ZmFrZV9hdXRoX2NvZGU\",\n  redirectUri: \"https://bot.example.com/oauth/callback\",\n  clientId: \"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n  clientSecret: \"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\",\n  codeVerifier: \"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"\n}\nconst response = client.oauth.exchangeToken(request)",
+    "output": "OAuthToken({ accessToken: string, tokenType: string, refreshToken: string, scope: string, createdAt: number })",
+    "imports": [
+      "OAuthTokenRequest"
+    ]
   },
   "ProfileOperations_getProfile": {
     "usage": "const response = client.profile.getProfile()",

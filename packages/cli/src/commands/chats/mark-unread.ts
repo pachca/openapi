@@ -11,7 +11,7 @@ export default class ChatsMarkUnread extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор чата или треда (pachca chats list)",
+      description: "Идентификатор чата (беседы, канала, личного чата или чата треда) (pachca chats list)",
       required: true,
     }),
   };

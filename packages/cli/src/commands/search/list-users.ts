@@ -23,7 +23,7 @@ export default class SearchListUsers extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'query': Flags.string({
-      description: "Текст поискового запроса",
+      description: "Текст поискового запроса. Запрос длиннее 500 знаков обрезается.",
     }),
     'sort': Flags.string({
       description: "Сортировка результатов",
@@ -72,7 +72,7 @@ export default class SearchListUsers extends BaseCommand {
         order: flags['order'],
         'created_from': flags['created-from'],
         'created_to': flags['created-to'],
-        'company_roles': flags['company-roles']?.split(','),
+        'company_roles[]': flags['company-roles']?.split(','),
         limit: flags.limit,
           cursor: nextCursor,
         };
@@ -84,7 +84,7 @@ export default class SearchListUsers extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
-        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data
+        // Условие конца: списочные методы и /users?query= — has_next === false; методы поиска (без has_next) — пустой data
         const hasNext = paginate?.has_next;
         if (typeof hasNext === 'boolean') {
           if (!hasNext) break;
@@ -123,7 +123,7 @@ export default class SearchListUsers extends BaseCommand {
       order: flags['order'],
       'created_from': flags['created-from'],
       'created_to': flags['created-to'],
-      'company_roles': flags['company-roles']?.split(','),
+      'company_roles[]': flags['company-roles']?.split(','),
       limit: flags.limit,
       cursor: flags.cursor,
       },

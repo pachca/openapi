@@ -55,6 +55,7 @@ async def main():
             x_amz_date=params.x_amz_date,
             x_amz_signature=params.x_amz_signature,
             key=key,
+            bucket=params.bucket,
             file=file_bytes,
         ),
     )

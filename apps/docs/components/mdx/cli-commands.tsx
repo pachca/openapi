@@ -7,6 +7,7 @@ import {
   type ParamRow,
 } from '@/components/mdx/cli-commands-table';
 import type { EndpointRequirements } from '@/lib/openapi/types';
+import { operationRoles } from '@/lib/scope-roles';
 
 function commandHref(command: string): string {
   // "pachca messages create" → "/api/messages/create"
@@ -51,7 +52,7 @@ export async function CliCommands() {
         method: cmd.method,
         summary: cmd.summary,
         scope: req?.scope,
-        scopeRoles: req?.scopeRoles?.join(','),
+        roles: operationRoles(req)?.join(','),
         plan: req?.plan,
         noAuth: req?.auth === false,
         params: paramRows(cmd),

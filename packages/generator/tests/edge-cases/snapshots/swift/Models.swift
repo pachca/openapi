@@ -10,9 +10,43 @@ public enum OAuthScope: String, Codable, CaseIterable {
     case usersWrite = "users:write"
 }
 
-public enum EventType: String, Codable, CaseIterable {
+public enum EventType: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     case message
     case reaction
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [EventType] = [.message, .reaction]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "message": self = .message
+        case "reaction": self = .reaction
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .message: return "message"
+        case .reaction: return "reaction"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public struct EventFilter: Codable {
@@ -79,6 +113,16 @@ public struct ReactionNotification: Codable {
     }
 }
 
+public struct Schedule: Codable {
+    public let days: [Int]
+    public let value: AnyCodable?
+
+    public init(days: [Int], value: AnyCodable? = nil) {
+        self.days = days
+        self.value = value
+    }
+}
+
 public enum NotificationUnion: Codable {
     case messageNotification(MessageNotification)
     case reactionNotification(ReactionNotification)
@@ -112,6 +156,10 @@ public enum NotificationUnion: Codable {
 
 public struct ListEventsResponse: Codable {
     public let data: [Event]
+
+    public init(data: [Event]) {
+        self.data = data
+    }
 }
 
 struct EventDataWrapper: Codable {

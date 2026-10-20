@@ -21,7 +21,7 @@ export default class SearchListMessages extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'query': Flags.string({
-      description: "Текст поискового запроса",
+      description: "Текст поискового запроса. Без него сообщения отбираются только фильтрами. Запрос длиннее 500 знаков обрезается.",
     }),
     'order': Flags.string({
       description: "Направление сортировки",
@@ -78,8 +78,8 @@ export default class SearchListMessages extends BaseCommand {
         sort: flags['sort'],
         'created_from': flags['created-from'],
         'created_to': flags['created-to'],
-        'chat_ids': flags['chat-ids']?.split(','),
-        'user_ids': flags['user-ids']?.split(','),
+        'chat_ids[]': flags['chat-ids']?.split(','),
+        'user_ids[]': flags['user-ids']?.split(','),
         active: flags['active'],
         limit: flags.limit,
           cursor: nextCursor,
@@ -92,7 +92,7 @@ export default class SearchListMessages extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
-        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data
+        // Условие конца: списочные методы и /users?query= — has_next === false; методы поиска (без has_next) — пустой data
         const hasNext = paginate?.has_next;
         if (typeof hasNext === 'boolean') {
           if (!hasNext) break;
@@ -131,8 +131,8 @@ export default class SearchListMessages extends BaseCommand {
       sort: flags['sort'],
       'created_from': flags['created-from'],
       'created_to': flags['created-to'],
-      'chat_ids': flags['chat-ids']?.split(','),
-      'user_ids': flags['user-ids']?.split(','),
+      'chat_ids[]': flags['chat-ids']?.split(','),
+      'user_ids[]': flags['user-ids']?.split(','),
       active: flags['active'],
       limit: flags.limit,
       cursor: flags.cursor,

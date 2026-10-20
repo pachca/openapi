@@ -22,7 +22,7 @@
   },
   "BotOperations_getBot": {
     "usage": "response = await client.bots.get_bot(id=1738816)",
-    "output": "BotResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None)"
+    "output": "BotResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None, url: str | None, secret_token: str | None, last_request_body: str | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None)"
   },
   "BotOperations_getBotScopes": {
     "usage": "response = await client.bots.get_bot_scopes(id=1738816)",
@@ -60,8 +60,8 @@
     "output": "BotSelfTokenResponse(id: int, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, webhook: BotSelfWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd), access_token: str)"
   },
   "BotOperations_createBot": {
-    "usage": "request = BotCreateRequest(\n    empty=False,\n    webhook=BotCreateRequestWebhook(\n        name=\"Бот задач\",\n        nickname=\"tasks_bot\",\n        outgoing_url=\"https://www.website.com/tasks/new\",\n        events=[BotEventName.MESSAGE_NEW],\n        trigger_on=BotTriggerOn.COMMANDS,\n        commands=[\"example\"],\n        scopes=[\"example\"],\n        template=\"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        template_engine=BotTemplateEngine.LIQUID,\n        challenge_key=\"challenge\",\n        link_preview_enabled=True,\n        ignore_self_messages=False,\n        events_history_enabled=False,\n        who_can_add=BotWhoCanAdd.CREATOR,\n        can_edit=[BotCanEdit.ADMIN],\n        single_chat=False,\n        kind=BotWebhookKind.SIMPLE,\n        unfurl_domains=[\"example\"]\n    ),\n    oauth_client=BotOAuthClientRequest(\n        confidential=True,\n        redirect_uris=[\"example\"],\n        scopes=[\"example\"]\n    ),\n    promo=BotPromoRequest(\n        description=\"Собирает сводку по задачам Jira и присылает её в чат\",\n        published=True,\n        promo_images=[\"example\"]\n    )\n)\nresponse = await client.bots.create_bot(request=request)",
-    "output": "BotCreateResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None, access_token: str | None)",
+    "usage": "request = BotCreateRequest(\n    empty=False,\n    webhook=BotCreateRequestWebhook(\n        name=\"Бот задач\",\n        nickname=\"tasks_bot\",\n        outgoing_url=\"https://example.com/tasks/new\",\n        events=[BotEventName.MESSAGE_NEW],\n        trigger_on=BotTriggerOn.COMMANDS,\n        commands=[\"example\"],\n        scopes=[\"example\"],\n        template=\"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        template_engine=BotTemplateEngine.LIQUID,\n        challenge_key=\"challenge\",\n        link_preview_enabled=True,\n        ignore_self_messages=False,\n        events_history_enabled=False,\n        who_can_add=BotWhoCanAdd.CREATOR,\n        can_edit=[BotCanEdit.ADMIN],\n        single_chat=False,\n        kind=BotWebhookKind.SIMPLE,\n        unfurl_domains=[\"example\"]\n    ),\n    oauth_client=BotOAuthClientRequest(\n        confidential=True,\n        redirect_uris=[\"example\"],\n        scopes=[\"example\"]\n    ),\n    promo=BotPromoRequest(\n        description=\"Собирает сводку по задачам Jira и присылает её в чат\",\n        published=True,\n        promo_images=[\"example\"]\n    )\n)\nresponse = await client.bots.create_bot(request=request)",
+    "output": "BotCreateResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None, url: str | None, secret_token: str | None, last_request_body: str | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None, access_token: str | None)",
     "imports": [
       "BotCanEdit",
       "BotCreateRequest",
@@ -77,11 +77,11 @@
   },
   "BotOperations_recreateBotToken": {
     "usage": "response = await client.bots.recreate_bot_token(id=1738816)",
-    "output": "BotCreateResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None, access_token: str | None)"
+    "output": "BotCreateResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None, url: str | None, secret_token: str | None, last_request_body: str | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None, access_token: str | None)"
   },
   "BotOperations_rotateBotClientSecret": {
     "usage": "response = await client.bots.rotate_bot_client_secret(id=1738816)",
-    "output": "BotResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None)"
+    "output": "BotResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None, url: str | None, secret_token: str | None, last_request_body: str | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None)"
   },
   "BotOperations_createBotToken": {
     "usage": "request = BotTokenCreateRequest(name=\"Сервер уведомлений\", scopes=[\"example\"])\nresponse = await client.bots.create_bot_token(id=1738816, request=request)",
@@ -95,7 +95,7 @@
     "output": "BotAccessToken(id: int, token: str, name: str | None, user_id: int, scopes: list[str], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None, authorized_at: datetime | None)"
   },
   "BotOperations_selfUpdateBotWebhook": {
-    "usage": "request = BotWebhookSelfUpdateRequest(webhook=BotWebhookSelfUpdateRequestWebhook(outgoing_url=\"https://www.website.com/tasks/new\"))\nresponse = await client.bots.self_update_bot_webhook(request=request)",
+    "usage": "request = BotWebhookSelfUpdateRequest(webhook=BotWebhookSelfUpdateRequestWebhook(outgoing_url=\"https://example.com/tasks/new\"))\nresponse = await client.bots.self_update_bot_webhook(request=request)",
     "output": "BotSelfResponse(id: int, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, webhook: BotSelfWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd))",
     "imports": [
       "BotWebhookSelfUpdateRequest",
@@ -103,8 +103,8 @@
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "request = BotUpdateRequest(\n    webhook=BotUpdateRequestWebhook(\n        name=\"Бот задач\",\n        nickname=\"tasks_bot\",\n        outgoing_url=\"https://www.website.com/tasks/new\",\n        events=[BotEventName.MESSAGE_NEW],\n        trigger_on=BotTriggerOn.COMMANDS,\n        commands=[\"example\"],\n        scopes=[\"example\"],\n        template=\"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        template_engine=BotTemplateEngine.LIQUID,\n        challenge_key=\"challenge\",\n        link_preview_enabled=True,\n        ignore_self_messages=False,\n        events_history_enabled=False,\n        who_can_add=BotWhoCanAdd.CREATOR,\n        can_edit=[BotCanEdit.ADMIN],\n        single_chat=False,\n        kind=BotWebhookKind.SIMPLE,\n        unfurl_domains=[\"example\"]\n    ),\n    oauth_client=BotOAuthClientRequest(\n        confidential=True,\n        redirect_uris=[\"example\"],\n        scopes=[\"example\"]\n    ),\n    promo=BotPromoRequest(\n        description=\"Собирает сводку по задачам Jira и присылает её в чат\",\n        published=True,\n        promo_images=[\"example\"]\n    )\n)\nresponse = await client.bots.update_bot(id=1738816, request=request)",
-    "output": "BotResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None)",
+    "usage": "request = BotUpdateRequest(\n    webhook=BotUpdateRequestWebhook(\n        name=\"Бот задач\",\n        nickname=\"tasks_bot\",\n        outgoing_url=\"https://example.com/tasks/new\",\n        events=[BotEventName.MESSAGE_NEW],\n        trigger_on=BotTriggerOn.COMMANDS,\n        commands=[\"example\"],\n        scopes=[\"example\"],\n        template=\"Заказ от {{ client }} на сумму {{ amount }} ₽\",\n        template_engine=BotTemplateEngine.LIQUID,\n        challenge_key=\"challenge\",\n        link_preview_enabled=True,\n        ignore_self_messages=False,\n        events_history_enabled=False,\n        who_can_add=BotWhoCanAdd.CREATOR,\n        can_edit=[BotCanEdit.ADMIN],\n        single_chat=False,\n        kind=BotWebhookKind.SIMPLE,\n        unfurl_domains=[\"example\"]\n    ),\n    oauth_client=BotOAuthClientRequest(\n        confidential=True,\n        redirect_uris=[\"example\"],\n        scopes=[\"example\"]\n    ),\n    promo=BotPromoRequest(\n        description=\"Собирает сводку по задачам Jira и присылает её в чат\",\n        published=True,\n        promo_images=[\"example\"]\n    )\n)\nresponse = await client.bots.update_bot(id=1738816, request=request)",
+    "output": "BotResponse(id: int, name: str, nickname: str, avatar_url: str | None, creator_id: int | None, created_at: datetime, authorized_users_count: int, last_used_at: datetime | None, webhook: BotWebhook(name: str, nickname: str, outgoing_url: str | None, events: list[BotEventName], trigger_on: BotTriggerOn, commands: list[str], scopes: list[str], template: str | None, template_engine: BotTemplateEngine, challenge_key: str | None, link_preview_enabled: bool, ignore_self_messages: bool, events_history_enabled: bool, single_chat: bool, can_edit: list[BotCanEdit], who_can_add: BotWhoCanAdd, kind: BotWebhookKind | None, unfurl_domains: list[str], last_request_at: datetime | None, url: str | None, secret_token: str | None, last_request_body: str | None), oauth_client_enabled: bool, oauth_client: BotOAuthClient(client_id: str, client_secret_preview: str, confidential: bool, redirect_uris: list[str], scopes: list[str]) | None, promo: BotPromo(description: str | None, published: bool, promo_images: list[BotPromoImage(key: str, url: str)]) | None, permissions: BotPermissions(update_oauth_client: bool, recreate_token: bool, destroy: bool), client_secret: str | None)",
     "imports": [
       "BotCanEdit",
       "BotEventName",
@@ -118,6 +118,10 @@
       "BotWhoCanAdd"
     ]
   },
+  "BotOperations_updateBotAvatar": {
+    "usage": "response = await client.bots.update_bot_avatar(id=1738816, image=b\"\")",
+    "output": "AvatarData(image_url: str)"
+  },
   "BotOperations_updateBotToken": {
     "usage": "request = BotTokenUpdateRequest(name=\"Сервер уведомлений\", scopes=[\"example\"])\nresponse = await client.bots.update_bot_token(id=1738816, token_id=4827, request=request)",
     "output": "BotAccessToken(id: int, token: str, name: str | None, user_id: int, scopes: list[str], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None, authorized_at: datetime | None)",
@@ -127,6 +131,9 @@
   },
   "BotOperations_deleteBot": {
     "usage": "await client.bots.delete_bot(id=1738816)"
+  },
+  "BotOperations_deleteBotAvatar": {
+    "usage": "await client.bots.delete_bot_avatar(id=1738816)"
   },
   "BotOperations_deleteBotToken": {
     "usage": "await client.bots.delete_bot_token(id=1738816, token_id=4827)"
@@ -162,14 +169,15 @@
   },
   "ChatOperations_createChat": {
     "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"🤿 aqua\",\n        member_ids=[123],\n        group_tag_ids=[123],\n        channel=True,\n        public=False\n    )\n)\nresponse = await client.chats.create_chat(request=request)",
-    "output": "Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None)",
+    "output": "CreateChatResponse(data: Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, archived: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str, avatar_url: str | None), meta: CreateChatResponseMeta(not_found_member_ids: list[int]))",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "request = ExportRequest(\n    start_at=\"2025-03-20\",\n    end_at=\"2025-03-20\",\n    webhook_url=\"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    chat_ids=[123],\n    skip_chats_file=False\n)\nawait client.chats.request_export(request=request)",
+    "usage": "request = ExportRequest(\n    start_at=\"2025-03-20\",\n    end_at=\"2025-03-20\",\n    webhook_url=\"https://example.com/webhooks/export\",\n    chat_ids=[123],\n    skip_chats_file=False\n)\nresponse = await client.chats.request_export(request=request)",
+    "output": "ChatExport(id: int)",
     "imports": [
       "ExportRequest"
     ]
@@ -242,21 +250,22 @@
     ]
   },
   "FileOperations_downloadFile": {
-    "usage": "params = DownloadFileParams(target=FileTarget.THUMB)\nawait client.files.download_file(id=3560, params=params)",
+    "usage": "params = DownloadFileParams(target=FileTarget.THUMB)\nresponse = await client.files.download_file(id=3560, params=params)",
+    "output": "bytes",
     "imports": [
       "DownloadFileParams",
       "FileTarget"
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "request = FileUploadRequest(\n    content_disposition=\"example\",\n    acl=\"example\",\n    policy=\"example\",\n    x_amz_credential=\"example\",\n    x_amz_algorithm=\"example\",\n    x_amz_date=\"example\",\n    x_amz_signature=\"example\",\n    key=\"example\",\n    file=b\"\"\n)\nawait client.files.upload_file(direct_url=\"https://example.com\", request=request)",
+    "usage": "request = FileUploadRequest(\n    content_disposition=\"example\",\n    acl=\"example\",\n    policy=\"example\",\n    x_amz_credential=\"example\",\n    x_amz_algorithm=\"example\",\n    x_amz_date=\"example\",\n    x_amz_signature=\"example\",\n    key=\"example\",\n    bucket=\"example\",\n    file=b\"\"\n)\nawait client.files.upload_file(direct_url=\"https://example.com\", request=request)",
     "imports": [
       "FileUploadRequest"
     ]
   },
   "UploadOperations_getUploadParams": {
     "usage": "response = await client.files.get_upload_params()",
-    "output": "UploadParams(content_disposition: str, acl: str, policy: str, x_amz_credential: str, x_amz_algorithm: str, x_amz_date: str, x_amz_signature: str, key: str, direct_url: str)"
+    "output": "UploadParams(content_disposition: str, acl: str | None, policy: str, x_amz_credential: str, x_amz_algorithm: str, x_amz_date: str, x_amz_signature: str, key: str, bucket: str | None, direct_url: str)"
   },
   "DraftOperations_listDrafts": {
     "usage": "params = ListDraftsParams(\n    type=DraftType.ALL,\n    entity_type=MessageEntityType.DISCUSSION,\n    entity_id=334,\n    limit=25,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.drafts.list_drafts(params=params)",
@@ -364,7 +373,7 @@
     ]
   },
   "LinkPreviewOperations_unfurl": {
-    "usage": "request = LinkPreviewsRequest(\n    link_previews={\"key\": LinkPreview(\n        title=\"Статья: Отправка файлов\",\n        description=\"Пример отправки файлов на удаленный сервер\",\n        image_url=\"https://website.com/img/landing.png\",\n        image=LinkPreviewImage(\n            key=\"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name=\"files-to-server.jpg\",\n            size=695604\n        )\n    )}\n)\nawait client.messages.unfurl(id=194275, request=request)",
+    "usage": "request = LinkPreviewsRequest(\n    link_previews={\"key\": LinkPreview(\n        title=\"Статья: Отправка файлов\",\n        description=\"Пример отправки файлов на удаленный сервер\",\n        image_url=\"https://example.com/img/landing.png\",\n        image=LinkPreviewImage(\n            key=\"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name=\"files-to-server.jpg\",\n            size=695604\n        )\n    )}\n)\nawait client.messages.unfurl(id=194275, request=request)",
     "imports": [
       "LinkPreview",
       "LinkPreviewImage",
@@ -439,7 +448,21 @@
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "response = await client.oauth.get_token_info()",
-    "output": "AccessTokenInfo(id: int, token: str, name: str | None, user_id: int, scopes: list[OAuthScope], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None)"
+    "output": "AccessTokenInfo(id: int, token: str, name: str | None, user_id: int, scopes: list[OAuthScope], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None, authorized_at: datetime | None)"
+  },
+  "OAuthFlowOperations_revokeToken": {
+    "usage": "request = OAuthRevokeRequest(\n    token=\"pato_bm90X2FfcmVhbF90b2tlbg\",\n    token_type_hint=OAuthTokenTypeHint.ACCESS_TOKEN,\n    client_id=\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    client_secret=\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"\n)\nawait client.oauth.revoke_token(request=request)",
+    "imports": [
+      "OAuthRevokeRequest",
+      "OAuthTokenTypeHint"
+    ]
+  },
+  "OAuthFlowOperations_exchangeToken": {
+    "usage": "request = OAuthTokenRequest(\n    grant_type=\"authorization_code\",\n    code=\"ZmFrZV9hdXRoX2NvZGU\",\n    redirect_uri=\"https://bot.example.com/oauth/callback\",\n    client_id=\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\",\n    client_secret=\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\",\n    code_verifier=\"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"\n)\nresponse = await client.oauth.exchange_token(request=request)",
+    "output": "OAuthToken(access_token: str, token_type: str, refresh_token: str, scope: str, created_at: int)",
+    "imports": [
+      "OAuthTokenRequest"
+    ]
   },
   "ProfileOperations_getProfile": {
     "usage": "response = await client.profile.get_profile()",

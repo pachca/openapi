@@ -108,4 +108,9 @@ public enum WebhookPayloadUnion: Codable {
 public struct GetWebhookEventsResponse: Codable {
     public let data: [WebhookEvent]
     public let meta: PaginationMeta
+
+    public init(data: [WebhookEvent], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }

@@ -112,6 +112,7 @@ export const chatFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				description: 'Array of user IDs who will become members',
+				hint: 'IDs that could not be added (not in the workspace, suspended or deleted) are returned in not_found_member_ids',
 				placeholder: '186,187',
 			},
 			{
@@ -275,8 +276,8 @@ export const chatFields: INodeProperties[] = [
 				name: 'webhookUrl',
 				type: 'string',
 				default: "",
-				description: 'Address that the webhook with the number of the finished export arrives at. Without it there is nowhere to take the number from: the person who ordered it gets an email and a notification, and the calling program gets nothing.',
-				placeholder: 'https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2',
+				description: 'Address that the webhook with the number of the finished export arrives at once the archive is assembled. The number comes in the `export_id` field, and the whole webhook body is described in the <a href="https://dev.pachca.com/guides/export">Export</a> section.',
+				placeholder: 'https://example.com/webhooks/export',
 			},
 		],
 	},
@@ -286,7 +287,7 @@ export const chatFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
-		description: 'Export ID',
+		description: 'Export ID: `export_id` from the webhook about the finished archive, or the number from a link of the form `/full_exports/{ID}` in the notification in Pachca',
 		modes: [
 			{
 				displayName: 'From List',
@@ -324,7 +325,7 @@ export const chatFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
-		description: 'Chat ID',
+		description: 'Chat ID: in a web app link it is the number from the path `/chats/{ID}`',
 		modes: [
 			{
 				displayName: 'From List',
@@ -551,7 +552,7 @@ export const chatFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
-		description: 'Chat or thread ID',
+		description: 'Chat ID (conversation, channel, direct chat, or thread chat)',
 		modes: [
 			{
 				displayName: 'From List',

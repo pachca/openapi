@@ -113,4 +113,12 @@ internal static class PachcaUtils
 
     internal static string EnumToApiString<T>(T value) where T : struct, Enum =>
         JsonSerializer.Serialize(value, JsonOptions).Trim('"');
+
+    // A request that takes no token (the upload to storage, the code exchange) goes without it. A default
+    // header can't be taken off a single request, so a client that carries the token in DefaultRequestHeaders
+    // hands such a request to a client set up like the SDK's own, without the token.
+    private static readonly HttpClient NoAuthClient = new();
+
+    internal static HttpClient WithoutToken(HttpClient client) =>
+        client.DefaultRequestHeaders.Authorization is null ? client : NoAuthClient;
 }

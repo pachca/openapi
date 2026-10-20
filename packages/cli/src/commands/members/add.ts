@@ -4,7 +4,7 @@ import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
 
 export default class MembersAdd extends BaseCommand {
-  static override description = "Добавление пользователей";
+  static override description = "Добавление участников";
 
   static override examples = [
       "Подписаться на тред сообщения — Добавь бота в участники чата треда:\n  $ pachca members add",
@@ -30,7 +30,7 @@ export default class MembersAdd extends BaseCommand {
       description: "Массив идентификаторов пользователей, которые станут участниками",
     }),
     'silent': Flags.boolean({
-      description: "Не создавать в чате системное сообщение о добавлении участника",
+      description: "При `true` в чат не приходит системное сообщение о добавлении, а добавленные сотрудники не получают письмо с приглашением. Сообщение бывает только в закрытой беседе, письмо — в беседах и каналах у тех, кто не отключил такие письма. В треде параметр ничего не меняет.",
       allowNo: true,
     }),
   };

@@ -1,0 +1,28 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "ChatOperations_getChat": {
+    "usage": "var response = await client.Chats.GetChatAsync(123);",
+    "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset)"
+  },
+  "ChatOperations_createChat": {
+    "usage": "var request = new ChatCreateRequest { Chat = new ChatCreateRequestChat { Name = \"example\", MemberIds = new List<int> { 123 } } };\nvar response = await client.Chats.CreateChatAsync(request);",
+    "output": "CreateChatResponse(Data: Chat(Id: int, Name: string, CreatedAt: DateTimeOffset), Meta: CreateChatResponseMeta(NotFoundMemberIds: List<int>))",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
+  },
+  "ChatOperations_updateChat": {
+    "usage": "var request = new ChatUpdateRequest { Chat = new ChatUpdateRequestChat { Name = \"example\", @Public = true } };\nvar response = await client.Chats.UpdateChatAsync(123, request);",
+    "output": "UpdateChatResponse(Data: Chat(Id: int, Name: string, CreatedAt: DateTimeOffset), Meta: ChatUpdateMeta(ChangedFields: List<string>)?)",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
+  }
+}

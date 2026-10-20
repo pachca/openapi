@@ -86,7 +86,7 @@ function generateFromSchema(schema: Schema): unknown {
  * Generate a full API response body for an endpoint (with { data: ... } wrapper if applicable).
  *
  * - List endpoints → { data: [entity], meta: { paginate: { next_page: null } } }
- * - Single endpoints → { data: entity }
+ * - Single endpoints → { data: entity } (plus meta from the spec, if the method has it)
  * - Bare endpoints (e.g. POST /uploads) → entity directly
  * - 204 → null
  */
@@ -128,9 +128,11 @@ export function mockResponse(apiPath: string, method: string, opts?: { overrides
       return result;
     }
 
-    // Single entity: { data: entity }
+    // Single entity: { data: entity }, plus meta when the method has it (POST /chats → not_found_member_ids)
     const entity = generateFromSchema(dataSchema) as Record<string, unknown>;
-    return { data: opts?.overrides ? { ...entity, ...opts.overrides } : entity };
+    const result: Record<string, unknown> = { data: opts?.overrides ? { ...entity, ...opts.overrides } : entity };
+    if (hasMetaProp) result.meta = generateFromSchema(responseSchema.properties!.meta);
+    return result;
   }
 
   // Bare response (no data wrapper, e.g. POST /uploads)

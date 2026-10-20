@@ -5,7 +5,25 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Union
 
-class AuditEventKey(StrEnum):
+class OpenStrEnum(StrEnum):
+    """An enum of responses: a value this SDK does not list yet becomes a member that keeps it, with is_known False."""
+
+    @classmethod
+    def _missing_(cls, value: object) -> OpenStrEnum | None:
+        if not isinstance(value, str):
+            return None
+        member = str.__new__(cls, value)
+        member._name_ = "UNKNOWN_VALUE" if "UNKNOWN" in cls.__members__ else "UNKNOWN"
+        member._value_ = value
+        return member
+
+    @property
+    def is_known(self) -> bool:
+        """Whether this SDK version lists the value."""
+        return self._value_ in type(self)._value2member_map_
+
+
+class AuditEventKey(OpenStrEnum):
     """Тип аудит-события"""
 
     USER_LOGIN = "user_login"  # Пользователь успешно вошел в систему
@@ -69,14 +87,14 @@ class AuditEventKey(StrEnum):
     EXCHANGE_DISABLED = "exchange_disabled"  # Отключена интеграция с Exchange
 
 
-class BotCanEdit(StrEnum):
+class BotCanEdit(OpenStrEnum):
     """Роль, которой разрешено редактировать настройки бота"""
 
     ADMIN = "admin"  # Администраторы компании
     CHAT_OWNERS = "chat_owners"  # Владельцы чатов, в которые добавлен бот
 
 
-class BotEventName(StrEnum):
+class BotEventName(OpenStrEnum):
     """Событие исходящего вебхука бота"""
 
     MESSAGE_NEW = "message_new"  # Новое сообщение
@@ -99,14 +117,14 @@ class BotEventName(StrEnum):
     VIDEO_CALL_RECORDING_READY = "video_call_recording_ready"  # Запись видеозвонка готова
 
 
-class BotTemplateEngine(StrEnum):
+class BotTemplateEngine(OpenStrEnum):
     """Шаблонизатор для форматирования входящих вебхуков"""
 
     LIQUID = "liquid"  # Liquid — условия, циклы и фильтры
     MUSTACHE = "mustache"  # Mustache — простая подстановка без логики
 
 
-class BotTriggerOn(StrEnum):
+class BotTriggerOn(OpenStrEnum):
     """Условие срабатывания исходящего вебхука бота"""
 
     COMMANDS = "commands"  # Только на команды (триггер-слова) из commands
@@ -114,7 +132,7 @@ class BotTriggerOn(StrEnum):
     UNFURL = "unfurl"  # На развёртывание ссылок (link previews)
 
 
-class BotWebhookKind(StrEnum):
+class BotWebhookKind(OpenStrEnum):
     """Источник входящего вебхука бота"""
 
     SIMPLE = "simple"  # Свой формат: сообщение собирается из тела запроса по шаблону бота
@@ -122,7 +140,7 @@ class BotWebhookKind(StrEnum):
     GRAFANA = "grafana"  # Grafana: Пачка сама разбирает запрос и собирает сообщение
 
 
-class BotWhoCanAdd(StrEnum):
+class BotWhoCanAdd(OpenStrEnum):
     """Кто может добавлять бота в чаты"""
 
     CREATOR = "creator"  # Только создатель бота
@@ -177,7 +195,7 @@ class ChatSubtype(StrEnum):
     THREAD = "thread"  # Тред
 
 
-class CustomPropertyDataType(StrEnum):
+class CustomPropertyDataType(OpenStrEnum):
     """Тип данных дополнительного поля"""
 
     STRING = "string"  # Строковое значение
@@ -186,7 +204,7 @@ class CustomPropertyDataType(StrEnum):
     LINK = "link"  # Ссылка
 
 
-class DraftRepetitionInterval(StrEnum):
+class DraftRepetitionInterval(OpenStrEnum):
     """Периодичность повтора отложенного сообщения"""
 
     ONCE = "once"  # Один раз
@@ -217,7 +235,7 @@ class FileTarget(StrEnum):
     IMAGE = "image"  # Изображение как есть
 
 
-class FileType(StrEnum):
+class FileType(OpenStrEnum):
     """Тип файла"""
 
     FILE = "file"  # Обычный файл
@@ -227,21 +245,21 @@ class FileType(StrEnum):
     VIDEO = "video"  # Видеофайл
 
 
-class InviteStatus(StrEnum):
+class InviteStatus(OpenStrEnum):
     """Статус приглашения пользователя"""
 
     CONFIRMED = "confirmed"  # Принято
     SENT = "sent"  # Отправлено
 
 
-class MemberEventType(StrEnum):
+class MemberEventType(OpenStrEnum):
     """Тип события webhook для участников"""
 
     ADD = "add"  # Добавление
     REMOVE = "remove"  # Удаление
 
 
-class MessageEntityType(StrEnum):
+class MessageEntityType(OpenStrEnum):
     """Тип сущности для сообщений"""
 
     DISCUSSION = "discussion"  # Беседа или канал
@@ -260,7 +278,20 @@ class MessageSortField(StrEnum):
     ID = "id"  # По идентификатору сообщения
 
 
-class OAuthScope(StrEnum):
+class OAuthErrorCode(OpenStrEnum):
+    """Код ошибки OAuth"""
+
+    INVALID_TOKEN = "invalid_token"  # Токен не передан, не найден, истёк или отозван
+    INSUFFICIENT_SCOPE = "insufficient_scope"  # У токена нет скоупа, который нужен методу
+    ROLE_FORBIDDEN = "role_forbidden"  # Скоуп у токена есть, но роль его владельца не позволяет действие
+    INVALID_REQUEST = "invalid_request"  # В запросе нет обязательного параметра или он передан неверно
+    INVALID_CLIENT = "invalid_client"  # Неверный `client_id` или `client_secret`
+    INVALID_GRANT = "invalid_grant"  # Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`
+    UNSUPPORTED_GRANT_TYPE = "unsupported_grant_type"  # Значение `grant_type` не поддерживается
+    UNAUTHORIZED_CLIENT = "unauthorized_client"  # Токен выдан другому боту или клиент не подтвердил себя
+
+
+class OAuthScope(OpenStrEnum):
     """Скоуп доступа OAuth токена"""
 
     CHATS_READ = "chats:read"  # Просмотр чатов и списка чатов
@@ -323,7 +354,14 @@ class OAuthScope(StrEnum):
     DRAFTS_WRITE = "drafts:write"  # Создание, изменение и удаление черновиков и отложенных сообщений
 
 
-class ReactionEventType(StrEnum):
+class OAuthTokenTypeHint(StrEnum):
+    """Что передано в запросе на отзыв токена"""
+
+    ACCESS_TOKEN = "access_token"  # Токен сотрудника
+    REFRESH_TOKEN = "refresh_token"  # Токен обновления
+
+
+class ReactionEventType(OpenStrEnum):
     """Тип события webhook для реакций"""
 
     NEW = "new"  # Создание
@@ -352,7 +390,7 @@ class SortOrder(StrEnum):
     DESC = "desc"  # По убыванию
 
 
-class TaskKind(StrEnum):
+class TaskKind(OpenStrEnum):
     """Тип задачи"""
 
     CALL = "call"  # Позвонить контакту
@@ -362,7 +400,7 @@ class TaskKind(StrEnum):
     EMAIL = "email"  # Написать письмо
 
 
-class TaskStatus(StrEnum):
+class TaskStatus(OpenStrEnum):
     """Статус напоминания"""
 
     DONE = "done"  # Выполнено
@@ -378,7 +416,7 @@ class UserCreateRole(StrEnum):
     GUEST = "guest"  # Гость
 
 
-class UserEventType(StrEnum):
+class UserEventType(OpenStrEnum):
     """Тип события webhook для пользователей"""
 
     INVITE = "invite"  # Приглашение
@@ -389,7 +427,7 @@ class UserEventType(StrEnum):
     DELETE = "delete"  # Удаление
 
 
-class UserRole(StrEnum):
+class UserRole(OpenStrEnum):
     """Роль пользователя в системе"""
 
     ADMIN = "admin"  # Администратор
@@ -406,7 +444,7 @@ class UserRoleInput(StrEnum):
     MULTI_GUEST = "multi_guest"  # Мульти-гость
 
 
-class ValidationErrorCode(StrEnum):
+class ValidationErrorCode(OpenStrEnum):
     """Коды ошибок валидации"""
 
     BLANK = "blank"  # Обязательное поле (не может быть пустым)
@@ -428,7 +466,7 @@ class ValidationErrorCode(StrEnum):
     USER_LIMIT = "user_limit"  # Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
     UNIQUE_LIMIT = "unique_limit"  # Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
     GENERAL_LIMIT = "general_limit"  # Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
-    UNHANDLED = "unhandled"  # Ошибка выполнения запроса (пояснения вы получите в поле message)
+    UNHANDLED = "unhandled"  # Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий
     TRIGGER_NOT_FOUND = "trigger_not_found"  # Не удалось найти идентификатор события
     TRIGGER_EXPIRED = "trigger_expired"  # Время жизни идентификатора события истекло
     REQUIRED = "required"  # Обязательный параметр не передан
@@ -447,8 +485,10 @@ class ValidationErrorCode(StrEnum):
     BOT_ADD_DENIED = "bot_add_denied"  # Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
     SINGLE_CHAT_BOT_OCCUPIED = "single_chat_bot_occupied"  # Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
     SINGLE_CHAT_BOT_TAG_DENIED = "single_chat_bot_tag_denied"  # Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
+    RESTRICTED_BOT_TAG_DENIED = "restricted_bot_tag_denied"  # В тег можно добавить только бота, которого может добавить в чат любой сотрудник
     BOT_CHANGED_CONCURRENTLY = "bot_changed_concurrently"  # Настройки бота изменились во время запроса: повторите его
     TIMEOUT = "timeout"  # Поиск не уложился по времени: сузьте запрос и повторите
+    DAILY_INVITES_LIMIT = "daily_invites_limit"  # Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`
     FORBIDDEN = "forbidden"  # Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     PERMISSION_DENIED = "permission_denied"  # Доступ запрещён (недостаточно прав)
     ACCESS_DENIED = "access_denied"  # Доступ запрещён
@@ -467,7 +507,7 @@ class ValidationErrorCode(StrEnum):
     SERVICE_UNAVAILABLE = "service_unavailable"  # Сервис временно недоступен, повторите запрос
 
 
-class VideoCallEventType(StrEnum):
+class VideoCallEventType(OpenStrEnum):
     """Тип события видеозвонка"""
 
     STARTED = "started"  # Видеозвонок начался
@@ -475,7 +515,7 @@ class VideoCallEventType(StrEnum):
     RECORDING_READY = "recording_ready"  # Запись видеозвонка готова
 
 
-class WebhookEventType(StrEnum):
+class WebhookEventType(OpenStrEnum):
     """Тип события webhook"""
 
     NEW = "new"  # Создание
@@ -494,12 +534,13 @@ class AccessTokenInfo:
     revoked_at: datetime | None = None
     expires_in: int | None = None
     last_used_at: datetime | None = None
+    authorized_at: datetime | None = None
 
 
 @dataclass
 class AddMembersRequest:
     member_ids: list[int]
-    silent: bool | None = None
+    silent: bool | None = False
 
 
 @dataclass
@@ -524,7 +565,7 @@ class ApiErrorItem:
     key: str
     message: str
     code: ValidationErrorCode
-    value: str | None = None
+    value: Any | None = None
     payload: dict[str, Any] | None = None
 
 
@@ -709,9 +750,9 @@ class AuditDetailsUserUpdated:
 @dataclass
 class AuditDetailsVideoCallFinished:
     chat_id: int
-    duration: int
     max_members_count: int
     started_message_id: int | None = None
+    duration: int | None = None
 
 
 @dataclass
@@ -773,7 +814,7 @@ class BotCreateRequestWebhook:
     commands: list[str] | None = None
     scopes: list[str] | None = None
     template: str | None = None
-    template_engine: BotTemplateEngine | None = BotTemplateEngine.LIQUID
+    template_engine: BotTemplateEngine | None = None
     challenge_key: str | None = None
     link_preview_enabled: bool | None = True
     ignore_self_messages: bool | None = False
@@ -954,16 +995,16 @@ class BotUpdateRequestWebhook:
     nickname: str | None = None
     outgoing_url: str | None = None
     events: list[BotEventName] | None = None
-    trigger_on: BotTriggerOn | None = BotTriggerOn.COMMANDS
+    trigger_on: BotTriggerOn | None = None
     commands: list[str] | None = None
     scopes: list[str] | None = None
     template: str | None = None
-    template_engine: BotTemplateEngine | None = BotTemplateEngine.LIQUID
+    template_engine: BotTemplateEngine | None = None
     challenge_key: str | None = None
-    link_preview_enabled: bool | None = True
-    ignore_self_messages: bool | None = False
-    events_history_enabled: bool | None = False
-    who_can_add: BotWhoCanAdd | None = BotWhoCanAdd.CREATOR
+    link_preview_enabled: bool | None = None
+    ignore_self_messages: bool | None = None
+    events_history_enabled: bool | None = None
+    who_can_add: BotWhoCanAdd | None = None
     can_edit: list[BotCanEdit] | None = None
     single_chat: bool | None = None
     kind: BotWebhookKind | None = None
@@ -998,6 +1039,9 @@ class BotWebhook:
     challenge_key: str | None = None
     kind: BotWebhookKind | None = None
     last_request_at: datetime | None = None
+    url: str | None = None
+    secret_token: str | None = None
+    last_request_body: str | None = None
 
 
 @dataclass
@@ -1058,6 +1102,11 @@ class ChatCreateRequestChat:
 @dataclass
 class ChatCreateRequest:
     chat: ChatCreateRequestChat
+
+
+@dataclass
+class ChatExport:
+    id: int
 
 
 @dataclass
@@ -1228,6 +1277,14 @@ class ExportRequest:
 
 
 @dataclass
+class ExportWebhookPayload:
+    type: str  # literal "export"
+    event: str  # literal "ready"
+    export_id: int
+    created_at: datetime
+
+
+@dataclass
 class File:
     id: int
     key: str
@@ -1242,7 +1299,6 @@ class File:
 @dataclass
 class FileUploadRequest:
     content_disposition: str
-    acl: str
     policy: str
     x_amz_credential: str
     x_amz_algorithm: str
@@ -1250,6 +1306,8 @@ class FileUploadRequest:
     x_amz_signature: str
     key: str
     file: bytes
+    acl: str | None = None
+    bucket: str | None = None
 
 
 @dataclass
@@ -1354,7 +1412,7 @@ class MessageCreateRequestFile:
     key: str
     name: str
     file_type: FileType
-    size: int
+    size: int | None = None
     width: int | None = None
     height: int | None = None
     duration_ms: int | None = None
@@ -1364,8 +1422,8 @@ class MessageCreateRequestFile:
 @dataclass
 class MessageCreateRequestMessage:
     entity_id: int
-    content: str
     entity_type: MessageEntityType | None = MessageEntityType.DISCUSSION
+    content: str | None = None
     files: list[MessageCreateRequestFile] | None = None
     buttons: list[list[Button]] | None = None
     parent_message_id: int | None = None
@@ -1384,7 +1442,7 @@ class MessageCreateRequest:
 class MessageUpdateRequestFile:
     key: str
     name: str
-    file_type: FileType | None = FileType.FILE
+    file_type: FileType | None = None
     size: int | None = None
     width: int | None = None
     height: int | None = None
@@ -1426,11 +1484,38 @@ class MessageWebhookPayload:
 
 @dataclass
 class OAuthError(Exception):
-    error: str
+    error: OAuthErrorCode
     error_description: str
 
     def __str__(self) -> str:
-        return self.error
+        return str(self.error)
+
+
+@dataclass
+class OAuthRevokeRequest:
+    token: str
+    token_type_hint: OAuthTokenTypeHint | None = None
+    client_id: str | None = None
+    client_secret: str | None = None
+
+
+@dataclass
+class OAuthToken:
+    access_token: str
+    token_type: str  # literal "Bearer"
+    refresh_token: str
+    scope: str
+    created_at: int
+
+
+@dataclass
+class OAuthTokenRequest:
+    grant_type: str  # literal "authorization_code"
+    code: str
+    redirect_uri: str
+    client_id: str | None = None
+    client_secret: str | None = None
+    code_verifier: str | None = None
 
 
 @dataclass
@@ -1503,8 +1588,8 @@ class SearchPaginationMeta:
 
 @dataclass
 class StatusUpdateRequestStatus:
-    emoji: str
-    title: str
+    emoji: str | None = None
+    title: str | None = None
     expires_at: datetime | None = None
     is_away: bool | None = None
     away_message: str | None = None
@@ -1573,7 +1658,7 @@ class TaskUpdateRequestCustomProperty:
 
 @dataclass
 class TaskUpdateRequestTask:
-    kind: TaskKind | None = TaskKind.REMINDER
+    kind: TaskKind | None = None
     content: str | None = None
     due_at: datetime | None = None
     priority: int | None = None
@@ -1606,7 +1691,6 @@ class UpdateMemberRoleRequest:
 @dataclass
 class UploadParams:
     content_disposition: str
-    acl: str
     policy: str
     x_amz_credential: str
     x_amz_algorithm: str
@@ -1614,6 +1698,8 @@ class UploadParams:
     x_amz_signature: str
     key: str
     direct_url: str
+    acl: str | None = None
+    bucket: str | None = None
 
 
 @dataclass
@@ -1699,7 +1785,7 @@ class UserUpdateRequestUser:
     department: str | None = None
     title: str | None = None
     role: UserRoleInput | None = None
-    suspended: bool | None = False
+    suspended: bool | None = None
     list_tags: list[str] | None = None
     custom_properties: list[UserUpdateRequestCustomProperty] | None = None
 
@@ -1914,6 +2000,16 @@ class WebhookVideoCallThread:
     chat_id: int
     message_id: int | None = None
     message_chat_id: int | None = None
+
+
+@dataclass
+class UpdateBotAvatarRequest:
+    image: bytes
+
+
+@dataclass
+class CreateChatResponseMeta:
+    not_found_member_ids: list[int]
 
 
 @dataclass
@@ -2145,6 +2241,12 @@ class ListBotsResponse:
 class ListBotTokensResponse:
     data: list[BotAccessToken]
     meta: PaginationMeta
+
+
+@dataclass
+class CreateChatResponse:
+    data: Chat
+    meta: CreateChatResponseMeta
 
 
 @dataclass

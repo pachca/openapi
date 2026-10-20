@@ -57,6 +57,12 @@ export interface IREnum {
   members: IREnumMember[];
   /** Whether x-enum-descriptions was present */
   hasDescriptions: boolean;
+  /**
+   * Open enum: a value the spec does not list decodes without an error and keeps
+   * the raw string. Every enum a response, a webhook or nothing at all reaches is
+   * open; only an enum that appears in requests alone stays closed.
+   */
+  open: boolean;
 }
 
 export interface IRModel {
@@ -99,7 +105,8 @@ export interface IRParam {
 export type UnwrapMode = 'none' | 'single' | 'full';
 
 export interface IRRequestBody {
-  contentType: 'json' | 'multipart';
+  /** form — `application/x-www-form-urlencoded`, as the OAuth flow requires */
+  contentType: 'json' | 'multipart' | 'form';
   /** Name of the request schema */
   schemaRef: string;
   unwrapMode: UnwrapMode;
@@ -114,12 +121,19 @@ export interface IRSuccessResponse {
   isList: boolean;
   /** { data: T } → return T */
   isUnwrap: boolean;
+  /**
+   * { data: T, meta } with one object in `data`: the method returns the response
+   * whole, data and meta, the way a list method does — `meta` is not dropped.
+   */
+  isSingleWithMeta?: boolean;
   /** Referenced model name for data */
   dataRef?: string;
-  /** For list responses: generated Response type name */
+  /** For list and single-with-meta responses: generated Response type name */
   responseRef?: string;
   /** 302 redirect → return Location header */
   isRedirect: boolean;
+  /** A body that is not JSON (`application/octet-stream`) is the file itself → return its bytes */
+  isBinary?: boolean;
 }
 
 export interface IRErrorResponse {
@@ -156,6 +170,16 @@ export interface IROperation {
   noAuth?: boolean;
   /** Generate *All pagination helper (from x-paginated: true) */
   isPaginated?: boolean;
+  /**
+   * Headers the SDK always sends: a header parameter that allows exactly one value
+   * (`Prefer: return=representation`) is a choice already made, not an argument.
+   */
+  requestHeaders?: IRRequestHeader[];
+}
+
+export interface IRRequestHeader {
+  name: string;
+  value: string;
 }
 
 export interface IRService {
@@ -181,6 +205,7 @@ export interface IRParamsType {
 export interface IRResponseType {
   name: string;
   dataRef: string;
+  /** `data: T[]` for a list, `data: T` for a single object with meta */
   dataIsArray: boolean;
   metaRef?: string;
   metaIsRequired: boolean;
@@ -207,4 +232,9 @@ export interface IR {
   services: IRService[];
   params: IRParamsType[];
   responses: IRResponseType[];
+  /**
+   * Where the authorization link of the OAuth flow points (`x-oauth-authorize-url`
+   * on the code exchange). The SDK builds the link and the PKCE pair for it.
+   */
+  oauthAuthorizeUrl?: string;
 }

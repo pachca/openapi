@@ -31,7 +31,7 @@ export const fileFields: INodeProperties[] = [
 		required: true,
 		default: 0,
 		displayOptions: { show: { resource: ['file'], operation: ['get'] } },
-		description: 'File ID as it comes in the attachment object',
+		description: 'File ID from the attachment\'s ID field',
 	},
 	{
 		displayName: 'Simplify',

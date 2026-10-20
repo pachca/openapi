@@ -68,6 +68,7 @@ func main() {
 		XAMZDate:           params.XAMZDate,
 		XAMZSignature:      params.XAMZSignature,
 		Key:                key,
+		Bucket:             params.Bucket,
 		File:               bytes.NewReader(fileData),
 	})
 	if err != nil {
@@ -80,13 +81,13 @@ func main() {
 	created, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{
 		Message: pachca.MessageCreateRequestMessage{
 			EntityID: int32(chatID),
-			Content:  fmt.Sprintf("File upload test: %s 🚀", filename),
+			Content:  pachca.Ptr(fmt.Sprintf("File upload test: %s 🚀", filename)),
 			Files: []pachca.MessageCreateRequestFile{
 				{
 					Key:      key,
 					Name:     filename,
 					FileType: pachca.FileTypeFile,
-					Size:     int64(fileSize),
+					Size:     pachca.Ptr(int64(fileSize)),
 				},
 			},
 		},

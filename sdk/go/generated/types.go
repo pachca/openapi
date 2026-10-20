@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// AuditEventKey may hold a value this SDK does not list yet: a response keeps it as is.
 type AuditEventKey string
 
 const (
@@ -72,6 +73,7 @@ const (
 	AuditEventKeyExchangeDisabled                 AuditEventKey = "exchange_disabled" // Отключена интеграция с Exchange
 )
 
+// BotCanEdit may hold a value this SDK does not list yet: a response keeps it as is.
 type BotCanEdit string
 
 const (
@@ -79,6 +81,7 @@ const (
 	BotCanEditChatOwners BotCanEdit = "chat_owners" // Владельцы чатов, в которые добавлен бот
 )
 
+// BotEventName may hold a value this SDK does not list yet: a response keeps it as is.
 type BotEventName string
 
 const (
@@ -102,6 +105,7 @@ const (
 	BotEventNameVideoCallRecordingReady BotEventName = "video_call_recording_ready" // Запись видеозвонка готова
 )
 
+// BotTemplateEngine may hold a value this SDK does not list yet: a response keeps it as is.
 type BotTemplateEngine string
 
 const (
@@ -109,6 +113,7 @@ const (
 	BotTemplateEngineMustache BotTemplateEngine = "mustache" // Mustache — простая подстановка без логики
 )
 
+// BotTriggerOn may hold a value this SDK does not list yet: a response keeps it as is.
 type BotTriggerOn string
 
 const (
@@ -117,6 +122,7 @@ const (
 	BotTriggerOnUnfurl      BotTriggerOn = "unfurl" // На развёртывание ссылок (link previews)
 )
 
+// BotWebhookKind may hold a value this SDK does not list yet: a response keeps it as is.
 type BotWebhookKind string
 
 const (
@@ -125,6 +131,7 @@ const (
 	BotWebhookKindGrafana BotWebhookKind = "grafana" // Grafana: Пачка сама разбирает запрос и собирает сообщение
 )
 
+// BotWhoCanAdd may hold a value this SDK does not list yet: a response keeps it as is.
 type BotWhoCanAdd string
 
 const (
@@ -180,6 +187,7 @@ const (
 	ChatSubtypeThread     ChatSubtype = "thread" // Тред
 )
 
+// CustomPropertyDataType may hold a value this SDK does not list yet: a response keeps it as is.
 type CustomPropertyDataType string
 
 const (
@@ -189,6 +197,7 @@ const (
 	CustomPropertyDataTypeLink   CustomPropertyDataType = "link" // Ссылка
 )
 
+// DraftRepetitionInterval may hold a value this SDK does not list yet: a response keeps it as is.
 type DraftRepetitionInterval string
 
 const (
@@ -220,6 +229,7 @@ const (
 	FileTargetImage        FileTarget = "image" // Изображение как есть
 )
 
+// FileType may hold a value this SDK does not list yet: a response keeps it as is.
 type FileType string
 
 const (
@@ -230,6 +240,7 @@ const (
 	FileTypeVideo FileType = "video" // Видеофайл
 )
 
+// InviteStatus may hold a value this SDK does not list yet: a response keeps it as is.
 type InviteStatus string
 
 const (
@@ -237,6 +248,7 @@ const (
 	InviteStatusSent      InviteStatus = "sent" // Отправлено
 )
 
+// MemberEventType may hold a value this SDK does not list yet: a response keeps it as is.
 type MemberEventType string
 
 const (
@@ -244,6 +256,7 @@ const (
 	MemberEventTypeRemove MemberEventType = "remove" // Удаление
 )
 
+// MessageEntityType may hold a value this SDK does not list yet: a response keeps it as is.
 type MessageEntityType string
 
 const (
@@ -265,6 +278,21 @@ const (
 	MessageSortFieldID MessageSortField = "id" // По идентификатору сообщения
 )
 
+// OAuthErrorCode may hold a value this SDK does not list yet: a response keeps it as is.
+type OAuthErrorCode string
+
+const (
+	OAuthErrorCodeInvalidToken         OAuthErrorCode = "invalid_token" // Токен не передан, не найден, истёк или отозван
+	OAuthErrorCodeInsufficientScope    OAuthErrorCode = "insufficient_scope" // У токена нет скоупа, который нужен методу
+	OAuthErrorCodeRoleForbidden        OAuthErrorCode = "role_forbidden" // Скоуп у токена есть, но роль его владельца не позволяет действие
+	OAuthErrorCodeInvalidRequest       OAuthErrorCode = "invalid_request" // В запросе нет обязательного параметра или он передан неверно
+	OAuthErrorCodeInvalidClient        OAuthErrorCode = "invalid_client" // Неверный `client_id` или `client_secret`
+	OAuthErrorCodeInvalidGrant         OAuthErrorCode = "invalid_grant" // Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`
+	OAuthErrorCodeUnsupportedGrantType OAuthErrorCode = "unsupported_grant_type" // Значение `grant_type` не поддерживается
+	OAuthErrorCodeUnauthorizedClient   OAuthErrorCode = "unauthorized_client" // Токен выдан другому боту или клиент не подтвердил себя
+)
+
+// OAuthScope may hold a value this SDK does not list yet: a response keeps it as is.
 type OAuthScope string
 
 const (
@@ -328,6 +356,14 @@ const (
 	OAuthScopeDraftsWrite          OAuthScope = "drafts:write" // Создание, изменение и удаление черновиков и отложенных сообщений
 )
 
+type OAuthTokenTypeHint string
+
+const (
+	OAuthTokenTypeHintAccessToken  OAuthTokenTypeHint = "access_token" // Токен сотрудника
+	OAuthTokenTypeHintRefreshToken OAuthTokenTypeHint = "refresh_token" // Токен обновления
+)
+
+// ReactionEventType may hold a value this SDK does not list yet: a response keeps it as is.
 type ReactionEventType string
 
 const (
@@ -357,6 +393,7 @@ const (
 	SortOrderDesc SortOrder = "desc" // По убыванию
 )
 
+// TaskKind may hold a value this SDK does not list yet: a response keeps it as is.
 type TaskKind string
 
 const (
@@ -367,6 +404,7 @@ const (
 	TaskKindEmail    TaskKind = "email" // Написать письмо
 )
 
+// TaskStatus may hold a value this SDK does not list yet: a response keeps it as is.
 type TaskStatus string
 
 const (
@@ -383,6 +421,7 @@ const (
 	UserCreateRoleGuest      UserCreateRole = "guest" // Гость
 )
 
+// UserEventType may hold a value this SDK does not list yet: a response keeps it as is.
 type UserEventType string
 
 const (
@@ -394,6 +433,7 @@ const (
 	UserEventTypeDelete   UserEventType = "delete" // Удаление
 )
 
+// UserRole may hold a value this SDK does not list yet: a response keeps it as is.
 type UserRole string
 
 const (
@@ -411,6 +451,7 @@ const (
 	UserRoleInputMultiGuest UserRoleInput = "multi_guest" // Мульти-гость
 )
 
+// ValidationErrorCode may hold a value this SDK does not list yet: a response keeps it as is.
 type ValidationErrorCode string
 
 const (
@@ -433,7 +474,7 @@ const (
 	ValidationErrorCodeUserLimit                  ValidationErrorCode = "user_limit" // Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
 	ValidationErrorCodeUniqueLimit                ValidationErrorCode = "unique_limit" // Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
 	ValidationErrorCodeGeneralLimit               ValidationErrorCode = "general_limit" // Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
-	ValidationErrorCodeUnhandled                  ValidationErrorCode = "unhandled" // Ошибка выполнения запроса (пояснения вы получите в поле message)
+	ValidationErrorCodeUnhandled                  ValidationErrorCode = "unhandled" // Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий
 	ValidationErrorCodeTriggerNotFound            ValidationErrorCode = "trigger_not_found" // Не удалось найти идентификатор события
 	ValidationErrorCodeTriggerExpired             ValidationErrorCode = "trigger_expired" // Время жизни идентификатора события истекло
 	ValidationErrorCodeRequired                   ValidationErrorCode = "required" // Обязательный параметр не передан
@@ -452,8 +493,10 @@ const (
 	ValidationErrorCodeBotAddDenied               ValidationErrorCode = "bot_add_denied" // Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
 	ValidationErrorCodeSingleChatBotOccupied      ValidationErrorCode = "single_chat_bot_occupied" // Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
 	ValidationErrorCodeSingleChatBotTagDenied     ValidationErrorCode = "single_chat_bot_tag_denied" // Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
+	ValidationErrorCodeRestrictedBotTagDenied     ValidationErrorCode = "restricted_bot_tag_denied" // В тег можно добавить только бота, которого может добавить в чат любой сотрудник
 	ValidationErrorCodeBotChangedConcurrently     ValidationErrorCode = "bot_changed_concurrently" // Настройки бота изменились во время запроса: повторите его
 	ValidationErrorCodeTimeout                    ValidationErrorCode = "timeout" // Поиск не уложился по времени: сузьте запрос и повторите
+	ValidationErrorCodeDailyInvitesLimit          ValidationErrorCode = "daily_invites_limit" // Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`
 	ValidationErrorCodeForbidden                  ValidationErrorCode = "forbidden" // Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
 	ValidationErrorCodePermissionDenied           ValidationErrorCode = "permission_denied" // Доступ запрещён (недостаточно прав)
 	ValidationErrorCodeAccessDenied               ValidationErrorCode = "access_denied" // Доступ запрещён
@@ -472,6 +515,7 @@ const (
 	ValidationErrorCodeServiceUnavailable         ValidationErrorCode = "service_unavailable" // Сервис временно недоступен, повторите запрос
 )
 
+// VideoCallEventType may hold a value this SDK does not list yet: a response keeps it as is.
 type VideoCallEventType string
 
 const (
@@ -480,6 +524,7 @@ const (
 	VideoCallEventTypeRecordingReady VideoCallEventType = "recording_ready" // Запись видеозвонка готова
 )
 
+// WebhookEventType may hold a value this SDK does not list yet: a response keeps it as is.
 type WebhookEventType string
 
 const (
@@ -489,15 +534,16 @@ const (
 )
 
 type AccessTokenInfo struct {
-	ID         int64        `json:"id"`
-	Token      string       `json:"token"`
-	UserID     int64        `json:"user_id"`
-	Scopes     []OAuthScope `json:"scopes"`
-	CreatedAt  time.Time    `json:"created_at"`
-	Name       *string      `json:"name"`
-	RevokedAt  *string      `json:"revoked_at"`
-	ExpiresIn  *int32       `json:"expires_in"`
-	LastUsedAt *string      `json:"last_used_at"`
+	ID           int64        `json:"id"`
+	Token        string       `json:"token"`
+	UserID       int64        `json:"user_id"`
+	Scopes       []OAuthScope `json:"scopes"`
+	CreatedAt    time.Time    `json:"created_at"`
+	Name         *string      `json:"name"`
+	RevokedAt    *string      `json:"revoked_at"`
+	ExpiresIn    *int32       `json:"expires_in"`
+	LastUsedAt   *string      `json:"last_used_at"`
+	AuthorizedAt *string      `json:"authorized_at"`
 }
 
 type AddMembersRequest struct {
@@ -531,7 +577,7 @@ type ApiErrorItem struct {
 	Key     string              `json:"key"`
 	Message string              `json:"message"`
 	Code    ValidationErrorCode `json:"code"`
-	Value   *string             `json:"value"`
+	Value   any                 `json:"value"`
 	Payload map[string]any      `json:"payload"`
 }
 
@@ -688,9 +734,9 @@ type AuditDetailsUserUpdated struct {
 
 type AuditDetailsVideoCallFinished struct {
 	ChatID           int32  `json:"chat_id"`
-	Duration         int32  `json:"duration"`
 	MaxMembersCount  int32  `json:"max_members_count"`
 	StartedMessageID *int32 `json:"started_message_id"`
+	Duration         *int32 `json:"duration"`
 }
 
 type AuditDetailsVideoCallRecording struct {
@@ -1073,6 +1119,9 @@ type BotWebhook struct {
 	ChallengeKey         *string           `json:"challenge_key"`
 	Kind                 *BotWebhookKind   `json:"kind"`
 	LastRequestAt        *string           `json:"last_request_at"`
+	URL                  *string           `json:"url"`
+	SecretToken          *string           `json:"secret_token,omitempty"`
+	LastRequestBody      *string           `json:"last_request_body"`
 }
 
 type BotWebhookSelfUpdateRequestWebhook struct {
@@ -1145,6 +1194,10 @@ func (m ChatCreateRequestChat) MarshalJSON() ([]byte, error) {
 
 type ChatCreateRequest struct {
 	Chat ChatCreateRequestChat `json:"chat"`
+}
+
+type ChatExport struct {
+	ID int32 `json:"id"`
 }
 
 type ChatMemberWebhookPayload struct {
@@ -1375,6 +1428,13 @@ func (m ExportRequest) MarshalJSON() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
+type ExportWebhookPayload struct {
+	Type      string    `json:"type"` // always "export"
+	Event     string    `json:"event"` // always "ready"
+	ExportID  int32     `json:"export_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type File struct {
 	ID         int32    `json:"id"`
 	Key        string   `json:"key"`
@@ -1388,7 +1448,6 @@ type File struct {
 
 type FileUploadRequest struct {
 	ContentDisposition string    `json:"Content-Disposition"`
-	ACL                string    `json:"acl"`
 	Policy             string    `json:"policy"`
 	XAMZCredential     string    `json:"x-amz-credential"`
 	XAMZAlgorithm      string    `json:"x-amz-algorithm"`
@@ -1396,6 +1455,8 @@ type FileUploadRequest struct {
 	XAMZSignature      string    `json:"x-amz-signature"`
 	Key                string    `json:"key"`
 	File               io.Reader `json:"file"`
+	ACL                *string   `json:"acl,omitempty"`
+	Bucket             *string   `json:"bucket,omitempty"`
 }
 
 type Forwarding struct {
@@ -1488,7 +1549,7 @@ type MessageCreateRequestFile struct {
 	Key        string   `json:"key"`
 	Name       string   `json:"name"`
 	FileType   FileType `json:"file_type"`
-	Size       int64    `json:"size"`
+	Size       *int64   `json:"size,omitempty"`
 	Width      *int32   `json:"width,omitempty"`
 	Height     *int32   `json:"height,omitempty"`
 	DurationMs *int32   `json:"duration_ms,omitempty"`
@@ -1497,8 +1558,8 @@ type MessageCreateRequestFile struct {
 
 type MessageCreateRequestMessage struct {
 	EntityID           int32                      `json:"entity_id"`
-	Content            string                     `json:"content"`
 	EntityType         *MessageEntityType         `json:"entity_type,omitempty"`
+	Content            *string                    `json:"content,omitempty"`
 	Files              []MessageCreateRequestFile `json:"files,omitempty"`
 	Buttons            [][]Button                 `json:"buttons,omitempty"`
 	ParentMessageID    *int32                     `json:"parent_message_id,omitempty"`
@@ -1591,15 +1652,39 @@ type MessageWebhookPayload struct {
 }
 
 type OAuthError struct {
-	Err              string `json:"error"`
-	ErrorDescription string `json:"error_description"`
+	Err              OAuthErrorCode `json:"error"`
+	ErrorDescription string         `json:"error_description"`
 }
 
 func (e *OAuthError) Error() string {
 	if e.Err != "" {
-		return e.Err
+		return string(e.Err)
 	}
 	return "oauth error"
+}
+
+type OAuthRevokeRequest struct {
+	Token         string              `json:"token"`
+	TokenTypeHint *OAuthTokenTypeHint `json:"token_type_hint,omitempty"`
+	ClientID      *string             `json:"client_id,omitempty"`
+	ClientSecret  *string             `json:"client_secret,omitempty"`
+}
+
+type OAuthToken struct {
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"` // always "Bearer"
+	RefreshToken string `json:"refresh_token"`
+	Scope        string `json:"scope"`
+	CreatedAt    int64  `json:"created_at"`
+}
+
+type OAuthTokenRequest struct {
+	GrantType    string  `json:"grant_type"` // always "authorization_code"
+	Code         string  `json:"code"`
+	RedirectUri  string  `json:"redirect_uri"`
+	ClientID     *string `json:"client_id,omitempty"`
+	ClientSecret *string `json:"client_secret,omitempty"`
+	CodeVerifier *string `json:"code_verifier,omitempty"`
 }
 
 type OpenViewRequestView struct {
@@ -1662,8 +1747,8 @@ type SearchPaginationMeta struct {
 }
 
 type StatusUpdateRequestStatus struct {
-	Emoji       string     `json:"emoji"`
-	Title       string     `json:"title"`
+	Emoji       *string    `json:"emoji,omitempty"`
+	Title       *string    `json:"title,omitempty"`
 	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
 	IsAway      *bool      `json:"is_away,omitempty"`
 	AwayMessage *string    `json:"away_message,omitempty"`
@@ -1805,15 +1890,16 @@ type UpdateMemberRoleRequest struct {
 }
 
 type UploadParams struct {
-	ContentDisposition string `json:"Content-Disposition"`
-	ACL                string `json:"acl"`
-	Policy             string `json:"policy"`
-	XAMZCredential     string `json:"x-amz-credential"`
-	XAMZAlgorithm      string `json:"x-amz-algorithm"`
-	XAMZDate           string `json:"x-amz-date"`
-	XAMZSignature      string `json:"x-amz-signature"`
-	Key                string `json:"key"`
-	DirectURL          string `json:"direct_url"`
+	ContentDisposition string  `json:"Content-Disposition"`
+	Policy             string  `json:"policy"`
+	XAMZCredential     string  `json:"x-amz-credential"`
+	XAMZAlgorithm      string  `json:"x-amz-algorithm"`
+	XAMZDate           string  `json:"x-amz-date"`
+	XAMZSignature      string  `json:"x-amz-signature"`
+	Key                string  `json:"key"`
+	DirectURL          string  `json:"direct_url"`
+	ACL                *string `json:"acl,omitempty"`
+	Bucket             *string `json:"bucket,omitempty"`
 }
 
 type User struct {
@@ -1949,9 +2035,9 @@ type VideoCallWebhookPayload struct {
 	OwnerID          int32                    `json:"owner_id"`
 	WebhookTimestamp int32                    `json:"webhook_timestamp"`
 	Thread           *WebhookVideoCallThread  `json:"thread"`
-	StartedAt        *time.Time               `json:"started_at,omitempty"`
+	StartedAt        *string                  `json:"started_at"`
 	FinishedAt       *time.Time               `json:"finished_at,omitempty"`
-	Duration         *int32                   `json:"duration,omitempty"`
+	Duration         *int32                   `json:"duration"`
 	Members          []WebhookVideoCallMember `json:"members,omitempty"`
 	RecordingID      *int32                   `json:"recording_id,omitempty"`
 	FileID           *int32                   `json:"file_id"`
@@ -2155,6 +2241,14 @@ type WebhookVideoCallThread struct {
 	ChatID        int32  `json:"chat_id"`
 	MessageID     *int32 `json:"message_id"`
 	MessageChatID *int32 `json:"message_chat_id"`
+}
+
+type UpdateBotAvatarRequest struct {
+	Image io.Reader `json:"image"`
+}
+
+type CreateChatResponseMeta struct {
+	NotFoundMemberIDs []int32 `json:"not_found_member_ids"`
 }
 
 type UpdateChatAvatarRequest struct {
@@ -2813,6 +2907,11 @@ type ListBotsResponse struct {
 type ListBotTokensResponse struct {
 	Data []BotAccessToken `json:"data"`
 	Meta PaginationMeta   `json:"meta"`
+}
+
+type CreateChatResponse struct {
+	Data Chat                   `json:"data"`
+	Meta CreateChatResponseMeta `json:"meta"`
 }
 
 type ListChatsResponse struct {

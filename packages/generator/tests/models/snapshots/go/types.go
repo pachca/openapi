@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// UserRole may hold a value this SDK does not list yet: a response keeps it as is.
 type UserRole string
 
 const (

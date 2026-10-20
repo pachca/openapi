@@ -7,7 +7,7 @@
 
 Все модели данных, возвращаемые в ответах API. Каждая модель содержит связанные методы и таблицу свойств.
 
-> Методы [Получение подписи, ключа и других параметров](/api/files/uploads), [Загрузка файла](/api/files/direct-url) и [Скачивание файла](/api/files/get) не возвращают модели данных: первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом.
+> Методы [Получение подписи, ключа и других параметров](/api/files/uploads), [Загрузка файла](/api/files/direct-url), [Скачивание файла](/api/files/get) и [Отзыв токена](/api/oauth/revoke-token) не возвращают модели данных: первые два отвечают параметрами загрузки и пустым телом, третий — самим файлом, а отзыв — пустым объектом.
 
 
 ## Дополнительное поле
@@ -30,13 +30,28 @@
 
 - `id: integer, int64` (required) — Идентификатор токена. Пример: `4827`
 - `token: string` (required) — Маскированный токен (видны первые 8 и последние 4 символа). Пример: `"cH5kR9mN...x7Qp"`
-- `name: string` (required, nullable) — Пользовательское имя токена. `null` у токена бота — имя задаётся только при создании токена вручную. Пример: `"Мой API токен"`
+- `name: string` (required, nullable) — Имя токена. У входа из CLI это имя устройства, у токена внешнего приложения — имя приложения. `null`, если имени нет, например у токена, который сотрудник выдал боту на экране согласия. Пример: `"Мой API токен"`
 - `user_id: integer, int64` (required) — Идентификатор владельца токена. Пример: `12`
 - `scopes: array of string` (required) — Список скоупов токена. Пример: `["messages:read","chats:read"]`
 - `created_at: date-time` (required) — Дата создания токена. Пример: `"2025-01-15T10:30:00.000Z"`
 - `revoked_at: date-time` (required, nullable) — Дата отзыва токена. Всегда `null`: по отозванному токену метод возвращает 401. Пример: `null`
-- `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. `null` у бессрочного токена — такие выдаёт интерфейс. У токена, полученного входом из CLI, здесь `3600`: он живёт час и продлевается сам. Пример: `null`
-- `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать. Пример: `"2025-02-24T14:20:00.000Z"`
+- `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. У входа из CLI и у токена внешнего приложения, которому сотрудник выдал доступ, здесь `3600`: токен живёт час и продлевается токеном обновления, CLI делает это сам. У остальных токенов `null`: они бессрочные. Пример: `null`
+- `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в минуту, поэтому может отставать. Пример: `"2025-02-24T14:20:00.000Z"`
+- `authorized_at: date-time` (required, nullable) — Дата входа из CLI или выдачи доступа внешнему приложению. При продлении токена не меняется. У остальных токенов `null`. Пример: `null`
+
+
+## Токен сотрудника
+
+- [Обмен кода на токен](/api/oauth/exchange-token)
+
+Токен сотрудника, выданный боту в обмен на код авторизации
+
+- `access_token: string` (required) — Токен сотрудника. Передаётся в заголовке `Authorization: Bearer` при запросах от его имени. Пример: `"pato_bm90X2FfcmVhbF90b2tlbg"`
+- `token_type: string` (required) — Тип токена, всегда `Bearer`. Пример: `"Bearer"`
+  Значения: `Bearer`
+- `refresh_token: string` (required) — Токен обновления. Токен сотрудника бессрочный, поэтому обновлять его не нужно. Пример: `"cmVmcmVzaF9ub3RfcmVhbA"`
+- `scope: string` (required) — Выданные права через пробел. Набор берётся из настроек бота. Пример: `"chats:read messages:read tasks:read tasks:create"`
+- `created_at: integer, int64` (required) — Время выдачи токена в формате Unix time, в секундах. Пример: `1790242260`
 
 
 ## Статус пользователя
@@ -66,10 +81,12 @@
 - [Удаление аватара сотрудника](/api/users/remove-avatar)
 - [Загрузка аватара чата](/api/chats/update-avatar)
 - [Удаление аватара чата](/api/chats/remove-avatar)
+- [Загрузка аватара бота](/api/bots/update-avatar)
+- [Удаление аватара бота](/api/bots/remove-avatar)
 
 Данные аватара
 
-- `image_url: string` (required) — URL аватара. Пример: `"https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg"`
+- `image_url: string` (required) — URL аватара. Пример: `"https://files.example.com/uploads/0001/0001/image.jpg"`
 
 
 ## Сотрудник
@@ -129,7 +146,7 @@
 - [Информация о теге](/api/group-tags/get)
 - [Список тегов](/api/group-tags/list)
 - [Редактирование тега](/api/group-tags/update)
-- [Исключение тега](/api/members/remove-group-tag)
+- [Исключение тега из чата](/api/members/remove-group-tag)
 - [Удаление тега](/api/group-tags/delete)
 
 Тег
@@ -142,20 +159,18 @@
 ## Чат
 
 - [Новый чат](/api/chats/create)
-- [Добавление пользователей](/api/members/add)
-- [Экспорт сообщений](/api/chats/request-export)
+- [Добавление участников](/api/members/add)
 - [Информация о чате](/api/chats/get)
 - [Список чатов](/api/chats/list)
 - [Список чатов пространства](/api/chats/list-company)
 - [Поиск чатов](/api/search/list-chats)
-- [Скачать архив экспорта](/api/chats/download-export)
 - [Редактирование чата](/api/chats/update)
 - [Архивация чата](/api/chats/archive)
 - [Разархивация чата](/api/chats/unarchive)
 - [Отметка чата непрочитанным](/api/chats/mark-unread)
-- [Редактирование роли](/api/members/update)
+- [Редактирование роли участника](/api/members/update)
 - [Выход из чата](/api/members/leave)
-- [Исключение пользователя](/api/members/remove)
+- [Исключение участника](/api/members/remove)
 
 Чат
 
@@ -171,7 +186,17 @@
 - `public: boolean` (required) — Открытый доступ. Пример: `false`
 - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2021-08-28T15:56:53.000Z"`
 - `meet_room_url: string` (required) — Ссылка на Видеочат. Пример: `"https://meet.pachca.com/aqua-94bb21b5"`
-- `avatar_url: string` (required, nullable) — Ссылка на аватар чата. `null`, если аватар не задан. Пример: `"https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg"`
+- `avatar_url: string` (required, nullable) — Ссылка на аватар чата. `null`, если аватар не задан. Пример: `"https://files.example.com/uploads/0001/0001/image.jpg"`
+
+
+## Экспорт сообщений
+
+- [Экспорт сообщений](/api/chats/request-export)
+- [Скачать архив экспорта](/api/chats/download-export)
+
+Заказанный экспорт сообщений
+
+- `id: integer, int32` (required) — Идентификатор экспорта. Пример: `22322`
 
 
 ## Тред
@@ -221,7 +246,7 @@
   - `name: string` (required) — Название файла с расширением. Пример: `"congrat.png"`
   - `file_type: string` (required) — Тип файла
     Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение, `video` — Видеофайл
-  - `url: string` (required) — Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](/api/files/get): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
+  - `url: string` (required) — Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](/api/files/get): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`. Пример: `"https://files.example.com/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?X-Amz-Expires=604800&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
   - `width: integer, int32` (nullable) — Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1920`
   - `height: integer, int32` (nullable) — Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1080`
   - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового, аудио- и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
@@ -316,7 +341,7 @@
   - `name: string` (required) — Название файла с расширением. Пример: `"congrat.png"`
   - `file_type: string` (required) — Тип файла
     Значения: `file` — Обычный файл, `image` — Изображение, `audio` — Аудиофайл, `voice` — Голосовое сообщение, `video` — Видеофайл
-  - `url: string` (required) — Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](/api/files/get): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
+  - `url: string` (required) — Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](/api/files/get): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`. Пример: `"https://files.example.com/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?X-Amz-Expires=604800&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8"`
   - `width: integer, int32` (nullable) — Ширина изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1920`
   - `height: integer, int32` (nullable) — Высота изображения в пикселях. `null` для файлов, не являющихся изображением, а также если размер не был передан при загрузке. Пример: `1080`
   - `duration_ms: integer, int32` (nullable) — Длительность в миллисекундах у голосового, аудио- и видеофайла. `null` у остальных файлов и если длительность не была передана при загрузке. Пример: `5400`
@@ -350,32 +375,32 @@
 - `private_metadata: string` (max length: 3000) — Необязательная строка, которая будет отправлена в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для передачи в формате `JSON` какой то дополнительной информации вместе с заполненной пользователем формой. Пример: `"{\"timeoff_id\":4378}"`
 - `callback_id: string` (max length: 255) — Необязательный идентификатор для распознавания этого представления, который будет отправлен в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для понимания, какую форму должен был заполнить пользователь. Пример: `"timeoff_request_form"`
 - `view: object` (required) — Собранный объект представления
-  - `title: string` (required, max length: 24) — Заголовок представления. Пример: `"Уведомление об отпуске"`
-  - `close_text: string` (default: Отменить, max length: 24) — Текст кнопки закрытия представления. Отображается только в десктоп-вебе. В мобильных приложениях (iOS/Android) кнопка закрытия — это крестик в шапке, и заданный текст там не показывается. Пример: `"Закрыть"`
-  - `submit_text: string` (default: Отправить, max length: 24) — Текст кнопки отправки формы. Пример: `"Отправить заявку"`
-  - `blocks: array (union)` (required, max items: 100) — Массив блоков представления
+  - `title: string` (required, max length: 24, min length: 1) — Заголовок представления. Пример: `"Уведомление об отпуске"`
+  - `close_text: string` (default: Отменить, max length: 24, min length: 1) — Текст кнопки закрытия представления. Отображается только в десктоп-вебе. В мобильных приложениях (iOS/Android) кнопка закрытия — это крестик в шапке, и заданный текст там не показывается. Пример: `"Закрыть"`
+  - `submit_text: string` (default: Отправить, max length: 24, min length: 1) — Текст кнопки отправки формы. Пример: `"Отправить заявку"`
+  - `blocks: array (union)` (required, max items: 100) — Массив блоков представления. Имена блоков (`name`) не повторяются, в select и radio заранее выбрано не больше одного варианта, а `min_length` поля ввода не больше его `max_length`.
     **Возможные типы элементов:**
 
     - **ViewBlockHeader**: Блок header — заголовок
       - `type: string` (required) — Тип блока
         Значения: `header` — Для заголовков всегда header
-      - `text: string` (required, max length: 150) — Текст заголовка
+      - `text: string` (required, max length: 150, min length: 1) — Текст заголовка
     - **ViewBlockPlainText**: Блок plain_text — обычный текст
       - `type: string` (required) — Тип блока
         Значения: `plain_text` — Для обычного текста всегда plain_text
-      - `text: string` (required, max length: 12000) — Текст
+      - `text: string` (required, max length: 12000, min length: 1) — Текст
     - **ViewBlockMarkdown**: Блок markdown — форматированный текст
       - `type: string` (required) — Тип блока
         Значения: `markdown` — Для форматированного текста всегда markdown
-      - `text: string` (required, max length: 12000) — Текст
+      - `text: string` (required, max length: 12000, min length: 1) — Текст
     - **ViewBlockDivider**: Блок divider — разделитель
       - `type: string` (required) — Тип блока
         Значения: `divider` — Для разделителя всегда divider
     - **ViewBlockInput**: Блок input — текстовое поле ввода
       - `type: string` (required) — Тип блока
         Значения: `input` — Для текстового поля всегда input
-      - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
-      - `label: string` (required, max length: 150) — Подпись к полю
+      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
+      - `label: string` (required, max length: 150, min length: 1) — Подпись к полю
       - `placeholder: string` (max length: 150) — Подсказка внутри поля ввода, пока оно пустое
       - `multiline: boolean` (default: false) — Многострочное поле
       - `initial_value: string` (max length: 3000) — Начальное значение в поле
@@ -386,11 +411,11 @@
     - **ViewBlockSelect**: Блок select — выпадающий список
       - `type: string` (required) — Тип блока
         Значения: `select` — Для выпадающего списка всегда select
-      - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
-      - `label: string` (required, max length: 150) — Подпись к выпадающему списку
+      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
+      - `label: string` (required, max length: 150, min length: 1) — Подпись к выпадающему списку
       - `options: array of object` (required, max items: 100) — Массив доступных пунктов в выпадающем списке
-        - `text: string` (required, max length: 75) — Отображаемый текст
-        - `value: string` (required, max length: 255) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+        - `text: string` (required, max length: 75, min length: 1) — Отображаемый текст
+        - `value: string` (required, max length: 255, min length: 1) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
         - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
         - `selected: boolean` — Изначально выбранный пункт. Только один пункт может быть выбран.
       - `required: boolean` (default: false) — Обязательность
@@ -398,11 +423,11 @@
     - **ViewBlockRadio**: Блок radio — радиокнопки
       - `type: string` (required) — Тип блока
         Значения: `radio` — Для радиокнопок всегда radio
-      - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
-      - `label: string` (required, max length: 150) — Подпись к группе радиокнопок
+      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
+      - `label: string` (required, max length: 150, min length: 1) — Подпись к группе радиокнопок
       - `options: array of object` (required, max items: 20) — Массив радиокнопок
-        - `text: string` (required, max length: 75) — Отображаемый текст
-        - `value: string` (required, max length: 255) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+        - `text: string` (required, max length: 75, min length: 1) — Отображаемый текст
+        - `value: string` (required, max length: 255, min length: 1) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
         - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
         - `checked: boolean` — Изначально выбранная радиокнопка. Только одна радиокнопка может быть выбрана.
       - `required: boolean` (default: false) — Обязательность
@@ -410,11 +435,11 @@
     - **ViewBlockCheckbox**: Блок checkbox — чекбоксы
       - `type: string` (required) — Тип блока
         Значения: `checkbox` — Для чекбоксов всегда checkbox
-      - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
-      - `label: string` (required, max length: 150) — Подпись к группе чекбоксов
+      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
+      - `label: string` (required, max length: 150, min length: 1) — Подпись к группе чекбоксов
       - `options: array of object` (required, max items: 20) — Массив чекбоксов
-        - `text: string` (required, max length: 75) — Отображаемый текст
-        - `value: string` (required, max length: 255) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+        - `text: string` (required, max length: 75, min length: 1) — Отображаемый текст
+        - `value: string` (required, max length: 255, min length: 1) — Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
         - `description: string` (max length: 75) — Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
         - `checked: boolean` — Изначально выбранный пункт
       - `required: boolean` (default: false) — Обязательность
@@ -422,24 +447,24 @@
     - **ViewBlockDate**: Блок date — выбор даты
       - `type: string` (required) — Тип блока
         Значения: `date` — Для выбора даты всегда date
-      - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
-      - `label: string` (required, max length: 150) — Подпись к полю
+      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
+      - `label: string` (required, max length: 150, min length: 1) — Подпись к полю
       - `initial_date: date` — Начальное значение в поле в формате YYYY-MM-DD
       - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
     - **ViewBlockTime**: Блок time — выбор времени
       - `type: string` (required) — Тип блока
         Значения: `time` — Для выбора времени всегда time
-      - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
-      - `label: string` (required, max length: 150) — Подпись к полю
-      - `initial_time: string, time` — Начальное значение в поле в формате HH:mm. Значение в формате HH:mm:ss тоже принимается — секунды отбрасываются.
+      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
+      - `label: string` (required, max length: 150, min length: 1) — Подпись к полю
+      - `initial_time: string` — Начальное значение в поле в формате HH:mm. Значение в формате HH:mm:ss тоже принимается — секунды отбрасываются.
       - `required: boolean` (default: false) — Обязательность
       - `hint: string` (max length: 2000) — Подсказка, которая отображается под полем серым цветом
     - **ViewBlockFileInput**: Блок file_input — загрузка файлов
       - `type: string` (required) — Тип блока
         Значения: `file_input` — Для загрузки файлов всегда file_input
-      - `name: string` (required, max length: 255) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
-      - `label: string` (required, max length: 150) — Подпись к полю
+      - `name: string` (required, max length: 255, min length: 1) — Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
+      - `label: string` (required, max length: 150, min length: 1) — Подпись к полю
       - `filetypes: array of string` — Массив допустимых расширений файлов, указанные в виде строк (например, ["png","jpg","gif"]). Точка в начале не нужна, но допустима — она подставляется сама. Значение с косой чертой считается MIME-типом и остаётся как есть. Если это поле не указано, все расширения файлов будут приняты. Значение подставляется в фильтр окна выбора файла, поэтому расширение полученного файла проверяйте у себя.
       - `max_files: integer, int32` (default: 10, min: 1, max: 10) — Максимальное количество файлов, которое может загрузить пользователь в это поле
       - `required: boolean` (default: false) — Обязательность
@@ -461,15 +486,15 @@
 - `id: integer, int32` (required) — Идентификатор бота (совпадает с `user_id` бота). Пример: `1738816`
 - `name: string` (required) — Имя бота. Пример: `"Бот задач"`
 - `nickname: string` (required) — Никнейм бота. Пример: `"tasks_bot"`
-- `avatar_url: string` (required, nullable) — Ссылка на аватар бота. `null`, если аватар не задан. Пример: `"https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg"`
+- `avatar_url: string` (required, nullable) — Ссылка на аватар бота. `null`, если аватар не задан. Пример: `"https://files.example.com/uploads/0001/0001/image.jpg"`
 - `creator_id: integer, int32` (required, nullable) — Идентификатор сотрудника, создавшего бота. `null`, если создатель не записан. Пример: `12`
 - `created_at: date-time` (required) — Дата и время создания бота (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
 - `authorized_users_count: integer, int32` (required) — Сколько сотрудников авторизовали бота. Пример: `3`
-- `last_used_at: date-time` (required, nullable) — Дата и время, когда бот последний раз работал (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ: запрос на входящий вебхук или вызов API любым токеном бота, включая токены сотрудников. `null`, если такого не было. Использование токена учитывается не чаще раза в час. Пример: `"2025-05-15T14:30:00.000Z"`
+- `last_used_at: date-time` (required, nullable) — Дата и время, когда бот последний раз работал (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ: запрос на входящий вебхук или вызов API любым токеном бота, включая токены сотрудников. `null`, если такого не было. Использование токена учитывается не чаще раза в минуту. Пример: `"2025-05-15T14:30:00.000Z"`
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://www.website.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -490,6 +515,9 @@
     Значения: `simple` — Свой формат: сообщение собирается из тела запроса по шаблону бота, `gitlab` — GitLab: Пачка сама разбирает запрос и собирает сообщение, `grafana` — Grafana: Пачка сама разбирает запрос и собирает сообщение
   - `unfurl_domains: array of string` (required) — Домены, ссылки на которые бот разворачивает. Пример: `["example.com"]`
   - `last_request_at: date-time` (required, nullable) — Дата и время последнего запроса на входящий вебхук бота (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если запросов не было. Пример: `"2025-05-15T14:30:00.000Z"`
+  - `url: string` (nullable) — Адрес входящего вебхука. `null`, если входящий вебхук у бота выключен. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M"`
+  - `secret_token: string` — Секрет подписи исходящего вебхука: им подписан заголовок `Pachca-Signature`. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA"`
+  - `last_request_body: string` (nullable) — Тело последнего запроса на входящий вебхук бота. Длиннее 128 КБ обрезается и заканчивается на `...[truncated]`. `null`, если запросов не было. Приходит только в методе [Информация о боте](/api/bots/get). Пример: `"{\"client\": \"ООО Ромашка\", \"amount\": 15000}"`
 - `oauth_client_enabled: boolean` (required) — Включена ли у бота авторизация от имени сотрудника. Пример: `true`
 - `oauth_client: object` (required) — Параметры авторизации от имени сотрудника. Может прийти и у бота с выключенной авторизацией, поэтому включена ли она, смотрите в `oauth_client_enabled`. У бота без токенов может прийти `null`.
   - `client_id: string` (required) — Идентификатор клиента для ссылки авторизации. Пример: `"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY"`
@@ -502,7 +530,7 @@
   - `published: boolean` (required) — Опубликован ли бот в витрине. Пример: `true`
   - `promo_images: array of object` (required) — Скриншоты страницы бота
     - `key: string` (required) — Ключ изображения. Пример: `"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png"`
-    - `url: string` (required) — Ссылка на изображение. Пример: `"https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png"`
+    - `url: string` (required) — Ссылка на изображение. Пример: `"https://files.example.com/attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png"`
 - `permissions: object` (required) — Что вы можете делать с этим ботом
   - `update_oauth_client: boolean` (required) — Менять авторизацию от имени сотрудника, страницу в витрине и имя бота. Пример: `true`
   - `recreate_token: boolean` (required) — Выпускать, менять и удалять токены бота и обновлять секрет клиента. Пример: `true`
@@ -527,7 +555,7 @@
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://www.website.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -564,7 +592,7 @@
 - `created_at: date-time` (required) — Дата и время выпуска токена (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-01-15T10:30:00.000Z"`
 - `revoked_at: date-time` (required, nullable) — Дата отзыва токена. Всегда `null`: отозванные токены в ответ не попадают. Пример: `null`
 - `expires_in: integer, int32` (required, nullable) — Время жизни токена в секундах. У токенов бота `null`: они бессрочные. Пример: `null`
-- `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать. Пример: `"2025-02-24T14:20:00.000Z"`
+- `last_used_at: date-time` (required, nullable) — Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в минуту, поэтому может отставать. Пример: `"2025-02-24T14:20:00.000Z"`
 - `authorized_at: date-time` (required, nullable) — Дата авторизации. У токенов бота `null`. Пример: `null`
 
 
@@ -604,7 +632,7 @@
 - `webhook: object` (required) — Объект параметров вебхука
   - `name: string` (required, max length: 255) — Имя бота. Пример: `"Бот задач"`
   - `nickname: string` (required, max length: 255) — Никнейм бота. Пример: `"tasks_bot"`
-  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://www.website.com/tasks/new"`
+  - `outgoing_url: string` (required, nullable) — URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен. Пример: `"https://example.com/tasks/new"`
   - `events: array of string` (required, nullable) — События, на которые подписан бот. Пример: `["message_new"]`
   - `trigger_on: string` (required) — Условие срабатывания исходящего вебхука
     Значения: `commands` — Только на команды (триггер-слова) из commands, `all_messages` — На все сообщения в чатах, где есть бот, `unfurl` — На развёртывание ссылок (link previews)
@@ -626,7 +654,7 @@
 ## Событие исходящего вебхука
 
 - [История событий](/api/bots/list-events)
-- [Удаление события](/api/bots/remove-event)
+- [Удаление события истории](/api/bots/remove-event)
 
 Событие исходящего вебхука
 
@@ -744,9 +772,9 @@
       - `chat_id: integer, int32` (required) — Идентификатор чата треда. Пример: `67890`
       - `message_id: integer, int32` (required, nullable) — Идентификатор сообщения, к которому создан тред. `null` у треда без сообщения-родителя — такие создаёт [Новый самостоятельный тред](/api/threads/create). Пример: `268092`
       - `message_chat_id: integer, int32` (required, nullable) — Идентификатор чата сообщения, к которому создан тред. `null` у треда без сообщения-родителя. Пример: `23438`
-    - `started_at: date-time` — Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished. Пример: `"2025-05-15T14:30:00.000Z"`
+    - `started_at: date-time` (nullable) — Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished. `null`, если звонок завершился, так и не начавшись. Пример: `"2025-05-15T14:30:00.000Z"`
     - `finished_at: date-time` — Дата и время завершения звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для события finished. Пример: `"2025-05-15T14:45:00.000Z"`
-    - `duration: integer, int32` — Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи. Пример: `900`
+    - `duration: integer, int32` (nullable) — Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи. `null`, если звонок завершился, так и не начавшись. Пример: `900`
     - `members: array of object` — Список участников звонка. Присутствует для события finished.
       - `user_id: integer, int32` (required) — Идентификатор участника. Пример: `2345`
       - `joined_at: date-time` (required) — Дата и время первого подключения к звонку (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
@@ -864,7 +892,7 @@
   - **AuditDetailsVideoCallFinished**: При: video_call_finished
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходил видеозвонок
     - `started_message_id: integer, int32` (required, nullable) — Идентификатор сообщения о начале звонка. `null`, если такого сообщения нет.
-    - `duration: integer, int32` (required) — Длительность звонка в секундах
+    - `duration: integer, int32` (required, nullable) — Длительность звонка в секундах. `null`, если звонок завершился, так и не начавшись.
     - `max_members_count: integer, int32` (required) — Максимальное число одновременных участников за время звонка
   - **AuditDetailsVideoCallRecording**: При: video_call_recording_ready
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором проходил видеозвонок
@@ -897,5 +925,5 @@
     - `bot_id: integer, int32` — Идентификатор бота
     - `actor_id: integer, int32` (required, nullable) — Идентификатор пользователя, выполнившего действие. `null`, если действие выполнено без инициатора.
 - `ip_address: string` (required, nullable) — IP-адрес, с которого было выполнено действие. `null` у событий, записанных без запроса пользователя. Пример: `"192.168.1.100"`
-- `user_agent: string` (required, nullable) — User agent клиента, обрезается до 255 символов. `null` у событий, записанных без запроса пользователя. Пример: `"Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0"`
+- `user_agent: string` (required, nullable) — User agent клиента, обрезается до 255 символов. `null` у событий, записанных без запроса пользователя. Пример: `"Pachca/3.60.0 (build:15; iOS 18.5.0) Alamofire/5.0.0"`
 

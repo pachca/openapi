@@ -35,6 +35,11 @@ export function hasJsonContent(endpoint: Endpoint): boolean {
   return 'application/json' in endpoint.requestBody.content;
 }
 
+export function hasFormContent(endpoint: Endpoint): boolean {
+  if (!endpoint.requestBody?.content) return false;
+  return 'application/x-www-form-urlencoded' in endpoint.requestBody.content;
+}
+
 export function hasMultipartContent(endpoint: Endpoint): boolean {
   if (!endpoint.requestBody) return false;
   return 'multipart/form-data' in endpoint.requestBody.content;

@@ -44,6 +44,7 @@ var uploadRequest = FileUploadRequest(
     xAmzDate: params.xAmzDate,
     xAmzSignature: params.xAmzSignature,
     key: key,
+    bucket: params.bucket,
     file: fileData
 )
 try await client.files.uploadFile(directUrl: params.directUrl, request: uploadRequest)

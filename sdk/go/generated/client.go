@@ -3,6 +3,9 @@ package pachca
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,8 +13,103 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
+
+// formValues turns a request into a form body (application/x-www-form-urlencoded):
+// the fields go by their JSON names, empty ones are left out.
+func formValues(v any) (url.Values, error) {
+	data, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	var fields map[string]any
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return nil, err
+	}
+	form := url.Values{}
+	for key, value := range fields {
+		if value != nil {
+			form.Set(key, fmt.Sprintf("%v", value))
+		}
+	}
+	return form, nil
+}
+
+// errorFromBody reads an error answer. Its body is either {"errors": [...]} or the
+// OAuth form {"error", "error_description"}, which also comes with 400 and 403
+// (insufficient_scope, invalid_grant): the body decides the type.
+func errorFromBody(resp *http.Response) error {
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+	}
+	var probe struct {
+		Errors json.RawMessage `json:"errors"`
+		Error  *string         `json:"error"`
+	}
+	if json.Unmarshal(data, &probe) == nil && probe.Errors == nil && probe.Error != nil {
+		var e OAuthError
+		if err := json.Unmarshal(data, &e); err == nil {
+			return &e
+		}
+	}
+	var e ApiError
+	if err := json.Unmarshal(data, &e); err != nil {
+		return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+	}
+	return &e
+}
+
+const PachcaAuthorizeURL = "https://app.pachca.com/apps/authorize"
+
+// AuthorizeURLParams describes the authorization link of the OAuth flow.
+type AuthorizeURLParams struct {
+	// ClientID of the bot
+	ClientID string
+	// RedirectURI is one of the bot's redirect addresses, matched exactly
+	RedirectURI string
+	// State is a random value you keep to recognise the return; each one is valid once
+	State string
+	// CodeChallenge of a pair from CreatePKCE
+	CodeChallenge string
+	// AuthorizeURL of another installation; PachcaAuthorizeURL when empty
+	AuthorizeURL string
+}
+
+// BuildAuthorizeURL returns the authorization link for a message button: the consent screen with PKCE (S256).
+func BuildAuthorizeURL(p AuthorizeURLParams) string {
+	base := p.AuthorizeURL
+	if base == "" {
+		base = PachcaAuthorizeURL
+	}
+	query := url.Values{}
+	query.Set("client_id", p.ClientID)
+	query.Set("redirect_uri", p.RedirectURI)
+	query.Set("response_type", "code")
+	query.Set("state", p.State)
+	query.Set("code_challenge", p.CodeChallenge)
+	query.Set("code_challenge_method", "S256")
+	return base + "?" + query.Encode()
+}
+
+// PKCE is a pair for the OAuth flow: keep CodeVerifier until the code exchange, put CodeChallenge into the link.
+type PKCE struct {
+	CodeVerifier  string
+	CodeChallenge string
+}
+
+// CreatePKCE returns a random code verifier and its SHA-256 challenge.
+func CreatePKCE() (PKCE, error) {
+	buf := make([]byte, 32)
+	if _, err := rand.Read(buf); err != nil {
+		return PKCE{}, err
+	}
+	verifier := base64.RawURLEncoding.EncodeToString(buf)
+	sum := sha256.Sum256([]byte(verifier))
+	return PKCE{CodeVerifier: verifier, CodeChallenge: base64.RawURLEncoding.EncodeToString(sum[:])}, nil
+}
 
 type authTransport struct {
 	token string
@@ -96,15 +194,11 @@ func (s *SecurityServiceImpl) GetAuditEvents(ctx context.Context, params *GetAud
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -155,8 +249,10 @@ type BotsService interface {
 	ReissueBotToken(ctx context.Context, id int32, tokenId int64) (*BotAccessToken, error)
 	SelfUpdateBotWebhook(ctx context.Context, request BotWebhookSelfUpdateRequest) (*BotSelfResponse, error)
 	UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error)
+	UpdateBotAvatar(ctx context.Context, id int32, image io.Reader) (*AvatarData, error)
 	UpdateBotToken(ctx context.Context, id int32, tokenId int64, request BotTokenUpdateRequest) (*BotAccessToken, error)
 	DeleteBot(ctx context.Context, id int32) error
+	DeleteBotAvatar(ctx context.Context, id int32) error
 	DeleteBotToken(ctx context.Context, id int32, tokenId int64) error
 	DeleteWebhookEvent(ctx context.Context, id string) error
 }
@@ -250,12 +346,20 @@ func (s *BotsServiceStub) UpdateBot(ctx context.Context, id int32, request BotUp
 	return nil, NotImplementedError{Method: "Bots.updateBot"}
 }
 
+func (s *BotsServiceStub) UpdateBotAvatar(ctx context.Context, id int32, image io.Reader) (*AvatarData, error) {
+	return nil, NotImplementedError{Method: "Bots.updateBotAvatar"}
+}
+
 func (s *BotsServiceStub) UpdateBotToken(ctx context.Context, id int32, tokenId int64, request BotTokenUpdateRequest) (*BotAccessToken, error) {
 	return nil, NotImplementedError{Method: "Bots.updateBotToken"}
 }
 
 func (s *BotsServiceStub) DeleteBot(ctx context.Context, id int32) error {
 	return NotImplementedError{Method: "Bots.deleteBot"}
+}
+
+func (s *BotsServiceStub) DeleteBotAvatar(ctx context.Context, id int32) error {
+	return NotImplementedError{Method: "Bots.deleteBotAvatar"}
 }
 
 func (s *BotsServiceStub) DeleteBotToken(ctx context.Context, id int32, tokenId int64) error {
@@ -306,15 +410,11 @@ func (s *BotsServiceImpl) ListBots(ctx context.Context, params *ListBotsParams) 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -366,15 +466,11 @@ func (s *BotsServiceImpl) GetBot(ctx context.Context, id int32) (*BotResponse, e
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -398,15 +494,11 @@ func (s *BotsServiceImpl) GetBotScopes(ctx context.Context, id int32) (*BotScope
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -442,15 +534,11 @@ func (s *BotsServiceImpl) ListBotTokens(ctx context.Context, id int32, params *L
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -515,15 +603,11 @@ func (s *BotsServiceImpl) ListCompanyBots(ctx context.Context, params *ListCompa
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -585,15 +669,11 @@ func (s *BotsServiceImpl) GetWebhookEvents(ctx context.Context, params *GetWebho
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -736,15 +816,11 @@ func (s *BotsServiceImpl) SelfRecreateBotToken(ctx context.Context) (*BotSelfTok
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -775,15 +851,11 @@ func (s *BotsServiceImpl) CreateBot(ctx context.Context, request BotCreateReques
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -809,15 +881,11 @@ func (s *BotsServiceImpl) RecreateBotToken(ctx context.Context, id int32) (*BotC
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -843,15 +911,11 @@ func (s *BotsServiceImpl) RotateBotClientSecret(ctx context.Context, id int32) (
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -882,15 +946,11 @@ func (s *BotsServiceImpl) CreateBotToken(ctx context.Context, id int32, request 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -916,15 +976,11 @@ func (s *BotsServiceImpl) ReissueBotToken(ctx context.Context, id int32, tokenId
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -955,15 +1011,11 @@ func (s *BotsServiceImpl) SelfUpdateBotWebhook(ctx context.Context, request BotW
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -994,15 +1046,57 @@ func (s *BotsServiceImpl) UpdateBot(ctx context.Context, id int32, request BotUp
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
 	default:
-		var e ApiError
+		return nil, errorFromBody(resp)
+	}
+}
+
+func (s *BotsServiceImpl) UpdateBotAvatar(ctx context.Context, id int32, image io.Reader) (*AvatarData, error) {
+	pr, pw := io.Pipe()
+	writer := multipart.NewWriter(pw)
+	go func() {
+		defer pw.Close()
+		defer writer.Close()
+		part, err := writer.CreateFormFile("image", "upload")
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		if _, err := io.Copy(part, image); err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+	}()
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/bots/%v/avatar", s.baseURL, id), pr)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data AvatarData `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -1033,15 +1127,11 @@ func (s *BotsServiceImpl) UpdateBotToken(ctx context.Context, id int32, tokenId 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -1061,15 +1151,35 @@ func (s *BotsServiceImpl) DeleteBot(ctx context.Context, id int32) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
 	default:
-		var e ApiError
+		return errorFromBody(resp)
+	}
+}
+
+func (s *BotsServiceImpl) DeleteBotAvatar(ctx context.Context, id int32) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/bots/%v/avatar", s.baseURL, id), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -1089,15 +1199,11 @@ func (s *BotsServiceImpl) DeleteBotToken(ctx context.Context, id int32, tokenId 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -1117,15 +1223,11 @@ func (s *BotsServiceImpl) DeleteWebhookEvent(ctx context.Context, id string) err
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -1136,8 +1238,8 @@ type ChatsService interface {
 	DownloadExport(ctx context.Context, id int32) (string, error)
 	ListCompanyChats(ctx context.Context, params *ListCompanyChatsParams) (*ListCompanyChatsResponse, error)
 	ListCompanyChatsAll(ctx context.Context, params *ListCompanyChatsParams) ([]Chat, error)
-	CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error)
-	RequestExport(ctx context.Context, request ExportRequest) error
+	CreateChat(ctx context.Context, request ChatCreateRequest) (*CreateChatResponse, error)
+	RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error)
 	UpdateChat(ctx context.Context, id int32, request ChatUpdateRequest) (*Chat, error)
 	ArchiveChat(ctx context.Context, id int32) error
 	UpdateChatAvatar(ctx context.Context, id int32, image io.Reader) (*AvatarData, error)
@@ -1172,12 +1274,12 @@ func (s *ChatsServiceStub) ListCompanyChatsAll(ctx context.Context, params *List
 	return nil, NotImplementedError{Method: "Chats.listCompanyChatsAll"}
 }
 
-func (s *ChatsServiceStub) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
+func (s *ChatsServiceStub) CreateChat(ctx context.Context, request ChatCreateRequest) (*CreateChatResponse, error) {
 	return nil, NotImplementedError{Method: "Chats.createChat"}
 }
 
-func (s *ChatsServiceStub) RequestExport(ctx context.Context, request ExportRequest) error {
-	return NotImplementedError{Method: "Chats.requestExport"}
+func (s *ChatsServiceStub) RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error) {
+	return nil, NotImplementedError{Method: "Chats.requestExport"}
 }
 
 func (s *ChatsServiceStub) UpdateChat(ctx context.Context, id int32, request ChatUpdateRequest) (*Chat, error) {
@@ -1262,15 +1364,11 @@ func (s *ChatsServiceImpl) ListChats(ctx context.Context, params *ListChatsParam
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -1322,15 +1420,11 @@ func (s *ChatsServiceImpl) GetChat(ctx context.Context, id int32) (*Chat, error)
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -1354,15 +1448,11 @@ func (s *ChatsServiceImpl) DownloadExport(ctx context.Context, id int32) (string
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return "", &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return "", fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return "", &e
+	default:
+		return "", errorFromBody(resp)
 	}
 }
 
@@ -1401,15 +1491,11 @@ func (s *ChatsServiceImpl) ListCompanyChats(ctx context.Context, params *ListCom
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -1439,7 +1525,7 @@ func (s *ChatsServiceImpl) ListCompanyChatsAll(ctx context.Context, params *List
 	return items, nil
 }
 
-func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
+func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateRequest) (*CreateChatResponse, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -1456,8 +1542,42 @@ func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateReq
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusCreated:
+		var result CreateChatResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
+	}
+}
+
+func (s *ChatsServiceImpl) RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/chats/exports", s.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Prefer", "return=representation")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusAccepted:
 		var result struct {
-			Data Chat `json:"data"`
+			Data ChatExport `json:"data"`
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err
@@ -1466,48 +1586,11 @@ func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateReq
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
-	}
-}
-
-func (s *ChatsServiceImpl) RequestExport(ctx context.Context, request ExportRequest) error {
-	body, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/chats/exports", s.baseURL), bytes.NewReader(body))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
 	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return &e
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -1538,15 +1621,11 @@ func (s *ChatsServiceImpl) UpdateChat(ctx context.Context, id int32, request Cha
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -1566,15 +1645,11 @@ func (s *ChatsServiceImpl) ArchiveChat(ctx context.Context, id int32) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -1616,15 +1691,11 @@ func (s *ChatsServiceImpl) UpdateChatAvatar(ctx context.Context, id int32, image
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -1644,15 +1715,11 @@ func (s *ChatsServiceImpl) UnarchiveChat(ctx context.Context, id int32) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -1677,15 +1744,11 @@ func (s *ChatsServiceImpl) MarkChatUnread(ctx context.Context, id int32, request
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -1705,15 +1768,11 @@ func (s *ChatsServiceImpl) DeleteChatAvatar(ctx context.Context, id int32) error
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -1802,15 +1861,11 @@ func (s *MembersServiceImpl) ListMembers(ctx context.Context, id int32, params *
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -1861,15 +1916,11 @@ func (s *MembersServiceImpl) AddTags(ctx context.Context, id int32, groupTagIds 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -1894,15 +1945,11 @@ func (s *MembersServiceImpl) AddMembers(ctx context.Context, id int32, request A
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -1927,15 +1974,11 @@ func (s *MembersServiceImpl) UpdateMemberRole(ctx context.Context, id int32, use
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -1955,15 +1998,11 @@ func (s *MembersServiceImpl) RemoveTag(ctx context.Context, id int32, tagId int3
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -1983,15 +2022,11 @@ func (s *MembersServiceImpl) LeaveChat(ctx context.Context, id int32) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -2011,15 +2046,11 @@ func (s *MembersServiceImpl) RemoveMember(ctx context.Context, id int32, userId 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -2065,28 +2096,24 @@ func (s *CustomPropertiesServiceImpl) ListProperties(ctx context.Context, params
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
 type FilesService interface {
-	DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) error
+	DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) ([]byte, error)
 	UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error
 	GetUploadParams(ctx context.Context) (*UploadParams, error)
 }
 
 type FilesServiceStub struct{}
 
-func (s *FilesServiceStub) DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) error {
-	return NotImplementedError{Method: "Files.downloadFile"}
+func (s *FilesServiceStub) DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) ([]byte, error) {
+	return nil, NotImplementedError{Method: "Files.downloadFile"}
 }
 
 func (s *FilesServiceStub) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
@@ -2102,10 +2129,10 @@ type FilesServiceImpl struct {
 	client  *http.Client
 }
 
-func (s *FilesServiceImpl) DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) error {
+func (s *FilesServiceImpl) DownloadFile(ctx context.Context, id int32, params *DownloadFileParams) ([]byte, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/files/%v", s.baseURL, id))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	q := u.Query()
 	if params != nil && params.Target != nil {
@@ -2114,28 +2141,28 @@ func (s *FilesServiceImpl) DownloadFile(ctx context.Context, id int32, params *D
 	u.RawQuery = q.Encode()
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := doWithRetry(s.client, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
+	case http.StatusOK:
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return body, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
-		return &e
+		return nil, &e
 	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return &e
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2145,8 +2172,13 @@ func (s *FilesServiceImpl) UploadFile(ctx context.Context, directUrl string, req
 	go func() {
 		defer pw.Close()
 		defer writer.Close()
+		if request.ACL != nil {
+			writer.WriteField("acl", fmt.Sprintf("%v", *request.ACL))
+		}
+		if request.Bucket != nil {
+			writer.WriteField("bucket", fmt.Sprintf("%v", *request.Bucket))
+		}
 		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.ContentDisposition))
-		writer.WriteField("acl", fmt.Sprintf("%v", request.ACL))
 		writer.WriteField("policy", fmt.Sprintf("%v", request.Policy))
 		writer.WriteField("x-amz-credential", fmt.Sprintf("%v", request.XAMZCredential))
 		writer.WriteField("x-amz-algorithm", fmt.Sprintf("%v", request.XAMZAlgorithm))
@@ -2177,11 +2209,7 @@ func (s *FilesServiceImpl) UploadFile(ctx context.Context, directUrl string, req
 	case http.StatusNoContent:
 		return nil
 	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return &e
+		return errorFromBody(resp)
 	}
 }
 
@@ -2205,15 +2233,11 @@ func (s *FilesServiceImpl) GetUploadParams(ctx context.Context) (*UploadParams, 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2298,15 +2322,11 @@ func (s *DraftsServiceImpl) ListDrafts(ctx context.Context, params *ListDraftsPa
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2358,15 +2378,11 @@ func (s *DraftsServiceImpl) GetDraft(ctx context.Context, id int32) (*Draft, err
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2397,15 +2413,11 @@ func (s *DraftsServiceImpl) CreateDraft(ctx context.Context, request DraftCreate
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2436,15 +2448,11 @@ func (s *DraftsServiceImpl) UpdateDraft(ctx context.Context, id int32, request D
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2464,15 +2472,11 @@ func (s *DraftsServiceImpl) DeleteDraft(ctx context.Context, id int32) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -2563,15 +2567,11 @@ func (s *GroupTagsServiceImpl) ListTags(ctx context.Context, params *ListTagsPar
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2623,15 +2623,11 @@ func (s *GroupTagsServiceImpl) GetTag(ctx context.Context, id int32) (*GroupTag,
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2667,15 +2663,11 @@ func (s *GroupTagsServiceImpl) GetTagUsers(ctx context.Context, id int32, params
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2732,15 +2724,11 @@ func (s *GroupTagsServiceImpl) CreateTag(ctx context.Context, request GroupTagRe
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2771,15 +2759,11 @@ func (s *GroupTagsServiceImpl) UpdateTag(ctx context.Context, id int32, request 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2799,15 +2783,11 @@ func (s *GroupTagsServiceImpl) DeleteTag(ctx context.Context, id int32) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -2905,15 +2885,11 @@ func (s *MessagesServiceImpl) ListChatMessages(ctx context.Context, params ListC
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -2965,15 +2941,11 @@ func (s *MessagesServiceImpl) GetMessage(ctx context.Context, id int32) (*Messag
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3004,15 +2976,11 @@ func (s *MessagesServiceImpl) CreateMessage(ctx context.Context, request Message
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3037,15 +3005,11 @@ func (s *MessagesServiceImpl) Unfurl(ctx context.Context, id int32, request Link
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -3065,15 +3029,11 @@ func (s *MessagesServiceImpl) PinMessage(ctx context.Context, id int32) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -3104,15 +3064,11 @@ func (s *MessagesServiceImpl) UpdateMessage(ctx context.Context, id int32, reque
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3132,15 +3088,11 @@ func (s *MessagesServiceImpl) DeleteMessage(ctx context.Context, id int32) error
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -3160,15 +3112,11 @@ func (s *MessagesServiceImpl) UnpinMessage(ctx context.Context, id int32) error 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -3234,15 +3182,11 @@ func (s *ReactionsServiceImpl) ListReactions(ctx context.Context, id int32, para
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3297,15 +3241,11 @@ func (s *ReactionsServiceImpl) AddReaction(ctx context.Context, id int32, reques
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3335,15 +3275,11 @@ func (s *ReactionsServiceImpl) RemoveReaction(ctx context.Context, id int32, par
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -3394,15 +3330,11 @@ func (s *ReadMembersServiceImpl) ListReadMembers(ctx context.Context, id int32, 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3479,15 +3411,11 @@ func (s *ThreadsServiceImpl) ListThreads(ctx context.Context, params *ListThread
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3539,15 +3467,11 @@ func (s *ThreadsServiceImpl) GetThread(ctx context.Context, id int32) (*Thread, 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3573,15 +3497,11 @@ func (s *ThreadsServiceImpl) CreateThread(ctx context.Context, id int32) (*Threa
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3607,26 +3527,32 @@ func (s *ThreadsServiceImpl) CreateStandaloneThread(ctx context.Context) (*Threa
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
 type OAuthService interface {
 	GetTokenInfo(ctx context.Context) (*AccessTokenInfo, error)
+	RevokeToken(ctx context.Context, request OAuthRevokeRequest) error
+	ExchangeToken(ctx context.Context, request OAuthTokenRequest) (*OAuthToken, error)
 }
 
 type OAuthServiceStub struct{}
 
 func (s *OAuthServiceStub) GetTokenInfo(ctx context.Context) (*AccessTokenInfo, error) {
 	return nil, NotImplementedError{Method: "OAuth.getTokenInfo"}
+}
+
+func (s *OAuthServiceStub) RevokeToken(ctx context.Context, request OAuthRevokeRequest) error {
+	return NotImplementedError{Method: "OAuth.revokeToken"}
+}
+
+func (s *OAuthServiceStub) ExchangeToken(ctx context.Context, request OAuthTokenRequest) (*OAuthToken, error) {
+	return nil, NotImplementedError{Method: "OAuth.exchangeToken"}
 }
 
 type OAuthServiceImpl struct {
@@ -3656,15 +3582,73 @@ func (s *OAuthServiceImpl) GetTokenInfo(ctx context.Context) (*AccessTokenInfo, 
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
 	default:
-		var e ApiError
+		return nil, errorFromBody(resp)
+	}
+}
+
+func (s *OAuthServiceImpl) RevokeToken(ctx context.Context, request OAuthRevokeRequest) error {
+	form, err := formValues(request)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/oauth/revoke", s.baseURL), strings.NewReader(form.Encode()))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
+	default:
+		return errorFromBody(resp)
+	}
+}
+
+func (s *OAuthServiceImpl) ExchangeToken(ctx context.Context, request OAuthTokenRequest) (*OAuthToken, error) {
+	form, err := formValues(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/oauth/token", s.baseURL), strings.NewReader(form.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := doWithRetry(http.DefaultClient, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result OAuthToken
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3735,15 +3719,11 @@ func (s *ProfileServiceImpl) GetProfile(ctx context.Context) (*User, error) {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3769,15 +3749,11 @@ func (s *ProfileServiceImpl) GetStatus(ctx context.Context) (*UserStatus, error)
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3819,15 +3795,11 @@ func (s *ProfileServiceImpl) UpdateProfileAvatar(ctx context.Context, image io.R
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3858,15 +3830,11 @@ func (s *ProfileServiceImpl) UpdateStatus(ctx context.Context, request StatusUpd
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -3886,15 +3854,11 @@ func (s *ProfileServiceImpl) DeleteProfileAvatar(ctx context.Context) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -3914,15 +3878,11 @@ func (s *ProfileServiceImpl) DeleteStatus(ctx context.Context) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -3948,15 +3908,11 @@ func (s *ProfileServiceImpl) GetTokenInfo(ctx context.Context) (*AccessTokenInfo
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4053,15 +4009,11 @@ func (s *SearchServiceImpl) SearchChats(ctx context.Context, params *SearchChats
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4146,15 +4098,11 @@ func (s *SearchServiceImpl) SearchMessages(ctx context.Context, params *SearchMe
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4231,15 +4179,11 @@ func (s *SearchServiceImpl) SearchUsers(ctx context.Context, params *SearchUsers
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4352,15 +4296,11 @@ func (s *TasksServiceImpl) ListTasks(ctx context.Context, params *ListTasksParam
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4412,15 +4352,11 @@ func (s *TasksServiceImpl) GetTask(ctx context.Context, id int32) (*Task, error)
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4451,15 +4387,11 @@ func (s *TasksServiceImpl) CreateTask(ctx context.Context, request TaskCreateReq
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4490,15 +4422,11 @@ func (s *TasksServiceImpl) UpdateTask(ctx context.Context, id int32, request Tas
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4518,15 +4446,11 @@ func (s *TasksServiceImpl) DeleteTask(ctx context.Context, id int32) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -4630,15 +4554,11 @@ func (s *UsersServiceImpl) ListUsers(ctx context.Context, params *ListUsersParam
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4690,15 +4610,11 @@ func (s *UsersServiceImpl) GetUser(ctx context.Context, id int32) (*User, error)
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4724,15 +4640,11 @@ func (s *UsersServiceImpl) GetUserStatus(ctx context.Context, userId int32) (*Us
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4763,15 +4675,11 @@ func (s *UsersServiceImpl) CreateUser(ctx context.Context, request UserCreateReq
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4802,15 +4710,11 @@ func (s *UsersServiceImpl) UpdateUser(ctx context.Context, id int32, request Use
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4852,15 +4756,11 @@ func (s *UsersServiceImpl) UpdateUserAvatar(ctx context.Context, userId int32, i
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4891,15 +4791,11 @@ func (s *UsersServiceImpl) UpdateUserStatus(ctx context.Context, userId int32, r
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -4919,15 +4815,11 @@ func (s *UsersServiceImpl) DeleteUser(ctx context.Context, id int32) error {
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -4947,15 +4839,11 @@ func (s *UsersServiceImpl) DeleteUserAvatar(ctx context.Context, userId int32) e
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -4975,15 +4863,11 @@ func (s *UsersServiceImpl) DeleteUserStatus(ctx context.Context, userId int32) e
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -5032,15 +4916,11 @@ func (s *ViewsServiceImpl) SubmitViewResponse(ctx context.Context, viewId string
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -5065,15 +4945,11 @@ func (s *ViewsServiceImpl) OpenView(ctx context.Context, request OpenViewRequest
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 
@@ -5082,7 +4958,7 @@ type CommonService interface {
 	GetUploadParams(ctx context.Context) (*UploadParams, error)
 	UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error
 	ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error)
-	RequestExport(ctx context.Context, request ExportRequest) error
+	RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error)
 	DownloadExport(ctx context.Context, id int32) (string, error)
 }
 
@@ -5100,8 +4976,8 @@ func (s *CommonServiceStub) ListProperties(ctx context.Context, params ListPrope
 	return nil, NotImplementedError{Method: "Common.listProperties"}
 }
 
-func (s *CommonServiceStub) RequestExport(ctx context.Context, request ExportRequest) error {
-	return NotImplementedError{Method: "Common.requestExport"}
+func (s *CommonServiceStub) RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error) {
+	return nil, NotImplementedError{Method: "Common.requestExport"}
 }
 
 func (s *CommonServiceStub) DownloadExport(ctx context.Context, id int32) (string, error) {
@@ -5133,15 +5009,11 @@ func (s *CommonServiceImpl) GetUploadParams(ctx context.Context) (*UploadParams,
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return nil, &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	default:
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -5151,8 +5023,13 @@ func (s *CommonServiceImpl) UploadFile(ctx context.Context, directUrl string, re
 	go func() {
 		defer pw.Close()
 		defer writer.Close()
+		if request.ACL != nil {
+			writer.WriteField("acl", fmt.Sprintf("%v", *request.ACL))
+		}
+		if request.Bucket != nil {
+			writer.WriteField("bucket", fmt.Sprintf("%v", *request.Bucket))
+		}
 		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.ContentDisposition))
-		writer.WriteField("acl", fmt.Sprintf("%v", request.ACL))
 		writer.WriteField("policy", fmt.Sprintf("%v", request.Policy))
 		writer.WriteField("x-amz-credential", fmt.Sprintf("%v", request.XAMZCredential))
 		writer.WriteField("x-amz-algorithm", fmt.Sprintf("%v", request.XAMZAlgorithm))
@@ -5183,11 +5060,7 @@ func (s *CommonServiceImpl) UploadFile(ctx context.Context, directUrl string, re
 	case http.StatusNoContent:
 		return nil
 	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return &e
+		return errorFromBody(resp)
 	}
 }
 
@@ -5218,48 +5091,47 @@ func (s *CommonServiceImpl) ListProperties(ctx context.Context, params ListPrope
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
 	default:
-		var e ApiError
+		return nil, errorFromBody(resp)
+	}
+}
+
+func (s *CommonServiceImpl) RequestExport(ctx context.Context, request ExportRequest) (*ChatExport, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/chats/exports", s.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Prefer", "return=representation")
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusAccepted:
+		var result struct {
+			Data ChatExport `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
-	}
-}
-
-func (s *CommonServiceImpl) RequestExport(ctx context.Context, request ExportRequest) error {
-	body, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/chats/exports", s.baseURL), bytes.NewReader(body))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := doWithRetry(s.client, req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case http.StatusNoContent:
-		return nil
-	case http.StatusUnauthorized:
-		var e OAuthError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
 	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
-		}
-		return &e
+		return nil, errorFromBody(resp)
 	}
 }
 
@@ -5283,15 +5155,11 @@ func (s *CommonServiceImpl) DownloadExport(ctx context.Context, id int32) (strin
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return "", &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return "", fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return "", &e
+	default:
+		return "", errorFromBody(resp)
 	}
 }
 
@@ -5332,15 +5200,11 @@ func (s *LinkPreviewsServiceImpl) CreateLinkPreviews(ctx context.Context, id int
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
-		}
-		return &e
-	default:
-		var e ApiError
-		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
 			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
+	default:
+		return errorFromBody(resp)
 	}
 }
 

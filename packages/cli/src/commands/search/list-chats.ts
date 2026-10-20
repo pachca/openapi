@@ -23,7 +23,7 @@ export default class SearchListChats extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'query': Flags.string({
-      description: "Текст поискового запроса",
+      description: "Текст поискового запроса. Запрос длиннее 500 знаков обрезается.",
     }),
     'order': Flags.string({
       description: "Направление сортировки",
@@ -90,7 +90,7 @@ export default class SearchListChats extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
-        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data
+        // Условие конца: списочные методы и /users?query= — has_next === false; методы поиска (без has_next) — пустой data
         const hasNext = paginate?.has_next;
         if (typeof hasNext === 'boolean') {
           if (!hasNext) break;

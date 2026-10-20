@@ -109,10 +109,9 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     'остальное ~50 rps, чтение `/webhooks/events` ~5 req / 2s. ' +
     'Входящие вебхуки — ~10 rps на webhook id (по идентификатору в пути). ' +
     'Плюс суточный предел: 7500 сообщений в один чат от одного отправителя за скользящие ' +
-    '24 часа; при превышении отправка в этот чат встаёт на час, и каждая попытка во время ' +
-    'паузы удваивает её. На `429` — жди `Retry-After`. Тело `429` бывает двух видов: ' +
-    'суточный предел приходит обычным JSON с кодом `rate_limit`, а частотный отказывает ' +
-    'до входа в метод и отвечает текстом — проверяй `Content-Type` перед разбором.\n';
+    '24 часа. При превышении отправка в этот чат встаёт на час, и каждая попытка во время ' +
+    'паузы удваивает её. На `429` — жди `Retry-After`. Тело `429` — обычный JSON с кодом ' +
+    '`rate_limit` и у частотных лимитов, и у суточного предела (входящие вебхуки отвечают текстом).\n';
   content +=
     '- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), ' +
     '`401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.\n';
@@ -201,7 +200,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content +=
     '- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.\n';
   content +=
-    '- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.\n';
+    '- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую. Если рядом с `data` есть `meta` (списки и метод `Новый чат`), SDK возвращает ответ целиком: `data` и `meta`.\n';
   content +=
     '- Имена сервисов, методов и полей соответствуют operationId и параметрам из OpenAPI.\n\n';
   content += '```\n';
@@ -372,7 +371,7 @@ function generateLibraryRules(): string {
 - Sending messages (POST /messages): about 4 per second per chat, 30 requests per 5 seconds across all chats, and 7,500 messages per chat per rolling day from one sender. Hitting the daily cap pauses that chat for an hour and every further attempt doubles the pause. Editing and deleting messages fall under the general limit
 - Reading messages (GET methods under /messages): about 10 per second per token. Event history (GET /webhooks/events): about 5 per 2 seconds per token. Other endpoints: about 50 per second per token
 - Incoming webhooks: about 10 per second per webhook id (counted by the identifier in the path, e.g. \`/webhooks/user123\`)
-- A \`429\` body comes in two shapes: the daily cap answers with ordinary JSON carrying \`rate_limit\`, the per-second limit is refused before the method and answers with plain text. Check \`Content-Type\` before parsing. \`Retry-After\` is present in both
+- A \`429\` comes as ordinary JSON with the code \`rate_limit\` and a \`Retry-After\` header, from the per-second limits and the daily cap alike. Incoming webhooks answer \`429\` with plain text
 - Retries: never wait less than \`Retry-After\` and add jitter upward only. Do not retry pauses longer than a minute (the daily cap, overload protection): return the error with \`Retry-After\` instead. Retry \`5xx\` with exponential backoff and jitter, at most 3 times. The SDK (@pachca/sdk, pachca-sdk), CLI and n8n node retry by themselves
 
 ## Pagination
@@ -433,7 +432,7 @@ function generateLibraryRules(): string {
 ## SDK (Typed Clients for 6 Languages)
 - Unified pattern: \`PachcaClient(token)\` → \`client.service.method(request)\`
 - **Input**: path params and body fields (≤2) expand to method arguments; otherwise a single request object
-- **Output**: if API response has a single \`data\` field, SDK returns its contents directly
+- **Output**: if API response has a single \`data\` field, SDK returns its contents directly. If \`meta\` comes next to \`data\` (lists and the \`New chat\` method), SDK returns the whole response: \`data\` and \`meta\`
 - Service, method, and field names match operationId and parameters from OpenAPI
 
 | Language | Package | Install |
@@ -670,11 +669,13 @@ import { PachcaClient, MessageEntityType } from "@pachca/sdk"
 
 const client = new PachcaClient("YOUR_TOKEN")
 
-// Create a group chat with initial members
-const chat = await client.chats.createChat({
+// Create a group chat with initial members: the chat comes in data
+const { data: chat, meta } = await client.chats.createChat({
   chat: { name: "Project Discussion", memberIds: [1, 2, 3], channel: false, public: false }
 })
 console.log("Created chat:", chat.id, chat.name)
+// IDs from memberIds that could not be added (not in the workspace, suspended or deleted)
+console.log("Not added:", meta.notFoundMemberIds)
 
 // Add more members later
 await client.members.addMembers(chat.id, { memberIds: [4, 5] })
@@ -699,11 +700,14 @@ from pachca.models import ChatCreateRequest, ChatCreateRequestChat, MessageCreat
 
 client = PachcaClient("YOUR_TOKEN")
 
-# Create a group chat with initial members
-chat = await client.chats.create_chat(ChatCreateRequest(
+# Create a group chat with initial members: the chat comes in data
+response = await client.chats.create_chat(ChatCreateRequest(
     chat=ChatCreateRequestChat(name="Project Discussion", member_ids=[1, 2, 3], channel=False, public=False)
 ))
+chat = response.data
 print("Created chat:", chat.id, chat.name)
+# IDs from member_ids that could not be added (not in the workspace, suspended or deleted)
+print("Not added:", response.meta.not_found_member_ids)
 
 # Add more members later
 await client.members.add_members(chat.id, AddMembersRequest(member_ids=[4, 5]))
@@ -911,10 +915,12 @@ const filePath = "./report.pdf"
 const fileName = path.basename(filePath)
 const fileBuffer = fs.readFileSync(filePath)
 
-// Step 1: Get S3 presigned upload parameters
+// Step 1: Get S3 presigned upload parameters, put the file name into the key
 const params = await client.files.getUploadParams()
+const fileKey = params.key.replace("${'$'}{filename}", fileName)
 
 // Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+// A workspace gets acl or bucket, depending on its storage: both are optional
 await client.files.uploadFile(params.directUrl, {
   contentDisposition: params.contentDisposition,
   acl: params.acl,
@@ -923,12 +929,12 @@ await client.files.uploadFile(params.directUrl, {
   xAmzAlgorithm: params.xAmzAlgorithm,
   xAmzDate: params.xAmzDate,
   xAmzSignature: params.xAmzSignature,
-  key: params.key,
+  key: fileKey,
+  bucket: params.bucket,
   file: new File([fileBuffer], fileName)
 })
 
-// Step 3: Attach file to message (replace ${'$'}{filename} in key with actual name)
-const fileKey = params.key.replace("${'$'}{filename}", fileName)
+// Step 3: Attach file to message
 await client.messages.createMessage({
   message: {
     entityId: 12345,
@@ -952,10 +958,12 @@ client = PachcaClient("YOUR_TOKEN")
 file_path = "report.pdf"
 file_name = os.path.basename(file_path)
 
-# Step 1: Get S3 presigned upload parameters
+# Step 1: Get S3 presigned upload parameters, put the file name into the key
 params = await client.files.get_upload_params()
+file_key = params.key.replace("${'$'}{filename}", file_name)
 
 # Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+# A workspace gets acl or bucket, depending on its storage: both are optional
 with open(file_path, "rb") as f:
     await client.files.upload_file(
         direct_url=params.direct_url,
@@ -967,13 +975,13 @@ with open(file_path, "rb") as f:
             x_amz_algorithm=params.x_amz_algorithm,
             x_amz_date=params.x_amz_date,
             x_amz_signature=params.x_amz_signature,
-            key=params.key,
+            key=file_key,
+            bucket=params.bucket,
             file=f.read()
         )
     )
 
-# Step 3: Attach file to message (replace ${'$'}{filename} in key with actual name)
-file_key = params.key.replace("${'$'}{filename}", file_name)
+# Step 3: Attach file to message
 await client.messages.create_message(MessageCreateRequest(
     message=MessageCreateRequestMessage(
         entity_id=12345,
@@ -1179,7 +1187,7 @@ async function createProjectWorkspace(projectName: string, memberIds: number[]) 
     {
       name: "create-chat",
       execute: async () => {
-        const chat = await client.chats.createChat({
+        const { data: chat } = await client.chats.createChat({
           chat: { name: projectName, memberIds, channel: false, public: false }
         })
         chatId = chat.id

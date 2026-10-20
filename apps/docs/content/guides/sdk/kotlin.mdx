@@ -160,7 +160,7 @@ SDK выбрасывает два типа исключений:
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```kotlin
 import com.pachca.sdk.ApiError
@@ -187,7 +187,7 @@ try {
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```kotlin
 import com.pachca.sdk.OAuthError
@@ -195,10 +195,12 @@ import com.pachca.sdk.OAuthError
 try {
     client.profile.getProfile()
 } catch (error: OAuthError) {
-    println(error.error)              // "Token not found"
+    println(error.error)              // "insufficient_scope"
     println(error.errorDescription)   // описание ошибки
 }
 ```
+
+Поле `error` — перечисление `OAuthErrorCode`: его сравнивают с константой, например `error.error == OAuthErrorCode.INSUFFICIENT_SCOPE`, а строку кода даёт `error.error.value`.
 
 ## Повторные запросы
 
@@ -236,7 +238,9 @@ val apiError: ApiError
 val oauthError: OAuthError
 ```
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Перечисление в ответе — `value class` со строкой `value`: значение, которого SDK ещё не знает, приходит как есть, и `isKnown` у него `false`. Поэтому `when` по такому перечислению заканчивается веткой `else`. Строку значения возвращает и `toString()`, а имя константы даёт `name`.
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Зависимости
 

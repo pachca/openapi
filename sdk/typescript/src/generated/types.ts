@@ -1,4 +1,8 @@
-/** Тип аудит-события */
+/**
+ * Тип аудит-события
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum AuditEventKey {
   /** Пользователь успешно вошел в систему */
   UserLogin = "user_login",
@@ -120,7 +124,11 @@ export enum AuditEventKey {
   ExchangeDisabled = "exchange_disabled",
 }
 
-/** Роль, которой разрешено редактировать настройки бота */
+/**
+ * Роль, которой разрешено редактировать настройки бота
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotCanEdit {
   /** Администраторы компании */
   Admin = "admin",
@@ -128,7 +136,11 @@ export enum BotCanEdit {
   ChatOwners = "chat_owners",
 }
 
-/** Событие исходящего вебхука бота */
+/**
+ * Событие исходящего вебхука бота
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotEventName {
   /** Новое сообщение */
   MessageNew = "message_new",
@@ -168,7 +180,11 @@ export enum BotEventName {
   VideoCallRecordingReady = "video_call_recording_ready",
 }
 
-/** Шаблонизатор для форматирования входящих вебхуков */
+/**
+ * Шаблонизатор для форматирования входящих вебхуков
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotTemplateEngine {
   /** Liquid — условия, циклы и фильтры */
   Liquid = "liquid",
@@ -176,7 +192,11 @@ export enum BotTemplateEngine {
   Mustache = "mustache",
 }
 
-/** Условие срабатывания исходящего вебхука бота */
+/**
+ * Условие срабатывания исходящего вебхука бота
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotTriggerOn {
   /** Только на команды (триггер-слова) из commands */
   Commands = "commands",
@@ -186,7 +206,11 @@ export enum BotTriggerOn {
   Unfurl = "unfurl",
 }
 
-/** Источник входящего вебхука бота */
+/**
+ * Источник входящего вебхука бота
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotWebhookKind {
   /** Свой формат: сообщение собирается из тела запроса по шаблону бота */
   Simple = "simple",
@@ -196,7 +220,11 @@ export enum BotWebhookKind {
   Grafana = "grafana",
 }
 
-/** Кто может добавлять бота в чаты */
+/**
+ * Кто может добавлять бота в чаты
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum BotWhoCanAdd {
   /** Только создатель бота */
   Creator = "creator",
@@ -264,7 +292,11 @@ export enum ChatSubtype {
   Thread = "thread",
 }
 
-/** Тип данных дополнительного поля */
+/**
+ * Тип данных дополнительного поля
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum CustomPropertyDataType {
   /** Строковое значение */
   String = "string",
@@ -276,7 +308,11 @@ export enum CustomPropertyDataType {
   Link = "link",
 }
 
-/** Периодичность повтора отложенного сообщения */
+/**
+ * Периодичность повтора отложенного сообщения
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum DraftRepetitionInterval {
   /** Один раз */
   Once = "once",
@@ -320,7 +356,11 @@ export enum FileTarget {
   Image = "image",
 }
 
-/** Тип файла */
+/**
+ * Тип файла
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum FileType {
   /** Обычный файл */
   File = "file",
@@ -334,7 +374,11 @@ export enum FileType {
   Video = "video",
 }
 
-/** Статус приглашения пользователя */
+/**
+ * Статус приглашения пользователя
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum InviteStatus {
   /** Принято */
   Confirmed = "confirmed",
@@ -342,7 +386,11 @@ export enum InviteStatus {
   Sent = "sent",
 }
 
-/** Тип события webhook для участников */
+/**
+ * Тип события webhook для участников
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum MemberEventType {
   /** Добавление */
   Add = "add",
@@ -350,7 +398,11 @@ export enum MemberEventType {
   Remove = "remove",
 }
 
-/** Тип сущности для сообщений */
+/**
+ * Тип сущности для сообщений
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum MessageEntityType {
   /** Беседа или канал */
   Discussion = "discussion",
@@ -373,7 +425,35 @@ export enum MessageSortField {
   Id = "id",
 }
 
-/** Скоуп доступа OAuth токена */
+/**
+ * Код ошибки OAuth
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum OAuthErrorCode {
+  /** Токен не передан, не найден, истёк или отозван */
+  InvalidToken = "invalid_token",
+  /** У токена нет скоупа, который нужен методу */
+  InsufficientScope = "insufficient_scope",
+  /** Скоуп у токена есть, но роль его владельца не позволяет действие */
+  RoleForbidden = "role_forbidden",
+  /** В запросе нет обязательного параметра или он передан неверно */
+  InvalidRequest = "invalid_request",
+  /** Неверный `client_id` или `client_secret` */
+  InvalidClient = "invalid_client",
+  /** Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier` */
+  InvalidGrant = "invalid_grant",
+  /** Значение `grant_type` не поддерживается */
+  UnsupportedGrantType = "unsupported_grant_type",
+  /** Токен выдан другому боту или клиент не подтвердил себя */
+  UnauthorizedClient = "unauthorized_client",
+}
+
+/**
+ * Скоуп доступа OAuth токена
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum OAuthScope {
   /** Просмотр чатов и списка чатов */
   ChatsRead = "chats:read",
@@ -493,7 +573,19 @@ export enum OAuthScope {
   DraftsWrite = "drafts:write",
 }
 
-/** Тип события webhook для реакций */
+/** Что передано в запросе на отзыв токена */
+export enum OAuthTokenTypeHint {
+  /** Токен сотрудника */
+  AccessToken = "access_token",
+  /** Токен обновления */
+  RefreshToken = "refresh_token",
+}
+
+/**
+ * Тип события webhook для реакций
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum ReactionEventType {
   /** Создание */
   New = "new",
@@ -527,7 +619,11 @@ export enum SortOrder {
   Desc = "desc",
 }
 
-/** Тип задачи */
+/**
+ * Тип задачи
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum TaskKind {
   /** Позвонить контакту */
   Call = "call",
@@ -541,7 +637,11 @@ export enum TaskKind {
   Email = "email",
 }
 
-/** Статус напоминания */
+/**
+ * Статус напоминания
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum TaskStatus {
   /** Выполнено */
   Done = "done",
@@ -561,7 +661,11 @@ export enum UserCreateRole {
   Guest = "guest",
 }
 
-/** Тип события webhook для пользователей */
+/**
+ * Тип события webhook для пользователей
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum UserEventType {
   /** Приглашение */
   Invite = "invite",
@@ -577,7 +681,11 @@ export enum UserEventType {
   Delete = "delete",
 }
 
-/** Роль пользователя в системе */
+/**
+ * Роль пользователя в системе
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum UserRole {
   /** Администратор */
   Admin = "admin",
@@ -599,7 +707,11 @@ export enum UserRoleInput {
   MultiGuest = "multi_guest",
 }
 
-/** Коды ошибок валидации */
+/**
+ * Коды ошибок валидации
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum ValidationErrorCode {
   /** Обязательное поле (не может быть пустым) */
   Blank = "blank",
@@ -639,7 +751,7 @@ export enum ValidationErrorCode {
   UniqueLimit = "unique_limit",
   /** Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций) */
   GeneralLimit = "general_limit",
-  /** Ошибка выполнения запроса (пояснения вы получите в поле message) */
+  /** Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий */
   Unhandled = "unhandled",
   /** Не удалось найти идентификатор события */
   TriggerNotFound = "trigger_not_found",
@@ -677,10 +789,14 @@ export enum ValidationErrorCode {
   SingleChatBotOccupied = "single_chat_bot_occupied",
   /** Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег */
   SingleChatBotTagDenied = "single_chat_bot_tag_denied",
+  /** В тег можно добавить только бота, которого может добавить в чат любой сотрудник */
+  RestrictedBotTagDenied = "restricted_bot_tag_denied",
   /** Настройки бота изменились во время запроса: повторите его */
   BotChangedConcurrently = "bot_changed_concurrently",
   /** Поиск не уложился по времени: сузьте запрос и повторите */
   Timeout = "timeout",
+  /** Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload` */
+  DailyInvitesLimit = "daily_invites_limit",
   /** Недостаточно прав для выполнения действия (пояснения вы получите в поле message) */
   Forbidden = "forbidden",
   /** Доступ запрещён (недостаточно прав) */
@@ -715,7 +831,11 @@ export enum ValidationErrorCode {
   ServiceUnavailable = "service_unavailable",
 }
 
-/** Тип события видеозвонка */
+/**
+ * Тип события видеозвонка
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum VideoCallEventType {
   /** Видеозвонок начался */
   Started = "started",
@@ -725,7 +845,11 @@ export enum VideoCallEventType {
   RecordingReady = "recording_ready",
 }
 
-/** Тип события webhook */
+/**
+ * Тип события webhook
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
 export enum WebhookEventType {
   /** Создание */
   New = "new",
@@ -745,10 +869,12 @@ export interface AccessTokenInfo {
   revokedAt: string | null;
   expiresIn: number | null;
   lastUsedAt: string | null;
+  authorizedAt: string | null;
 }
 
 export interface AddMembersRequest {
   memberIds: number[];
+  /** @default false */
   silent?: boolean;
 }
 
@@ -766,7 +892,7 @@ export class ApiError extends Error {
 
 export interface ApiErrorItem {
   key: string;
-  value: string | null;
+  value: unknown | null;
   message: string;
   code: ValidationErrorCode;
   payload: Record<string, unknown> | null;
@@ -926,7 +1052,7 @@ export interface AuditDetailsUserUpdated {
 export interface AuditDetailsVideoCallFinished {
   chatId: number;
   startedMessageId: number | null;
-  duration: number;
+  duration: number | null;
   maxMembersCount: number;
 }
 
@@ -987,7 +1113,6 @@ export interface BotCreateRequest {
     commands?: string[];
     scopes?: string[];
     template?: string;
-    /** @default liquid */
     templateEngine?: BotTemplateEngine;
     challengeKey?: string;
     /** @default true */
@@ -1152,21 +1277,15 @@ export interface BotUpdateRequest {
     nickname?: string;
     outgoingUrl?: string;
     events?: BotEventName[];
-    /** @default commands */
     triggerOn?: BotTriggerOn;
     commands?: string[];
     scopes?: string[];
     template?: string;
-    /** @default liquid */
     templateEngine?: BotTemplateEngine;
     challengeKey?: string;
-    /** @default true */
     linkPreviewEnabled?: boolean;
-    /** @default false */
     ignoreSelfMessages?: boolean;
-    /** @default false */
     eventsHistoryEnabled?: boolean;
-    /** @default creator */
     whoCanAdd?: BotWhoCanAdd;
     canEdit?: BotCanEdit[];
     singleChat?: boolean;
@@ -1197,6 +1316,9 @@ export interface BotWebhook {
   kind: BotWebhookKind | null;
   unfurlDomains: string[];
   lastRequestAt: string | null;
+  url?: string | null;
+  secretToken?: string;
+  lastRequestBody?: string | null;
 }
 
 export interface BotWebhookSelfUpdateRequest {
@@ -1248,6 +1370,10 @@ export interface ChatCreateRequest {
     /** @default false */
     public?: boolean;
   };
+}
+
+export interface ChatExport {
+  id: number;
 }
 
 export interface ChatMemberWebhookPayload {
@@ -1393,6 +1519,13 @@ export interface ExportRequest {
   skipChatsFile?: boolean;
 }
 
+export interface ExportWebhookPayload {
+  type: "export";
+  event: "ready";
+  exportId: number;
+  createdAt: string;
+}
+
 export interface File {
   id: number;
   key: string;
@@ -1406,13 +1539,14 @@ export interface File {
 
 export interface FileUploadRequest {
   contentDisposition: string;
-  acl: string;
+  acl?: string;
   policy: string;
   xAmzCredential: string;
   xAmzAlgorithm: string;
   xAmzDate: string;
   xAmzSignature: string;
   key: string;
+  bucket?: string;
   file: Blob;
 }
 
@@ -1500,7 +1634,7 @@ export interface MessageCreateRequestFile {
   key: string;
   name: string;
   fileType: FileType;
-  size: number;
+  size?: number;
   width?: number;
   height?: number;
   durationMs?: number;
@@ -1512,7 +1646,7 @@ export interface MessageCreateRequest {
     /** @default discussion */
     entityType?: MessageEntityType;
     entityId: number;
-    content: string;
+    content?: string;
     files?: MessageCreateRequestFile[];
     buttons?: Button[][];
     parentMessageId?: number;
@@ -1528,7 +1662,6 @@ export interface MessageCreateRequest {
 export interface MessageUpdateRequestFile {
   key: string;
   name: string;
-  /** @default file */
   fileType?: FileType;
   size?: number;
   width?: number;
@@ -1570,6 +1703,30 @@ export class OAuthError extends Error {
     super(error);
     this.error = error;
   }
+}
+
+export interface OAuthRevokeRequest {
+  token: string;
+  tokenTypeHint?: OAuthTokenTypeHint;
+  clientId?: string;
+  clientSecret?: string;
+}
+
+export interface OAuthToken {
+  accessToken: string;
+  tokenType: "Bearer";
+  refreshToken: string;
+  scope: string;
+  createdAt: number;
+}
+
+export interface OAuthTokenRequest {
+  grantType: "authorization_code";
+  code: string;
+  redirectUri: string;
+  clientId?: string;
+  clientSecret?: string;
+  codeVerifier?: string;
 }
 
 export interface OpenViewRequest {
@@ -1629,8 +1786,8 @@ export interface SearchPaginationMeta {
 
 export interface StatusUpdateRequest {
   status: {
-    emoji: string;
-    title: string;
+    emoji?: string;
+    title?: string;
     expiresAt?: string;
     isAway?: boolean;
     awayMessage?: string;
@@ -1687,7 +1844,6 @@ export interface TaskUpdateRequestCustomProperty {
 
 export interface TaskUpdateRequest {
   task: {
-    /** @default reminder */
     kind?: TaskKind;
     content?: string;
     dueAt?: string;
@@ -1714,13 +1870,14 @@ export interface UpdateMemberRoleRequest {
 
 export interface UploadParams {
   contentDisposition: string;
-  acl: string;
+  acl?: string;
   policy: string;
   xAmzCredential: string;
   xAmzAlgorithm: string;
   xAmzDate: string;
   xAmzSignature: string;
   key: string;
+  bucket?: string;
   directUrl: string;
 }
 
@@ -1798,7 +1955,6 @@ export interface UserUpdateRequest {
     department?: string;
     title?: string;
     role?: UserRoleInput;
-    /** @default false */
     suspended?: boolean;
     listTags?: string[];
     customProperties?: UserUpdateRequestCustomProperty[];
@@ -1812,9 +1968,9 @@ export interface VideoCallWebhookPayload {
   chatId: number;
   ownerId: number;
   thread?: WebhookVideoCallThread | null;
-  startedAt?: string;
+  startedAt?: string | null;
   finishedAt?: string;
-  duration?: number;
+  duration?: number | null;
   members?: WebhookVideoCallMember[];
   recordingId?: number;
   fileId?: number | null;
@@ -1996,6 +2152,14 @@ export interface WebhookVideoCallThread {
   chatId: number;
   messageId: number | null;
   messageChatId: number | null;
+}
+
+export interface UpdateBotAvatarRequest {
+  image: Blob;
+}
+
+export interface CreateChatResponseMeta {
+  notFoundMemberIds: number[];
 }
 
 export interface UpdateChatAvatarRequest {
@@ -2195,6 +2359,11 @@ export interface ListBotsResponse {
 export interface ListBotTokensResponse {
   data: BotAccessToken[];
   meta: PaginationMeta;
+}
+
+export interface CreateChatResponse {
+  data: Chat;
+  meta: CreateChatResponseMeta;
 }
 
 export interface ListChatsResponse {

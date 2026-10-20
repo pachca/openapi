@@ -11,7 +11,7 @@ export default class FilesDirectUrl extends BaseCommand {
   static override hiddenAliases = ["common:direct-url"];
   static apiMethod = "POST";
   static apiPath = "/direct_url";
-  static requiredFlags = ["content-disposition","acl","policy","x-amz-credential","x-amz-algorithm","x-amz-date","x-amz-signature","key"];
+  static requiredFlags = ["content-disposition","policy","x-amz-credential","x-amz-algorithm","x-amz-date","x-amz-signature","key"];
 
   static override args = {
 
@@ -27,7 +27,7 @@ export default class FilesDirectUrl extends BaseCommand {
       description: "Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)",
     }),
     'acl': Flags.string({
-      description: "Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)",
+      description: "Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads). Передаётся, если пришёл в ответе.",
     }),
     'policy': Flags.string({
       description: "Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)",
@@ -47,6 +47,9 @@ export default class FilesDirectUrl extends BaseCommand {
     'key': Flags.string({
       description: "Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)",
     }),
+    'bucket': Flags.string({
+      description: "Параметр bucket, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads). Передаётся, если пришёл в ответе.",
+    }),
     file: Flags.string({
       description: "Файл для загрузки",
     }),
@@ -58,7 +61,6 @@ export default class FilesDirectUrl extends BaseCommand {
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
       { flag: 'content-disposition', label: "Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
-      { flag: 'acl', label: "Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
       { flag: 'policy', label: "Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
       { flag: 'x-amz-credential', label: "Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
       { flag: 'x-amz-algorithm', label: "Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
@@ -79,7 +81,7 @@ export default class FilesDirectUrl extends BaseCommand {
       } else {
         this.validationError(
           missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
-          { hint: "Обязательные: --content-disposition <string>, --acl <string>, --policy <string>, --x-amz-credential <string>, --x-amz-algorithm <string>, --x-amz-date <string>, --x-amz-signature <string>, --key <string>. pachca introspect files direct-url" },
+          { hint: "Обязательные: --content-disposition <string>, --policy <string>, --x-amz-credential <string>, --x-amz-algorithm <string>, --x-amz-date <string>, --x-amz-signature <string>, --key <string>. pachca introspect files direct-url" },
         );
       }
     }
@@ -95,6 +97,7 @@ export default class FilesDirectUrl extends BaseCommand {
       if (flags['x-amz-date']) formData.append('x-amz-date', String(flags['x-amz-date']));
       if (flags['x-amz-signature']) formData.append('x-amz-signature', String(flags['x-amz-signature']));
       if (flags['key']) formData.append('key', String(flags['key']));
+      if (flags['bucket']) formData.append('bucket', String(flags['bucket']));
       if (flags.file === '-') {
         const chunks: Buffer[] = [];
         for await (const chunk of process.stdin) chunks.push(chunk as Buffer);

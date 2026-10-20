@@ -355,8 +355,8 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
             '`last_message_at_after`/`last_message_at_before` — ISO-8601, UTC+0. `limit` 1-50 (default 50). Sorted by last message time descending.',
         },
         {
-          description: 'Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`',
-          descriptionEn: 'If `meta.paginate.next_page` is set — iterate pages via `--cursor`',
+          description: 'Пока `meta.paginate.has_next` равен `true`, бери следующую страницу через `--cursor=<next_page>`',
+          descriptionEn: 'While `meta.paginate.has_next` is `true`, fetch the next page with `--cursor=<next_page>`',
           command:
             'pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --cursor=<next_page>',
           apiMethod: 'GET',
@@ -767,27 +767,26 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       inline: false,
       steps: [
         {
-          description: 'Запроси экспорт',
-          descriptionEn: 'Request export',
-          command:
-            'pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>',
+          description: 'Запроси экспорт и возьми номер выгрузки из `data.id`',
+          descriptionEn: 'Request export and take the export id from `data.id`',
+          command: 'pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD>',
           apiMethod: 'POST',
           apiPath: '/chats/exports',
           notes:
-            '`start_at`, `end_at` (YYYY-MM-DD). Запрос асинхронный: ответ приходит пустым, без номера выгрузки. `webhook_url` формально не обязателен, но без него номер взять неоткуда — присылай его всегда',
+            '`start_at`, `end_at` (YYYY-MM-DD). Номер приходит с заголовком `Prefer: return=representation` и ответом `202`, CLI и SDK шлют его сами. Без заголовка ответ `204` без тела',
           notesEn:
-            '`start_at`, `end_at` (YYYY-MM-DD). The request is async: the response is empty and carries no export id. `webhook_url` is not formally required, but without it there is nowhere to get the id — always send it',
+            '`start_at`, `end_at` (YYYY-MM-DD). The id comes with the `Prefer: return=representation` header and a `202` response, the CLI and SDK send it themselves. Without the header the response is `204` with no body',
         },
         {
           description:
-            'Дождись вебхука: придёт JSON с `"type": "export"`, `"event": "ready"` и `export_id`',
+            'Дождись готовности архива: пока он собирается, скачивание отвечает `404` с кодом `export_file_not_found`. О готовности сообщает и вебхук на `webhook_url` с `"event": "ready"` и `export_id`',
           descriptionEn:
-            'Wait for webhook: JSON with `"type": "export"`, `"event": "ready"` and `export_id`',
+            'Wait for the archive: while it is being assembled, the download responds `404` with the `export_file_not_found` code. A webhook to `webhook_url` with `"event": "ready"` and `export_id` also reports readiness',
         },
         {
           description: 'Скачай файл экспорта',
           descriptionEn: 'Download export file',
-          command: 'pachca chats download-export <export_id>',
+          command: 'pachca chats download-export <id>',
           apiMethod: 'GET',
           apiPath: '/chats/exports/{id}',
           notes: 'Сервер вернёт 302, HTTP-клиент скачает файл автоматически',
@@ -795,9 +794,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
       notes:
-        '`webhook_url` обязателен — POST не возвращает id в ответе. Экспорт доступен только Владельцу на тарифе «Корпорация». Макс период: 45 дней (366 при указании конкретных чатов).',
+        'Экспорт доступен только Владельцу на тарифе «Корпорация». Макс период: 45 дней (366 при указании конкретных чатов). Следующий экспорт пространство может заказать через 90 секунд после предыдущего.',
       notesEn:
-        '`webhook_url` required — POST does not return id in response. Export available only to Owner on "Corporation" plan. Max period: 45 days (366 when specific chats are specified).',
+        'Export available only to Owner on "Corporation" plan. Max period: 45 days (366 when specific chats are specified). The workspace can order the next export 90 seconds after the previous one.',
     },
     {
       title: 'Найти активные чаты за период',
@@ -1018,17 +1017,11 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           apiMethod: 'POST',
           apiPath: '/bots/{id}/tokens/{token_id}/reissue',
         },
-        {
-          description:
-            'Сохрани новый `access_token` из ответа — он возвращается единственный раз. Обнови секрет в CI или хранилище секретов',
-          descriptionEn:
-            'Save the new `access_token` from the response — returned only once. Update the secret in CI or your secret store',
-        },
       ],
       notes:
-        'Новое значение возвращается один раз. Self-путь (`POST /bot/recreate_token`) перевыпускает основной токен бота — если бот ходит им, захвати новый токен из ответа в той же операции.',
+        'Новое значение возвращается один раз: сохрани `access_token` из ответа и обнови секрет в CI или хранилище секретов. Self-путь (`POST /bot/recreate_token`) перевыпускает основной токен бота — если бот ходит им, захвати новый токен из ответа в той же операции.',
       notesEn:
-        'The new value is returned once. The self path (`POST /bot/recreate_token`) rotates the bot main token — if the bot works with it, capture the new token from the response in the same operation.',
+        'The new value is returned once: save `access_token` from the response and update the secret in CI or your secret store. The self path (`POST /bot/recreate_token`) rotates the bot main token — if the bot works with it, capture the new token from the response in the same operation.',
     },
     {
       title: 'Выпустить боту отдельный токен',
@@ -1070,8 +1063,8 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
     {
       title: 'Включить боту авторизацию от имени сотрудника',
       titleEn: 'Enable authorization on behalf of an employee for a bot',
-      related: ['Создать бота через API и получить токен', 'Выпустить боту отдельный токен'],
-      relatedEn: ['Create a bot via API and get its token', 'Issue an additional bot token'],
+      related: ['Получить токен сотрудника по OAuth', 'Создать бота через API и получить токен', 'Выпустить боту отдельный токен'],
+      relatedEn: ['Get an employee token via OAuth', 'Create a bot via API and get its token', 'Issue an additional bot token'],
       steps: [
         {
           description:
@@ -1100,9 +1093,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
       notes:
-        'Включена ли авторизация, показывает `oauth_client_enabled`: `oauth_client` может прийти и у бота с выключенной авторизацией. `--oauth-client=null` выключает её и отзывает выданные сотрудниками авторизации, новый секрет выпускает `pachca bots rotate-client-secret`.',
+        'Включена ли авторизация, показывает `oauth_client_enabled`: `oauth_client` может прийти и у бота с выключенной авторизацией. `--oauth-client=null` выключает её и отзывает выданные сотрудниками авторизации, новый секрет выпускает `pachca bots rotate-client-secret`. Кнопку сотруднику и обмен кода на его токен описывает сценарий «Получить токен сотрудника по OAuth» в pachca-oauth.',
       notesEn:
-        'Whether authorization is enabled is shown by `oauth_client_enabled`: `oauth_client` can come even for a bot with authorization disabled. `--oauth-client=null` disables it and revokes the authorizations granted by employees, and `pachca bots rotate-client-secret` issues a new secret.',
+        'Whether authorization is enabled is shown by `oauth_client_enabled`: `oauth_client` can come even for a bot with authorization disabled. `--oauth-client=null` disables it and revokes the authorizations granted by employees, and `pachca bots rotate-client-secret` issues a new secret. The button for the employee and the exchange of the code for their token are covered by the "Get an employee token via OAuth" workflow in pachca-oauth.',
     },
     {
       title: 'Найти и удалить бота',
@@ -1112,9 +1105,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       steps: [
         {
           description:
-            'Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`, следующую страницу бери из `meta.paginate.next_page`',
+            'Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`. Пока `meta.paginate.has_next` равен `true`, следующую страницу бери из `meta.paginate.next_page`',
           descriptionEn:
-            'With a user token (scope `bots:read`) get the list of bots you can edit: those you created and those whose settings grant you edit access. Filter by name with `query`, take the next page from `meta.paginate.next_page`',
+            'With a user token (scope `bots:read`) get the list of bots you can edit: those you created and those whose settings grant you edit access. Filter by name with `query`. While `meta.paginate.has_next` is `true`, take the next page from `meta.paginate.next_page`',
           command: 'pachca bots list --query="задач"',
           apiMethod: 'GET',
           apiPath: '/bots',
@@ -1650,9 +1643,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
       notes:
-        'Создание доступно только администраторам и владельцам (не ботам). Нет отдельного эндпоинта "добавить юзера в тег".',
+        'Создание доступно только администраторам и владельцам (не ботам). Нет отдельного эндпоинта "добавить юзера в тег". Бесплатное пространство отправляет не больше 50 писем-приглашений за сутки: сверх лимита `422` с кодом `daily_invites_limit`, время сброса — в `payload.reset_at`. С `--skip-email-notify` письмо не уходит и в лимит не идёт.',
       notesEn:
-        'Creation available only to admins and owners (not bots). No separate "add user to tag" endpoint.',
+        'Creation available only to admins and owners (not bots). No separate "add user to tag" endpoint. A free workspace sends no more than 50 invitation emails per day: beyond the limit `422` with the `daily_invites_limit` code, the reset time is in `payload.reset_at`. With `--skip-email-notify` no email is sent and nothing counts towards the limit.',
     },
     {
       title: 'Создать гостя в чат',
@@ -1999,6 +1992,70 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           apiPath: '/tasks',
         },
       ],
+    },
+  ],
+  'pachca-oauth': [
+    {
+      title: 'Получить токен сотрудника по OAuth',
+      titleEn: 'Get an employee token via OAuth',
+      inline: false,
+      related: ['Включить боту авторизацию от имени сотрудника', 'Отправить сообщение с кнопками'],
+      relatedEn: ['Enable authorization on behalf of an employee for a bot', 'Send message with buttons'],
+      steps: [
+        {
+          description:
+            'Создай случайный `state` и пару PKCE: случайный `code_verifier` и `code_challenge` — его SHA-256 в base64url без `=` на конце. Сохрани их вместе с `id` сотрудника, которому отправишь кнопку. В SDK пару создаёт `createPkce()`',
+          descriptionEn:
+            'Create a random `state` and a PKCE pair: a random `code_verifier` and `code_challenge`, its SHA-256 in base64url without the trailing `=`. Store them with the `id` of the employee you send the button to. In the SDK, `createPkce()` creates the pair',
+          notes:
+            'В shell: `VERIFIER=$(openssl rand -base64 32 | tr \'+/\' \'-_\' | tr -d \'=\')`, затем `printf %s "$VERIFIER" | openssl dgst -sha256 -binary | openssl base64 | tr \'+/\' \'-_\' | tr -d \'=\'` — это `code_challenge`',
+          notesEn:
+            'In a shell: `VERIFIER=$(openssl rand -base64 32 | tr \'+/\' \'-_\' | tr -d \'=\')`, then `printf %s "$VERIFIER" | openssl dgst -sha256 -binary | openssl base64 | tr \'+/\' \'-_\' | tr -d \'=\'` gives `code_challenge`',
+        },
+        {
+          description:
+            'Собери ссылку `https://app.pachca.com/apps/authorize?client_id=<client_id>&redirect_uri=<redirect_uri>&response_type=code&state=<state>&code_challenge=<code_challenge>&code_challenge_method=S256`: `client_id` и адрес возврата — из `oauth_client` бота (`pachca bots get <bot_id>`), значения кодируй для URL. В SDK её собирает `buildAuthorizeUrl()`',
+          descriptionEn:
+            'Build the link `https://app.pachca.com/apps/authorize?client_id=<client_id>&redirect_uri=<redirect_uri>&response_type=code&state=<state>&code_challenge=<code_challenge>&code_challenge_method=S256`: `client_id` and the redirect address come from the bot\'s `oauth_client` (`pachca bots get <bot_id>`), URL-encode the values. In the SDK, `buildAuthorizeUrl()` builds it',
+        },
+        {
+          description: 'Отправь ссылку сотруднику URL-кнопкой в личные сообщения',
+          descriptionEn: 'Send the link to the employee as a URL button in a direct message',
+          command:
+            'pachca messages create --entity-type=user --entity-id=<user_id> --content="Разрешите доступ к задачам" --buttons=\'[[{"text":"Предоставить доступ","url":"<authorize_url>"}]]\'',
+          apiMethod: 'POST',
+          apiPath: '/messages',
+        },
+        {
+          description:
+            'После согласия браузер вернётся на `redirect_uri` с `code` и `state`. Найди сохранённый `state` и удали его: каждый действует один раз',
+          descriptionEn:
+            'After consent the browser returns to `redirect_uri` with `code` and `state`. Find the stored `state` and delete it: each one is valid once',
+        },
+        {
+          description:
+            'Обменяй код на токен: `grant_type=authorization_code`, `code`, `redirect_uri`, `client_id`, `client_secret` и `code_verifier` формой в теле запроса. Код живёт 10 минут и обменивается один раз. В SDK это `client.oauth.exchangeToken()`',
+          descriptionEn:
+            'Exchange the code for a token: `grant_type=authorization_code`, `code`, `redirect_uri`, `client_id`, `client_secret` and `code_verifier` as a form body. The code lives 10 minutes and is exchanged once. In the SDK, it is `client.oauth.exchangeToken()`',
+          apiMethod: 'POST',
+          apiPath: '/oauth/token',
+        },
+        {
+          description: 'Проверь, чей это токен: в `data.user_id` придёт сотрудник, который дал согласие',
+          descriptionEn: 'Check whose token it is: `data.user_id` is the employee who gave consent',
+          command: 'pachca oauth token-info --token <access_token>',
+          apiMethod: 'GET',
+          apiPath: '/oauth/token/info',
+          notes:
+            'Кнопку могли переслать: сохрани токен за тем, кто дал согласие, а сотруднику, которому отправлял кнопку, пришли её снова',
+          notesEn:
+            'The button may have been forwarded: store the token for the one who gave consent, and send the button again to the employee you sent it to',
+        },
+      ],
+      notes:
+        'Токен бессрочный и действует, пока сотрудник не отзовёт доступ: храни его как пароль. Бот отзывает токен сам методом `POST /oauth/revoke`, в SDK это `client.oauth.revokeToken()`.',
+      notesEn:
+        'The token does not expire and works until the employee revokes access: keep it like a password. The bot revokes a token itself with `POST /oauth/revoke`, in the SDK it is `client.oauth.revokeToken()`.',
     },
   ],
   'pachca-profile': [

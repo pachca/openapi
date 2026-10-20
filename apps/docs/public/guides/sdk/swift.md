@@ -71,6 +71,8 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 
 | Метод | Метод API |
 |-------|----------|
+| `client.oauth.revokeToken()` | [Отзыв токена](/api/oauth/revoke-token) |
+| `client.oauth.exchangeToken()` | [Обмен кода на токен](/api/oauth/exchange-token) |
 | `client.oauth.getTokenInfo()` | [Информация о токене](/api/oauth/token-info) |
 | `client.chats.createChat()` | [Новый чат](/api/chats/create) |
 | `client.chats.requestExport()` | [Экспорт сообщений](/api/chats/request-export) |
@@ -107,12 +109,12 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.groupTags.updateTag()` | [Редактирование тега](/api/group-tags/update) |
 | `client.groupTags.deleteTag()` | [Удаление тега](/api/group-tags/delete) |
 | `client.members.addTags()` | [Добавление тегов](/api/members/add-group-tags) |
-| `client.members.addMembers()` | [Добавление пользователей](/api/members/add) |
+| `client.members.addMembers()` | [Добавление участников](/api/members/add) |
 | `client.members.listMembers()` | [Список участников чата](/api/members/list) |
-| `client.members.updateMemberRole()` | [Редактирование роли](/api/members/update) |
+| `client.members.updateMemberRole()` | [Редактирование роли участника](/api/members/update) |
 | `client.members.leaveChat()` | [Выход из чата](/api/members/leave) |
-| `client.members.removeTag()` | [Исключение тега](/api/members/remove-group-tag) |
-| `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
+| `client.members.removeTag()` | [Исключение тега из чата](/api/members/remove-group-tag) |
+| `client.members.removeMember()` | [Исключение участника](/api/members/remove) |
 | `client.threads.createStandaloneThread()` | [Новый самостоятельный тред](/api/threads/create) |
 | `client.threads.createThread()` | [Новый тред](/api/threads/add) |
 | `client.threads.listThreads()` | [Список тредов](/api/threads/list) |
@@ -158,9 +160,11 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.bots.listBotTokens()` | [Список токенов бота](/api/bots/list-tokens) |
 | `client.bots.selfUpdateBotWebhook()` | [Саморегистрация вебхука бота](/api/bots/update-webhook) |
 | `client.bots.updateBot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.updateBotAvatar()` | [Загрузка аватара бота](/api/bots/update-avatar) |
 | `client.bots.updateBotToken()` | [Изменение токена бота](/api/bots/update-token) |
 | `client.bots.deleteBot()` | [Удаление бота](/api/bots/delete) |
-| `client.bots.deleteWebhookEvent()` | [Удаление события](/api/bots/remove-event) |
+| `client.bots.deleteBotAvatar()` | [Удаление аватара бота](/api/bots/remove-avatar) |
+| `client.bots.deleteWebhookEvent()` | [Удаление события истории](/api/bots/remove-event) |
 | `client.bots.deleteBotToken()` | [Удаление токена бота](/api/bots/delete-token) |
 | `client.security.getAuditEvents()` | [Журнал аудита событий](/api/security/list) |
 | `client.customProperties.listProperties()` | [Список дополнительных полей](/api/custom-properties/list) |
@@ -190,7 +194,7 @@ let response = try await client.chats.listChats(sort: .id, order: .desc, availab
 import PachcaSDK
 
 // Создание чата
-let body = ChatCreateRequest(
+let request = ChatCreateRequest(
     chat: ChatCreateRequestChat(
         name: "🤿 aqua",
         memberIds: [123],
@@ -199,8 +203,8 @@ let body = ChatCreateRequest(
         `public`: false
     )
 )
-let response = try await client.chats.createChat(body: body)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String, avatarUrl: String?)
+let response = try await client.chats.createChat(request: request)
+// → CreateChatResponse(data: Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, archived: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String, avatarUrl: String?), meta: CreateChatResponseMeta(notFoundMemberIds: [Int]))
 ```
 
 
@@ -273,11 +277,11 @@ SDK выбрасывает два типа ошибок (реализуют пр
 
 ### ApiError
 
-Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422` с массивом `errors` в теле:
 
 ```swift
 do {
-    try await client.chats.createChat(request)
+    _ = try await client.chats.createChat(request: request)
 } catch let error as ApiError {
     for e in error.errors {
         print("\(e.key): \(e.message)")  // "name: не может быть пустым"
@@ -298,16 +302,18 @@ do {
 
 ### OAuthError
 
-Возникает при ошибке авторизации (`401`):
+Возникает при ошибке авторизации: `401`, а также `403` с кодом `insufficient_scope` или `role_forbidden` и отказе при обмене кода на токен. Код — в поле `error`, список кодов — в разделе [Ошибки авторизации](/api/authorization#oshibki-avtorizatsii):
 
 ```swift
 do {
     try await client.profile.getProfile()
 } catch let error as OAuthError {
-    print(error.error)              // "Token not found"
+    print(error.error.rawValue)     // "insufficient_scope"
     print(error.errorDescription)   // описание ошибки
 }
 ```
+
+Поле `error` — перечисление `OAuthErrorCode`: его сравнивают со случаем, например `error.error == .insufficientScope`, или со строковым литералом, а строку кода даёт `rawValue`.
 
 ## Повторные запросы
 
@@ -342,7 +348,9 @@ let apiError: ApiError
 let oauthError: OAuthError
 ```
 
-Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+Перечисление в ответе принимает и значение, которого SDK ещё не знает: оно приходит случаем `.unknown(String)`, а `rawValue` возвращает исходную строку. Поэтому `switch` по такому перечислению включает `case .unknown` или `default`. Незнакомую строку и `init?(rawValue:)` превращает в случай `.unknown`: проверить, знает ли SDK значение, помогает `allCases.contains(value)`.
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthErrorCode`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Платформы
 
@@ -360,7 +368,7 @@ import PachcaSDK
 let client = PachcaClient(token: "YOUR_TOKEN")
 
 // Отправка сообщения
-let body = MessageCreateRequest(
+let request = MessageCreateRequest(
     message: MessageCreateRequestMessage(
         entityType: .discussion,
         entityId: 334,
@@ -387,7 +395,7 @@ let body = MessageCreateRequest(
     ),
     linkPreview: false
 )
-let response = try await client.messages.createMessage(body: body)
+let response = try await client.messages.createMessage(request: request)
 // → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?, durationMs: Int?)], voiceContent: VoiceContent(durationMs: Int, waveform: String, transcript: String?)?, buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)
 
 // Список сотрудников
@@ -395,7 +403,7 @@ let response = try await client.users.listUsers(query: "Олег", limit: 1, cur
 // → ListUsersResponse(data: [User], meta: PaginationMeta)
 
 // Создание задачи
-let body = TaskCreateRequest(
+let request = TaskCreateRequest(
     task: TaskCreateRequestTask(
         kind: .reminder,
         content: "Забрать со склада 21 заказ",
@@ -407,7 +415,7 @@ let body = TaskCreateRequest(
         customProperties: [TaskCreateRequestCustomProperty(id: 78, value: "Синий склад")]
     )
 )
-let response = try await client.tasks.createTask(body: body)
+let response = try await client.tasks.createTask(request: request)
 // → Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String?)])
 ```
 

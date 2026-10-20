@@ -15,6 +15,7 @@ const (
 	OAuthScopeUsersWrite OAuthScope = "users:write"
 )
 
+// EventType may hold a value this SDK does not list yet: a response keeps it as is.
 type EventType string
 
 const (
@@ -51,6 +52,11 @@ type MessageNotification struct {
 type ReactionNotification struct {
 	Kind  string `json:"kind"` // always "message"
 	Emoji string `json:"emoji"`
+}
+
+type Schedule struct {
+	Days  []int32 `json:"days"`
+	Value any     `json:"value"`
 }
 
 type NotificationUnion struct {

@@ -10,7 +10,7 @@
     "output": "ListEventsResponse(data: [Event])"
   },
   "ExportOperations_createExport": {
-    "usage": "let body = ExportRequest(\n    startAt: \"2025-03-20\",\n    endAt: \"2025-03-20\",\n    webhookUrl: \"example\"\n)\nlet response = try await client.export.createExport(body: body)",
+    "usage": "let request = ExportRequest(\n    startAt: \"2025-03-20\",\n    endAt: \"2025-03-20\",\n    webhookUrl: \"example\"\n)\nlet response = try await client.export.createExport(request: request)",
     "output": "Export(id: Int, startAt: String, endAt: String, status: String, createdAt: String)",
     "imports": [
       "ExportRequest"

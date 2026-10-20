@@ -6,7 +6,7 @@
    ```
    > `last_message_at_after`/`last_message_at_before` — ISO-8601, UTC+0. `limit` 1-50 (по умолчанию 50). Сортировка — по убыванию времени последнего сообщения.
 
-2. Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`:
+2. Пока `meta.paginate.has_next` равен `true`, бери следующую страницу через `--cursor=<next_page>`:
    ```bash
    pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --cursor=<next_page>
    ```

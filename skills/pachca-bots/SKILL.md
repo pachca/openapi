@@ -109,9 +109,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
    pachca bots reissue-token <bot_id> <token_id>
    ```
 
-4. Сохрани новый `access_token` из ответа — он возвращается единственный раз. Обнови секрет в CI или хранилище секретов
-
-> Новое значение возвращается один раз. Self-путь (`POST /bot/recreate_token`) перевыпускает основной токен бота — если бот ходит им, захвати новый токен из ответа в той же операции.
+> Новое значение возвращается один раз: сохрани `access_token` из ответа и обнови секрет в CI или хранилище секретов. Self-путь (`POST /bot/recreate_token`) перевыпускает основной токен бота — если бот ходит им, захвати новый токен из ответа в той же операции.
 
 
 ### Выпустить боту отдельный токен
@@ -145,12 +143,12 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
    pachca bots update <bot_id> --promo='{"description":"Собирает сводку по задачам","published":true}'
    ```
 
-> Включена ли авторизация, показывает `oauth_client_enabled`: `oauth_client` может прийти и у бота с выключенной авторизацией. `--oauth-client=null` выключает её и отзывает выданные сотрудниками авторизации, новый секрет выпускает `pachca bots rotate-client-secret`.
+> Включена ли авторизация, показывает `oauth_client_enabled`: `oauth_client` может прийти и у бота с выключенной авторизацией. `--oauth-client=null` выключает её и отзывает выданные сотрудниками авторизации, новый секрет выпускает `pachca bots rotate-client-secret`. Кнопку сотруднику и обмен кода на его токен описывает сценарий «Получить токен сотрудника по OAuth» в pachca-oauth.
 
 
 ### Найти и удалить бота
 
-1. Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`, следующую страницу бери из `meta.paginate.next_page`:
+1. Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`. Пока `meta.paginate.has_next` равен `true`, следующую страницу бери из `meta.paginate.next_page`:
    ```bash
    pachca bots list --query="задач"
    ```
@@ -215,6 +213,8 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | GET | /bots/{id} | Информация о боте |
 | PUT | /bots/{id} | Редактирование бота |
 | DELETE | /bots/{id} | Удаление бота |
+| PUT | /bots/{id}/avatar | Загрузка аватара бота |
+| DELETE | /bots/{id}/avatar | Удаление аватара бота |
 | POST | /bots/{id}/recreate_token | Ротация токена бота |
 | POST | /bots/{id}/rotate_client_secret | Ротация секрета клиента |
 | GET | /bots/{id}/scopes | Каталог прав бота |
@@ -225,7 +225,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | POST | /bots/{id}/tokens/{token_id}/reissue | Перевыпуск токена бота |
 | GET | /company/bots | Список ботов пространства |
 | GET | /webhooks/events | История событий |
-| DELETE | /webhooks/events/{id} | Удаление события |
+| DELETE | /webhooks/events/{id} | Удаление события истории |
 
 ## Advanced workflows
 

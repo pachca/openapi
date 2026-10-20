@@ -11,8 +11,26 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.AttributeKey
 import kotlinx.serialization.json.Json
 import java.io.Closeable
+
+/** Marks a request that takes no token, such as the upload to storage. */
+internal val PachcaNoAuth = AttributeKey<Unit>("PachcaNoAuth")
+
+private val PachcaNoAuthInstalled = AttributeKey<Unit>("PachcaNoAuthInstalled")
+
+/**
+ * A request marked [PachcaNoAuth] goes without `Authorization`, whoever set it: `defaultRequest`
+ * adds the header after the request block, so it is taken off in the send pipeline.
+ */
+internal fun dropAuthorizationOfNoAuthRequests(client: HttpClient) {
+    if (client.attributes.contains(PachcaNoAuthInstalled)) return
+    client.attributes.put(PachcaNoAuthInstalled, Unit)
+    client.sendPipeline.intercept(HttpSendPipeline.Before) {
+        if (context.attributes.contains(PachcaNoAuth)) context.headers.remove(HttpHeaders.Authorization)
+    }
+}
 
 interface CommonService {
     suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
@@ -45,7 +63,7 @@ class CommonServiceImpl internal constructor(
                 })
             },
         ) {
-            headers.remove(HttpHeaders.Authorization)
+            attributes.put(PachcaNoAuth, Unit)
         }
         when (response.status.value) {
             204 -> return
@@ -70,6 +88,10 @@ class PachcaClient private constructor(
     private val _client: HttpClient?,
     val common: CommonService
 ) : Closeable {
+
+    init {
+        _client?.let(::dropAuthorizationOfNoAuthRequests)
+    }
 
     companion object {
         operator fun invoke(

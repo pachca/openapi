@@ -3,207 +3,599 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public enum AuditEventKey: String, Codable, CaseIterable {
+public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Пользователь успешно вошел в систему
-    case userLogin = "user_login"
+    case userLogin
     /// Пользователь вышел из системы
-    case userLogout = "user_logout"
+    case userLogout
     /// Неудачная попытка двухфакторной аутентификации
-    case user2faFail = "user_2fa_fail"
+    case user2faFail
     /// Успешная двухфакторная аутентификация
-    case user2faSuccess = "user_2fa_success"
+    case user2faSuccess
     /// Двухфакторная аутентификация отключена у сотрудника
-    case user2faDisabled = "user_2fa_disabled"
+    case user2faDisabled
     /// Создана новая учетная запись пользователя
-    case userCreated = "user_created"
+    case userCreated
     /// Учетная запись пользователя удалена
-    case userDeleted = "user_deleted"
+    case userDeleted
     /// Роль пользователя была изменена
-    case userRoleChanged = "user_role_changed"
+    case userRoleChanged
     /// Данные пользователя обновлены
-    case userUpdated = "user_updated"
+    case userUpdated
     /// Создан новый тег
-    case tagCreated = "tag_created"
+    case tagCreated
     /// Тег удален
-    case tagDeleted = "tag_deleted"
+    case tagDeleted
     /// Пользователь добавлен в тег
-    case userAddedToTag = "user_added_to_tag"
+    case userAddedToTag
     /// Пользователь удален из тега
-    case userRemovedFromTag = "user_removed_from_tag"
+    case userRemovedFromTag
     /// Создан новый чат
-    case chatCreated = "chat_created"
+    case chatCreated
     /// Чат переименован
-    case chatRenamed = "chat_renamed"
+    case chatRenamed
     /// Изменены права доступа к чату
-    case chatPermissionChanged = "chat_permission_changed"
+    case chatPermissionChanged
     /// Пользователь присоединился к чату
-    case userChatJoin = "user_chat_join"
+    case userChatJoin
     /// Пользователь покинул чат
-    case userChatLeave = "user_chat_leave"
+    case userChatLeave
     /// Тег добавлен в чат
-    case tagAddedToChat = "tag_added_to_chat"
+    case tagAddedToChat
     /// Тег удален из чата
-    case tagRemovedFromChat = "tag_removed_from_chat"
+    case tagRemovedFromChat
     /// Сообщение отредактировано
-    case messageUpdated = "message_updated"
+    case messageUpdated
     /// Сообщение удалено
-    case messageDeleted = "message_deleted"
+    case messageDeleted
     /// Сообщение создано
-    case messageCreated = "message_created"
+    case messageCreated
     /// Реакция добавлена
-    case reactionCreated = "reaction_created"
+    case reactionCreated
     /// Реакция удалена
-    case reactionDeleted = "reaction_deleted"
+    case reactionDeleted
     /// Тред создан
-    case threadCreated = "thread_created"
+    case threadCreated
     /// Создан новый токен доступа
-    case accessTokenCreated = "access_token_created"
+    case accessTokenCreated
     /// Токен доступа обновлен
-    case accessTokenUpdated = "access_token_updated"
+    case accessTokenUpdated
     /// Токен доступа удален
-    case accessTokenDestroy = "access_token_destroy"
+    case accessTokenDestroy
     /// Данные зашифрованы
-    case kmsEncrypt = "kms_encrypt"
+    case kmsEncrypt
     /// Данные расшифрованы
-    case kmsDecrypt = "kms_decrypt"
+    case kmsDecrypt
     /// Доступ к журналам аудита получен
-    case auditEventsAccessed = "audit_events_accessed"
+    case auditEventsAccessed
     /// Получен список всех чатов пространства
-    case companyChatsAccessed = "company_chats_accessed"
+    case companyChatsAccessed
     /// Получен список всех ботов пространства
-    case companyBotsAccessed = "company_bots_accessed"
+    case companyBotsAccessed
     /// Срабатывание правила DLP-системы
-    case dlpViolationDetected = "dlp_violation_detected"
+    case dlpViolationDetected
     /// Поиск сотрудников через API
-    case searchUsersApi = "search_users_api"
+    case searchUsersApi
     /// Поиск чатов через API
-    case searchChatsApi = "search_chats_api"
+    case searchChatsApi
     /// Поиск сообщений через API
-    case searchMessagesApi = "search_messages_api"
+    case searchMessagesApi
     /// Изменены скоупы токена бота
-    case botScopesUpdated = "bot_scopes_updated"
+    case botScopesUpdated
     /// Изменены настройки исходящего вебхука бота
-    case botWebhookSettingsUpdated = "bot_webhook_settings_updated"
+    case botWebhookSettingsUpdated
     /// Токен бота перевыпущен (ротация)
-    case botTokenRecreated = "bot_token_recreated"
+    case botTokenRecreated
     /// Бот удалён
-    case botDeleted = "bot_deleted"
+    case botDeleted
     /// Изменены параметры OAuth-клиента бота
-    case botOauthClientUpdated = "bot_oauth_client_updated"
+    case botOauthClientUpdated
     /// У бота выключена авторизация от имени сотрудника
-    case botOauthClientDisabled = "bot_oauth_client_disabled"
+    case botOauthClientDisabled
     /// Обновлён секрет OAuth-клиента бота
-    case botOauthClientSecretRotated = "bot_oauth_client_secret_rotated"
+    case botOauthClientSecretRotated
     /// Выпущен секрет OAuth-клиента бота
-    case botOauthClientSecretIssued = "bot_oauth_client_secret_issued"
+    case botOauthClientSecretIssued
     /// Выпущен токен бота
-    case botTokenCreated = "bot_token_created"
+    case botTokenCreated
     /// Изменены имя или скоупы токена бота
-    case botTokenUpdated = "bot_token_updated"
+    case botTokenUpdated
     /// Отдельный токен бота перевыпущен
-    case botTokenReissued = "bot_token_reissued"
+    case botTokenReissued
     /// Токен бота удалён
-    case botTokenDeleted = "bot_token_deleted"
+    case botTokenDeleted
     /// Пользователь выдал OAuth-клиенту доступ к своим данным
-    case oauthAuthorizationGranted = "oauth_authorization_granted"
+    case oauthAuthorizationGranted
     /// Доступ OAuth-клиента к данным пользователя отозван
-    case oauthAuthorizationRevoked = "oauth_authorization_revoked"
+    case oauthAuthorizationRevoked
     /// OAuth-клиент отозвал выданный ему токен
-    case oauthTokenRevoked = "oauth_token_revoked"
+    case oauthTokenRevoked
     /// Сотрудник подтвердил вход приложения с устройства
-    case oauthDeviceAuthorizationApproved = "oauth_device_authorization_approved"
+    case oauthDeviceAuthorizationApproved
     /// Сотрудник отклонил вход приложения с устройства
-    case oauthDeviceAuthorizationDenied = "oauth_device_authorization_denied"
+    case oauthDeviceAuthorizationDenied
     /// Видеозвонок начат
-    case videoCallStarted = "video_call_started"
+    case videoCallStarted
     /// Видеозвонок завершён
-    case videoCallFinished = "video_call_finished"
+    case videoCallFinished
     /// Запись видеозвонка готова
-    case videoCallRecordingReady = "video_call_recording_ready"
+    case videoCallRecordingReady
     /// Отключена интеграция с Exchange
-    case exchangeDisabled = "exchange_disabled"
+    case exchangeDisabled
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [AuditEventKey] = [.userLogin, .userLogout, .user2faFail, .user2faSuccess, .user2faDisabled, .userCreated, .userDeleted, .userRoleChanged, .userUpdated, .tagCreated, .tagDeleted, .userAddedToTag, .userRemovedFromTag, .chatCreated, .chatRenamed, .chatPermissionChanged, .userChatJoin, .userChatLeave, .tagAddedToChat, .tagRemovedFromChat, .messageUpdated, .messageDeleted, .messageCreated, .reactionCreated, .reactionDeleted, .threadCreated, .accessTokenCreated, .accessTokenUpdated, .accessTokenDestroy, .kmsEncrypt, .kmsDecrypt, .auditEventsAccessed, .companyChatsAccessed, .companyBotsAccessed, .dlpViolationDetected, .searchUsersApi, .searchChatsApi, .searchMessagesApi, .botScopesUpdated, .botWebhookSettingsUpdated, .botTokenRecreated, .botDeleted, .botOauthClientUpdated, .botOauthClientDisabled, .botOauthClientSecretRotated, .botOauthClientSecretIssued, .botTokenCreated, .botTokenUpdated, .botTokenReissued, .botTokenDeleted, .oauthAuthorizationGranted, .oauthAuthorizationRevoked, .oauthTokenRevoked, .oauthDeviceAuthorizationApproved, .oauthDeviceAuthorizationDenied, .videoCallStarted, .videoCallFinished, .videoCallRecordingReady, .exchangeDisabled]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "user_login": self = .userLogin
+        case "user_logout": self = .userLogout
+        case "user_2fa_fail": self = .user2faFail
+        case "user_2fa_success": self = .user2faSuccess
+        case "user_2fa_disabled": self = .user2faDisabled
+        case "user_created": self = .userCreated
+        case "user_deleted": self = .userDeleted
+        case "user_role_changed": self = .userRoleChanged
+        case "user_updated": self = .userUpdated
+        case "tag_created": self = .tagCreated
+        case "tag_deleted": self = .tagDeleted
+        case "user_added_to_tag": self = .userAddedToTag
+        case "user_removed_from_tag": self = .userRemovedFromTag
+        case "chat_created": self = .chatCreated
+        case "chat_renamed": self = .chatRenamed
+        case "chat_permission_changed": self = .chatPermissionChanged
+        case "user_chat_join": self = .userChatJoin
+        case "user_chat_leave": self = .userChatLeave
+        case "tag_added_to_chat": self = .tagAddedToChat
+        case "tag_removed_from_chat": self = .tagRemovedFromChat
+        case "message_updated": self = .messageUpdated
+        case "message_deleted": self = .messageDeleted
+        case "message_created": self = .messageCreated
+        case "reaction_created": self = .reactionCreated
+        case "reaction_deleted": self = .reactionDeleted
+        case "thread_created": self = .threadCreated
+        case "access_token_created": self = .accessTokenCreated
+        case "access_token_updated": self = .accessTokenUpdated
+        case "access_token_destroy": self = .accessTokenDestroy
+        case "kms_encrypt": self = .kmsEncrypt
+        case "kms_decrypt": self = .kmsDecrypt
+        case "audit_events_accessed": self = .auditEventsAccessed
+        case "company_chats_accessed": self = .companyChatsAccessed
+        case "company_bots_accessed": self = .companyBotsAccessed
+        case "dlp_violation_detected": self = .dlpViolationDetected
+        case "search_users_api": self = .searchUsersApi
+        case "search_chats_api": self = .searchChatsApi
+        case "search_messages_api": self = .searchMessagesApi
+        case "bot_scopes_updated": self = .botScopesUpdated
+        case "bot_webhook_settings_updated": self = .botWebhookSettingsUpdated
+        case "bot_token_recreated": self = .botTokenRecreated
+        case "bot_deleted": self = .botDeleted
+        case "bot_oauth_client_updated": self = .botOauthClientUpdated
+        case "bot_oauth_client_disabled": self = .botOauthClientDisabled
+        case "bot_oauth_client_secret_rotated": self = .botOauthClientSecretRotated
+        case "bot_oauth_client_secret_issued": self = .botOauthClientSecretIssued
+        case "bot_token_created": self = .botTokenCreated
+        case "bot_token_updated": self = .botTokenUpdated
+        case "bot_token_reissued": self = .botTokenReissued
+        case "bot_token_deleted": self = .botTokenDeleted
+        case "oauth_authorization_granted": self = .oauthAuthorizationGranted
+        case "oauth_authorization_revoked": self = .oauthAuthorizationRevoked
+        case "oauth_token_revoked": self = .oauthTokenRevoked
+        case "oauth_device_authorization_approved": self = .oauthDeviceAuthorizationApproved
+        case "oauth_device_authorization_denied": self = .oauthDeviceAuthorizationDenied
+        case "video_call_started": self = .videoCallStarted
+        case "video_call_finished": self = .videoCallFinished
+        case "video_call_recording_ready": self = .videoCallRecordingReady
+        case "exchange_disabled": self = .exchangeDisabled
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .userLogin: return "user_login"
+        case .userLogout: return "user_logout"
+        case .user2faFail: return "user_2fa_fail"
+        case .user2faSuccess: return "user_2fa_success"
+        case .user2faDisabled: return "user_2fa_disabled"
+        case .userCreated: return "user_created"
+        case .userDeleted: return "user_deleted"
+        case .userRoleChanged: return "user_role_changed"
+        case .userUpdated: return "user_updated"
+        case .tagCreated: return "tag_created"
+        case .tagDeleted: return "tag_deleted"
+        case .userAddedToTag: return "user_added_to_tag"
+        case .userRemovedFromTag: return "user_removed_from_tag"
+        case .chatCreated: return "chat_created"
+        case .chatRenamed: return "chat_renamed"
+        case .chatPermissionChanged: return "chat_permission_changed"
+        case .userChatJoin: return "user_chat_join"
+        case .userChatLeave: return "user_chat_leave"
+        case .tagAddedToChat: return "tag_added_to_chat"
+        case .tagRemovedFromChat: return "tag_removed_from_chat"
+        case .messageUpdated: return "message_updated"
+        case .messageDeleted: return "message_deleted"
+        case .messageCreated: return "message_created"
+        case .reactionCreated: return "reaction_created"
+        case .reactionDeleted: return "reaction_deleted"
+        case .threadCreated: return "thread_created"
+        case .accessTokenCreated: return "access_token_created"
+        case .accessTokenUpdated: return "access_token_updated"
+        case .accessTokenDestroy: return "access_token_destroy"
+        case .kmsEncrypt: return "kms_encrypt"
+        case .kmsDecrypt: return "kms_decrypt"
+        case .auditEventsAccessed: return "audit_events_accessed"
+        case .companyChatsAccessed: return "company_chats_accessed"
+        case .companyBotsAccessed: return "company_bots_accessed"
+        case .dlpViolationDetected: return "dlp_violation_detected"
+        case .searchUsersApi: return "search_users_api"
+        case .searchChatsApi: return "search_chats_api"
+        case .searchMessagesApi: return "search_messages_api"
+        case .botScopesUpdated: return "bot_scopes_updated"
+        case .botWebhookSettingsUpdated: return "bot_webhook_settings_updated"
+        case .botTokenRecreated: return "bot_token_recreated"
+        case .botDeleted: return "bot_deleted"
+        case .botOauthClientUpdated: return "bot_oauth_client_updated"
+        case .botOauthClientDisabled: return "bot_oauth_client_disabled"
+        case .botOauthClientSecretRotated: return "bot_oauth_client_secret_rotated"
+        case .botOauthClientSecretIssued: return "bot_oauth_client_secret_issued"
+        case .botTokenCreated: return "bot_token_created"
+        case .botTokenUpdated: return "bot_token_updated"
+        case .botTokenReissued: return "bot_token_reissued"
+        case .botTokenDeleted: return "bot_token_deleted"
+        case .oauthAuthorizationGranted: return "oauth_authorization_granted"
+        case .oauthAuthorizationRevoked: return "oauth_authorization_revoked"
+        case .oauthTokenRevoked: return "oauth_token_revoked"
+        case .oauthDeviceAuthorizationApproved: return "oauth_device_authorization_approved"
+        case .oauthDeviceAuthorizationDenied: return "oauth_device_authorization_denied"
+        case .videoCallStarted: return "video_call_started"
+        case .videoCallFinished: return "video_call_finished"
+        case .videoCallRecordingReady: return "video_call_recording_ready"
+        case .exchangeDisabled: return "exchange_disabled"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum BotCanEdit: String, Codable, CaseIterable {
+public enum BotCanEdit: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Администраторы компании
     case admin
     /// Владельцы чатов, в которые добавлен бот
-    case chatOwners = "chat_owners"
+    case chatOwners
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [BotCanEdit] = [.admin, .chatOwners]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "admin": self = .admin
+        case "chat_owners": self = .chatOwners
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .admin: return "admin"
+        case .chatOwners: return "chat_owners"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum BotEventName: String, Codable, CaseIterable {
+public enum BotEventName: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Новое сообщение
-    case messageNew = "message_new"
+    case messageNew
     /// Сообщение отредактировано
-    case messageUpdate = "message_update"
+    case messageUpdate
     /// Сообщение удалено
-    case messageDelete = "message_delete"
+    case messageDelete
     /// Добавлена реакция
-    case reactionNew = "reaction_new"
+    case reactionNew
     /// Реакция удалена
-    case reactionDelete = "reaction_delete"
+    case reactionDelete
     /// Нажата кнопка
-    case buttonClick = "button_click"
+    case buttonClick
     /// В сообщении отправлена ссылка (для unfurl)
-    case messageLinkShared = "message_link_shared"
+    case messageLinkShared
     /// Участник добавлен в чат
-    case chatMemberAdd = "chat_member_add"
+    case chatMemberAdd
     /// Участник удалён из чата
-    case chatMemberRemove = "chat_member_remove"
+    case chatMemberRemove
     /// Сотрудник приглашён в компанию
-    case companyMemberInvite = "company_member_invite"
+    case companyMemberInvite
     /// Сотрудник подтвердил приглашение
-    case companyMemberConfirm = "company_member_confirm"
+    case companyMemberConfirm
     /// Сотрудник деактивирован
-    case companyMemberSuspend = "company_member_suspend"
+    case companyMemberSuspend
     /// Сотрудник активирован
-    case companyMemberActivate = "company_member_activate"
+    case companyMemberActivate
     /// Сотрудник удалён из компании
-    case companyMemberDelete = "company_member_delete"
+    case companyMemberDelete
     /// Данные сотрудника изменены
-    case companyMemberUpdate = "company_member_update"
+    case companyMemberUpdate
     /// Видеозвонок начался
-    case videoCallStarted = "video_call_started"
+    case videoCallStarted
     /// Видеозвонок завершился
-    case videoCallFinished = "video_call_finished"
+    case videoCallFinished
     /// Запись видеозвонка готова
-    case videoCallRecordingReady = "video_call_recording_ready"
+    case videoCallRecordingReady
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [BotEventName] = [.messageNew, .messageUpdate, .messageDelete, .reactionNew, .reactionDelete, .buttonClick, .messageLinkShared, .chatMemberAdd, .chatMemberRemove, .companyMemberInvite, .companyMemberConfirm, .companyMemberSuspend, .companyMemberActivate, .companyMemberDelete, .companyMemberUpdate, .videoCallStarted, .videoCallFinished, .videoCallRecordingReady]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "message_new": self = .messageNew
+        case "message_update": self = .messageUpdate
+        case "message_delete": self = .messageDelete
+        case "reaction_new": self = .reactionNew
+        case "reaction_delete": self = .reactionDelete
+        case "button_click": self = .buttonClick
+        case "message_link_shared": self = .messageLinkShared
+        case "chat_member_add": self = .chatMemberAdd
+        case "chat_member_remove": self = .chatMemberRemove
+        case "company_member_invite": self = .companyMemberInvite
+        case "company_member_confirm": self = .companyMemberConfirm
+        case "company_member_suspend": self = .companyMemberSuspend
+        case "company_member_activate": self = .companyMemberActivate
+        case "company_member_delete": self = .companyMemberDelete
+        case "company_member_update": self = .companyMemberUpdate
+        case "video_call_started": self = .videoCallStarted
+        case "video_call_finished": self = .videoCallFinished
+        case "video_call_recording_ready": self = .videoCallRecordingReady
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .messageNew: return "message_new"
+        case .messageUpdate: return "message_update"
+        case .messageDelete: return "message_delete"
+        case .reactionNew: return "reaction_new"
+        case .reactionDelete: return "reaction_delete"
+        case .buttonClick: return "button_click"
+        case .messageLinkShared: return "message_link_shared"
+        case .chatMemberAdd: return "chat_member_add"
+        case .chatMemberRemove: return "chat_member_remove"
+        case .companyMemberInvite: return "company_member_invite"
+        case .companyMemberConfirm: return "company_member_confirm"
+        case .companyMemberSuspend: return "company_member_suspend"
+        case .companyMemberActivate: return "company_member_activate"
+        case .companyMemberDelete: return "company_member_delete"
+        case .companyMemberUpdate: return "company_member_update"
+        case .videoCallStarted: return "video_call_started"
+        case .videoCallFinished: return "video_call_finished"
+        case .videoCallRecordingReady: return "video_call_recording_ready"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum BotTemplateEngine: String, Codable, CaseIterable {
+public enum BotTemplateEngine: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Liquid — условия, циклы и фильтры
     case liquid
     /// Mustache — простая подстановка без логики
     case mustache
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [BotTemplateEngine] = [.liquid, .mustache]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "liquid": self = .liquid
+        case "mustache": self = .mustache
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .liquid: return "liquid"
+        case .mustache: return "mustache"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum BotTriggerOn: String, Codable, CaseIterable {
+public enum BotTriggerOn: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Только на команды (триггер-слова) из commands
     case commands
     /// На все сообщения в чатах, где есть бот
-    case allMessages = "all_messages"
+    case allMessages
     /// На развёртывание ссылок (link previews)
     case unfurl
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [BotTriggerOn] = [.commands, .allMessages, .unfurl]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "commands": self = .commands
+        case "all_messages": self = .allMessages
+        case "unfurl": self = .unfurl
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .commands: return "commands"
+        case .allMessages: return "all_messages"
+        case .unfurl: return "unfurl"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum BotWebhookKind: String, Codable, CaseIterable {
+public enum BotWebhookKind: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Свой формат: сообщение собирается из тела запроса по шаблону бота
     case simple
     /// GitLab: Пачка сама разбирает запрос и собирает сообщение
     case gitlab
     /// Grafana: Пачка сама разбирает запрос и собирает сообщение
     case grafana
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [BotWebhookKind] = [.simple, .gitlab, .grafana]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "simple": self = .simple
+        case "gitlab": self = .gitlab
+        case "grafana": self = .grafana
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .simple: return "simple"
+        case .gitlab: return "gitlab"
+        case .grafana: return "grafana"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum BotWhoCanAdd: String, Codable, CaseIterable {
+public enum BotWhoCanAdd: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Только создатель бота
     case creator
     /// Создатель и администраторы компании
-    case creatorAdmin = "creator_admin"
+    case creatorAdmin
     /// Создатель, администраторы и участники компании
-    case creatorAdminUser = "creator_admin_user"
+    case creatorAdminUser
     /// Публичный бот: добавить его может любой сотрудник, кроме гостей и мульти-гостей
     case anyone
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [BotWhoCanAdd] = [.creator, .creatorAdmin, .creatorAdminUser, .anyone]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "creator": self = .creator
+        case "creator_admin": self = .creatorAdmin
+        case "creator_admin_user": self = .creatorAdminUser
+        case "anyone": self = .anyone
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .creator: return "creator"
+        case .creatorAdmin: return "creator_admin"
+        case .creatorAdminUser: return "creator_admin_user"
+        case .anyone: return "anyone"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public enum ChatActivity: String, Codable, CaseIterable {
@@ -256,7 +648,7 @@ public enum ChatSubtype: String, Codable, CaseIterable {
     case thread
 }
 
-public enum CustomPropertyDataType: String, Codable, CaseIterable {
+public enum CustomPropertyDataType: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Строковое значение
     case string
     /// Числовое значение
@@ -265,9 +657,47 @@ public enum CustomPropertyDataType: String, Codable, CaseIterable {
     case date
     /// Ссылка
     case link
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [CustomPropertyDataType] = [.string, .number, .date, .link]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "string": self = .string
+        case "number": self = .number
+        case "date": self = .date
+        case "link": self = .link
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .string: return "string"
+        case .number: return "number"
+        case .date: return "date"
+        case .link: return "link"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum DraftRepetitionInterval: String, Codable, CaseIterable {
+public enum DraftRepetitionInterval: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Один раз
     case once
     /// Каждый день
@@ -277,15 +707,63 @@ public enum DraftRepetitionInterval: String, Codable, CaseIterable {
     /// Каждый месяц
     case monthly
     /// Раз в два месяца
-    case every2Months = "every_2_months"
+    case every2Months
     /// Раз в три месяца
-    case every3Months = "every_3_months"
+    case every3Months
     /// Раз в четыре месяца
-    case every4Months = "every_4_months"
+    case every4Months
     /// Раз в полгода
-    case every6Months = "every_6_months"
+    case every6Months
     /// Раз в год
     case yearly
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [DraftRepetitionInterval] = [.once, .daily, .weekly, .monthly, .every2Months, .every3Months, .every4Months, .every6Months, .yearly]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "once": self = .once
+        case "daily": self = .daily
+        case "weekly": self = .weekly
+        case "monthly": self = .monthly
+        case "every_2_months": self = .every2Months
+        case "every_3_months": self = .every3Months
+        case "every_4_months": self = .every4Months
+        case "every_6_months": self = .every6Months
+        case "yearly": self = .yearly
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .once: return "once"
+        case .daily: return "daily"
+        case .weekly: return "weekly"
+        case .monthly: return "monthly"
+        case .every2Months: return "every_2_months"
+        case .every3Months: return "every_3_months"
+        case .every4Months: return "every_4_months"
+        case .every6Months: return "every_6_months"
+        case .yearly: return "yearly"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public enum DraftType: String, Codable, CaseIterable {
@@ -308,7 +786,7 @@ public enum FileTarget: String, Codable, CaseIterable {
     case image
 }
 
-public enum FileType: String, Codable, CaseIterable {
+public enum FileType: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Обычный файл
     case file
     /// Изображение
@@ -319,29 +797,173 @@ public enum FileType: String, Codable, CaseIterable {
     case voice
     /// Видеофайл
     case video
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [FileType] = [.file, .image, .audio, .voice, .video]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "file": self = .file
+        case "image": self = .image
+        case "audio": self = .audio
+        case "voice": self = .voice
+        case "video": self = .video
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .file: return "file"
+        case .image: return "image"
+        case .audio: return "audio"
+        case .voice: return "voice"
+        case .video: return "video"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum InviteStatus: String, Codable, CaseIterable {
+public enum InviteStatus: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Принято
     case confirmed
     /// Отправлено
     case sent
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [InviteStatus] = [.confirmed, .sent]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "confirmed": self = .confirmed
+        case "sent": self = .sent
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .confirmed: return "confirmed"
+        case .sent: return "sent"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum MemberEventType: String, Codable, CaseIterable {
+public enum MemberEventType: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Добавление
     case add
     /// Удаление
     case remove
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [MemberEventType] = [.add, .remove]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "add": self = .add
+        case "remove": self = .remove
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .add: return "add"
+        case .remove: return "remove"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum MessageEntityType: String, Codable, CaseIterable {
+public enum MessageEntityType: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Беседа или канал
     case discussion
     /// Тред
     case thread
     /// Пользователь
     case user
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [MessageEntityType] = [.discussion, .thread, .user]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "discussion": self = .discussion
+        case "thread": self = .thread
+        case "user": self = .user
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .discussion: return "discussion"
+        case .thread: return "thread"
+        case .user: return "user"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public enum MessageSearchSort: String, Codable, CaseIterable {
@@ -356,130 +978,382 @@ public enum MessageSortField: String, Codable, CaseIterable {
     case id
 }
 
-public enum OAuthScope: String, Codable, CaseIterable {
-    /// Просмотр чатов и списка чатов
-    case chatsRead = "chats:read"
-    /// Создание новых чатов
-    case chatsCreate = "chats:create"
-    /// Изменение настроек чата
-    case chatsUpdate = "chats:update"
-    /// Отметка чатов непрочитанными
-    case chatsMarkUnread = "chats:mark_unread"
-    /// Архивация и разархивация чатов
-    case chatsArchive = "chats:archive"
-    /// Выход из чатов
-    case chatsLeave = "chats:leave"
-    /// Просмотр участников чата
-    case chatMembersRead = "chat_members:read"
-    /// Добавление, изменение и удаление участников чата
-    case chatMembersWrite = "chat_members:write"
-    /// Скачивание экспортов чата
-    case chatExportsRead = "chat_exports:read"
-    /// Создание экспортов чата
-    case chatExportsWrite = "chat_exports:write"
-    /// Просмотр сообщений в чатах
-    case messagesRead = "messages:read"
-    /// Отправка сообщений
-    case messagesCreate = "messages:create"
-    /// Редактирование сообщений
-    case messagesUpdate = "messages:update"
-    /// Удаление сообщений
-    case messagesDelete = "messages:delete"
-    /// Просмотр реакций на сообщения
-    case reactionsRead = "reactions:read"
-    /// Добавление и удаление реакций
-    case reactionsWrite = "reactions:write"
-    /// Закрепление и открепление сообщений
-    case pinsWrite = "pins:write"
-    /// Просмотр тредов (комментариев)
-    case threadsRead = "threads:read"
-    /// Создание тредов (комментариев)
-    case threadsCreate = "threads:create"
-    /// Unfurl (разворачивание ссылок)
-    case linkPreviewsWrite = "link_previews:write"
-    /// Просмотр информации о сотрудниках и списка сотрудников
-    case usersRead = "users:read"
-    /// Создание новых сотрудников
-    case usersCreate = "users:create"
-    /// Редактирование данных сотрудника
-    case usersUpdate = "users:update"
-    /// Удаление сотрудников
-    case usersDelete = "users:delete"
-    /// Просмотр тегов
-    case groupTagsRead = "group_tags:read"
-    /// Создание, редактирование и удаление тегов
-    case groupTagsWrite = "group_tags:write"
-    /// Просмотр ботов
-    case botsRead = "bots:read"
-    /// Управление ботами
-    case botsWrite = "bots:write"
-    /// Самостоятельное управление адресом вебхука бота
-    case botSelfWebhookWrite = "bot_self:webhook:write"
-    /// Самостоятельное управление настройками бота
-    case botSelfWrite = "bot_self:write"
-    /// Просмотр информации о своем профиле
-    case profileRead = "profile:read"
-    /// Просмотр статуса профиля
-    case profileStatusRead = "profile_status:read"
-    /// Изменение и удаление статуса профиля
-    case profileStatusWrite = "profile_status:write"
-    /// Изменение и удаление аватара профиля
-    case profileAvatarWrite = "profile_avatar:write"
-    /// Просмотр статуса сотрудника
-    case userStatusRead = "user_status:read"
-    /// Изменение и удаление статуса сотрудника
-    case userStatusWrite = "user_status:write"
-    /// Изменение и удаление аватара сотрудника
-    case userAvatarWrite = "user_avatar:write"
-    /// Просмотр дополнительных полей
-    case customPropertiesRead = "custom_properties:read"
-    /// Просмотр журнала аудита
-    case auditEventsRead = "audit_events:read"
-    /// Просмотр списка всех чатов пространства
-    case companyChatsRead = "company_chats:read"
-    /// Просмотр списка всех ботов пространства
-    case companyBotsRead = "company_bots:read"
-    /// Просмотр задач
-    case tasksRead = "tasks:read"
-    /// Создание задач
-    case tasksCreate = "tasks:create"
-    /// Изменение задачи
-    case tasksUpdate = "tasks:update"
-    /// Удаление задачи
-    case tasksDelete = "tasks:delete"
-    /// Скачивание файлов
-    case filesRead = "files:read"
-    /// Загрузка файлов
-    case filesWrite = "files:write"
-    /// Получение данных для загрузки файлов
-    case uploadsWrite = "uploads:write"
-    /// Открытие форм (представлений)
-    case viewsWrite = "views:write"
-    /// Просмотр вебхуков
-    case webhooksRead = "webhooks:read"
-    /// Создание и управление вебхуками
-    case webhooksWrite = "webhooks:write"
-    /// Просмотр лога вебхуков
-    case webhooksEventsRead = "webhooks:events:read"
-    /// Удаление записи в логе вебхука
-    case webhooksEventsDelete = "webhooks:events:delete"
-    /// Поиск сотрудников
-    case searchUsers = "search:users"
-    /// Поиск чатов
-    case searchChats = "search:chats"
-    /// Поиск сообщений
-    case searchMessages = "search:messages"
-    /// Просмотр черновиков и отложенных сообщений
-    case draftsRead = "drafts:read"
-    /// Создание, изменение и удаление черновиков и отложенных сообщений
-    case draftsWrite = "drafts:write"
+public enum OAuthErrorCode: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Токен не передан, не найден, истёк или отозван
+    case invalidToken
+    /// У токена нет скоупа, который нужен методу
+    case insufficientScope
+    /// Скоуп у токена есть, но роль его владельца не позволяет действие
+    case roleForbidden
+    /// В запросе нет обязательного параметра или он передан неверно
+    case invalidRequest
+    /// Неверный `client_id` или `client_secret`
+    case invalidClient
+    /// Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`
+    case invalidGrant
+    /// Значение `grant_type` не поддерживается
+    case unsupportedGrantType
+    /// Токен выдан другому боту или клиент не подтвердил себя
+    case unauthorizedClient
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [OAuthErrorCode] = [.invalidToken, .insufficientScope, .roleForbidden, .invalidRequest, .invalidClient, .invalidGrant, .unsupportedGrantType, .unauthorizedClient]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "invalid_token": self = .invalidToken
+        case "insufficient_scope": self = .insufficientScope
+        case "role_forbidden": self = .roleForbidden
+        case "invalid_request": self = .invalidRequest
+        case "invalid_client": self = .invalidClient
+        case "invalid_grant": self = .invalidGrant
+        case "unsupported_grant_type": self = .unsupportedGrantType
+        case "unauthorized_client": self = .unauthorizedClient
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .invalidToken: return "invalid_token"
+        case .insufficientScope: return "insufficient_scope"
+        case .roleForbidden: return "role_forbidden"
+        case .invalidRequest: return "invalid_request"
+        case .invalidClient: return "invalid_client"
+        case .invalidGrant: return "invalid_grant"
+        case .unsupportedGrantType: return "unsupported_grant_type"
+        case .unauthorizedClient: return "unauthorized_client"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum ReactionEventType: String, Codable, CaseIterable {
+public enum OAuthScope: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Просмотр чатов и списка чатов
+    case chatsRead
+    /// Создание новых чатов
+    case chatsCreate
+    /// Изменение настроек чата
+    case chatsUpdate
+    /// Отметка чатов непрочитанными
+    case chatsMarkUnread
+    /// Архивация и разархивация чатов
+    case chatsArchive
+    /// Выход из чатов
+    case chatsLeave
+    /// Просмотр участников чата
+    case chatMembersRead
+    /// Добавление, изменение и удаление участников чата
+    case chatMembersWrite
+    /// Скачивание экспортов чата
+    case chatExportsRead
+    /// Создание экспортов чата
+    case chatExportsWrite
+    /// Просмотр сообщений в чатах
+    case messagesRead
+    /// Отправка сообщений
+    case messagesCreate
+    /// Редактирование сообщений
+    case messagesUpdate
+    /// Удаление сообщений
+    case messagesDelete
+    /// Просмотр реакций на сообщения
+    case reactionsRead
+    /// Добавление и удаление реакций
+    case reactionsWrite
+    /// Закрепление и открепление сообщений
+    case pinsWrite
+    /// Просмотр тредов (комментариев)
+    case threadsRead
+    /// Создание тредов (комментариев)
+    case threadsCreate
+    /// Unfurl (разворачивание ссылок)
+    case linkPreviewsWrite
+    /// Просмотр информации о сотрудниках и списка сотрудников
+    case usersRead
+    /// Создание новых сотрудников
+    case usersCreate
+    /// Редактирование данных сотрудника
+    case usersUpdate
+    /// Удаление сотрудников
+    case usersDelete
+    /// Просмотр тегов
+    case groupTagsRead
+    /// Создание, редактирование и удаление тегов
+    case groupTagsWrite
+    /// Просмотр ботов
+    case botsRead
+    /// Управление ботами
+    case botsWrite
+    /// Самостоятельное управление адресом вебхука бота
+    case botSelfWebhookWrite
+    /// Самостоятельное управление настройками бота
+    case botSelfWrite
+    /// Просмотр информации о своем профиле
+    case profileRead
+    /// Просмотр статуса профиля
+    case profileStatusRead
+    /// Изменение и удаление статуса профиля
+    case profileStatusWrite
+    /// Изменение и удаление аватара профиля
+    case profileAvatarWrite
+    /// Просмотр статуса сотрудника
+    case userStatusRead
+    /// Изменение и удаление статуса сотрудника
+    case userStatusWrite
+    /// Изменение и удаление аватара сотрудника
+    case userAvatarWrite
+    /// Просмотр дополнительных полей
+    case customPropertiesRead
+    /// Просмотр журнала аудита
+    case auditEventsRead
+    /// Просмотр списка всех чатов пространства
+    case companyChatsRead
+    /// Просмотр списка всех ботов пространства
+    case companyBotsRead
+    /// Просмотр задач
+    case tasksRead
+    /// Создание задач
+    case tasksCreate
+    /// Изменение задачи
+    case tasksUpdate
+    /// Удаление задачи
+    case tasksDelete
+    /// Скачивание файлов
+    case filesRead
+    /// Загрузка файлов
+    case filesWrite
+    /// Получение данных для загрузки файлов
+    case uploadsWrite
+    /// Открытие форм (представлений)
+    case viewsWrite
+    /// Просмотр вебхуков
+    case webhooksRead
+    /// Создание и управление вебхуками
+    case webhooksWrite
+    /// Просмотр лога вебхуков
+    case webhooksEventsRead
+    /// Удаление записи в логе вебхука
+    case webhooksEventsDelete
+    /// Поиск сотрудников
+    case searchUsers
+    /// Поиск чатов
+    case searchChats
+    /// Поиск сообщений
+    case searchMessages
+    /// Просмотр черновиков и отложенных сообщений
+    case draftsRead
+    /// Создание, изменение и удаление черновиков и отложенных сообщений
+    case draftsWrite
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [OAuthScope] = [.chatsRead, .chatsCreate, .chatsUpdate, .chatsMarkUnread, .chatsArchive, .chatsLeave, .chatMembersRead, .chatMembersWrite, .chatExportsRead, .chatExportsWrite, .messagesRead, .messagesCreate, .messagesUpdate, .messagesDelete, .reactionsRead, .reactionsWrite, .pinsWrite, .threadsRead, .threadsCreate, .linkPreviewsWrite, .usersRead, .usersCreate, .usersUpdate, .usersDelete, .groupTagsRead, .groupTagsWrite, .botsRead, .botsWrite, .botSelfWebhookWrite, .botSelfWrite, .profileRead, .profileStatusRead, .profileStatusWrite, .profileAvatarWrite, .userStatusRead, .userStatusWrite, .userAvatarWrite, .customPropertiesRead, .auditEventsRead, .companyChatsRead, .companyBotsRead, .tasksRead, .tasksCreate, .tasksUpdate, .tasksDelete, .filesRead, .filesWrite, .uploadsWrite, .viewsWrite, .webhooksRead, .webhooksWrite, .webhooksEventsRead, .webhooksEventsDelete, .searchUsers, .searchChats, .searchMessages, .draftsRead, .draftsWrite]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "chats:read": self = .chatsRead
+        case "chats:create": self = .chatsCreate
+        case "chats:update": self = .chatsUpdate
+        case "chats:mark_unread": self = .chatsMarkUnread
+        case "chats:archive": self = .chatsArchive
+        case "chats:leave": self = .chatsLeave
+        case "chat_members:read": self = .chatMembersRead
+        case "chat_members:write": self = .chatMembersWrite
+        case "chat_exports:read": self = .chatExportsRead
+        case "chat_exports:write": self = .chatExportsWrite
+        case "messages:read": self = .messagesRead
+        case "messages:create": self = .messagesCreate
+        case "messages:update": self = .messagesUpdate
+        case "messages:delete": self = .messagesDelete
+        case "reactions:read": self = .reactionsRead
+        case "reactions:write": self = .reactionsWrite
+        case "pins:write": self = .pinsWrite
+        case "threads:read": self = .threadsRead
+        case "threads:create": self = .threadsCreate
+        case "link_previews:write": self = .linkPreviewsWrite
+        case "users:read": self = .usersRead
+        case "users:create": self = .usersCreate
+        case "users:update": self = .usersUpdate
+        case "users:delete": self = .usersDelete
+        case "group_tags:read": self = .groupTagsRead
+        case "group_tags:write": self = .groupTagsWrite
+        case "bots:read": self = .botsRead
+        case "bots:write": self = .botsWrite
+        case "bot_self:webhook:write": self = .botSelfWebhookWrite
+        case "bot_self:write": self = .botSelfWrite
+        case "profile:read": self = .profileRead
+        case "profile_status:read": self = .profileStatusRead
+        case "profile_status:write": self = .profileStatusWrite
+        case "profile_avatar:write": self = .profileAvatarWrite
+        case "user_status:read": self = .userStatusRead
+        case "user_status:write": self = .userStatusWrite
+        case "user_avatar:write": self = .userAvatarWrite
+        case "custom_properties:read": self = .customPropertiesRead
+        case "audit_events:read": self = .auditEventsRead
+        case "company_chats:read": self = .companyChatsRead
+        case "company_bots:read": self = .companyBotsRead
+        case "tasks:read": self = .tasksRead
+        case "tasks:create": self = .tasksCreate
+        case "tasks:update": self = .tasksUpdate
+        case "tasks:delete": self = .tasksDelete
+        case "files:read": self = .filesRead
+        case "files:write": self = .filesWrite
+        case "uploads:write": self = .uploadsWrite
+        case "views:write": self = .viewsWrite
+        case "webhooks:read": self = .webhooksRead
+        case "webhooks:write": self = .webhooksWrite
+        case "webhooks:events:read": self = .webhooksEventsRead
+        case "webhooks:events:delete": self = .webhooksEventsDelete
+        case "search:users": self = .searchUsers
+        case "search:chats": self = .searchChats
+        case "search:messages": self = .searchMessages
+        case "drafts:read": self = .draftsRead
+        case "drafts:write": self = .draftsWrite
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .chatsRead: return "chats:read"
+        case .chatsCreate: return "chats:create"
+        case .chatsUpdate: return "chats:update"
+        case .chatsMarkUnread: return "chats:mark_unread"
+        case .chatsArchive: return "chats:archive"
+        case .chatsLeave: return "chats:leave"
+        case .chatMembersRead: return "chat_members:read"
+        case .chatMembersWrite: return "chat_members:write"
+        case .chatExportsRead: return "chat_exports:read"
+        case .chatExportsWrite: return "chat_exports:write"
+        case .messagesRead: return "messages:read"
+        case .messagesCreate: return "messages:create"
+        case .messagesUpdate: return "messages:update"
+        case .messagesDelete: return "messages:delete"
+        case .reactionsRead: return "reactions:read"
+        case .reactionsWrite: return "reactions:write"
+        case .pinsWrite: return "pins:write"
+        case .threadsRead: return "threads:read"
+        case .threadsCreate: return "threads:create"
+        case .linkPreviewsWrite: return "link_previews:write"
+        case .usersRead: return "users:read"
+        case .usersCreate: return "users:create"
+        case .usersUpdate: return "users:update"
+        case .usersDelete: return "users:delete"
+        case .groupTagsRead: return "group_tags:read"
+        case .groupTagsWrite: return "group_tags:write"
+        case .botsRead: return "bots:read"
+        case .botsWrite: return "bots:write"
+        case .botSelfWebhookWrite: return "bot_self:webhook:write"
+        case .botSelfWrite: return "bot_self:write"
+        case .profileRead: return "profile:read"
+        case .profileStatusRead: return "profile_status:read"
+        case .profileStatusWrite: return "profile_status:write"
+        case .profileAvatarWrite: return "profile_avatar:write"
+        case .userStatusRead: return "user_status:read"
+        case .userStatusWrite: return "user_status:write"
+        case .userAvatarWrite: return "user_avatar:write"
+        case .customPropertiesRead: return "custom_properties:read"
+        case .auditEventsRead: return "audit_events:read"
+        case .companyChatsRead: return "company_chats:read"
+        case .companyBotsRead: return "company_bots:read"
+        case .tasksRead: return "tasks:read"
+        case .tasksCreate: return "tasks:create"
+        case .tasksUpdate: return "tasks:update"
+        case .tasksDelete: return "tasks:delete"
+        case .filesRead: return "files:read"
+        case .filesWrite: return "files:write"
+        case .uploadsWrite: return "uploads:write"
+        case .viewsWrite: return "views:write"
+        case .webhooksRead: return "webhooks:read"
+        case .webhooksWrite: return "webhooks:write"
+        case .webhooksEventsRead: return "webhooks:events:read"
+        case .webhooksEventsDelete: return "webhooks:events:delete"
+        case .searchUsers: return "search:users"
+        case .searchChats: return "search:chats"
+        case .searchMessages: return "search:messages"
+        case .draftsRead: return "drafts:read"
+        case .draftsWrite: return "drafts:write"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
+public enum OAuthTokenTypeHint: String, Codable, CaseIterable {
+    /// Токен сотрудника
+    case accessToken = "access_token"
+    /// Токен обновления
+    case refreshToken = "refresh_token"
+}
+
+public enum ReactionEventType: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Создание
     case new
     /// Удаление
     case delete
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [ReactionEventType] = [.new, .delete]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "new": self = .new
+        case "delete": self = .delete
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .new: return "new"
+        case .delete: return "delete"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public enum SearchEntityType: String, Codable, CaseIterable {
@@ -505,7 +1379,7 @@ public enum SortOrder: String, Codable, CaseIterable {
     case desc
 }
 
-public enum TaskKind: String, Codable, CaseIterable {
+public enum TaskKind: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Позвонить контакту
     case call
     /// Встреча
@@ -516,13 +1390,87 @@ public enum TaskKind: String, Codable, CaseIterable {
     case event
     /// Написать письмо
     case email
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [TaskKind] = [.call, .meeting, .reminder, .event, .email]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "call": self = .call
+        case "meeting": self = .meeting
+        case "reminder": self = .reminder
+        case "event": self = .event
+        case "email": self = .email
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .call: return "call"
+        case .meeting: return "meeting"
+        case .reminder: return "reminder"
+        case .event: return "event"
+        case .email: return "email"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum TaskStatus: String, Codable, CaseIterable {
+public enum TaskStatus: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Выполнено
     case done
     /// Активно
     case undone
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [TaskStatus] = [.done, .undone]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "done": self = .done
+        case "undone": self = .undone
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .done: return "done"
+        case .undone: return "undone"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public enum UserCreateRole: String, Codable, CaseIterable {
@@ -536,7 +1484,7 @@ public enum UserCreateRole: String, Codable, CaseIterable {
     case guest
 }
 
-public enum UserEventType: String, Codable, CaseIterable {
+public enum UserEventType: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Приглашение
     case invite
     /// Подтверждение
@@ -549,17 +1497,97 @@ public enum UserEventType: String, Codable, CaseIterable {
     case activate
     /// Удаление
     case delete
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [UserEventType] = [.invite, .confirm, .update, .suspend, .activate, .delete]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "invite": self = .invite
+        case "confirm": self = .confirm
+        case "update": self = .update
+        case "suspend": self = .suspend
+        case "activate": self = .activate
+        case "delete": self = .delete
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .invite: return "invite"
+        case .confirm: return "confirm"
+        case .update: return "update"
+        case .suspend: return "suspend"
+        case .activate: return "activate"
+        case .delete: return "delete"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum UserRole: String, Codable, CaseIterable {
+public enum UserRole: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Администратор
     case admin
     /// Сотрудник
     case user
     /// Мульти-гость
-    case multiGuest = "multi_guest"
+    case multiGuest
     /// Гость
     case guest
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [UserRole] = [.admin, .user, .multiGuest, .guest]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "admin": self = .admin
+        case "user": self = .user
+        case "multi_guest": self = .multiGuest
+        case "guest": self = .guest
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .admin: return "admin"
+        case .user: return "user"
+        case .multiGuest: return "multi_guest"
+        case .guest: return "guest"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public enum UserRoleInput: String, Codable, CaseIterable {
@@ -571,11 +1599,11 @@ public enum UserRoleInput: String, Codable, CaseIterable {
     case multiGuest = "multi_guest"
 }
 
-public enum ValidationErrorCode: String, Codable, CaseIterable {
+public enum ValidationErrorCode: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Обязательное поле (не может быть пустым)
     case blank
     /// Слишком длинное значение (пояснения вы получите в поле message)
-    case tooLong = "too_long"
+    case tooLong
     /// Поле не соответствует правилам (пояснения вы получите в поле message)
     case invalid
     /// Поле имеет непредусмотренное значение
@@ -585,123 +1613,345 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     /// Название для этого поля уже существует
     case taken
     /// Emoji статуса не может содержать значения отличные от Emoji символа
-    case wrongEmoji = "wrong_emoji"
+    case wrongEmoji
     /// Объект не найден
-    case notFound = "not_found"
+    case notFound
     /// Объект с такими данными уже есть. Конфликтующее поле приходит в key, если его удалось определить
-    case alreadyExists = "already_exists"
+    case alreadyExists
     /// Ошибка личного чата (пояснения вы получите в поле message)
-    case personalChat = "personal_chat"
+    case personalChat
     /// Отображаемая ошибка (пояснения вы получите в поле message)
-    case displayedError = "displayed_error"
+    case displayedError
     /// Действие запрещено
-    case notAuthorized = "not_authorized"
+    case notAuthorized
     /// Выбран слишком большой диапазон дат
-    case invalidDateRange = "invalid_date_range"
+    case invalidDateRange
     /// Некорректный URL вебхука
-    case invalidWebhookUrl = "invalid_webhook_url"
+    case invalidWebhookUrl
     /// Достигнут лимит запросов
-    case rateLimit = "rate_limit"
+    case rateLimit
     /// Превышен лимит активных сотрудников (пояснения вы получите в поле message)
-    case licensesLimit = "licenses_limit"
+    case licensesLimit
     /// Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
-    case userLimit = "user_limit"
+    case userLimit
     /// Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
-    case uniqueLimit = "unique_limit"
+    case uniqueLimit
     /// Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
-    case generalLimit = "general_limit"
-    /// Ошибка выполнения запроса (пояснения вы получите в поле message)
+    case generalLimit
+    /// Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий
     case unhandled
     /// Не удалось найти идентификатор события
-    case triggerNotFound = "trigger_not_found"
+    case triggerNotFound
     /// Время жизни идентификатора события истекло
-    case triggerExpired = "trigger_expired"
+    case triggerExpired
     /// Обязательный параметр не передан
     case required
     /// Недопустимое значение (не входит в список допустимых)
-    case `in` = "in"
+    case `in`
     /// Значение неприменимо в данном контексте (пояснения вы получите в поле message)
-    case notApplicable = "not_applicable"
+    case notApplicable
     /// Нельзя изменить свои собственные данные
-    case selfUpdate = "self_update"
+    case selfUpdate
     /// Нельзя изменить данные владельца
-    case ownerProtected = "owner_protected"
+    case ownerProtected
     /// Значение уже назначено
-    case alreadyAssigned = "already_assigned"
+    case alreadyAssigned
     /// Ближайшая отправка отложенного сообщения приходится на прошлое
-    case nextSendAtInvalid = "next_send_at_invalid"
+    case nextSendAtInvalid
     /// Расписание отложенного сообщения не складывается в повтор
-    case scheduleInvalid = "schedule_invalid"
+    case scheduleInvalid
     /// Расписание заканчивается раньше ближайшей отправки
-    case scheduleEndDateInvalid = "schedule_end_date_invalid"
+    case scheduleEndDateInvalid
     /// Превышен лимит отложенных сообщений на чат (50)
-    case scheduledMessagesLimit = "scheduled_messages_limit"
+    case scheduledMessagesLimit
     /// Отложенное сообщение нельзя превратить обратно в черновик
-    case draftTypeChangeForbidden = "draft_type_change_forbidden"
+    case draftTypeChangeForbidden
     /// Скачивание файла запрещено: нужен запрос из безопасного контура
-    case confidentialDownloadDenied = "confidential_download_denied"
+    case confidentialDownloadDenied
     /// Не удалось расшифровать файл
-    case decryptionFailed = "decryption_failed"
+    case decryptionFailed
     /// Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`
-    case botAddDenied = "bot_add_denied"
+    case botAddDenied
     /// Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`
-    case singleChatBotOccupied = "single_chat_bot_occupied"
+    case singleChatBotOccupied
     /// Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
-    case singleChatBotTagDenied = "single_chat_bot_tag_denied"
+    case singleChatBotTagDenied
+    /// В тег можно добавить только бота, которого может добавить в чат любой сотрудник
+    case restrictedBotTagDenied
     /// Настройки бота изменились во время запроса: повторите его
-    case botChangedConcurrently = "bot_changed_concurrently"
+    case botChangedConcurrently
     /// Поиск не уложился по времени: сузьте запрос и повторите
     case timeout
+    /// Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`
+    case dailyInvitesLimit
     /// Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
     case forbidden
     /// Доступ запрещён (недостаточно прав)
-    case permissionDenied = "permission_denied"
+    case permissionDenied
     /// Доступ запрещён
-    case accessDenied = "access_denied"
+    case accessDenied
     /// Некорректные параметры запроса (пояснения вы получите в поле message)
-    case wrongParams = "wrong_params"
+    case wrongParams
     /// Требуется оплата
-    case paymentRequired = "payment_required"
+    case paymentRequired
     /// Значение слишком короткое (пояснения вы получите в поле message)
-    case minLength = "min_length"
+    case minLength
     /// Значение слишком длинное (пояснения вы получите в поле message)
-    case maxLength = "max_length"
+    case maxLength
     /// Использовано зарезервированное системное слово (here, all)
-    case useOfSystemWords = "use_of_system_words"
+    case useOfSystemWords
     /// Файл экспорта не найден или ещё не готов
-    case exportFileNotFound = "export_file_not_found"
+    case exportFileNotFound
     /// Нельзя исключить владельца чата
-    case cannotKickOwner = "cannot_kick_owner"
+    case cannotKickOwner
     /// Не удалось закрепить сообщение
-    case pinFailed = "pin_failed"
+    case pinFailed
     /// Сообщение удалено
-    case messageDeleted = "message_deleted"
+    case messageDeleted
     /// Нельзя создать тред для сообщения, которое уже находится в треде
-    case threadMessage = "thread_message"
+    case threadMessage
     /// Представление не найдено или принадлежит другому боту
-    case viewNotFound = "view_not_found"
+    case viewNotFound
     /// Время на ответ об отправке формы истекло или ответ уже был принят
-    case submitExpired = "submit_expired"
+    case submitExpired
     /// Сервис временно недоступен, повторите запрос
-    case serviceUnavailable = "service_unavailable"
+    case serviceUnavailable
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [ValidationErrorCode] = [.blank, .tooLong, .invalid, .inclusion, .exclusion, .taken, .wrongEmoji, .notFound, .alreadyExists, .personalChat, .displayedError, .notAuthorized, .invalidDateRange, .invalidWebhookUrl, .rateLimit, .licensesLimit, .userLimit, .uniqueLimit, .generalLimit, .unhandled, .triggerNotFound, .triggerExpired, .required, .`in`, .notApplicable, .selfUpdate, .ownerProtected, .alreadyAssigned, .nextSendAtInvalid, .scheduleInvalid, .scheduleEndDateInvalid, .scheduledMessagesLimit, .draftTypeChangeForbidden, .confidentialDownloadDenied, .decryptionFailed, .botAddDenied, .singleChatBotOccupied, .singleChatBotTagDenied, .restrictedBotTagDenied, .botChangedConcurrently, .timeout, .dailyInvitesLimit, .forbidden, .permissionDenied, .accessDenied, .wrongParams, .paymentRequired, .minLength, .maxLength, .useOfSystemWords, .exportFileNotFound, .cannotKickOwner, .pinFailed, .messageDeleted, .threadMessage, .viewNotFound, .submitExpired, .serviceUnavailable]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "blank": self = .blank
+        case "too_long": self = .tooLong
+        case "invalid": self = .invalid
+        case "inclusion": self = .inclusion
+        case "exclusion": self = .exclusion
+        case "taken": self = .taken
+        case "wrong_emoji": self = .wrongEmoji
+        case "not_found": self = .notFound
+        case "already_exists": self = .alreadyExists
+        case "personal_chat": self = .personalChat
+        case "displayed_error": self = .displayedError
+        case "not_authorized": self = .notAuthorized
+        case "invalid_date_range": self = .invalidDateRange
+        case "invalid_webhook_url": self = .invalidWebhookUrl
+        case "rate_limit": self = .rateLimit
+        case "licenses_limit": self = .licensesLimit
+        case "user_limit": self = .userLimit
+        case "unique_limit": self = .uniqueLimit
+        case "general_limit": self = .generalLimit
+        case "unhandled": self = .unhandled
+        case "trigger_not_found": self = .triggerNotFound
+        case "trigger_expired": self = .triggerExpired
+        case "required": self = .required
+        case "in": self = .`in`
+        case "not_applicable": self = .notApplicable
+        case "self_update": self = .selfUpdate
+        case "owner_protected": self = .ownerProtected
+        case "already_assigned": self = .alreadyAssigned
+        case "next_send_at_invalid": self = .nextSendAtInvalid
+        case "schedule_invalid": self = .scheduleInvalid
+        case "schedule_end_date_invalid": self = .scheduleEndDateInvalid
+        case "scheduled_messages_limit": self = .scheduledMessagesLimit
+        case "draft_type_change_forbidden": self = .draftTypeChangeForbidden
+        case "confidential_download_denied": self = .confidentialDownloadDenied
+        case "decryption_failed": self = .decryptionFailed
+        case "bot_add_denied": self = .botAddDenied
+        case "single_chat_bot_occupied": self = .singleChatBotOccupied
+        case "single_chat_bot_tag_denied": self = .singleChatBotTagDenied
+        case "restricted_bot_tag_denied": self = .restrictedBotTagDenied
+        case "bot_changed_concurrently": self = .botChangedConcurrently
+        case "timeout": self = .timeout
+        case "daily_invites_limit": self = .dailyInvitesLimit
+        case "forbidden": self = .forbidden
+        case "permission_denied": self = .permissionDenied
+        case "access_denied": self = .accessDenied
+        case "wrong_params": self = .wrongParams
+        case "payment_required": self = .paymentRequired
+        case "min_length": self = .minLength
+        case "max_length": self = .maxLength
+        case "use_of_system_words": self = .useOfSystemWords
+        case "export_file_not_found": self = .exportFileNotFound
+        case "cannot_kick_owner": self = .cannotKickOwner
+        case "pin_failed": self = .pinFailed
+        case "message_deleted": self = .messageDeleted
+        case "thread_message": self = .threadMessage
+        case "view_not_found": self = .viewNotFound
+        case "submit_expired": self = .submitExpired
+        case "service_unavailable": self = .serviceUnavailable
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .blank: return "blank"
+        case .tooLong: return "too_long"
+        case .invalid: return "invalid"
+        case .inclusion: return "inclusion"
+        case .exclusion: return "exclusion"
+        case .taken: return "taken"
+        case .wrongEmoji: return "wrong_emoji"
+        case .notFound: return "not_found"
+        case .alreadyExists: return "already_exists"
+        case .personalChat: return "personal_chat"
+        case .displayedError: return "displayed_error"
+        case .notAuthorized: return "not_authorized"
+        case .invalidDateRange: return "invalid_date_range"
+        case .invalidWebhookUrl: return "invalid_webhook_url"
+        case .rateLimit: return "rate_limit"
+        case .licensesLimit: return "licenses_limit"
+        case .userLimit: return "user_limit"
+        case .uniqueLimit: return "unique_limit"
+        case .generalLimit: return "general_limit"
+        case .unhandled: return "unhandled"
+        case .triggerNotFound: return "trigger_not_found"
+        case .triggerExpired: return "trigger_expired"
+        case .required: return "required"
+        case .`in`: return "in"
+        case .notApplicable: return "not_applicable"
+        case .selfUpdate: return "self_update"
+        case .ownerProtected: return "owner_protected"
+        case .alreadyAssigned: return "already_assigned"
+        case .nextSendAtInvalid: return "next_send_at_invalid"
+        case .scheduleInvalid: return "schedule_invalid"
+        case .scheduleEndDateInvalid: return "schedule_end_date_invalid"
+        case .scheduledMessagesLimit: return "scheduled_messages_limit"
+        case .draftTypeChangeForbidden: return "draft_type_change_forbidden"
+        case .confidentialDownloadDenied: return "confidential_download_denied"
+        case .decryptionFailed: return "decryption_failed"
+        case .botAddDenied: return "bot_add_denied"
+        case .singleChatBotOccupied: return "single_chat_bot_occupied"
+        case .singleChatBotTagDenied: return "single_chat_bot_tag_denied"
+        case .restrictedBotTagDenied: return "restricted_bot_tag_denied"
+        case .botChangedConcurrently: return "bot_changed_concurrently"
+        case .timeout: return "timeout"
+        case .dailyInvitesLimit: return "daily_invites_limit"
+        case .forbidden: return "forbidden"
+        case .permissionDenied: return "permission_denied"
+        case .accessDenied: return "access_denied"
+        case .wrongParams: return "wrong_params"
+        case .paymentRequired: return "payment_required"
+        case .minLength: return "min_length"
+        case .maxLength: return "max_length"
+        case .useOfSystemWords: return "use_of_system_words"
+        case .exportFileNotFound: return "export_file_not_found"
+        case .cannotKickOwner: return "cannot_kick_owner"
+        case .pinFailed: return "pin_failed"
+        case .messageDeleted: return "message_deleted"
+        case .threadMessage: return "thread_message"
+        case .viewNotFound: return "view_not_found"
+        case .submitExpired: return "submit_expired"
+        case .serviceUnavailable: return "service_unavailable"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum VideoCallEventType: String, Codable, CaseIterable {
+public enum VideoCallEventType: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Видеозвонок начался
     case started
     /// Видеозвонок завершился
     case finished
     /// Запись видеозвонка готова
-    case recordingReady = "recording_ready"
+    case recordingReady
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [VideoCallEventType] = [.started, .finished, .recordingReady]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "started": self = .started
+        case "finished": self = .finished
+        case "recording_ready": self = .recordingReady
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .started: return "started"
+        case .finished: return "finished"
+        case .recordingReady: return "recording_ready"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
-public enum WebhookEventType: String, Codable, CaseIterable {
+public enum WebhookEventType: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
     /// Создание
     case new
     /// Обновление
     case update
     /// Удаление
     case delete
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [WebhookEventType] = [.new, .update, .delete]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "new": self = .new
+        case "update": self = .update
+        case "delete": self = .delete
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .new: return "new"
+        case .update: return "update"
+        case .delete: return "delete"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public struct AccessTokenInfo: Codable {
@@ -714,8 +1964,9 @@ public struct AccessTokenInfo: Codable {
     public let revokedAt: String?
     public let expiresIn: Int?
     public let lastUsedAt: String?
+    public let authorizedAt: String?
 
-    public init(id: Int64, token: String, name: String? = nil, userId: Int64, scopes: [OAuthScope], createdAt: String, revokedAt: String? = nil, expiresIn: Int? = nil, lastUsedAt: String? = nil) {
+    public init(id: Int64, token: String, name: String? = nil, userId: Int64, scopes: [OAuthScope], createdAt: String, revokedAt: String? = nil, expiresIn: Int? = nil, lastUsedAt: String? = nil, authorizedAt: String? = nil) {
         self.id = id
         self.token = token
         self.name = name
@@ -725,6 +1976,7 @@ public struct AccessTokenInfo: Codable {
         self.revokedAt = revokedAt
         self.expiresIn = expiresIn
         self.lastUsedAt = lastUsedAt
+        self.authorizedAt = authorizedAt
     }
 
     enum CodingKeys: String, CodingKey {
@@ -737,6 +1989,7 @@ public struct AccessTokenInfo: Codable {
         case revokedAt = "revoked_at"
         case expiresIn = "expires_in"
         case lastUsedAt = "last_used_at"
+        case authorizedAt = "authorized_at"
     }
 }
 
@@ -783,12 +2036,12 @@ public struct ApiError: Codable, Error {
 
 public struct ApiErrorItem: Codable {
     public let key: String
-    public let value: String?
+    public let value: AnyCodable?
     public let message: String
     public let code: ValidationErrorCode
     public let payload: [String: AnyCodable]?
 
-    public init(key: String, value: String? = nil, message: String, code: ValidationErrorCode, payload: [String: AnyCodable]? = nil) {
+    public init(key: String, value: AnyCodable? = nil, message: String, code: ValidationErrorCode, payload: [String: AnyCodable]? = nil) {
         self.key = key
         self.value = value
         self.message = message
@@ -1239,10 +2492,10 @@ public struct AuditDetailsUserUpdated: Codable {
 public struct AuditDetailsVideoCallFinished: Codable {
     public let chatId: Int
     public let startedMessageId: Int?
-    public let duration: Int
+    public let duration: Int?
     public let maxMembersCount: Int
 
-    public init(chatId: Int, startedMessageId: Int? = nil, duration: Int, maxMembersCount: Int) {
+    public init(chatId: Int, startedMessageId: Int? = nil, duration: Int? = nil, maxMembersCount: Int) {
         self.chatId = chatId
         self.startedMessageId = startedMessageId
         self.duration = duration
@@ -1949,8 +3202,11 @@ public struct BotWebhook: Codable {
     public let kind: BotWebhookKind?
     public let unfurlDomains: [String]
     public let lastRequestAt: String?
+    public let url: String?
+    public let secretToken: String?
+    public let lastRequestBody: String?
 
-    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String? = nil, templateEngine: BotTemplateEngine, challengeKey: String? = nil, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind? = nil, unfurlDomains: [String], lastRequestAt: String? = nil) {
+    public init(name: String, nickname: String, outgoingUrl: String? = nil, events: [BotEventName], triggerOn: BotTriggerOn, commands: [String], scopes: [String], template: String? = nil, templateEngine: BotTemplateEngine, challengeKey: String? = nil, linkPreviewEnabled: Bool, ignoreSelfMessages: Bool, eventsHistoryEnabled: Bool, singleChat: Bool, canEdit: [BotCanEdit], whoCanAdd: BotWhoCanAdd, kind: BotWebhookKind? = nil, unfurlDomains: [String], lastRequestAt: String? = nil, url: String? = nil, secretToken: String? = nil, lastRequestBody: String? = nil) {
         self.name = name
         self.nickname = nickname
         self.outgoingUrl = outgoingUrl
@@ -1970,6 +3226,9 @@ public struct BotWebhook: Codable {
         self.kind = kind
         self.unfurlDomains = unfurlDomains
         self.lastRequestAt = lastRequestAt
+        self.url = url
+        self.secretToken = secretToken
+        self.lastRequestBody = lastRequestBody
     }
 
     enum CodingKeys: String, CodingKey {
@@ -1992,6 +3251,9 @@ public struct BotWebhook: Codable {
         case kind
         case unfurlDomains = "unfurl_domains"
         case lastRequestAt = "last_request_at"
+        case url
+        case secretToken = "secret_token"
+        case lastRequestBody = "last_request_body"
     }
 }
 
@@ -2137,6 +3399,14 @@ public struct ChatCreateRequest: Codable {
 
     public init(chat: ChatCreateRequestChat) {
         self.chat = chat
+    }
+}
+
+public struct ChatExport: Codable {
+    public let id: Int
+
+    public init(id: Int) {
+        self.id = id
     }
 }
 
@@ -2572,6 +3842,27 @@ public struct ExportRequest: Codable {
     }
 }
 
+public struct ExportWebhookPayload: Codable {
+    public let type: String
+    public let event: String
+    public let exportId: Int
+    public let createdAt: String
+
+    public init(type: String, event: String, exportId: Int, createdAt: String) {
+        self.type = type
+        self.event = event
+        self.exportId = exportId
+        self.createdAt = createdAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case type
+        case event
+        case exportId = "export_id"
+        case createdAt = "created_at"
+    }
+}
+
 public struct File: Codable {
     public let id: Int
     public let key: String
@@ -2607,16 +3898,17 @@ public struct File: Codable {
 
 public struct FileUploadRequest: Codable {
     public let ContentDisposition: String
-    public let acl: String
+    public let acl: String?
     public let policy: String
     public let xAmzCredential: String
     public let xAmzAlgorithm: String
     public let xAmzDate: String
     public let xAmzSignature: String
     public let key: String
+    public let bucket: String?
     public var file: Data
 
-    public init(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, file: Data) {
+    public init(ContentDisposition: String, acl: String? = nil, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, bucket: String? = nil, file: Data) {
         self.ContentDisposition = ContentDisposition
         self.acl = acl
         self.policy = policy
@@ -2625,6 +3917,7 @@ public struct FileUploadRequest: Codable {
         self.xAmzDate = xAmzDate
         self.xAmzSignature = xAmzSignature
         self.key = key
+        self.bucket = bucket
         self.file = file
     }
 
@@ -2637,6 +3930,7 @@ public struct FileUploadRequest: Codable {
         case xAmzDate = "x-amz-date"
         case xAmzSignature = "x-amz-signature"
         case key
+        case bucket
         case file
     }
 }
@@ -2893,13 +4187,13 @@ public struct MessageCreateRequestFile: Codable {
     public let key: String
     public let name: String
     public let fileType: FileType
-    public let size: Int64
+    public let size: Int64?
     public let width: Int?
     public let height: Int?
     public let durationMs: Int?
     public let waveform: String?
 
-    public init(key: String, name: String, fileType: FileType, size: Int64, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
+    public init(key: String, name: String, fileType: FileType, size: Int64? = nil, width: Int? = nil, height: Int? = nil, durationMs: Int? = nil, waveform: String? = nil) {
         self.key = key
         self.name = name
         self.fileType = fileType
@@ -2925,7 +4219,7 @@ public struct MessageCreateRequestFile: Codable {
 public struct MessageCreateRequestMessage: Codable {
     public let entityType: MessageEntityType?
     public let entityId: Int
-    public let content: String
+    public let content: String?
     public let files: [MessageCreateRequestFile]?
     public let buttons: [[Button]]?
     public let parentMessageId: Int?
@@ -2933,7 +4227,7 @@ public struct MessageCreateRequestMessage: Codable {
     public let displayName: String?
     public let skipInviteMentions: Bool?
 
-    public init(entityType: MessageEntityType? = nil, entityId: Int, content: String, files: [MessageCreateRequestFile]? = nil, buttons: [[Button]]? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, skipInviteMentions: Bool? = nil) {
+    public init(entityType: MessageEntityType? = nil, entityId: Int, content: String? = nil, files: [MessageCreateRequestFile]? = nil, buttons: [[Button]]? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, skipInviteMentions: Bool? = nil) {
         self.entityType = entityType
         self.entityId = entityId
         self.content = content
@@ -3090,19 +4384,91 @@ public struct MessageWebhookPayload: Codable {
 }
 
 public struct OAuthError: Codable, Error {
-    public let error: String
+    public let error: OAuthErrorCode
     public let errorDescription: String
 
-    public init(error: String, errorDescription: String) {
+    public init(error: OAuthErrorCode, errorDescription: String) {
         self.error = error
         self.errorDescription = errorDescription
     }
 
-    public var localizedDescription: String { error }
+    public var localizedDescription: String { error.rawValue }
 
     enum CodingKeys: String, CodingKey {
         case error
         case errorDescription = "error_description"
+    }
+}
+
+public struct OAuthRevokeRequest: Codable {
+    public let token: String
+    public let tokenTypeHint: OAuthTokenTypeHint?
+    public let clientId: String?
+    public let clientSecret: String?
+
+    public init(token: String, tokenTypeHint: OAuthTokenTypeHint? = nil, clientId: String? = nil, clientSecret: String? = nil) {
+        self.token = token
+        self.tokenTypeHint = tokenTypeHint
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case token
+        case tokenTypeHint = "token_type_hint"
+        case clientId = "client_id"
+        case clientSecret = "client_secret"
+    }
+}
+
+public struct OAuthToken: Codable {
+    public let accessToken: String
+    public let tokenType: String
+    public let refreshToken: String
+    public let scope: String
+    public let createdAt: Int64
+
+    public init(accessToken: String, tokenType: String, refreshToken: String, scope: String, createdAt: Int64) {
+        self.accessToken = accessToken
+        self.tokenType = tokenType
+        self.refreshToken = refreshToken
+        self.scope = scope
+        self.createdAt = createdAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+        case tokenType = "token_type"
+        case refreshToken = "refresh_token"
+        case scope
+        case createdAt = "created_at"
+    }
+}
+
+public struct OAuthTokenRequest: Codable {
+    public let grantType: String
+    public let code: String
+    public let redirectUri: String
+    public let clientId: String?
+    public let clientSecret: String?
+    public let codeVerifier: String?
+
+    public init(grantType: String, code: String, redirectUri: String, clientId: String? = nil, clientSecret: String? = nil, codeVerifier: String? = nil) {
+        self.grantType = grantType
+        self.code = code
+        self.redirectUri = redirectUri
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+        self.codeVerifier = codeVerifier
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case grantType = "grant_type"
+        case code
+        case redirectUri = "redirect_uri"
+        case clientId = "client_id"
+        case clientSecret = "client_secret"
+        case codeVerifier = "code_verifier"
     }
 }
 
@@ -3270,13 +4636,13 @@ public struct SearchPaginationMeta: Codable {
 }
 
 public struct StatusUpdateRequestStatus: Codable {
-    public let emoji: String
-    public let title: String
+    public let emoji: String?
+    public let title: String?
     public let expiresAt: String?
     public let isAway: Bool?
     public let awayMessage: String?
 
-    public init(emoji: String, title: String, expiresAt: String? = nil, isAway: Bool? = nil, awayMessage: String? = nil) {
+    public init(emoji: String? = nil, title: String? = nil, expiresAt: String? = nil, isAway: Bool? = nil, awayMessage: String? = nil) {
         self.emoji = emoji
         self.title = title
         self.expiresAt = expiresAt
@@ -3508,16 +4874,17 @@ public struct UpdateMemberRoleRequest: Codable {
 
 public struct UploadParams: Codable {
     public let ContentDisposition: String
-    public let acl: String
+    public let acl: String?
     public let policy: String
     public let xAmzCredential: String
     public let xAmzAlgorithm: String
     public let xAmzDate: String
     public let xAmzSignature: String
     public let key: String
+    public let bucket: String?
     public let directUrl: String
 
-    public init(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String) {
+    public init(ContentDisposition: String, acl: String? = nil, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, bucket: String? = nil, directUrl: String) {
         self.ContentDisposition = ContentDisposition
         self.acl = acl
         self.policy = policy
@@ -3526,6 +4893,7 @@ public struct UploadParams: Codable {
         self.xAmzDate = xAmzDate
         self.xAmzSignature = xAmzSignature
         self.key = key
+        self.bucket = bucket
         self.directUrl = directUrl
     }
 
@@ -3538,6 +4906,7 @@ public struct UploadParams: Codable {
         case xAmzDate = "x-amz-date"
         case xAmzSignature = "x-amz-signature"
         case key
+        case bucket
         case directUrl = "direct_url"
     }
 }
@@ -4255,6 +5624,26 @@ public struct WebhookVideoCallThread: Codable {
     }
 }
 
+public struct UpdateBotAvatarRequest: Codable {
+    public var image: Data
+
+    public init(image: Data) {
+        self.image = image
+    }
+}
+
+public struct CreateChatResponseMeta: Codable {
+    public let notFoundMemberIds: [Int]
+
+    public init(notFoundMemberIds: [Int]) {
+        self.notFoundMemberIds = notFoundMemberIds
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case notFoundMemberIds = "not_found_member_ids"
+    }
+}
+
 public struct UpdateChatAvatarRequest: Codable {
     public var image: Data
 
@@ -4345,16 +5734,16 @@ public enum AuditEventDetailsUnion: Codable {
             self = .auditDetailsBotScopes(value)
             return
         }
-        if let value = try? AuditDetailsVideoCallFinished(from: decoder) {
-            self = .auditDetailsVideoCallFinished(value)
-            return
-        }
         if let value = try? AuditDetailsKms(from: decoder) {
             self = .auditDetailsKms(value)
             return
         }
         if let value = try? AuditDetailsRoleChanged(from: decoder) {
             self = .auditDetailsRoleChanged(value)
+            return
+        }
+        if let value = try? AuditDetailsVideoCallFinished(from: decoder) {
+            self = .auditDetailsVideoCallFinished(value)
             return
         }
         if let value = try? AuditDetailsBotOAuthClientSecretRotated(from: decoder) {
@@ -4644,100 +6033,209 @@ public enum WebhookPayloadUnion: Codable {
 public struct GetAuditEventsResponse: Codable {
     public let data: [AuditEvent]
     public let meta: PaginationMeta
+
+    public init(data: [AuditEvent], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListBotsResponse: Codable {
     public let data: [BotResponse]
     public let meta: PaginationMeta
+
+    public init(data: [BotResponse], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListBotTokensResponse: Codable {
     public let data: [BotAccessToken]
     public let meta: PaginationMeta
+
+    public init(data: [BotAccessToken], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
+}
+
+public struct CreateChatResponse: Codable {
+    public let data: Chat
+    public let meta: CreateChatResponseMeta
+
+    public init(data: Chat, meta: CreateChatResponseMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListChatsResponse: Codable {
     public let data: [Chat]
     public let meta: PaginationMeta
+
+    public init(data: [Chat], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListMembersResponse: Codable {
     public let data: [User]
     public let meta: PaginationMeta
+
+    public init(data: [User], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListCompanyBotsResponse: Codable {
     public let data: [CompanyBotResponse]
     public let meta: PaginationMeta
+
+    public init(data: [CompanyBotResponse], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListCompanyChatsResponse: Codable {
     public let data: [Chat]
     public let meta: PaginationMeta
+
+    public init(data: [Chat], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListPropertiesResponse: Codable {
     public let data: [CustomPropertyDefinition]
+
+    public init(data: [CustomPropertyDefinition]) {
+        self.data = data
+    }
 }
 
 public struct ListDraftsResponse: Codable {
     public let data: [Draft]
     public let meta: PaginationMeta
+
+    public init(data: [Draft], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListTagsResponse: Codable {
     public let data: [GroupTag]
     public let meta: PaginationMeta
+
+    public init(data: [GroupTag], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct GetTagUsersResponse: Codable {
     public let data: [User]
     public let meta: PaginationMeta
+
+    public init(data: [User], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListChatMessagesResponse: Codable {
     public let data: [Message]
     public let meta: PaginationMeta
+
+    public init(data: [Message], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListReactionsResponse: Codable {
     public let data: [Reaction]
     public let meta: PaginationMeta
+
+    public init(data: [Reaction], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct SearchChatsResponse: Codable {
     public let data: [Chat]
     public let meta: SearchPaginationMeta
+
+    public init(data: [Chat], meta: SearchPaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct SearchMessagesResponse: Codable {
     public let data: [Message]
     public let meta: SearchPaginationMeta
+
+    public init(data: [Message], meta: SearchPaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct SearchUsersResponse: Codable {
     public let data: [User]
     public let meta: SearchPaginationMeta
+
+    public init(data: [User], meta: SearchPaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListTasksResponse: Codable {
     public let data: [Task]
     public let meta: PaginationMeta
+
+    public init(data: [Task], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListThreadsResponse: Codable {
     public let data: [Thread]
     public let meta: PaginationMeta
+
+    public init(data: [Thread], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct ListUsersResponse: Codable {
     public let data: [User]
     public let meta: PaginationMeta
+
+    public init(data: [User], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 public struct GetWebhookEventsResponse: Codable {
     public let data: [WebhookEvent]
     public let meta: PaginationMeta
+
+    public init(data: [WebhookEvent], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }
 
 struct BotResponseDataWrapper: Codable {
@@ -4760,12 +6258,16 @@ struct BotSelfResponseDataWrapper: Codable {
     let data: BotSelfResponse
 }
 
+struct AvatarDataDataWrapper: Codable {
+    let data: AvatarData
+}
+
 struct ChatDataWrapper: Codable {
     let data: Chat
 }
 
-struct AvatarDataDataWrapper: Codable {
-    let data: AvatarData
+struct ChatExportDataWrapper: Codable {
+    let data: ChatExport
 }
 
 struct DraftDataWrapper: Codable {

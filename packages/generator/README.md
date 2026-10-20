@@ -24,7 +24,7 @@ npx @pachca/generator --spec https://example.com/openapi.yaml --output ./sdk --l
 ### Параметры
 
 | Флаг | Описание |
-|------|----------|
+| --- | --- |
 | `--spec` | Путь или URL к OpenAPI 3.0 YAML спецификации (по умолчанию: `https://dev.pachca.com/openapi.yaml`) |
 | `--output` | Директория для сгенерированных файлов |
 | `--lang` | Целевые языки через запятую: `typescript`, `python`, `go`, `kotlin`, `swift`, `csharp` |
@@ -39,7 +39,7 @@ generate('openapi.yaml', './output', ['typescript', 'python']);
 
 ## Архитектура
 
-```
+```text
 OpenAPI YAML → @pachca/openapi-parser → IR (transform.ts) → Генераторы языков → Исходные файлы
 ```
 
@@ -50,22 +50,24 @@ OpenAPI YAML → @pachca/openapi-parser → IR (transform.ts) → Генерат
 ## Расширения OpenAPI
 
 | Расширение | Уровень | Описание |
-|------------|---------|----------|
+| --- | --- | --- |
 | `x-error: true` | Schema | Помечает схему как тип ошибки (выбрасывается/возвращается при не-2xx) |
 | `x-external-url: "paramName"` | Operation | Генерирует параметр `paramName` для динамических URL (например, загрузка в S3) |
 | `x-requirements` | Operation | `auth: false` пропускает заголовок Authorization; `scope`/`plan` для метаданных |
 | `x-paginated: true` | Operation | Генерирует хелпер `*All` для автоматической пагинации по всем страницам |
 | `x-enum-descriptions` | Schema | Сопоставляет значения enum с человекочитаемыми описаниями |
 | `x-param-names` | Parameter | Переопределяет имя параметра в SDK |
+| `x-query-array: brackets` | Parameter | Массив в query уходит парами `name[]=value`, как его читает Rails, а без расширения значение повторяется под тем же именем: `name=a&name=b` |
 
 ## Генерируемые возможности
 
 - **Типобезопасные клиенты** с методами для каждой операции
 - **Хелперы курсорной пагинации** (`listChatsAll`, `list_chats_all` и т.д.) для эндпоинтов с `x-paginated`
 - **Повторные запросы с `Retry-After`** при 429 Too Many Requests (до 3 попыток с экспоненциальной задержкой)
-- **Типы enum** с описаниями
+- **Типы enum** с описаниями, открытые для ответов: значение не из спеки разбирается без ошибки и сохраняется как есть
 - **Union/дискриминированные типы** (oneOf/anyOf)
 - **Разворачивание тела запроса** для обёрток с одним полем
+- **Ответ с одним объектом** `{ data: T }` метод возвращает как `T`, а ответ `{ data: T, meta }` возвращает целиком вместе с `meta`, как ответ списка
 - **Поддержка multipart-загрузки**
 - **Аннотации `@deprecated`** из спецификации
 - **Конвертация snake/camel case** для идиоматичных имён полей
@@ -73,7 +75,7 @@ OpenAPI YAML → @pachca/openapi-parser → IR (transform.ts) → Генерат
 ## Структура вывода
 
 | Язык | Файлы |
-|------|-------|
+| --- | --- |
 | TypeScript | `types.ts`, `client.ts`, `utils.ts` |
 | Python | `models.py`, `client.py`, `utils.py`, `__init__.py` |
 | Go | `types.go`, `client.go`, `utils.go` |

@@ -45,6 +45,8 @@ export interface Parameter {
   required?: boolean;
   schema: Schema;
   'x-param-names'?: { name: string; description?: string }[];
+  /** How a list in the query travels: `brackets` sends each value as `name[]=value`. */
+  'x-query-array'?: 'brackets';
 }
 
 export interface RequestBody {
@@ -72,6 +74,8 @@ export interface Endpoint {
   security?: Record<string, string[]>[];
   requirements?: { scope?: string; plan?: string; auth?: boolean };
   paginated?: boolean;
+  /** Шаг OAuth (`x-oauth-flow`): описан в справке, но команды под него нет */
+  oauthFlow?: boolean;
   externalUrl?: string;
 }
 
@@ -153,6 +157,7 @@ export function parseOpenAPI(): Endpoint[] {
           required: resolved.required as boolean | undefined,
           schema: paramSchema,
           'x-param-names': resolved['x-param-names'] as Parameter['x-param-names'],
+          'x-query-array': resolved['x-query-array'] as Parameter['x-query-array'],
         });
       }
 
@@ -219,6 +224,7 @@ export function parseOpenAPI(): Endpoint[] {
 
       // Parse x-paginated and x-external-url
       const paginated = op['x-paginated'] === true ? true : undefined;
+      const oauthFlow = op['x-oauth-flow'] === true ? true : undefined;
       const externalUrl = typeof op['x-external-url'] === 'string' ? (op['x-external-url'] as string) : undefined;
 
       endpoints.push({
@@ -234,6 +240,7 @@ export function parseOpenAPI(): Endpoint[] {
         security: op.security as Endpoint['security'],
         requirements,
         paginated,
+        oauthFlow,
         externalUrl,
       });
     }

@@ -1,5 +1,6 @@
 package pachca
 
+// SortOrder may hold a value this SDK does not list yet: a response keeps it as is.
 type SortOrder string
 
 const (
@@ -7,6 +8,7 @@ const (
 	SortOrderDesc SortOrder = "desc"
 )
 
+// UserRole may hold a value this SDK does not list yet: a response keeps it as is.
 type UserRole string
 
 const (
@@ -16,6 +18,7 @@ const (
 	UserRoleBot        UserRole = "bot" // Бот
 )
 
+// ViewBlockHeaderType may hold a value this SDK does not list yet: a response keeps it as is.
 type ViewBlockHeaderType string
 
 const (

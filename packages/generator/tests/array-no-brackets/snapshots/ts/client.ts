@@ -31,7 +31,7 @@ export class SearchServiceImpl extends SearchService {
       params.chatIds.forEach((v) => query.append("chat_ids[]", String(v)));
     }
     if (params?.userIds !== undefined) {
-      params.userIds.forEach((v) => query.append("user_ids[]", String(v)));
+      params.userIds.forEach((v) => query.append("user_ids", String(v)));
     }
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);

@@ -117,8 +117,40 @@ function pyDefault(
   return null;
 }
 
+/** The open enum type of `OAuthError.error`, when the spec gives that field one. */
+function oauthErrorCodeEnum(ir: IR): string | undefined {
+  const field = ir.models.find((m) => m.name === 'OAuthError')?.fields.find((f) => f.name === 'error');
+  if (field?.type.kind !== 'enum' || !field.type.ref) return undefined;
+  return ir.enums.find((e) => e.name === field.type.ref)?.open ? field.type.ref : undefined;
+}
+
+/**
+ * Base of the open enums: a value the SDK does not list yet becomes a member that
+ * keeps it, instead of a `ValueError`. That member is not registered on the
+ * class, so `is_known` tells it apart even when the enum lists `unknown` itself;
+ * its name then becomes `UNKNOWN_VALUE`, as the Swift catch-all `unknownValue`.
+ */
+function emitOpenStrEnum(lines: string[]): void {
+  lines.push('class OpenStrEnum(StrEnum):');
+  lines.push('    """An enum of responses: a value this SDK does not list yet becomes a member that keeps it, with is_known False."""');
+  lines.push('');
+  lines.push('    @classmethod');
+  lines.push('    def _missing_(cls, value: object) -> OpenStrEnum | None:');
+  lines.push('        if not isinstance(value, str):');
+  lines.push('            return None');
+  lines.push('        member = str.__new__(cls, value)');
+  lines.push('        member._name_ = "UNKNOWN_VALUE" if "UNKNOWN" in cls.__members__ else "UNKNOWN"');
+  lines.push('        member._value_ = value');
+  lines.push('        return member');
+  lines.push('');
+  lines.push('    @property');
+  lines.push('    def is_known(self) -> bool:');
+  lines.push('        """Whether this SDK version lists the value."""');
+  lines.push('        return self._value_ in type(self)._value2member_map_');
+}
+
 function emitEnum(lines: string[], e: IREnum): void {
-  lines.push(`class ${e.name}(StrEnum):`);
+  lines.push(`class ${e.name}(${e.open ? 'OpenStrEnum' : 'StrEnum'}):`);
   if (e.description && e.hasDescriptions && e.members.length > 1) {
     lines.push(`    """${e.description}"""`);
     lines.push('');
@@ -199,7 +231,9 @@ function emitModel(
     if (errField) {
       lines.push('');
       lines.push('    def __str__(self) -> str:');
-      lines.push(`        return self.${pyFieldName(errField)}`);
+      lines.push(errField.type.kind === 'enum'
+        ? `        return str(self.${pyFieldName(errField)})`
+        : `        return self.${pyFieldName(errField)}`);
     }
   }
 }
@@ -233,7 +267,7 @@ function emitParamsType(lines: string[], name: string, params: IROperation['quer
 function emitResponseType(lines: string[], rt: IRResponseType): void {
   lines.push('@dataclass');
   lines.push(`class ${rt.name}:`);
-  lines.push(`    data: list[${rt.dataRef}]`);
+  lines.push(rt.dataIsArray ? `    data: list[${rt.dataRef}]` : `    data: ${rt.dataRef}`);
   if (rt.metaRef) {
     if (rt.metaIsRequired) lines.push(`    meta: ${rt.metaRef}`);
     else lines.push(`    meta: ${rt.metaRef} | None = None`);
@@ -265,6 +299,12 @@ function generateModels(ir: IR): string {
 
   const unionMembers = new Set<string>();
   for (const u of ir.unions) for (const ref of u.memberRefs) unionMembers.add(ref);
+
+  if (ir.enums.some((e) => e.open)) {
+    emitOpenStrEnum(lines);
+    lines.push('');
+    lines.push('');
+  }
 
   for (const e of ir.enums) {
     emitEnum(lines, e);
@@ -314,8 +354,9 @@ function generateModels(ir: IR): string {
 
 function opReturnType(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'str';
+  if (op.successResponse.isBinary) return 'bytes';
   if (!op.successResponse.hasBody) return 'None';
-  if (op.successResponse.isList) {
+  if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return rt?.name ?? 'object';
   }
@@ -330,10 +371,25 @@ function pyPath(path: string, op: IROperation): string {
   return p;
 }
 
+/** Both error models exist, so an error's class is read off its body. */
+function pyPicksErrorByBody(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+}
+
+/** A form body (`application/x-www-form-urlencoded`): httpx sends `data=` as one, empty fields left out. */
+function pyFormData(op: IROperation): string {
+  const rb = op.requestBody!;
+  if (shouldUnwrapBody(rb)) {
+    const f = rb.unwrapField!;
+    return `{${JSON.stringify(f.name)}: str(${pyFieldName(f)})}`;
+  }
+  return '_form_data(serialize(request))';
+}
+
 function needsAsdict(ir: IR): boolean {
   return ir.services.some((s) =>
     s.operations.some((op) => {
-      if (op.requestBody?.contentType !== 'json') return false;
+      if (op.requestBody?.contentType !== 'json' && op.requestBody?.contentType !== 'form') return false;
       return !shouldUnwrapBody(op.requestBody);
     }),
   );
@@ -372,7 +428,7 @@ function collectClientImports(ir: IR): string[] {
         add(`${pascal}Params`);
       }
       if (op.successResponse.hasBody && !op.successResponse.isRedirect) {
-        if (op.successResponse.isList) {
+        if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
           const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
           if (rt) add(rt.name);
           if (op.isPaginated && op.successResponse.dataRef) {
@@ -387,6 +443,9 @@ function collectClientImports(ir: IR): string[] {
       }
       if (op.hasOAuthError || ir.models.some((m) => m.name === 'OAuthError')) {
         add('OAuthError');
+        // `_error_from_body` builds the OAuthError itself, its code included.
+        const codeEnum = oauthErrorCodeEnum(ir);
+        if (codeEnum && pyPicksErrorByBody(ir)) add(codeEnum);
       }
       if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
         add('ApiError');
@@ -554,11 +613,17 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     const pathStr = op.externalUrl
       ? camelToSnake(op.externalUrl)
       : path.includes('{') ? `f"${path}"` : `"${path}"`;
+    const headersArg = op.requestHeaders?.length
+      ? `headers={${op.requestHeaders.map((h) => `${JSON.stringify(h.name)}: ${JSON.stringify(h.value)}`).join(', ')}},`
+      : undefined;
     if (op.noAuth) {
-      lines.push(`        async with httpx.AsyncClient() as _no_auth:`);
+      // An external address is absolute; an API path needs the client's base URL.
+      const noAuthClient = op.externalUrl ? 'httpx.AsyncClient()' : 'httpx.AsyncClient(base_url=self._client.base_url)';
+      lines.push(`        async with ${noAuthClient} as _no_auth:`);
       lines.push(`            response = await _no_auth.${method}(`);
       lines.push(`                ${pathStr},`);
       if (hasQuery) lines.push('                params=query,');
+      if (headersArg) lines.push(`                ${headersArg}`);
       if (op.successResponse.isRedirect) lines.push('                follow_redirects=False,');
       if (hasBody) {
         const rb = op.requestBody!;
@@ -569,11 +634,13 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
           lines.push('                json=serialize(request),');
         }
       }
+      if (op.requestBody?.contentType === 'form') lines.push(`                data=${pyFormData(op)},`);
       lines.push('            )');
     } else {
       lines.push(`        response = await self._client.${method}(`);
       lines.push(`            ${pathStr},`);
       if (hasQuery) lines.push('            params=query,');
+      if (headersArg) lines.push(`            ${headersArg}`);
       if (op.successResponse.isRedirect) lines.push('            follow_redirects=False,');
       if (hasBody) {
         const rb = op.requestBody!;
@@ -584,6 +651,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
           lines.push('            json=serialize(request),');
         }
       }
+      if (op.requestBody?.contentType === 'form') lines.push(`            data=${pyFormData(op)},`);
       lines.push('        )');
     }
   }
@@ -604,10 +672,13 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     );
     lines.push('                    )');
     lines.push('                return location');
+  } else if (op.successResponse.isBinary) {
+    lines.push(`            case ${op.successResponse.statusCode}:`);
+    lines.push('                return response.content');
   } else if (!op.successResponse.hasBody) {
     lines.push(`            case ${op.successResponse.statusCode}:`);
     lines.push('                return');
-  } else if (op.successResponse.isList) {
+  } else if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     lines.push(`            case ${op.successResponse.statusCode}:`);
     lines.push(`                return deserialize(${rt?.name ?? 'object'}, body)`);
@@ -626,7 +697,10 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     );
   }
 
-  if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
+  if (pyPicksErrorByBody(ir)) {
+    lines.push('            case _:');
+    lines.push(`                raise _error_from_body(${hasBody ? 'body' : 'response.json()'})`);
+  } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
     lines.push('            case _:');
     lines.push(
       `                raise deserialize(ApiError, ${hasBody ? 'body' : 'response.json()'})`,
@@ -861,6 +935,14 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     if (needPolling) lines.push('from datetime import datetime, timezone');
     if (needPolling) lines.push('from typing import AsyncIterator, TypeVar');
     if (needPolling) lines.push('');
+    if (ir.oauthAuthorizeUrl) {
+      lines.push('import base64');
+      lines.push('import hashlib');
+      lines.push('import secrets');
+      lines.push('from dataclasses import dataclass');
+      lines.push('from urllib.parse import urlencode');
+      lines.push('');
+    }
     lines.push('import httpx');
     lines.push('');
   }
@@ -882,6 +964,69 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
   if (needPolling) {
     lines.push('');
     lines.push('TPayload = TypeVar("TPayload", bound=WebhookPayloadUnion)');
+  }
+
+  if (ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'form' && !shouldUnwrapBody(o.requestBody)))) {
+    lines.push('');
+    lines.push('');
+    lines.push('def _form_data(fields: dict) -> dict[str, str]:');
+    lines.push('    # A form body (application/x-www-form-urlencoded): booleans go as true and false like in JSON.');
+    lines.push('    return {k: str(v).lower() if isinstance(v, bool) else str(v) for k, v in fields.items() if v is not None}');
+  }
+
+  if (ir.services.length > 0 && pyPicksErrorByBody(ir)) {
+    lines.push('');
+    lines.push('');
+    lines.push('def _error_from_body(body: object) -> Exception:');
+    lines.push('    # An error body is either {"errors": [...]} or the OAuth form {"error", "error_description"},');
+    lines.push('    # which also comes with 400 and 403 (insufficient_scope, invalid_grant). The body decides the class.');
+    lines.push('    if isinstance(body, dict) and isinstance(body.get("error"), str) and "errors" not in body:');
+    const codeEnum = oauthErrorCodeEnum(ir);
+    const code = codeEnum ? `${codeEnum}(body["error"])` : 'body["error"]';
+    lines.push(`        return OAuthError(${code}, str(body.get("error_description") or ""))`);
+    lines.push('    return deserialize(ApiError, body)');
+  }
+
+  if (ir.services.length > 0 && ir.oauthAuthorizeUrl) {
+    lines.push('');
+    lines.push('');
+    lines.push(`PACHCA_AUTHORIZE_URL = ${JSON.stringify(ir.oauthAuthorizeUrl)}`);
+    lines.push('');
+    lines.push('');
+    lines.push('@dataclass');
+    lines.push('class Pkce:');
+    lines.push('    # A PKCE pair: keep code_verifier until the code exchange, put code_challenge into the link.');
+    lines.push('    code_verifier: str');
+    lines.push('    code_challenge: str');
+    lines.push('');
+    lines.push('');
+    lines.push('def _base64_url(data: bytes) -> str:');
+    lines.push('    return base64.urlsafe_b64encode(data).rstrip(b"=").decode()');
+    lines.push('');
+    lines.push('');
+    lines.push('def create_pkce() -> Pkce:');
+    lines.push('    # A random code_verifier and its SHA-256 code_challenge.');
+    lines.push('    code_verifier = _base64_url(secrets.token_bytes(32))');
+    lines.push('    return Pkce(code_verifier, _base64_url(hashlib.sha256(code_verifier.encode()).digest()))');
+    lines.push('');
+    lines.push('');
+    lines.push('def build_authorize_url(');
+    lines.push('    client_id: str,');
+    lines.push('    redirect_uri: str,');
+    lines.push('    state: str,');
+    lines.push('    code_challenge: str,');
+    lines.push('    authorize_url: str = PACHCA_AUTHORIZE_URL,');
+    lines.push(') -> str:');
+    lines.push('    # The authorization link for a message button: the consent screen with PKCE (S256).');
+    lines.push('    query = urlencode({');
+    lines.push('        "client_id": client_id,');
+    lines.push('        "redirect_uri": redirect_uri,');
+    lines.push('        "response_type": "code",');
+    lines.push('        "state": state,');
+    lines.push('        "code_challenge": code_challenge,');
+    lines.push('        "code_challenge_method": "S256",');
+    lines.push('    })');
+    lines.push('    return f"{authorize_url}?{query}"');
   }
 
   if (ir.services.length === 0) {
@@ -995,9 +1140,11 @@ function generateUtils(ir: IR): string {
     '',
     'import dataclasses',
     'import keyword',
+    'import types',
     'from dataclasses import asdict, fields',
     'from datetime import datetime',
-    'from typing import Callable, Type, TypeVar, get_args, get_origin, get_type_hints',
+    'from enum import Enum',
+    'from typing import Callable, Type, TypeVar, Union, get_args, get_origin, get_type_hints',
     '',
     'import httpx',
   ];
@@ -1076,12 +1223,15 @@ function generateUtils(ir: IR): string {
     '',
     '',
     'def _resolve_list_item_type(tp: object) -> object | None:',
-    '    """Extract the item type from list[X]."""',
+    '    """Extract the item type from list[X] or list[X] | None."""',
     '    origin = get_origin(tp)',
     '    if origin is list:',
     '        args = get_args(tp)',
-    '        if args:',
-    '            return args[0]',
+    '        return args[0] if args else None',
+    '    if origin is Union or origin is types.UnionType:',
+    '        for arg in get_args(tp):',
+    '            if get_origin(arg) is list and get_args(arg):',
+    '                return get_args(arg)[0]',
     '    return None',
     '',
     '',
@@ -1121,6 +1271,13 @@ function generateUtils(ir: IR): string {
     '                    break',
     '        if raw_tp is datetime:',
     '            return datetime.fromisoformat(value)',
+    '        if isinstance(raw_tp, type) and issubclass(raw_tp, Enum):',
+    '            # An open enum keeps a value it does not list in a member with is_known False;',
+    '            # a closed one refuses it, and the raw string is kept as is.',
+    '            try:',
+    '                return raw_tp(value)',
+    '            except ValueError:',
+    '                return value',
     '    return value',
     '',
     '',
@@ -1428,6 +1585,7 @@ function pyBuildOutputFingerprint(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'str';
+  if (resp.isBinary) return 'bytes';
   if (!resp.hasBody) return null;
 
   if (resp.isList && resp.responseRef) {
@@ -1438,6 +1596,23 @@ function pyBuildOutputFingerprint(
       if (rt.metaRef) {
         const opt = rt.metaIsRequired ? '' : ' | None';
         parts.push(`meta: ${rt.metaRef}${opt}`);
+      }
+      return `${rt.name}(${parts.join(', ')})`;
+    }
+  }
+
+  // A single object with meta: both sides spelled out, the object as an unwrapped method shows it.
+  if (resp.isSingleWithMeta && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const fp = (ref: string): string => {
+        const model = models.get(ref);
+        return model ? pyModelFingerprint(model, ir, models, new Set()) : ref;
+      };
+      const parts: string[] = [`data: ${fp(rt.dataRef)}`];
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : ' | None';
+        parts.push(`meta: ${fp(rt.metaRef)}${opt}`);
       }
       return `${rt.name}(${parts.join(', ')})`;
     }

@@ -36,10 +36,12 @@ export function parseEndpoint(
   // x-requirements
   const requirements = getRecord(operation, 'x-requirements');
   if (requirements) {
+    const roles = getArray(requirements, 'roles')?.filter((r): r is string => typeof r === 'string');
     endpoint.requirements = {
       scope: getString(requirements, 'scope') || undefined,
       plan: getString(requirements, 'plan') || undefined,
       auth: requirements.auth === false ? false : undefined,
+      ...(roles?.length ? { roles } : {}),
     };
   }
 
@@ -52,6 +54,17 @@ export function parseEndpoint(
   // x-paginated
   if (getBoolean(operation, 'x-paginated')) {
     endpoint.paginated = true;
+  }
+
+  // x-oauth-flow
+  if (getBoolean(operation, 'x-oauth-flow')) {
+    endpoint.oauthFlow = true;
+  }
+
+  // x-oauth-authorize-url
+  const oauthAuthorizeUrl = getString(operation, 'x-oauth-authorize-url');
+  if (oauthAuthorizeUrl) {
+    endpoint.oauthAuthorizeUrl = oauthAuthorizeUrl;
   }
 
   // deprecated
@@ -121,6 +134,7 @@ function parseParameter(param: Record<string, unknown>, openapi: OpenAPIDocument
     explode: getBoolean(resolved, 'explode'),
     style: getString(resolved, 'style'),
     'x-param-names': parseParamNames(getArray(resolved, 'x-param-names')),
+    ...(getString(resolved, 'x-query-array') === 'brackets' ? { 'x-query-array': 'brackets' as const } : {}),
   };
 }
 

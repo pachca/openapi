@@ -22,7 +22,7 @@
   },
   "BotOperations_getBot": {
     "usage": "response, err := client.Bots.GetBot(ctx, int32(1738816))",
-    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}"
+    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}"
   },
   "BotOperations_getBotScopes": {
     "usage": "response, err := client.Bots.GetBotScopes(ctx, int32(1738816))",
@@ -60,8 +60,8 @@
     "output": "BotSelfTokenResponse{ID: int32, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Webhook: BotSelfWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}, AccessToken: string}"
   },
   "BotOperations_createBot": {
-    "usage": "request := BotCreateRequest{\n\tEmpty: Ptr(false),\n\tWebhook: BotCreateRequestWebhook{\n\t\tName: \"Бот задач\",\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t\tWhoCanAdd: Ptr(BotWhoCanAddCreator),\n\t\tCanEdit: []BotCanEdit{BotCanEditAdmin},\n\t\tSingleChat: Ptr(false),\n\t\tKind: Ptr(BotWebhookKindSimple),\n\t\tUnfurlDomains: []string{\"example\"},\n\t},\n\tOAuthClient: Ptr(BotOAuthClientRequest{\n\t\tConfidential: Ptr(true),\n\t\tRedirectUris: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t}),\n\tPromo: Ptr(BotPromoRequest{\n\t\tDescription: Ptr(\"Собирает сводку по задачам Jira и присылает её в чат\"),\n\t\tPublished: Ptr(true),\n\t\tPromoImages: []string{\"example\"},\n\t}),\n}\nresponse, err := client.Bots.CreateBot(ctx, request)",
-    "output": "BotCreateResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string, AccessToken: *string}",
+    "usage": "request := BotCreateRequest{\n\tEmpty: Ptr(false),\n\tWebhook: BotCreateRequestWebhook{\n\t\tName: \"Бот задач\",\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://example.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t\tWhoCanAdd: Ptr(BotWhoCanAddCreator),\n\t\tCanEdit: []BotCanEdit{BotCanEditAdmin},\n\t\tSingleChat: Ptr(false),\n\t\tKind: Ptr(BotWebhookKindSimple),\n\t\tUnfurlDomains: []string{\"example\"},\n\t},\n\tOAuthClient: Ptr(BotOAuthClientRequest{\n\t\tConfidential: Ptr(true),\n\t\tRedirectUris: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t}),\n\tPromo: Ptr(BotPromoRequest{\n\t\tDescription: Ptr(\"Собирает сводку по задачам Jira и присылает её в чат\"),\n\t\tPublished: Ptr(true),\n\t\tPromoImages: []string{\"example\"},\n\t}),\n}\nresponse, err := client.Bots.CreateBot(ctx, request)",
+    "output": "BotCreateResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string, AccessToken: *string}",
     "imports": [
       "BotCanEdit",
       "BotCreateRequest",
@@ -77,11 +77,11 @@
   },
   "BotOperations_recreateBotToken": {
     "usage": "response, err := client.Bots.RecreateBotToken(ctx, int32(1738816))",
-    "output": "BotCreateResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string, AccessToken: *string}"
+    "output": "BotCreateResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string, AccessToken: *string}"
   },
   "BotOperations_rotateBotClientSecret": {
     "usage": "response, err := client.Bots.RotateBotClientSecret(ctx, int32(1738816))",
-    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}"
+    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}"
   },
   "BotOperations_createBotToken": {
     "usage": "request := BotTokenCreateRequest{\n\tName: \"Сервер уведомлений\",\n\tScopes: []string{\"example\"},\n}\nresponse, err := client.Bots.CreateBotToken(ctx, int32(1738816), request)",
@@ -95,7 +95,7 @@
     "output": "BotAccessToken{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []string, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}"
   },
   "BotOperations_selfUpdateBotWebhook": {
-    "usage": "request := BotWebhookSelfUpdateRequest{\n\tWebhook: BotWebhookSelfUpdateRequestWebhook{\n\t\tOutgoingURL: \"https://www.website.com/tasks/new\",\n\t},\n}\nresponse, err := client.Bots.SelfUpdateBotWebhook(ctx, request)",
+    "usage": "request := BotWebhookSelfUpdateRequest{\n\tWebhook: BotWebhookSelfUpdateRequestWebhook{\n\t\tOutgoingURL: \"https://example.com/tasks/new\",\n\t},\n}\nresponse, err := client.Bots.SelfUpdateBotWebhook(ctx, request)",
     "output": "BotSelfResponse{ID: int32, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Webhook: BotSelfWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd}}",
     "imports": [
       "BotWebhookSelfUpdateRequest",
@@ -103,8 +103,8 @@
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "request := BotUpdateRequest{\n\tWebhook: Ptr(BotUpdateRequestWebhook{\n\t\tName: Ptr(\"Бот задач\"),\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://www.website.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t\tWhoCanAdd: Ptr(BotWhoCanAddCreator),\n\t\tCanEdit: []BotCanEdit{BotCanEditAdmin},\n\t\tSingleChat: Ptr(false),\n\t\tKind: Ptr(BotWebhookKindSimple),\n\t\tUnfurlDomains: []string{\"example\"},\n\t}),\n\tOAuthClient: Ptr(BotOAuthClientRequest{\n\t\tConfidential: Ptr(true),\n\t\tRedirectUris: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t}),\n\tPromo: Ptr(BotPromoRequest{\n\t\tDescription: Ptr(\"Собирает сводку по задачам Jira и присылает её в чат\"),\n\t\tPublished: Ptr(true),\n\t\tPromoImages: []string{\"example\"},\n\t}),\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
-    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}",
+    "usage": "request := BotUpdateRequest{\n\tWebhook: Ptr(BotUpdateRequestWebhook{\n\t\tName: Ptr(\"Бот задач\"),\n\t\tNickname: Ptr(\"tasks_bot\"),\n\t\tOutgoingURL: Ptr(\"https://example.com/tasks/new\"),\n\t\tEvents: []BotEventName{BotEventNameMessageNew},\n\t\tTriggerOn: Ptr(BotTriggerOnCommands),\n\t\tCommands: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t\tTemplate: Ptr(\"Заказ от {{ client }} на сумму {{ amount }} ₽\"),\n\t\tTemplateEngine: Ptr(BotTemplateEngineLiquid),\n\t\tChallengeKey: Ptr(\"challenge\"),\n\t\tLinkPreviewEnabled: Ptr(true),\n\t\tIgnoreSelfMessages: Ptr(false),\n\t\tEventsHistoryEnabled: Ptr(false),\n\t\tWhoCanAdd: Ptr(BotWhoCanAddCreator),\n\t\tCanEdit: []BotCanEdit{BotCanEditAdmin},\n\t\tSingleChat: Ptr(false),\n\t\tKind: Ptr(BotWebhookKindSimple),\n\t\tUnfurlDomains: []string{\"example\"},\n\t}),\n\tOAuthClient: Ptr(BotOAuthClientRequest{\n\t\tConfidential: Ptr(true),\n\t\tRedirectUris: []string{\"example\"},\n\t\tScopes: []string{\"example\"},\n\t}),\n\tPromo: Ptr(BotPromoRequest{\n\t\tDescription: Ptr(\"Собирает сводку по задачам Jira и присылает её в чат\"),\n\t\tPublished: Ptr(true),\n\t\tPromoImages: []string{\"example\"},\n\t}),\n}\nresponse, err := client.Bots.UpdateBot(ctx, int32(1738816), request)",
+    "output": "BotResponse{ID: int32, Name: string, Nickname: string, AvatarURL: *string, CreatorID: *int32, CreatedAt: string, AuthorizedUsersCount: int32, LastUsedAt: *string, Webhook: BotWebhook{Name: string, Nickname: string, OutgoingURL: *string, Events: []BotEventName, TriggerOn: BotTriggerOn, Commands: []string, Scopes: []string, Template: *string, TemplateEngine: BotTemplateEngine, ChallengeKey: *string, LinkPreviewEnabled: bool, IgnoreSelfMessages: bool, EventsHistoryEnabled: bool, SingleChat: bool, CanEdit: []BotCanEdit, WhoCanAdd: BotWhoCanAdd, Kind: *BotWebhookKind, UnfurlDomains: []string, LastRequestAt: *string, URL: *string, SecretToken: *string, LastRequestBody: *string}, OAuthClientEnabled: bool, OAuthClient: *BotOAuthClient{ClientID: string, ClientSecretPreview: string, Confidential: bool, RedirectUris: []string, Scopes: []string}, Promo: *BotPromo{Description: *string, Published: bool, PromoImages: []BotPromoImage{Key: string, URL: string}}, Permissions: BotPermissions{UpdateOAuthClient: bool, RecreateToken: bool, Destroy: bool}, ClientSecret: *string}",
     "imports": [
       "BotCanEdit",
       "BotEventName",
@@ -118,6 +118,10 @@
       "BotWhoCanAdd"
     ]
   },
+  "BotOperations_updateBotAvatar": {
+    "usage": "response, err := client.Bots.UpdateBotAvatar(ctx, int32(1738816), bytes.NewReader(nil))",
+    "output": "AvatarData{ImageURL: string}"
+  },
   "BotOperations_updateBotToken": {
     "usage": "request := BotTokenUpdateRequest{\n\tName: Ptr(\"Сервер уведомлений\"),\n\tScopes: []string{\"example\"},\n}\nresponse, err := client.Bots.UpdateBotToken(ctx, int32(1738816), int64(4827), request)",
     "output": "BotAccessToken{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []string, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}",
@@ -127,6 +131,9 @@
   },
   "BotOperations_deleteBot": {
     "usage": "client.Bots.DeleteBot(ctx, int32(1738816))"
+  },
+  "BotOperations_deleteBotAvatar": {
+    "usage": "client.Bots.DeleteBotAvatar(ctx, int32(1738816))"
   },
   "BotOperations_deleteBotToken": {
     "usage": "client.Bots.DeleteBotToken(ctx, int32(1738816), int64(4827))"
@@ -162,14 +169,15 @@
   },
   "ChatOperations_createChat": {
     "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"🤿 aqua\",\n\t\tMemberIDs: []int32{int32(123)},\n\t\tGroupTagIDs: []int32{int32(123)},\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(false),\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
-    "output": "Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}",
+    "output": "CreateChatResponse{Data: Chat{ID: int32, Name: string, CreatedAt: string, OwnerID: int32, MemberIDs: []int32, GroupTagIDs: []int32, Channel: bool, Archived: bool, Personal: bool, Public: bool, LastMessageAt: string, MeetRoomURL: string, AvatarURL: *string}, Meta: CreateChatResponseMeta{NotFoundMemberIDs: []int32}}",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "request := ExportRequest{\n\tStartAt: \"2025-03-20\",\n\tEndAt: \"2025-03-20\",\n\tWebhookURL: Ptr(\"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\"),\n\tChatIDs: []int32{int32(123)},\n\tSkipChatsFile: Ptr(false),\n}\nclient.Chats.RequestExport(ctx, request)",
+    "usage": "request := ExportRequest{\n\tStartAt: \"2025-03-20\",\n\tEndAt: \"2025-03-20\",\n\tWebhookURL: Ptr(\"https://example.com/webhooks/export\"),\n\tChatIDs: []int32{int32(123)},\n\tSkipChatsFile: Ptr(false),\n}\nresponse, err := client.Chats.RequestExport(ctx, request)",
+    "output": "ChatExport{ID: int32}",
     "imports": [
       "ExportRequest"
     ]
@@ -242,21 +250,22 @@
     ]
   },
   "FileOperations_downloadFile": {
-    "usage": "params := &DownloadFileParams{\n\tTarget: Ptr(FileTargetThumb),\n}\nclient.Files.DownloadFile(ctx, int32(3560), params)",
+    "usage": "params := &DownloadFileParams{\n\tTarget: Ptr(FileTargetThumb),\n}\nresponse, err := client.Files.DownloadFile(ctx, int32(3560), params)",
+    "output": "[]byte",
     "imports": [
       "DownloadFileParams",
       "FileTarget"
     ]
   },
   "DirectUploadOperations_uploadFile": {
-    "usage": "request := FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: \"example\",\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tFile: bytes.NewReader(nil),\n}\nclient.Files.UploadFile(ctx, \"https://example.com\", request)",
+    "usage": "request := FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: Ptr(\"example\"),\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tBucket: Ptr(\"example\"),\n\tFile: bytes.NewReader(nil),\n}\nclient.Files.UploadFile(ctx, \"https://example.com\", request)",
     "imports": [
       "FileUploadRequest"
     ]
   },
   "UploadOperations_getUploadParams": {
     "usage": "response, err := client.Files.GetUploadParams(ctx)",
-    "output": "UploadParams{ContentDisposition: string, ACL: string, Policy: string, XAMZCredential: string, XAMZAlgorithm: string, XAMZDate: string, XAMZSignature: string, Key: string, DirectURL: string}"
+    "output": "UploadParams{ContentDisposition: string, ACL: *string, Policy: string, XAMZCredential: string, XAMZAlgorithm: string, XAMZDate: string, XAMZSignature: string, Key: string, Bucket: *string, DirectURL: string}"
   },
   "DraftOperations_listDrafts": {
     "usage": "params := &ListDraftsParams{\n\tType: Ptr(DraftTypeAll),\n\tEntityType: Ptr(MessageEntityTypeDiscussion),\n\tEntityID: Ptr(int32(334)),\n\tLimit: Ptr(int32(25)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Drafts.ListDrafts(ctx, params)",
@@ -352,7 +361,7 @@
     "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}"
   },
   "MessageOperations_createMessage": {
-    "usage": "request := MessageCreateRequest{\n\tMessage: MessageCreateRequestMessage{\n\t\tEntityType: Ptr(MessageEntityTypeDiscussion),\n\t\tEntityID: int32(334),\n\t\tContent: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n\t\tFiles: []MessageCreateRequestFile{MessageCreateRequestFile{\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: FileTypeImage,\n\t\t\tSize: int64(12345),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tButtons: [][]Button{[]Button{Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: Ptr(\"https://example.com/details\"),\n\t\t\tData: Ptr(\"awesome\"),\n\t\t}}},\n\t\tParentMessageID: Ptr(int32(194270)),\n\t\tDisplayAvatarURL: Ptr(\"https://example.com/avatar.png\"),\n\t\tDisplayName: Ptr(\"Бот Поддержки\"),\n\t\tSkipInviteMentions: Ptr(false),\n\t},\n\tLinkPreview: Ptr(false),\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
+    "usage": "request := MessageCreateRequest{\n\tMessage: MessageCreateRequestMessage{\n\t\tEntityType: Ptr(MessageEntityTypeDiscussion),\n\t\tEntityID: int32(334),\n\t\tContent: Ptr(\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\"),\n\t\tFiles: []MessageCreateRequestFile{MessageCreateRequestFile{\n\t\t\tKey: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n\t\t\tName: \"logo.png\",\n\t\t\tFileType: FileTypeImage,\n\t\t\tSize: Ptr(int64(12345)),\n\t\t\tWidth: Ptr(int32(800)),\n\t\t\tHeight: Ptr(int32(600)),\n\t\t\tDurationMs: Ptr(int32(5400)),\n\t\t\tWaveform: Ptr(\"4,8,12,20,16,10,6,3\"),\n\t\t}},\n\t\tButtons: [][]Button{[]Button{Button{\n\t\t\tText: \"Подробнее\",\n\t\t\tURL: Ptr(\"https://example.com/details\"),\n\t\t\tData: Ptr(\"awesome\"),\n\t\t}}},\n\t\tParentMessageID: Ptr(int32(194270)),\n\t\tDisplayAvatarURL: Ptr(\"https://example.com/avatar.png\"),\n\t\tDisplayName: Ptr(\"Бот Поддержки\"),\n\t\tSkipInviteMentions: Ptr(false),\n\t},\n\tLinkPreview: Ptr(false),\n}\nresponse, err := client.Messages.CreateMessage(ctx, request)",
     "output": "Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32, DurationMs: *int32}, VoiceContent: *VoiceContent{DurationMs: int32, Waveform: string, Transcript: *string}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}",
     "imports": [
       "Button",
@@ -364,7 +373,7 @@
     ]
   },
   "LinkPreviewOperations_unfurl": {
-    "usage": "request := LinkPreviewsRequest{\n\tLinkPreviews: map[string]LinkPreview{\"key\": LinkPreview{\n\t\tTitle: \"Статья: Отправка файлов\",\n\t\tDescription: \"Пример отправки файлов на удаленный сервер\",\n\t\tImageURL: Ptr(\"https://website.com/img/landing.png\"),\n\t\tImage: Ptr(LinkPreviewImage{\n\t\t\tKey: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n\t\t\tName: \"files-to-server.jpg\",\n\t\t\tSize: Ptr(int32(695604)),\n\t\t}),\n\t}},\n}\nclient.Messages.Unfurl(ctx, int32(194275), request)",
+    "usage": "request := LinkPreviewsRequest{\n\tLinkPreviews: map[string]LinkPreview{\"key\": LinkPreview{\n\t\tTitle: \"Статья: Отправка файлов\",\n\t\tDescription: \"Пример отправки файлов на удаленный сервер\",\n\t\tImageURL: Ptr(\"https://example.com/img/landing.png\"),\n\t\tImage: Ptr(LinkPreviewImage{\n\t\t\tKey: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n\t\t\tName: \"files-to-server.jpg\",\n\t\t\tSize: Ptr(int32(695604)),\n\t\t}),\n\t}},\n}\nclient.Messages.Unfurl(ctx, int32(194275), request)",
     "imports": [
       "LinkPreview",
       "LinkPreviewImage",
@@ -439,7 +448,21 @@
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "response, err := client.Oauth.GetTokenInfo(ctx)",
-    "output": "AccessTokenInfo{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []OAuthScope, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string}"
+    "output": "AccessTokenInfo{ID: int64, Token: string, Name: *string, UserID: int64, Scopes: []OAuthScope, CreatedAt: string, RevokedAt: *string, ExpiresIn: *int32, LastUsedAt: *string, AuthorizedAt: *string}"
+  },
+  "OAuthFlowOperations_revokeToken": {
+    "usage": "request := OAuthRevokeRequest{\n\tToken: \"pato_bm90X2FfcmVhbF90b2tlbg\",\n\tTokenTypeHint: Ptr(OAuthTokenTypeHintAccessToken),\n\tClientID: Ptr(\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\"),\n\tClientSecret: Ptr(\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"),\n}\nclient.Oauth.RevokeToken(ctx, request)",
+    "imports": [
+      "OAuthRevokeRequest",
+      "OAuthTokenTypeHint"
+    ]
+  },
+  "OAuthFlowOperations_exchangeToken": {
+    "usage": "request := OAuthTokenRequest{\n\tGrantType: \"authorization_code\",\n\tCode: \"ZmFrZV9hdXRoX2NvZGU\",\n\tRedirectUri: \"https://bot.example.com/oauth/callback\",\n\tClientID: Ptr(\"aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY\"),\n\tClientSecret: Ptr(\"dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA\"),\n\tCodeVerifier: Ptr(\"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"),\n}\nresponse, err := client.Oauth.ExchangeToken(ctx, request)",
+    "output": "OAuthToken{AccessToken: string, TokenType: string, RefreshToken: string, Scope: string, CreatedAt: int64}",
+    "imports": [
+      "OAuthTokenRequest"
+    ]
   },
   "ProfileOperations_getProfile": {
     "usage": "response, err := client.Profile.GetProfile(ctx)",
@@ -454,7 +477,7 @@
     "output": "AvatarData{ImageURL: string}"
   },
   "ProfileOperations_updateStatus": {
-    "usage": "request := StatusUpdateRequest{\n\tStatus: StatusUpdateRequestStatus{\n\t\tEmoji: \"🎮\",\n\t\tTitle: \"Очень занят\",\n\t\tExpiresAt: Ptr(\"2024-04-08T10:00:00.000Z\"),\n\t\tIsAway: Ptr(true),\n\t\tAwayMessage: Ptr(\"Вернусь после 15:00\"),\n\t},\n}\nresponse, err := client.Profile.UpdateStatus(ctx, request)",
+    "usage": "request := StatusUpdateRequest{\n\tStatus: StatusUpdateRequestStatus{\n\t\tEmoji: Ptr(\"🎮\"),\n\t\tTitle: Ptr(\"Очень занят\"),\n\t\tExpiresAt: Ptr(\"2024-04-08T10:00:00.000Z\"),\n\t\tIsAway: Ptr(true),\n\t\tAwayMessage: Ptr(\"Вернусь после 15:00\"),\n\t},\n}\nresponse, err := client.Profile.UpdateStatus(ctx, request)",
     "output": "UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}",
     "imports": [
       "StatusUpdateRequest",
@@ -571,7 +594,7 @@
     "output": "AvatarData{ImageURL: string}"
   },
   "UserStatusOperations_updateUserStatus": {
-    "usage": "request := StatusUpdateRequest{\n\tStatus: StatusUpdateRequestStatus{\n\t\tEmoji: \"🎮\",\n\t\tTitle: \"Очень занят\",\n\t\tExpiresAt: Ptr(\"2024-04-08T10:00:00.000Z\"),\n\t\tIsAway: Ptr(true),\n\t\tAwayMessage: Ptr(\"Вернусь после 15:00\"),\n\t},\n}\nresponse, err := client.Users.UpdateUserStatus(ctx, int32(12), request)",
+    "usage": "request := StatusUpdateRequest{\n\tStatus: StatusUpdateRequestStatus{\n\t\tEmoji: Ptr(\"🎮\"),\n\t\tTitle: Ptr(\"Очень занят\"),\n\t\tExpiresAt: Ptr(\"2024-04-08T10:00:00.000Z\"),\n\t\tIsAway: Ptr(true),\n\t\tAwayMessage: Ptr(\"Вернусь после 15:00\"),\n\t},\n}\nresponse, err := client.Users.UpdateUserStatus(ctx, int32(12), request)",
     "output": "UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}",
     "imports": [
       "StatusUpdateRequest",

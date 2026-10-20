@@ -50,7 +50,7 @@ func (s *SearchServiceImpl) SearchMessages(ctx context.Context, params SearchMes
 		q.Add("chat_ids[]", fmt.Sprintf("%v", v))
 	}
 	for _, v := range params.UserIDs {
-		q.Add("user_ids[]", fmt.Sprintf("%v", v))
+		q.Add("user_ids", fmt.Sprintf("%v", v))
 	}
 	if params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
@@ -78,7 +78,7 @@ func (s *SearchServiceImpl) SearchMessages(ctx context.Context, params SearchMes
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
 	default:

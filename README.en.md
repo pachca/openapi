@@ -102,7 +102,7 @@ Every SDK follows one pattern: `PachcaClient(token)` → `client.service.method(
 
 **Conventions:**
 - **Input**: path params and body fields (if ≤2) are spread into method arguments. Otherwise — a single request object.
-- **Output**: if an API response contains a single `data` field, the SDK returns its contents directly.
+- **Output**: if an API response contains a single `data` field, the SDK returns its contents directly. If `meta` comes next to `data` (lists and the `New chat` method), the SDK returns the whole response: `data` and `meta`.
 - Service, method, and field names match the operationId and parameters from the OpenAPI spec.
 
 **Example (TypeScript):**

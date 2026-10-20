@@ -7,7 +7,7 @@ export default class ThreadsList extends BaseCommand {
 
   static override examples = [
       "Получить список активных тредов за период — Запроси список тредов с фильтром по времени последнего сообщения и нужным `--limit`:\n  $ pachca threads list",
-      "Получить список активных тредов за период — Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`:\n  $ pachca threads list"
+      "Получить список активных тредов за период — Пока `meta.paginate.has_next` равен `true`, бери следующую страницу через `--cursor=<next_page>`:\n  $ pachca threads list"
   ];
 
   static scope = "threads:read";
@@ -65,7 +65,7 @@ export default class ThreadsList extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
-        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data
+        // Условие конца: списочные методы и /users?query= — has_next === false; методы поиска (без has_next) — пустой data
         const hasNext = paginate?.has_next;
         if (typeof hasNext === 'boolean') {
           if (!hasNext) break;

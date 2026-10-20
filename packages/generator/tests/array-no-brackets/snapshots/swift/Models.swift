@@ -46,4 +46,9 @@ public struct OAuthError: Codable, Error {
 public struct SearchMessagesResponse: Codable {
     public let data: [MessageResult]
     public let meta: PaginationMeta
+
+    public init(data: [MessageResult], meta: PaginationMeta) {
+        self.data = data
+        self.meta = meta
+    }
 }

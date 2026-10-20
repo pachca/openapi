@@ -12,6 +12,7 @@ using System.Threading;
 using System.Runtime.CompilerServices;
 
 #pragma warning disable CS0618
+#pragma warning disable CS1998
 namespace Pachca.Sdk;
 
 public class SecurityService
@@ -76,7 +77,7 @@ public sealed class SecurityServiceImpl : SecurityService
         if (endTime != null)
             queryParts.Add($"end_time={Uri.EscapeDataString(endTime.Value.ToString("o"))}");
         if (eventKey != null)
-            queryParts.Add($"event_key={Uri.EscapeDataString(PachcaUtils.EnumToApiString(eventKey.Value))}");
+            queryParts.Add($"event_key={Uri.EscapeDataString(eventKey.Value.Value)}");
         if (actorId != null)
             queryParts.Add($"actor_id={Uri.EscapeDataString(actorId)}");
         if (actorType != null)
@@ -100,7 +101,7 @@ public sealed class SecurityServiceImpl : SecurityService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -326,6 +327,14 @@ public class BotsService
         throw new NotImplementedException("Bots.updateBot is not implemented");
     }
 
+    public virtual async System.Threading.Tasks.Task<AvatarData> UpdateBotAvatarAsync(
+        int id,
+        byte[] image,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.updateBotAvatar is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<BotAccessToken> UpdateBotTokenAsync(
         int id,
         long tokenId,
@@ -338,6 +347,11 @@ public class BotsService
     public virtual async System.Threading.Tasks.Task DeleteBotAsync(int id, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Bots.deleteBot is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteBotAvatarAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Bots.deleteBotAvatar is not implemented");
     }
 
     public virtual async System.Threading.Tasks.Task DeleteBotTokenAsync(
@@ -389,7 +403,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -425,7 +439,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -442,7 +456,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -468,7 +482,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -515,7 +529,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -559,7 +573,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -594,7 +608,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -612,7 +626,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -629,7 +643,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -646,7 +660,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -667,7 +681,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -687,7 +701,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -705,7 +719,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -726,7 +740,30 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<AvatarData> UpdateBotAvatarAsync(
+        int id,
+        byte[] image,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/bots/{id}/avatar";
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(image), "image", "image");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = content;
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AvatarDataDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -748,7 +785,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -765,7 +802,24 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task DeleteBotAvatarAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/bots/{id}/avatar";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -785,7 +839,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -802,7 +856,7 @@ public sealed class BotsServiceImpl : BotsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -866,12 +920,12 @@ public class ChatsService
         throw new NotImplementedException("Chats.listCompanyChatsAll is not implemented");
     }
 
-    public virtual async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
+    public virtual async System.Threading.Tasks.Task<CreateChatResponse> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Chats.createChat is not implemented");
     }
 
-    public virtual async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    public virtual async System.Threading.Tasks.Task<ChatExport> RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Chats.requestExport is not implemented");
     }
@@ -969,7 +1023,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1011,7 +1065,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1029,7 +1083,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1057,7 +1111,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1080,7 +1134,7 @@ public sealed class ChatsServiceImpl : ChatsService
         return items;
     }
 
-    public override async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<CreateChatResponse> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -1090,29 +1144,30 @@ public sealed class ChatsServiceImpl : ChatsService
         switch ((int)response.StatusCode)
         {
             case 201:
-                return PachcaUtils.Deserialize<ChatDataWrapper>(json).Data;
+                return PachcaUtils.Deserialize<CreateChatResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
-    public override async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<ChatExport> RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/exports";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Headers.TryAddWithoutValidation("Prefer", "return=representation");
         httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
         using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         switch ((int)response.StatusCode)
         {
-            case 204:
-                return;
+            case 202:
+                return PachcaUtils.Deserialize<ChatExportDataWrapper>(json).Data;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1133,7 +1188,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1150,7 +1205,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1173,7 +1228,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1190,7 +1245,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1211,7 +1266,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1228,7 +1283,7 @@ public sealed class ChatsServiceImpl : ChatsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -1338,7 +1393,7 @@ public sealed class MembersServiceImpl : MembersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1380,7 +1435,7 @@ public sealed class MembersServiceImpl : MembersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1401,7 +1456,7 @@ public sealed class MembersServiceImpl : MembersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1424,7 +1479,7 @@ public sealed class MembersServiceImpl : MembersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1444,7 +1499,7 @@ public sealed class MembersServiceImpl : MembersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1461,7 +1516,7 @@ public sealed class MembersServiceImpl : MembersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1481,7 +1536,7 @@ public sealed class MembersServiceImpl : MembersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -1521,7 +1576,7 @@ public sealed class CustomPropertiesServiceImpl : CustomPropertiesService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -1529,7 +1584,7 @@ public sealed class CustomPropertiesServiceImpl : CustomPropertiesService
 public class FilesService
 {
 
-    public virtual async System.Threading.Tasks.Task DownloadFileAsync(
+    public virtual async System.Threading.Tasks.Task<byte[]> DownloadFileAsync(
         int id,
         FileTarget? target = null,
         CancellationToken cancellationToken = default)
@@ -1562,7 +1617,7 @@ public sealed class FilesServiceImpl : FilesService
         _client = client;
     }
 
-    public override async System.Threading.Tasks.Task DownloadFileAsync(
+    public override async System.Threading.Tasks.Task<byte[]> DownloadFileAsync(
         int id,
         FileTarget? target = null,
         CancellationToken cancellationToken = default)
@@ -1573,15 +1628,14 @@ public sealed class FilesServiceImpl : FilesService
         var url = $"{_baseUrl}/files/{id}" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
-        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         switch ((int)response.StatusCode)
         {
             case 200:
-                return;
+                return await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
             case 401:
-                throw PachcaUtils.Deserialize<OAuthError>(json);
+                throw PachcaUtils.Deserialize<OAuthError>(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
         }
     }
 
@@ -1593,25 +1647,27 @@ public sealed class FilesServiceImpl : FilesService
         var url = directUrl;
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent($"{request.ContentDisposition}"), "Content-Disposition");
-        content.Add(new StringContent($"{request.Acl}"), "acl");
+        if (request.Acl != null)
+            content.Add(new StringContent($"{request.Acl}"), "acl");
         content.Add(new StringContent($"{request.Policy}"), "policy");
         content.Add(new StringContent($"{request.XAmzCredential}"), "x-amz-credential");
         content.Add(new StringContent($"{request.XAmzAlgorithm}"), "x-amz-algorithm");
         content.Add(new StringContent($"{request.XAmzDate}"), "x-amz-date");
         content.Add(new StringContent($"{request.XAmzSignature}"), "x-amz-signature");
         content.Add(new StringContent($"{request.Key}"), "key");
+        if (request.Bucket != null)
+            content.Add(new StringContent($"{request.Bucket}"), "bucket");
         content.Add(new ByteArrayContent(request.File), "file", "file");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
         httpRequest.Content = content;
-        httpRequest.Headers.Authorization = null;
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        using var response = await PachcaUtils.SendWithRetryAsync(PachcaUtils.WithoutToken(_client), httpRequest, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         switch ((int)response.StatusCode)
         {
             case 204:
                 return;
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1628,7 +1684,7 @@ public sealed class FilesServiceImpl : FilesService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -1704,7 +1760,7 @@ public sealed class DraftsServiceImpl : DraftsService
         if (type != null)
             queryParts.Add($"type={Uri.EscapeDataString(PachcaUtils.EnumToApiString(type.Value))}");
         if (entityType != null)
-            queryParts.Add($"entity_type={Uri.EscapeDataString(PachcaUtils.EnumToApiString(entityType.Value))}");
+            queryParts.Add($"entity_type={Uri.EscapeDataString(entityType.Value.Value)}");
         if (entityId != null)
             queryParts.Add($"entity_id={Uri.EscapeDataString(entityId.Value.ToString()!)}");
         if (limit != null)
@@ -1722,7 +1778,7 @@ public sealed class DraftsServiceImpl : DraftsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1760,7 +1816,7 @@ public sealed class DraftsServiceImpl : DraftsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1778,7 +1834,7 @@ public sealed class DraftsServiceImpl : DraftsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1799,7 +1855,7 @@ public sealed class DraftsServiceImpl : DraftsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1816,7 +1872,7 @@ public sealed class DraftsServiceImpl : DraftsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -1918,7 +1974,7 @@ public sealed class GroupTagsServiceImpl : GroupTagsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1954,7 +2010,7 @@ public sealed class GroupTagsServiceImpl : GroupTagsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -1980,7 +2036,7 @@ public sealed class GroupTagsServiceImpl : GroupTagsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2017,7 +2073,7 @@ public sealed class GroupTagsServiceImpl : GroupTagsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2038,7 +2094,7 @@ public sealed class GroupTagsServiceImpl : GroupTagsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2055,7 +2111,7 @@ public sealed class GroupTagsServiceImpl : GroupTagsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -2166,7 +2222,7 @@ public sealed class MessagesServiceImpl : MessagesService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2204,7 +2260,7 @@ public sealed class MessagesServiceImpl : MessagesService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2222,7 +2278,7 @@ public sealed class MessagesServiceImpl : MessagesService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2243,7 +2299,7 @@ public sealed class MessagesServiceImpl : MessagesService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2260,7 +2316,7 @@ public sealed class MessagesServiceImpl : MessagesService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2281,7 +2337,7 @@ public sealed class MessagesServiceImpl : MessagesService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2298,7 +2354,7 @@ public sealed class MessagesServiceImpl : MessagesService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2315,7 +2371,7 @@ public sealed class MessagesServiceImpl : MessagesService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -2391,7 +2447,7 @@ public sealed class ReactionsServiceImpl : ReactionsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2431,7 +2487,7 @@ public sealed class ReactionsServiceImpl : ReactionsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2456,7 +2512,7 @@ public sealed class ReactionsServiceImpl : ReactionsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -2507,7 +2563,7 @@ public sealed class ReadMembersServiceImpl : ReadMembersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -2588,7 +2644,7 @@ public sealed class ThreadsServiceImpl : ThreadsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2625,7 +2681,7 @@ public sealed class ThreadsServiceImpl : ThreadsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2642,7 +2698,7 @@ public sealed class ThreadsServiceImpl : ThreadsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2659,7 +2715,7 @@ public sealed class ThreadsServiceImpl : ThreadsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -2670,6 +2726,16 @@ public class OAuthService
     public virtual async System.Threading.Tasks.Task<AccessTokenInfo> GetTokenInfoAsync(CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("OAuth.getTokenInfo is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task RevokeTokenAsync(OAuthRevokeRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("OAuth.revokeToken is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<OAuthToken> ExchangeTokenAsync(OAuthTokenRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("OAuth.exchangeToken is not implemented");
     }
 }
 
@@ -2697,7 +2763,43 @@ public sealed class OAuthServiceImpl : OAuthService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task RevokeTokenAsync(OAuthRevokeRequest request, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/oauth/revoke";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = PachcaUtils.ToForm(request);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.ErrorFromJson(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<OAuthToken> ExchangeTokenAsync(OAuthTokenRequest request, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/oauth/token";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Content = PachcaUtils.ToForm(request);
+        using var response = await PachcaUtils.SendWithRetryAsync(PachcaUtils.WithoutToken(_client), httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<OAuthToken>(json);
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -2765,7 +2867,7 @@ public sealed class ProfileServiceImpl : ProfileService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2782,7 +2884,7 @@ public sealed class ProfileServiceImpl : ProfileService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2802,7 +2904,7 @@ public sealed class ProfileServiceImpl : ProfileService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2820,7 +2922,7 @@ public sealed class ProfileServiceImpl : ProfileService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2837,7 +2939,7 @@ public sealed class ProfileServiceImpl : ProfileService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2854,7 +2956,7 @@ public sealed class ProfileServiceImpl : ProfileService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -2871,7 +2973,7 @@ public sealed class ProfileServiceImpl : ProfileService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -3020,7 +3122,7 @@ public sealed class SearchServiceImpl : SearchService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3094,7 +3196,7 @@ public sealed class SearchServiceImpl : SearchService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3150,7 +3252,7 @@ public sealed class SearchServiceImpl : SearchService
             queryParts.Add($"created_to={Uri.EscapeDataString(createdTo.Value.ToString("o"))}");
         if (companyRoles != null)
             foreach (var item in companyRoles)
-                queryParts.Add($"company_roles[]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(item))}");
+                queryParts.Add($"company_roles[]={Uri.EscapeDataString(item.Value)}");
         var url = $"{_baseUrl}/search/users" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
@@ -3162,7 +3264,7 @@ public sealed class SearchServiceImpl : SearchService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3261,7 +3363,7 @@ public sealed class TasksServiceImpl : TasksService
     {
         var queryParts = new List<string>();
         if (status != null)
-            queryParts.Add($"status={Uri.EscapeDataString(PachcaUtils.EnumToApiString(status.Value))}");
+            queryParts.Add($"status={Uri.EscapeDataString(status.Value.Value)}");
         if (chatIds != null)
             foreach (var item in chatIds)
                 queryParts.Add($"chat_ids[]={Uri.EscapeDataString(item.ToString()!)}");
@@ -3285,7 +3387,7 @@ public sealed class TasksServiceImpl : TasksService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3324,7 +3426,7 @@ public sealed class TasksServiceImpl : TasksService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3342,7 +3444,7 @@ public sealed class TasksServiceImpl : TasksService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3363,7 +3465,7 @@ public sealed class TasksServiceImpl : TasksService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3380,7 +3482,7 @@ public sealed class TasksServiceImpl : TasksService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -3495,7 +3597,7 @@ public sealed class UsersServiceImpl : UsersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3531,7 +3633,7 @@ public sealed class UsersServiceImpl : UsersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3548,7 +3650,7 @@ public sealed class UsersServiceImpl : UsersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3566,7 +3668,7 @@ public sealed class UsersServiceImpl : UsersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3587,7 +3689,7 @@ public sealed class UsersServiceImpl : UsersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3610,7 +3712,7 @@ public sealed class UsersServiceImpl : UsersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3631,7 +3733,7 @@ public sealed class UsersServiceImpl : UsersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3648,7 +3750,7 @@ public sealed class UsersServiceImpl : UsersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3665,7 +3767,7 @@ public sealed class UsersServiceImpl : UsersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3682,7 +3784,7 @@ public sealed class UsersServiceImpl : UsersService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -3732,7 +3834,7 @@ public sealed class ViewsServiceImpl : ViewsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3750,7 +3852,7 @@ public sealed class ViewsServiceImpl : ViewsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -3777,7 +3879,7 @@ public class CommonService
         throw new NotImplementedException("Common.listProperties is not implemented");
     }
 
-    public virtual async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    public virtual async System.Threading.Tasks.Task<ChatExport> RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Common.requestExport is not implemented");
     }
@@ -3812,7 +3914,7 @@ public sealed class CommonServiceImpl : CommonService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3824,25 +3926,27 @@ public sealed class CommonServiceImpl : CommonService
         var url = directUrl;
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent($"{request.ContentDisposition}"), "Content-Disposition");
-        content.Add(new StringContent($"{request.Acl}"), "acl");
+        if (request.Acl != null)
+            content.Add(new StringContent($"{request.Acl}"), "acl");
         content.Add(new StringContent($"{request.Policy}"), "policy");
         content.Add(new StringContent($"{request.XAmzCredential}"), "x-amz-credential");
         content.Add(new StringContent($"{request.XAmzAlgorithm}"), "x-amz-algorithm");
         content.Add(new StringContent($"{request.XAmzDate}"), "x-amz-date");
         content.Add(new StringContent($"{request.XAmzSignature}"), "x-amz-signature");
         content.Add(new StringContent($"{request.Key}"), "key");
+        if (request.Bucket != null)
+            content.Add(new StringContent($"{request.Bucket}"), "bucket");
         content.Add(new ByteArrayContent(request.File), "file", "file");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
         httpRequest.Content = content;
-        httpRequest.Headers.Authorization = null;
-        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        using var response = await PachcaUtils.SendWithRetryAsync(PachcaUtils.WithoutToken(_client), httpRequest, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         switch ((int)response.StatusCode)
         {
             case 204:
                 return;
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3861,25 +3965,26 @@ public sealed class CommonServiceImpl : CommonService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
-    public override async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<ChatExport> RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/exports";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Headers.TryAddWithoutValidation("Prefer", "return=representation");
         httpRequest.Content = new StringContent(PachcaUtils.Serialize(request), Encoding.UTF8, "application/json");
         using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         switch ((int)response.StatusCode)
         {
-            case 204:
-                return;
+            case 202:
+                return PachcaUtils.Deserialize<ChatExportDataWrapper>(json).Data;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 
@@ -3897,7 +4002,7 @@ public sealed class CommonServiceImpl : CommonService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
 }
@@ -3943,9 +4048,46 @@ public sealed class LinkPreviewsServiceImpl : LinkPreviewsService
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
-                throw PachcaUtils.Deserialize<ApiError>(json);
+                throw PachcaUtils.ErrorFromJson(json);
         }
     }
+}
+
+/// <summary>The authorization link and the PKCE pair of the OAuth flow.</summary>
+public static class PachcaOAuth
+{
+    public const string AuthorizeUrl = "https://app.pachca.com/apps/authorize";
+
+    /// <summary>Keep CodeVerifier until the code exchange, put CodeChallenge into the link.</summary>
+    public sealed record Pkce(string CodeVerifier, string CodeChallenge);
+
+    /// <summary>A random code verifier and its SHA-256 challenge.</summary>
+    public static Pkce CreatePkce()
+    {
+        var verifier = Base64Url(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+        var digest = System.Security.Cryptography.SHA256.HashData(Encoding.ASCII.GetBytes(verifier));
+        return new Pkce(verifier, Base64Url(digest));
+    }
+
+    /// <summary>The authorization link for a message button: the consent screen with PKCE (S256).</summary>
+    public static string BuildAuthorizeUrl(
+        string clientId,
+        string redirectUri,
+        string state,
+        string codeChallenge,
+        string authorizeUrl = AuthorizeUrl)
+    {
+        return authorizeUrl
+            + "?client_id=" + Uri.EscapeDataString(clientId)
+            + "&redirect_uri=" + Uri.EscapeDataString(redirectUri)
+            + "&response_type=code"
+            + "&state=" + Uri.EscapeDataString(state)
+            + "&code_challenge=" + Uri.EscapeDataString(codeChallenge)
+            + "&code_challenge_method=S256";
+    }
+
+    private static string Base64Url(byte[] data) =>
+        Convert.ToBase64String(data).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 }
 
 public static class PachcaConstants

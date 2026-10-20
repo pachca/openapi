@@ -18,7 +18,8 @@ export interface CommandRow {
   method: string | null;
   summary: string;
   scope?: string;
-  scopeRoles?: string;
+  /** Кто может вызвать метод, через запятую */
+  roles?: string;
   plan?: string;
   noAuth?: boolean;
   params: ParamRow[];
@@ -112,7 +113,7 @@ export function CliCommandsTable({ commands }: { commands: CommandRow[] }) {
                         method={c.method}
                         href={c.href}
                         scope={c.scope}
-                        scopeRoles={c.scopeRoles}
+                        roles={c.roles}
                         plan={c.plan}
                         noAuth={c.noAuth}
                       >

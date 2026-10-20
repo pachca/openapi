@@ -145,7 +145,7 @@ workflows:
           50). Sorted by last message time descending.)
         operationId: ThreadOperations_listThreads
       - stepId: list-active-threads-in-a-time-window-2
-        description: If `meta.paginate.next_page` is set — iterate pages via `--cursor`
+        description: While `meta.paginate.has_next` is `true`, fetch the next page with `--cursor=<next_page>`
         operationId: ThreadOperations_listThreads
       - stepId: list-active-threads-in-a-time-window-3
         description: For each thread take `chat_id` and fetch messages
@@ -322,16 +322,17 @@ workflows:
   - workflowId: export-chat-history
     summary: Export chat history
     description: >-
-      `webhook_url` required — POST does not return id in response. Export available only to Owner
-      on "Corporation" plan. Max period: 45 days (366 when specific chats are specified). Manual
-      prerequisites: Wait for webhook: JSON with `"type": "export"`, `"event": "ready"` and
-      `export_id`.
+      Export available only to Owner on "Corporation" plan. Max period: 45 days (366 when specific
+      chats are specified). The workspace can order the next export 90 seconds after the previous
+      one. Manual prerequisites: Wait for the archive: while it is being assembled, the download
+      responds `404` with the `export_file_not_found` code. A webhook to `webhook_url` with
+      `"event": "ready"` and `export_id` also reports readiness.
     steps:
       - stepId: export-chat-history-1
         description: >-
-          Request export (`start_at`, `end_at` (YYYY-MM-DD). The request is async: the response is
-          empty and carries no export id. `webhook_url` is not formally required, but without it
-          there is nowhere to get the id — always send it)
+          Request export and take the export id from `data.id` (`start_at`, `end_at` (YYYY-MM-DD).
+          The id comes with the `Prefer: return=representation` header and a `202` response, the CLI
+          and SDK send it themselves. Without the header the response is `204` with no body)
         operationId: ExportOperations_requestExport
       - stepId: export-chat-history-2
         description: Download export file (Server returns 302, HTTP client downloads file automatically)
@@ -423,10 +424,9 @@ workflows:
   - workflowId: rotate-a-bot-token
     summary: Rotate a bot token
     description: >-
-      The new value is returned once. The self path (`POST /bot/recreate_token`) rotates the bot
-      main token — if the bot works with it, capture the new token from the response in the same
-      operation. Manual prerequisites: Save the new `access_token` from the response — returned only
-      once. Update the secret in CI or your secret store.
+      The new value is returned once: save `access_token` from the response and update the secret in
+      CI or your secret store. The self path (`POST /bot/recreate_token`) rotates the bot main token
+      — if the bot works with it, capture the new token from the response in the same operation.
     steps:
       - stepId: rotate-a-bot-token-1
         description: >-
@@ -470,8 +470,10 @@ workflows:
       Whether authorization is enabled is shown by `oauth_client_enabled`: `oauth_client` can come
       even for a bot with authorization disabled. `--oauth-client=null` disables it and revokes the
       authorizations granted by employees, and `pachca bots rotate-client-secret` issues a new
-      secret. Manual prerequisites: Save `client_secret` from the server-side client response — it
-      is returned only once. `client_id` comes in `oauth_client` and is not secret.
+      secret. The button for the employee and the exchange of the code for their token are covered
+      by the "Get an employee token via OAuth" workflow in pachca-oauth. Manual prerequisites: Save
+      `client_secret` from the server-side client response — it is returned only once. `client_id`
+      comes in `oauth_client` and is not secret.
     steps:
       - stepId: enable-authorization-on-behalf-of-an-employee-for-a-bot-1
         description: >-
@@ -491,8 +493,8 @@ workflows:
       - stepId: find-and-delete-a-bot-1
         description: >-
           With a user token (scope `bots:read`) get the list of bots you can edit: those you created
-          and those whose settings grant you edit access. Filter by name with `query`, take the next
-          page from `meta.paginate.next_page`
+          and those whose settings grant you edit access. Filter by name with `query`. While
+          `meta.paginate.has_next` is `true`, take the next page from `meta.paginate.next_page`
         operationId: BotOperations_listBots
       - stepId: find-and-delete-a-bot-2
         description: >-
@@ -667,7 +669,9 @@ workflows:
     summary: Bulk create employees with tags
     description: >-
       Creation available only to admins and owners (not bots). No separate "add user to tag"
-      endpoint.
+      endpoint. A free workspace sends no more than 50 invitation emails per day: beyond the limit
+      `422` with the `daily_invites_limit` code, the reset time is in `payload.reset_at`. With
+      `--skip-email-notify` no email is sent and nothing counts towards the limit.
     steps:
       - stepId: bulk-create-employees-with-tags-1
         description: Create tag (if needed)
@@ -828,6 +832,36 @@ workflows:
       - stepId: create-series-of-reminders-1
         description: 'For each date: create task'
         operationId: TaskOperations_createTask
+  - workflowId: get-an-employee-token-via-oauth
+    summary: Get an employee token via OAuth
+    description: >-
+      The token does not expire and works until the employee revokes access: keep it like a
+      password. The bot revokes a token itself with `POST /oauth/revoke`, in the SDK it is
+      `client.oauth.revokeToken()`. Manual prerequisites: Create a random `state` and a PKCE pair: a
+      random `code_verifier` and `code_challenge`, its SHA-256 in base64url without the trailing
+      `=`. Store them with the `id` of the employee you send the button to. In the SDK,
+      `createPkce()` creates the pair; Build the link
+      `https://app.pachca.com/apps/authorize?client_id=<client_id>&redirect_uri=<redirect_uri>&response_type=code&state=<state>&code_challenge=<code_challenge>&code_challenge_method=S256`:
+      `client_id` and the redirect address come from the bot's `oauth_client` (`pachca bots get
+      <bot_id>`), URL-encode the values. In the SDK, `buildAuthorizeUrl()` builds it; After consent
+      the browser returns to `redirect_uri` with `code` and `state`. Find the stored `state` and
+      delete it: each one is valid once.
+    steps:
+      - stepId: get-an-employee-token-via-oauth-1
+        description: Send the link to the employee as a URL button in a direct message
+        operationId: MessageOperations_createMessage
+      - stepId: get-an-employee-token-via-oauth-2
+        description: >-
+          Exchange the code for a token: `grant_type=authorization_code`, `code`, `redirect_uri`,
+          `client_id`, `client_secret` and `code_verifier` as a form body. The code lives 10 minutes
+          and is exchanged once. In the SDK, it is `client.oauth.exchangeToken()`
+        operationId: OAuthFlowOperations_exchangeToken
+      - stepId: get-an-employee-token-via-oauth-3
+        description: >-
+          Check whose token it is: `data.user_id` is the employee who gave consent (The button may
+          have been forwarded: store the token for the one who gave consent, and send the button
+          again to the employee you sent it to)
+        operationId: OAuthOperations_getTokenInfo
   - workflowId: get-own-profile
     summary: Get own profile
     description: >-

@@ -1,162 +1,20 @@
 /**
  * Apply an OpenAPI Overlay v1.0.0 to a base spec.
  *
- * Usage: tsx scripts/apply-overlay.ts [--base openapi.yaml] [--overlay overlay.en.yaml] [--output openapi.en.yaml]
+ * The build fails (exit 1) when:
+ * - a target passes through a `$ref`, misses a segment or matches nothing (see overlay-target.ts);
+ * - an update adds a key the base node does not have;
+ * - Cyrillic text is left outside `default`, `enum` and `const` (server values stay as they are);
+ * - a dictionary entry below is not used;
+ * - the English spec differs from the Russian one anywhere except texts: description, summary,
+ *   title, x-enum-descriptions, example and examples.
+ *
+ * Usage: bun scripts/apply-overlay.ts [--base openapi.yaml] [--overlay overlay.en.yaml] [--output openapi.en.yaml]
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
-
-// ---------------------------------------------------------------------------
-// JSONPath-subset resolver
-// ---------------------------------------------------------------------------
-
-interface Resolved {
-	parent: any;
-	key: string | number;
-}
-
-/**
- * Parse a JSONPath target string into segments.
- * Supports: $, .key, ['key'], [N], [?(@.name=='value')]
- */
-function parseTarget(target: string): string[] {
-	const segments: string[] = [];
-	let i = 0;
-	if (target[i] === '$') i++; // skip root
-
-	while (i < target.length) {
-		if (target[i] === '.') {
-			i++;
-			// Read dotted property name (stops at . or [)
-			let name = '';
-			while (i < target.length && target[i] !== '.' && target[i] !== '[') {
-				name += target[i++];
-			}
-			if (name) segments.push(name);
-		} else if (target[i] === '[') {
-			i++; // skip [
-			if (target[i] === "'") {
-				// Bracket string: ['key']
-				i++; // skip opening '
-				let name = '';
-				while (i < target.length && target[i] !== "'") {
-					name += target[i++];
-				}
-				i++; // skip closing '
-				i++; // skip ]
-				segments.push(name);
-			} else if (target[i] === '?') {
-				// Filter: [?(@.name=='value')] — find matching ) then ]
-				let depth = 0;
-				let filterEnd = i;
-				while (filterEnd < target.length) {
-					if (target[filterEnd] === '(') depth++;
-					if (target[filterEnd] === ')') {
-						depth--;
-						if (depth === 0) {
-							// find the closing ] after )
-							filterEnd = target.indexOf(']', filterEnd);
-							break;
-						}
-					}
-					filterEnd++;
-				}
-				const filterExpr = target.substring(i, filterEnd);
-				segments.push(filterExpr);
-				i = filterEnd + 1;
-			} else {
-				// Numeric index: [0]
-				let num = '';
-				while (i < target.length && target[i] !== ']') {
-					num += target[i++];
-				}
-				i++; // skip ]
-				segments.push(num);
-			}
-		} else {
-			i++;
-		}
-	}
-	return segments;
-}
-
-/**
- * Parse a filter expression like ?(@.name=='value') and return {prop, value}.
- */
-function parseFilter(filter: string): { prop: string; value: string } | null {
-	// ?(@.prop=='value') or ?(@.prop=='value')
-	const m = filter.match(/\?\(@\.(\w+)==['"](.*?)['"]\)/);
-	if (!m) return null;
-	return { prop: m[1], value: m[2] };
-}
-
-/**
- * Follow $ref if present in the current object.
- */
-function followRef(obj: any, doc: any): any {
-	if (obj && typeof obj === 'object' && obj.$ref && typeof obj.$ref === 'string') {
-		const ref = obj.$ref;
-		if (!ref.startsWith('#/')) return obj;
-		const parts = ref.replace('#/', '').split('/');
-		let resolved = doc;
-		for (const part of parts) {
-			resolved = resolved?.[part];
-		}
-		return resolved ?? obj;
-	}
-	return obj;
-}
-
-/**
- * Resolve a JSONPath target to {parent, key} in the document.
- */
-function resolveTarget(doc: any, target: string): Resolved {
-	const segments = parseTarget(target);
-	let current = doc;
-
-	for (let i = 0; i < segments.length; i++) {
-		const seg = segments[i];
-		const isLast = i === segments.length - 1;
-
-		// Follow $ref before navigating
-		current = followRef(current, doc);
-
-		if (seg.startsWith('?')) {
-			// Array filter
-			const filter = parseFilter(seg);
-			if (!filter || !Array.isArray(current)) {
-				throw new Error(`Cannot apply filter "${seg}" — current value is not an array or filter is invalid. Target: ${target}`);
-			}
-			const idx = current.findIndex((item: any) => String(item[filter.prop]) === filter.value);
-			if (idx === -1) {
-				throw new Error(`Filter "${seg}" matched no elements in array. Target: ${target}`);
-			}
-			if (isLast) {
-				return { parent: current, key: idx };
-			}
-			current = current[idx];
-		} else if (/^\d+$/.test(seg)) {
-			// Numeric index
-			const idx = parseInt(seg, 10);
-			if (isLast) {
-				return { parent: current, key: idx };
-			}
-			current = current[idx];
-		} else {
-			// Object property
-			if (isLast) {
-				return { parent: current, key: seg };
-			}
-			if (current[seg] === undefined) {
-				throw new Error(`Property "${seg}" not found. Target: ${target}`);
-			}
-			current = current[seg];
-		}
-	}
-
-	throw new Error(`Could not resolve target: ${target}`);
-}
+import { resolveTarget } from './overlay-target';
 
 // ---------------------------------------------------------------------------
 // Deep merge (only overwrites leaf values, preserves structure)
@@ -180,12 +38,37 @@ function deepMerge(target: any, source: any): any {
 
 const CYRILLIC_RE = /[а-яА-ЯёЁ]/;
 
-/** Translation dictionary for inline strings not reachable via JSONPath overlay targets */
+/** Keys whose subtree is data shown as an example: only there the dictionary below applies. */
+const EXAMPLE_KEYS = new Set(['example', 'examples']);
+
+/** Schema keywords holding values the server uses as they are: never translated. */
+const VALUE_KEYS = new Set(['default', 'enum', 'const']);
+
+/** Keys whose subtree is text: the English spec may differ from the Russian one only there. */
+const TEXT_KEYS = new Set(['description', 'summary', 'title', 'x-enum-descriptions', ...EXAMPLE_KEYS]);
+
+/**
+ * Descriptions of the response wrapper templates (`DataResponse<T>` and friends in typespec.tsp).
+ * TypeSpec inlines them into every response, so they are translated here by their exact text
+ * and only at `paths.*.*.responses.*.content.*.schema.description`.
+ */
+const RESPONSE_WRAPPERS: Record<string, string> = {
+	'Обертка ответа с данными и пагинацией': 'Response wrapper with data and pagination',
+	'Обертка ответа с данными': 'Response wrapper with data',
+	'Обертка ответа с данными и метаданными': 'Response wrapper with data and metadata',
+	'Обертка ответа поисковых результатов с данными и пагинацией': 'Search results response wrapper with data and pagination',
+};
+
+/**
+ * Translations of example values (`example` and `examples` subtrees only).
+ * Descriptions and every other text go to overlay.en.yaml. An unused entry fails the build.
+ */
 const RU_TO_EN: Record<string, string> = {
 	// Example values used in bot/voice examples
 	'Бот задач': 'Tasks bot',
 	'Бот релизов': 'Release bot',
 	'Заказ от {{ client }} на сумму {{ amount }} ₽': 'Order from {{ client }} for {{ amount }} ₽',
+	'{"client": "ООО Ромашка", "amount": 15000}': '{"client": "Acme Corp", "amount": 15000}',
 	'Привет, посмотри пожалуйста последний отчёт': 'Hi, please take a look at the latest report',
 	// Bot tokens, catalog page and scope catalog examples
 	'Сервер уведомлений': 'Notification server',
@@ -196,32 +79,6 @@ const RU_TO_EN: Record<string, string> = {
 	'Работа с сообщениями': 'Working with messages',
 	'Только чтение': 'Read only',
 	'Администратор': 'Administrator',
-
-	// Response wrapper descriptions (inline schemas in response bodies)
-	'Обертка ответа с данными и пагинацией': 'Response wrapper with data and pagination',
-	'Обертка ответа с данными': 'Response wrapper with data',
-	'Обертка ответа поисковых результатов с данными и пагинацией': 'Search results response wrapper with data and pagination',
-
-	// Avatar model
-	'Данные аватара': 'Avatar data',
-	'URL аватара': 'Avatar URL',
-	'Файл изображения для аватара': 'Avatar image file',
-	'Изменение и удаление аватара профиля': 'Update and delete profile avatar',
-	'Изменение и удаление аватара сотрудника': 'Update and delete employee avatar',
-
-	// ChatSortField enum
-	'Поле сортировки чатов': 'Chat sort field',
-	'По идентификатору чата': 'By chat ID',
-	'По дате и времени создания последнего сообщения': 'By date and time of the last message',
-
-	// MessageSortField enum
-	'Поле сортировки сообщений': 'Message sort field',
-	'По идентификатору сообщения': 'By message ID',
-
-	// x-param-names descriptions
-	'Идентификатор чата': 'Chat ID',
-	'Дата и время создания последнего сообщения': 'Date and time of the last message creation',
-	'Идентификатор сообщения': 'Message ID',
 
 	// Example values — models
 	'Разработка': 'Development',
@@ -264,9 +121,7 @@ const RU_TO_EN: Record<string, string> = {
 	// Example values — forms / views
 	'Уведомление об отпуске': 'Vacation notification',
 	'Закрыть': 'Close',
-	'Отменить': 'Cancel',
 	'Отправить заявку': 'Submit request',
-	'Отправить': 'Submit',
 	'Рассылки': 'Newsletters',
 	'Выберите интересующие вас рассылки': 'Select the newsletters you are interested in',
 	'Ничего': 'None',
@@ -283,8 +138,8 @@ const RU_TO_EN: Record<string, string> = {
 	'Начальный текст': 'Initial text',
 	'Возможно вам подскаджут, какие места лучше посетить':
 		'Others might suggest the best places to visit',
-	'Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)':
-		'You can read about your available vacation days at [this link](https://www.website.com/timeoff)',
+	'Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://example.com/timeoff)':
+		'You can read about your available vacation days at [this link](https://example.com/timeoff)',
 	'Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе.':
 		'Fill out the form. After submitting, a text notification will be sent to the general chat, and your vacation will be saved in the database.',
 	'Доступность': 'Availability',
@@ -297,72 +152,139 @@ const RU_TO_EN: Record<string, string> = {
 		'Specify the time to send the selected newsletters',
 };
 
+// ---------------------------------------------------------------------------
+// Walking the spec with keyword context
+// ---------------------------------------------------------------------------
+
 /**
- * Recursively walk the document and replace Russian strings using the dictionary.
- * Handles: description, example, default, text fields + array/object values.
+ * Where a node sits: `zone` is set inside text (`description`…) or example subtrees,
+ * `propsMap` inside a `properties` map, whose keys are property names, not keywords.
  */
-function translateRemaining(obj: any): number {
-	if (obj === null || obj === undefined || typeof obj !== 'object') return 0;
+interface WalkCtx {
+	zone: 'text' | 'example' | null;
+	propsMap: boolean;
+}
+
+const ROOT_CTX: WalkCtx = { zone: null, propsMap: false };
+
+function isSchemaLike(obj: any): boolean {
+	return ['type', 'enum', 'const', 'allOf', 'anyOf', 'oneOf', '$ref'].some((k) => k in obj);
+}
+
+/** Context of `obj[key]`, plus whether it is a server value (`default`, `enum`, `const`). */
+function childCtx(obj: any, key: string, ctx: WalkCtx): { ctx: WalkCtx; isValue: boolean } {
+	if (Array.isArray(obj) || ctx.zone !== null) return { ctx, isValue: false };
+	if (ctx.propsMap) return { ctx: ROOT_CTX, isValue: false };
+	if (TEXT_KEYS.has(key)) return { ctx: { zone: EXAMPLE_KEYS.has(key) ? 'example' : 'text', propsMap: false }, isValue: false };
+	if (key === 'properties') return { ctx: { zone: null, propsMap: true }, isValue: false };
+	return { ctx: ROOT_CTX, isValue: VALUE_KEYS.has(key) && isSchemaLike(obj) };
+}
+
+function normalize(text: string): string {
+	return text.replace(/\s+/g, ' ').trim();
+}
+
+/** Replace Russian example values using RU_TO_EN. Only `example` and `examples` subtrees are touched. */
+function translateExamples(obj: any, ctx: WalkCtx, used: Set<string>): number {
+	if (obj === null || typeof obj !== 'object') return 0;
 	let count = 0;
-
-	if (Array.isArray(obj)) {
-		for (let i = 0; i < obj.length; i++) {
-			if (typeof obj[i] === 'string' && CYRILLIC_RE.test(obj[i])) {
-				const normalized = obj[i].replace(/\s+/g, ' ').trim();
-				if (RU_TO_EN[normalized]) {
-					obj[i] = RU_TO_EN[normalized];
-					count++;
-				}
-			} else {
-				count += translateRemaining(obj[i]);
-			}
-		}
-		return count;
-	}
-
 	for (const key of Object.keys(obj)) {
+		const { ctx: next, isValue } = childCtx(obj, key, ctx);
+		if (isValue) continue;
 		const val = obj[key];
-		if (typeof val === 'string' && CYRILLIC_RE.test(val)) {
-			const normalized = val.replace(/\s+/g, ' ').trim();
-			if (RU_TO_EN[normalized]) {
+		if (typeof val === 'string') {
+			if (next.zone !== 'example' || !CYRILLIC_RE.test(val)) continue;
+			const normalized = normalize(val);
+			if (RU_TO_EN[normalized] !== undefined) {
 				obj[key] = RU_TO_EN[normalized];
+				used.add(normalized);
 				count++;
 			}
-		} else if (typeof val === 'object' && val !== null) {
-			count += translateRemaining(val);
+		} else {
+			count += translateExamples(val, next, used);
 		}
 	}
 	return count;
 }
 
-/**
- * After post-processing, verify no Cyrillic remains in description/example/default fields.
- * Returns list of paths with remaining Cyrillic text.
- */
-function findRemainingCyrillic(obj: any, path = '$'): string[] {
-	if (obj === null || obj === undefined || typeof obj !== 'object') return [];
-	const found: string[] = [];
-
-	if (Array.isArray(obj)) {
-		for (let i = 0; i < obj.length; i++) {
-			if (typeof obj[i] === 'string' && CYRILLIC_RE.test(obj[i])) {
-				found.push(`${path}[${i}] = "${obj[i].substring(0, 60)}..."`);
-			} else {
-				found.push(...findRemainingCyrillic(obj[i], `${path}[${i}]`));
+/** Translate the inlined response wrapper descriptions (see RESPONSE_WRAPPERS). */
+function translateResponseWrappers(doc: any, used: Set<string>): number {
+	let count = 0;
+	for (const methods of Object.values<any>(doc.paths ?? {})) {
+		for (const op of Object.values<any>(methods ?? {})) {
+			for (const response of Object.values<any>(op?.responses ?? {})) {
+				for (const media of Object.values<any>(response?.content ?? {})) {
+					const schema = media?.schema;
+					if (typeof schema?.description !== 'string') continue;
+					const normalized = normalize(schema.description);
+					if (RESPONSE_WRAPPERS[normalized] !== undefined) {
+						schema.description = RESPONSE_WRAPPERS[normalized];
+						used.add(normalized);
+						count++;
+					}
+				}
 			}
 		}
-		return found;
 	}
+	return count;
+}
 
+/** Paths of strings with Cyrillic text left after translation (server values excluded). */
+function findRemainingCyrillic(obj: any, ctx: WalkCtx, at: string, found: string[]): void {
+	if (obj === null || typeof obj !== 'object') return;
 	for (const key of Object.keys(obj)) {
+		const { ctx: next, isValue } = childCtx(obj, key, ctx);
+		if (isValue) continue;
 		const val = obj[key];
-		if (typeof val === 'string' && CYRILLIC_RE.test(val)) {
-			found.push(`${path}.${key} = "${val.substring(0, 80)}..."`);
-		} else if (typeof val === 'object' && val !== null) {
-			found.push(...findRemainingCyrillic(val, `${path}.${key}`));
+		const childAt = Array.isArray(obj) ? `${at}[${key}]` : `${at}.${key}`;
+		if (typeof val === 'string') {
+			if (CYRILLIC_RE.test(val)) found.push(`${childAt} = "${val.substring(0, 80)}..."`);
+		} else {
+			findRemainingCyrillic(val, next, childAt, found);
 		}
 	}
-	return found;
+}
+
+/**
+ * Structural parity: the English spec must equal the Russian one everywhere except
+ * strings inside text and example subtrees. Keys, types, array lengths and every
+ * other value (`default`, `enum`, `const`, `required`, formats, limits) must match.
+ */
+function findStructuralDiffs(ru: any, en: any, ctx: WalkCtx, at: string, found: string[]): void {
+	const kind = (v: any) => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v);
+	if (kind(ru) !== kind(en)) {
+		found.push(`${at}: ${kind(ru)} in RU, ${kind(en)} in EN`);
+		return;
+	}
+	if (ru === null || typeof ru !== 'object') {
+		if (ru !== en && !(typeof ru === 'string' && ctx.zone !== null)) {
+			found.push(`${at}: RU ${JSON.stringify(ru)}, EN ${JSON.stringify(en)}`);
+		}
+		return;
+	}
+	if (Array.isArray(ru) && ru.length !== en.length) {
+		found.push(`${at}: ${ru.length} items in RU, ${en.length} in EN`);
+		return;
+	}
+	for (const key of Object.keys(en)) {
+		if (!(key in ru)) found.push(`${at}.${key}: added in EN`);
+	}
+	for (const key of Object.keys(ru)) {
+		const childAt = Array.isArray(ru) ? `${at}[${key}]` : `${at}.${key}`;
+		if (!(key in en)) {
+			found.push(`${childAt}: missing in EN`);
+			continue;
+		}
+		findStructuralDiffs(ru[key], en[key], childCtx(ru, key, ctx).ctx, childAt, found);
+	}
+}
+
+function reportAndExit(title: string, items: string[], fix: string): never {
+	console.error(`\nERROR: ${title} (${items.length}):`);
+	for (const item of items.slice(0, 40)) console.error(`  ✗ ${item}`);
+	if (items.length > 40) console.error(`  ... and ${items.length - 40} more`);
+	console.error(`\nFix: ${fix}`);
+	process.exit(1);
 }
 
 // ---------------------------------------------------------------------------
@@ -384,7 +306,9 @@ function main() {
 	}
 
 	// Read files
-	const baseDoc = yaml.load(fs.readFileSync(basePath, 'utf8')) as any;
+	const baseText = fs.readFileSync(basePath, 'utf8');
+	const baseDoc = yaml.load(baseText) as any;
+	const ruDoc = yaml.load(baseText) as any;
 	const overlay = yaml.load(fs.readFileSync(overlayPath, 'utf8')) as any;
 
 	// Validate overlay structure
@@ -392,62 +316,66 @@ function main() {
 		throw new Error('Invalid overlay: must have "overlay", "info", and "actions" fields');
 	}
 
+	const failed: string[] = [];
 	let applied = 0;
-	let skipped = 0;
-	let errors = 0;
 
 	for (const action of overlay.actions) {
 		try {
 			const { parent, key } = resolveTarget(baseDoc, action.target);
-
-			if (action.remove === true) {
-				if (Array.isArray(parent)) {
-					parent.splice(key as number, 1);
-				} else {
-					delete parent[key];
-				}
-			} else if (action.update !== undefined) {
-				if (typeof action.update === 'object' && action.update !== null && !Array.isArray(action.update)) {
-					parent[key] = deepMerge(parent[key], action.update);
-				} else {
-					parent[key] = action.update;
-				}
+			const update = action.update;
+			if (update === null || typeof update !== 'object' || Array.isArray(update)) {
+				throw new Error(`Only "update" with an object of fields is supported. Target: ${action.target}`);
 			}
+			const absent = Object.keys(update).filter((k) => parent[key]?.[k] === undefined);
+			if (absent.length > 0) {
+				throw new Error(`Update adds ${absent.join(', ')} absent in the base spec. Target: ${action.target}`);
+			}
+			parent[key] = deepMerge(parent[key], update);
 			applied++;
 		} catch (err) {
-			const msg = (err as Error).message;
-			// Skip targets that reference $ref-resolved paths not directly in the spec
-			if (msg.includes('not found')) {
-				skipped++;
-			} else {
-				console.error(`ERROR applying action: ${msg}`);
-				errors++;
-			}
+			failed.push((err as Error).message);
 		}
 	}
-
-	if (skipped > 0) {
-		console.log(`Skipped ${skipped} actions (targets resolved from $ref, not directly present in spec)`);
+	if (failed.length > 0) {
+		reportAndExit(
+			'overlay actions failed',
+			failed,
+			'point each target at the node where the text lives (the component path, not a path through $ref), ' +
+				'and delete targets whose node no longer exists'
+		);
 	}
 
-	// Post-process: translate any remaining Russian strings
-	const translated = translateRemaining(baseDoc);
-	if (translated > 0) {
-		console.log(`Post-processed ${translated} remaining Russian strings`);
-	}
+	// Post-process: response wrapper templates and example values
+	const used = new Set<string>();
+	const wrappers = translateResponseWrappers(baseDoc, used);
+	const examples = translateExamples(baseDoc, ROOT_CTX, used);
+	console.log(`Post-processed ${wrappers} response wrapper descriptions and ${examples} example values`);
 
 	// Verify no Cyrillic remains — fail build if any found
-	const remaining = findRemainingCyrillic(baseDoc);
+	const remaining: string[] = [];
+	findRemainingCyrillic(baseDoc, ROOT_CTX, '$', remaining);
 	if (remaining.length > 0) {
-		console.error(`\nERROR: ${remaining.length} strings with Cyrillic text still remain:`);
-		for (const r of remaining.slice(0, 30)) {
-			console.error(`  ✗ ${r}`);
-		}
-		if (remaining.length > 30) {
-			console.error(`  ... and ${remaining.length - 30} more`);
-		}
-		console.error(`\nFix: add translations to RU_TO_EN in scripts/apply-overlay.ts or to overlay.en.yaml`);
-		process.exit(1);
+		reportAndExit(
+			'strings with Cyrillic text still remain',
+			remaining,
+			'translate texts in overlay.en.yaml; example values go to RU_TO_EN in scripts/apply-overlay.ts'
+		);
+	}
+
+	const unused = [...Object.keys(RESPONSE_WRAPPERS), ...Object.keys(RU_TO_EN)].filter((k) => !used.has(k));
+	if (unused.length > 0) {
+		reportAndExit('dictionary entries are not used', unused, 'delete them from scripts/apply-overlay.ts');
+	}
+
+	// RU and EN must differ only in texts
+	const diffs: string[] = [];
+	findStructuralDiffs(ruDoc, baseDoc, ROOT_CTX, '$', diffs);
+	if (diffs.length > 0) {
+		reportAndExit(
+			'the English spec differs from the Russian one outside texts',
+			diffs,
+			'an overlay or a dictionary entry changed a value, a key or a structure; translate only texts'
+		);
 	}
 
 	// Write output
@@ -460,10 +388,6 @@ function main() {
 	fs.writeFileSync(outputPath, output);
 
 	console.log(`Applied ${applied}/${overlay.actions.length} overlay actions → ${path.basename(outputPath)}`);
-	if (errors > 0) {
-		console.error(`${errors} actions failed — see errors above`);
-		process.exit(1);
-	}
 }
 
 main();

@@ -161,7 +161,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -214,7 +216,7 @@ paths:
                   webhook:
                     name: Бот задач
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -250,7 +252,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -297,7 +301,7 @@ paths:
                   webhook:
                     name: Бот задач
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -338,7 +342,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -355,7 +361,7 @@ paths:
               $ref: '#/components/schemas/BotWebhookSelfUpdateRequest'
             example:
               webhook:
-                outgoing_url: https://www.website.com/tasks/new
+                outgoing_url: https://example.com/tasks/new
       x-requirements:
         scope: bot_self:webhook:write
   /bots:
@@ -368,7 +374,7 @@ paths:
 
         Параметр `query` отбирает ботов по части имени, без опечаток. Токены ботов в списке не приходят: значение токена показывают один раз, а сами токены бота отдаёт [Список токенов бота](GET /bots/{id}/tokens).
 
-        Перечень всех ботов пространства, включая чужих, доступен владельцу на тарифе «Корпорация» — [Список ботов пространства](GET /company/bots). Там чужие боты приходят с одними лишь именем и ником, остальные настройки скрыты.
+        Перечень всех ботов пространства, включая чужих, доступен владельцу пространства на тарифе «Корпорация» — [Список ботов пространства](GET /company/bots). Там чужие боты приходят с одними лишь именем и ником, остальные настройки скрыты.
       parameters:
         - name: query
           in: query
@@ -432,7 +438,7 @@ paths:
                     webhook:
                       name: Бот задач
                       nickname: tasks_bot
-                      outgoing_url: https://www.website.com/tasks/new
+                      outgoing_url: https://example.com/tasks/new
                       events:
                         - message_new
                       trigger_on: commands
@@ -474,6 +480,12 @@ paths:
                 meta:
                   paginate:
                     next_page: eyJpZCI6MTczODgxNn0
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -491,7 +503,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Bots
       x-paginated: true
@@ -506,13 +520,15 @@ paths:
 
         С `empty: true` создаётся пустой бот, как в интерфейсе: только имя и ник, без токена и без входящего вебхука. Токены ему выпускают методом [Новый токен бота](POST /bots/{id}/tokens), а входящий вебхук включают полем `kind` в объекте `webhook`.
 
-        Созданный бот ещё никуда не пишет. В беседу и канал он пишет только как участник, а добавляют его как сотрудника — методом [Добавление пользователей](POST /chats/{id}/members), передав `id` бота. В канале бот получает роль редактора. Личные сообщения и треды в открытых чатах членства не требуют.
+        Созданный бот ещё никуда не пишет. В беседу и канал он пишет только как участник, а добавляют его как сотрудника — методом [Добавление участников](POST /chats/{id}/members), передав `id` бота. В канале бот получает роль редактора. Личные сообщения и треды в открытых чатах членства не требуют.
 
         Входящий вебхук бота отправляет сообщение сразу во все беседы и каналы, где бот состоит, поэтому набор его чатов и решает, куда оно попадёт. Токен для этого не нужен, достаточно адреса вебхука. Чтобы написать в один конкретный чат, берите метод [Новое сообщение](POST /messages) — вот там токен уже нужен.
 
-        Авторизацию от имени сотрудника можно включить сразу, передав `oauth_client`, а страницу в витрине заполнить в `promo`. У серверного клиента секрет приходит в `client_secret` один раз. Подробнее — в разделе [Настройка авторизации](/guides/oauth/setup).
+        Авторизацию от имени сотрудника можно включить сразу, передав `oauth_client`, а страницу в витрине заполнить в `promo`. У серверного клиента секрет приходит в `client_secret` один раз. Подробнее — в разделе [Настройка авторизации](/guides/oauth/setup). Ссылку авторизации для кнопки собирает и код на токен обменивает сервер бота — по шагам в разделе [Получение токена](/guides/oauth/flow).
 
         Ник обязан заканчиваться на `_bot` и быть свободным в пространстве.
+
+        Аватар боту ставят после создания методом [Загрузка аватара бота](PUT /bots/{id}/avatar).
       parameters: []
       responses:
         '201':
@@ -540,7 +556,7 @@ paths:
                   webhook:
                     name: Бот задач
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -604,7 +620,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Bots
       requestBody:
@@ -617,7 +635,7 @@ paths:
               webhook:
                 name: Бот задач
                 nickname: tasks_bot
-                outgoing_url: https://www.website.com/tasks/new
+                outgoing_url: https://example.com/tasks/new
                 events:
                   - message_new
                 trigger_on: commands
@@ -644,7 +662,9 @@ paths:
 
         Метод отдаёт только тех ботов, которых вызывающий вправе настраивать: своих, а также чужих, если настройки бота открывают доступ администраторам пространства или руководителям чатов, где бот состоит. На остальных метод ответит `403`.
 
-        Перечень всех ботов пространства, включая чужих, доступен владельцу на тарифе «Корпорация» — [Список ботов пространства](GET /company/bots).
+        Токену со скоупом `bots:write` метод отвечает и без `bots:read`. Если при этом вы можете управлять токенами бота (`permissions.recreate_token`), в `webhook` приходят адрес входящего вебхука `url`, секрет подписи `secret_token` и тело последнего запроса на входящий вебхук `last_request_body`.
+
+        Перечень всех ботов пространства, включая чужих, доступен владельцу пространства на тарифе «Корпорация» — [Список ботов пространства](GET /company/bots).
       parameters:
         - name: id
           in: path
@@ -681,7 +701,7 @@ paths:
                   webhook:
                     name: Бот задач
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -702,6 +722,9 @@ paths:
                     kind: simple
                     unfurl_domains: []
                     last_request_at: '2025-05-20T09:15:00.000Z'
+                    url: https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M
+                    secret_token: pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA
+                    last_request_body: '{"client": "ООО Ромашка", "amount": 15000}'
                   oauth_client_enabled: true
                   oauth_client:
                     client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
@@ -737,7 +760,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -755,13 +780,17 @@ paths:
 
         Меняет настройки бота: перезаписываются только переданные поля.
 
-        Ник обязан заканчиваться на `_bot` и быть свободным в пространстве, иначе метод отвечает ошибкой валидации. Команды и скоупы заменяются переданным списком целиком. Скоупы относятся к основному токену бота — тому, что без имени, а если такого нет, к самому старому — и применяются к нему сразу, перевыпускать его не нужно. Права отдельного токена меняет [Изменение токена бота](PUT /bots/{id}/tokens/{token_id}).
+        Ник обязан заканчиваться на `_bot` и быть свободным в пространстве, иначе метод отвечает ошибкой валидации. Команды, скоупы, события, домены разворачивания ссылок и роли редактирования заменяются переданным списком целиком. Скоупы относятся к основному токену бота — тому, что без имени, а если такого нет, к самому старому — и применяются к нему сразу, перевыпускать его не нужно. Права отдельного токена меняет [Изменение токена бота](PUT /bots/{id}/tokens/{token_id}).
 
-        Объект `oauth_client` включает авторизацию от имени сотрудника или меняет её настройки, а `null` её выключает: авторизации, выданные сотрудниками, отзываются, страница в витрине удаляется, собственные токены бота продолжают работать. Когда клиент становится серверным, его секрет приходит в `client_secret` один раз. Страницу в витрине задаёт `promo`, пока авторизация включена.
+        Когда `oauth_client` делает клиента серверным, его секрет приходит в `client_secret` один раз. Ссылку авторизации для кнопки собирает и код на токен обменивает сервер бота — по шагам в разделе [Получение токена](/guides/oauth/flow). Страницу в витрине задаёт `promo`, пока авторизация включена.
 
         Включать событие `message_link_shared`, а у бота с ним менять домены, адрес вебхука и историю событий может только администратор или владелец пространства.
 
+        Если изменение лишает бота права состоять в тегах (`single_chat: true` или `who_can_add` со значением `creator` или `creator_admin`), он выходит из всех тегов и из чатов, куда попал через них, а в чатах, куда его добавили напрямую, остаётся. Подробнее — в разделе [Бот в тегах](/guides/bots/settings#bot-v-tegah).
+
         Имя бота, авторизацию от имени сотрудника и страницу в витрине меняют только его создатель и администратор пространства, если настройки бота открывают администраторам доступ к редактированию. Остальные настройки нельзя менять у бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).
+
+        Аватар бота ставят и убирают отдельные методы [Загрузка аватара бота](PUT /bots/{id}/avatar) и [Удаление аватара бота](DELETE /bots/{id}/avatar).
       parameters:
         - name: id
           in: path
@@ -871,7 +900,155 @@ paths:
           content:
             application/json:
               schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      x-requirements:
+        scope: bots:write
+  /bots/{id}/avatar:
+    put:
+      operationId: BotOperations_updateBotAvatar
+      description: |-
+        Загрузка аватара бота
+
+        Ставит или заменяет аватар бота. Менять его может тот, кому доступно [Редактирование бота](PUT /bots/{id}).
+
+        Файл передаётся в формате `multipart/form-data`, в ответе приходит только ссылка на новое изображение. Принимаются `jpg`, `jpeg`, `png` и `gif`, анимированный `gif` — не больше 2 МБ, картинка уменьшается до 1024 на 1024 пикселя.
+
+        Уменьшенная копия приходит в поле `avatar_url` бота, например в методе [Информация о боте](GET /bots/{id}).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор бота
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AvatarData'
+                description: Обертка ответа с данными
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Bots
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Файл изображения для аватара
+              required:
+                - image
+      x-requirements:
+        scope: bots:write
+    delete:
+      operationId: BotOperations_deleteBotAvatar
+      description: |-
+        Удаление аватара бота
+
+        Убирает аватар бота. Доступно тому же, кому доступна [Загрузка аватара бота](PUT /bots/{id}/avatar).
+
+        Если аватара не было, ответ всё равно `204`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор бота
+          schema:
+            type: integer
+            format: int32
+            example: 1738816
+          example: 1738816
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -931,7 +1108,7 @@ paths:
                   webhook:
                     name: Бот задач
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -988,7 +1165,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -1046,7 +1225,7 @@ paths:
                   webhook:
                     name: Бот задач
                     nickname: tasks_bot
-                    outgoing_url: https://www.website.com/tasks/new
+                    outgoing_url: https://example.com/tasks/new
                     events:
                       - message_new
                     trigger_on: commands
@@ -1662,9 +1841,11 @@ paths:
 
         Мульти-гость, как и в интерфейсе, создавать чаты не может: метод отвечает ему `403`.
 
-        Для создания личной переписки 1 на 1 с пользователем пользуйтесь методом [Новое сообщение](POST /messages). Чтобы обсудить конкретное сообщение, чат заводить не нужно — под ним заводят тред методом [Новый тред](POST /messages/{id}/thread).
+        Для создания личной переписки 1 на 1 с пользователем пользуйтесь методом [Новое сообщение](POST /messages). Чтобы обсудить конкретное сообщение, чат заводить не нужно — под ним заводят тред методом [Новый тред](POST /messages/{id}/thread). Разговору на одну тему постоянное место тоже не нужно: для него есть метод [Новый самостоятельный тред](POST /threads).
 
-        Участников можно передать сразу: `member_ids` добавляет поимённо, `group_tag_ids` приводит всех, кто состоит в теге, и дальше поддерживает состав сам. Идентификаторы, которых в пространстве нет, а также приостановленные и удалённые сотрудники молча отбрасываются — ответ приходит успешным, а сотрудника в чате не оказывается, поэтому сверяйте состав в ответе. С ботами строже: если настройка бота «Кто может добавлять бота в чаты» не разрешает вам его добавить, чат не создаётся, а метод отвечает `403` с кодом `bot_add_denied` и идентификаторами таких ботов в `value`. Бот с настройкой «Ограничить одним чатом», который уже состоит в другой беседе или канале, тоже останавливает запрос, если он есть в `member_ids` или создаёт чат сам: чат не создаётся, а метод отвечает `409` с кодом `single_chat_bot_occupied` и идентификаторами таких ботов в `value`.
+        Участников можно передать сразу: `member_ids` добавляет поимённо, `group_tag_ids` приводит всех, кто состоит в теге, и дальше поддерживает состав сам. Идентификаторы, которых в пространстве нет, а также приостановленные и удалённые сотрудники запрос не останавливают: чат создаётся с остальными участниками, а такие идентификаторы приходят в `meta.not_found_member_ids`. Несуществующие теги пропускаются молча. С ботами строже: если настройка бота «Кто может добавлять бота в чаты» не разрешает вам его добавить, чат не создаётся, а метод отвечает `403` с кодом `bot_add_denied` и идентификаторами таких ботов в `value`. Бот с настройкой «Ограничить одним чатом», который уже состоит в другой беседе или канале, тоже останавливает запрос, если он есть в `member_ids` или создаёт чат сам: чат не создаётся, а метод отвечает `409` с кодом `single_chat_bot_occupied` и идентификаторами таких ботов в `value`.
+
+        Аватар чату ставят после создания методом [Загрузка аватара чата](PUT /chats/{id}/avatar).
       parameters: []
       responses:
         '201':
@@ -1675,10 +1856,24 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     $ref: '#/components/schemas/Chat'
-                description: Обертка ответа с данными
+                  meta:
+                    type: object
+                    properties:
+                      not_found_member_ids:
+                        type: array
+                        items:
+                          type: integer
+                          format: int32
+                        description: 'Идентификаторы из `member_ids`, которые не удалось добавить: такого сотрудника нет в пространстве, он приостановлен или удалён. Пустой массив, если добавлены все.'
+                        example: []
+                    required:
+                      - not_found_member_ids
+                    description: Метаданные ответа
+                description: Обертка ответа с данными и метаданными
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -1733,6 +1928,8 @@ paths:
         Список чатов
 
         По умолчанию — беседы, каналы и личные переписки, где состоит владелец токена. С `availability=public` метод отдаёт вместо этого все открытые чаты пространства, включая те, куда вызывающий не вступал. Мульти-гостю — только открытые чаты, где он участник.
+
+        Закрытые чаты метод отдаёт только их участникам, при любых `availability` и `archived`. Перечень всех чатов пространства, включая закрытые, доступен владельцу пространства на тарифе «Корпорация» — [Список чатов пространства](GET /company/chats).
 
         Треды в списке не приходят никогда, для них есть [Список тредов](GET /threads).
 
@@ -1870,7 +2067,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -1888,13 +2087,49 @@ paths:
       description: |-
         Экспорт сообщений
 
-        Заказ выгрузки сообщений пространства за период. Архив готовится в фоне, поэтому ответ приходит пустым и идентификатора выгрузки не содержит.
+        Заказ выгрузки сообщений пространства за период. Архив готовится в фоне.
 
-        Номер готовой выгрузки приходит в поле `export_id` вебхука на адрес из `webhook_url`. Заказавший дополнительно получает письмо и уведомление в Пачке со ссылкой вида `/full_exports/{id}` — число в ней и есть идентификатор. Адрес вебхука необязателен, но без него программе номер взять неоткуда: остаются только письмо и уведомление заказавшему.
+        Период выгрузки — не больше 45 дней, с `chat_ids` — до 366 дней, а `end_at` не может быть раньше `start_at`. Другой период отвечает `422` с кодом `invalid_date_range`.
 
-        С этим идентификатором архив забирают методом [Скачать архив экспорта](GET /chats/exports/{id}).
-      parameters: []
+        С заголовком `Prefer: return=representation` ответ приходит со статусом `202` и идентификатором экспорта в `data.id`. Без заголовка ответ пустой, со статусом `204`. По идентификатору архив отдаёт метод [Скачать архив экспорта](GET /chats/exports/{id}), когда сборка закончится.
+
+        Когда архив готов, на адрес из `webhook_url` приходит вебхук с идентификатором в поле `export_id`. Заказавший получает письмо и уведомление в Пачке со ссылкой вида `/full_exports/{id}` — число в ней и есть идентификатор.
+
+        Следующую выгрузку пространство может заказать через 90 секунд после предыдущей, даже если та ещё собирается. Более ранний запрос отвечает `422` с кодом `rate_limit`.
+      parameters:
+        - name: Prefer
+          in: header
+          required: false
+          description: Просьба вернуть идентификатор экспорта в ответе. Без заголовка ответ приходит пустым, со статусом `204`.
+          schema:
+            type: string
+            enum:
+              - return=representation
+          example: return=representation
       responses:
+        '202':
+          description: The request has been accepted for processing, but processing has not yet completed.
+          headers:
+            Preference-Applied:
+              required: true
+              description: Применённое предпочтение
+              schema:
+                type: string
+                enum:
+                  - return=representation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ChatExport'
+                description: Обертка ответа с данными
+              example:
+                data:
+                  id: 22322
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
         '400':
@@ -1931,6 +2166,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ExportRequest'
+            example:
+              start_at: '2025-03-01'
+              end_at: '2025-03-20'
+              chat_ids:
+                - 1381521
       x-requirements:
         scope: chat_exports:write
         plan: corporation
@@ -1942,12 +2182,14 @@ paths:
 
         В ответ на запрос сервер вернёт `302 Found` с заголовком `Location`, содержащим временную ссылку на скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.
 
-        Ссылка действует 5 минут, поэтому скачивайте архив сразу после запроса. Сам архив хранится 7 дней, а скачать его может только тот, кто заказал выгрузку. Другому сотруднику с тем же правом метод откажет.
+        Ссылка действует 5 минут, используйте её сразу. Сам архив хранится 7 дней, а скачать его может только тот, кто заказал выгрузку. Другому сотруднику с тем же правом метод откажет.
+
+        Пока архив собирается, метод отвечает `404` с кодом `export_file_not_found`.
       parameters:
         - name: id
           in: path
           required: true
-          description: Идентификатор экспорта
+          description: 'Идентификатор экспорта: `export_id` из вебхука о готовом архиве или число из ссылки вида `/full_exports/{id}` в уведомлении в Пачке'
           schema:
             type: integer
             format: int32
@@ -1975,10 +2217,8 @@ paths:
             application/json:
               schema:
                 anyOf:
+                  - $ref: '#/components/schemas/ApiError'
                   - $ref: '#/components/schemas/OAuthError'
-                  - anyOf:
-                      - $ref: '#/components/schemas/ApiError'
-                      - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -1996,7 +2236,7 @@ paths:
       description: |-
         Информация о чате
 
-        Карточка чата вместе с составом участников и привязанными тегами.
+        Карточка чата вместе с составом участников и привязанными тегами. Что в чате написано, возвращает [Список сообщений чата](GET /messages).
 
         Закрытая беседа, в которой вызывающий не состоит, отвечает `403`, а не `404`: существование чата этим методом не скрывается. Открытый канал своего пространства отдаётся и тому, кто в него не вступал. Владельцу пространства метод тоже не открывает чужие закрытые чаты — весь их перечень отдаёт [Список чатов пространства](GET /company/chats).
 
@@ -2005,7 +2245,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Идентификатор чата
+          description: 'Идентификатор чата: в ссылке веб-приложения это число из пути `/chats/{id}`'
           schema:
             type: integer
             format: int32
@@ -2041,7 +2281,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2061,7 +2303,9 @@ paths:
 
         Личный чат переименовать нельзя, архивный — тоже: сначала верните его из архива методом [Разархивация чата](PUT /chats/{id}/unarchive). В закрытом чате метод доступен владельцу и администратору чата, в открытом — любому сотруднику пространства, даже не участнику.
 
-        Состав участников этим методом не меняется, для него есть [Добавление пользователей](POST /chats/{id}/members) и [Исключение пользователя](DELETE /chats/{id}/members/{user_id}).
+        Состав участников этим методом не меняется, для него есть [Добавление участников](POST /chats/{id}/members) и [Исключение участника](DELETE /chats/{id}/members/{user_id}).
+
+        Аватар ставят и убирают отдельные методы [Загрузка аватара чата](PUT /chats/{id}/avatar) и [Удаление аватара чата](DELETE /chats/{id}/avatar).
       parameters:
         - name: id
           in: path
@@ -2108,7 +2352,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2163,12 +2409,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2283,6 +2537,12 @@ paths:
       responses:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -2323,9 +2583,9 @@ paths:
 
         После добавления тега все его участники автоматически становятся участниками чата. Состав участников тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу появляется в чате, при удалении из тега — удаляется из чата.
 
-        Если хотя бы один из переданных тегов не найден, метод отвечает `404` и не привязывает ни одного. Тег, который к чату уже привязан, повторно не привязывается, а его участники всё равно догружаются в чат.
+        Если хотя бы один из переданных тегов не найден, метод отвечает `404` и не привязывает ни одного. Тег, который к чату уже привязан, повторно не привязывается, а его участники всё равно догружаются в чат. Бот, которому нельзя состоять в тегах, по тегу в чат не приходит.
 
-        Привязать тег может участник закрытой беседы и любой сотрудник пространства в открытом чате, а отцепить — только владелец или администратор чата методом [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id}).
+        Привязать тег может участник закрытой беседы и любой сотрудник пространства в открытом чате, а отцепить — только владелец или администратор чата методом [Исключение тега из чата](DELETE /chats/{id}/group_tags/{tag_id}). Гостю и мульти-гостю метод отвечает `403`, какая бы роль в чате у них ни была.
       parameters:
         - name: id
           in: path
@@ -2351,12 +2611,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2379,11 +2647,16 @@ paths:
               $ref: '#/components/schemas/AddTagsRequest'
       x-requirements:
         scope: chat_members:write
+        roles:
+          - owner
+          - admin
+          - user
+          - bot
   /chats/{id}/group_tags/{tag_id}:
     delete:
       operationId: ChatMemberOperations_removeTag
       description: |-
-        Исключение тега
+        Исключение тега из чата
 
         Отцепляет тег от беседы или канала и выводит оттуда сотрудников, которых держал только он.
 
@@ -2418,12 +2691,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2442,9 +2723,9 @@ paths:
 
         Владелец токена выходит из беседы, канала или треда сам. Из треда выходят по его `chat_id`. В закрытой беседе остальные видят системное сообщение о выходе, в открытом чате и канале — нет.
 
-        Выйти нельзя, если сотрудника держит в чате привязанный тег: метод ответит `403`, пока тег не снимут с сотрудника или с чата. Из личной переписки выйти тоже нельзя, а вот из архивного чата можно.
+        Выйти нельзя, если сотрудника держит в чате привязанный тег: метод ответит `403`, пока тег не снимут с сотрудника или с чата. Гостю и мульти-гостю метод тоже отвечает `403`, какая бы роль в чате у них ни была. Из личной переписки выйти нельзя, ответ — `400` с кодом `personal_chat`. А вот из архивного чата выйти можно.
 
-        Вернуться в открытый чат можно самому, в закрытый — только если кто-то из участников добавит обратно. Другого сотрудника выводит [Исключение пользователя](DELETE /chats/{id}/members/{user_id}).
+        Вернуться в открытый чат можно самому, в закрытый — только если кто-то из участников добавит обратно. Другого сотрудника выводит [Исключение участника](DELETE /chats/{id}/members/{user_id}).
       parameters:
         - name: id
           in: path
@@ -2470,12 +2751,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2502,7 +2791,7 @@ paths:
 
         Владелец пространства может получить состав участников любого чата пространства. Администраторы и боты получают состав только тех чатов, где состоят сами, и открытых чатов пространства.
 
-        В выдачу попадают только действующие сотрудники: приостановленные не приходят, хотя членство у них сохраняется. Роль участника в чате метод не отдаёт — параметр `role` работает только как фильтр.
+        В выдачу попадают только действующие сотрудники: приостановленные не приходят, хотя членство у них сохраняется. Поле `role` в записи — роль сотрудника в пространстве. Роль участника в чате метод не отдаёт: кто в какой роли, показывает только фильтр `role` — по запросу на каждую роль.
       parameters:
         - name: id
           in: path
@@ -2516,7 +2805,7 @@ paths:
         - name: role
           in: query
           required: false
-          description: Роль в чате
+          description: Роль в чате. В канале пишут создатель, админы и редакторы, а участник там — подписчик.
           schema:
             allOf:
               - $ref: '#/components/schemas/ChatMemberRoleFilter'
@@ -2575,12 +2864,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2601,11 +2898,13 @@ paths:
     post:
       operationId: ChatMemberOperations_addMembers
       description: |-
-        Добавление пользователей
+        Добавление участников
 
         Добавляет сотрудников и ботов в беседу, канал или тред. Бота добавляют так же, как сотрудника: его `id` в `member_ids`. В канале он получает роль редактора, а в беседе становится обычным участником — и только после этого может туда писать.
 
-        Роль в чате назначается в момент добавления: владелец пространства и администратор становятся администраторами чата, остальные — обычными участниками. Дальше она сама не пересчитывается, и повышение сотрудника в пространстве ничего не меняет там, где он уже состоит. Менять роль нужно методом [Редактирование роли](PUT /chats/{id}/members/{user_id}).
+        Добавлять участников могут сотрудники и боты. Гостю и мульти-гостю метод отвечает `403`, как и в интерфейсе, какая бы роль в чате у них ни была.
+
+        Роль в чате назначается в момент добавления: владелец пространства и администратор становятся администраторами чата, остальные — обычными участниками. Дальше роль в чате сама не пересчитывается: повышение сотрудника в пространстве не меняет его роль там, где он уже состоит. Менять роль нужно методом [Редактирование роли участника](PUT /chats/{id}/members/{user_id}).
 
         Тех, кто уже состоит в чате, метод пропускает молча и ошибкой это не считает. А вот неизвестный или неактивный идентификатор останавливает весь запрос: метод отвечает `404` и перечисляет такие значения, никто при этом не добавляется.
 
@@ -2639,6 +2938,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -2675,71 +2980,22 @@ paths:
               $ref: '#/components/schemas/AddMembersRequest'
       x-requirements:
         scope: chat_members:write
+        roles:
+          - owner
+          - admin
+          - user
+          - bot
   /chats/{id}/members/{user_id}:
     delete:
       operationId: ChatMemberOperations_removeMember
       description: |-
-        Исключение пользователя
+        Исключение участника
 
         Убирает сотрудника или бота из беседы, канала или треда. Из треда исключают по его `chat_id`. В закрытой беседе исключённый теряет доступ к чату, но остаётся в тредах, где состоял.
 
-        Сотрудника, которого держит в чате привязанный тег, этим методом убрать нельзя: ответ придёт успешный, а сотрудник останется в чате. Снимите с него тег методом [Редактирование сотрудника](PUT /users/{id}) или отцепите тег от чата методом [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id}).
+        Сотрудника, которого держит в чате привязанный тег, этим методом убрать нельзя: ответ придёт успешный, а сотрудник останется в чате. Снимите с него тег методом [Редактирование сотрудника](PUT /users/{id}) или отцепите тег от чата методом [Исключение тега из чата](DELETE /chats/{id}/group_tags/{tag_id}).
 
-        Если пользователь является владельцем чата, то исключить его нельзя. Он может только самостоятельно выйти из чата, воспользовавшись методом [Выход из чата](DELETE /chats/{id}/leave).
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Идентификатор чата
-          schema:
-            type: integer
-            format: int32
-            example: 334
-          example: 334
-        - name: user_id
-          in: path
-          required: true
-          description: Идентификатор пользователя
-          schema:
-            type: integer
-            format: int32
-            example: 186
-          example: 186
-      responses:
-        '204':
-          description: 'There is no content to send for this request, but the headers may be useful. '
-        '401':
-          description: Access is unauthorized.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '403':
-          description: Access is forbidden.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '404':
-          description: The server cannot find the requested resource.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-      tags:
-        - Members
-      x-requirements:
-        scope: chat_members:write
-    put:
-      operationId: ChatMemberOperations_updateMemberRole
-      description: |-
-        Редактирование роли
-
-        Меняет роль участника беседы или канала. Роль в чате с ролью в пространстве не связана: рядовой сотрудник может быть администратором чата, а повышение в пространстве роли в чатах не меняет.
-
-        Роль `editor` существует только в каналах. Себе роль сменить нельзя, как и тому, кто в чате не состоит: метод ответит ошибкой. Повторная установка той же роли считается ошибкой, а не повтором.
-
-        Владельцу чата роль изменить нельзя. Он всегда имеет права администратора чата.
+        Владельца чата исключить нельзя: метод ответит `400` с кодом `cannot_kick_owner`. Выйти из чата владелец может только сам, методом [Выход из чата](DELETE /chats/{id}/leave).
       parameters:
         - name: id
           in: path
@@ -2774,12 +3030,88 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Members
+      x-requirements:
+        scope: chat_members:write
+    put:
+      operationId: ChatMemberOperations_updateMemberRole
+      description: |-
+        Редактирование роли участника
+
+        Меняет роль участника беседы или канала. Роль в чате с ролью в пространстве не связана: рядовой сотрудник может быть администратором чата, а повышение в пространстве роли в чатах не меняет.
+
+        Роль `editor` существует только в каналах. Себе роль сменить нельзя, как и тому, кто в чате не состоит, и владельцу чата: он всегда имеет права администратора чата. Повторная установка той же роли считается ошибкой, а не повтором.
+
+        Отказ приходит со статусом `400`, а причину называет код: `not_applicable` — роль `editor` вне канала, `self_update` — своя роль, `owner_protected` — роль владельца чата, `already_assigned` — у участника уже эта роль, `forbidden` — эту роль вам менять нельзя. На сотрудника, который в чате не состоит, метод отвечает `404`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+            example: 334
+          example: 334
+        - name: user_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+            format: int32
+            example: 186
+          example: 186
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2830,12 +3162,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -2856,12 +3196,12 @@ paths:
 
         Без `message_id` непрочитанным становится последнее сообщение чата, с `message_id` — это сообщение и все после него. Повторный запрос с тем же сообщением ничего не меняет, а в чате без сообщений метод отвечает успехом и ничего не делает.
 
-        Работает в беседах, каналах, личных чатах и тредах, где владелец токена состоит. Скрытый личный чат снова появляется в списке. На чат, где владельца токена нет, и на сообщение из другого чата метод отвечает `404`.
+        Работает в беседах, каналах, личных чатах и тредах, где владелец токена состоит: тред передают его `chat_id`. Скрытый личный чат снова появляется в списке. Открытый чат, где владелец токена не состоит, и сообщение из другого чата отвечают `404`. Закрытый чат, недоступный тред и чат другого пространства отвечают `403`.
       parameters:
         - name: id
           in: path
           required: true
-          description: Идентификатор чата или треда
+          description: Идентификатор чата (беседы, канала, личного чата или чата треда)
           schema:
             type: integer
             format: int32
@@ -2920,7 +3260,7 @@ paths:
       description: |-
         Список ботов пространства
 
-        Все боты пространства, включая тех, кто недоступен вам для редактирования. У таких ботов приходят только имя и ник, остальные настройки — `null`.
+        Все боты пространства, включая тех, кто недоступен вам для редактирования. У таких ботов приходят только имя и ник, остальные настройки — `null`. Только тех ботов, которых вы можете настраивать, возвращает метод [Список ботов](GET /bots).
 
         Метод доступен владельцу пространства. Каждый запрос записывается в [журнал аудита событий](/guides/audit-events) с типом `company_bots_accessed`.
       parameters:
@@ -2988,7 +3328,7 @@ paths:
                     webhook:
                       name: Бот задач
                       nickname: tasks_bot
-                      outgoing_url: https://www.website.com/tasks/new
+                      outgoing_url: https://example.com/tasks/new
                       events:
                         - message_new
                       trigger_on: commands
@@ -3212,7 +3552,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -3253,7 +3595,7 @@ paths:
       description: |-
         Новый черновик
 
-        Кладёт черновик в беседу, тред или личную переписку. В интерфейсе Пачки он появляется в поле ввода этого чата, где сотрудник его допишет и отправит. Этим же методом создаётся отложенное сообщение: с полем `schedule` черновик уходит сам в назначенное время, без него просто лежит. Сам метод ничего не отправляет, для отправки есть [Новое сообщение](POST /messages).
+        Кладёт черновик в беседу, тред или личную переписку. В интерфейсе Пачки он появляется в поле ввода этого чата, где сотрудник его допишет и отправит. Этим же методом создаётся отложенное сообщение: с полем `schedule` черновик уходит сам в назначенное время, без него просто лежит. Сам метод ничего не отправляет: черновик отправляют методом [Новое сообщение](POST /messages), передав в него `content` и `parent_message_id` черновика, а у каждого файла из `files` — `key`, `name` и `file_type`. Отправка сообщения черновик не удаляет: приложение Пачки убирает его само, а через API — методом [Удаление черновика](DELETE /drafts/{id}), иначе текст останется в поле ввода.
 
         Черновик виден только своему автору — его не видит ни собеседник, ни администратор пространства. Обычный черновик в чате может быть только один. Повторный вызов отвечает `409` с кодом `already_exists` и номером существующего в `payload.draft_id`. Дописывают его методом [Редактирование черновика](PUT /drafts/{id}). Отложенных сообщений на один чат — не больше 50.
 
@@ -3647,7 +3989,7 @@ paths:
       description: |-
         Скачивание файла
 
-        Отдаёт сам файл, а не ссылку на него. Нужен для вложений, у которых прямой ссылки на хранилище нет: в поле `url` у них стоит адрес этого метода, и открыть его можно только с токеном. Так отдаются зашифрованные файлы и отправленные из безопасного контура пространства — обе настройки описаны в разделе [Шифрование и безопасный контур](/guides/data-protection).
+        Отдаёт сам файл, а не ссылку на него, и подходит для любого вложения, которое видно токену. Для вложений без прямой ссылки на хранилище это единственный способ: в поле `url` у них стоит адрес этого метода, и открыть его можно только с токеном. Так отдаются зашифрованные файлы и отправленные из безопасного контура пространства — обе настройки описаны в разделе [Шифрование и безопасный контур](/guides/data-protection).
 
         Отказ приходит `403` с кодом `confidential_download_denied`. Сверяется при этом адрес, с которого пришёл запрос, то есть адрес вашего сервера, а не сотрудника, чьим токеном вы пользуетесь: для серверной интеграции это самая частая причина отказа.
 
@@ -3727,7 +4069,7 @@ paths:
 
         Сотрудников в тег добавляют не здесь, а в карточке каждого — [Редактирование сотрудника](PUT /users/{id}) с полем `list_tags`. Свежий тег создаётся пустым, с `users_count: 0`. К чату его привязывает метод [Добавление тегов](POST /chats/{id}/group_tags).
 
-        Название уникально в пространстве без учёта регистра и не может содержать `@`. Создавать теги могут владелец пространства и администратор, боту метод недоступен.
+        Название уникально в пространстве без учёта регистра и не может содержать `@`. Занятое название отвечает `400` с кодом `taken`, а `409` приходит, только если такой же тег создали одновременно с запросом. Создавать теги могут владелец пространства и администратор, боту метод недоступен.
       parameters: []
       responses:
         '201':
@@ -3765,7 +4107,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '409':
           description: The request conflicts with the current state of the server.
           content:
@@ -3805,12 +4149,15 @@ paths:
           description: Массив названий тегов, по которым вы хотите отфильтровать список
           schema:
             $ref: '#/components/schemas/TagNamesFilter'
+            x-query-array: brackets
             example:
               - Design
               - Product
+          x-query-array: brackets
           example:
             - Design
             - Product
+          explode: false
         - name: limit
           in: query
           required: false
@@ -3874,7 +4221,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -3901,7 +4250,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Идентификатор тега
+          description: 'Идентификатор тега: в ссылке веб-приложения это число из параметра `tag_id`'
           schema:
             type: integer
             format: int32
@@ -3937,7 +4286,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -3955,7 +4306,7 @@ paths:
 
         Переименовывает тег. Состав сотрудников и привязки к чатам при этом не меняются: у всех, кто был в теге, он остаётся, только под новым названием.
 
-        Название уникально в пространстве без учёта регистра и не может содержать `@`. Переименовывать теги могут владелец пространства и администратор, боту метод недоступен.
+        Название уникально в пространстве без учёта регистра и не может содержать `@`. Занятое название отвечает `400` с кодом `taken`, а `409` приходит, только если такое же название задали одновременно с запросом. Переименовывать теги могут владелец пространства и администратор, боту метод недоступен.
       parameters:
         - name: id
           in: path
@@ -4002,7 +4353,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4038,7 +4391,7 @@ paths:
 
         Убирает тег из пространства: он снимается со всех сотрудников и отвязывается от всех чатов.
 
-        Из чатов при этом никто не выходит. Сотрудники, которых тег привёл в беседу или канал, остаются там обычными участниками, и дальше их состав тегом уже не поддерживается. Чтобы вывести их из конкретного чата, пользуйтесь методом [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id}) до удаления самого тега.
+        Из чатов при этом никто не выходит. Сотрудники, которых тег привёл в беседу или канал, остаются там обычными участниками, и дальше их состав тегом уже не поддерживается. Чтобы вывести их из конкретного чата, пользуйтесь методом [Исключение тега из чата](DELETE /chats/{id}/group_tags/{tag_id}) до удаления самого тега.
 
         Удалять теги могут владелец пространства и администратор, боту метод недоступен.
       parameters:
@@ -4071,7 +4424,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4097,7 +4452,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Идентификатор тега
+          description: 'Идентификатор тега: в ссылке веб-приложения это число из параметра `tag_id`'
           schema:
             type: integer
             format: int32
@@ -4166,7 +4521,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4184,31 +4541,32 @@ paths:
       x-paginated: true
       x-requirements:
         scope: group_tags:read
+        roles:
+          - owner
+          - admin
+          - user
+          - bot
   /messages:
     post:
       operationId: MessageOperations_createMessage
       description: |-
         Новое сообщение
 
-        Отправляет сообщение в беседу или канал, личное сообщение сотруднику или комментарий в тред.
+        Отправляет сообщение в беседу или канал, личное сообщение пользователю или комментарий в тред.
 
-        При использовании `entity_type: "discussion"` (или просто без указания `entity_type`) допускается отправка любого `chat_id` в поле `entity_id`. То есть сообщение можно отправить, зная только идентификатор чата. Сообщение в тред можно отправить и по идентификатору самого треда, а личное — по идентификатору сотрудника, но тогда нужно указать соответствующий `entity_type`: `thread` или `user`.
+        С `entity_type: "discussion"` — это значение по умолчанию — в `entity_id` можно передать `chat_id` любого чата, так что для отправки достаточно знать идентификатор чата. Сообщение в тред можно адресовать и идентификатором самого треда, а личное — идентификатором пользователя, но тогда нужен соответствующий `entity_type`: `thread` или `user`.
 
-        Личный чат для этого создавать не требуется: он появится сам, если между вами ещё не было переписки. Между двумя сотрудниками может быть только один личный чат. Со своим собственным идентификатором сообщение уйдёт в чат с самим собой — туда же, куда сотрудник пишет заметки себе.
+        Личный чат для этого создавать не требуется: он появится сам, если между вами ещё не было переписки. Между двумя пользователями может быть только один личный чат. Со своим собственным идентификатором сообщение уйдёт в чат с самим собой, где пишут заметки себе. С токеном бота это чат, где состоит только сам бот: его не видит ни один сотрудник.
 
-        Чтобы ответить на конкретное сообщение с цитатой, передайте его идентификатор в `parent_message_id`. Так отвечают в любом чате, в том числе в треде: ответ отправляют в тот же чат или тред, где лежит исходное сообщение.
+        Тред, в отличие от личного чата, сам не появляется: если у сообщения треда ещё нет, его сначала создают методом [Новый тред](POST /messages/{id}/thread).
 
-        Текст в поле `content` разбирается как markdown: жирный, курсив, зачёркнутый, строчный код, блок кода и ссылки. Списки и таблицы не разбираются — `-`, `1.` и `|` остаются как есть, у цитаты пропадает `>`, а строка с решёткой и пробелом становится жирной. Подробности — в разделе [Форматирование текста](/guides/markdown).
+        Подписчик канала пишет только в тредах его сообщений, а в сам канал метод отвечает ему `403`. Кто где может писать — в разделе [Права и роли](/guides/permissions).
 
-        `@all` упоминает всех участников чата, `@here` — тех, кто сейчас в сети, а `@` с названием тега без пробелов — сотрудников этого тега. В треде упоминание работает ещё и как приглашение: упомянутого сотрудника, которого в треде нет, Пачка туда добавляет, и он получает доступ к треду и родительскому сообщению. Чтобы этого не происходило, передайте `skip_invite_mentions: true`. В беседе и канале упоминание никого не добавляет, и этот параметр там ничего не меняет.
-
-        Под текстом сообщения можно показать кнопки — массив `buttons`, где каждый вложенный массив это ряд. Работают они только у сообщений, отправленных токеном бота: нажатие на кнопку с `data` приходит событием `button_click` тому самому боту, а вместе с ним `trigger_id` — на открытие формы по нему есть 3 секунды, метод [Открытие представления](POST /views/open). Кнопка с `url` просто ведёт по ссылке и события не создаёт. Подробности в разделе [Кнопки](/guides/buttons).
-
-        Бот может подписать сообщение чужим именем и аватаром: `display_name` и `display_avatar_url` меняют отправителя только у этого сообщения. Бейдж «Бот» остаётся, а в профиле отправителя видно настоящего бота. Так показывают автора из другой системы, когда переносят в Пачку чужую переписку. С личным токеном поля недоступны, ответ `403`. Подробности — в разделе [Боты](/guides/bots/overview).
+        Текст в поле `content` разбирается как markdown: жирный, курсив, зачёркнутый, строчный код, блок кода и ссылки. Списки и таблицы не разбираются — `-`, `1.` и `|` остаются как есть, у цитаты пропадает `>`, а строка с решёткой и пробелом становится жирной. Таблицу, чек-лист или диаграмму приложите файлом `.md`: Пачка показывает такой файл оформленным, а если он единственный документ в сообщении, его начало видно прямо в чате. Подробности — в разделе [Форматирование текста](/guides/markdown).
 
         К сообщению можно приложить не больше 10 файлов. Превью ссылки строится, только если передать `link_preview` в корне тела запроса.
 
-        Действует суточный предел на число сообщений в один чат от одного отправителя. При превышении метод отвечает `429`, а в заголовке `Retry-After` приходит пауза до следующей попытки. Значения пределов — в разделе [Лимиты](/api/limits).
+        Действуют лимиты на частоту отправки и суточный предел на число сообщений в один чат от одного отправителя. При превышении любого из них метод отвечает `429`, а в заголовке `Retry-After` приходит пауза до следующей попытки. Значения пределов — в разделе [Лимиты](/api/limits).
       parameters: []
       responses:
         '201':
@@ -4246,7 +4604,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '422':
           description: Client error
           content:
@@ -4381,7 +4747,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4414,7 +4782,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Идентификатор сообщения
+          description: Идентификатор сообщения. Ссылка веб-приложения указывает на сообщение параметром `sidebar_message`, а без него — параметром `message`. Число из `thread_message_id` — сообщение, под которым висит тред.
           schema:
             type: integer
             format: int32
@@ -4450,7 +4818,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4466,7 +4836,7 @@ paths:
       description: |-
         Редактирование сообщения
 
-        Меняет текст, файлы и кнопки уже отправленного сообщения. В интерфейсе у него появляется пометка о правке.
+        Меняет текст, файлы и кнопки уже отправленного сообщения. В интерфейсе у него появляется пометка о правке. Текст оформляется по тем же правилам, что и в методе [Новое сообщение](POST /messages).
 
         Править можно только свои сообщения, и только обычные: системное, пересланное и голосовое метод не меняет. Ограничений по давности отправки нет.
 
@@ -4517,7 +4887,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4580,7 +4952,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4601,7 +4975,7 @@ paths:
 
         Метод доступен только боту, у которого исходящий вебхук настроен на разворачивание ссылок. Такой бот получает событие `message_link_shared` и отвечает на него этим методом, причём состоять в чате с сообщением ему не нужно — достаточно, чтобы чат был в его пространстве.
 
-        Домен ссылки должен быть в списке разрешённых у бота, а сама ссылка — присутствовать в тексте сообщения, иначе метод ответит ошибкой. Ответ приходит пустым даже тогда, когда ни одно превью не применилось: результат проверяют повторным чтением сообщения.
+        Домен ссылки должен быть в списке разрешённых у бота, а сама ссылка — присутствовать в тексте сообщения, иначе метод ответит ошибкой. Ответ приходит пустым даже тогда, когда ни одно превью не применилось. В объекте сообщения превью нет: их видно только в приложении.
       parameters:
         - name: id
           in: path
@@ -4627,12 +5001,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4655,6 +5037,8 @@ paths:
               $ref: '#/components/schemas/LinkPreviewsRequest'
       x-requirements:
         scope: link_previews:write
+        roles:
+          - bot
   /messages/{id}/pin:
     post:
       operationId: MessageOperations_pinMessage
@@ -4683,12 +5067,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4703,6 +5095,10 @@ paths:
                 $ref: '#/components/schemas/ApiError'
         '422':
           description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
       tags:
         - Messages
       x-requirements:
@@ -4732,12 +5128,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4759,6 +5163,8 @@ paths:
         В поле `code` передаётся сам символ эмодзи: текстовые записи вроде `+1` или `:+1:` метод не принимает. Если пользователь уже ставил реакцию, повторно она установлена не будет. Для удаления реакции надо воспользоваться методом [Удаление реакции](DELETE /messages/{id}/reactions).
 
         Если под сообщением есть тред, реагирующий заодно подписывается на него и начинает получать новые сообщения треда.
+
+        Сообщение, которое токену не видно, отвечает `404` с кодом `not_found`, как несуществующее.
 
         **Лимиты реакций:**
 
@@ -4794,12 +5200,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4873,12 +5287,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -4965,12 +5387,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5073,7 +5503,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5097,13 +5529,13 @@ paths:
       description: |-
         Новый тред
 
-        Заводит тред под сообщением — место, где обсуждают сказанное, не засоряя ленту чата. Тред — это отдельный доступ: в него можно позвать сотрудника, не открывая ему сам чат, и он увидит только тред и родительское сообщение.
+        Заводит тред под сообщением — место, где обсуждают сказанное, не засоряя ленту чата. Тред — это отдельный доступ: в него можно позвать сотрудника, не открывая ему сам чат, и он увидит только тред и родительское сообщение. Если обсуждать нужно тему, а не сообщение, заводите тред методом [Новый самостоятельный тред](POST /threads).
 
         В новый тред сразу попадают тот, кто его создал, автор сообщения, все, кто ставил на сообщение реакции, и участники чата, включившие уведомления о тредах. Упомянутых в родительском сообщении — и поимённо, и тегом — добавляет фоновая задача сразу после создания, поэтому в первом ответе их может ещё не быть. Общие упоминания вроде `@all` в тред никого не приводят, а упомянутого, которого нет в самом чате, тред не подхватит.
 
-        Пустой тред разговором ещё не является: сразу отправьте в него первое сообщение методом [Новое сообщение](POST /messages) с `entity_type: "thread"`. Названия у треда нет, и удалить его нельзя ни через API, ни в приложении.
+        Пустой тред разговором ещё не является: сразу отправьте в него первое сообщение методом [Новое сообщение](POST /messages) с `entity_type: "thread"` и `id` треда из ответа. Названия у треда нет, и удалить его нельзя ни через API, ни в приложении.
 
-        Если у сообщения уже был создан тред, то в ответе на запрос вернётся информация об уже созданном ранее треде. Тред под сообщением, которое само лежит в треде, завести нельзя: вложенных тредов в Пачке нет.
+        Если у сообщения уже был создан тред, то в ответе на запрос вернётся информация об уже созданном ранее треде. Но чтобы просто прочитать тред, метод не нужен: идентификатор существующего треда приходит в поле `thread` самого сообщения. Тред под сообщением, которое само лежит в треде, завести нельзя: вложенных тредов в Пачке нет, и метод отвечает `400` с кодом `thread_message`.
       parameters:
         - name: id
           in: path
@@ -5127,18 +5559,32 @@ paths:
                   data:
                     $ref: '#/components/schemas/Thread'
                 description: Обертка ответа с данными
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -5149,6 +5595,110 @@ paths:
         - Threads
       x-requirements:
         scope: threads:create
+  /oauth/revoke:
+    post:
+      operationId: OAuthFlowOperations_revokeToken
+      description: |-
+        Отзыв токена
+
+        Отзывает токен сотрудника, выданный боту, по стандарту OAuth 2.0 ([RFC 7009](https://datatracker.ietf.org/doc/html/rfc7009)). Так бот отключает доступ сам, например когда сотрудник выключает интеграцию в вашем сервисе. В `token` можно передать и токен сотрудника, и его токен обновления: перестают работать оба.
+
+        Тело передаётся в формате `application/x-www-form-urlencoded`. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета отзывает только сам токен: передаёт его и в теле, и в заголовке `Authorization: Bearer`.
+
+        Ответ `200` с пустым объектом приходит и тогда, когда токен уже отозван или не найден. Токен другого бота метод не отзывает и отвечает `403` с кодом `unauthorized_client`. Отзыв записывается в [журнал аудита событий](/guides/audit-events) с типом `oauth_token_revoked`. Как сотрудник отзывает доступ сам — в разделе [Согласие и отзыв](/guides/oauth/consent).
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - OAuth
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OAuthRevokeRequest'
+            example:
+              token: pato_bm90X2FfcmVhbF90b2tlbg
+              client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+              client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+      x-oauth-flow: true
+  /oauth/token:
+    post:
+      operationId: OAuthFlowOperations_exchangeToken
+      description: |-
+        Обмен кода на токен
+
+        Второй шаг авторизации от имени сотрудника: код из адреса возврата меняется на токен этого сотрудника. Код действует 10 минут и обменивается один раз. Как получить код и проверить, чей токен пришёл, — в разделе [Получение токена](/guides/oauth/flow).
+
+        Тело передаётся в формате `application/x-www-form-urlencoded`, как требует OAuth 2.0. Серверное приложение подтверждает себя секретом клиента: полями `client_id` и `client_secret` или заголовком `Authorization: Basic`. Приложение без секрета передаёт `client_id` и `code_verifier` — проверочный код PKCE, из которого получен `code_challenge` ссылки авторизации.
+
+        Токен бессрочный: `expires_in` в ответе нет, и работает токен, пока сотрудник не отзовёт доступ. Если сотрудник уже авторизовал бота раньше, приходит его прежний токен. Чей это токен, показывает [Информация о токене](GET /oauth/token/info).
+
+        Ошибки приходят в формате OAuth: `invalid_grant` — код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`, а `invalid_client` — неверный `client_id` или `client_secret`. У обмена свой [лимит](/api/limits): при его превышении метод отвечает `429` с кодом `rate_limit` в обычном формате ошибок API.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthToken'
+              example:
+                access_token: pato_bm90X2FfcmVhbF90b2tlbg
+                token_type: Bearer
+                refresh_token: cmVmcmVzaF9ub3RfcmVhbA
+                scope: chats:read messages:read tasks:read tasks:create
+                created_at: 1790242260
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '429':
+          description: Client error
+          headers:
+            Retry-After:
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - OAuth
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OAuthTokenRequest'
+            example:
+              grant_type: authorization_code
+              code: ZmFrZV9hdXRoX2NvZGU
+              redirect_uri: https://bot.example.com/oauth/callback
+              client_id: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+              client_secret: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+              code_verifier: dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+      x-oauth-authorize-url: https://app.pachca.com/apps/authorize
+      x-oauth-flow: true
+      x-requirements:
+        auth: false
   /oauth/token/info:
     get:
       operationId: OAuthOperations_getTokenInfo
@@ -5180,8 +5730,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
       tags:
         - OAuth
+      x-requirements:
+        scope: null
   /profile:
     get:
       operationId: ProfileOperations_getProfile
@@ -5193,6 +5751,8 @@ paths:
         Часовой пояс нужен, чтобы правильно понимать сроки, названные словами: «до 15:00» и «к пятнице» считаются в поясе сотрудника, а не в UTC. Пустое значение означает часовой пояс пространства.
 
         Чужую карточку отдаёт [Информация о сотруднике](GET /users/{id}).
+
+        Свой аватар ставит [Загрузка своего аватара](PUT /profile/avatar), а убирает [Удаление своего аватара](DELETE /profile/avatar).
       parameters: []
       responses:
         '200':
@@ -5218,7 +5778,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Profile
       x-requirements:
@@ -5248,6 +5810,12 @@ paths:
                   data:
                     $ref: '#/components/schemas/AvatarData'
                 description: Обертка ответа с данными
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -5301,6 +5869,12 @@ paths:
       responses:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -5355,12 +5929,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Profile
       x-requirements:
@@ -5378,7 +5960,7 @@ paths:
 
         Срок, названный словами («до трёх», «до конца дня»), — это `expires_at`, а не часть подписи. Считается он в часовом поясе сотрудника, а пояс приходит в методе [Свой профиль](GET /profile).
 
-        Эмодзи обязателен, и он должен быть ровно один, без текста вокруг. Подпись обязательна и не длиннее 50 символов.
+        Эмодзи и подпись обязательны, только когда статуса ещё нет. Эмодзи должен быть ровно один, без текста вокруг, а подпись — не длиннее 50 символов.
       parameters: []
       responses:
         '200':
@@ -5405,12 +5987,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -5443,12 +6033,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Profile
       x-requirements:
@@ -5470,7 +6068,7 @@ paths:
         - name: query
           in: query
           required: false
-          description: Текст поискового запроса
+          description: Текст поискового запроса. Запрос длиннее 500 знаков обрезается.
           schema:
             type: string
             example: Разработка
@@ -5483,6 +6081,7 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
             maximum: 100
             example: 10
             default: 100
@@ -5594,7 +6193,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '504':
           description: Server error
           content:
@@ -5623,7 +6224,7 @@ paths:
         - name: query
           in: query
           required: false
-          description: Текст поискового запроса
+          description: Текст поискового запроса. Без него сообщения отбираются только фильтрами. Запрос длиннее 500 знаков обрезается.
           schema:
             type: string
             example: футболки
@@ -5636,6 +6237,7 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
             maximum: 200
             example: 10
             default: 200
@@ -5698,9 +6300,11 @@ paths:
             items:
               type: integer
               format: int32
+            x-query-array: brackets
             example:
               - 198
               - 334
+          x-query-array: brackets
           example:
             - 198
             - 334
@@ -5714,9 +6318,11 @@ paths:
             items:
               type: integer
               format: int32
+            x-query-array: brackets
             example:
               - 12
               - 185
+          x-query-array: brackets
           example:
             - 12
             - 185
@@ -5771,7 +6377,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '504':
           description: Server error
           content:
@@ -5800,7 +6408,7 @@ paths:
         - name: query
           in: query
           required: false
-          description: Текст поискового запроса
+          description: Текст поискового запроса. Запрос длиннее 500 знаков обрезается.
           schema:
             type: string
             example: Олег
@@ -5813,6 +6421,7 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
             maximum: 200
             example: 10
             default: 200
@@ -5873,9 +6482,11 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/UserRole'
+            x-query-array: brackets
             example:
               - admin
               - user
+          x-query-array: brackets
           example:
             - admin
             - user
@@ -5921,7 +6532,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '504':
           description: Server error
           content:
@@ -5989,7 +6602,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -6040,9 +6655,11 @@ paths:
               type: integer
               format: int32
             maxItems: 100
+            x-query-array: brackets
             example:
               - 198
               - 334
+          x-query-array: brackets
           example:
             - 198
             - 334
@@ -6057,9 +6674,11 @@ paths:
               type: integer
               format: int32
             maxItems: 100
+            x-query-array: brackets
             example:
               - 12
               - 185
+          x-query-array: brackets
           example:
             - 12
             - 185
@@ -6137,7 +6756,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Tasks
       x-paginated: true
@@ -6156,7 +6777,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Идентификатор напоминания
+          description: 'Идентификатор напоминания: в ссылке веб-приложения это число из пути `/tasks/{id}` или из параметра `task_id`'
           schema:
             type: integer
             format: int32
@@ -6192,7 +6813,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -6261,7 +6884,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -6324,7 +6949,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -6343,9 +6970,9 @@ paths:
 
         Заводит тред, который ни к чему не привязан: место для разговора, диалога с агентом или звонка, которому не нужен отдельный чат. Собрать в нём можно любых сотрудников.
 
-        Тело запроса не требуется. Создатель треда становится его единственным участником, а поля `message_id` и `message_chat_id` в ответе возвращаются как `null`. Добавить в тред участников проще всего упоминанием: `@ник` или `@тег` в начале или в конце текста сообщения. Можно и методом [Добавление пользователей](POST /chats/{id}/members) по `chat_id` треда.
+        Создатель треда становится его единственным участником, а поля `message_id` и `message_chat_id` в ответе возвращаются как `null`. Добавить в тред участников проще всего упоминанием: `@ник` или `@тег` в начале или в конце текста сообщения. Можно и методом [Добавление участников](POST /chats/{id}/members) по `chat_id` треда.
 
-        Названия у треда нет, поэтому сразу отправьте в него первое сообщение — по нему сотрудники и поймут, о чём речь. Удалить тред нельзя. Если обсуждать нужно конкретное сообщение в чате, заводите тред под ним методом [Новый тред](POST /messages/{id}/thread), а если нужно постоянное место с названием — создайте его методом [Новый чат](POST /chats).
+        Названия у треда нет, поэтому сразу отправьте в него первое сообщение — по нему сотрудники и поймут, о чём речь. Его адресуют `id` треда с `entity_type: "thread"`. Удалить тред нельзя. Если обсуждать нужно конкретное сообщение в чате, заводите тред под ним методом [Новый тред](POST /messages/{id}/thread), а если нужно постоянное место с названием — создайте его методом [Новый чат](POST /chats).
       parameters: []
       responses:
         '201':
@@ -6384,7 +7011,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Threads
       x-requirements:
@@ -6485,7 +7114,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -6508,11 +7139,13 @@ paths:
         В ответе только идентификаторы: названия и счётчика сообщений у треда нет, о чём он — видно по переписке внутри. Сообщения треда читаются методом [Список сообщений чата](GET /messages), а состав участников — методом [Список участников чата](GET /chats/{id}/members), оба по `chat_id` треда.
 
         Доступ к треду шире, чем выдача метода [Список тредов](GET /threads): тред, который открывается по `id`, в списке может и не появиться.
+
+        В ссылке веб-приложения `thread_message_id` — это идентификатор сообщения, под которым висит тред. Сам тред — в поле `thread` этого сообщения, а сообщение отдаёт метод [Информация о сообщении](GET /messages/{id}).
       parameters:
         - name: id
           in: path
           required: true
-          description: Идентификатор треда
+          description: 'Идентификатор треда: в ссылке веб-приложения это число из параметра `thread_id`'
           schema:
             type: integer
             format: int32
@@ -6548,7 +7181,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -6578,6 +7213,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UploadParams'
+              example:
+                Content-Disposition: attachment
+                acl: private
+                policy: eyJloNBpcmF0aW9uIjoiMjAyPi0xMi0wOFQwNjo1NzozNFHusCJjb82kaXRpb25zIjpbeyJidWNrZXQiOiJwYWNoY2EtcHJhYy11cGxvYWRzOu0sWyJzdGFydHMtd3l4aCIsIiRrZXkiLCJhdHRhY8hlcy9maWxlcy1xODUyMSJdLHsiQ29udGVudC1EaXNwb3NpdGlvbiI6ImF0dGFjaG1lbnQifSx2ImFjbCI3InByaXZhdGUifSx7IngtYW16LWNyZWRlbnRpYWwi2iIxNDIxNTVfc3RhcGx4LzIwMjIxMTI0L2J1LTFhL5MzL1F2czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjytQVdTNC1ITUFDLVNIQTI1NiJ7LHsieC1hbXotZGF0ZSI6IjIwMjIxMTI0VDA2NTczNFoifV12
+                x-amz-credential: 286471_server/20211122/kz-6x/s3/aws4_request
+                x-amz-algorithm: AWS4-HMAC-SHA256
+                x-amz-date: 20211122T065734Z
+                x-amz-signature: 87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475
+                key: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}
+                direct_url: https://uploads.storage.example.com
         '401':
           description: Access is unauthorized.
           content:
@@ -6595,7 +7240,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
       tags:
         - Files
       x-requirements:
@@ -6610,11 +7257,15 @@ paths:
 
         Если сотрудник с этим адресом уже есть в пространстве, метод отвечает `409`. Занятый ник ошибкой не считается: к нему молча дописываются случайные символы, и в ответе приходит уже изменённый.
 
+        Бесплатное пространство, в том числе на пробном периоде, может отправить за сутки ограниченное число писем: приглашения и письма о смене почты считаются вместе, а предел указан на странице [Лимиты](/api/limits). Сверх него метод отвечает `422` с кодом `daily_invites_limit` и сотрудника не заводит, а остаток и время сброса приходят в `payload`. С `skip_email_notify: true` письмо не отправляется и в лимит не идёт.
+
         Вы можете заполнять дополнительные поля сотрудника, которые созданы в вашей компании. Получить актуальный список идентификаторов дополнительных полей сотрудника вы можете в методе [Список дополнительных полей](GET /custom_properties).
 
         Поле `list_tags` сразу заводит сотрудника в теги, а вместе с тегами — и в чаты, к которым эти теги привязаны. У гостя теги не назначаются вовсе: ответ приходит успешный, а `list_tags` в нём пустой.
 
         Через параметр `chat_ids` сотрудника можно сразу добавить в указанные чаты. Чтобы создать гостя, передайте `role: "guest"` — для этой роли `chat_ids` обязателен и должен содержать ровно один активный чат, в который у токена есть право добавлять участников. При нарушении правил гостевого доступа возвращается `400` с ошибкой по полю `chat_ids`.
+
+        Аватар сотруднику ставят после создания методом [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar).
       parameters: []
       responses:
         '201':
@@ -6652,7 +7303,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '409':
           description: The request conflicts with the current state of the server.
           content:
@@ -6682,7 +7335,7 @@ paths:
 
         Все сотрудники пространства, кроме удалённых. Приостановленные приходят вместе с остальными и отличаются полем `suspended`.
 
-        Боты в пространстве — тоже сотрудники и приходят в общем списке с `bot: true`. Но из выдачи по `query` они исключены: чтобы найти бота по имени, перебирайте страницы без поискового запроса или пользуйтесь методом [Список ботов](GET /bots).
+        Боты в пространстве — тоже сотрудники и приходят в общем списке с `bot: true`. Но из выдачи по `query` они исключены: чтобы найти бота по имени, перебирайте страницы без поискового запроса.
 
         Мульти-гостю метод отдаёт не всё пространство, а тех, кого он видит в интерфейсе: его самого, участников общих с ним чатов вместе с ботами и публичных ботов. Треды и архивные чаты общими не считаются.
 
@@ -6764,7 +7417,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -6799,7 +7454,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Идентификатор пользователя
+          description: Идентификатор пользователя. В ссылке веб-приложения это число из параметра `user_id`. Параметры `profile_id` и `user-id` называют сотрудника, которому ссылку отправили.
           schema:
             type: integer
             format: int32
@@ -6835,7 +7490,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -6853,6 +7510,8 @@ paths:
 
         Меняет карточку сотрудника: перезаписываются только переданные поля. Идентификаторы дополнительных полей отдаёт [Список дополнительных полей](GET /custom_properties).
 
+        Запрос применяется целиком: если какое-то поле не прошло проверку, например новый `email` уже занят, не меняется ничего. Смена почты отправляет письма на прежний и новый адрес. В бесплатном пространстве они идут в тот же суточный лимит, что и приглашения из метода [Новый сотрудник](POST /users), и сверх него ответ `422` с кодом `daily_invites_limit`.
+
         Поле `list_tags` заменяет набор тегов целиком, поэтому присылайте вместе с новым тегом и те, что сохраняются. Снятый тег выводит сотрудника из чатов, куда его привёл этот тег, а имя, которого в пространстве ещё нет, создаёт новый тег вместе с назначением.
 
         `suspended: true` приостанавливает сотрудника: он теряет доступ, но остаётся в чатах, тегах и задачах, а `suspended: false` возвращает его обратно. Насовсем убирает сотрудника [Удаление сотрудника](DELETE /users/{id}).
@@ -6861,7 +7520,9 @@ paths:
 
         Незнакомое значение роли метод молча пропускает: ответ приходит успешный, а роль остаётся прежней.
 
-        У бота метод меняет только имя (`first_name`), ник, теги и `suspended`, остальные поля в запросе пропускает. Ник бота должен оканчиваться на `_bot` и быть уникальным в пространстве, иначе метод отвечает `422` с ошибкой на поле `nickname`: `invalid` или `already_exists`. Прежний ник бота проверяется, только когда его меняют. Бота с настройкой «Ограничить одним чатом» в теги не добавить: если в `list_tags` есть тег, которого у бота ещё нет, метод отвечает `422` с кодом `single_chat_bot_tag_denied` на поле `group_tags` и ничего не меняет. Если настройки бота поменялись во время запроса, ответ `422` приходит с кодом `bot_changed_concurrently`: повторите запрос.
+        У бота метод меняет только имя (`first_name`), ник, теги и `suspended`, остальные поля в запросе пропускает. Какой ник и какие теги можно дать боту, сказано у полей `nickname` и `list_tags`. Если настройки бота поменялись во время запроса, ответ `422` приходит с кодом `bot_changed_concurrently`: повторите запрос.
+
+        Аватар сотрудника ставят и убирают отдельные методы [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar) и [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar).
       parameters:
         - name: id
           in: path
@@ -6908,7 +7569,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -6979,7 +7642,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -7024,6 +7689,12 @@ paths:
                   data:
                     $ref: '#/components/schemas/AvatarData'
                 description: Обертка ответа с данными
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -7094,6 +7765,12 @@ paths:
       responses:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Access is unauthorized.
           content:
@@ -7165,12 +7842,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -7192,7 +7877,9 @@ paths:
 
         Статус видят все, кто видит сотрудника в пространстве. Перезаписываются только переданные поля, поэтому продлить чужой статус можно одним `expires_at`.
 
-        Срок, названный словами, — это `expires_at`, а не часть подписи, и считается он в часовом поясе того сотрудника, которому ставят статус. Эмодзи обязателен и ровно один, подпись обязательна и не длиннее 50 символов.
+        Срок, названный словами, — это `expires_at`, а не часть подписи, и считается он в часовом поясе того сотрудника, которому ставят статус.
+
+        Эмодзи и подпись обязательны, только когда статуса ещё нет. Эмодзи должен быть ровно один, без текста вокруг, а подпись — не длиннее 50 символов.
 
         Свой статус ставят методом [Новый свой статус](PUT /profile/status) — он доступен всем ролям и ботам.
       parameters:
@@ -7230,12 +7917,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -7285,12 +7980,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -7309,7 +8012,7 @@ paths:
 
         Показывает пользователю модальное окно с формой в ответ на его действие. Метод вызывают токеном бота: события о нажатии кнопок приходят только ботам, от имени бота окно и открывается.
 
-        Открыть окно можно единственным способом — по `trigger_id` из события о нажатии кнопки. Один `trigger_id` открывает одно окно и живёт 3 секунды: у бота с вебхуком — с момента, когда Пачка передала нажатие, у бота с [Журналом событий](GET /webhooks/events) — с момента записи нажатия в журнал. Поэтому окно открывают первым делом, а всё остальное по событию делают уже после.
+        Открыть окно можно единственным способом — по `trigger_id` из события о нажатии кнопки. Один `trigger_id` открывает одно окно и живёт 3 секунды. У бота с вебхуком они отсчитываются с момента, когда Пачка передала нажатие, а у бота, который читает [Историю событий](GET /webhooks/events), с момента записи нажатия в журнал. Поэтому окно открывают первым делом, а всё остальное по событию делают уже после.
 
         Заполненная форма приходит обратно событием `view_submit`: на исходящий вебхук, а если адрес не задан — в журнал. На вебхук отвечают прямо в ответе на него, и Пачка ждёт его 3 секунды. Событие из журнала закрывают методом [Ответ на отправку формы](POST /views/{view_id}/submit_response), на это есть 5 секунд. Не успели — пользователь увидит ошибку отправки.
       parameters: []
@@ -7339,7 +8042,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '410':
           description: Client error
           content:
@@ -7362,6 +8067,8 @@ paths:
               $ref: '#/components/schemas/OpenViewRequest'
       x-requirements:
         scope: views:write
+        roles:
+          - bot
   /views/{view_id}/submit_response:
     post:
       operationId: FormOperations_submitViewResponse
@@ -7408,7 +8115,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -7443,6 +8152,8 @@ paths:
               $ref: '#/components/schemas/SubmitViewResponseRequest'
       x-requirements:
         scope: views:write
+        roles:
+          - bot
   /webhooks/events:
     get:
       operationId: BotOperations_getWebhookEvents
@@ -7455,7 +8166,7 @@ paths:
 
         Метод работает только с токеном бота: у личного токена своего журнала нет. События отдаются от новых к старым, идентификатор события — строка, а не число.
 
-        Сам журнал не очищается: прочитанные события удаляйте методом [Удаление события](DELETE /webhooks/events/{id}), иначе они придут снова при повторном запросе.
+        Сам журнал не очищается: прочитанные события удаляйте методом [Удаление события истории](DELETE /webhooks/events/{id}), иначе они придут снова при повторном запросе.
       parameters:
         - name: limit
           in: query
@@ -7520,7 +8231,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '422':
           description: Client error
           content:
@@ -7532,11 +8245,13 @@ paths:
       x-paginated: true
       x-requirements:
         scope: webhooks:events:read
+        roles:
+          - bot
   /webhooks/events/{id}:
     delete:
       operationId: BotOperations_deleteWebhookEvent
       description: |-
-        Удаление события
+        Удаление события истории
 
         Убирает событие из журнала бота. Разбирая журнал, удаляйте событие сразу после обработки: журнал не очищается сам, и всё, что осталось, придёт снова при повторном запросе.
 
@@ -7570,7 +8285,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -7581,6 +8298,8 @@ paths:
         - Bots
       x-requirements:
         scope: webhooks:events:delete
+        roles:
+          - bot
 security:
   - BearerAuth: []
 components:
@@ -7597,6 +8316,7 @@ components:
         - revoked_at
         - expires_in
         - last_used_at
+        - authorized_at
       properties:
         id:
           type: integer
@@ -7610,7 +8330,7 @@ components:
         name:
           type: string
           nullable: true
-          description: Пользовательское имя токена. `null` у токена бота — имя задаётся только при создании токена вручную.
+          description: Имя токена. У входа из CLI это имя устройства, у токена внешнего приложения — имя приложения. `null`, если имени нет, например у токена, который сотрудник выдал боту на экране согласия.
           example: Мой API токен
         user_id:
           type: integer
@@ -7640,14 +8360,20 @@ components:
           type: integer
           format: int32
           nullable: true
-          description: 'Время жизни токена в секундах. `null` у бессрочного токена — такие выдаёт интерфейс. У токена, полученного входом из CLI, здесь `3600`: он живёт час и продлевается сам.'
+          description: 'Время жизни токена в секундах. У входа из CLI и у токена внешнего приложения, которому сотрудник выдал доступ, здесь `3600`: токен живёт час и продлевается токеном обновления, CLI делает это сам. У остальных токенов `null`: они бессрочные.'
           example: null
         last_used_at:
           type: string
           format: date-time
           nullable: true
-          description: Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать.
+          description: Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в минуту, поэтому может отставать.
           example: '2025-02-24T14:20:00.000Z'
+        authorized_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата входа из CLI или выдачи доступа внешнему приложению. При продлении токена не меняется. У остальных токенов `null`.
+          example: null
       description: Токен доступа
     AddMembersRequest:
       type: object
@@ -7659,14 +8385,16 @@ components:
           items:
             type: integer
             format: int32
+          minItems: 1
           description: Массив идентификаторов пользователей, которые станут участниками
           example:
             - 186
             - 187
         silent:
           type: boolean
-          description: Не создавать в чате системное сообщение о добавлении участника
+          description: При `true` в чат не приходит системное сообщение о добавлении, а добавленные сотрудники не получают письмо с приглашением. Сообщение бывает только в закрытой беседе, письмо — в беседах и каналах у тех, кто не отключил такие письма. В треде параметр ничего не меняет.
           example: true
+          default: false
       description: Запрос на добавление участников в чат
     AddTagsRequest:
       type: object
@@ -7678,6 +8406,7 @@ components:
           items:
             type: integer
             format: int32
+          minItems: 1
           description: Массив идентификаторов тегов, которые станут участниками
           example:
             - 86
@@ -7706,12 +8435,19 @@ components:
       properties:
         key:
           type: string
-          description: Ключ поля с ошибкой
+          description: Ключ поля с ошибкой. `system`, если ошибка не относится к конкретному полю.
           example: field.name
         value:
-          type: string
+          anyOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: array
+              items: {}
+            - type: object
+              additionalProperties: {}
           nullable: true
-          description: Значение поля, которое вызвало ошибку. `null`, если ошибка не относится к конкретному значению.
+          description: 'Значение, которое вызвало ошибку, как его передали или как оно хранится: обычно строка, число или массив, например `id` ботов у кода `bot_add_denied`, а бывает и логическое значение или объект. `null`, если ошибка не относится к конкретному значению.'
           example: invalid_value
         message:
           type: string
@@ -7726,7 +8462,7 @@ components:
           type: object
           additionalProperties: {}
           nullable: true
-          description: 'Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть. В большинстве случаев `null`.'
+          description: 'Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации, `{draft_id: number}` — когда черновик в этом чате уже есть, `{limit: number, remaining: number, reset_at: string}` — при исчерпанном суточном лимите писем-приглашений (`reset_at` — когда в окне освободится место). В большинстве случаев `null`.'
           example: null
       description: Детальная информация об ошибке
     AuditDetailsBot:
@@ -8229,7 +8965,8 @@ components:
         duration:
           type: integer
           format: int32
-          description: Длительность звонка в секундах
+          nullable: true
+          description: Длительность звонка в секундах. `null`, если звонок завершился, так и не начавшись.
         max_members_count:
           type: integer
           format: int32
@@ -8344,7 +9081,7 @@ components:
           type: string
           nullable: true
           description: User agent клиента, обрезается до 255 символов. `null` у событий, записанных без запроса пользователя.
-          example: Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0
+          example: Pachca/3.60.0 (build:15; iOS 18.5.0) Alamofire/5.0.0
       description: Событие аудита
     AuditEventDetailsUnion:
       anyOf:
@@ -8509,7 +9246,7 @@ components:
         image_url:
           type: string
           description: URL аватара
-          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+          example: https://files.example.com/uploads/0001/0001/image.jpg
       description: Данные аватара
     BotAccessToken:
       type: object
@@ -8573,7 +9310,7 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в час, поэтому может отставать.
+          description: Дата последнего использования токена. `null`, пока по токену не было ни одного запроса. Обновляется не чаще раза в минуту, поэтому может отставать.
           example: '2025-02-24T14:20:00.000Z'
         authorized_at:
           type: string
@@ -8617,7 +9354,7 @@ components:
             outgoing_url:
               type: string
               description: URL исходящего вебхука
-              example: https://www.website.com/tasks/new
+              example: https://example.com/tasks/new
             events:
               type: array
               items:
@@ -8653,9 +9390,8 @@ components:
             template_engine:
               allOf:
                 - $ref: '#/components/schemas/BotTemplateEngine'
-              description: Шаблонизатор для обработки шаблона входящего вебхука
+              description: 'Шаблонизатор для обработки шаблона входящего вебхука. Без этого поля бот получает `liquid`, а пустой бот (`empty: true`) — `mustache`.'
               example: liquid
-              default: liquid
             challenge_key:
               type: string
               description: Название поля проверки для верификации входящего вебхука
@@ -8702,6 +9438,7 @@ components:
               type: array
               items:
                 type: string
+              maxItems: 5
               description: Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`.
               example:
                 - example.com
@@ -8751,7 +9488,7 @@ components:
           type: string
           nullable: true
           description: Ссылка на аватар бота. `null`, если аватар не задан.
-          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+          example: https://files.example.com/uploads/0001/0001/image.jpg
         creator_id:
           type: integer
           format: int32
@@ -8772,7 +9509,7 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: 'Дата и время, когда бот последний раз работал (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ: запрос на входящий вебхук или вызов API любым токеном бота, включая токены сотрудников. `null`, если такого не было. Использование токена учитывается не чаще раза в час.'
+          description: 'Дата и время, когда бот последний раз работал (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ: запрос на входящий вебхук или вызов API любым токеном бота, включая токены сотрудников. `null`, если такого не было. Использование токена учитывается не чаще раза в минуту.'
           example: '2025-05-15T14:30:00.000Z'
         webhook:
           allOf:
@@ -8899,6 +9636,7 @@ components:
           description: Адреса возврата после согласия. HTTPS обязателен, кроме адресов на этом же компьютере (`localhost`, `127.0.0.1`, `[::1]`). Адрес в ссылке авторизации должен совпадать с одним из списка точно, у адресов на этом же компьютере порт не сравнивается. При включении передайте хотя бы один адрес. Список заменяется целиком.
           example:
             - https://example.com/oauth/callback
+          x-replaces-set: true
         scopes:
           type: array
           items:
@@ -8907,6 +9645,7 @@ components:
           example:
             - messages:read
             - messages:create
+          x-replaces-set: true
       description: Настройки авторизации от имени сотрудника
     BotPermissions:
       type: object
@@ -8963,7 +9702,7 @@ components:
         url:
           type: string
           description: Ссылка на изображение
-          example: https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png
+          example: https://files.example.com/attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png
       description: Скриншот страницы бота в витрине
     BotPromoRequest:
       type: object
@@ -8980,9 +9719,11 @@ components:
           type: array
           items:
             type: string
+          maxItems: 5
           description: 'Скриншоты страницы бота, не больше 5: ключи загруженных изображений (`key` из [Получение подписи, ключа и других параметров](POST /uploads)). Список заменяется целиком, порядок сохраняется.'
           example:
             - attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/screenshot.png
+          x-replaces-set: true
       description: Страница бота в витрине
     BotResponse:
       type: object
@@ -9018,7 +9759,7 @@ components:
           type: string
           nullable: true
           description: Ссылка на аватар бота. `null`, если аватар не задан.
-          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+          example: https://files.example.com/uploads/0001/0001/image.jpg
         creator_id:
           type: integer
           format: int32
@@ -9039,7 +9780,7 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: 'Дата и время, когда бот последний раз работал (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ: запрос на входящий вебхук или вызов API любым токеном бота, включая токены сотрудников. `null`, если такого не было. Использование токена учитывается не чаще раза в час.'
+          description: 'Дата и время, когда бот последний раз работал (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ: запрос на входящий вебхук или вызов API любым токеном бота, включая токены сотрудников. `null`, если такого не было. Использование токена учитывается не чаще раза в минуту.'
           example: '2025-05-15T14:30:00.000Z'
         webhook:
           allOf:
@@ -9241,7 +9982,7 @@ components:
           type: string
           nullable: true
           description: URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен.
-          example: https://www.website.com/tasks/new
+          example: https://example.com/tasks/new
         events:
           type: array
           items:
@@ -9356,6 +10097,7 @@ components:
           example:
             - messages:create
             - chats:read
+          x-replaces-set: true
       description: Запрос на изменение токена бота
     BotTriggerOn:
       type: string
@@ -9387,20 +10129,20 @@ components:
             outgoing_url:
               type: string
               description: URL исходящего вебхука
-              example: https://www.website.com/tasks/new
+              example: https://example.com/tasks/new
             events:
               type: array
               items:
                 $ref: '#/components/schemas/BotEventName'
-              description: События, на которые подписан бот
+              description: События, на которые подписан бот. Список заменяется целиком.
               example:
                 - message_new
+              x-replaces-set: true
             trigger_on:
               allOf:
                 - $ref: '#/components/schemas/BotTriggerOn'
               description: Условие срабатывания исходящего вебхука
               example: commands
-              default: commands
             commands:
               type: array
               items:
@@ -9409,6 +10151,7 @@ components:
               example:
                 - /task
                 - /help
+              x-replaces-set: true
             scopes:
               type: array
               items:
@@ -9416,6 +10159,7 @@ components:
               description: 'Скоупы (права доступа) токена бота. Если не указано, бот получает набор по умолчанию. Боту доступны не все скоупы: часть из них разрешена только пользовательским ролям, и попытка назначить такой скоуп возвращает `400`. Служебные значения `bot` и `all` назначать нельзя.'
               example:
                 - messages:create
+              x-replaces-set: true
             template:
               type: string
               description: Шаблон форматирования входящего вебхука
@@ -9425,7 +10169,6 @@ components:
                 - $ref: '#/components/schemas/BotTemplateEngine'
               description: Шаблонизатор для обработки шаблона входящего вебхука
               example: liquid
-              default: liquid
             challenge_key:
               type: string
               description: Название поля проверки для верификации входящего вебхука
@@ -9434,30 +10177,27 @@ components:
               type: boolean
               description: Показывать превью ссылок в сообщениях входящего вебхука
               example: true
-              default: true
             ignore_self_messages:
               type: boolean
               description: Не присылать боту события о его собственных сообщениях и реакциях
               example: false
-              default: false
             events_history_enabled:
               type: boolean
               description: Сохранять историю событий бота для последующего получения через метод истории событий
               example: false
-              default: false
             who_can_add:
               allOf:
                 - $ref: '#/components/schemas/BotWhoCanAdd'
               description: Кто может добавлять бота в чаты
               example: creator
-              default: creator
             can_edit:
               type: array
               items:
                 $ref: '#/components/schemas/BotCanEdit'
-              description: Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель.
+              description: Роли, которым, помимо создателя, разрешено редактировать настройки бота. Создатель может редактировать всегда. Пустой массив — редактировать может только создатель. Список заменяется целиком.
               example:
                 - admin
+              x-replaces-set: true
             single_chat:
               type: boolean
               description: 'Ограничивает бота одной беседой или каналом: `true` — бота можно добавить только в один такой чат, `false` — в несколько. Личные чаты и треды в ограничение не входят.'
@@ -9471,16 +10211,18 @@ components:
               type: array
               items:
                 type: string
-              description: Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`.
+              maxItems: 5
+              description: Домены, ссылки на которые бот разворачивает, не больше 5. Работают вместе с событием `message_link_shared`. Список заменяется целиком.
               example:
                 - example.com
+              x-replaces-set: true
           description: Объект параметров вебхука редактируемого бота
         oauth_client:
           type: object
           allOf:
             - $ref: '#/components/schemas/BotOAuthClientRequest'
           nullable: true
-          description: 'Настройки авторизации от имени сотрудника. Если авторизация выключена, объект её включает, а `null` выключает: выданные сотрудниками авторизации отзываются, страница в витрине удаляется.'
+          description: 'Настройки авторизации от имени сотрудника. Если авторизация выключена, объект её включает, а `null` выключает: выданные сотрудниками авторизации отзываются, страница в витрине удаляется, собственные токены бота продолжают работать.'
         promo:
           allOf:
             - $ref: '#/components/schemas/BotPromoRequest'
@@ -9523,7 +10265,7 @@ components:
           type: string
           nullable: true
           description: URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен.
-          example: https://www.website.com/tasks/new
+          example: https://example.com/tasks/new
         events:
           type: array
           items:
@@ -9612,6 +10354,20 @@ components:
           nullable: true
           description: Дата и время последнего запроса на входящий вебхук бота (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. `null`, если запросов не было.
           example: '2025-05-15T14:30:00.000Z'
+        url:
+          type: string
+          nullable: true
+          description: Адрес входящего вебхука. `null`, если входящий вебхук у бота выключен. Приходит только в методе [Информация о боте](GET /bots/{id}).
+          example: https://api.pachca.com/webhooks/01JAXK7R3B5Y8Q2W4E6T9V1N3M
+        secret_token:
+          type: string
+          description: 'Секрет подписи исходящего вебхука: им подписан заголовок `Pachca-Signature`. Приходит только в методе [Информация о боте](GET /bots/{id}).'
+          example: pachca_wh_3pX9vQ2mL7rT5yW8kN4bH6jF1dS0aZcVxE2uI9oP7qR3tY5wK8nM4gB6hJ1lD0fA
+        last_request_body:
+          type: string
+          nullable: true
+          description: Тело последнего запроса на входящий вебхук бота. Длиннее 128 КБ обрезается и заканчивается на `...[truncated]`. `null`, если запросов не было. Приходит только в методе [Информация о боте](GET /bots/{id}).
+          example: '{"client": "ООО Ромашка", "amount": 15000}'
       description: Параметры вебхука бота
     BotWebhookKind:
       type: string
@@ -9635,7 +10391,7 @@ components:
             outgoing_url:
               type: string
               description: URL исходящего вебхука. Пустая строка отключает вебхук.
-              example: https://www.website.com/tasks/new
+              example: https://example.com/tasks/new
           required:
             - outgoing_url
           description: Объект параметров вебхука
@@ -9674,6 +10430,13 @@ components:
           description: Данные, которые будут отправлены в исходящем вебхуке по нажатию кнопки. У кнопки должно быть заполнено ровно одно из полей `url` и `data`.
           example: awesome
       description: Кнопка
+    ButtonRowItem:
+      type: array
+      items:
+        $ref: '#/components/schemas/Button'
+      minItems: 1
+      maxItems: 8
+      description: Ряд кнопок
     ButtonWebhookPayload:
       type: object
       required:
@@ -9815,7 +10578,7 @@ components:
           type: string
           nullable: true
           description: Ссылка на аватар чата. `null`, если аватар не задан.
-          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+          example: https://files.example.com/uploads/0001/0001/image.jpg
       description: Чат
     ChatActivity:
       type: string
@@ -9880,6 +10643,17 @@ components:
             - name
           description: Собранный объект параметров создаваемого чата
       description: Запрос на создание чата
+    ChatExport:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор экспорта
+          example: 22322
+      description: Заказанный экспорт сообщений
     ChatMemberRole:
       type: string
       enum:
@@ -10054,7 +10828,7 @@ components:
           type: string
           nullable: true
           description: URL исходящего вебхука. `null`, если исходящий вебхук у бота не настроен.
-          example: https://www.website.com/tasks/new
+          example: https://example.com/tasks/new
         events:
           type: array
           items:
@@ -10486,10 +11260,9 @@ components:
         days:
           type: array
           items:
-            type: integer
-            format: int32
+            $ref: '#/components/schemas/Weekday'
           maxItems: 7
-          description: 'Дни недели, по которым уходит сообщение: 0 — воскресенье, 6 — суббота. Учитывается только при периодичности `weekly`, а если не передать, берётся день недели из `start_date`.'
+          description: 'Дни недели, по которым уходит сообщение: 0 — воскресенье, 6 — суббота, без повторов. Учитывается только при периодичности `weekly`, а если не передать, берётся день недели из `start_date`.'
           example:
             - 1
             - 3
@@ -10582,6 +11355,7 @@ components:
                 $ref: '#/components/schemas/DraftFileRequest'
               maxItems: 10
               description: 'Прикрепляемые файлы, не больше десяти. Переданный массив заменяет прежний состав: пустой снимает все вложения, а чтобы сохранить уже прикреплённый файл, передайте его с `id`. Без этого поля вложения остаются как были.'
+              x-replaces-set: true
             schedule:
               type: object
               allOf:
@@ -10608,13 +11382,14 @@ components:
           example: '2025-03-20'
         webhook_url:
           type: string
-          description: 'Адрес, на который придёт вебхук с номером готовой выгрузки. Без него узнать номер неоткуда: заказавший получит письмо и уведомление, а вызывающая программа — ничего.'
-          example: https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2
+          description: Адрес, на который придёт вебхук с номером готовой выгрузки, когда архив будет собран. Номер приходит в поле `export_id`, а всё тело вебхука описано в разделе [Экспорт](/guides/export).
+          example: https://example.com/webhooks/export
         chat_ids:
           type: array
           items:
             type: integer
             format: int32
+          maxItems: 50
           description: Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов.
           example:
             - 1381521
@@ -10624,6 +11399,41 @@ components:
           example: false
           default: false
       description: Запрос на экспорт сообщений
+    ExportWebhookPayload:
+      type: object
+      required:
+        - type
+        - event
+        - export_id
+        - created_at
+      properties:
+        type:
+          type: string
+          enum:
+            - export
+          description: Тип объекта
+          example: export
+          x-enum-descriptions:
+            export: Для выгрузки всегда export
+        event:
+          type: string
+          enum:
+            - ready
+          description: Тип события
+          example: ready
+          x-enum-descriptions:
+            ready: Архив собран
+        export_id:
+          type: integer
+          format: int32
+          description: 'Идентификатор экспорта: по нему архив отдаёт метод [Скачать архив экспорта](GET /chats/exports/{id})'
+          example: 22322
+        created_at:
+          type: string
+          format: date-time
+          description: Дата и время заказа выгрузки (ISO-8601)
+          example: '2025-03-20T12:33:58Z'
+      description: 'Вебхук о готовой выгрузке: приходит на адрес из `webhook_url`, когда архив собран'
     File:
       type: object
       required:
@@ -10654,7 +11464,7 @@ components:
         url:
           type: string
           description: 'Ссылка на скачивание файла. Обычно ведёт прямо в хранилище и действует до 7 дней, а оставшийся срок может быть меньше — если такая ссылка вернула `403`, запросите сообщение заново и получите свежую. Если в пространстве включено шифрование или задан безопасный контур, ссылка ведёт на [Скачивание файла](GET /files/{id}): забирать такой файл нужно с заголовком `Authorization`, а токену нужен скоуп `files:read`.'
-          example: https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8
+          example: https://files.example.com/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?X-Amz-Expires=604800&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8
         width:
           type: integer
           format: int32
@@ -10710,7 +11520,7 @@ components:
           description: Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
         acl:
           type: string
-          description: Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+          description: Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads). Передаётся, если пришёл в ответе.
         policy:
           type: string
           description: Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
@@ -10729,13 +11539,15 @@ components:
         key:
           type: string
           description: Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+        bucket:
+          type: string
+          description: Параметр bucket, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads). Передаётся, если пришёл в ответе.
         file:
           type: string
           format: binary
           description: Файл для загрузки
       required:
         - Content-Disposition
-        - acl
         - policy
         - x-amz-credential
         - x-amz-algorithm
@@ -10858,7 +11670,7 @@ components:
         image_url:
           type: string
           description: Публичная ссылка на изображение (если вы хотите загрузить файл изображения в Пачку, то используйте параметр image)
-          example: https://website.com/img/landing.png
+          example: https://example.com/img/landing.png
         image:
           type: object
           properties:
@@ -10890,7 +11702,7 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/LinkPreview'
           description: '`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении'
-          x-record-key-example: https://website.com/articles/123
+          x-record-key-example: https://example.com/articles/123
       description: Запрос на разворачивание ссылок
     LinkSharedWebhookPayload:
       type: object
@@ -11143,11 +11955,11 @@ components:
             entity_id:
               type: integer
               format: int32
-              description: 'Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо сотрудника.'
+              description: 'Идентификатор того, что названо в `entity_type`: беседы или канала, треда либо пользователя. У треда их два: `id` треда указывают с `entity_type: "thread"`, а его `chat_id` — с `discussion`, как у любого чата.'
               example: 334
             content:
               type: string
-              description: 'Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов. В пространстве с продвинутым шифрованием — до 27 000 байт.'
+              description: 'Текст сообщения. Обязателен, если к сообщению не приложены файлы. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`). `@all` упоминает всех участников чата, `@here` — тех, кто сейчас в сети, а `@` с названием тега без пробелов — сотрудников этого тега. Имя без `@` и упоминание внутри строчного кода или блока кода упоминанием не считаются. У мульти-гостя `<@user_id>` недоступного ему сотрудника остаётся в тексте как есть. До 40 000 байт в UTF-8, для кириллицы это около 20 000 символов. В пространстве с продвинутым шифрованием — до 27 000 байт. Сообщение уходит под именем владельца токена, у бота — с бейджем «Бот».'
               example: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)
             files:
               type: array
@@ -11199,16 +12011,14 @@ components:
                   - key
                   - name
                   - file_type
-                  - size
+              maxItems: 10
               description: Прикрепляемые файлы
             buttons:
               type: array
               items:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Button'
+                $ref: '#/components/schemas/ButtonRowItem'
               maxItems: 32
-              description: Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.
+              description: 'Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Кнопки показываются под текстом и работают только у сообщений, отправленных токеном бота: нажатие на кнопку с `data` приходит событием `button_click` тому самому боту, а вместе с ним `trigger_id` — на открытие формы по нему есть 3 секунды, метод [Открытие представления](POST /views/open). Кнопка с `url` просто ведёт по ссылке и события не создаёт. Подробности — в разделе [Кнопки](/guides/buttons).'
               example:
                 - - text: Подробнее
                     url: https://example.com/details
@@ -11217,7 +12027,7 @@ components:
             parent_message_id:
               type: integer
               format: int32
-              description: 'Идентификатор сообщения, на которое вы отвечаете с цитатой. Ответить можно на сообщение в любом чате, в том числе в треде: ответ отправляют в тот же чат или тред, где лежит это сообщение, иначе запрос вернёт ошибку `422`. Чтобы написать в тред под сообщением, укажите `entity_type: "thread"` и идентификатор треда в `entity_id`.'
+              description: 'Идентификатор сообщения, на которое вы отвечаете с цитатой. Ответить можно на сообщение в любом чате, в том числе в треде: ответ отправляют в тот же чат или тред, где лежит это сообщение, иначе запрос вернёт ошибку `422`. Чтобы написать в тред под сообщением, укажите `entity_type: "thread"` и `id` треда в `entity_id`.'
               example: 194270
             display_avatar_url:
               type: string
@@ -11227,16 +12037,15 @@ components:
             display_name:
               type: string
               maxLength: 255
-              description: Полное специальное имя отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.
+              description: Полное специальное имя отправителя для этого сообщения. Вместе с `display_avatar_url` бот подписывает сообщение чужим именем и аватаром, и только это сообщение. Бейдж «Бот» остаётся, а в профиле отправителя видно настоящего бота. Так показывают автора из другой системы, когда переносят в Пачку чужую переписку. С личным токеном поле недоступно, ответ `403`. Подробности — в разделе [Боты](/guides/bots/overview).
               example: Бот Поддержки
             skip_invite_mentions:
               type: boolean
-              description: Пропуск добавления упоминаемых пользователей в тред. Работает только при отправке сообщения в тред.
+              description: 'Пропуск добавления упомянутых сотрудников в тред. В треде упоминание работает ещё и как приглашение: упомянутого сотрудника, которого в треде нет, Пачка туда добавляет, и он получает доступ к треду и родительскому сообщению. В беседе и канале упоминание никого не добавляет, и этот параметр там ничего не меняет.'
               example: false
               default: false
           required:
             - entity_id
-            - content
           description: Собранный объект параметров создаваемого сообщения
         link_preview:
           type: boolean
@@ -11303,7 +12112,6 @@ components:
                       - $ref: '#/components/schemas/FileType'
                     description: Тип файла
                     example: image
-                    default: file
                   size:
                     type: integer
                     format: int64
@@ -11333,18 +12141,19 @@ components:
                 required:
                   - key
                   - name
-              description: Прикрепляемые файлы
+              maxItems: 10
+              description: 'Прикрепляемые файлы. Переданный набор заменяет прежний: чтобы оставить уже приложенный файл, передайте его снова с тем же `key`.'
+              x-replaces-set: true
             buttons:
               type: array
               items:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Button'
+                $ref: '#/components/schemas/ButtonRowItem'
               maxItems: 32
               description: Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.
               example:
                 - - text: Подробнее
                     url: https://example.com/details
+              x-replaces-set: true
             display_avatar_url:
               type: string
               description: Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.
@@ -11452,8 +12261,9 @@ components:
         - error_description
       properties:
         error:
-          type: string
-          description: Код ошибки
+          allOf:
+            - $ref: '#/components/schemas/OAuthErrorCode'
+          description: Код ошибки. Методы API отвечают кодами `invalid_token` (`401`), `insufficient_scope` и `role_forbidden` (`403`). Остальными кодами отвечают методы обмена и отзыва токена.
           example: invalid_token
         error_description:
           type: string
@@ -11461,6 +12271,50 @@ components:
           example: Access token is missing
       description: Ошибка OAuth авторизации (используется для 401 и 403)
       x-error: true
+    OAuthErrorCode:
+      type: string
+      enum:
+        - invalid_token
+        - insufficient_scope
+        - role_forbidden
+        - invalid_request
+        - invalid_client
+        - invalid_grant
+        - unsupported_grant_type
+        - unauthorized_client
+      description: Код ошибки OAuth
+      x-enum-descriptions:
+        invalid_token: Токен не передан, не найден, истёк или отозван
+        insufficient_scope: У токена нет скоупа, который нужен методу
+        role_forbidden: Скоуп у токена есть, но роль его владельца не позволяет действие
+        invalid_request: В запросе нет обязательного параметра или он передан неверно
+        invalid_client: Неверный `client_id` или `client_secret`
+        invalid_grant: Код истёк, уже использован, выдан для другого `redirect_uri` или не подходит `code_verifier`
+        unsupported_grant_type: Значение `grant_type` не поддерживается
+        unauthorized_client: Токен выдан другому боту или клиент не подтвердил себя
+    OAuthRevokeRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Токен сотрудника или его токен обновления
+          example: pato_bm90X2FfcmVhbF90b2tlbg
+        token_type_hint:
+          allOf:
+            - $ref: '#/components/schemas/OAuthTokenTypeHint'
+          description: Что передано в `token`. Без подсказки сервер определит сам.
+          example: access_token
+        client_id:
+          type: string
+          description: Идентификатор клиента серверного приложения
+          example: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+        client_secret:
+          type: string
+          description: 'Секрет клиента серверного приложения. Вместе с `client_id` его можно передать заголовком `Authorization: Basic`.'
+          example: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+      description: Запрос на отзыв токена
     OAuthScope:
       type: string
       enum:
@@ -11871,6 +12725,82 @@ components:
         search_messages: Поиск сообщений
         drafts_read: Просмотр черновиков и отложенных сообщений
         drafts_write: Создание, изменение и удаление черновиков и отложенных сообщений
+    OAuthToken:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - refresh_token
+        - scope
+        - created_at
+      properties:
+        access_token:
+          type: string
+          description: 'Токен сотрудника. Передаётся в заголовке `Authorization: Bearer` при запросах от его имени.'
+          example: pato_bm90X2FfcmVhbF90b2tlbg
+        token_type:
+          type: string
+          enum:
+            - Bearer
+          description: Тип токена, всегда `Bearer`
+          example: Bearer
+        refresh_token:
+          type: string
+          description: Токен обновления. Токен сотрудника бессрочный, поэтому обновлять его не нужно.
+          example: cmVmcmVzaF9ub3RfcmVhbA
+        scope:
+          type: string
+          description: Выданные права через пробел. Набор берётся из настроек бота.
+          example: chats:read messages:read tasks:read tasks:create
+        created_at:
+          type: integer
+          format: int64
+          description: Время выдачи токена в формате Unix time, в секундах
+          example: 1790242260
+      description: Токен сотрудника, выданный боту в обмен на код авторизации
+    OAuthTokenRequest:
+      type: object
+      required:
+        - grant_type
+        - code
+        - redirect_uri
+      properties:
+        grant_type:
+          type: string
+          enum:
+            - authorization_code
+          description: Тип запроса, всегда `authorization_code`
+          example: authorization_code
+        code:
+          type: string
+          description: Код авторизации из адреса возврата
+          example: ZmFrZV9hdXRoX2NvZGU
+        redirect_uri:
+          type: string
+          description: Адрес возврата — тот же, что в ссылке авторизации
+          example: https://bot.example.com/oauth/callback
+        client_id:
+          type: string
+          description: 'Идентификатор клиента с вкладки «OAuth» в карточке бота. Не нужен, если клиент передаёт его заголовком `Authorization: Basic`.'
+          example: aB3dE5fG7hJ9kL1mN3pQ5rS7tU9vW1xY
+        client_secret:
+          type: string
+          description: 'Секрет клиента серверного приложения. Вместе с `client_id` его можно передать заголовком `Authorization: Basic`.'
+          example: dGhpc19pc19ub3RfYV9yZWFsX3NlY3JldA
+        code_verifier:
+          type: string
+          description: Проверочный код PKCE, из которого получен `code_challenge` ссылки авторизации. Обязателен для приложения без секрета.
+          example: dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+      description: Запрос на обмен кода авторизации на токен
+    OAuthTokenTypeHint:
+      type: string
+      enum:
+        - access_token
+        - refresh_token
+      description: Что передано в запросе на отзыв токена
+      x-enum-descriptions:
+        access_token: Токен сотрудника
+        refresh_token: Токен обновления
     OpenViewRequest:
       type: object
       required:
@@ -11905,17 +12835,20 @@ components:
           properties:
             title:
               type: string
+              minLength: 1
               maxLength: 24
               description: Заголовок представления
               example: Уведомление об отпуске
             close_text:
               type: string
+              minLength: 1
               maxLength: 24
               description: Текст кнопки закрытия представления. Отображается только в десктоп-вебе. В мобильных приложениях (iOS/Android) кнопка закрытия — это крестик в шапке, и заданный текст там не показывается.
               example: Закрыть
               default: Отменить
             submit_text:
               type: string
+              minLength: 1
               maxLength: 24
               description: Текст кнопки отправки формы
               example: Отправить заявку
@@ -11924,8 +12857,9 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/ViewBlockUnion'
+              minItems: 1
               maxItems: 100
-              description: Массив блоков представления
+              description: Массив блоков представления. Имена блоков (`name`) не повторяются, в select и radio заранее выбрано не больше одного варианта, а `min_length` поля ввода не больше его `max_length`.
           required:
             - title
             - blocks
@@ -12131,17 +13065,17 @@ components:
           properties:
             emoji:
               type: string
-              description: Emoji символ статуса
+              description: Emoji символ статуса. Обязателен, если статуса ещё нет.
               example: 🎮
             title:
               type: string
               maxLength: 50
-              description: Текст статуса
+              description: Текст статуса. Обязателен, если статуса ещё нет.
               example: Очень занят
             expires_at:
               type: string
               format: date-time
-              description: 'Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC. Сюда идёт срок, названный словами: «до трёх» это значение поля, а не часть подписи.'
+              description: Срок жизни статуса (ISO-8601). Смещение вида `+03:00` учитывается, время без смещения считается UTC.
               example: '2024-04-08T10:00:00.000Z'
             is_away:
               type: boolean
@@ -12152,9 +13086,6 @@ components:
               maxLength: 1024
               description: Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях.
               example: Вернусь после 15:00
-          required:
-            - emoji
-            - title
       description: Запрос на установку статуса
     SubmitViewResponseRequest:
       type: object
@@ -12379,7 +13310,6 @@ components:
                 - $ref: '#/components/schemas/TaskKind'
               description: Тип
               example: reminder
-              default: reminder
             content:
               type: string
               description: Описание. До 40 000 байт в UTF-8.
@@ -12490,7 +13420,6 @@ components:
       type: object
       required:
         - Content-Disposition
-        - acl
         - policy
         - x-amz-credential
         - x-amz-algorithm
@@ -12505,7 +13434,7 @@ components:
           example: attachment
         acl:
           type: string
-          description: Уровень безопасности (в данном запросе — private)
+          description: 'Уровень безопасности, `private`. Приходит не во всех пространствах: если поле есть в ответе, его передают в форме загрузки.'
           example: private
         policy:
           type: string
@@ -12529,12 +13458,16 @@ components:
           example: 87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475
         key:
           type: string
-          description: Уникальный ключ для загрузки файла
+          description: 'Уникальный ключ для загрузки файла. Чтобы приложить файл, в ключе заменяют `${filename}` на имя файла, а остальное передают как есть: начало ключа бывает разным.'
           example: attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}
+        bucket:
+          type: string
+          description: 'Имя хранилища. Приходит не во всех пространствах: если поле есть в ответе, его передают в форме загрузки.'
+          example: uploads
         direct_url:
           type: string
-          description: Адрес для загрузки файла
-          example: https://api.pachca.com/api/v3/direct_upload
+          description: Адрес хранилища, куда отправляется форма загрузки
+          example: https://uploads.storage.example.com
       description: Параметры для загрузки файла
     User:
       type: object
@@ -12897,7 +13830,7 @@ components:
             nickname:
               type: string
               maxLength: 255
-              description: Имя пользователя
+              description: 'Имя пользователя. Ник бота должен оканчиваться на `_bot` и быть уникальным в пространстве, иначе метод отвечает `422` с ошибкой на поле `nickname`: `invalid` или `already_exists`. Прежний ник бота проверяется, только когда его меняют.'
               example: olegpetrov
             department:
               type: string
@@ -12917,15 +13850,15 @@ components:
               type: boolean
               description: Деактивация пользователя
               example: false
-              default: false
             list_tags:
               type: array
               items:
                 type: string
-              description: 'Массив названий тегов, привязываемых к сотруднику. Список заменяет прежний целиком, пустой снимает все теги. Значение, которое не является массивом непустых строк, игнорируется: теги сотрудника не меняются.'
+              description: 'Массив названий тегов, привязываемых к сотруднику. Список заменяет прежний целиком, пустой снимает все теги. Значение, которое не является массивом непустых строк, игнорируется: теги сотрудника не меняются. В тег можно добавить только бота, которого может добавить в чат любой сотрудник и у которого выключена настройка «Ограничить одним чатом». Если бот этим условиям не отвечает, а в списке есть тег, которого у него ещё нет, метод отвечает `422` на поле `group_tags` и ничего не меняет: с кодом `single_chat_bot_tag_denied`, когда бот ограничен одним чатом, и `restricted_bot_tag_denied`, когда добавлять его в чаты могут не все. Подробнее — в разделе [Бот в тегах](/guides/bots/settings#bot-v-tegah).'
               example:
                 - Product
                 - Design
+              x-replaces-set: true
             custom_properties:
               type: array
               items:
@@ -12988,8 +13921,10 @@ components:
         - bot_add_denied
         - single_chat_bot_occupied
         - single_chat_bot_tag_denied
+        - restricted_bot_tag_denied
         - bot_changed_concurrently
         - timeout
+        - daily_invites_limit
         - forbidden
         - permission_denied
         - access_denied
@@ -13027,7 +13962,7 @@ components:
         user_limit: Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
         unique_limit: Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
         general_limit: Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
-        unhandled: Ошибка выполнения запроса (пояснения вы получите в поле message)
+        unhandled: 'Запрос не выполнен: сбой на сервере или значение, которое сервер не смог разобрать, а текст в message всегда общий'
         trigger_not_found: Не удалось найти идентификатор события
         trigger_expired: Время жизни идентификатора события истекло
         required: Обязательный параметр не передан
@@ -13062,8 +13997,10 @@ components:
         bot_add_denied: 'Правило бота «Кто может добавлять бота в чаты» не разрешает вам добавить его: `id` таких ботов приходят в `value`'
         single_chat_bot_occupied: 'Бот с настройкой «Ограничить одним чатом» уже состоит в другой беседе или канале: `id` таких ботов приходят в `value`'
         single_chat_bot_tag_denied: Бота с настройкой «Ограничить одним чатом» нельзя добавить в тег
+        restricted_bot_tag_denied: В тег можно добавить только бота, которого может добавить в чат любой сотрудник
         bot_changed_concurrently: 'Настройки бота изменились во время запроса: повторите его'
         timeout: 'Поиск не уложился по времени: сузьте запрос и повторите'
+        daily_invites_limit: 'Бесплатное пространство исчерпало суточный лимит писем-приглашений: остаток и время сброса — в `payload`'
     VideoCallEventType:
       type: string
       enum:
@@ -13122,7 +14059,8 @@ components:
         started_at:
           type: string
           format: date-time
-          description: Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished.
+          nullable: true
+          description: Дата и время начала звонка (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Присутствует для событий started и finished. `null`, если звонок завершился, так и не начавшись.
           example: '2025-05-15T14:30:00.000Z'
         finished_at:
           type: string
@@ -13132,7 +14070,8 @@ components:
         duration:
           type: integer
           format: int32
-          description: Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи.
+          nullable: true
+          description: Длительность в секундах. Для события finished — длительность звонка, для recording_ready — длительность записи. `null`, если звонок завершился, так и не начавшись.
           example: 900
         members:
           type: array
@@ -13205,11 +14144,13 @@ components:
             checkbox: Для чекбоксов всегда checkbox
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
           example: newsletters
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Подпись к группе чекбоксов
           example: Рассылки
@@ -13239,11 +14180,13 @@ components:
       properties:
         text:
           type: string
+          minLength: 1
           maxLength: 75
           description: Отображаемый текст
           example: Ничего
         value:
           type: string
+          minLength: 1
           maxLength: 255
           description: Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
           example: nothing
@@ -13273,11 +14216,13 @@ components:
             date: Для выбора даты всегда date
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
           example: date_start
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Подпись к полю
           example: Дата начала отпуска
@@ -13328,11 +14273,13 @@ components:
             file_input: Для загрузки файлов всегда file_input
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
           example: request_doc
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Подпись к полю
           example: Заявление
@@ -13380,6 +14327,7 @@ components:
             header: Для заголовков всегда header
         text:
           type: string
+          minLength: 1
           maxLength: 150
           description: Текст заголовка
           example: Основная информация
@@ -13401,11 +14349,13 @@ components:
             input: Для текстового поля всегда input
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
           example: info
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Подпись к полю
           example: Описание отпуска
@@ -13465,9 +14415,10 @@ components:
             markdown: Для форматированного текста всегда markdown
         text:
           type: string
+          minLength: 1
           maxLength: 12000
           description: Текст
-          example: Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)
+          example: Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://example.com/timeoff)
       description: Блок markdown — форматированный текст
     ViewBlockPlainText:
       type: object
@@ -13485,6 +14436,7 @@ components:
             plain_text: Для обычного текста всегда plain_text
         text:
           type: string
+          minLength: 1
           maxLength: 12000
           description: Текст
           example: Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе.
@@ -13507,11 +14459,13 @@ components:
             radio: Для радиокнопок всегда radio
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
           example: accessibility
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Подпись к группе радиокнопок
           example: Доступность
@@ -13551,11 +14505,13 @@ components:
             select: Для выпадающего списка всегда select
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора
           example: team
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Подпись к выпадающему списку
           example: Выберите команду
@@ -13585,11 +14541,13 @@ components:
       properties:
         text:
           type: string
+          minLength: 1
           maxLength: 75
           description: Отображаемый текст
           example: Ничего
         value:
           type: string
+          minLength: 1
           maxLength: 255
           description: Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
           example: nothing
@@ -13611,11 +14569,13 @@ components:
       properties:
         text:
           type: string
+          minLength: 1
           maxLength: 75
           description: Отображаемый текст
           example: Ничего
         value:
           type: string
+          minLength: 1
           maxLength: 255
           description: Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
           example: nothing
@@ -13646,17 +14606,19 @@ components:
             time: Для выбора времени всегда time
         name:
           type: string
+          minLength: 1
           maxLength: 255
           description: Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
           example: newsletter_time
         label:
           type: string
+          minLength: 1
           maxLength: 150
           description: Подпись к полю
           example: Время рассылки
         initial_time:
           type: string
-          format: time
+          pattern: ^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$
           description: Начальное значение в поле в формате HH:mm. Значение в формате HH:mm:ss тоже принимается — секунды отбрасываются.
           example: '11:00'
         required:
@@ -13917,6 +14879,12 @@ components:
           description: Идентификатор чата сообщения, к которому создан тред. `null` у треда без сообщения-родителя.
           example: 23438
       description: Параметры треда, в котором проходит видеозвонок
+    Weekday:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 6
+      description: 'День недели: 0 — воскресенье, 6 — суббота'
   securitySchemes:
     BearerAuth:
       type: http

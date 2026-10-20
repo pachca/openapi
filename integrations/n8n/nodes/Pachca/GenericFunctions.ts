@@ -264,6 +264,7 @@ export async function makeApiRequest(
   body?: IDataObject,
   qs?: IDataObject,
   itemIndex?: number,
+  extraHeaders?: Record<string, string>,
 ): Promise<IDataObject> {
   const credentials = await this.getCredentials('pachcaApi');
   const baseUrl = sanitizeBaseUrl(credentials.baseUrl as string);
@@ -271,6 +272,8 @@ export async function makeApiRequest(
   if (method !== 'GET' && method !== 'DELETE') {
     headers['Content-Type'] = 'application/json';
   }
+  // Заголовки, которые операция шлёт всегда (`Prefer: return=representation`)
+  Object.assign(headers, extraHeaders);
   // Separate array params from scalar params — arrays need []= format for Rails
   let scalarQs: IDataObject | undefined = qs;
   let arrayQuerySuffix = '';
@@ -458,7 +461,7 @@ export async function makeApiRequestAllPages(
     const paginate = meta?.paginate as IDataObject | undefined;
     const nextCursor = (paginate?.next_page as string) ?? undefined;
 
-    // Termination: списочные методы — has_next === false; legacy meta без has_next (например, /users?query=) — пустой data
+    // Termination: списочные методы и /users?query= — has_next === false; meta без has_next (методы поиска) — пустой data
     const hasNext = paginate?.has_next as boolean | undefined;
     if (typeof hasNext === 'boolean') {
       if (!hasNext) break;
@@ -759,7 +762,7 @@ export async function uploadFileToS3(
 ): Promise<IDataObject> {
   // Step 1: Get presigned S3 params
   const uploadParams = await makeApiRequest.call(ctx, 'POST', '/uploads', undefined, undefined, itemIndex);
-  const presigned = uploadParams as IDataObject;
+  let presigned = uploadParams as IDataObject;
 
   const fileSource = ctx.getNodeParameter('fileSource', itemIndex, 'binary') as string;
   // V2 stores in additionalFields collection; V1 stores as top-level params
@@ -797,7 +800,6 @@ export async function uploadFileToS3(
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     const s3Fields: Record<string, string> = {
       'Content-Disposition': String(presigned['Content-Disposition']),
-      acl: String(presigned.acl),
       policy: String(presigned.policy),
       'x-amz-credential': String(presigned['x-amz-credential']),
       'x-amz-algorithm': String(presigned['x-amz-algorithm']),
@@ -805,6 +807,9 @@ export async function uploadFileToS3(
       'x-amz-signature': String(presigned['x-amz-signature']),
       key: String(presigned.key).replace('${filename}', () => resolvedFileName),
     };
+    // A workspace gets `acl` or `bucket`, depending on its storage: send each one only when it came
+    if (presigned.acl !== undefined) s3Fields.acl = String(presigned.acl);
+    if (presigned.bucket !== undefined) s3Fields.bucket = String(presigned.bucket);
 
     const multipart = buildMultipartBody(s3Fields, fileBuffer, resolvedFileName, contentType);
 
@@ -819,9 +824,9 @@ export async function uploadFileToS3(
       break;
     } catch (error) {
       if (attempt === MAX_RETRIES - 1) throw error;
-      // Re-request presigned URL on retry (it may have expired)
-      const retryParams = await makeApiRequest.call(ctx, 'POST', '/uploads', undefined, undefined, itemIndex);
-      Object.assign(presigned, retryParams);
+      // Re-request presigned URL on retry (it may have expired). Replace the params whole:
+      // a field of the old answer, `acl` or `bucket`, must not stay in the new form
+      presigned = (await makeApiRequest.call(ctx, 'POST', '/uploads', undefined, undefined, itemIndex)) as IDataObject;
     }
   }
 

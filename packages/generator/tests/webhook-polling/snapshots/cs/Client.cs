@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Runtime.CompilerServices;
 
+#pragma warning disable CS1998
 namespace Pachca.Sdk;
 
 public class BotsService

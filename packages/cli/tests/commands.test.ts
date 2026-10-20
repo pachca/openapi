@@ -449,6 +449,41 @@ describe('generated commands — functional tests', () => {
     });
   });
 
+  // ----- meta ответа с одним объектом (chats create → not_found_member_ids) -----
+
+  describe('chats create', () => {
+    const notAdded = '⚠ Не удалось добавить в чат: 5, 7.\n  Таких сотрудников нет в пространстве, либо они приостановлены или удалены.\n';
+
+    it('meta.not_found_member_ids → stdout JSON прежней формы, список в stderr', async () => {
+      const chat = mockEntity('/chats', 'POST', { id: 334, name: 'Релизы' });
+      mockFetch({ status: 201, data: { data: chat, meta: { not_found_member_ids: [5, 7] } } });
+      const { stdout, stderr, error } = await runCommand(
+        ['chats', 'create', '--name', 'Релизы', '--member-ids', '[3,5,7]', '-o', 'json'],
+        { root: CLI_ROOT },
+      );
+      expect(error).toBeUndefined();
+      expect(JSON.parse(stdout)).toEqual(chat);
+      expect(stderr).toBe(notAdded);
+      expect(JSON.parse(fetchCalls()[0][1].body).chat.member_ids).toEqual([3, 5, 7]);
+    });
+
+    it('meta.not_found_member_ids → предупреждение и в таблице', async () => {
+      mockFetch({ status: 201, data: { data: mockEntity('/chats', 'POST', { id: 334 }), meta: { not_found_member_ids: [5, 7] } } });
+      Object.defineProperty(process.stdout, 'isTTY', { value: true, writable: true, configurable: true });
+      Object.defineProperty(process.stderr, 'isTTY', { value: true, writable: true, configurable: true });
+      const { stdout, stderr } = await runCommand(['chats', 'create', '--name', 'Релизы', '-o', 'table'], { root: CLI_ROOT });
+      expect(stdout).toContain('334');
+      expect(stderr).toBe(notAdded);
+    });
+
+    it('пустой not_found_member_ids → stderr пуст', async () => {
+      mockFetchForEndpoint('/chats', 'POST', { status: 201 });
+      const { stdout, stderr } = await runCommand(['chats', 'create', '--name', 'Релизы', '--member-ids', '[3]'], { root: CLI_ROOT });
+      expect(JSON.parse(stdout).id).toBeDefined();
+      expect(stderr).toBe('');
+    });
+  });
+
   // ----- Array query (search list-messages) -----
 
   describe('search list-messages', () => {

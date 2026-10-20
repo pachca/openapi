@@ -58,12 +58,14 @@ interface RouteConfig {
 	siblingFields?: string[];
 	paginated?: boolean;
 	noDataWrapper?: boolean;
+	metaFields?: string[];
 	bodyMap?: FieldMap[];
 	optionalBodyMap?: FieldMap[];
 	queryMap?: QueryMap[];
 	optionalQueryMap?: QueryMap[];
 	v1Collection?: string;
 	special?: string;
+	headers?: Record<string, string>;
 }
 
 // ============================================================================
@@ -194,6 +196,17 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/bots/{id}',
 			pathParams: [{ api: 'id', n8n: 'id' }],
 		},
+		updateAvatar: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/bots/{id}/avatar',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+			special: 'avatarUpload',
+		},
+		deleteAvatar: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/bots/{id}/avatar',
+			pathParams: [{ api: 'id', n8n: 'id' }],
+		},
 		recreateToken: {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/bots/{id}/recreate_token',
@@ -267,6 +280,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/chats',
 			wrapperKey: 'chat',
+			metaFields: ['not_found_member_ids'],
 			bodyMap: [
 				{ api: 'name', n8n: 'chatName' },
 			],
@@ -287,7 +301,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 		requestExport: {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/chats/exports',
-			noDataWrapper: true,
+			headers: { 'Prefer': 'return=representation' },
 			bodyMap: [
 				{ api: 'start_at', n8n: 'startAt' },
 				{ api: 'end_at', n8n: 'endAt' },
@@ -565,9 +579,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			bodyMap: [
 				{ api: 'entity_type', n8n: 'entityType' },
 				{ api: 'entity_id', n8n: 'entityId', locator: true },
-				{ api: 'content', n8n: 'content' },
 			],
 			optionalBodyMap: [
+				{ api: 'content', n8n: 'content' },
 				{ api: 'files', n8n: 'files', subKey: 'file' },
 				{ api: 'parent_message_id', n8n: 'parentMessageId' },
 				{ api: 'display_avatar_url', n8n: 'displayAvatarUrl' },
@@ -717,11 +731,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'PUT' as IHttpRequestMethods,
 			path: '/profile/status',
 			wrapperKey: 'status',
-			bodyMap: [
+			optionalBodyMap: [
 				{ api: 'emoji', n8n: 'statusEmoji' },
 				{ api: 'title', n8n: 'statusTitle' },
-			],
-			optionalBodyMap: [
 				{ api: 'expires_at', n8n: 'statusExpiresAt' },
 				{ api: 'is_away', n8n: 'isAway' },
 				{ api: 'away_message', n8n: 'awayMessage' },
@@ -889,11 +901,9 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/users/{user_id}/status',
 			pathParams: [{ api: 'user_id', n8n: 'userId', locator: true }],
 			wrapperKey: 'status',
-			bodyMap: [
+			optionalBodyMap: [
 				{ api: 'emoji', n8n: 'emoji' },
 				{ api: 'title', n8n: 'title' },
-			],
-			optionalBodyMap: [
 				{ api: 'expires_at', n8n: 'expiresAt' },
 				{ api: 'is_away', n8n: 'isAway' },
 				{ api: 'away_message', n8n: 'awayMessage' },
@@ -1286,7 +1296,7 @@ async function executeRoute(
 
 	const response = await makeApiRequest.call(
 		this, route.method, url, finalBody,
-		Object.keys(qs).length > 0 ? qs : undefined, i,
+		Object.keys(qs).length > 0 ? qs : undefined, i, route.headers,
 	);
 
 	// === Handle response ===
@@ -1306,7 +1316,17 @@ async function executeRoute(
 		return [{ json: response }];
 	}
 
-	const data = (response.data as IDataObject) ?? response;
+	let data = (response.data as IDataObject) ?? response;
+
+	// meta fields of a single-object response (e.g. not_found_member_ids) go next to the object's fields
+	if (route.metaFields?.length) {
+		const meta = (response.meta as IDataObject | undefined) ?? {};
+		const extra: IDataObject = {};
+		for (const field of route.metaFields) {
+			if (meta[field] !== undefined) extra[field] = meta[field];
+		}
+		data = { ...data, ...extra };
+	}
 
 	// Simplify for GET single item (v2 only)
 	if (nodeVersion >= 2 && route.method === 'GET' && !route.paginated) {

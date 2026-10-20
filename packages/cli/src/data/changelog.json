@@ -1,5 +1,46 @@
 [
   {
+    "version": "2026.10.1",
+    "date": "20 октября 2026",
+    "changes": [
+      {
+        "type": "~",
+        "command": "chats request-export",
+        "description": "Команда выводит номер выгрузки `id`: с ним `pachca chats download-export` забирает архив, когда тот соберётся"
+      },
+      {
+        "type": "+",
+        "command": "chats create",
+        "description": "Команда предупреждает в stderr об идентификаторах из `--member-ids`, которых не удалось добавить в чат"
+      },
+      {
+        "type": "+",
+        "command": "bots update-avatar, bots remove-avatar",
+        "description": "Новые команды — аватар бота: загрузка файла флагом `--file` и удаление"
+      },
+      {
+        "type": "+",
+        "command": "bots get",
+        "description": "В `webhook` приходят адрес входящего вебхука `url`, секрет подписи `secret_token` и тело последнего запроса `last_request_body`, если у токена есть скоуп `bots:write` и вы можете управлять токенами бота"
+      },
+      {
+        "type": "~",
+        "command": "messages create",
+        "description": "Сообщение уходит без `--content`, если к нему приложены файлы"
+      },
+      {
+        "type": "~",
+        "command": "profile update-status, users update-status",
+        "description": "`--emoji` и `--title` нужны, только когда статуса ещё нет — продлить статус можно одним `--expires-at`"
+      },
+      {
+        "type": "~",
+        "command": "upload, files direct-url",
+        "description": "`pachca upload` передаёт в форме загрузки `acl` и `bucket`, только если они пришли, а у `pachca files direct-url` флаг `--acl` необязателен и есть флаг `--bucket`: в части пространств метод `Получение подписи, ключа и других параметров` отдаёт `bucket` вместо `acl`"
+      }
+    ]
+  },
+  {
     "version": "2026.10.0",
     "date": "13 октября 2026",
     "changes": [

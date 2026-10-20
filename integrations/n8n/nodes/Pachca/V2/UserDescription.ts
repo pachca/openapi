@@ -244,7 +244,7 @@ export const userFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
-		description: 'User ID',
+		description: 'User ID. In a web app link it is the number from the `user_id` parameter. The `profile_id` and `user-ID` parameters name the employee the link was sent to.',
 		modes: [
 			{
 				displayName: 'From List',
@@ -385,7 +385,7 @@ export const userFields: INodeProperties[] = [
 				name: 'listTags',
 				type: 'string',
 				default: "",
-				description: 'Array of tag names to assign to the employee. The list replaces the previous one as a whole, an empty one removes all tags. A value that is not an array of non-empty strings is ignored: the employee\'s tags do not change.',
+				description: 'Array of tag names to assign to the employee. The list replaces the previous one as a whole, an empty one removes all tags. A value that is not an array of non-empty strings is ignored: the employee\'s tags do not change. Only a bot that any employee can add to a chat and that has the "Restrict to a single chat" setting turned off can be added to a tag. If the bot does not meet these conditions and the list contains a tag it does not have yet, the method responds `422` on the `group_tags` field and changes nothing: with the `single_chat_bot_tag_denied` code when the bot is restricted to a single chat, and `restricted_bot_tag_denied` when not everyone can add it to chats. More in the <a href="https://dev.pachca.com/guides/bots/settings#bot-v-tegah">Bot in tags</a> section.',
 				placeholder: 'Product,Design',
 			},
 			{
@@ -393,7 +393,7 @@ export const userFields: INodeProperties[] = [
 				name: 'nickname',
 				type: 'string',
 				default: "",
-				description: 'Username',
+				description: 'Username. A bot\'s nickname must end with `_bot` and be unique in the workspace, otherwise the method responds `422` with an error on the `nickname` field: `invalid` or `already_exists`. A bot\'s existing nickname is checked only when it is changed.',
 				placeholder: 'olegpetrov',
 			},
 			{
@@ -630,9 +630,8 @@ export const userFields: INodeProperties[] = [
 		displayName: 'Emoji',
 		name: 'emoji',
 		type: 'string',
-		required: true,
 		default: "",
-		description: 'Status emoji character',
+		description: 'Status emoji character. Required if there is no status yet.',
 		displayOptions: { show: { resource: ['user'], operation: ['updateStatus'] } },
 		placeholder: '🎮',
 	},
@@ -640,9 +639,8 @@ export const userFields: INodeProperties[] = [
 		displayName: 'Title',
 		name: 'title',
 		type: 'string',
-		required: true,
 		default: "",
-		description: 'Status text',
+		description: 'Status text. Required if there is no status yet.',
 		displayOptions: { show: { resource: ['user'], operation: ['updateStatus'] } },
 		placeholder: 'Very busy',
 	},
@@ -667,7 +665,7 @@ export const userFields: INodeProperties[] = [
 				name: 'expiresAt',
 				type: 'dateTime',
 				default: "",
-				description: 'Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC. A deadline the person names in words goes here: «until three» is the value of this field, not part of the title.',
+				description: 'Status expiration date and time (ISO-8601). An offset such as `+03:00` is taken into account, and a time without an offset is read as UTC.',
 				placeholder: '2024-04-08T10:00:00.000Z',
 			},
 			{

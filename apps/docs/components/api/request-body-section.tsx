@@ -20,11 +20,14 @@ export function RequestBodySection({ endpoint }: RequestBodySectionProps) {
   if (!requestBody) return null;
 
   // Prefer application/json, fall back to multipart/form-data (e.g. avatar upload)
+  // and to a form body (the OAuth flow)
   const contentType = requestBody.content['application/json']
     ? 'application/json'
     : requestBody.content['multipart/form-data']
       ? 'multipart/form-data'
-      : null;
+      : requestBody.content['application/x-www-form-urlencoded']
+        ? 'application/x-www-form-urlencoded'
+        : null;
   if (!contentType) return null;
 
   const content = requestBody.content[contentType];

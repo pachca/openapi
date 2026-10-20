@@ -72,7 +72,7 @@ export const messageFields: INodeProperties[] = [
 		type: 'resourceLocator',
 		default: { mode: 'list', value: '' },
 		required: true,
-		description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or an employee',
+		description: 'Identifier of whatever is named in `entity_type`: a conversation or channel, a thread, or a user. A thread has two: its ID goes with `entity_type: "thread"`, and its `chat_id` with `discussion`, like any chat.',
 		modes: [
 			{
 				displayName: 'From List',
@@ -93,10 +93,9 @@ export const messageFields: INodeProperties[] = [
 		displayName: 'Content',
 		name: 'content',
 		type: 'string',
-		required: true,
 		typeOptions: { rows: 4 },
 		default: "",
-		description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes.',
+		description: 'Message text. Required if no files are attached to the message. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`). `@all` mentions all members of the chat, `@here` those who are currently online, and `@` with a tag name without spaces the employees of that tag. A name without `@`, and a mention inside inline code or a code block, are not mentions. For a multi-guest, `&lt;@user_id&gt;` of an employee not accessible to them stays in the text as is. Up to 40,000 bytes in UTF-8, which is about 20,000 Cyrillic characters. In a workspace with advanced encryption — up to 27,000 bytes. The message goes out under the token owner\'s name, and a bot\'s with the Bot badge.',
 		displayOptions: { show: { resource: ['message'], operation: ['create'] } },
 		placeholder: 'Yesterday we sold 756 t-shirts (10% more than last Sunday)',
 	},
@@ -121,7 +120,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'displayName',
 				type: 'string',
 				default: "",
-				description: 'Custom sender display name for this message. This field can only be used with a bot access_token.',
+				description: 'Custom sender display name for this message. Together with `display_avatar_url` a bot signs the message with someone else\'s name and avatar, and only this message. The Bot badge stays, and the sender\'s profile still shows the real bot. This is how the original author is shown when messages are carried over from another system. With a personal token the field is not available and the response is `403`. Details are in the <a href="https://dev.pachca.com/guides/bots/overview">Bots</a> section.',
 				placeholder: 'Support Bot',
 			},
 			{
@@ -211,7 +210,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'parentMessageId',
 				type: 'number',
 				default: 0,
-				description: 'ID of the message you are replying to with a quote. You can reply to a message in any chat, including a thread: send the reply to the same chat or thread where that message is, otherwise the request returns a `422` error. To write into the thread under a message, set `entity_type: "thread"` and the thread ID in `entity_id`.',
+				description: 'ID of the message you are replying to with a quote. You can reply to a message in any chat, including a thread: send the reply to the same chat or thread where that message is, otherwise the request returns a `422` error. To write into the thread under a message, set `entity_type: "thread"` and the thread\'s ID in `entity_id`.',
 				placeholder: '194270',
 			},
 			{
@@ -219,7 +218,7 @@ export const messageFields: INodeProperties[] = [
 				name: 'skipInviteMentions',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to skip adding mentioned users to the thread. Only works when sending a message to a thread.',
+				description: 'Whether to skip adding mentioned employees to the thread. In a thread a mention also works as an invitation: a mentioned employee who is not in the thread is added to it by Pachca and gains access to the thread and its parent message. In a conversation or a channel a mention adds nobody, and the parameter changes nothing there.',
 			},
 		],
 	},
@@ -380,7 +379,7 @@ export const messageFields: INodeProperties[] = [
 		required: true,
 		default: 0,
 		displayOptions: { show: { resource: ['message'], operation: ['get'] } },
-		description: 'Message ID',
+		description: 'Message ID. A web app link points at a message with the `sidebar_message` parameter, and without it with `message`. The number from `thread_message_id` is the message the thread hangs under.',
 	},
 	{
 		displayName: 'Simplify',
@@ -458,7 +457,6 @@ export const messageFields: INodeProperties[] = [
 { name: 'Video', value: 'video', description: 'Video file' },
 { name: 'Voice', value: 'voice', description: 'Voice message' }],
 							default: "",
-							description: 'File type: file (file), image (image)',
 						},
 						{
 							displayName: 'Height',
@@ -505,7 +503,7 @@ export const messageFields: INodeProperties[] = [
 					],
 				}],
 				default: [],
-				description: 'Files to attach',
+				description: 'Files to attach. The set you pass replaces the previous one: to keep a file already attached, pass it again with the same `key`.',
 				hint: 'Upload a file first using File > Create, then use the returned key here',
 			},
 		],
@@ -602,6 +600,13 @@ export const messageFields: INodeProperties[] = [
 		default: 0,
 		displayOptions: { show: { resource: ['message'], operation: ['unfurl'] } },
 		description: 'Message ID',
+	},
+	{
+		displayName: 'Requires bot roles',
+		name: 'messageUnfurlNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: { show: { resource: ['message'], operation: ['unfurl'] } },
 	},
 	{
 		displayName: 'Link Previews',

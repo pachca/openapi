@@ -43,6 +43,11 @@ function isOptionalField(field: IRField): boolean {
   return !field.required || field.nullable;
 }
 
+/** An open JSON value is `any`: nil already stands for null and for an absent field, so it takes no pointer. */
+function isOpenValue(field: IRField): boolean {
+  return field.type.kind === 'primitive' && field.type.primitive === 'any';
+}
+
 function goAligned(rows: string[][]): string[] {
   if (rows.length === 0) return [];
   const cols = Math.max(...rows.map((r) => r.length));
@@ -119,7 +124,8 @@ function goFieldInfo(field: IRField, modelName: string): { name: string; typeNam
   });
   const pointer =
     (field.type.kind === 'primitive' || field.type.kind === 'model' || field.type.kind === 'enum' || field.type.kind === 'union') &&
-    isOptionalField(field);
+    isOptionalField(field) &&
+    !isOpenValue(field);
   const typeName = pointer ? `*${base}` : base;
   const tag = `\`json:"${goJsonTag(field)}"\``;
   const comment = field.type.kind === 'literal' && field.type.literalValue
@@ -129,6 +135,8 @@ function goFieldInfo(field: IRField, modelName: string): { name: string; typeNam
 }
 
 function emitEnum(lines: string[], e: IREnum): void {
+  // A string type already takes any value: an open enum only says so.
+  if (e.open) lines.push(`// ${e.name} may hold a value this SDK does not list yet: a response keeps it as is.`);
   lines.push(`type ${e.name} string`);
   lines.push('');
   lines.push('const (');
@@ -218,12 +226,13 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
 
     lines.push('');
     lines.push('func (e *OAuthError) Error() string {');
+    const isEnum = errField?.type.kind === 'enum';
     if (isPointer) {
       lines.push('\tif e.Err != nil {');
-      lines.push('\t\treturn *e.Err');
+      lines.push(isEnum ? '\t\treturn string(*e.Err)' : '\t\treturn *e.Err');
     } else {
       lines.push('\tif e.Err != "" {');
-      lines.push('\t\treturn e.Err');
+      lines.push(isEnum ? '\t\treturn string(e.Err)' : '\t\treturn e.Err');
     }
     lines.push('\t}');
     lines.push('\treturn "oauth error"');
@@ -405,7 +414,7 @@ function emitParamsType(lines: string[], name: string, params: IROperation['quer
 function emitResponseType(lines: string[], rt: IRResponseType): void {
   lines.push(`type ${rt.name} struct {`);
   const rows: string[][] = [];
-  rows.push(['Data', `[]${rt.dataRef}`, '`json:"data"`']);
+  rows.push(['Data', `${rt.dataIsArray ? '[]' : ''}${rt.dataRef}`, '`json:"data"`']);
   if (rt.metaRef) {
     const opt = rt.metaIsRequired ? '' : '*';
     const tag = rt.metaIsRequired ? 'meta' : 'meta,omitempty';
@@ -490,8 +499,9 @@ function generateTypes(ir: IR): string {
 
 function goReturn(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return '(string, error)';
+  if (op.successResponse.isBinary) return '([]byte, error)';
   if (!op.successResponse.hasBody) return 'error';
-  if (op.successResponse.isList) {
+  if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return `(*${rt?.name ?? 'any'}, error)`;
   }
@@ -510,24 +520,33 @@ function goPathFormat(path: string, op: IROperation): { fmt: string; args: strin
 }
 
 function emitOp(lines: string[], op: IROperation, ir: IR): void {
+  // A file answers with its bytes, so it returns a value like a JSON body does.
+  const returnsValue = op.successResponse.hasBody || op.successResponse.isBinary;
   const retErr = (): string => {
     if (op.successResponse.isRedirect) return 'return "", err';
-    if (!op.successResponse.hasBody) return 'return err';
+    if (!returnsValue) return 'return err';
     return 'return nil, err';
   };
   const retOAuth = (): string => {
     if (op.successResponse.isRedirect) return 'return "", &e';
-    if (!op.successResponse.hasBody) return 'return &e';
+    if (!returnsValue) return 'return &e';
     return 'return nil, &e';
   };
   const retApi = (): string => {
     if (op.successResponse.isRedirect) return 'return "", &e';
-    if (!op.successResponse.hasBody) return 'return &e';
+    if (!returnsValue) return 'return &e';
     return 'return nil, &e';
+  };
+  // An error body that does not decode comes back wrapped with its status.
+  const retDecodeFailure = (): string => {
+    const wrapped = 'fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)';
+    if (op.successResponse.isRedirect) return `return "", ${wrapped}`;
+    if (!returnsValue) return `return ${wrapped}`;
+    return `return nil, ${wrapped}`;
   };
   const retUnexpected = (): string => {
     if (op.successResponse.isRedirect) return 'return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)';
-    if (op.successResponse.hasBody) return 'return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)';
+    if (returnsValue) return 'return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)';
     return 'return fmt.Errorf("unexpected status code: %d", resp.StatusCode)';
   };
 
@@ -606,6 +625,19 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\treq.Header.Set("Content-Type", writer.FormDataContentType())');
   } else {
     const hasJSON = op.requestBody?.contentType === 'json';
+    const hasForm = op.requestBody?.contentType === 'form';
+    if (hasForm) {
+      const rb = op.requestBody!;
+      if (shouldUnwrapBody(rb)) {
+        const f = rb.unwrapField!;
+        lines.push(`\tform, err := formValues(map[string]any{${JSON.stringify(f.name)}: ${snakeToCamel(f.name)}})`);
+      } else {
+        lines.push('\tform, err := formValues(request)');
+      }
+      lines.push('\tif err != nil {');
+      lines.push(`\t\t${retErr()}`);
+      lines.push('\t}');
+    }
     if (hasJSON) {
       const rb = op.requestBody!;
       if (shouldUnwrapBody(rb)) {
@@ -657,13 +689,13 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
       lines.push('\tu.RawQuery = q.Encode()');
       lines.push(
         `\treq, err := http.NewRequestWithContext(ctx, "${op.method}", u.String(), ${
-          hasJSON ? 'bytes.NewReader(body)' : 'nil'
+          hasJSON ? 'bytes.NewReader(body)' : hasForm ? 'strings.NewReader(form.Encode())' : 'nil'
         })`,
       );
     } else {
       lines.push(
         `\treq, err := http.NewRequestWithContext(ctx, "${op.method}", ${urlExpr}, ${
-          hasJSON ? 'bytes.NewReader(body)' : 'nil'
+          hasJSON ? 'bytes.NewReader(body)' : hasForm ? 'strings.NewReader(form.Encode())' : 'nil'
         })`,
       );
     }
@@ -671,6 +703,8 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push(`\t\t${retErr()}`);
     lines.push('\t}');
     if (hasJSON) lines.push('\treq.Header.Set("Content-Type", "application/json")');
+    if (hasForm) lines.push('\treq.Header.Set("Content-Type", "application/x-www-form-urlencoded")');
+    for (const h of op.requestHeaders ?? []) lines.push(`\treq.Header.Set(${JSON.stringify(h.name)}, ${JSON.stringify(h.value)})`);
   }
 
   const goClient = op.noAuth ? 'http.DefaultClient' : 's.client';
@@ -688,19 +722,26 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\t\t\treturn "", errors.New("missing Location header in redirect response")');
     lines.push('\t\t}');
     lines.push('\t\treturn location, nil');
+  } else if (op.successResponse.isBinary) {
+    lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
+    lines.push('\t\tbody, err := io.ReadAll(resp.Body)');
+    lines.push('\t\tif err != nil {');
+    lines.push('\t\t\treturn nil, err');
+    lines.push('\t\t}');
+    lines.push('\t\treturn body, nil');
   } else if (!op.successResponse.hasBody) {
-    lines.push(`\tcase ${op.successResponse.statusCode === 201 ? 'http.StatusCreated' : 'http.StatusNoContent'}:`);
+    lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
     lines.push('\t\treturn nil');
-  } else if (op.successResponse.isList) {
+  } else if (op.successResponse.isList || op.successResponse.isSingleWithMeta) {
     const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-    lines.push(`\tcase ${op.successResponse.statusCode === 201 ? 'http.StatusCreated' : 'http.StatusOK'}:`);
+    lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
     lines.push(`\t\tvar result ${rt?.name ?? 'any'}`);
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&result); err != nil {');
     lines.push('\t\t\treturn nil, err');
     lines.push('\t\t}');
     lines.push('\t\treturn &result, nil');
   } else if (op.successResponse.isUnwrap && op.successResponse.dataRef) {
-    lines.push(`\tcase ${op.successResponse.statusCode === 201 ? 'http.StatusCreated' : 'http.StatusOK'}:`);
+    lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
     lines.push('\t\tvar result struct {');
     lines.push(`\t\t\tData ${op.successResponse.dataRef} \`json:"data"\``);
     lines.push('\t\t}');
@@ -709,7 +750,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\t\t}');
     lines.push('\t\treturn &result.Data, nil');
   } else {
-    lines.push(`\tcase ${op.successResponse.statusCode === 201 ? 'http.StatusCreated' : 'http.StatusOK'}:`);
+    lines.push(`\tcase ${goStatus(op.successResponse.statusCode)}:`);
     lines.push(`\t\tvar result ${op.successResponse.dataRef ?? 'any'}`);
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&result); err != nil {');
     lines.push('\t\t\treturn nil, err');
@@ -721,21 +762,23 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\tcase http.StatusUnauthorized:');
     lines.push('\t\tvar e OAuthError');
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&e); err != nil {');
-    lines.push('\t\t\te.Err = fmt.Sprintf("HTTP 401: %v", err)');
+    // A body that does not decode is no OAuth error: it comes back wrapped, the
+    // way the other statuses report one, and `Err` only ever holds a code.
+    lines.push(`\t\t\t${retDecodeFailure()}`);
     lines.push('\t\t}');
     lines.push(`\t\t${retOAuth()}`);
   }
 
-  if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
+  if (goPicksErrorByBody(ir)) {
+    lines.push('\tdefault:');
+    if (op.successResponse.isRedirect) lines.push('\t\treturn "", errorFromBody(resp)');
+    else if (!returnsValue) lines.push('\t\treturn errorFromBody(resp)');
+    else lines.push('\t\treturn nil, errorFromBody(resp)');
+  } else if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
     lines.push('\tdefault:');
     lines.push('\t\tvar e ApiError');
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&e); err != nil {');
-    const retFmt = op.successResponse.isRedirect
-      ? 'return "", fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)'
-      : !op.successResponse.hasBody
-        ? 'return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)'
-        : 'return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)';
-    lines.push(`\t\t\t${retFmt}`);
+    lines.push(`\t\t\t${retDecodeFailure()}`);
     lines.push('\t\t}');
     lines.push(`\t\t${retApi()}`);
   } else {
@@ -745,6 +788,127 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
 
   lines.push('\t}');
   lines.push('}');
+}
+
+/** Both error models exist, so an error's class is read off its body. */
+function goPicksErrorByBody(ir: IR): boolean {
+  return ir.models.some((m) => m.name === 'ApiError') && ir.models.some((m) => m.name === 'OAuthError');
+}
+
+function emitGoFormValues(lines: string[]): void {
+  lines.push('// formValues turns a request into a form body (application/x-www-form-urlencoded):');
+  lines.push('// the fields go by their JSON names, empty ones are left out.');
+  lines.push('func formValues(v any) (url.Values, error) {');
+  lines.push('\tdata, err := json.Marshal(v)');
+  lines.push('\tif err != nil {');
+  lines.push('\t\treturn nil, err');
+  lines.push('\t}');
+  lines.push('\tvar fields map[string]any');
+  lines.push('\tif err := json.Unmarshal(data, &fields); err != nil {');
+  lines.push('\t\treturn nil, err');
+  lines.push('\t}');
+  lines.push('\tform := url.Values{}');
+  lines.push('\tfor key, value := range fields {');
+  lines.push('\t\tif value != nil {');
+  lines.push('\t\t\tform.Set(key, fmt.Sprintf("%v", value))');
+  lines.push('\t\t}');
+  lines.push('\t}');
+  lines.push('\treturn form, nil');
+  lines.push('}');
+  lines.push('');
+}
+
+function emitGoErrorFromBody(lines: string[]): void {
+  lines.push('// errorFromBody reads an error answer. Its body is either {"errors": [...]} or the');
+  lines.push('// OAuth form {"error", "error_description"}, which also comes with 400 and 403');
+  lines.push('// (insufficient_scope, invalid_grant): the body decides the type.');
+  lines.push('func errorFromBody(resp *http.Response) error {');
+  lines.push('\tdata, err := io.ReadAll(resp.Body)');
+  lines.push('\tif err != nil {');
+  lines.push('\t\treturn fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)');
+  lines.push('\t}');
+  lines.push('\tvar probe struct {');
+  lines.push('\t\tErrors json.RawMessage `json:"errors"`');
+  lines.push('\t\tError  *string         `json:"error"`');
+  lines.push('\t}');
+  lines.push('\tif json.Unmarshal(data, &probe) == nil && probe.Errors == nil && probe.Error != nil {');
+  lines.push('\t\tvar e OAuthError');
+  lines.push('\t\tif err := json.Unmarshal(data, &e); err == nil {');
+  lines.push('\t\t\treturn &e');
+  lines.push('\t\t}');
+  lines.push('\t}');
+  lines.push('\tvar e ApiError');
+  lines.push('\tif err := json.Unmarshal(data, &e); err != nil {');
+  lines.push('\t\treturn fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)');
+  lines.push('\t}');
+  lines.push('\treturn &e');
+  lines.push('}');
+  lines.push('');
+}
+
+function emitGoOAuthHelpers(lines: string[], authorizeUrl: string): void {
+  lines.push(`const PachcaAuthorizeURL = ${JSON.stringify(authorizeUrl)}`);
+  lines.push('');
+  lines.push('// AuthorizeURLParams describes the authorization link of the OAuth flow.');
+  lines.push('type AuthorizeURLParams struct {');
+  lines.push('\t// ClientID of the bot');
+  lines.push('\tClientID string');
+  lines.push("\t// RedirectURI is one of the bot's redirect addresses, matched exactly");
+  lines.push('\tRedirectURI string');
+  lines.push('\t// State is a random value you keep to recognise the return; each one is valid once');
+  lines.push('\tState string');
+  lines.push('\t// CodeChallenge of a pair from CreatePKCE');
+  lines.push('\tCodeChallenge string');
+  lines.push('\t// AuthorizeURL of another installation; PachcaAuthorizeURL when empty');
+  lines.push('\tAuthorizeURL string');
+  lines.push('}');
+  lines.push('');
+  lines.push('// BuildAuthorizeURL returns the authorization link for a message button: the consent screen with PKCE (S256).');
+  lines.push('func BuildAuthorizeURL(p AuthorizeURLParams) string {');
+  lines.push('\tbase := p.AuthorizeURL');
+  lines.push('\tif base == "" {');
+  lines.push('\t\tbase = PachcaAuthorizeURL');
+  lines.push('\t}');
+  lines.push('\tquery := url.Values{}');
+  lines.push('\tquery.Set("client_id", p.ClientID)');
+  lines.push('\tquery.Set("redirect_uri", p.RedirectURI)');
+  lines.push('\tquery.Set("response_type", "code")');
+  lines.push('\tquery.Set("state", p.State)');
+  lines.push('\tquery.Set("code_challenge", p.CodeChallenge)');
+  lines.push('\tquery.Set("code_challenge_method", "S256")');
+  lines.push('\treturn base + "?" + query.Encode()');
+  lines.push('}');
+  lines.push('');
+  lines.push('// PKCE is a pair for the OAuth flow: keep CodeVerifier until the code exchange, put CodeChallenge into the link.');
+  lines.push('type PKCE struct {');
+  lines.push('\tCodeVerifier  string');
+  lines.push('\tCodeChallenge string');
+  lines.push('}');
+  lines.push('');
+  lines.push('// CreatePKCE returns a random code verifier and its SHA-256 challenge.');
+  lines.push('func CreatePKCE() (PKCE, error) {');
+  lines.push('\tbuf := make([]byte, 32)');
+  lines.push('\tif _, err := rand.Read(buf); err != nil {');
+  lines.push('\t\treturn PKCE{}, err');
+  lines.push('\t}');
+  lines.push('\tverifier := base64.RawURLEncoding.EncodeToString(buf)');
+  lines.push('\tsum := sha256.Sum256([]byte(verifier))');
+  lines.push('\treturn PKCE{CodeVerifier: verifier, CodeChallenge: base64.RawURLEncoding.EncodeToString(sum[:])}, nil');
+  lines.push('}');
+  lines.push('');
+}
+
+/** The net/http constant for a success status the spec declares. */
+function goStatus(code: number): string {
+  const names: Record<number, string> = {
+    200: 'http.StatusOK',
+    201: 'http.StatusCreated',
+    202: 'http.StatusAccepted',
+    204: 'http.StatusNoContent',
+  };
+  const name = names[code];
+  if (!name) throw new Error(`Go: no net/http constant for success status ${code}`);
+  return name;
 }
 
 function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
@@ -904,7 +1068,7 @@ function emitStubMethod(lines: string[], op: IROperation, ir: IR): void {
   const methodRef = JSON.stringify(`${op.tag}.${op.methodName}`);
   lines.push(`func (s *${stubName}) ${goMethodName(op)}(${args.join(', ')}) ${goReturn(op, ir)} {`);
   if (op.successResponse.isRedirect) lines.push(`\treturn "", NotImplementedError{Method: ${methodRef}}`);
-  else if (!op.successResponse.hasBody) lines.push(`\treturn NotImplementedError{Method: ${methodRef}}`);
+  else if (!op.successResponse.hasBody && !op.successResponse.isBinary) lines.push(`\treturn NotImplementedError{Method: ${methodRef}}`);
   else lines.push(`\treturn nil, NotImplementedError{Method: ${methodRef}}`);
   lines.push('}');
 }
@@ -1039,20 +1203,27 @@ function generateClient(ir: IR): string {
   const needErrors = ir.services.some((s) => s.operations.some((o) => o.successResponse.isRedirect));
   const needPolling = ir.services.some(hasWebhookPolling);
   const needMultipart = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'multipart'));
+  const needForm = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'form'));
+  const needIO =
+    needMultipart || goPicksErrorByBody(ir) || ir.services.some((s) => s.operations.some((o) => o.successResponse.isBinary));
   const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"net/http"', '"time"'];
   if (needBytes) imports.push('"bytes"');
-  if (needURL) imports.push('"net/url"');
+  if (needURL || needForm || ir.oauthAuthorizeUrl) imports.push('"net/url"');
+  if (needForm) imports.push('"strings"');
+  if (ir.oauthAuthorizeUrl) imports.push('"crypto/rand"', '"crypto/sha256"', '"encoding/base64"');
   if (needErrors || needPolling) imports.push('"errors"');
-  if (needMultipart) {
-    imports.push('"io"');
-    imports.push('"mime/multipart"');
-  }
+  if (needIO) imports.push('"io"');
+  if (needMultipart) imports.push('"mime/multipart"');
   imports.sort();
 
   lines.push('import (');
   for (const imp of imports) lines.push(`\t${imp}`);
   lines.push(')');
   lines.push('');
+
+  if (needForm) emitGoFormValues(lines);
+  if (goPicksErrorByBody(ir)) emitGoErrorFromBody(lines);
+  if (ir.oauthAuthorizeUrl) emitGoOAuthHelpers(lines, ir.oauthAuthorizeUrl);
 
   lines.push('type authTransport struct {');
   lines.push('\ttoken string');
@@ -1398,6 +1569,7 @@ function goModelLiteral(
   const entries = fields.map((f) => {
     const name = goExportName(f.name);
     const opt = isOptionalField(f) &&
+      !isOpenValue(f) &&
       (f.type.kind === 'primitive' || f.type.kind === 'model' || f.type.kind === 'enum' || f.type.kind === 'union');
     const value = goLiteral(f.type, ir, models, nextVisited, childIndent);
     if (opt) {
@@ -1450,7 +1622,7 @@ function goModelFp(
   const fields = model.fields.map((f) => {
     const name = goExportName(f.name);
     const type = goFingerprint(f.type, ir, models, nextVisited);
-    const opt = isOptionalField(f) ? '*' : '';
+    const opt = isOptionalField(f) && !isOpenValue(f) ? '*' : '';
     return `${name}: ${opt}${type}`;
   });
 
@@ -1464,6 +1636,7 @@ function goBuildOutputFingerprint(
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'string';
+  if (resp.isBinary) return '[]byte';
   if (!resp.hasBody) return null;
 
   if (resp.isList && resp.responseRef) {
@@ -1474,6 +1647,23 @@ function goBuildOutputFingerprint(
       if (rt.metaRef) {
         const opt = rt.metaIsRequired ? '' : '*';
         parts.push(`Meta: ${opt}${rt.metaRef}`);
+      }
+      return `${rt.name}{${parts.join(', ')}}`;
+    }
+  }
+
+  // A single object with meta: both sides spelled out, the object as an unwrapped method shows it.
+  if (resp.isSingleWithMeta && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const fp = (ref: string): string => {
+        const model = models.get(ref);
+        return model ? goModelFp(model, ir, models, new Set()) : ref;
+      };
+      const parts: string[] = [`Data: ${fp(rt.dataRef)}`];
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : '*';
+        parts.push(`Meta: ${opt}${fp(rt.metaRef)}`);
       }
       return `${rt.name}{${parts.join(', ')}}`;
     }

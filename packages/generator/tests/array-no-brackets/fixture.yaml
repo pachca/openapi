@@ -10,7 +10,7 @@ paths:
   /search/messages:
     get:
       operationId: SearchOperations_searchMessages
-      description: Поиск сообщений с array-фильтрами без скобок в имени
+      description: Поиск сообщений с array-фильтрами без скобок в имени — форму на проводе задаёт x-query-array
       x-paginated: true
       parameters:
         - name: query
@@ -22,7 +22,8 @@ paths:
         - name: chat_ids
           in: query
           required: true
-          description: Фильтр по чатам (required, без скобок в имени)
+          description: Фильтр по чатам (required, без скобок в имени, x-query-array — уходит как chat_ids[])
+          x-query-array: brackets
           schema:
             type: array
             items:
@@ -31,7 +32,7 @@ paths:
         - name: user_ids
           in: query
           required: false
-          description: Фильтр по авторам (без скобок в имени)
+          description: Фильтр по авторам (без скобок в имени и без x-query-array — повтор user_ids)
           schema:
             type: array
             items:

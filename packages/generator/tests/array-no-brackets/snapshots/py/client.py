@@ -39,7 +39,7 @@ class SearchServiceImpl(SearchService):
                 query.append(("chat_ids[]", str(v)))
         if params is not None and params.user_ids is not None:
             for v in params.user_ids:
-                query.append(("user_ids[]", str(v)))
+                query.append(("user_ids", str(v)))
         if params is not None and params.limit is not None:
             query.append(("limit", str(params.limit)))
         if params is not None and params.cursor is not None:

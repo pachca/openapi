@@ -16,7 +16,7 @@ export default class GroupTagsListUsers extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор тега",
+      description: "Идентификатор тега: в ссылке веб-приложения это число из параметра `tag_id`",
       required: true,
     }),
   };
@@ -59,7 +59,7 @@ export default class GroupTagsListUsers extends BaseCommand {
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
         pages++;
-        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data
+        // Условие конца: списочные методы и /users?query= — has_next === false; методы поиска (без has_next) — пустой data
         const hasNext = paginate?.has_next;
         if (typeof hasNext === 'boolean') {
           if (!hasNext) break;

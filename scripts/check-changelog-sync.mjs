@@ -17,6 +17,17 @@
  * anything that lands in main and would trigger a publish must carry a
  * changelog the users will see.
  *
+ * A package marked `selfVersioned` is released outside the portal: it has no
+ * entry in releases.json, its own CHANGELOG.md declares a release and its
+ * package.json carries the version. For it:
+ *   - code changed = a file under the package dir changed, except the
+ *     CHANGELOG and a package.json whose only change is `version`;
+ *   - changelog written = the top `## X.Y.Z` heading of the CHANGELOG names a
+ *     version the baseline CHANGELOG does not have (fixing the text of an
+ *     entry that already shipped declares nothing);
+ *   - the top CHANGELOG version must equal package.json `version`, and
+ *     releases.json must have no entry for the product.
+ *
  * Override the baseline with CHANGELOG_SYNC_BASE (default: origin/main).
  * Fails when the baseline ref is unavailable (e.g. shallow clone with no
  * origin/main) — CI must fetch origin/main for the check to run. Set
@@ -64,6 +75,20 @@ const PACKAGES = [
     dirs: ['sdk'],
     ownChangelogs: [],
     sourceChangelogs: [],
+  },
+  {
+    // Not on the portal: the version is in package.json and the history in
+    // CHANGELOG.md (see `selfVersioned` in the header). The package keeps
+    // committed copies of the manifest and its schema that the build makes
+    // from packages/spec (check-generated-sync holds them equal), so a changed
+    // manifest is a change here and needs a new CHANGELOG entry.
+    product: 'mcp-manifest',
+    label: 'mcp-manifest',
+    dirs: ['packages/mcp-manifest'],
+    selfVersioned: {
+      changelog: 'packages/mcp-manifest/CHANGELOG.md',
+      packageJson: 'packages/mcp-manifest/package.json',
+    },
   },
 ];
 
@@ -197,7 +222,91 @@ if (!base) {
 
 const errors = [];
 
+/** File content at a ref, or null when the file does not exist there. */
+function showFile(ref, file) {
+  try {
+    return sh(`git show ${ref}:${file}`);
+  } catch {
+    return null;
+  }
+}
+
+/** Every `## X.Y.Z` heading of a markdown changelog, top first. */
+function changelogVersions(text) {
+  if (!text) return [];
+  return [...text.matchAll(/^##\s+(\d+\.\d+\.\d+|\d{4}\.\d{1,2}\.\d+)\b/gm)].map((m) => m[1]);
+}
+
+/** Whether a package.json differs between base and HEAD in `version` alone. */
+function onlyVersionChanged(base, file) {
+  const before = showFile(base, file);
+  const after = showFile('HEAD', file);
+  if (before === null || after === null) return false;
+  try {
+    const strip = (text) => {
+      const json = JSON.parse(text);
+      delete json.version;
+      return JSON.stringify(json);
+    };
+    return strip(before) === strip(after);
+  } catch {
+    return false;
+  }
+}
+
+/** The gate for a package released outside the portal (see the header). */
+function checkSelfVersioned(pkg) {
+  const { changelog, packageJson } = pkg.selfVersioned;
+  const code = changedFiles(base, pkg.dirs).filter(
+    (f) => f !== changelog && !(f === packageJson && onlyVersionChanged(base, packageJson))
+  );
+  const codeChanged = code.length > 0;
+
+  const declared = changelogVersions(showFile('HEAD', changelog))[0] ?? null;
+  const known = changelogVersions(showFile(base, changelog));
+  const changelogWritten = declared !== null && !known.includes(declared);
+
+  if (codeChanged && !changelogWritten) {
+    errors.push(
+      `${pkg.label}: code changed (${code.length} file(s), e.g. ${code[0]}) but no new entry in ${changelog}.\n` +
+        `      Add \`## X.Y.Z (date)\` on top of ${changelog} and the same version in ${packageJson},\n` +
+        `      or revert the package change.`
+    );
+  }
+  if (changelogWritten && !codeChanged) {
+    errors.push(
+      `${pkg.label}: ${changelog} declares ${declared} but no code change in ${pkg.dirs.join(', ')}.\n` +
+        `      Remove the changelog entry, or make the corresponding code change.`
+    );
+  }
+
+  let version = null;
+  try {
+    version = JSON.parse(showFile('HEAD', packageJson) ?? '{}').version ?? null;
+  } catch {
+    // reported below as a mismatch
+  }
+  if (declared !== version) {
+    errors.push(
+      `${pkg.label}: version mismatch — ${changelog} says "${declared}" but ` +
+        `${packageJson} says "${version}". Make them agree.`
+    );
+  }
+
+  if (releasesVersion(pkg.product)) {
+    errors.push(
+      `${pkg.label}: ${RELEASES} has an entry for product "${pkg.product}", but this package\n` +
+        `      is released outside the portal. Remove the entry and keep the history in ${changelog}.`
+    );
+  }
+}
+
 for (const pkg of PACKAGES) {
+  if (pkg.selfVersioned) {
+    checkSelfVersioned(pkg);
+    continue;
+  }
+
   const all = changedFiles(base, pkg.dirs);
   const code = all.filter((f) => !pkg.ownChangelogs.includes(f));
   const codeChanged = code.length > 0;

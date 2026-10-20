@@ -16,6 +16,7 @@
       "outputs": [
         "openapi.yaml",
         "generated/**",
+        "!generated/build.gradle.kts",
         "src/generated/**"
       ],
       "cache": true
@@ -25,7 +26,8 @@
     },
     "generate-llms": {
       "dependsOn": [
-        "@pachca/spec#generate"
+        "@pachca/spec#generate",
+        "@pachca/spec#overlay:apply"
       ],
       "inputs": [
         "scripts/generate-llms.ts",
@@ -53,6 +55,7 @@
     "@pachca/docs#generate-llms": {
       "dependsOn": [
         "@pachca/spec#generate",
+        "@pachca/spec#overlay:apply",
         "@pachca/cli#build"
       ],
       "inputs": [
@@ -108,7 +111,8 @@
       "inputs": [
         "overlay.en.yaml",
         "openapi.yaml",
-        "scripts/apply-overlay.ts"
+        "scripts/apply-overlay.ts",
+        "scripts/overlay-target.ts"
       ],
       "outputs": [
         "openapi.en.yaml"
@@ -122,8 +126,11 @@
       ],
       "inputs": [
         "overlay.en.yaml",
+        "overlay.en.fingerprints.json",
         "openapi.yaml",
-        "scripts/validate-overlay.ts"
+        "openapi.en.yaml",
+        "scripts/validate-overlay.ts",
+        "scripts/overlay-target.ts"
       ],
       "cache": true
     },
@@ -158,6 +165,7 @@
         "^build",
         "generate",
         "overlay:apply",
+        "generate-mcp",
         "generate-llms",
         "generate-cli",
         "generate-n8n"
@@ -189,6 +197,17 @@
     "typecheck": {
       "dependsOn": [
         "^build"
+      ],
+      "cache": true
+    },
+    "@pachca/spec#typecheck": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "../../apps/docs/redirects.ts",
+        "../../apps/docs/lib/utils/transliterate.ts"
       ],
       "cache": true
     },
@@ -305,6 +324,45 @@
         "openapi.yaml",
         "openapi.en.yaml",
         "scripts/check-enum-descriptions.ts"
+      ],
+      "cache": true
+    },
+    "generate-mcp": {
+      "dependsOn": [
+        "@pachca/spec#generate",
+        "@pachca/spec#overlay:apply",
+        "@pachca/spec#overlay:validate"
+      ],
+      "inputs": [
+        "mcp-core.ts",
+        "mcp-tools.ts",
+        "mcp-scenarios.ts",
+        "mcp-manifest.schema.json",
+        "openapi.yaml",
+        "openapi.en.yaml",
+        "scripts/generate-mcp-manifest.ts",
+        "scripts/eval/world.json",
+        "../../apps/docs/redirects.ts",
+        "../../apps/docs/lib/utils/transliterate.ts",
+        "../../apps/docs/content/**"
+      ],
+      "outputs": [
+        "mcp-manifest.json"
+      ],
+      "cache": true
+    },
+    "@pachca/mcp-manifest#build": {
+      "dependsOn": [
+        "@pachca/spec#generate-mcp"
+      ],
+      "inputs": [
+        "package.json",
+        "../spec/mcp-manifest.json",
+        "../spec/mcp-manifest.schema.json"
+      ],
+      "outputs": [
+        "mcp-manifest.json",
+        "mcp-manifest.schema.json"
       ],
       "cache": true
     }

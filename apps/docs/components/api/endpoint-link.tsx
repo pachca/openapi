@@ -20,7 +20,8 @@ interface EndpointLinkProps {
   method?: string;
   href?: string;
   scope?: string;
-  scopeRoles?: string;
+  /** Кто может вызвать метод, через запятую */
+  roles?: string;
   plan?: string;
   noAuth?: boolean;
   children: React.ReactNode;
@@ -30,12 +31,12 @@ export function EndpointLink({
   method,
   href,
   scope,
-  scopeRoles: scopeRolesStr,
+  roles: rolesStr,
   plan,
   noAuth,
   children,
 }: EndpointLinkProps) {
-  const scopeRoles = scopeRolesStr ? scopeRolesStr.split(',') : undefined;
+  const roles = rolesStr ? rolesStr.split(',') : undefined;
   const hasBadges = scope || plan || noAuth;
 
   const badge = method ? (
@@ -96,13 +97,13 @@ export function EndpointLink({
           {scope && (
             <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-method-get/10 ![color:var(--color-method-get)]">
               {scope}
-              {scopeRoles && (
+              {roles && (
                 <span className="flex gap-0.5">
                   {ROLES.map((r) => (
                     <span
                       key={r}
                       className={`w-1.5 h-1.5 rounded-full ${
-                        scopeRoles.includes(r) ? 'bg-method-get/50' : 'bg-method-get/15'
+                        roles.includes(r) ? 'bg-method-get/50' : 'bg-method-get/15'
                       }`}
                       title={ROLE_LABELS[r]}
                     />

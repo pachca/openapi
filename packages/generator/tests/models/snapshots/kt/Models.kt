@@ -18,15 +18,35 @@ object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
 
 /** Роль пользователя */
 @Serializable
-enum class UserRole(val value: String) {
-    /** Администратор */
-    @SerialName("admin") ADMIN("admin"),
-    /** Сотрудник */
-    @SerialName("user") USER("user"),
-    /** Мультиадмин */
-    @SerialName("multi_admin") MULTI_ADMIN("multi_admin"),
-    /** Бот */
-    @SerialName("bot") BOT("bot"),
+@JvmInline
+value class UserRole(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Администратор */
+        val ADMIN = UserRole("admin")
+        /** Сотрудник */
+        val USER = UserRole("user")
+        /** Мультиадмин */
+        val MULTI_ADMIN = UserRole("multi_admin")
+        /** Бот */
+        val BOT = UserRole("bot")
+
+        /** Every value this SDK version lists */
+        val entries: List<UserRole> = listOf(ADMIN, USER, MULTI_ADMIN, BOT)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<UserRole> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("admin" to "ADMIN", "user" to "USER", "multi_admin" to "MULTI_ADMIN", "bot" to "BOT")
+
+        fun valueOf(name: String): UserRole =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No UserRole constant $name")
+    }
 }
 
 @Serializable

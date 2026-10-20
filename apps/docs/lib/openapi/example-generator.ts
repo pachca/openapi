@@ -297,7 +297,9 @@ export function generateRequestExample(
   }
 
   const content =
-    requestBody.content['application/json'] || requestBody.content['multipart/form-data'];
+    requestBody.content['application/json'] ||
+    requestBody.content['multipart/form-data'] ||
+    requestBody.content['application/x-www-form-urlencoded'];
   if (!content?.schema) {
     return undefined;
   }
@@ -406,6 +408,7 @@ export function generateMultipartExample(
   if (!properties) return undefined;
 
   const fields: MultipartField[] = [];
+  const required = new Set(multipartContent?.schema?.required ?? []);
 
   for (const [propName, propSchema] of Object.entries(properties)) {
     const schema = propSchema as Schema;
@@ -418,6 +421,16 @@ export function generateMultipartExample(
 
     // Wire name: schema.example description "Параметр X" → X, fallback to propName
     const wireName = extractWireName(schema.description, propName);
+
+    // An optional field with no example of its own (`bucket`, which only some
+    // workspaces get) stays out: the sample shows the form most callers send.
+    if (
+      !required.has(propName) &&
+      schema.example === undefined &&
+      !UPLOAD_FIELD_EXAMPLES[wireName]
+    ) {
+      continue;
+    }
 
     // Value priority: schema.example > known upload examples > generateExample
     let value: string;

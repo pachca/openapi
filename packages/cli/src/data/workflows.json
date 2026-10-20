@@ -158,7 +158,7 @@
         "notes": "`last_message_at_after`/`last_message_at_before` — ISO-8601, UTC+0. `limit` 1-50 (по умолчанию 50). Сортировка — по убыванию времени последнего сообщения."
       },
       {
-        "description": "Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`",
+        "description": "Пока `meta.paginate.has_next` равен `true`, бери следующую страницу через `--cursor=<next_page>`",
         "command": "pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --cursor=<next_page>"
       },
       {
@@ -377,13 +377,13 @@
     "skill": "pachca-chats",
     "steps": [
       {
-        "description": "Запроси экспорт",
-        "command": "pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>",
-        "notes": "`start_at`, `end_at` (YYYY-MM-DD). Запрос асинхронный: ответ приходит пустым, без номера выгрузки. `webhook_url` формально не обязателен, но без него номер взять неоткуда — присылай его всегда"
+        "description": "Запроси экспорт и возьми номер выгрузки из `data.id`",
+        "command": "pachca chats request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD>",
+        "notes": "`start_at`, `end_at` (YYYY-MM-DD). Номер приходит с заголовком `Prefer: return=representation` и ответом `202`, CLI и SDK шлют его сами. Без заголовка ответ `204` без тела"
       },
       {
         "description": "Скачай файл экспорта",
-        "command": "pachca chats download-export <export_id>",
+        "command": "pachca chats download-export <id>",
         "notes": "Сервер вернёт 302, HTTP-клиент скачает файл автоматически"
       }
     ]
@@ -517,7 +517,7 @@
     "skill": "pachca-bots",
     "steps": [
       {
-        "description": "Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`, следующую страницу бери из `meta.paginate.next_page`",
+        "description": "Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`. Пока `meta.paginate.has_next` равен `true`, следующую страницу бери из `meta.paginate.next_page`",
         "command": "pachca bots list --query=\"задач\""
       },
       {

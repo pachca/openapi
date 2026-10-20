@@ -51,6 +51,7 @@ await client.files.uploadFile(params.directUrl, {
   xAmzDate: params.xAmzDate,
   xAmzSignature: params.xAmzSignature,
   key,
+  bucket: params.bucket,
   file,
 });
 console.log(`   Uploaded, key: ${key}`);

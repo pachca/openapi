@@ -30,7 +30,7 @@ func main() {
 	msg, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{
 		Message: pachca.MessageCreateRequestMessage{
 			EntityID: 12345,
-			Content:  "Привет из Go SDK!",
+			Content:  pachca.Ptr("Привет из Go SDK!"),
 		},
 	})
 	if err != nil {
@@ -43,7 +43,7 @@ func main() {
 ## Конвенции
 
 - **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
-- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.
+- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую. Если рядом с `data` есть `meta` (списки и метод `Новый чат`), SDK возвращает ответ целиком: `data` и `meta`.
 
 ```go
 // ≤2 поля → развёрнуто в аргументы

@@ -1,0 +1,27 @@
+{
+  "Client_Init": {
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "listMembers": {
+    "usage": "params := &ListMembersParams{\n\tSort: Ptr(SortOrderAsc),\n\tRole: Ptr(MemberRoleAdmin),\n\tRoles: []MemberRole{MemberRoleAdmin},\n\tRegion: Ptr(RegionEu),\n}\nresponse, err := client.Members.ListMembers(ctx, params)",
+    "output": "ListMembersResponse{Data: []Member}",
+    "imports": [
+      "ListMembersParams",
+      "MemberRole",
+      "Region",
+      "SortOrder"
+    ]
+  },
+  "updateMember": {
+    "usage": "request := MemberUpdateRequest{\n\tRole: Ptr(MemberRoleAdmin),\n\tKind: Ptr(MemberKindRegular),\n}\nresponse, err := client.Members.UpdateMember(ctx, int32(123), request)",
+    "output": "Member{ID: int32, Role: MemberRole, Status: MemberStatus, PreviousStatuses: *[]MemberStatus}",
+    "imports": [
+      "MemberKind",
+      "MemberRole",
+      "MemberUpdateRequest"
+    ]
+  }
+}

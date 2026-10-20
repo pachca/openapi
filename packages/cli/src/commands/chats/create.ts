@@ -95,5 +95,6 @@ export default class ChatsCreate extends BaseCommand {
     const responseBody = (data ?? {}) as Record<string, unknown>;
     const result = responseBody.data ?? responseBody;
     this.output(result);
+    this.warnMetaList(responseBody.meta, "not_found_member_ids", "Не удалось добавить в чат", "Таких сотрудников нет в пространстве, либо они приостановлены или удалены.");
   }
 }

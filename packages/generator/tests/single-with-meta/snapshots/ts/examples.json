@@ -1,0 +1,28 @@
+{
+  "Client_Init": {
+    "usage": "const client = new PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "ChatOperations_getChat": {
+    "usage": "const response = client.chats.getChat(123)",
+    "output": "Chat({ id: number, name: string, createdAt: string })"
+  },
+  "ChatOperations_createChat": {
+    "usage": "const request: ChatCreateRequest = { chat: { name: \"example\", memberIds: [123] } }\nconst response = client.chats.createChat(request)",
+    "output": "CreateChatResponse({ data: Chat({ id: number, name: string, createdAt: string }), meta: CreateChatResponseMeta({ notFoundMemberIds: number[] }) })",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
+  },
+  "ChatOperations_updateChat": {
+    "usage": "const request: ChatUpdateRequest = { chat: { name: \"example\", public: true } }\nconst response = client.chats.updateChat(123, request)",
+    "output": "UpdateChatResponse({ data: Chat({ id: number, name: string, createdAt: string }), meta?: ChatUpdateMeta({ changedFields: string[] }) })",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
+  }
+}

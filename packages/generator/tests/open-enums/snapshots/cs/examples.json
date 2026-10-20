@@ -1,0 +1,26 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "listMembers": {
+    "usage": "var roles = new List<MemberRole> { MemberRole.Admin };\nvar response = await client.Members.ListMembersAsync(SortOrder.Asc, MemberRole.Admin, roles, Region.Eu);",
+    "output": "ListMembersResponse(Data: List<Member>)",
+    "imports": [
+      "MemberRole",
+      "Region",
+      "SortOrder"
+    ]
+  },
+  "updateMember": {
+    "usage": "var request = new MemberUpdateRequest { Role = MemberRole.Admin, Kind = MemberKind.Regular };\nvar response = await client.Members.UpdateMemberAsync(123, request);",
+    "output": "Member(Id: int, Role: MemberRole, Status: MemberStatus, PreviousStatuses: List<MemberStatus>?)",
+    "imports": [
+      "MemberKind",
+      "MemberRole",
+      "MemberUpdateRequest"
+    ]
+  }
+}

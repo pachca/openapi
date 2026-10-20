@@ -5,13 +5,14 @@ import { BaseCommand } from '../base-command.js';
 
 interface UploadParams {
   'Content-Disposition': string;
-  acl: string;
+  acl?: string;
   policy: string;
   'x-amz-credential': string;
   'x-amz-algorithm': string;
   'x-amz-date': string;
   'x-amz-signature': string;
   key: string;
+  bucket?: string;
   direct_url: string;
 }
 
@@ -72,16 +73,17 @@ export default class Upload extends BaseCommand {
     // Step 3: Replace ${filename} in key
     const key = params.key.replace('${filename}', fileName);
 
-    // Step 4: Build FormData
+    // Step 4: Build FormData. A workspace gets `acl` or `bucket`, depending on its storage
     const formData = new FormData();
     formData.append('Content-Disposition', params['Content-Disposition']);
-    formData.append('acl', params.acl);
+    if (params.acl !== undefined) formData.append('acl', params.acl);
     formData.append('policy', params.policy);
     formData.append('x-amz-credential', params['x-amz-credential']);
     formData.append('x-amz-algorithm', params['x-amz-algorithm']);
     formData.append('x-amz-date', params['x-amz-date']);
     formData.append('x-amz-signature', params['x-amz-signature']);
     formData.append('key', key);
+    if (params.bucket !== undefined) formData.append('bucket', params.bucket);
     formData.append('file', fileBlob, fileName);
 
     // Step 5: Upload to external URL (no auth)

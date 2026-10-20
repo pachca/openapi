@@ -2,6 +2,22 @@
 
 # Changelog
 
+## 2.2.0 (2026-10-20)
+
+### Features
+
+- Chat: `Request Export` returns the export number in `id` right away — `Download Export` fetches the archive with it once it is assembled
+- Chat: `Create` returns `not_found_member_ids` — the IDs from `Member IDs` that could not be added to the chat
+- Bot: new `Update Avatar` and `Delete Avatar` operations — the bot's avatar
+- Bot: `Get` returns the incoming webhook address, the signing secret and the body of the last request in `Webhook` when the token has the `bots:write` scope and you can manage the bot's tokens
+
+### Improvements
+
+- Form: in `Create`, the `Close Text` and `Submit Text` fields are empty by default — the buttons then get the labels Pachca sets: "Отменить" and "Отправить"
+- Message: `Content` in `Create` is optional — a message can carry files alone
+- Profile and User: in `Update Status`, `Emoji` and `Title` are needed only when there is no status yet — `Expires At` alone extends the status
+- File: `Create` sends `acl` and `bucket` in the upload form only when they came — some workspaces get `bucket` instead of `acl`
+
 ## 2.1.4 (2026-10-13)
 
 ### Features

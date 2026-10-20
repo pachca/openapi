@@ -80,7 +80,7 @@ func (s *CommonServiceImpl) UploadFile(ctx context.Context, directUrl string, re
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return &e
 	default:
@@ -110,7 +110,7 @@ func (s *CommonServiceImpl) GetUploadParams(ctx context.Context) (*UploadParams,
 	case http.StatusUnauthorized:
 		var e OAuthError
 		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
-			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
 	default:

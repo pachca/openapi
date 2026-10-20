@@ -121,7 +121,7 @@ npm install n8n-nodes-pachca
 
 **Конвенции:**
 - **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
-- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.
+- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую. Если рядом с `data` есть `meta` (списки и метод `Новый чат`), SDK возвращает ответ целиком: `data` и `meta`.
 - Имена сервисов, методов и полей соответствуют operationId и параметрам из OpenAPI.
 
 **Пример (TypeScript):**
@@ -198,6 +198,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 | `check.yml` | PR в `main` | `bun turbo check` |
 | `sdk.yml` | Push в `main` | Генерация SDK → коммит → теги → публикация |
 | `generator.yml` | Push в `main` | Snapshot-тесты + npm publish `@pachca/generator` |
+| `mcp-manifest.yml` | Push/PR в `main` | Сборка MCP-манифеста → проверка по схеме → npm publish `@pachca/mcp-manifest` |
 | `n8n.yml` | Push/PR в `main` | Генерация n8n node → тест → npm publish → GitHub Release |
 | `deploy.yml` | Push в `main` | Docker build → GitLab registry → SSH deploy |
 | `gitlab.yml` | Push в `main` | Зеркало в GitLab |
@@ -230,6 +231,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 │   ├── spec/              # TypeSpec спецификация + workflows.ts + examples.ts (@pachca/spec)
 │   ├── generator/         # SDK код-генератор для 6 языков (@pachca/generator)
 │   ├── openapi-parser/    # Парсер OpenAPI-спеки (@pachca/openapi-parser)
+│   ├── mcp-manifest/      # MCP-манифест и его схема для npm (@pachca/mcp-manifest)
 │   └── cli/               # CLI для работы с API (@pachca/cli)
 ├── sdk/                   # SDK для 6 языков (генерируются @pachca/generator)
 │   ├── typescript/        # npm
@@ -244,7 +246,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 ├── docs/                  # Канонические процесс-доки (api-audit, updates-format, docs-conventions)
 ├── CONTRIBUTING.md        # Раскладка, пайплайн генерации, build/check, workflow
 ├── AGENTS.md              # Гайд для AI-агентов по работе с репозиторием (CLAUDE.md → симлинк)
-├── .github/workflows/     # CI/CD (check, sdk, generator, n8n, deploy, gitlab)
+├── .github/workflows/     # CI/CD (check, sdk, generator, mcp-manifest, n8n, deploy, gitlab)
 ├── Package.swift          # Корневой Swift Package (копируется из sdk/swift при CI)
 ├── jitpack.yml            # JitPack конфиг для Kotlin (JDK 17)
 ├── Dockerfile             # Multi-stage Docker-сборка docs
@@ -299,11 +301,12 @@ workflows.ts + examples.ts (packages/spec — единый источник сц
 | `generate` | `setup` | да (inputs: tsp + yaml config → outputs: openapi.yaml, generated/) |
 | `overlay:apply` | `@pachca/spec#generate` | да (→ openapi.en.yaml) |
 | `overlay:validate` | `@pachca/spec#generate`, `overlay:apply` | да |
-| `generate-llms` | `@pachca/spec#generate` | да (→ llms.txt, llms-full.txt, skill.md, *.md, Agent Skills) |
+| `generate-mcp` | `@pachca/spec#generate`, `overlay:apply`, `overlay:validate` | да (→ mcp-manifest.json) |
+| `generate-llms` | `@pachca/spec#generate`, `overlay:apply` | да (→ llms.txt, llms-full.txt, skill.md, *.md, Agent Skills) |
 | `generate-cli` | `@pachca/spec#generate` | да (→ CLI commands, data/*.json) |
 | `generate-n8n` | `@pachca/spec#generate`, `overlay:apply` | да (→ n8n nodes, credentials) |
 | `test` | `generate-cli`, `generate-n8n` | да |
-| `build` | `generate`, `overlay:apply`, `generate-llms`, `generate-cli`, `generate-n8n` | да (→ .next/, dist/) |
+| `build` | `generate`, `overlay:apply`, `generate-mcp`, `generate-llms`, `generate-cli`, `generate-n8n` | да (→ .next/, dist/) |
 | `dev` | `@pachca/spec#generate`, `generate-llms` | нет (persistent) |
 | `check` | `lint`, `typecheck`, `knip`, `format:check`, `test`, `overlay:validate` | нет |
 | `check-urls` | `@pachca/spec#generate` | да |
@@ -381,7 +384,8 @@ FlexSearch с `tokenize: 'forward'`. Русский язык: синонимы (
 Попадают в OpenAPI YAML как `x-requirements` и рендерятся в трёх местах: в UI как бейджи, в Agent Skills рядом с каждой операцией, в per-endpoint `.md`-файлах.
 
 Поля:
-- `scope` — требуемый скоуп токена (например `"messages:read"`)
+- `scope` — требуемый скоуп токена (например `"messages:read"`). `null` — метод отвечает на любой действующий токен и скоупа не требует. Метод без `scope`, без `scope: null` и без `auth: false` валит сборку MCP-манифеста, как и скоуп, которого нет в `x-scope-roles`
+- `roles` — роли метода, если их меньше, чем у скоупа (подробно в [docs/docs-conventions.md](docs/docs-conventions.md))
 - `plan` — требуемый тариф (например `"corporation"`)
 - `auth` — `false` если авторизация не нужна
 

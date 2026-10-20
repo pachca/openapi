@@ -1,0 +1,241 @@
+openapi: 3.0.0
+info:
+  title: Test API — Single object with meta
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Chats
+paths:
+  # M1: { data: T, meta } with an inline meta → the response whole, meta as its own model
+  /chats:
+    post:
+      operationId: ChatOperations_createChat
+      description: Создание чата
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Chat'
+                  meta:
+                    type: object
+                    required:
+                      - not_found_member_ids
+                    properties:
+                      not_found_member_ids:
+                        type: array
+                        items:
+                          type: integer
+                          format: int32
+                        description: Идентификаторы, которые не удалось добавить
+                        example: []
+                    description: Метаданные ответа
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Chats
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCreateRequest'
+      x-requirements:
+        scope: chats:create
+
+  /chats/{id}:
+    # M2: { data: T } without meta → unwrapped as before
+    get:
+      operationId: ChatOperations_getChat
+      description: Информация о чате
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Chat'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Chats
+      x-requirements:
+        scope: chats:read
+
+    # M3: { data: T, meta? } with a $ref meta that may be absent → the response whole, meta optional
+    put:
+      operationId: ChatOperations_updateChat
+      description: Редактирование чата
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Chat'
+                  meta:
+                    $ref: '#/components/schemas/ChatUpdateMeta'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Chats
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatUpdateRequest'
+      x-requirements:
+        scope: chats:update
+components:
+  schemas:
+    ChatCreateRequest:
+      type: object
+      required:
+        - chat
+      properties:
+        chat:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Название чата
+            member_ids:
+              type: array
+              items:
+                type: integer
+                format: int32
+              description: Идентификаторы участников
+          description: Данные чата
+      description: Запрос на создание чата
+
+    ChatUpdateRequest:
+      type: object
+      required:
+        - chat
+      properties:
+        chat:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Название чата
+            public:
+              type: boolean
+              description: Открытый доступ
+          description: Данные чата
+      description: Запрос на редактирование чата
+
+    ChatUpdateMeta:
+      type: object
+      required:
+        - changed_fields
+      properties:
+        changed_fields:
+          type: array
+          items:
+            type: string
+          description: Поля, которые изменились
+      description: Метаданные правки
+
+    Chat:
+      type: object
+      required:
+        - id
+        - name
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    ApiError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string

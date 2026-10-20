@@ -138,6 +138,7 @@
         "empty_result",
         "card_note",
         "errors",
+        "after_effect",
         "argument_reading",
         "invalid_arguments",
         "signature",
@@ -241,7 +242,7 @@
         "authorization"
       ],
       "additionalProperties": false,
-      "description": "Where the compatibility pair (service tools with compat: true) is served: the same server at its own address, the address of the main endpoint with path_suffix appended. A listing has to stay the same per connection and may differ only by authorization, and a client's description of itself is no ground for behaving differently; another address is another server, so a client that needs the pair is connected there.",
+      "description": "Where the compatibility pair (service tools with compat: true) is served: the same server at its own address, the address of the main endpoint with path_suffix appended. A listing has to stay the same per connection and may differ only by authorization, and a client's description of itself is no ground for behaving differently; another address is another server, so a client that needs the pair is connected there. A server may serve nothing at this address until it serves the pair: the pair needs code of its own, and the main address does not depend on it.",
       "properties": {
         "path_suffix": {
           "type": "string",
@@ -267,7 +268,8 @@
         "max_redirects",
         "max_download_bytes",
         "max_return_bytes",
-        "max_image_bytes"
+        "max_image_bytes",
+        "unnamed_file"
       ],
       "additionalProperties": false,
       "properties": {
@@ -295,12 +297,16 @@
         "max_return_bytes": {
           "type": "integer",
           "minimum": 1,
-          "description": "The largest file handed back to the model as a blob resource, counted as its base64 text like max_image_bytes; a larger one is named, not passed."
+          "description": "The largest file a result carries, measured as its base64: an image over max_image_bytes, a text file and any other file all go only within it (response_format.binary_body); a larger one is not passed."
         },
         "max_image_bytes": {
           "type": "integer",
           "minimum": 1,
           "description": "The largest image handed back as an image block, counted as its base64 text: the smallest limit a client sets for one image."
+        },
+        "unnamed_file": {
+          "type": "string",
+          "description": "The name of a file the model gave no name for — contents in base64 or a link — sent as the filename of the multipart part that carries it; the part keeps the field name its place gives it. {argument} is the file argument the bytes go into, for a download the argument its into names, and {extension} the extension of the file's type. The type comes from the signature of the bytes, else from the last segment of the link's path, else from the Content-Type of the download, and it is the Content-Type of the part. A file of no known type is named {argument} alone, with no dot, and goes as application/octet-stream; the API refuses it where it must."
         }
       }
     },
@@ -313,14 +319,14 @@
     },
     "service_tools": {
       "type": "array",
-      "description": "Tools that are not one API operation: the generic search and fetch pair one platform requires, which call several operations each and are served at compat_address.",
+      "description": "Tools that are not one API operation: the generic search and fetch pair one platform requires, which call several operations each and are served at compat_address. Unlike the tools of the API, they need code of their own (response_format.compat).",
       "items": {
         "$ref": "#/$defs/serviceTool"
       }
     },
     "audiences": {
       "type": "object",
-      "description": "What each kind of token receives at the main address. The protocol allows a different listing per authorization, and a tool a role is always refused — its scope never given to the role, or the operation itself closed to it (tool.roles) — is not shown at all. The compatibility pair is not listed here: compat_address says where it is served.",
+      "description": "What each kind of token receives at the main address. The protocol allows a different listing per authorization, and a tool a role is always refused — its scope never given to the role, or the operation itself closed to it (tool.roles) — is not shown at all. The compatibility pair is not listed here: compat_address says where it is served. A token gets one listing: a bot token the bot entry; any other the entry whose role is the role of its owner (owner for the owner of the workspace, whatever company role they also hold) and whose plan is the plan of the workspace, or the entry of that role with plan null when there is no such entry. A token whose role has no entry, such as a guest, gets an empty listing. A listing is what is shown, not what is allowed: a call to a tool of tools that the listing lacks runs like any other and is refused by the scope check and by the API; a service tool called at the main address is an unknown tool (serviceTool.compat).",
       "additionalProperties": {
         "$ref": "#/$defs/audience"
       }
@@ -494,7 +500,7 @@
         },
         "outputSchema": {
           "$ref": "#/$defs/jsonSchema",
-          "description": "The structured half of an answer: the response body as the API gives it, data and, for a list, meta — except for a file and a redirect, whose structured half response_format describes (binary_body, redirect). A list cuts each record to its compact card unless view is full, a single read keeps out what single_read_omit names, and a write answers with the whole record. Nothing in it is required, so all of them fit. It declares types and the null a field may be, and no enum, limit or format other than date-time: the values a field takes are in its description, and a value the API adds later is no reason for a client to refuse the answer."
+          "description": "The response body the text half is made from: data and, for a list, meta — except for a file and a redirect, which response_format describes (binary_body, redirect). The server does not publish it in tools/list and returns no structuredContent (response_format.structured_content): the server reads the API body by it, and the build checks its cuts and the spec's examples against it. A list cuts each record to its compact card unless view is full, a single read keeps out what single_read_omit names, and a write answers with the whole record. Nothing in it is required, so all of them fit. It declares types and the null a field may be, and no enum, limit or format other than date-time: the values a field takes are in its description."
         },
         "entity": {
           "type": "string",
@@ -505,7 +511,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Paths of the structured half whose values other people wrote: the text half puts each such value inside response_format.untrusted_wrapper. A path names fields by dots; [] steps into every item of a list, {} into every value of a map, and a path ending at an object covers everything in it — data[].content, data[].files[].name, data[].details. Generated closed by default: every string without a closed set of values or a format, and every object of free keys, unless the rules declare that Pachca makes it (identifiers, cursors, links to Pachca, secrets, codes). The build fails on text of an answer that is in neither group."
+          "description": "Paths of the API body (outputSchema) whose values other people wrote: the text half puts each such value inside response_format.untrusted_wrapper. A path names fields by dots; [] steps into every item of a list, {} into every value of a map, and a path ending at an object covers everything in it — data[].content, data[].files[].name, data[].details. Generated closed by default: every string without a closed set of values or a format, and every object of free keys, unless the rules declare that Pachca makes it (identifiers, cursors, links to Pachca, secrets, codes). The build fails on text of an answer that is in neither group."
         }
       }
     },
@@ -579,7 +585,7 @@
                   "file",
                   "key"
                 ],
-                "description": "upload: what each item becomes once uploaded — file, the file object with its key and size filled in; key, the key alone, where the API takes a list of keys. An item gives its contents in base64 or a link the server downloads first (files), or the key of a file already in Pachca: an item that carries key goes as it is, without an upload, and an id is meaningful only beside a key."
+                "description": "upload: what each item becomes once uploaded — file, the file object with its key and size filled in; key, the key alone, where the API takes a list of keys. An item gives its contents in base64 or a link the server downloads first (files), or the key of a file already in Pachca: an item that carries key goes as it is, without an upload, and an id is meaningful only beside a key. An item carries exactly one of key, content and url: one with none of them or with two is refused as invalid_arguments before the first upload, the problem naming the item."
               },
               "effect": {
                 "description": "server: what the runtime does with an argument the API has no field for. Declared rather than known by name, so a new argument of this kind is a new version of the package and not a change in the backend.",
@@ -666,7 +672,7 @@
                       },
                       "into": {
                         "type": "string",
-                        "description": "The file argument the downloaded bytes fill: the server fetches the link under the files policy and sends the bytes as that field."
+                        "description": "The file argument the downloaded bytes fill: the server fetches the link under the files policy and sends the bytes as that field. The link and the argument it fills are alternatives: passing both is refused as invalid_arguments, and passing neither is left to the API."
                       }
                     }
                   }

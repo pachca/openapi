@@ -335,9 +335,9 @@ const LOWER_LIMITS = new Set(['minLength', 'minimum', 'minItems', 'exclusiveMini
 const SPEC_SHAPE = ['format', 'example'] as const;
 
 /**
- * The one format an answer keeps: a moment, which a client may parse. Numeric
- * formats describe what the API takes; on an answer a validator would hold an id
- * that has outgrown 32 bits against them and refuse the whole result.
+ * The one format an answer keeps: a moment, which the server reads as one.
+ * Numeric formats describe what the API takes; on an answer they would promise
+ * more than the API does — an id that has outgrown 32 bits is still an id.
  */
 const OUTPUT_FORMATS = ['date-time'];
 
@@ -383,9 +383,8 @@ function enumValueOf(key: string, values: unknown[]): unknown {
  *
  * The two sides differ. An argument carries what the API refuses: enums, limits,
  * patterns, formats and one example. An answer carries types and the null a
- * field may be, and no enum, no limit and no format but a moment: a client checks
- * an answer against its schema and refuses the whole result over one value
- * outside it, while the API's own process leaves values out of its enums — a
+ * field may be, and no enum, no limit and no format but a moment: it describes
+ * what the API may send, and the API's own process leaves values out of its enums — a
  * scope still in beta, an event no bot is meant to hear, a key the backend has
  * not yet been documented with. The values and what each means stay in the
  * description, where a model reads them. An answer declares no required fields
@@ -418,8 +417,8 @@ function property(schema: any, doc: YamlNode, depth = 0, shape: Shape = { side: 
         ? values.map(String).join(', ')
         : '';
   if (spelled) out.description = `${sentence(String(out.description ?? ''))} Values: ${spelled}.`.trim();
-  // A field the API answers with null has to allow null: a client that checks an
-  // answer against its schema refuses the whole answer over one empty field.
+  // A field the API answers with null has to allow null: the schema describes the
+  // body the server reads, empty fields included.
   if (source?.nullable && out.type) {
     out.type = [out.type, 'null'].flat();
     if (out.enum) out.enum = [...out.enum, null];
@@ -1431,8 +1430,10 @@ function responseEntity(op: Operation, docEn: YamlNode): string | null {
 }
 
 /**
- * The structured half of an answer: the response body as the API gives it —
+ * The body an answer is made from: the response body as the API gives it —
  * `data`, and `meta` where the body has it — with every field down to the bottom.
+ * The server reads the body by it and does not publish it
+ * (`RESPONSE_FORMAT.structured_content`).
  * A list or a search cuts each record to its compact card unless view is full,
  * a single read leaves out only what SINGLE_READ_OMIT names, a write answers with
  * the whole record it made or changed, and all of them fit, because nothing in an
@@ -1445,9 +1446,8 @@ function outputSchema(op: Operation, docEn: YamlNode): JsonSchema | null {
     const body = op.nodeEn?.responses?.[code]?.content?.['application/json']?.schema;
     if (!body) continue;
     const schema = property(body, docEn, 0, { side: 'output' });
-    // The structured half is an object by the protocol, whatever the body may be.
-    // A body that is null — no status set — comes back as `{data: null}`
-    // (`RESPONSE_FORMAT.structured_content`), so that is what the schema allows.
+    // The schema describes an object, whatever the body may be: a body that is
+    // null — no status set — reads as `{data: null}`, so that is what it allows.
     if (![schema.type].flat().includes('object')) return null;
     if (flatten(body, docEn)?.nullable && schema.properties?.data) {
       const data = schema.properties.data;
@@ -1769,9 +1769,10 @@ function lostAcross(
 }
 
 /**
- * An answer carries types, null, descriptions and a moment's format, and nothing
- * a client could refuse a value over (`property`): no enum, no limit or rule and
- * no other format. Walks every node of a built outputSchema, whatever made it.
+ * An answer's schema carries types, null, descriptions and a moment's format,
+ * and no enum, limit, rule or other format (`property`): it describes what the
+ * API may send, and the values a field takes are in its description. Walks every
+ * node of a built outputSchema, whatever made it.
  */
 function outputKeywords(tool: string, schema: JsonSchema | undefined): string[] {
   const problems: string[] = [];
@@ -1890,15 +1891,15 @@ const HTTP_REWRITES: Array<[RegExp, string]> = [
     'The answer contains only a link to the new image.',
   ],
   // The answer of a download is the file itself (`binary_body`), not an HTTP body
-  // with a header: the name rides in the structured half.
+  // with a header: the name rides in the text half.
   [/The response is the body of the file and a\s+`Content-Disposition`\s+header with its name, not\s+`JSON`\.\s*/g, ''],
   // The wait is in a header a model never sees; the server names it in the refusal.
   [
     /responds\s+`429`,\s+and the\s+`Retry-After`\s+header carries the pause before the next attempt\./g,
     'responds `429` and says how long to wait before the next attempt.',
   ],
-  // An empty body comes back wrapped (`RESPONSE_FORMAT.structured_content`), so
-  // what a model reads is `data` and nothing else.
+  // A body of null reads «**data:** null» (`RESPONSE_FORMAT.structured_content`),
+  // which is what this sentence says.
   [/the method returns\s+`200`\s+and\s+`null`\s+in the response body\s+—\s+with no wrapper object\./g, '`data` comes back as `null`.'],
 ];
 /** How often each pattern above changed a description — a pattern that never does fails the build. */
@@ -2076,9 +2077,9 @@ function describe(op: Operation, secret: boolean): string {
 }
 
 /**
- * A validator the way a client builds one: JSON Schema 2020-12 with formats, as
- * the MCP TypeScript SDK checks a structured answer, lenient about keywords it
- * does not know so a description-only keyword is not an error.
+ * A validator for the schemas of the set: JSON Schema 2020-12 with formats, as
+ * the MCP TypeScript SDK compiles an inputSchema, lenient about keywords it does
+ * not know so a description-only keyword is not an error.
  */
 function validator(): Ajv2020 {
   const ajv = new Ajv2020({ allErrors: true, strict: false });
@@ -2954,12 +2955,11 @@ function build(): void {
     }
   }
 
-  // Every schema a client receives compiles the way a client compiles it, every
-  // example passes the schema it illustrates, and an answer the spec shows passes
-  // the tool's outputSchema — whole, cut by the default view, and with each
-  // nullable parent a card reaches into set to null. A record cut naively,
-  // `thread: {id: null}`, or a schema that refuses a field the API leaves empty, is
-  // a result the client throws away.
+  // Every schema of the set compiles, every example passes the schema it
+  // illustrates, and an answer the spec shows passes the tool's outputSchema —
+  // whole, cut by the default view, and with each nullable parent a card reaches
+  // into set to null. A record cut naively, `thread: {id: null}`, or a schema that
+  // refuses a field the API leaves empty, would describe a body the API never sends.
   const ajv = validator();
   const compile = (where: string, schema: unknown): ValidateFunction | null => {
     try {
@@ -3701,8 +3701,9 @@ function build(): void {
     ...[...serviceScopes.values()].flat(),
   ].filter(Boolean));
   // What a client that loads tools on demand pays: the names of the widest
-  // listing up front, then one tool at a time. The answer schemas are the
-  // client's to check results against and never reach the model.
+  // listing up front, then one tool at a time. The answer schemas stay with the
+  // server (`RESPONSE_FORMAT.structured_content`) and reach neither a client nor
+  // the model.
   const costs = tools.map((t) => ({ name: t.name, tokens: modelTokens(t) })).sort((a, b) => a.tokens - b.tokens);
   const middle = costs.length >> 1;
   const median = costs.length % 2 ? costs[middle]!.tokens : Math.round((costs[middle - 1]!.tokens + costs[middle]!.tokens) / 2);

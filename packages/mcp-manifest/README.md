@@ -7,10 +7,10 @@ OpenAPI spec in [pachca/openapi](https://github.com/pachca/openapi).
 
 ## Files
 
-| File                       | What it is                                                                                                                                                                                |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mcp-manifest.json`        | The set: server info and instructions, every tool with its input and output schema, the HTTP request it makes, its scope, plan and roles, and the tool listings per audience              |
-| `mcp-manifest.schema.json` | The contract, as JSON Schema 2020-12. A server validates the manifest against it before it boots. `schema_version` inside the manifest names the contract version the file was built for. |
+| File                       | What it is                                                                                                                                                                                                                                            |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp-manifest.json`        | The set: server info and instructions, every tool with its input schema, the schema of the API body its text answer is made from (not published to clients), the HTTP request it makes, its scope, plan and roles, and the tool listings per audience |
+| `mcp-manifest.schema.json` | The contract, as JSON Schema 2020-12. A server validates the manifest against it before it boots. `schema_version` inside the manifest names the contract version the file was built for.                                                             |
 
 `generated_from.digest` in the manifest changes whenever anything the manifest
 says changes, so it works as a cache key.

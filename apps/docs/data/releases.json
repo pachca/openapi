@@ -1,6 +1,43 @@
 [
   {
     "product": "n8n",
+    "version": "2.2.1",
+    "date": "2026-10-21",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`Security`: фильтр событий пополнился событиями входа по QR-коду — `Login Grant Created`, `Login Grant Approved` и `Login Grant Denied`"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.10.2",
+    "date": "2026-10-21",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca security list` — флаг `--event-key` принимает события входа по QR-коду: `login_grant_created`, `login_grant_approved` и `login_grant_denied`"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.6.1",
+    "date": "2026-10-21",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Типы аудит-событий `login_grant_created`, `login_grant_approved` и `login_grant_denied` и модели их деталей с моделью устройства `AuditLoginGrantDevice` и перечислениями `AuditLoginGrantDevicePlatform` и `AuditLoginGrantDenyReason`"
+      },
+      {
+        "type": "+",
+        "description": "Модель `AuditDetailsUserLoginQr` — детали `user_login` при входе по QR-коду"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
     "version": "2.2.0",
     "date": "2026-10-20",
     "changes": [

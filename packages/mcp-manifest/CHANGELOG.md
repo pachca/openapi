@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.0 (2026-10-21)
+
+Rules from a live run of the server, schema_version 1.2.0.
+
+- Other people's text inside an object or a list is wrapped once: when a path in the tool's untrusted list points inside a top-level field, that whole field goes inside the wrapper as compact JSON, never value by value, unless every value at such a path inside it is absent, null, or an empty string, list or object. Compact JSON escapes only what JSON requires and keeps `<`, `>` and `&` as they are. An empty string stays unwrapped.
+- A refusal ends with the footer like every other result.
+- The footer says that times ending in Z are UTC. Its Days line, and the `{days}` placeholder of the instructions with it, marks the first Monday with «next week:».
+- When data is empty, only the Showing line is replaced, by `empty_result` or, after a cursor, by nothing, and the second line of `pagination_footer` stays. A search page that shows at least the total it names ends with «End of list.».
+- `day_fields` and the `whole_day` rule: the `due_at` of an all-day task reads as its date in the zone of Now with « (all day)».
+- `argument_reading`: a number, true or false where a string is declared reads as text, and base64 text drops a `data:` prefix and line breaks. A field that an object of the arguments does not list is refused like an argument the tool does not have: every such object is closed with `additionalProperties: false`, and a map takes any key. A value declared base64 that does not decode is refused at its own path, such as `files[0].content`, and the contents of a file or an image declare `contentEncoding: base64`.
+- `rate_limit`: a limit the server keeps on requests itself counts only `tools/call`, never a handshake, a notification or a listing, and a call it holds back is a refusal read like the API's 429, never an HTTP error.
+- A scalar keeps its line breaks with no indent, and a listing holds only tools of this manifest.
+- The note on secrets stays only on tools whose answer carries the secret whole: `pachca_list_bots`, `pachca_list_bot_tokens` and `pachca_update_bot_token` answer with masked tokens or none and no longer carry it.
+- The answers of `pachca_create_bot` and `pachca_recreate_bot_token` mark a bot the caller created «(you)», like `pachca_get_bot`.
+- The description of `pachca_create_draft` says that `pachca_send_message` with the draft's `draft_id` deletes the draft.
+- `pachca_get_audit_events`: `event_key` takes `login_grant_created`, `login_grant_approved` and `login_grant_denied`, the events of a QR code sign-in to the mobile app, and the answer describes their details and the details `user_login` carries after such a sign-in. The device data in them comes from the app itself and is marked untrusted.
+- Descriptions from the spec now say what the API does: a thread cannot be left, a deleted message answers 403 to a second deletion, a task with a performer who does not exist or cannot be seen is refused, `list_tags` of a new employee creates a missing tag, only a workspace administrator or owner turns link unfurling on or off for a bot and, for a bot that unfurls links, changes the domains or the webhook address or turns on the event history, so such a bot cannot change its own webhook address, `limit` outside its range is clamped and `pachca_get_audit_events` declares its minimum of 1, a search query in typographic quotes is an exact phrase too, and an empty chat name becomes the name of the token owner.
+
 ## 1.1.0 (2026-10-21)
 
 - `pachca_send_message` no longer takes `link_preview`. With it, Pachca fetched the first link of the text itself, so a link carrying data, written at the request of an injection in a chat, could reach its host with no click. A message sent through the server goes without a link preview.

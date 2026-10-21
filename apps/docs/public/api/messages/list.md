@@ -25,7 +25,7 @@
 - `chat_id: integer, int32` (required) — Идентификатор чата (беседа, канал, диалог или чат треда)
 - `sort: string` (default: id) — Поле сортировки
 - `order: string` (default: desc) — Направление сортировки
-- `limit: integer, int32` (default: 50) — Количество возвращаемых сущностей за один запрос
+- `limit: integer, int32` (default: 50) — Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
 - `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
 
 

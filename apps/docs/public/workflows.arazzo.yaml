@@ -947,8 +947,9 @@ workflows:
     steps:
       - stepId: get-audit-event-log-1
         description: >-
-          Get audit log (`start_time` and `end_time` required (ISO-8601, UTC+0). Filters:
-          `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`)
+          Get audit log (`start_time` and `end_time` are optional (ISO-8601, a time without an
+          offset is UTC); without them all events come page by page. Filters: `event_key`,
+          `actor_id`, `actor_type`, `entity_id`, `entity_type`)
         operationId: SecurityOperations_getAuditEvents
   - workflowId: monitor-suspicious-logins
     summary: Monitor suspicious logins

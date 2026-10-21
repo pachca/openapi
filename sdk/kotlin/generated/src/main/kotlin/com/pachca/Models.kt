@@ -47,6 +47,12 @@ value class AuditEventKey(val value: String) {
         val USER_2FA_SUCCESS = AuditEventKey("user_2fa_success")
         /** Двухфакторная аутентификация отключена у сотрудника */
         val USER_2FA_DISABLED = AuditEventKey("user_2fa_disabled")
+        /** Создан QR-код для входа в мобильное приложение */
+        val LOGIN_GRANT_CREATED = AuditEventKey("login_grant_created")
+        /** Сотрудник подтвердил вход по QR-коду */
+        val LOGIN_GRANT_APPROVED = AuditEventKey("login_grant_approved")
+        /** Вход по QR-коду отклонён */
+        val LOGIN_GRANT_DENIED = AuditEventKey("login_grant_denied")
         /** Создана новая учетная запись пользователя */
         val USER_CREATED = AuditEventKey("user_created")
         /** Учетная запись пользователя удалена */
@@ -157,15 +163,77 @@ value class AuditEventKey(val value: String) {
         val EXCHANGE_DISABLED = AuditEventKey("exchange_disabled")
 
         /** Every value this SDK version lists */
-        val entries: List<AuditEventKey> = listOf(USER_LOGIN, USER_LOGOUT, USER_2FA_FAIL, USER_2FA_SUCCESS, USER_2FA_DISABLED, USER_CREATED, USER_DELETED, USER_ROLE_CHANGED, USER_UPDATED, TAG_CREATED, TAG_DELETED, USER_ADDED_TO_TAG, USER_REMOVED_FROM_TAG, CHAT_CREATED, CHAT_RENAMED, CHAT_PERMISSION_CHANGED, USER_CHAT_JOIN, USER_CHAT_LEAVE, TAG_ADDED_TO_CHAT, TAG_REMOVED_FROM_CHAT, MESSAGE_UPDATED, MESSAGE_DELETED, MESSAGE_CREATED, REACTION_CREATED, REACTION_DELETED, THREAD_CREATED, ACCESS_TOKEN_CREATED, ACCESS_TOKEN_UPDATED, ACCESS_TOKEN_DESTROY, KMS_ENCRYPT, KMS_DECRYPT, AUDIT_EVENTS_ACCESSED, COMPANY_CHATS_ACCESSED, COMPANY_BOTS_ACCESSED, DLP_VIOLATION_DETECTED, SEARCH_USERS_API, SEARCH_CHATS_API, SEARCH_MESSAGES_API, BOT_SCOPES_UPDATED, BOT_WEBHOOK_SETTINGS_UPDATED, BOT_TOKEN_RECREATED, BOT_DELETED, BOT_OAUTH_CLIENT_UPDATED, BOT_OAUTH_CLIENT_DISABLED, BOT_OAUTH_CLIENT_SECRET_ROTATED, BOT_OAUTH_CLIENT_SECRET_ISSUED, BOT_TOKEN_CREATED, BOT_TOKEN_UPDATED, BOT_TOKEN_REISSUED, BOT_TOKEN_DELETED, OAUTH_AUTHORIZATION_GRANTED, OAUTH_AUTHORIZATION_REVOKED, OAUTH_TOKEN_REVOKED, OAUTH_DEVICE_AUTHORIZATION_APPROVED, OAUTH_DEVICE_AUTHORIZATION_DENIED, VIDEO_CALL_STARTED, VIDEO_CALL_FINISHED, VIDEO_CALL_RECORDING_READY, EXCHANGE_DISABLED)
+        val entries: List<AuditEventKey> = listOf(USER_LOGIN, USER_LOGOUT, USER_2FA_FAIL, USER_2FA_SUCCESS, USER_2FA_DISABLED, LOGIN_GRANT_CREATED, LOGIN_GRANT_APPROVED, LOGIN_GRANT_DENIED, USER_CREATED, USER_DELETED, USER_ROLE_CHANGED, USER_UPDATED, TAG_CREATED, TAG_DELETED, USER_ADDED_TO_TAG, USER_REMOVED_FROM_TAG, CHAT_CREATED, CHAT_RENAMED, CHAT_PERMISSION_CHANGED, USER_CHAT_JOIN, USER_CHAT_LEAVE, TAG_ADDED_TO_CHAT, TAG_REMOVED_FROM_CHAT, MESSAGE_UPDATED, MESSAGE_DELETED, MESSAGE_CREATED, REACTION_CREATED, REACTION_DELETED, THREAD_CREATED, ACCESS_TOKEN_CREATED, ACCESS_TOKEN_UPDATED, ACCESS_TOKEN_DESTROY, KMS_ENCRYPT, KMS_DECRYPT, AUDIT_EVENTS_ACCESSED, COMPANY_CHATS_ACCESSED, COMPANY_BOTS_ACCESSED, DLP_VIOLATION_DETECTED, SEARCH_USERS_API, SEARCH_CHATS_API, SEARCH_MESSAGES_API, BOT_SCOPES_UPDATED, BOT_WEBHOOK_SETTINGS_UPDATED, BOT_TOKEN_RECREATED, BOT_DELETED, BOT_OAUTH_CLIENT_UPDATED, BOT_OAUTH_CLIENT_DISABLED, BOT_OAUTH_CLIENT_SECRET_ROTATED, BOT_OAUTH_CLIENT_SECRET_ISSUED, BOT_TOKEN_CREATED, BOT_TOKEN_UPDATED, BOT_TOKEN_REISSUED, BOT_TOKEN_DELETED, OAUTH_AUTHORIZATION_GRANTED, OAUTH_AUTHORIZATION_REVOKED, OAUTH_TOKEN_REVOKED, OAUTH_DEVICE_AUTHORIZATION_APPROVED, OAUTH_DEVICE_AUTHORIZATION_DENIED, VIDEO_CALL_STARTED, VIDEO_CALL_FINISHED, VIDEO_CALL_RECORDING_READY, EXCHANGE_DISABLED)
 
         /** The same values as an array, like `values()` of an enum class */
         fun values(): Array<AuditEventKey> = entries.toTypedArray()
 
-        private val knownNames: Map<String, String> = mapOf("user_login" to "USER_LOGIN", "user_logout" to "USER_LOGOUT", "user_2fa_fail" to "USER_2FA_FAIL", "user_2fa_success" to "USER_2FA_SUCCESS", "user_2fa_disabled" to "USER_2FA_DISABLED", "user_created" to "USER_CREATED", "user_deleted" to "USER_DELETED", "user_role_changed" to "USER_ROLE_CHANGED", "user_updated" to "USER_UPDATED", "tag_created" to "TAG_CREATED", "tag_deleted" to "TAG_DELETED", "user_added_to_tag" to "USER_ADDED_TO_TAG", "user_removed_from_tag" to "USER_REMOVED_FROM_TAG", "chat_created" to "CHAT_CREATED", "chat_renamed" to "CHAT_RENAMED", "chat_permission_changed" to "CHAT_PERMISSION_CHANGED", "user_chat_join" to "USER_CHAT_JOIN", "user_chat_leave" to "USER_CHAT_LEAVE", "tag_added_to_chat" to "TAG_ADDED_TO_CHAT", "tag_removed_from_chat" to "TAG_REMOVED_FROM_CHAT", "message_updated" to "MESSAGE_UPDATED", "message_deleted" to "MESSAGE_DELETED", "message_created" to "MESSAGE_CREATED", "reaction_created" to "REACTION_CREATED", "reaction_deleted" to "REACTION_DELETED", "thread_created" to "THREAD_CREATED", "access_token_created" to "ACCESS_TOKEN_CREATED", "access_token_updated" to "ACCESS_TOKEN_UPDATED", "access_token_destroy" to "ACCESS_TOKEN_DESTROY", "kms_encrypt" to "KMS_ENCRYPT", "kms_decrypt" to "KMS_DECRYPT", "audit_events_accessed" to "AUDIT_EVENTS_ACCESSED", "company_chats_accessed" to "COMPANY_CHATS_ACCESSED", "company_bots_accessed" to "COMPANY_BOTS_ACCESSED", "dlp_violation_detected" to "DLP_VIOLATION_DETECTED", "search_users_api" to "SEARCH_USERS_API", "search_chats_api" to "SEARCH_CHATS_API", "search_messages_api" to "SEARCH_MESSAGES_API", "bot_scopes_updated" to "BOT_SCOPES_UPDATED", "bot_webhook_settings_updated" to "BOT_WEBHOOK_SETTINGS_UPDATED", "bot_token_recreated" to "BOT_TOKEN_RECREATED", "bot_deleted" to "BOT_DELETED", "bot_oauth_client_updated" to "BOT_OAUTH_CLIENT_UPDATED", "bot_oauth_client_disabled" to "BOT_OAUTH_CLIENT_DISABLED", "bot_oauth_client_secret_rotated" to "BOT_OAUTH_CLIENT_SECRET_ROTATED", "bot_oauth_client_secret_issued" to "BOT_OAUTH_CLIENT_SECRET_ISSUED", "bot_token_created" to "BOT_TOKEN_CREATED", "bot_token_updated" to "BOT_TOKEN_UPDATED", "bot_token_reissued" to "BOT_TOKEN_REISSUED", "bot_token_deleted" to "BOT_TOKEN_DELETED", "oauth_authorization_granted" to "OAUTH_AUTHORIZATION_GRANTED", "oauth_authorization_revoked" to "OAUTH_AUTHORIZATION_REVOKED", "oauth_token_revoked" to "OAUTH_TOKEN_REVOKED", "oauth_device_authorization_approved" to "OAUTH_DEVICE_AUTHORIZATION_APPROVED", "oauth_device_authorization_denied" to "OAUTH_DEVICE_AUTHORIZATION_DENIED", "video_call_started" to "VIDEO_CALL_STARTED", "video_call_finished" to "VIDEO_CALL_FINISHED", "video_call_recording_ready" to "VIDEO_CALL_RECORDING_READY", "exchange_disabled" to "EXCHANGE_DISABLED")
+        private val knownNames: Map<String, String> = mapOf("user_login" to "USER_LOGIN", "user_logout" to "USER_LOGOUT", "user_2fa_fail" to "USER_2FA_FAIL", "user_2fa_success" to "USER_2FA_SUCCESS", "user_2fa_disabled" to "USER_2FA_DISABLED", "login_grant_created" to "LOGIN_GRANT_CREATED", "login_grant_approved" to "LOGIN_GRANT_APPROVED", "login_grant_denied" to "LOGIN_GRANT_DENIED", "user_created" to "USER_CREATED", "user_deleted" to "USER_DELETED", "user_role_changed" to "USER_ROLE_CHANGED", "user_updated" to "USER_UPDATED", "tag_created" to "TAG_CREATED", "tag_deleted" to "TAG_DELETED", "user_added_to_tag" to "USER_ADDED_TO_TAG", "user_removed_from_tag" to "USER_REMOVED_FROM_TAG", "chat_created" to "CHAT_CREATED", "chat_renamed" to "CHAT_RENAMED", "chat_permission_changed" to "CHAT_PERMISSION_CHANGED", "user_chat_join" to "USER_CHAT_JOIN", "user_chat_leave" to "USER_CHAT_LEAVE", "tag_added_to_chat" to "TAG_ADDED_TO_CHAT", "tag_removed_from_chat" to "TAG_REMOVED_FROM_CHAT", "message_updated" to "MESSAGE_UPDATED", "message_deleted" to "MESSAGE_DELETED", "message_created" to "MESSAGE_CREATED", "reaction_created" to "REACTION_CREATED", "reaction_deleted" to "REACTION_DELETED", "thread_created" to "THREAD_CREATED", "access_token_created" to "ACCESS_TOKEN_CREATED", "access_token_updated" to "ACCESS_TOKEN_UPDATED", "access_token_destroy" to "ACCESS_TOKEN_DESTROY", "kms_encrypt" to "KMS_ENCRYPT", "kms_decrypt" to "KMS_DECRYPT", "audit_events_accessed" to "AUDIT_EVENTS_ACCESSED", "company_chats_accessed" to "COMPANY_CHATS_ACCESSED", "company_bots_accessed" to "COMPANY_BOTS_ACCESSED", "dlp_violation_detected" to "DLP_VIOLATION_DETECTED", "search_users_api" to "SEARCH_USERS_API", "search_chats_api" to "SEARCH_CHATS_API", "search_messages_api" to "SEARCH_MESSAGES_API", "bot_scopes_updated" to "BOT_SCOPES_UPDATED", "bot_webhook_settings_updated" to "BOT_WEBHOOK_SETTINGS_UPDATED", "bot_token_recreated" to "BOT_TOKEN_RECREATED", "bot_deleted" to "BOT_DELETED", "bot_oauth_client_updated" to "BOT_OAUTH_CLIENT_UPDATED", "bot_oauth_client_disabled" to "BOT_OAUTH_CLIENT_DISABLED", "bot_oauth_client_secret_rotated" to "BOT_OAUTH_CLIENT_SECRET_ROTATED", "bot_oauth_client_secret_issued" to "BOT_OAUTH_CLIENT_SECRET_ISSUED", "bot_token_created" to "BOT_TOKEN_CREATED", "bot_token_updated" to "BOT_TOKEN_UPDATED", "bot_token_reissued" to "BOT_TOKEN_REISSUED", "bot_token_deleted" to "BOT_TOKEN_DELETED", "oauth_authorization_granted" to "OAUTH_AUTHORIZATION_GRANTED", "oauth_authorization_revoked" to "OAUTH_AUTHORIZATION_REVOKED", "oauth_token_revoked" to "OAUTH_TOKEN_REVOKED", "oauth_device_authorization_approved" to "OAUTH_DEVICE_AUTHORIZATION_APPROVED", "oauth_device_authorization_denied" to "OAUTH_DEVICE_AUTHORIZATION_DENIED", "video_call_started" to "VIDEO_CALL_STARTED", "video_call_finished" to "VIDEO_CALL_FINISHED", "video_call_recording_ready" to "VIDEO_CALL_RECORDING_READY", "exchange_disabled" to "EXCHANGE_DISABLED")
 
         fun valueOf(name: String): AuditEventKey =
             entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No AuditEventKey constant $name")
+    }
+}
+
+/** Причина отказа во входе по QR-коду */
+@Serializable
+@JvmInline
+value class AuditLoginGrantDenyReason(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Сотрудник отклонил вход */
+        val DENIED = AuditLoginGrantDenyReason("denied")
+        /** Сотрудник ввёл не те цифры, что показало устройство */
+        val VERIFICATION_FAILED = AuditLoginGrantDenyReason("verification_failed")
+
+        /** Every value this SDK version lists */
+        val entries: List<AuditLoginGrantDenyReason> = listOf(DENIED, VERIFICATION_FAILED)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<AuditLoginGrantDenyReason> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("denied" to "DENIED", "verification_failed" to "VERIFICATION_FAILED")
+
+        fun valueOf(name: String): AuditLoginGrantDenyReason =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No AuditLoginGrantDenyReason constant $name")
+    }
+}
+
+/** Платформа мобильного приложения, в котором выполняется вход по QR-коду */
+@Serializable
+@JvmInline
+value class AuditLoginGrantDevicePlatform(val value: String) {
+    /** Whether this SDK version lists the value */
+    val isKnown: Boolean get() = value in knownNames
+    /** Constant name of a listed value, the raw value otherwise */
+    val name: String get() = knownNames[value] ?: value
+    override fun toString(): String = value
+
+    companion object {
+        /** Приложение для iOS */
+        val IOS = AuditLoginGrantDevicePlatform("iOS")
+        /** Приложение для Android */
+        val ANDROID = AuditLoginGrantDevicePlatform("Android")
+        /** Приложение для Android из RuStore */
+        val RUSTORE = AuditLoginGrantDevicePlatform("Rustore")
+        /** Приложение для Android из AppGallery */
+        val APPGALLERY = AuditLoginGrantDevicePlatform("Appgallery")
+
+        /** Every value this SDK version lists */
+        val entries: List<AuditLoginGrantDevicePlatform> = listOf(IOS, ANDROID, RUSTORE, APPGALLERY)
+
+        /** The same values as an array, like `values()` of an enum class */
+        fun values(): Array<AuditLoginGrantDevicePlatform> = entries.toTypedArray()
+
+        private val knownNames: Map<String, String> = mapOf("iOS" to "IOS", "Android" to "ANDROID", "Rustore" to "RUSTORE", "Appgallery" to "APPGALLERY")
+
+        fun valueOf(name: String): AuditLoginGrantDevicePlatform =
+            entries.firstOrNull { it.name == name } ?: throw IllegalArgumentException("No AuditLoginGrantDevicePlatform constant $name")
     }
 }
 
@@ -1333,6 +1401,10 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
         setOf("bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotOAuthClientDisabled.serializer(), element) },
         setOf("token_kind", "token_name", "resource_owner_id", "scopes", "bot_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsToken.serializer(), element) },
         setOf("token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsBotTokenUpdated.serializer(), element) },
+        setOf("method", "login_grant_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsUserLoginQr.serializer(), element) },
+        setOf("login_grant_id") to { json, element -> json.decodeFromJsonElement(AuditDetailsLoginGrantCreated.serializer(), element) },
+        setOf("login_grant_id", "device") to { json, element -> json.decodeFromJsonElement(AuditDetailsLoginGrantApproved.serializer(), element) },
+        setOf("login_grant_id", "device", "reason") to { json, element -> json.decodeFromJsonElement(AuditDetailsLoginGrantDenied.serializer(), element) },
     )
 
     override fun serialize(encoder: Encoder, value: AuditEventDetailsUnion) {
@@ -1367,6 +1439,10 @@ object AuditEventDetailsUnionSerializer : KSerializer<AuditEventDetailsUnion> {
             is AuditDetailsBotOAuthClientDisabled -> jsonEncoder.encodeSerializableValue(AuditDetailsBotOAuthClientDisabled.serializer(), value)
             is AuditDetailsToken -> jsonEncoder.encodeSerializableValue(AuditDetailsToken.serializer(), value)
             is AuditDetailsBotTokenUpdated -> jsonEncoder.encodeSerializableValue(AuditDetailsBotTokenUpdated.serializer(), value)
+            is AuditDetailsUserLoginQr -> jsonEncoder.encodeSerializableValue(AuditDetailsUserLoginQr.serializer(), value)
+            is AuditDetailsLoginGrantCreated -> jsonEncoder.encodeSerializableValue(AuditDetailsLoginGrantCreated.serializer(), value)
+            is AuditDetailsLoginGrantApproved -> jsonEncoder.encodeSerializableValue(AuditDetailsLoginGrantApproved.serializer(), value)
+            is AuditDetailsLoginGrantDenied -> jsonEncoder.encodeSerializableValue(AuditDetailsLoginGrantDenied.serializer(), value)
         }
     }
 
@@ -1596,6 +1672,30 @@ data class AuditDetailsBotTokenUpdated(
     @SerialName("current_scopes") val currentScopes: List<String>,
     @SerialName("bot_id") val botId: Int? = null,
     @SerialName("actor_id") val actorId: Int,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsUserLoginQr(
+    val method: String,
+    @SerialName("login_grant_id") val loginGrantId: String,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsLoginGrantCreated(
+    @SerialName("login_grant_id") val loginGrantId: String,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsLoginGrantApproved(
+    @SerialName("login_grant_id") val loginGrantId: String,
+    val device: AuditLoginGrantDevice,
+) : AuditEventDetailsUnion
+
+@Serializable
+data class AuditDetailsLoginGrantDenied(
+    @SerialName("login_grant_id") val loginGrantId: String,
+    val device: AuditLoginGrantDevice,
+    val reason: AuditLoginGrantDenyReason,
 ) : AuditEventDetailsUnion
 
 @Serializable
@@ -1934,6 +2034,14 @@ data class AuditEvent(
     val details: AuditEventDetailsUnion,
     @SerialName("ip_address") val ipAddress: String? = null,
     @SerialName("user_agent") val userAgent: String? = null,
+)
+
+@Serializable
+data class AuditLoginGrantDevice(
+    val name: String,
+    val platform: AuditLoginGrantDevicePlatform,
+    @SerialName("os_version") val osVersion: String? = null,
+    @SerialName("app_version") val appVersion: String? = null,
 )
 
 @Serializable

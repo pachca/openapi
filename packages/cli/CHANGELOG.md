@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.10.2  (21 октября 2026)
+
+- **Добавлено** (security list): Флаг `--event-key` принимает события входа по QR-коду: `login_grant_created`, `login_grant_approved` и `login_grant_denied`
+
 ## 2026.10.1  (20 октября 2026)
 
 - **Изменено** (chats request-export): Команда выводит номер выгрузки `id`: с ним `pachca chats download-export` забирает архив, когда тот соберётся

@@ -116,10 +116,11 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return
+          description: Number of records to return. An integer outside the allowed range is replaced with the nearest bound.
           schema:
             type: integer
             format: int32
+            minimum: 1
             maximum: 50
             example: 1
             default: 50
@@ -295,6 +296,11 @@ paths:
         Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without
         knowing its own `id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an
         empty string in `outgoing_url`.
+
+
+        The address of a bot with link unfurling (the `message_link_shared` event or the `trigger_on: unfurl` mode) is
+        changed only by a workspace administrator or owner, with [Edit bot](PUT /bots/{id}). To such a bot this method
+        responds `400` to any new address, an empty string included.
       parameters: []
       responses:
         '200':
@@ -419,7 +425,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of entities returned per request
+          description: >-
+            Number of entities returned per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -575,7 +583,8 @@ paths:
         exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow).
 
 
-        The nickname must end with `_bot` and be free in the workspace.
+        The nickname must end with `_bot` and be free in the workspace. Only a workspace administrator or owner creates
+        a bot that unfurls links.
 
 
         The bot's avatar is set after creation with the [Upload bot avatar](PUT /bots/{id}/avatar) method.
@@ -855,8 +864,9 @@ paths:
         [Getting a token](/guides/oauth/flow). The catalog page is set by `promo` while authorization is enabled.
 
 
-        Only a workspace administrator or owner can enable the `message_link_shared` event, and for a bot with it change
-        the domains, the webhook address and the event history.
+        Only a workspace administrator or owner turns the `message_link_shared` event on or off, turns on the
+        `trigger_on: unfurl` mode, and for a bot with either changes the domains and the webhook address or turns on the
+        event history.
 
 
         If a change takes away the bot's right to be in tags (`single_chat: true` or `who_can_add` set to `creator` or
@@ -866,8 +876,8 @@ paths:
 
         The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator,
         and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be
-        changed for a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on
-        the "General" tab in the bot settings).
+        changed for a bot whose settings are not accessible to you (the "Who can edit bot settings" field on the
+        "General" tab).
 
 
         The bot's avatar is set and removed by separate methods, [Upload bot avatar](PUT /bots/{id}/avatar) and [Delete
@@ -1516,7 +1526,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of entities returned per request
+          description: >-
+            Number of entities returned per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -2189,7 +2201,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return per request
+          description: >-
+            Number of records to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -2976,15 +2990,14 @@ paths:
         Leave chat
 
 
-        The token owner leaves a conversation, a channel, or a thread on their own. A thread is addressed by its
-        `chat_id`. In a private conversation the others see a system message about the departure; in a public chat and
-        in a channel they do not.
+        The token owner leaves a conversation or a channel on their own. In a private conversation the others see a
+        system message about the departure; in a public chat and in a channel they do not.
 
 
         You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is
         taken off the employee or off the chat. For a guest and a multi-guest the method also responds `403`, whatever
-        their role in the chat. You cannot leave a direct message, the response is `400` with the `personal_chat` code.
-        You can leave an archived chat, though.
+        their role in the chat. You cannot leave a thread or a direct message: for a thread the method responds `403`,
+        for a direct message `400` with the `personal_chat` code. You can leave an archived chat, though.
 
 
         You can come back to a public chat on your own, and to a private one only if one of the members adds you back.
@@ -3085,7 +3098,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return per request
+          description: >-
+            Number of records to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -3602,7 +3617,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of entities returned per request
+          description: >-
+            Number of entities returned per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -3756,7 +3773,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of entities returned per request
+          description: >-
+            Number of entities returned per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -4086,7 +4105,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of entities returned per request
+          description: >-
+            Number of entities returned per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -4574,7 +4595,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return per request
+          description: >-
+            Number of records to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -4896,7 +4919,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return per request
+          description: >-
+            Number of records to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -5150,7 +5175,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return per request
+          description: >-
+            Number of records to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -5402,8 +5429,9 @@ paths:
         deleted" note stays in place of the message in the chat.
 
 
-        The thread created under this message stays, together with all the messages inside it. A repeated deletion
-        responds `204` and no longer changes anything.
+        The thread created under this message stays, together with all the messages inside it. For a message that is
+        already deleted the method responds `403`, and whether it is deleted is shown by the `deleted_at` field in the
+        response of [Message info](GET /messages/{id}).
       parameters:
         - name: id
           in: path
@@ -5849,7 +5877,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return per request
+          description: >-
+            Number of records to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -5957,7 +5987,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return per request
+          description: >-
+            Number of records to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -6681,7 +6713,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of results to return per request
+          description: >-
+            Number of results to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -6823,8 +6857,9 @@ paths:
         messages are included in the results.
 
 
-        The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query in
-        quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it.
+        The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query
+        wrapped entirely in quotation marks is searched as an exact phrase, and matching on part of a word does not
+        apply to it. Straight quotes `"…"` and typographic ones `«…»`, `“…”`, `„…“` both work.
 
 
         By default messages come from newest to oldest. `sort=relevance` switches the results to how well they match the
@@ -6848,7 +6883,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of results to return per request
+          description: >-
+            Number of results to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -7040,7 +7077,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of results to return per request
+          description: >-
+            Number of results to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -7188,8 +7227,10 @@ paths:
 
 
         Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current
-        employee list using the [List employees](GET /users) method. Assignees the caller cannot see are silently
-        dropped: the response is successful but they are not in `performer_ids`, so check the list in the response.
+        employee list using the [List employees](GET /users) method. If no user exists with an ID from `performer_ids`,
+        the method responds `404`. If the caller cannot see the employee, the response is `403`: this happens with an
+        employee of another workspace, a suspended or a deleted one, and for a guest with anyone they share no chat
+        with. In both cases the task is not created.
 
 
         A task can be linked to a conversation with the `chat_id` field — then, besides the author and the assignees,
@@ -7340,7 +7381,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return per request
+          description: >-
+            Number of records to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -7742,7 +7785,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return per request
+          description: >-
+            Number of records to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -7982,8 +8027,8 @@ paths:
 
 
         The `list_tags` field puts the employee into tags right away, and together with the tags into the chats those
-        tags are linked to. For a guest no tags are assigned at all: the response is successful and `list_tags` in it is
-        empty.
+        tags are linked to. A name that does not exist in the workspace yet creates a new tag. For a guest no tags are
+        assigned at all: the response is successful and `list_tags` in it is empty.
 
 
         Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a
@@ -8100,7 +8145,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return per request
+          description: >-
+            Number of records to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -9018,7 +9065,9 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Number of records to return per request
+          description: >-
+            Number of records to return per request. An integer outside the allowed range is replaced with the nearest
+            bound.
           schema:
             type: integer
             format: int32
@@ -9627,10 +9676,10 @@ components:
     AuditDetailsEmpty:
       type: object
       description: >-
-        Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created,
-        user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created,
-        reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed,
-        exchange_disabled.
+        Empty details. For: user_login (except a QR code sign-in), user_logout, user_2fa_fail, user_2fa_success,
+        user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted,
+        reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed,
+        company_bots_accessed, exchange_disabled.
     AuditDetailsInitiator:
       type: object
       required:
@@ -9670,6 +9719,48 @@ components:
           type: string
           description: Operation reason
       description: 'For: kms_encrypt, kms_decrypt'
+    AuditDetailsLoginGrantApproved:
+      type: object
+      required:
+        - login_grant_id
+        - device
+      properties:
+        login_grant_id:
+          type: string
+          description: ID of the QR code sign-in request, shared by all events of one sign-in
+        device:
+          allOf:
+            - $ref: '#/components/schemas/AuditLoginGrantDevice'
+          description: Device the sign-in was made on
+      description: 'For: login_grant_approved'
+    AuditDetailsLoginGrantCreated:
+      type: object
+      required:
+        - login_grant_id
+      properties:
+        login_grant_id:
+          type: string
+          description: ID of the QR code sign-in request, shared by all events of one sign-in
+      description: 'For: login_grant_created'
+    AuditDetailsLoginGrantDenied:
+      type: object
+      required:
+        - login_grant_id
+        - device
+        - reason
+      properties:
+        login_grant_id:
+          type: string
+          description: ID of the QR code sign-in request, shared by all events of one sign-in
+        device:
+          allOf:
+            - $ref: '#/components/schemas/AuditLoginGrantDevice'
+          description: Device the sign-in was made on
+        reason:
+          allOf:
+            - $ref: '#/components/schemas/AuditLoginGrantDenyReason'
+          description: Rejection reason
+      description: 'For: login_grant_denied'
     AuditDetailsOAuthAuthorizationGranted:
       type: object
       required:
@@ -9818,6 +9909,19 @@ components:
             type: string
           description: Token scopes
       description: 'For: access_token_created, access_token_updated, access_token_destroy in records made before October 7, 2026'
+    AuditDetailsUserLoginQr:
+      type: object
+      required:
+        - method
+        - login_grant_id
+      properties:
+        method:
+          type: string
+          description: 'Sign-in method: `qr` — a QR code sign-in'
+        login_grant_id:
+          type: string
+          description: ID of the QR code sign-in request, shared by all events of one sign-in
+      description: 'For: user_login with a QR code sign-in'
     AuditDetailsUserUpdated:
       type: object
       required:
@@ -10005,6 +10109,10 @@ components:
         - $ref: '#/components/schemas/AuditDetailsBotOAuthClientDisabled'
         - $ref: '#/components/schemas/AuditDetailsToken'
         - $ref: '#/components/schemas/AuditDetailsBotTokenUpdated'
+        - $ref: '#/components/schemas/AuditDetailsUserLoginQr'
+        - $ref: '#/components/schemas/AuditDetailsLoginGrantCreated'
+        - $ref: '#/components/schemas/AuditDetailsLoginGrantApproved'
+        - $ref: '#/components/schemas/AuditDetailsLoginGrantDenied'
       description: Additional audit event details. Structure depends on the event_key value.
     AuditEventKey:
       type: string
@@ -10014,6 +10122,9 @@ components:
         - user_2fa_fail
         - user_2fa_success
         - user_2fa_disabled
+        - login_grant_created
+        - login_grant_approved
+        - login_grant_denied
         - user_created
         - user_deleted
         - user_role_changed
@@ -10075,6 +10186,9 @@ components:
         user_2fa_fail: Failed two-factor authentication attempt
         user_2fa_success: Successful two-factor authentication
         user_2fa_disabled: Two-factor authentication disabled for the employee
+        login_grant_created: QR code issued for signing in to the mobile app
+        login_grant_approved: Employee confirmed a QR code sign-in
+        login_grant_denied: QR code sign-in rejected
         user_created: New user account created
         user_deleted: User account deleted
         user_role_changed: User role changed
@@ -10129,6 +10243,51 @@ components:
         video_call_finished: Video call finished
         video_call_recording_ready: Video call recording ready
         exchange_disabled: Exchange integration disabled
+    AuditLoginGrantDenyReason:
+      type: string
+      enum:
+        - denied
+        - verification_failed
+      description: Reason a QR code sign-in was rejected
+      x-enum-descriptions:
+        denied: The employee rejected the sign-in
+        verification_failed: The employee entered digits other than the ones the device showed
+    AuditLoginGrantDevice:
+      type: object
+      required:
+        - name
+        - platform
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Device name
+        platform:
+          allOf:
+            - $ref: '#/components/schemas/AuditLoginGrantDevicePlatform'
+          description: App platform
+        os_version:
+          type: string
+          maxLength: 255
+          description: Operating system version. Present if the app sent it.
+        app_version:
+          type: string
+          maxLength: 255
+          description: Pachca app version. Present if the app sent it.
+      description: Device in a QR code sign-in. The app itself sends its data, and the server checks only their format.
+    AuditLoginGrantDevicePlatform:
+      type: string
+      enum:
+        - iOS
+        - Android
+        - Rustore
+        - Appgallery
+      description: Platform of the mobile app a QR code sign-in is made in
+      x-enum-descriptions:
+        iOS: iOS app
+        Android: Android app
+        Rustore: Android app from RuStore
+        Appgallery: Android app from AppGallery
     AvatarData:
       type: object
       required:
@@ -11598,7 +11757,9 @@ components:
             name:
               type: string
               maxLength: 255
-              description: Name
+              description: >-
+                Name. An empty name is replaced with the first and last name of the token owner (for a bot, with its
+                name), or with the nickname if there are none.
               example: 🤿 aqua
             member_ids:
               type: array

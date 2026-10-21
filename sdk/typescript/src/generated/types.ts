@@ -14,6 +14,12 @@ export enum AuditEventKey {
   User2faSuccess = "user_2fa_success",
   /** Двухфакторная аутентификация отключена у сотрудника */
   User2faDisabled = "user_2fa_disabled",
+  /** Создан QR-код для входа в мобильное приложение */
+  LoginGrantCreated = "login_grant_created",
+  /** Сотрудник подтвердил вход по QR-коду */
+  LoginGrantApproved = "login_grant_approved",
+  /** Вход по QR-коду отклонён */
+  LoginGrantDenied = "login_grant_denied",
   /** Создана новая учетная запись пользователя */
   UserCreated = "user_created",
   /** Учетная запись пользователя удалена */
@@ -122,6 +128,34 @@ export enum AuditEventKey {
   VideoCallRecordingReady = "video_call_recording_ready",
   /** Отключена интеграция с Exchange */
   ExchangeDisabled = "exchange_disabled",
+}
+
+/**
+ * Причина отказа во входе по QR-коду
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum AuditLoginGrantDenyReason {
+  /** Сотрудник отклонил вход */
+  Denied = "denied",
+  /** Сотрудник ввёл не те цифры, что показало устройство */
+  VerificationFailed = "verification_failed",
+}
+
+/**
+ * Платформа мобильного приложения, в котором выполняется вход по QR-коду
+ *
+ * A response may carry a value this SDK does not list yet: it arrives as the raw string.
+ */
+export enum AuditLoginGrantDevicePlatform {
+  /** Приложение для iOS */
+  IOS = "iOS",
+  /** Приложение для Android */
+  Android = "Android",
+  /** Приложение для Android из RuStore */
+  Rustore = "Rustore",
+  /** Приложение для Android из AppGallery */
+  Appgallery = "Appgallery",
 }
 
 /**
@@ -998,6 +1032,21 @@ export interface AuditDetailsKms {
   reason: string;
 }
 
+export interface AuditDetailsLoginGrantApproved {
+  loginGrantId: string;
+  device: AuditLoginGrantDevice;
+}
+
+export interface AuditDetailsLoginGrantCreated {
+  loginGrantId: string;
+}
+
+export interface AuditDetailsLoginGrantDenied {
+  loginGrantId: string;
+  device: AuditLoginGrantDevice;
+  reason: AuditLoginGrantDenyReason;
+}
+
 export interface AuditDetailsOAuthAuthorizationGranted {
   clientId: string;
   scopes: string[];
@@ -1044,6 +1093,11 @@ export interface AuditDetailsTokenScopes {
   scopes: string[];
 }
 
+export interface AuditDetailsUserLoginQr {
+  method: string;
+  loginGrantId: string;
+}
+
 export interface AuditDetailsUserUpdated {
   changedAttrs: string[];
   context?: string;
@@ -1081,6 +1135,13 @@ export interface AuditEvent {
   details: AuditEventDetailsUnion;
   ipAddress: string | null;
   userAgent: string | null;
+}
+
+export interface AuditLoginGrantDevice {
+  name: string;
+  platform: AuditLoginGrantDevicePlatform;
+  osVersion?: string;
+  appVersion?: string;
 }
 
 export interface AvatarData {
@@ -2174,7 +2235,7 @@ export interface UpdateUserAvatarRequest {
   image: Blob;
 }
 
-export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsBotOAuthClient | AuditDetailsOAuthAuthorizationGranted | AuditDetailsOAuthAuthorizationRevoked | AuditDetailsDeviceAuthorizationApproved | AuditDetailsDeviceAuthorizationDenied | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording | AuditDetailsBotOAuthClientSecretRotated | AuditDetailsBotOAuthClientDisabled | AuditDetailsToken | AuditDetailsBotTokenUpdated;
+export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch | AuditDetailsBot | AuditDetailsBotScopes | AuditDetailsBotWebhookSettings | AuditDetailsBotOAuthClient | AuditDetailsOAuthAuthorizationGranted | AuditDetailsOAuthAuthorizationRevoked | AuditDetailsDeviceAuthorizationApproved | AuditDetailsDeviceAuthorizationDenied | AuditDetailsVideoCallStarted | AuditDetailsVideoCallFinished | AuditDetailsVideoCallRecording | AuditDetailsBotOAuthClientSecretRotated | AuditDetailsBotOAuthClientDisabled | AuditDetailsToken | AuditDetailsBotTokenUpdated | AuditDetailsUserLoginQr | AuditDetailsLoginGrantCreated | AuditDetailsLoginGrantApproved | AuditDetailsLoginGrantDenied;
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 

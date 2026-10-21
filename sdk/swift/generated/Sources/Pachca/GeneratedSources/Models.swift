@@ -14,6 +14,12 @@ public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, Ex
     case user2faSuccess
     /// Двухфакторная аутентификация отключена у сотрудника
     case user2faDisabled
+    /// Создан QR-код для входа в мобильное приложение
+    case loginGrantCreated
+    /// Сотрудник подтвердил вход по QR-коду
+    case loginGrantApproved
+    /// Вход по QR-коду отклонён
+    case loginGrantDenied
     /// Создана новая учетная запись пользователя
     case userCreated
     /// Учетная запись пользователя удалена
@@ -126,7 +132,7 @@ public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, Ex
     case unknown(String)
 
     /// Every value this SDK version lists
-    public static let allCases: [AuditEventKey] = [.userLogin, .userLogout, .user2faFail, .user2faSuccess, .user2faDisabled, .userCreated, .userDeleted, .userRoleChanged, .userUpdated, .tagCreated, .tagDeleted, .userAddedToTag, .userRemovedFromTag, .chatCreated, .chatRenamed, .chatPermissionChanged, .userChatJoin, .userChatLeave, .tagAddedToChat, .tagRemovedFromChat, .messageUpdated, .messageDeleted, .messageCreated, .reactionCreated, .reactionDeleted, .threadCreated, .accessTokenCreated, .accessTokenUpdated, .accessTokenDestroy, .kmsEncrypt, .kmsDecrypt, .auditEventsAccessed, .companyChatsAccessed, .companyBotsAccessed, .dlpViolationDetected, .searchUsersApi, .searchChatsApi, .searchMessagesApi, .botScopesUpdated, .botWebhookSettingsUpdated, .botTokenRecreated, .botDeleted, .botOauthClientUpdated, .botOauthClientDisabled, .botOauthClientSecretRotated, .botOauthClientSecretIssued, .botTokenCreated, .botTokenUpdated, .botTokenReissued, .botTokenDeleted, .oauthAuthorizationGranted, .oauthAuthorizationRevoked, .oauthTokenRevoked, .oauthDeviceAuthorizationApproved, .oauthDeviceAuthorizationDenied, .videoCallStarted, .videoCallFinished, .videoCallRecordingReady, .exchangeDisabled]
+    public static let allCases: [AuditEventKey] = [.userLogin, .userLogout, .user2faFail, .user2faSuccess, .user2faDisabled, .loginGrantCreated, .loginGrantApproved, .loginGrantDenied, .userCreated, .userDeleted, .userRoleChanged, .userUpdated, .tagCreated, .tagDeleted, .userAddedToTag, .userRemovedFromTag, .chatCreated, .chatRenamed, .chatPermissionChanged, .userChatJoin, .userChatLeave, .tagAddedToChat, .tagRemovedFromChat, .messageUpdated, .messageDeleted, .messageCreated, .reactionCreated, .reactionDeleted, .threadCreated, .accessTokenCreated, .accessTokenUpdated, .accessTokenDestroy, .kmsEncrypt, .kmsDecrypt, .auditEventsAccessed, .companyChatsAccessed, .companyBotsAccessed, .dlpViolationDetected, .searchUsersApi, .searchChatsApi, .searchMessagesApi, .botScopesUpdated, .botWebhookSettingsUpdated, .botTokenRecreated, .botDeleted, .botOauthClientUpdated, .botOauthClientDisabled, .botOauthClientSecretRotated, .botOauthClientSecretIssued, .botTokenCreated, .botTokenUpdated, .botTokenReissued, .botTokenDeleted, .oauthAuthorizationGranted, .oauthAuthorizationRevoked, .oauthTokenRevoked, .oauthDeviceAuthorizationApproved, .oauthDeviceAuthorizationDenied, .videoCallStarted, .videoCallFinished, .videoCallRecordingReady, .exchangeDisabled]
 
     public init(_ rawValue: String) {
         switch rawValue {
@@ -135,6 +141,9 @@ public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, Ex
         case "user_2fa_fail": self = .user2faFail
         case "user_2fa_success": self = .user2faSuccess
         case "user_2fa_disabled": self = .user2faDisabled
+        case "login_grant_created": self = .loginGrantCreated
+        case "login_grant_approved": self = .loginGrantApproved
+        case "login_grant_denied": self = .loginGrantDenied
         case "user_created": self = .userCreated
         case "user_deleted": self = .userDeleted
         case "user_role_changed": self = .userRoleChanged
@@ -204,6 +213,9 @@ public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, Ex
         case .user2faFail: return "user_2fa_fail"
         case .user2faSuccess: return "user_2fa_success"
         case .user2faDisabled: return "user_2fa_disabled"
+        case .loginGrantCreated: return "login_grant_created"
+        case .loginGrantApproved: return "login_grant_approved"
+        case .loginGrantDenied: return "login_grant_denied"
         case .userCreated: return "user_created"
         case .userDeleted: return "user_deleted"
         case .userRoleChanged: return "user_role_changed"
@@ -258,6 +270,96 @@ public enum AuditEventKey: Codable, Hashable, RawRepresentable, CaseIterable, Ex
         case .videoCallFinished: return "video_call_finished"
         case .videoCallRecordingReady: return "video_call_recording_ready"
         case .exchangeDisabled: return "exchange_disabled"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
+public enum AuditLoginGrantDenyReason: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Сотрудник отклонил вход
+    case denied
+    /// Сотрудник ввёл не те цифры, что показало устройство
+    case verificationFailed
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [AuditLoginGrantDenyReason] = [.denied, .verificationFailed]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "denied": self = .denied
+        case "verification_failed": self = .verificationFailed
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .denied: return "denied"
+        case .verificationFailed: return "verification_failed"
+        case .unknown(let value): return value
+        }
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.init(try decoder.singleValueContainer().decode(String.self))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
+public enum AuditLoginGrantDevicePlatform: Codable, Hashable, RawRepresentable, CaseIterable, ExpressibleByStringLiteral, Sendable {
+    /// Приложение для iOS
+    case iOS
+    /// Приложение для Android
+    case Android
+    /// Приложение для Android из RuStore
+    case Rustore
+    /// Приложение для Android из AppGallery
+    case Appgallery
+    /// A value this SDK version does not list yet
+    case unknown(String)
+
+    /// Every value this SDK version lists
+    public static let allCases: [AuditLoginGrantDevicePlatform] = [.iOS, .Android, .Rustore, .Appgallery]
+
+    public init(_ rawValue: String) {
+        switch rawValue {
+        case "iOS": self = .iOS
+        case "Android": self = .Android
+        case "Rustore": self = .Rustore
+        case "Appgallery": self = .Appgallery
+        default: self = .unknown(rawValue)
+        }
+    }
+
+    public init?(rawValue: String) { self.init(rawValue) }
+
+    public init(stringLiteral value: String) { self.init(value) }
+
+    public var rawValue: String {
+        switch self {
+        case .iOS: return "iOS"
+        case .Android: return "Android"
+        case .Rustore: return "Rustore"
+        case .Appgallery: return "Appgallery"
         case .unknown(let value): return value
         }
     }
@@ -2344,6 +2446,51 @@ public struct AuditDetailsKms: Codable {
     }
 }
 
+public struct AuditDetailsLoginGrantApproved: Codable {
+    public let loginGrantId: String
+    public let device: AuditLoginGrantDevice
+
+    public init(loginGrantId: String, device: AuditLoginGrantDevice) {
+        self.loginGrantId = loginGrantId
+        self.device = device
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case loginGrantId = "login_grant_id"
+        case device
+    }
+}
+
+public struct AuditDetailsLoginGrantCreated: Codable {
+    public let loginGrantId: String
+
+    public init(loginGrantId: String) {
+        self.loginGrantId = loginGrantId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case loginGrantId = "login_grant_id"
+    }
+}
+
+public struct AuditDetailsLoginGrantDenied: Codable {
+    public let loginGrantId: String
+    public let device: AuditLoginGrantDevice
+    public let reason: AuditLoginGrantDenyReason
+
+    public init(loginGrantId: String, device: AuditLoginGrantDevice, reason: AuditLoginGrantDenyReason) {
+        self.loginGrantId = loginGrantId
+        self.device = device
+        self.reason = reason
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case loginGrantId = "login_grant_id"
+        case device
+        case reason
+    }
+}
+
 public struct AuditDetailsOAuthAuthorizationGranted: Codable {
     public let clientId: String
     public let scopes: [String]
@@ -2474,6 +2621,21 @@ public struct AuditDetailsTokenScopes: Codable {
     }
 }
 
+public struct AuditDetailsUserLoginQr: Codable {
+    public let method: String
+    public let loginGrantId: String
+
+    public init(method: String, loginGrantId: String) {
+        self.method = method
+        self.loginGrantId = loginGrantId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case method
+        case loginGrantId = "login_grant_id"
+    }
+}
+
 public struct AuditDetailsUserUpdated: Codable {
     public let changedAttrs: [String]
     public let context: String?
@@ -2588,6 +2750,27 @@ public struct AuditEvent: Codable {
         case details
         case ipAddress = "ip_address"
         case userAgent = "user_agent"
+    }
+}
+
+public struct AuditLoginGrantDevice: Codable {
+    public let name: String
+    public let platform: AuditLoginGrantDevicePlatform
+    public let osVersion: String?
+    public let appVersion: String?
+
+    public init(name: String, platform: AuditLoginGrantDevicePlatform, osVersion: String? = nil, appVersion: String? = nil) {
+        self.name = name
+        self.platform = platform
+        self.osVersion = osVersion
+        self.appVersion = appVersion
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case platform
+        case osVersion = "os_version"
+        case appVersion = "app_version"
     }
 }
 
@@ -5698,6 +5881,10 @@ public enum AuditEventDetailsUnion: Codable {
     case auditDetailsBotOAuthClientDisabled(AuditDetailsBotOAuthClientDisabled)
     case auditDetailsToken(AuditDetailsToken)
     case auditDetailsBotTokenUpdated(AuditDetailsBotTokenUpdated)
+    case auditDetailsUserLoginQr(AuditDetailsUserLoginQr)
+    case auditDetailsLoginGrantCreated(AuditDetailsLoginGrantCreated)
+    case auditDetailsLoginGrantApproved(AuditDetailsLoginGrantApproved)
+    case auditDetailsLoginGrantDenied(AuditDetailsLoginGrantDenied)
 
     public init(from decoder: Decoder) throws {
         // AuditEventDetailsUnion carries no discriminator field: members are tried from most
@@ -5738,6 +5925,10 @@ public enum AuditEventDetailsUnion: Codable {
             self = .auditDetailsKms(value)
             return
         }
+        if let value = try? AuditDetailsLoginGrantDenied(from: decoder) {
+            self = .auditDetailsLoginGrantDenied(value)
+            return
+        }
         if let value = try? AuditDetailsRoleChanged(from: decoder) {
             self = .auditDetailsRoleChanged(value)
             return
@@ -5770,12 +5961,20 @@ public enum AuditEventDetailsUnion: Codable {
             self = .auditDetailsChatRenamed(value)
             return
         }
+        if let value = try? AuditDetailsLoginGrantApproved(from: decoder) {
+            self = .auditDetailsLoginGrantApproved(value)
+            return
+        }
         if let value = try? AuditDetailsOAuthAuthorizationGranted(from: decoder) {
             self = .auditDetailsOAuthAuthorizationGranted(value)
             return
         }
         if let value = try? AuditDetailsTagChat(from: decoder) {
             self = .auditDetailsTagChat(value)
+            return
+        }
+        if let value = try? AuditDetailsUserLoginQr(from: decoder) {
+            self = .auditDetailsUserLoginQr(value)
             return
         }
         if let value = try? AuditDetailsBot(from: decoder) {
@@ -5804,6 +6003,10 @@ public enum AuditEventDetailsUnion: Codable {
         }
         if let value = try? AuditDetailsInviter(from: decoder) {
             self = .auditDetailsInviter(value)
+            return
+        }
+        if let value = try? AuditDetailsLoginGrantCreated(from: decoder) {
+            self = .auditDetailsLoginGrantCreated(value)
             return
         }
         if let value = try? AuditDetailsTagName(from: decoder) {
@@ -5882,6 +6085,14 @@ public enum AuditEventDetailsUnion: Codable {
         case .auditDetailsToken(let value):
             try value.encode(to: encoder)
         case .auditDetailsBotTokenUpdated(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsUserLoginQr(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsLoginGrantCreated(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsLoginGrantApproved(let value):
+            try value.encode(to: encoder)
+        case .auditDetailsLoginGrantDenied(let value):
             try value.encode(to: encoder)
         }
     }

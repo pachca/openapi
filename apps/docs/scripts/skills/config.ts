@@ -1,3 +1,5 @@
+import type { ParsedAPI } from '../../lib/openapi/types';
+
 export interface SkillError {
   code: number | string;
   reason: string;
@@ -13,9 +15,53 @@ export interface SkillConfig {
   nearestAlternatives?: (string | { name: string; text: string })[];
   guides?: string[];
   errors?: SkillError[];
-  extraSections?: { title: string; content: string }[];
+  /** `content` as a function is built from the parsed spec, so it cannot drift from it. */
+  extraSections?: { title: string; content: string | ((api: ParsedAPI) => string) }[];
   extraGotchas?: string[];
   isRouter?: boolean;
+}
+
+// Categories of the pachca-security event_key table. Keys come from the
+// AuditEventKey enum of the spec, each one lands in the first category it
+// matches, and a key no category matches goes to "Other", so the table always
+// lists every key the API accepts.
+const AUDIT_EVENT_KEY_CATEGORIES: [string, RegExp][] = [
+  ['Auth', /^(user_login|user_logout|user_2fa_|login_grant_)/],
+  ['Employees', /^user_(created|deleted|role_changed|updated)$/],
+  ['Tags', /^(tag_(created|deleted)|user_(added_to|removed_from)_tag)$/],
+  ['Chats', /^chat_/],
+  ['Chat members', /^(user_chat_|tag_(added_to|removed_from)_chat$)/],
+  ['Messages', /^message_/],
+  ['Reactions and threads', /^(reaction_|thread_)/],
+  ['Tokens', /^(access_token_|bot_token_|oauth_token_)/],
+  ['Bots', /^bot_/],
+  ['App authorization', /^oauth_/],
+  ['Encryption', /^kms_/],
+  ['Security', /^(audit_events_|company_|dlp_)/],
+  ['Search (API)', /^search_\w+_api$/],
+  ['Video calls', /^video_call_/],
+  ['Integrations', /^exchange_/],
+];
+
+function auditEventKeyTable(api: ParsedAPI): string {
+  const keys = api.schemas['AuditEventKey']?.enum;
+  if (!keys?.length) throw new Error('pachca-security: AuditEventKey enum not found in the spec');
+
+  const groups = new Map<string, string[]>();
+  for (const [name] of AUDIT_EVENT_KEY_CATEGORIES) groups.set(name, []);
+  groups.set('Other', []);
+  for (const key of keys.map(String)) {
+    const match = AUDIT_EVENT_KEY_CATEGORIES.find(([, pattern]) => pattern.test(key));
+    groups.get(match ? match[0] : 'Other')?.push(key);
+  }
+
+  const rows = [...groups]
+    .filter(([, groupKeys]) => groupKeys.length > 0)
+    .map(([name, groupKeys]) => {
+      const cells = groupKeys.map((key) => `\`${key}\``).join(', ');
+      return `| ${name} | ${cells} |`;
+    });
+  return ['| Category | Keys |', '|----------|------|', ...rows].join('\n');
 }
 
 export const SKILL_TAG_MAP: SkillConfig[] = [
@@ -317,22 +363,12 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     extraSections: [
       {
         title: 'Available event_key values',
-        content: `| Category | Keys |
-|----------|------|
-| Auth | \`user_login\`, \`user_logout\`, \`user_2fa_fail\`, \`user_2fa_success\` |
-| Employees | \`user_created\`, \`user_deleted\`, \`user_role_changed\`, \`user_updated\` |
-| Tags | \`tag_created\`, \`tag_deleted\`, \`user_added_to_tag\`, \`user_removed_from_tag\` |
-| Chats | \`chat_created\`, \`chat_renamed\`, \`chat_permission_changed\` |
-| Chat members | \`user_chat_join\`, \`user_chat_leave\`, \`tag_added_to_chat\`, \`tag_removed_from_chat\` |
-| Messages | \`message_created\`, \`message_updated\`, \`message_deleted\` |
-| Reactions and threads | \`reaction_created\`, \`reaction_deleted\`, \`thread_created\` |
-| Tokens | \`access_token_created\`, \`access_token_updated\`, \`access_token_destroy\` |
-| Encryption | \`kms_encrypt\`, \`kms_decrypt\` |
-| Security | \`audit_events_accessed\`, \`dlp_violation_detected\` |
-| Search (API) | \`search_users_api\`, \`search_chats_api\`, \`search_messages_api\` |`,
+        content: auditEventKeyTable,
       },
     ],
-    extraGotchas: ['`start_time` and `end_time` are required parameters (ISO-8601, UTC+0)'],
+    extraGotchas: [
+      '`start_time` and `end_time` are optional (ISO-8601, bounds inclusive, a time without an offset is UTC): without them the method returns all events page by page',
+    ],
   },
 ];
 

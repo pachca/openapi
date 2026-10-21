@@ -26,7 +26,11 @@
  * Usage (through --mcp-config, never by hand):
  *   EVAL_TOOLS=<listing.json> EVAL_RECORD=<calls.jsonl> bun stub-server.ts
  *
- * EVAL_TOOLS         a JSON array of {name, description, input_schema}
+ * EVAL_TOOLS         a JSON array of {name, description, input_schema}, with
+ *                    title and heading_arguments for the heading of an answer
+ *                    the world has no text for, untrusted for the wrapper of a
+ *                    nested field and upload_arguments for the exactly-one rule
+ *                    of an upload item; those four are not served
  * EVAL_RECORD        where calls are appended, one JSON object per line
  * EVAL_INSTRUCTIONS  optional file with the server instructions
  * EVAL_RESPONSES     optional fake workspace the answers come from (world.json)
@@ -44,16 +48,54 @@ if (!TOOLS_PATH || !RECORD_PATH) {
   process.exit(1);
 }
 
+interface Listed {
+  name: string;
+  description: string;
+  inputSchema: unknown;
+  title?: string;
+  headingArguments?: string[];
+  untrusted?: string[];
+  uploadArguments?: string[];
+}
+
 /**
  * The listing is read on every request, not at startup, so inputs rebuilt
  * between passes reach a server that is already connected.
  */
-const readTools = (): Array<{ name: string; description: string; inputSchema: unknown }> =>
+const readTools = (): Listed[] =>
   (JSON.parse(fs.readFileSync(TOOLS_PATH!, 'utf8')) as Array<{
     name: string;
     description: string;
     input_schema: unknown;
-  }>).map((t) => ({ name: t.name, description: t.description, inputSchema: t.input_schema }));
+    title?: string;
+    heading_arguments?: string[];
+    untrusted?: string[];
+    upload_arguments?: string[];
+  }>).map((t) => ({
+    name: t.name,
+    description: t.description,
+    inputSchema: t.input_schema,
+    title: t.title,
+    headingArguments: t.heading_arguments,
+    untrusted: t.untrusted,
+    uploadArguments: t.upload_arguments,
+  }));
+
+/**
+ * The heading of `RESPONSE_FORMAT.shape` — the title, then each path and query
+ * argument passed except limit and cursor — for an answer the world has no text
+ * of its own to take one from: a page past the end of a list it has no heading
+ * for (`pick`).
+ */
+const headingOf = (tool: Listed, read: Record<string, unknown>): string | undefined => {
+  if (!tool.title) return undefined;
+  const named = new Set(tool.headingArguments ?? []);
+  const order = Object.keys((tool.inputSchema as Field).properties ?? {});
+  const parts = order
+    .filter((name) => named.has(name) && read[name] !== undefined && read[name] !== null)
+    .map((name) => ` · ${name} ${typeof read[name] === 'object' ? JSON.stringify(read[name]) : String(read[name])}`);
+  return `## ${tool.title}${parts.join('')}`;
+};
 
 /**
  * What a call answers with. A stub that says only "done" dead-ends every chain:
@@ -115,9 +157,50 @@ function calendar(world: World): { now: string; day: string; weekday: string; of
   return { now, day, weekday: WEEKDAYS[new Date(at).getUTCDay()]!, offset: `UTC${zone}`, days };
 }
 
+/**
+ * The dates of the seven days as the footer's Days line and `{days}` both spell
+ * them: «next week:» before the first Monday (`RESPONSE_FORMAT.footer`,
+ * `INSTRUCTION_PLACEHOLDERS.days`).
+ */
+const footerDays = (days: string): string => days.replace(/(^|· )Mon /, (_, lead: string) => `${lead}next week: Mon `);
+
+/**
+ * A day field of a record whose when holds reads as its date in the zone of Now
+ * with « (all day)» (`RESPONSE_FORMAT.whole_day`, day_fields: a task's due_at
+ * when all_day is true). The world writes its own records that way; an answer
+ * that echoes a moment from the call — a task made or moved to a whole day — is
+ * read the same way here, since the server shows the day and not the moment.
+ * The zone of Now is the offset `@now` carries.
+ */
+const offsetMinutes = (now: string): number => {
+  const parts = now.match(/([+-])(\d{2}):(\d{2})$/);
+  return parts ? (parts[1] === '-' ? -1 : 1) * (Number(parts[2]) * 60 + Number(parts[3])) : 0;
+};
+
+const dayIn = (moment: string, offset: number): string | undefined => {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(moment)) return moment;
+  const ms = Date.parse(moment);
+  return Number.isNaN(ms) ? undefined : isoDay(ms + offset * 60_000);
+};
+
+const wholeDays = (body: string, world: World): string => {
+  const offset = offsetMinutes(String(world['@now'] ?? ''));
+  // One record as bold labels: the whole answer is that record.
+  const allDay = /^\*\*all_day\*\* true$/m.test(body);
+  return body
+    .replace(/^(\*\*due_at\*\* )(\S+)$/gm, (line, label: string, moment: string) => {
+      const day = allDay ? dayIn(moment, offset) : undefined;
+      return day ? `${label}${day} (all day)` : line;
+    })
+    .replace(/(\bdue_at )(\S+)(?= · all_day true\b)/g, (part, label: string, moment: string) => {
+      const day = dayIn(moment, offset);
+      return day ? `${label}${day} (all day)` : part;
+    });
+};
+
 const footerOf = (world: World): string => {
   const { now, weekday, days } = calendar(world);
-  return `Now: ${now}, ${weekday} · you: ${String(world['@you'] ?? '')} · times above are UTC: tell them in the zone of Now\nDays: ${days}`;
+  return `Now: ${now}, ${weekday} · you: ${String(world['@you'] ?? '')} · times above ending in Z are UTC: tell them in the zone of Now\nDays: ${footerDays(days)}`;
 };
 
 /**
@@ -135,7 +218,7 @@ const readInstructions = (): string | undefined => {
   const fill: Record<string, string> = {
     caller: world['@role'] ? `${you}, ${String(world['@role'])}` : you,
     today: `${day}, ${weekday}, ${offset}`,
-    days,
+    days: footerDays(days),
   };
   return text.replace(/\{(caller|today|days)\}/g, (_, name: string) => fill[name] ?? '');
 };
@@ -158,60 +241,95 @@ interface Field {
   items?: Field;
   properties?: Record<string, Field>;
   required?: string[];
-  additionalProperties?: boolean;
+  /** false closes an object; a schema makes it a map, every value of which is read and checked by that schema. */
+  additionalProperties?: boolean | Field;
+  /** base64: read without a data: URL prefix and line breaks, refused when it does not decode. */
+  contentEncoding?: string;
 }
 
 /** The types a field declares, without the null it may also be: `["object", "null"]` reads as an object. */
 const typesOf = (field: Field): string[] => [field.type ?? []].flat().filter((t) => t !== 'null');
 const nullable = (field: Field): boolean => [field.type ?? []].flat().includes('null');
 
-const misfitAs = (type: string | undefined, field: Field, value: unknown): string | undefined => {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/** A property the object declares by that name; a key of a map is not one. */
+const ownField = (schema: Field, name: string): Field | undefined =>
+  schema.properties && Object.hasOwn(schema.properties, name) ? schema.properties[name] : undefined;
+
+/** The value schema of a map: what every key an object does not declare reads by. */
+const mapValue = (schema: Field): Field | undefined =>
+  typeof schema.additionalProperties === 'object' ? schema.additionalProperties : undefined;
+
+/** The field a key of an object reads by: its own property, or the value schema of a map. */
+const fieldOf = (schema: Field, name: string): Field | undefined => ownField(schema, name) ?? mapValue(schema);
+
+/**
+ * Where a value sits, the way a problem names it: `files[0].content`,
+ * `custom_properties[1].value`, and a key of a map in brackets with JSON
+ * quotes, since a key is any text and a URL holds dots of its own:
+ * `link_previews["https://a.b"].description`.
+ */
+const at = (path: string, name: string): string => (path ? `${path}.${name}` : name);
+const keyAt = (path: string, key: string): string => `${path}[${JSON.stringify(key)}]`;
+
+/** Base64 that decodes: the standard or the URL-safe alphabet, padding optional. */
+const decodes = (text: string): boolean => /^[A-Za-z0-9+/_-]*={0,2}$/.test(text) && text.replace(/=+$/, '').length % 4 !== 1;
+
+const problemsAs = (type: string, field: Field, value: unknown, path: string): string[] => {
   switch (type) {
     case 'integer':
-      return Number.isInteger(value) ? undefined : 'must be an integer';
+      return Number.isInteger(value) ? [] : [`${path} must be an integer`];
     case 'number':
-      return typeof value === 'number' ? undefined : 'must be a number';
+      return typeof value === 'number' ? [] : [`${path} must be a number`];
     case 'boolean':
-      return typeof value === 'boolean' ? undefined : 'must be true or false';
+      return typeof value === 'boolean' ? [] : [`${path} must be true or false`];
     case 'string':
-      if (typeof value !== 'string') return 'must be a string';
-      return field.enum && !field.enum.includes(value) ? `must be one of ${field.enum.join(', ')}` : undefined;
-    case 'array': {
-      if (!Array.isArray(value)) return 'must be an array';
-      const inner = value.map((item) => misfit(field.items ?? {}, item)).find(Boolean);
-      return inner ? `has an item that ${inner}` : undefined;
-    }
-    case 'object': {
-      if (!value || typeof value !== 'object' || Array.isArray(value)) return 'must be an object';
-      const inner = problemsOf(field, value as Record<string, unknown>);
-      return inner.length ? `has ${inner.join(', ')}` : undefined;
-    }
+      if (typeof value !== 'string') return [`${path} must be a string`];
+      if (field.enum && !field.enum.includes(value)) return [`${path} must be one of ${field.enum.join(', ')}`];
+      return field.contentEncoding === 'base64' && !decodes(value) ? [`${path} must be base64 that decodes`] : [];
+    case 'array':
+      if (!Array.isArray(value)) return [`${path} must be an array`];
+      return value.flatMap((item, index) => problemsAt(field.items ?? {}, item, `${path}[${index}]`));
+    case 'object':
+      return isRecord(value) ? problemsOf(field, value, path) : [`${path} must be an object`];
     default:
-      return undefined;
+      return [];
   }
 };
 
-const misfit = (field: Field, value: unknown): string | undefined => {
-  if (value === null) return nullable(field) || typesOf(field).length === 0 ? undefined : 'must not be null';
-  const types = typesOf(field);
-  if (types.length === 0) return undefined;
-  const reasons = types.map((type) => misfitAs(type, field, value));
-  return reasons.some((r) => r === undefined) ? undefined : reasons[0];
+/**
+ * What is wrong with one value, each problem at its own path
+ * (`RESPONSE_FORMAT.argument_reading`): a stray field of a file is
+ * `files[0].x`, not «files has an item that has x». A value that fits any type
+ * it declares fits; one that fits none gets the problems of the first.
+ */
+const problemsAt = (field: Field, value: unknown, path: string): string[] => {
+  if (value === null) return nullable(field) || typesOf(field).length === 0 ? [] : [`${path} must not be null`];
+  const found = typesOf(field).map((type) => problemsAs(type, field, value, path));
+  return found.length === 0 || found.some((problems) => problems.length === 0) ? [] : found[0]!;
 };
 
 /**
  * A value as the server reads it: by the declared type first, so text that reads
  * as that type is taken as meant (`RESPONSE_FORMAT.argument_reading`). A client
  * that has not loaded a schema sends every value as text, and the server does
- * not hold that against the call.
+ * not hold that against the call. The other way holds too: a number or true and
+ * false sent where text is declared is that text as JSON writes it — the value
+ * 32 of a text extra field reaches the API as "32".
  */
 const readValue = (field: Field, value: unknown): unknown => {
   const types = typesOf(field);
   if (typeof value !== 'string') {
     if (types.includes('array') && Array.isArray(value)) return value.map((item) => readValue(field.items ?? {}, item));
-    if (types.includes('object') && value && typeof value === 'object' && !Array.isArray(value)) {
-      return readArguments(field, value as Record<string, unknown>);
-    }
+    if (types.includes('object') && isRecord(value)) return readArguments(field, value);
+    const scalar = (typeof value === 'number' && Number.isFinite(value)) || typeof value === 'boolean';
+    const ownType =
+      typeof value === 'boolean'
+        ? types.includes('boolean')
+        : types.includes('number') || (types.includes('integer') && Number.isInteger(value));
+    if (scalar && !ownType && types.includes('string')) return readText(field, JSON.stringify(value));
     return value;
   }
   const text = value.trim();
@@ -239,32 +357,68 @@ const readValue = (field: Field, value: unknown): unknown => {
         }
         break;
       case 'string':
-        return field.enum?.find((v) => typeof v === 'string' && v.toLowerCase() === text.toLowerCase()) ?? value;
+        return readText(field, value);
     }
   }
   return value;
 };
 
+/**
+ * Text read for a field of type string: base64 without the prefix of a data:
+ * URL and without line breaks and spaces where the schema declares
+ * contentEncoding base64 — whether what is left decodes is checked after — and
+ * a value of the enum in another case as that value.
+ */
+const readText = (field: Field, value: string): string => {
+  if (field.contentEncoding === 'base64') return value.replace(/^\s*data:[^,]*;base64,/i, '').replace(/\s+/g, '');
+  const text = value.trim().toLowerCase();
+  const known = field.enum?.find((v) => typeof v === 'string' && v.toLowerCase() === text);
+  return typeof known === 'string' ? known : value;
+};
+
 const readArguments = (schema: Field, given: Record<string, unknown>): Record<string, unknown> =>
   Object.fromEntries(
     Object.entries(given).map(([name, value]) => {
-      const field = schema.properties?.[name];
+      const field = fieldOf(schema, name);
       return [name, field ? readValue(field, value) : value];
     }),
   );
 
-const problemsOf = (schema: Field, given: Record<string, unknown>): string[] => {
-  const properties = schema.properties ?? {};
-  const problems = (schema.required ?? []).filter((name) => given[name] === undefined).map((name) => `${name} is required`);
+/**
+ * The exactly-one rule of an upload item (`RESPONSE_FORMAT.argument_reading`):
+ * an item goes as the key of a file already in place or as its content, so one
+ * with both or with neither is refused at its own path, `files[0]`. An item
+ * that is not an object is refused by its type already.
+ */
+const keyOrContent = (value: unknown, name: string): string[] =>
+  (Array.isArray(value) ? value : [value]).flatMap((item, index) => {
+    if (!isRecord(item)) return [];
+    const has = (part: unknown) => part !== undefined && part !== null;
+    if (has(item.key) !== has(item.content)) return [];
+    return [`${Array.isArray(value) ? `${name}[${index}]` : name} takes exactly one of key or content`];
+  });
+
+/**
+ * What is wrong with the fields of one object, `uploads` naming the arguments
+ * of the tool whose items are uploaded. A field an object closed with
+ * additionalProperties false does not list is not an argument of the tool at
+ * the top and not a field of that object inside it; a key of a map is any key,
+ * named in brackets (`keyAt`).
+ */
+const problemsOf = (schema: Field, given: Record<string, unknown>, path = '', uploads: string[] = []): string[] => {
+  const problems = (schema.required ?? [])
+    .filter((name) => given[name] === undefined)
+    .map((name) => `${at(path, name)} is required`);
   for (const [name, value] of Object.entries(given)) {
-    const field = properties[name];
-    if (!field) {
-      if (schema.additionalProperties === false) problems.push(`${name} is not an argument of this tool`);
-      continue;
+    const own = ownField(schema, name);
+    const map = mapValue(schema);
+    if (own) problems.push(...problemsAt(own, value, at(path, name)));
+    else if (map) problems.push(...problemsAt(map, value, keyAt(path, name)));
+    else if (schema.additionalProperties === false) {
+      problems.push(path ? `${at(path, name)} is not a field of this object` : `${name} is not an argument of this tool`);
     }
-    const wrong = misfit(field, value);
-    if (wrong) problems.push(`${name} ${wrong}`);
   }
+  for (const name of uploads) problems.push(...keyOrContent(given[name], name));
   return problems;
 };
 
@@ -287,6 +441,56 @@ function ruleRefusal(name: string, read: Record<string, unknown>): string | unde
   return `!422 invalid_date_range · key system · message Выбран слишком большой диапазон дат: максимум ${allowed} дней.`;
 }
 
+/**
+ * The paths of the tool's untrusted list that reach inside one top-level field
+ * of a record, relative to it: `.outgoing_url` and `.commands[]` of webhook,
+ * `[].name` of files. A path that names the field itself is not among them.
+ */
+const untrustedInside = (tool: Listed | undefined, field: string): string[] =>
+  (tool?.untrusted ?? []).flatMap((path) => {
+    const parts = path.replace(/^data(\[\])?\./, '').match(/^(\w+)(.+)$/);
+    return parts && parts[1] === field ? [parts[2]!] : [];
+  });
+
+/** Whether a value at a relative path is there and is neither null nor empty: an empty string, list or object. */
+const holdsValue = (value: unknown, path: string): boolean => {
+  const steps = path.match(/\[\]|\.\w+/g) ?? [];
+  const walk = (node: unknown, i: number): boolean => {
+    if (i === steps.length) {
+      if (node === undefined || node === null || node === '') return false;
+      if (Array.isArray(node)) return node.length > 0;
+      return !isRecord(node) || Object.keys(node).length > 0;
+    }
+    const step = steps[i]!;
+    if (step === '[]') return Array.isArray(node) && node.some((item) => walk(item, i + 1));
+    return isRecord(node) && walk(node[step.slice(1)], i + 1);
+  };
+  return walk(value, 0);
+};
+
+/**
+ * Whether a nested field the world marks ⟦…⟧ goes in the wrapper
+ * (`RESPONSE_FORMAT.untrusted_wrapper`): the whole field, as its compact JSON,
+ * unless every value at a path of the tool's untrusted list inside it is
+ * absent, null, or an empty string, list or object. An answer that echoes a call cannot say that
+ * in advance — a bot created without outgoing_url has a webhook with no words
+ * in it — so the stub reads the JSON once it is filled. A field the list does
+ * not reach into, or text that does not read as JSON, keeps the wrapper the
+ * world gave it.
+ */
+const wrapsWhole = (tool: Listed | undefined, field: string, inner: string): boolean => {
+  const paths = untrustedInside(tool, field);
+  if (paths.length === 0) return true;
+  let value: unknown;
+  try {
+    value = JSON.parse(inner);
+  } catch {
+    return true;
+  }
+  if (value === null) return false;
+  return typeof value !== 'object' || paths.some((path) => holdsValue(value, path));
+};
+
 function handle(request: { id?: number | string; method: string; params?: any }): void {
   const { id, method, params } = request;
   if (method === 'initialize') {
@@ -306,7 +510,11 @@ function handle(request: { id?: number | string; method: string; params?: any })
     return;
   }
   if (method === 'tools/list') {
-    send({ jsonrpc: '2.0', id, result: { tools: readTools() } });
+    send({
+      jsonrpc: '2.0',
+      id,
+      result: { tools: readTools().map(({ name, description, inputSchema }) => ({ name, description, inputSchema })) },
+    });
     return;
   }
   if (method === 'tools/call') {
@@ -315,7 +523,7 @@ function handle(request: { id?: number | string; method: string; params?: any })
     // What is recorded and answered is what the server reads, not the text the
     // client happened to send.
     const read = tool ? readArguments(tool.inputSchema as Field, sent) : sent;
-    const problems = tool ? problemsOf(tool.inputSchema as Field, read) : [];
+    const problems = tool ? problemsOf(tool.inputSchema as Field, read, '', tool.uploadArguments ?? []) : [];
     const record = (refused?: string) =>
       fs.appendFileSync(
         RECORD_PATH!,
@@ -336,27 +544,44 @@ function handle(request: { id?: number | string; method: string; params?: any })
     // to hand back an id, or the next step is impossible for reasons that have
     // nothing to do with what is being measured.
     const name = String(params?.name ?? '').replace(/^.*pachca_/, '');
-    const answer = ruleRefusal(name, read) ?? pick(world[name], read) ?? pick(world['*'], read) ?? 'Done.';
+    const heading = tool ? headingOf(tool, read) : undefined;
+    const answer = ruleRefusal(name, read) ?? pick(world[name], read, heading) ?? pick(world['*'], read, heading) ?? 'Done.';
     // A canned answer that states an id of its own contradicts the call that
     // asked for another one, and the agent believes the answer: it read person
     // 3560 and then wrote to 18521. `{{user_id|18521}}` echoes what was asked,
     // falling back to the default when the argument was left out; `{{@me}}`
     // reads the world, and is filled first so it can stand in a fallback.
+    // Inside the compact JSON of a nested field, `{{outgoing_url:json|null}}`
+    // writes the value as a JSON literal — text quoted, null as null — and the
+    // fallback, itself JSON (`"commands"`, `["/status"]`, null when there is
+    // none), only when the argument was left out. Both forms are filled in one
+    // pass, so a value the call sent is never read as a template itself.
     const echo = (value: unknown) => (typeof value === 'object' ? JSON.stringify(value) : String(value));
     const filled = (text: string): string =>
       text
         .replace(/\{\{@(\w+)(?:\|([^}]*))?\}\}/g, (_, key: string, fallback = '') =>
           world[`@${key}`] === undefined ? fallback : echo(world[`@${key}`]),
         )
-        .replace(/\{\{(\w+)(?:\|([^}]*))?\}\}/g, (_, key: string, fallback = '') =>
-          read[key] === undefined || read[key] === null ? fallback : echo(read[key]),
-        );
+        .replace(/\{\{(@?)(\w+)(:json)?(?:\|([^}]*))?\}\}/g, (_, own: string, key: string, json?: string, fallback = '') => {
+          const value = own ? world[`@${key}`] : read[key];
+          if (json) return value === undefined ? fallback || 'null' : JSON.stringify(value);
+          return value === undefined || value === null ? fallback : echo(value);
+        });
     // Text written by other people goes inside the wrapper, with a nonce no
-    // content can guess (`RESPONSE_FORMAT.untrusted_wrapper`).
+    // content can guess (`RESPONSE_FORMAT.untrusted_wrapper`). The world marks
+    // it ⟦…⟧, a nested field as its compact JSON in one pair; an empty string
+    // carries no words and stays unwrapped, written "" as the world writes it,
+    // and so does a nested field that holds no words where the tool's untrusted
+    // list reaches into it (`wrapsWhole`).
     const nonce = crypto.randomBytes(4).toString('hex');
     const wrapped = (text: string): string =>
-      text.replace(/⟦([\s\S]*?)⟧/g, (_, inner: string) => `<pachca_content_${nonce}>${inner}</pachca_content_${nonce}>`);
-    let body = filled(typeof answer === 'string' ? answer : JSON.stringify(answer, null, 1));
+      text.replace(/⟦([\s\S]*?)⟧/g, (_, inner: string, offset: number) => {
+        if (inner === '') return '""';
+        const label = text.slice(Math.max(0, offset - 64), offset).match(/(?:\*\*(\w+)\*\*|(\w+):?) $/);
+        const field = label?.[1] ?? label?.[2];
+        return field && !wrapsWhole(tool, field, inner) ? inner : `<pachca_content_${nonce}>${inner}</pachca_content_${nonce}>`;
+      });
+    let body = wholeDays(filled(typeof answer === 'string' ? answer : JSON.stringify(answer, null, 1)), world);
     // A message sent in this run exists from then on: reading it back or reacting
     // to it answers as for any message, instead of the 404 the world gives an id
     // it does not know.

@@ -12,8 +12,21 @@
  */
 const RIDERS = new Set(['parent_message_id', 'draft_id', 'files']);
 
-/** The answer to a page the world does not have: an empty last one. */
-const endOfList = (cursor: string): string => `Nothing matched after cursor ${cursor}.\nEnd of list.`;
+/**
+ * The answer to a page the world does not have: an empty last one. Empty data
+ * after a cursor replaces the first line of `RESPONSE_FORMAT.pagination_footer`
+ * with nothing and keeps the second, so «End of list.» stands alone under the
+ * heading. The heading is the one the same call gets without its cursor, or
+ * `heading` where that answer has none; a call refused without its cursor —
+ * a chat that does not exist — is refused with one too.
+ */
+function endOfList(entry: unknown, given: Record<string, unknown>, heading?: string): unknown {
+  const first = Object.fromEntries(Object.entries(given).filter(([name]) => name !== 'cursor'));
+  const page = pick(entry, first, heading);
+  if (typeof page === 'string' && REFUSAL.test(page)) return page;
+  const top = typeof page === 'string' && page.startsWith('## ') ? page.split('\n')[0] : heading;
+  return top ? `${top}\nEnd of list.` : 'End of list.';
+}
 
 const spelled = (value: unknown): string => (typeof value === 'object' ? JSON.stringify(value) : String(value)).toLowerCase();
 
@@ -30,16 +43,18 @@ const spelled = (value: unknown): string => (typeof value === 'object' ? JSON.st
  * longer query that contains it — what a person types is never the key exactly —
  * while an enum value has to be exact: «undone» is not «done». A call that pages
  * on with a cursor the world does not know has reached the end, whether the
- * world keeps pages for that tool or one text; `*` answers anything else.
+ * world keeps pages for that tool or one text (`endOfList`, which takes the
+ * heading the stub builds from the tool's title for an answer without one);
+ * `*` answers anything else.
  */
-export function pick(entry: unknown, given: Record<string, unknown>): unknown {
+export function pick(entry: unknown, given: Record<string, unknown>, heading?: string): unknown {
   const cursor = given.cursor;
   const paging = typeof cursor === 'string' && cursor !== '';
   if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
-    return paging && typeof entry === 'string' ? endOfList(cursor) : entry;
+    return paging && typeof entry === 'string' ? endOfList(entry, given, heading) : entry;
   }
   const set = entry as Record<string, unknown>;
-  if (paging) return set[cursor] ?? endOfList(cursor);
+  if (paging) return set[cursor] ?? endOfList(set, given, heading);
   const about = Object.entries(given).filter(([name]) => !RIDERS.has(name));
   const exact = new Set(about.map(([, v]) => spelled(v)));
   for (const [, v] of about) if (Array.isArray(v)) v.forEach((item) => exact.add(String(item).toLowerCase()));

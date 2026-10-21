@@ -24,7 +24,7 @@ export default class ChatsCreate extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'name': Flags.string({
-      description: "Название (макс. 255 символов)",
+      description: "Название. Пустое название заменяется именем и фамилией владельца токена (у бота — его именем), а если их нет — никнеймом. (макс. 255 символов)",
     }),
     'member-ids': Flags.string({
       description: "Массив идентификаторов пользователей, которые станут участниками",
@@ -47,7 +47,7 @@ export default class ChatsCreate extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'name', label: "Название", type: 'string' },
+      { flag: 'name', label: "Название. Пустое название заменяется именем и фамилией владельца токена (у бота — его именем), а если их нет — никнеймом.", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {

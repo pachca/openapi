@@ -102,10 +102,11 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество записей для возврата
+          description: Количество записей для возврата. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
+            minimum: 1
             maximum: 50
             example: 1
             default: 50
@@ -272,6 +273,8 @@ paths:
         Саморегистрация вебхука бота
 
         Метод позволяет боту самостоятельно изменить `URL` своего исходящего вебхука своим же токеном — без участия администратора и без знания собственного `id`. Меняется вебхук того бота, которому принадлежит токен. Чтобы отключить вебхук, передайте пустую строку в `outgoing_url`.
+
+        Адрес бота с разворачиванием ссылок (событие `message_link_shared` или режим `trigger_on: unfurl`) меняет только администратор или владелец пространства методом [Редактирование бота](PUT /bots/{id}). Такому боту этот метод отвечает `400` на любой новый адрес, в том числе на пустую строку.
       parameters: []
       responses:
         '200':
@@ -388,7 +391,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -526,7 +529,7 @@ paths:
 
         Авторизацию от имени сотрудника можно включить сразу, передав `oauth_client`, а страницу в витрине заполнить в `promo`. У серверного клиента секрет приходит в `client_secret` один раз. Подробнее — в разделе [Настройка авторизации](/guides/oauth/setup). Ссылку авторизации для кнопки собирает и код на токен обменивает сервер бота — по шагам в разделе [Получение токена](/guides/oauth/flow).
 
-        Ник обязан заканчиваться на `_bot` и быть свободным в пространстве.
+        Ник обязан заканчиваться на `_bot` и быть свободным в пространстве. Бота с разворачиванием ссылок создаёт только администратор или владелец пространства.
 
         Аватар боту ставят после создания методом [Загрузка аватара бота](PUT /bots/{id}/avatar).
       parameters: []
@@ -784,11 +787,11 @@ paths:
 
         Когда `oauth_client` делает клиента серверным, его секрет приходит в `client_secret` один раз. Ссылку авторизации для кнопки собирает и код на токен обменивает сервер бота — по шагам в разделе [Получение токена](/guides/oauth/flow). Страницу в витрине задаёт `promo`, пока авторизация включена.
 
-        Включать событие `message_link_shared`, а у бота с ним менять домены, адрес вебхука и историю событий может только администратор или владелец пространства.
+        Только администратор или владелец пространства включает и выключает событие `message_link_shared`, включает режим `trigger_on: unfurl`, а у бота с одним из них меняет домены и адрес вебхука и включает историю событий.
 
         Если изменение лишает бота права состоять в тегах (`single_chat: true` или `who_can_add` со значением `creator` или `creator_admin`), он выходит из всех тегов и из чатов, куда попал через них, а в чатах, куда его добавили напрямую, остаётся. Подробнее — в разделе [Бот в тегах](/guides/bots/settings#bot-v-tegah).
 
-        Имя бота, авторизацию от имени сотрудника и страницу в витрине меняют только его создатель и администратор пространства, если настройки бота открывают администраторам доступ к редактированию. Остальные настройки нельзя менять у бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).
+        Имя бота, авторизацию от имени сотрудника и страницу в витрине меняют только его создатель и администратор пространства, если настройки бота открывают администраторам доступ к редактированию. Остальные настройки нельзя менять у бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» на вкладке «Основное»).
 
         Аватар бота ставят и убирают отдельные методы [Загрузка аватара бота](PUT /bots/{id}/avatar) и [Удаление аватара бота](DELETE /bots/{id}/avatar).
       parameters:
@@ -1395,7 +1398,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -2007,7 +2010,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -2721,9 +2724,9 @@ paths:
       description: |-
         Выход из чата
 
-        Владелец токена выходит из беседы, канала или треда сам. Из треда выходят по его `chat_id`. В закрытой беседе остальные видят системное сообщение о выходе, в открытом чате и канале — нет.
+        Владелец токена выходит из беседы или канала сам. В закрытой беседе остальные видят системное сообщение о выходе, в открытом чате и канале — нет.
 
-        Выйти нельзя, если сотрудника держит в чате привязанный тег: метод ответит `403`, пока тег не снимут с сотрудника или с чата. Гостю и мульти-гостю метод тоже отвечает `403`, какая бы роль в чате у них ни была. Из личной переписки выйти нельзя, ответ — `400` с кодом `personal_chat`. А вот из архивного чата выйти можно.
+        Выйти нельзя, если сотрудника держит в чате привязанный тег: метод ответит `403`, пока тег не снимут с сотрудника или с чата. Гостю и мульти-гостю метод тоже отвечает `403`, какая бы роль в чате у них ни была. Из треда и из личной переписки выйти нельзя: на тред метод отвечает `403`, на личную переписку — `400` с кодом `personal_chat`. А вот из архивного чата выйти можно.
 
         Вернуться в открытый чат можно самому, в закрытый — только если кто-то из участников добавит обратно. Другого сотрудника выводит [Исключение участника](DELETE /chats/{id}/members/{user_id}).
       parameters:
@@ -2815,7 +2818,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -3276,7 +3279,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -3424,7 +3427,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -3715,7 +3718,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -4161,7 +4164,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -4461,7 +4464,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -4687,7 +4690,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -4921,7 +4924,7 @@ paths:
 
         Текст, файлы и реакции пропадают у всех и не восстанавливаются, закрепление снимается, а в переписке на месте сообщения остаётся пометка «Сообщение удалено».
 
-        Тред, заведённый под этим сообщением, остаётся вместе со всей перепиской в нём. Повторное удаление отвечает `204` и уже ничего не меняет.
+        Тред, заведённый под этим сообщением, остаётся вместе со всей перепиской в нём. На уже удалённое сообщение метод отвечает `403`, а удалено ли оно, видно по полю `deleted_at` в ответе метода [Информация о сообщении](GET /messages/{id}).
       parameters:
         - name: id
           in: path
@@ -5338,7 +5341,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -5442,7 +5445,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -6077,7 +6080,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых результатов за один запрос
+          description: Количество возвращаемых результатов за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -6215,7 +6218,7 @@ paths:
 
         Ищет по тексту сообщений и по именам вложенных файлов, но только в чатах, где владелец токена состоит. Открытый канал, в который он не вступал, в поиск не попадает, хотя ленту его читать можно. Сообщения тредов в выдачу входят.
 
-        Слова запроса ищутся по словоформам и по части слова, опечатки при этом не исправляются. Запрос в кавычках ищется строгой фразой, поиск по части слова в нём не работает.
+        Слова запроса ищутся по словоформам и по части слова, опечатки при этом не исправляются. Запрос, целиком взятый в кавычки, ищется строгой фразой, поиск по части слова в нём не работает. Подходят прямые кавычки `"…"` и типографские `«…»`, `“…”`, `„…“`.
 
         По умолчанию сообщения приходят от новых к старым. `sort=relevance` переключает выдачу на соответствие запросу, где свежие сообщения всё равно ценятся выше.
 
@@ -6233,7 +6236,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых результатов за один запрос
+          description: Количество возвращаемых результатов за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -6417,7 +6420,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых результатов за один запрос
+          description: Количество возвращаемых результатов за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -6558,7 +6561,7 @@ paths:
 
         У напоминания должны быть ответственные. Если их не указать, ответственным становится владелец токена.
 
-        Ответственным для напоминания без привязки к каким-либо сущностям может стать любой сотрудник компании. Актуальный состав сотрудников компании вы можете получить в методе [Список сотрудников](GET /users). Ответственные, которых вызывающий не видит, молча отбрасываются: ответ приходит успешным, а в `performer_ids` их нет, поэтому сверяйте состав в ответе.
+        Ответственным для напоминания без привязки к каким-либо сущностям может стать любой сотрудник компании. Актуальный состав сотрудников компании вы можете получить в методе [Список сотрудников](GET /users). Если сотрудника с идентификатором из `performer_ids` не существует, метод отвечает `404`. Если вызывающий сотрудника не видит, ответ — `403`: так бывает с сотрудником другого пространства, приостановленным или удалённым, а у гостя — с теми, с кем у него нет общих чатов. Напоминание в обоих случаях не создаётся.
 
         Напоминание можно привязать к беседе полем `chat_id` — тогда кроме автора и ответственных его видят участники этой беседы. Привязывающий должен сам в ней состоять. В канале, в треде и в архивном чате напоминания не создаются.
 
@@ -6696,7 +6699,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -7054,7 +7057,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -7261,7 +7264,7 @@ paths:
 
         Вы можете заполнять дополнительные поля сотрудника, которые созданы в вашей компании. Получить актуальный список идентификаторов дополнительных полей сотрудника вы можете в методе [Список дополнительных полей](GET /custom_properties).
 
-        Поле `list_tags` сразу заводит сотрудника в теги, а вместе с тегами — и в чаты, к которым эти теги привязаны. У гостя теги не назначаются вовсе: ответ приходит успешный, а `list_tags` в нём пустой.
+        Поле `list_tags` сразу заводит сотрудника в теги, а вместе с тегами — и в чаты, к которым эти теги привязаны. Имя, которого в пространстве ещё нет, создаёт новый тег. У гостя теги не назначаются вовсе: ответ приходит успешный, а `list_tags` в нём пустой.
 
         Через параметр `chat_ids` сотрудника можно сразу добавить в указанные чаты. Чтобы создать гостя, передайте `role: "guest"` — для этой роли `chat_ids` обязателен и должен содержать ровно один активный чат, в который у токена есть право добавлять участников. При нарушении правил гостевого доступа возвращается `400` с ошибкой по полю `chat_ids`.
 
@@ -7357,7 +7360,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -8171,7 +8174,7 @@ paths:
         - name: limit
           in: query
           required: false
-          description: Количество возвращаемых сущностей за один запрос
+          description: Количество возвращаемых сущностей за один запрос. Целое число вне допустимых значений заменяется ближайшей границей.
           schema:
             type: integer
             format: int32
@@ -8750,7 +8753,7 @@ components:
       description: 'При: dlp_violation_detected'
     AuditDetailsEmpty:
       type: object
-      description: 'Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled.'
+      description: 'Пустые детали. При: user_login (кроме входа по QR-коду), user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled.'
     AuditDetailsInitiator:
       type: object
       required:
@@ -8790,6 +8793,48 @@ components:
           type: string
           description: Причина операции
       description: 'При: kms_encrypt, kms_decrypt'
+    AuditDetailsLoginGrantApproved:
+      type: object
+      required:
+        - login_grant_id
+        - device
+      properties:
+        login_grant_id:
+          type: string
+          description: Идентификатор запроса на вход по QR-коду, общий для всех событий одного входа
+        device:
+          allOf:
+            - $ref: '#/components/schemas/AuditLoginGrantDevice'
+          description: Устройство, на котором выполнялся вход
+      description: 'При: login_grant_approved'
+    AuditDetailsLoginGrantCreated:
+      type: object
+      required:
+        - login_grant_id
+      properties:
+        login_grant_id:
+          type: string
+          description: Идентификатор запроса на вход по QR-коду, общий для всех событий одного входа
+      description: 'При: login_grant_created'
+    AuditDetailsLoginGrantDenied:
+      type: object
+      required:
+        - login_grant_id
+        - device
+        - reason
+      properties:
+        login_grant_id:
+          type: string
+          description: Идентификатор запроса на вход по QR-коду, общий для всех событий одного входа
+        device:
+          allOf:
+            - $ref: '#/components/schemas/AuditLoginGrantDevice'
+          description: Устройство, на котором выполнялся вход
+        reason:
+          allOf:
+            - $ref: '#/components/schemas/AuditLoginGrantDenyReason'
+          description: Причина отказа
+      description: 'При: login_grant_denied'
     AuditDetailsOAuthAuthorizationGranted:
       type: object
       required:
@@ -8931,6 +8976,19 @@ components:
             type: string
           description: Скоупы токена
       description: 'При: access_token_created, access_token_updated, access_token_destroy в записях до 7 октября 2026 года'
+    AuditDetailsUserLoginQr:
+      type: object
+      required:
+        - method
+        - login_grant_id
+      properties:
+        method:
+          type: string
+          description: 'Способ входа: `qr` — вход по QR-коду'
+        login_grant_id:
+          type: string
+          description: Идентификатор запроса на вход по QR-коду, общий для всех событий одного входа
+      description: 'При: user_login, если вход был по QR-коду'
     AuditDetailsUserUpdated:
       type: object
       required:
@@ -9114,6 +9172,10 @@ components:
         - $ref: '#/components/schemas/AuditDetailsBotOAuthClientDisabled'
         - $ref: '#/components/schemas/AuditDetailsToken'
         - $ref: '#/components/schemas/AuditDetailsBotTokenUpdated'
+        - $ref: '#/components/schemas/AuditDetailsUserLoginQr'
+        - $ref: '#/components/schemas/AuditDetailsLoginGrantCreated'
+        - $ref: '#/components/schemas/AuditDetailsLoginGrantApproved'
+        - $ref: '#/components/schemas/AuditDetailsLoginGrantDenied'
       description: Дополнительные детали события аудита. Структура зависит от значения event_key.
     AuditEventKey:
       type: string
@@ -9123,6 +9185,9 @@ components:
         - user_2fa_fail
         - user_2fa_success
         - user_2fa_disabled
+        - login_grant_created
+        - login_grant_approved
+        - login_grant_denied
         - user_created
         - user_deleted
         - user_role_changed
@@ -9184,6 +9249,9 @@ components:
         user_2fa_fail: Неудачная попытка двухфакторной аутентификации
         user_2fa_success: Успешная двухфакторная аутентификация
         user_2fa_disabled: Двухфакторная аутентификация отключена у сотрудника
+        login_grant_created: Создан QR-код для входа в мобильное приложение
+        login_grant_approved: Сотрудник подтвердил вход по QR-коду
+        login_grant_denied: Вход по QR-коду отклонён
         user_created: Создана новая учетная запись пользователя
         user_deleted: Учетная запись пользователя удалена
         user_role_changed: Роль пользователя была изменена
@@ -9238,6 +9306,51 @@ components:
         video_call_finished: Видеозвонок завершён
         video_call_recording_ready: Запись видеозвонка готова
         exchange_disabled: Отключена интеграция с Exchange
+    AuditLoginGrantDenyReason:
+      type: string
+      enum:
+        - denied
+        - verification_failed
+      description: Причина отказа во входе по QR-коду
+      x-enum-descriptions:
+        denied: Сотрудник отклонил вход
+        verification_failed: Сотрудник ввёл не те цифры, что показало устройство
+    AuditLoginGrantDevice:
+      type: object
+      required:
+        - name
+        - platform
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Название устройства
+        platform:
+          allOf:
+            - $ref: '#/components/schemas/AuditLoginGrantDevicePlatform'
+          description: Платформа приложения
+        os_version:
+          type: string
+          maxLength: 255
+          description: Версия операционной системы. Есть, если приложение её передало.
+        app_version:
+          type: string
+          maxLength: 255
+          description: Версия приложения Пачки. Есть, если приложение её передало.
+      description: Устройство при входе по QR-коду. Данные о нём присылает само приложение, сервер сверяет только их формат.
+    AuditLoginGrantDevicePlatform:
+      type: string
+      enum:
+        - iOS
+        - Android
+        - Rustore
+        - Appgallery
+      description: Платформа мобильного приложения, в котором выполняется вход по QR-коду
+      x-enum-descriptions:
+        iOS: Приложение для iOS
+        Android: Приложение для Android
+        Rustore: Приложение для Android из RuStore
+        Appgallery: Приложение для Android из AppGallery
     AvatarData:
       type: object
       required:
@@ -10609,7 +10722,7 @@ components:
             name:
               type: string
               maxLength: 255
-              description: Название
+              description: Название. Пустое название заменяется именем и фамилией владельца токена (у бота — его именем), а если их нет — никнеймом.
               example: 🤿 aqua
             member_ids:
               type: array

@@ -60,7 +60,7 @@ export function getOrderedPages(): OrderedPage[] {
             addPage(pages, child, '/guides/', item.title);
           }
         } else {
-          addPage(pages, item, '/guides/', tabPrefix);
+          addPage(pages, item, '/guides/', tabPrefix ?? section.titlePrefix);
         }
       }
     }

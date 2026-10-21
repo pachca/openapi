@@ -6,7 +6,7 @@
 
 Это руководство поможет вам выполнить первый запрос к API Пачки — от получения токена до создания чата.
 
-> Для работы с API нужен аккаунт Пачки с доступом к API (настраивается [владельцем пространства](/api/authorization#kto-mozhet-sozdavat-tokeny)) и любой HTTP-клиент — терминал с cURL, [Postman или Bruno](/api/requests-responses#postman-bruno). Также можно использовать [CLI](/guides/cli/overview) — все методы доступны как команды.
+> Для работы с API нужен аккаунт Пачки с доступом к API (настраивается [владельцем пространства](/api/authorization#kto-mozhet-sozdavat-tokeny)) и любой HTTP-клиент — терминал с cURL, [Postman или Bruno](/api/requests-responses#postman-bruno). Все методы доступны и как команды [CLI](/guides/cli/overview), и как инструменты AI-агента через [MCP-сервер](/guides/ai-agents/mcp).
 
 
 ## Первые запросы
@@ -74,6 +74,7 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 - [Боты](/guides/bots/overview) — Интеграции с вебхуками, кнопками и формами
 - [CLI](/guides/cli/overview) — Скрипты и одноразовые задачи из терминала
 - [n8n](/guides/n8n/overview) — No-code workflow с готовыми нодами
+- [MCP-сервер](/guides/ai-agents/mcp) — Весь API как инструменты AI-агента в Claude Code, Cursor и других программах
 
 
 Если нужен типизированный клиент — [SDK](/guides/sdk/overview) для TypeScript, Python, Go, Kotlin, Swift и C#.

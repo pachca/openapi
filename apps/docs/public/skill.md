@@ -53,6 +53,17 @@ Scopes decide which methods a token may call; they never widen the data beyond t
 
 A personal token issued in the interface does not expire. One obtained by `pachca auth login` lives an hour and renews itself. Some methods answer only to a bot token: opening a form, creating link previews, self-registering a bot webhook, deleting a webhook event.
 
+## MCP server
+
+`https://mcp.pachca.com/mcp` (Streamable HTTP) gives an MCP client one tool per API method, under the same rights as the token it connects with. Clients that support OAuth Client ID Metadata Document (CIMD), such as Claude Code, Claude, VS Code and Codex, sign in through the browser with a consent screen; others send a personal or bot token in `Authorization: Bearer <TOKEN>`.
+
+```bash
+# Claude Code: add the server, then sign in with /mcp
+claude mcp add --transport http pachca https://mcp.pachca.com/mcp
+```
+
+Guides: https://dev.pachca.com/guides/ai-agents/mcp-connect.md (connecting clients), https://dev.pachca.com/guides/ai-agents/mcp-tools.md (all tools).
+
 ## Capabilities
 
 ### OAuth
@@ -262,12 +273,15 @@ Error response body: `{ "errors": [{ "key": "field", "value": "description" }] }
 Detailed documentation on specific topics is available at:
 
 - [Быстрый старт](https://dev.pachca.com/guides/quickstart) — Первый запрос к API Пачки за 5 минут: получение персонального токена, проверка авторизации и отправка сообщения через cURL, Postman или официальный CLI
-- [AI-агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview) — Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — llms.txt, CLI как основной путь, Agent Skills, OpenAPI, Arazzo, Context7
+- [Треды](https://dev.pachca.com/guides/threads) — Треды в Пачке для разработчиков: сквозные и самостоятельные треды как уникальная особенность, создание у сообщения (POST /messages/{id}/thread) и без привязки к сообщению (POST /threads), отправка комментариев, добавление участников, видимость родительского чата, нюансы API и поля Message.thread/root_chat_id
+- [Теги](https://dev.pachca.com/guides/tags) — Теги в Пачке: тег как состав беседы или канала с автоматической синхронизацией участников, упоминание тега в сообщении и в треде, поле list_tags у сотрудника, правила названий, права и события журнала аудита
+- [AI-агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview) — Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — MCP-сервер Пачки, CLI, llms.txt, Agent Skills, OpenAPI, Arazzo, Context7
+- [AI-агенты, MCP-сервер](https://dev.pachca.com/guides/ai-agents/mcp) — MCP-сервер Пачки: адрес https://mcp.pachca.com/mcp, зачем он, если есть API и CLI, инструмент на каждый метод API, те же права, что в API, подтверждение действий, безопасность и пределы
+- [AI-агенты, Подключение к MCP](https://dev.pachca.com/guides/ai-agents/mcp-connect) — Как подключить MCP-сервер Пачки: сравнение способов, вход через браузер с экраном согласия в Claude Code, Claude, VS Code и Codex, персональный токен в заголовке для Cursor, Windsurf, SourceCraft Code Assistant и программ с локальными серверами, агент только для чтения, несколько пространств, токен бота для агентов в Yandex AI Studio и на GigaChat, список «Авторизации», отзыв доступа и разбор отказов
+- [AI-агенты, Инструменты MCP](https://dev.pachca.com/guides/ai-agents/mcp-tools) — Все инструменты MCP-сервера Пачки: инструмент на каждый метод публичного API, какой метод вызывает каждый, кому он доступен, пометки чтения и изменения, как агент отправляет файл, набор по роли, тарифу и типу токена, манифест @pachca/mcp-manifest
 - [AI-агенты, Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction) — Как устроен AI-агент в Пачке: агент — это бот, которого зовут по нику в треде или пишут ему в личные сообщения. Как агент собирает контекст треда, показывает, что работает, реакцией agent-thinking с таймером и отвечает
 - [AI-агенты, Черновик вместо отправки](https://dev.pachca.com/guides/ai-agents/drafts) — Агент готовит сообщение черновиком, а отправляет сотрудник: зачем это нужно, почему работает только личным токеном, один черновик на чат и чем от черновика отличается отложенное сообщение
 - [AI-агенты, Оформление ответов](https://dev.pachca.com/guides/ai-agents/markdown) — Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чеклисты, подсветка кода, diff, диаграммы Mermaid. Файлы .html открываются просмотром прямо в переписке
-- [Треды](https://dev.pachca.com/guides/threads) — Треды в Пачке для разработчиков: сквозные и самостоятельные треды как уникальная особенность, создание у сообщения (POST /messages/{id}/thread) и без привязки к сообщению (POST /threads), отправка комментариев, добавление участников, видимость родительского чата, нюансы API и поля Message.thread/root_chat_id
-- [Теги](https://dev.pachca.com/guides/tags) — Теги в Пачке: тег как состав беседы или канала с автоматической синхронизацией участников, упоминание тега в сообщении и в треде, поле list_tags у сотрудника, правила названий, права и события журнала аудита
 - [Боты, Обзор](https://dev.pachca.com/guides/bots/overview) — Боты в Пачке: сервисный участник пространства, на котором строятся интеграции. Что умеет бот, с чего начать под вашу задачу, где бот находится в интерфейсе, вкладка «Управление» и подмена имени отправителя
 - [Боты, Создание бота](https://dev.pachca.com/guides/bots/setup) — Как создать бота в Пачке: в разделе «Интеграции» или методом API, что настроить сразу после создания и жизненный цикл бота через API
 - [Боты, Настройки бота](https://dev.pachca.com/guides/bots/settings) — Вкладка «Основное» в карточке бота: профиль, ограничение одним чатом, публичный бот, кто может добавлять бота в чаты и редактировать его настройки, бот в тегах, удаление бота и те же настройки через API
@@ -325,7 +339,7 @@ Detailed documentation on specific topics is available at:
 - [n8n, Миграция с v1](https://dev.pachca.com/guides/n8n/migration) — Обновление расширения Пачки для n8n с v1 на v2: таблицы переименований, новые возможности и полная обратная совместимость для существующих workflow
 - [Последние обновления](https://dev.pachca.com/updates) — История изменений API Пачки, CLI, SDK и расширения для n8n. Новые методы, параметры и возможности. RSS-лента и markdown-версия для AI-агентов и интеграций
 - [Основы API, Обзор](https://dev.pachca.com/api/overview) — Обзор REST API Пачки: базовый URL, авторизация по Bearer-токену, формат запросов и ответов, клиенты и SDK для CLI, TypeScript, Python, Go, Kotlin, Swift и C#
-- [Основы API, Авторизация](https://dev.pachca.com/api/authorization) — Авторизация в API Пачки: персональный токен и токен бота, скоупы методов, headless-интеграции для агентов, настройка доступа для администраторов и сотрудников, смена владельца пространства
+- [Основы API, Авторизация](https://dev.pachca.com/api/authorization) — Авторизация в API Пачки: персональный токен и токен бота, токен по авторизации для ботов и программ с MCP, скоупы методов, headless-интеграции для агентов, настройка доступа для администраторов и сотрудников, смена владельца пространства
 - [Основы API, Запросы и ответы](https://dev.pachca.com/api/requests-responses) — Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
 - [Основы API, Пагинация](https://dev.pachca.com/api/pagination) — Пагинация в API Пачки по курсору: две группы методов (списочные и поиск) с разной структурой meta, поля next_page, prev_page, has_next, has_prev, обход всех записей и polling новых данных через prev_page
 - [Основы API, Загрузка файлов](https://dev.pachca.com/api/file-uploads) — Файлы в API Пачки: трёхшаговая загрузка через presigned URL S3, типы вложений и их поля, ссылка на скачивание и когда она ведёт не в хранилище, а на адрес API

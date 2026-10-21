@@ -90,6 +90,9 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     'токен из интерфейса бессрочный, полученный входом через CLI живёт час и продлевается ' +
     'сам.\n';
   content +=
+    '- **MCP-сервер:** `https://mcp.pachca.com/mcp`, права те же, что у токена. ' +
+    'Подробнее — в разделе «MCP-сервер» ниже.\n';
+  content +=
     '- **Пагинация (курсорная):** `limit` (1–50, дефолт 50) + `cursor`. Передавай `limit` явно.\n';
   content +=
     '  - Списочные методы: `meta.paginate` всегда содержит `next_page`, `prev_page`, ' +
@@ -214,6 +217,19 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     'C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessageAsync(...)\n';
   content += '```\n\n';
 
+  content += '## MCP-сервер\n\n';
+  content +=
+    'Адрес: `https://mcp.pachca.com/mcp` (Streamable HTTP). Инструмент на каждый метод API, ' +
+    'список зависит от роли, тарифа и типа токена. Программы с поддержкой OAuth Client ID ' +
+    'Metadata Document (Claude Code, Claude, VS Code, Codex) входят через браузер с экраном ' +
+    'согласия, остальные передают личный токен или токен бота в заголовке ' +
+    '`Authorization: Bearer <TOKEN>`. Агенты в Yandex AI Studio и на GigaChat (GigaChain, ' +
+    '`langchain-mcp-adapters`) подключаются токеном бота в том же заголовке. Claude Code: ' +
+    '`claude mcp add --transport http pachca https://mcp.pachca.com/mcp`, затем `/mcp` для входа. ' +
+    `Как устроен: [MCP-сервер](${SITE_URL}/guides/ai-agents/mcp.md), подключение программ: ` +
+    `[Подключение к MCP](${SITE_URL}/guides/ai-agents/mcp-connect.md), все инструменты: ` +
+    `[Инструменты MCP](${SITE_URL}/guides/ai-agents/mcp-tools.md).\n\n`;
+
   content += '## Agent Skills\n\n';
   content += 'Скиллы для AI-агентов (Claude Code, Cursor и др.):\n\n';
   content += '| Скилл | Описание |\n';
@@ -285,12 +301,13 @@ function insertLlmsDocumentMap(content: string): string {
 
   const cliIdx = idxOf('## CLI Quick Start');
   const sdkIdx = idxOf('## SDK');
+  const mcpIdx = idxOf('## MCP-сервер');
   const skillsIdx = idxOf('## Agent Skills');
   const coreIdx = idxOf('## Основное');
   const guidesIdx = idxOf('## Руководства');
   const updIdx = idxOf('## Обновления');
   const addIdx = idxOf('## Дополнительно');
-  if ([cliIdx, sdkIdx, skillsIdx, coreIdx, guidesIdx, updIdx, addIdx].some((i) => i < 0))
+  if ([cliIdx, sdkIdx, mcpIdx, skillsIdx, coreIdx, guidesIdx, updIdx, addIdx].some((i) => i < 0))
     return content;
 
   // First API tag section: first `## ` header after Руководства that is not Дополнительно
@@ -309,6 +326,7 @@ function insertLlmsDocumentMap(content: string): string {
     { name: 'Основное', desc: 'Авторизация, пагинация, лимиты, ошибки, файлы', idx: coreIdx },
     { name: 'CLI Quick Start', desc: 'Установка, команды, точечная справка по API', idx: cliIdx },
     { name: 'SDK', desc: 'Типизированные клиенты для 6 языков', idx: sdkIdx },
+    { name: 'MCP-сервер', desc: 'Адрес, вход и инструменты MCP', idx: mcpIdx },
     { name: 'Agent Skills', desc: 'Скиллы для AI-агентов и установка', idx: skillsIdx },
     { name: 'Руководства', desc: 'Страницы-руководства (Markdown по `.md`)', idx: guidesIdx },
     { name: 'API-методы', desc: 'Все эндпоинты, сгруппированы по разделам', idx: apiIdx },
@@ -363,6 +381,7 @@ function generateLibraryRules(): string {
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
 - Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
 - A personal token issued in the interface does not expire; one obtained by \`pachca auth login\` lives an hour and renews itself
+- MCP server: \`https://mcp.pachca.com/mcp\`, one tool per API method under the same rights as the token. Clients that support OAuth Client ID Metadata Document (CIMD), such as Claude Code, Claude, VS Code and Codex, sign in through the browser and get a one-hour token that renews itself; other clients send a personal or bot token in \`Authorization: Bearer <TOKEN>\`
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: \`const client = new PachcaClient("YOUR_TOKEN")\`
 - Python SDK: \`client = PachcaClient("YOUR_TOKEN")\`
@@ -1581,7 +1600,18 @@ Authorization: Bearer <access_token>
 
 Scopes decide which methods a token may call; they never widen the data beyond the boundary of the token type. What a token may do also follows the current role of its owner, and that is checked on every request — a lowered role starts answering 403 without the token being touched.
 
-A personal token issued in the interface does not expire. One obtained by \`pachca auth login\` lives an hour and renews itself. Some methods answer only to a bot token: opening a form, creating link previews, self-registering a bot webhook, deleting a webhook event.`;
+A personal token issued in the interface does not expire. One obtained by \`pachca auth login\` lives an hour and renews itself. Some methods answer only to a bot token: opening a form, creating link previews, self-registering a bot webhook, deleting a webhook event.
+
+## MCP server
+
+\`https://mcp.pachca.com/mcp\` (Streamable HTTP) gives an MCP client one tool per API method, under the same rights as the token it connects with. Clients that support OAuth Client ID Metadata Document (CIMD), such as Claude Code, Claude, VS Code and Codex, sign in through the browser with a consent screen; others send a personal or bot token in \`Authorization: Bearer <TOKEN>\`.
+
+\`\`\`bash
+# Claude Code: add the server, then sign in with /mcp
+claude mcp add --transport http pachca https://mcp.pachca.com/mcp
+\`\`\`
+
+Guides: ${SITE_URL}/guides/ai-agents/mcp-connect.md (connecting clients), ${SITE_URL}/guides/ai-agents/mcp-tools.md (all tools).`;
 
   const workflowsSection = generateWorkflowsSection();
 
@@ -2517,7 +2547,7 @@ function assertGeneratedMarkdownIntegrity(llmsTxt: string) {
   walk(publicDir);
 
   const LEAK_TAGS =
-    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero)\b/;
+    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero|McpTools|CliCommands)\b/;
   const errors: string[] = [];
 
   for (const file of mdFiles) {

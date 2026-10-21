@@ -45,7 +45,8 @@ const JSX_PROP_MARKDOWN: Record<string, string> = {
   ApiIntroNotes:
     'Если только начинаете, загляните в [руководства](/) с пошаговыми примерами. ' +
     'Можно обойтись и без написания кода: соберите интеграции из визуальных блоков ' +
-    'в no-code инструменте [n8n](/guides/n8n/overview).',
+    'в no-code инструменте [n8n](/guides/n8n/overview). AI-агенту в Claude Code, Cursor и других ' +
+    'программах весь API доступен через [MCP-сервер](/guides/ai-agents/mcp).',
 };
 
 function formatSchemaWithTitle(schema: Schema, title?: string): string {
@@ -799,6 +800,28 @@ export async function expandMdxComponents(content: string): Promise<string> {
     }
     md += '\n';
     result = result.replace(/<CliCommands\s*\/>/g, md);
+  }
+
+  // <McpTools /> -> one markdown table per area of the API: tool name, the
+  // method it calls as an endpoint link (resolved at write), who gets the tool
+  // and whether it reads or changes data. Source: packages/spec/mcp-manifest.json.
+  if (result.includes('<McpTools')) {
+    const { getMcpToolGroups, MCP_ACTION_LABELS } = await import('./mcp-data');
+    const { parseOpenAPI } = await import('./openapi/parser');
+    const { generateTitle } = await import('./openapi/mapper');
+    const api = await parseOpenAPI();
+    const endpoints = new Map(api.endpoints.map((ep) => [`${ep.method} ${ep.path}`, ep]));
+    let md = '';
+    for (const group of getMcpToolGroups((operation) => endpoints.get(operation)?.tags[0])) {
+      md += `**${group.title}**\n\n| Инструмент | Метод API | Кому доступен | Действие |\n|------------|-----------|---------------|----------|\n`;
+      for (const tool of group.tools) {
+        const ep = endpoints.get(tool.operation);
+        const link = ep ? `[${generateTitle(ep)}](${tool.operation})` : `\`${tool.operation}\``;
+        md += `| \`${tool.name}\` | ${link} | ${tool.audience} | ${MCP_ACTION_LABELS[tool.action]} |\n`;
+      }
+      md += '\n';
+    }
+    result = result.replace(/<McpTools\s*\/>/g, md);
   }
 
   // <GlobalFlags /> -> markdown table of global CLI flags (D3 single source)

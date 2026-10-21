@@ -17,6 +17,9 @@ const (
 	AuditEventKeyUser2faFail                      AuditEventKey = "user_2fa_fail" // Неудачная попытка двухфакторной аутентификации
 	AuditEventKeyUser2faSuccess                   AuditEventKey = "user_2fa_success" // Успешная двухфакторная аутентификация
 	AuditEventKeyUser2faDisabled                  AuditEventKey = "user_2fa_disabled" // Двухфакторная аутентификация отключена у сотрудника
+	AuditEventKeyLoginGrantCreated                AuditEventKey = "login_grant_created" // Создан QR-код для входа в мобильное приложение
+	AuditEventKeyLoginGrantApproved               AuditEventKey = "login_grant_approved" // Сотрудник подтвердил вход по QR-коду
+	AuditEventKeyLoginGrantDenied                 AuditEventKey = "login_grant_denied" // Вход по QR-коду отклонён
 	AuditEventKeyUserCreated                      AuditEventKey = "user_created" // Создана новая учетная запись пользователя
 	AuditEventKeyUserDeleted                      AuditEventKey = "user_deleted" // Учетная запись пользователя удалена
 	AuditEventKeyUserRoleChanged                  AuditEventKey = "user_role_changed" // Роль пользователя была изменена
@@ -71,6 +74,24 @@ const (
 	AuditEventKeyVideoCallFinished                AuditEventKey = "video_call_finished" // Видеозвонок завершён
 	AuditEventKeyVideoCallRecordingReady          AuditEventKey = "video_call_recording_ready" // Запись видеозвонка готова
 	AuditEventKeyExchangeDisabled                 AuditEventKey = "exchange_disabled" // Отключена интеграция с Exchange
+)
+
+// AuditLoginGrantDenyReason may hold a value this SDK does not list yet: a response keeps it as is.
+type AuditLoginGrantDenyReason string
+
+const (
+	AuditLoginGrantDenyReasonDenied             AuditLoginGrantDenyReason = "denied" // Сотрудник отклонил вход
+	AuditLoginGrantDenyReasonVerificationFailed AuditLoginGrantDenyReason = "verification_failed" // Сотрудник ввёл не те цифры, что показало устройство
+)
+
+// AuditLoginGrantDevicePlatform may hold a value this SDK does not list yet: a response keeps it as is.
+type AuditLoginGrantDevicePlatform string
+
+const (
+	AuditLoginGrantDevicePlatformIOS        AuditLoginGrantDevicePlatform = "iOS" // Приложение для iOS
+	AuditLoginGrantDevicePlatformAndroid    AuditLoginGrantDevicePlatform = "Android" // Приложение для Android
+	AuditLoginGrantDevicePlatformRustore    AuditLoginGrantDevicePlatform = "Rustore" // Приложение для Android из RuStore
+	AuditLoginGrantDevicePlatformAppgallery AuditLoginGrantDevicePlatform = "Appgallery" // Приложение для Android из AppGallery
 )
 
 // BotCanEdit may hold a value this SDK does not list yet: a response keeps it as is.
@@ -681,6 +702,21 @@ type AuditDetailsKms struct {
 	Reason    string `json:"reason"`
 }
 
+type AuditDetailsLoginGrantApproved struct {
+	LoginGrantID string                `json:"login_grant_id"`
+	Device       AuditLoginGrantDevice `json:"device"`
+}
+
+type AuditDetailsLoginGrantCreated struct {
+	LoginGrantID string `json:"login_grant_id"`
+}
+
+type AuditDetailsLoginGrantDenied struct {
+	LoginGrantID string                    `json:"login_grant_id"`
+	Device       AuditLoginGrantDevice     `json:"device"`
+	Reason       AuditLoginGrantDenyReason `json:"reason"`
+}
+
 type AuditDetailsOAuthAuthorizationGranted struct {
 	ClientID string   `json:"client_id"`
 	Scopes   []string `json:"scopes"`
@@ -727,6 +763,11 @@ type AuditDetailsTokenScopes struct {
 	Scopes []string `json:"scopes"`
 }
 
+type AuditDetailsUserLoginQr struct {
+	Method       string `json:"method"`
+	LoginGrantID string `json:"login_grant_id"`
+}
+
 type AuditDetailsUserUpdated struct {
 	ChangedAttrs []string `json:"changed_attrs"`
 	Context      *string  `json:"context,omitempty"`
@@ -764,6 +805,13 @@ type AuditEvent struct {
 	Details    AuditEventDetailsUnion `json:"details"`
 	IpAddress  *string                `json:"ip_address"`
 	UserAgent  *string                `json:"user_agent"`
+}
+
+type AuditLoginGrantDevice struct {
+	Name       string                        `json:"name"`
+	Platform   AuditLoginGrantDevicePlatform `json:"platform"`
+	OsVersion  *string                       `json:"os_version,omitempty"`
+	AppVersion *string                       `json:"app_version,omitempty"`
 }
 
 type AvatarData struct {
@@ -2328,6 +2376,10 @@ type AuditEventDetailsUnion struct {
 	AuditDetailsBotOAuthClientDisabled      *AuditDetailsBotOAuthClientDisabled
 	AuditDetailsToken                       *AuditDetailsToken
 	AuditDetailsBotTokenUpdated             *AuditDetailsBotTokenUpdated
+	AuditDetailsUserLoginQr                 *AuditDetailsUserLoginQr
+	AuditDetailsLoginGrantCreated           *AuditDetailsLoginGrantCreated
+	AuditDetailsLoginGrantApproved          *AuditDetailsLoginGrantApproved
+	AuditDetailsLoginGrantDenied            *AuditDetailsLoginGrantDenied
 	Raw                                     json.RawMessage
 }
 
@@ -2361,6 +2413,10 @@ var auditEventDetailsUnionShapes = []unionMemberShape{
 	{keys: map[string]struct{}{"bot_id": {}, "actor_id": {}, "client_id": {}, "deleted_access_tokens_count": {}, "deleted_access_grants_count": {}}},
 	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "scopes": {}, "bot_id": {}}},
 	{keys: map[string]struct{}{"token_kind": {}, "token_name": {}, "resource_owner_id": {}, "current_scopes": {}, "bot_id": {}, "actor_id": {}}},
+	{keys: map[string]struct{}{"method": {}, "login_grant_id": {}}},
+	{keys: map[string]struct{}{"login_grant_id": {}}},
+	{keys: map[string]struct{}{"login_grant_id": {}, "device": {}}},
+	{keys: map[string]struct{}{"login_grant_id": {}, "device": {}, "reason": {}}},
 }
 
 // UnmarshalJSON decodes AuditEventDetailsUnion, which carries no discriminator field:
@@ -2456,6 +2512,18 @@ func (u *AuditEventDetailsUnion) UnmarshalJSON(data []byte) error {
 	case 28:
 		u.AuditDetailsBotTokenUpdated = &AuditDetailsBotTokenUpdated{}
 		return json.Unmarshal(data, u.AuditDetailsBotTokenUpdated)
+	case 29:
+		u.AuditDetailsUserLoginQr = &AuditDetailsUserLoginQr{}
+		return json.Unmarshal(data, u.AuditDetailsUserLoginQr)
+	case 30:
+		u.AuditDetailsLoginGrantCreated = &AuditDetailsLoginGrantCreated{}
+		return json.Unmarshal(data, u.AuditDetailsLoginGrantCreated)
+	case 31:
+		u.AuditDetailsLoginGrantApproved = &AuditDetailsLoginGrantApproved{}
+		return json.Unmarshal(data, u.AuditDetailsLoginGrantApproved)
+	case 32:
+		u.AuditDetailsLoginGrantDenied = &AuditDetailsLoginGrantDenied{}
+		return json.Unmarshal(data, u.AuditDetailsLoginGrantDenied)
 	}
 	return nil
 }
@@ -2547,6 +2615,18 @@ func (u AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {
 	}
 	if u.AuditDetailsBotTokenUpdated != nil {
 		return json.Marshal(u.AuditDetailsBotTokenUpdated)
+	}
+	if u.AuditDetailsUserLoginQr != nil {
+		return json.Marshal(u.AuditDetailsUserLoginQr)
+	}
+	if u.AuditDetailsLoginGrantCreated != nil {
+		return json.Marshal(u.AuditDetailsLoginGrantCreated)
+	}
+	if u.AuditDetailsLoginGrantApproved != nil {
+		return json.Marshal(u.AuditDetailsLoginGrantApproved)
+	}
+	if u.AuditDetailsLoginGrantDenied != nil {
+		return json.Marshal(u.AuditDetailsLoginGrantDenied)
 	}
 	if len(u.Raw) > 0 {
 		return u.Raw, nil

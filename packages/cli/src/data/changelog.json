@@ -1,5 +1,16 @@
 [
   {
+    "version": "2026.10.2",
+    "date": "21 октября 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "security list",
+        "description": "Флаг `--event-key` принимает события входа по QR-коду: `login_grant_created`, `login_grant_approved` и `login_grant_denied`"
+      }
+    ]
+  },
+  {
     "version": "2026.10.1",
     "date": "20 октября 2026",
     "changes": [

@@ -36,7 +36,7 @@ actions:
       description: Entity type
   - target: $.paths['/audit_events'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return
+      description: Number of records to return. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/audit_events'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -51,11 +51,11 @@ actions:
 
         When `oauth_client` makes the client server-side, its secret comes in `client_secret` once. The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow). The catalog page is set by `promo` while authorization is enabled.
 
-        Only a workspace administrator or owner can enable the `message_link_shared` event, and for a bot with it change the domains, the webhook address and the event history.
+        Only a workspace administrator or owner turns the `message_link_shared` event on or off, turns on the `trigger_on: unfurl` mode, and for a bot with either changes the domains and the webhook address or turns on the event history.
 
         If a change takes away the bot's right to be in tags (`single_chat: true` or `who_can_add` set to `creator` or `creator_admin`), it leaves all tags and the chats it got into through them, and stays in the chats it was added to directly. More in the [Bot in tags](/guides/bots/settings#bot-v-tegah) section.
 
-        The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be changed for a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on the "General" tab in the bot settings).
+        The bot name, authorization on behalf of an employee and the catalog page are changed only by the bot's creator, and a workspace administrator if the bot's settings grant administrators edit access. Other settings cannot be changed for a bot whose settings are not accessible to you (the "Who can edit bot settings" field on the "General" tab).
 
         The bot's avatar is set and removed by separate methods, [Upload bot avatar](PUT /bots/{id}/avatar) and [Delete bot avatar](DELETE /bots/{id}/avatar).
   - target: $.paths['/bots/{id}'].put.parameters[?(@.name=='id')]
@@ -76,7 +76,7 @@ actions:
       description: Search phrase to filter bots by name
   - target: $.paths['/bots'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of entities returned per request
+      description: Number of entities returned per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/bots'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page`)
@@ -98,7 +98,7 @@ actions:
       description: Search phrase to filter bots by name
   - target: $.paths['/company/bots'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of entities returned per request
+      description: Number of entities returned per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/company/bots'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page`)
@@ -170,7 +170,7 @@ actions:
       description: Filter by direct and group chats. If not specified, all chats are returned.
   - target: $.paths['/chats'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return per request
+      description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/chats'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -195,7 +195,7 @@ actions:
       description: Chat state. If the parameter is omitted, both active and archived chats are returned.
   - target: $.paths['/company/chats'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of entities returned per request
+      description: Number of entities returned per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/company/chats'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page`)
@@ -314,9 +314,9 @@ actions:
       description: |-
         Leave chat
 
-        The token owner leaves a conversation, a channel, or a thread on their own. A thread is addressed by its `chat_id`. In a private conversation the others see a system message about the departure; in a public chat and in a channel they do not.
+        The token owner leaves a conversation or a channel on their own. In a private conversation the others see a system message about the departure; in a public chat and in a channel they do not.
 
-        You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is taken off the employee or off the chat. For a guest and a multi-guest the method also responds `403`, whatever their role in the chat. You cannot leave a direct message, the response is `400` with the `personal_chat` code. You can leave an archived chat, though.
+        You cannot leave if an employee is held in the chat by a linked tag: the method responds `403` until the tag is taken off the employee or off the chat. For a guest and a multi-guest the method also responds `403`, whatever their role in the chat. You cannot leave a thread or a direct message: for a thread the method responds `403`, for a direct message `400` with the `personal_chat` code. You can leave an archived chat, though.
 
         You can come back to a public chat on your own, and to a private one only if one of the members adds you back. Another employee is taken out by [Remove chat member](DELETE /chats/{id}/members/{user_id}).
   - target: $.paths['/chats/{id}/leave'].delete.parameters[?(@.name=='id')]
@@ -340,7 +340,7 @@ actions:
       description: Role in the chat. In a channel the owner, admins and editors write, and a member there is a subscriber.
   - target: $.paths['/chats/{id}/members'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return per request
+      description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/chats/{id}/members'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -464,7 +464,7 @@ actions:
       description: "ID of what is named in `entity_type`. Specified together with it."
   - target: $.paths['/drafts'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of entities returned per request
+      description: Number of entities returned per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/drafts'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -528,7 +528,7 @@ actions:
       description: Array of tag names to filter by
   - target: $.paths['/group_tags'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return per request
+      description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/group_tags'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -584,7 +584,7 @@ actions:
       description: "Tag ID: in a web app link it is the number from the `tag_id` parameter"
   - target: $.paths['/group_tags/{id}/users'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return per request
+      description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/group_tags/{id}/users'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -631,7 +631,7 @@ actions:
       description: Sort direction
   - target: $.paths['/messages'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return per request
+      description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/messages'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -670,7 +670,7 @@ actions:
 
         The text, files, and reactions disappear for everyone and are not restored, the pin is removed, and a "Message deleted" note stays in place of the message in the chat.
 
-        The thread created under this message stays, together with all the messages inside it. A repeated deletion responds `204` and no longer changes anything.
+        The thread created under this message stays, together with all the messages inside it. For a message that is already deleted the method responds `403`, and whether it is deleted is shown by the `deleted_at` field in the response of [Message info](GET /messages/{id}).
   - target: $.paths['/messages/{id}'].delete.parameters[?(@.name=='id')]
     update:
       description: Message ID
@@ -758,7 +758,7 @@ actions:
       description: Message ID
   - target: $.paths['/messages/{id}/reactions'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return per request
+      description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/messages/{id}/reactions'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -777,7 +777,7 @@ actions:
       description: Message ID
   - target: $.paths['/messages/{id}/read_member_ids'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return per request
+      description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/messages/{id}/read_member_ids'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -899,7 +899,7 @@ actions:
       description: Search query text. A query longer than 500 characters is cut off.
   - target: $.paths['/search/chats'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of results to return per request
+      description: Number of results to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/search/chats'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page`)
@@ -928,7 +928,7 @@ actions:
 
         Searches by message text and by the names of attachments, but only in the chats the token owner belongs to. A public channel they have not joined does not make it into the search, even though its feed can be read. Thread messages are included in the results.
 
-        The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query in quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it.
+        The words of the query are matched by their forms and by part of a word, and typos are not corrected. A query wrapped entirely in quotation marks is searched as an exact phrase, and matching on part of a word does not apply to it. Straight quotes `"…"` and typographic ones `«…»`, `“…”`, `„…“` both work.
 
         By default messages come from newest to oldest. `sort=relevance` switches the results to how well they match the query, where recent messages are still valued higher.
 
@@ -938,7 +938,7 @@ actions:
       description: Search query text. Without it, messages are picked by the filters alone. A query longer than 500 characters is cut off.
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of results to return per request
+      description: Number of results to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page`)
@@ -980,7 +980,7 @@ actions:
       description: Search query text. A query longer than 500 characters is cut off.
   - target: $.paths['/search/users'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of results to return per request
+      description: Number of results to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/search/users'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page`)
@@ -1010,7 +1010,7 @@ actions:
 
         A task must have assignees; if none are specified, you are assigned as the responsible one.
 
-        Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the [List employees](GET /users) method. Assignees the caller cannot see are silently dropped: the response is successful but they are not in `performer_ids`, so check the list in the response.
+        Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the [List employees](GET /users) method. If no user exists with an ID from `performer_ids`, the method responds `404`. If the caller cannot see the employee, the response is `403`: this happens with an employee of another workspace, a suspended or a deleted one, and for a guest with anyone they share no chat with. In both cases the task is not created.
 
         A task can be linked to a conversation with the `chat_id` field — then, besides the author and the assignees, the members of that conversation see it. Whoever links it must belong to that conversation. Tasks are not created in a channel, in a thread, or in an archived chat.
 
@@ -1039,7 +1039,7 @@ actions:
       description: Filter by task author
   - target: $.paths['/tasks'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return per request
+      description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/tasks'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -1127,7 +1127,7 @@ actions:
       description: "Filter by the time of the last message in the thread: threads where it is earlier than the specified one are returned. The value is in ISO-8601, an offset such as `+03:00` is taken into account, and a time without an offset is treated as UTC."
   - target: $.paths['/threads'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return per request
+      description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/threads'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -1154,7 +1154,7 @@ actions:
 
         You can fill in custom properties for the employee that have been created in your workspace. You can get the current list of employee custom property IDs using the [List custom properties](GET /custom_properties) method.
 
-        The `list_tags` field puts the employee into tags right away, and together with the tags into the chats those tags are linked to. For a guest no tags are assigned at all: the response is successful and `list_tags` in it is empty.
+        The `list_tags` field puts the employee into tags right away, and together with the tags into the chats those tags are linked to. A name that does not exist in the workspace yet creates a new tag. For a guest no tags are assigned at all: the response is successful and `list_tags` in it is empty.
 
         Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a guest, pass `role: "guest"` — for this role `chat_ids` is required and must contain exactly one active chat the token has permission to add members to. Violating the guest access rules returns `400` with an error on the `chat_ids` field.
 
@@ -1182,7 +1182,7 @@ actions:
         `phone_number`, and `nickname`.
   - target: $.paths['/users'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return per request
+      description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/users'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -1341,7 +1341,7 @@ actions:
         The history does not clear itself: delete the events you have read with the [Delete history event](DELETE /webhooks/events/{id}) method, otherwise they come again on a repeat request.
   - target: $.paths['/webhooks/events'].get.parameters[?(@.name=='limit')]
     update:
-      description: Number of records to return per request
+      description: Number of records to return per request. An integer outside the allowed range is replaced with the nearest bound.
   - target: $.paths['/webhooks/events'].get.parameters[?(@.name=='cursor')]
     update:
       description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
@@ -1559,7 +1559,7 @@ actions:
       description: Rule conditions check result (true — conditions matched)
   - target: $.components.schemas.AuditDetailsEmpty
     update:
-      description: "Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled."
+      description: "Empty details. For: user_login (except a QR code sign-in), user_logout, user_2fa_fail, user_2fa_success, user_2fa_disabled, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed, company_chats_accessed, company_bots_accessed, exchange_disabled."
   - target: $.components.schemas.AuditDetailsInitiator
     update:
       description: 'For: user_added_to_tag, user_removed_from_tag, user_chat_leave'
@@ -1584,6 +1584,33 @@ actions:
   - target: $.components.schemas.AuditDetailsKms.properties.reason
     update:
       description: Operation reason
+  - target: $.components.schemas.AuditDetailsLoginGrantCreated
+    update:
+      description: 'For: login_grant_created'
+  - target: $.components.schemas.AuditDetailsLoginGrantCreated.properties.login_grant_id
+    update:
+      description: "ID of the QR code sign-in request, shared by all events of one sign-in"
+  - target: $.components.schemas.AuditDetailsLoginGrantApproved
+    update:
+      description: 'For: login_grant_approved'
+  - target: $.components.schemas.AuditDetailsLoginGrantApproved.properties.login_grant_id
+    update:
+      description: "ID of the QR code sign-in request, shared by all events of one sign-in"
+  - target: $.components.schemas.AuditDetailsLoginGrantApproved.properties.device
+    update:
+      description: "Device the sign-in was made on"
+  - target: $.components.schemas.AuditDetailsLoginGrantDenied
+    update:
+      description: 'For: login_grant_denied'
+  - target: $.components.schemas.AuditDetailsLoginGrantDenied.properties.login_grant_id
+    update:
+      description: "ID of the QR code sign-in request, shared by all events of one sign-in"
+  - target: $.components.schemas.AuditDetailsLoginGrantDenied.properties.device
+    update:
+      description: "Device the sign-in was made on"
+  - target: $.components.schemas.AuditDetailsLoginGrantDenied.properties.reason
+    update:
+      description: "Rejection reason"
   - target: $.components.schemas.AuditDetailsRoleChanged
     update:
       description: 'For: user_role_changed'
@@ -1790,6 +1817,9 @@ actions:
         user_2fa_fail: Failed two-factor authentication attempt
         user_2fa_success: Successful two-factor authentication
         user_2fa_disabled: Two-factor authentication disabled for the employee
+        login_grant_created: QR code issued for signing in to the mobile app
+        login_grant_approved: Employee confirmed a QR code sign-in
+        login_grant_denied: QR code sign-in rejected
         user_created: New user account created
         user_deleted: User account deleted
         user_role_changed: User role changed
@@ -1844,6 +1874,48 @@ actions:
         video_call_finished: Video call finished
         video_call_recording_ready: Video call recording ready
         exchange_disabled: Exchange integration disabled
+  - target: $.components.schemas.AuditDetailsUserLoginQr
+    update:
+      description: 'For: user_login with a QR code sign-in'
+  - target: $.components.schemas.AuditDetailsUserLoginQr.properties.method
+    update:
+      description: "Sign-in method: `qr` — a QR code sign-in"
+  - target: $.components.schemas.AuditDetailsUserLoginQr.properties.login_grant_id
+    update:
+      description: "ID of the QR code sign-in request, shared by all events of one sign-in"
+  - target: $.components.schemas.AuditLoginGrantDevice
+    update:
+      description: "Device in a QR code sign-in. The app itself sends its data, and the server checks only their format."
+  - target: $.components.schemas.AuditLoginGrantDevice.properties.name
+    update:
+      description: "Device name"
+  - target: $.components.schemas.AuditLoginGrantDevice.properties.platform
+    update:
+      description: "App platform"
+  - target: $.components.schemas.AuditLoginGrantDevice.properties.os_version
+    update:
+      description: "Operating system version. Present if the app sent it."
+  - target: $.components.schemas.AuditLoginGrantDevice.properties.app_version
+    update:
+      description: "Pachca app version. Present if the app sent it."
+  - target: $.components.schemas.AuditLoginGrantDevicePlatform
+    update:
+      description: Platform of the mobile app a QR code sign-in is made in
+  - target: $.components.schemas.AuditLoginGrantDevicePlatform
+    update:
+      x-enum-descriptions:
+        iOS: iOS app
+        Android: Android app
+        Rustore: Android app from RuStore
+        Appgallery: Android app from AppGallery
+  - target: $.components.schemas.AuditLoginGrantDenyReason
+    update:
+      description: Reason a QR code sign-in was rejected
+  - target: $.components.schemas.AuditLoginGrantDenyReason
+    update:
+      x-enum-descriptions:
+        denied: The employee rejected the sign-in
+        verification_failed: The employee entered digits other than the ones the device showed
   - target: $.components.schemas.AvatarData
     update:
       description: Avatar data
@@ -1925,7 +1997,7 @@ actions:
 
         Authorization on behalf of an employee can be enabled right away by passing `oauth_client`, and the catalog page can be filled in `promo`. For a server-side client the secret comes in `client_secret` once. Learn more in [Authorization setup](/guides/oauth/setup). The authorization link for the button is built, and the code is exchanged for a token, by the bot's server — step by step in [Getting a token](/guides/oauth/flow).
 
-        The nickname must end with `_bot` and be free in the workspace.
+        The nickname must end with `_bot` and be free in the workspace. Only a workspace administrator or owner creates a bot that unfurls links.
 
         The bot's avatar is set after creation with the [Upload bot avatar](PUT /bots/{id}/avatar) method.
   - target: $.paths['/bots/{id}'].get
@@ -2168,12 +2240,12 @@ actions:
       description: Outgoing webhook URL. An empty string disables the webhook.
   - target: $.paths['/bot/webhook'].put
     update:
-      description: >-
+      description: |-
         Bot webhook self-registration
 
+        Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without knowing its own `id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an empty string in `outgoing_url`.
 
-        Allows a bot to change its own outgoing webhook `URL` using its own token — without an administrator and without
-        knowing its own `id`. The webhook of the bot that owns the token is changed. To disable the webhook, send an empty string in `outgoing_url`.
+        The address of a bot with link unfurling (the `message_link_shared` event or the `trigger_on: unfurl` mode) is changed only by a workspace administrator or owner, with [Edit bot](PUT /bots/{id}). To such a bot this method responds `400` to any new address, an empty string included.
 
   - target: $.paths['/bots/{id}/recreate_token'].post
     update:
@@ -2367,7 +2439,7 @@ actions:
       description: Chat parameters object to create
   - target: $.components.schemas.ChatCreateRequest.properties.chat.properties.name
     update:
-      description: Name
+      description: Name. An empty name is replaced with the first and last name of the token owner (for a bot, with its name), or with the nickname if there are none.
   - target: $.components.schemas.ChatCreateRequest.properties.chat.properties.member_ids
     update:
       description: Array of user IDs who will become members
@@ -4929,7 +5001,7 @@ actions:
       description: "Bot ID"
   - target: "$.paths['/bots/{id}/tokens'].get.parameters[?(@.name=='limit')]"
     update:
-      description: "Number of entities returned per request"
+      description: "Number of entities returned per request. An integer outside the allowed range is replaced with the nearest bound."
   - target: "$.paths['/bots/{id}/tokens'].post"
     update:
       description: |-

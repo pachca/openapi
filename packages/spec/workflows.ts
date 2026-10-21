@@ -2247,9 +2247,9 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           apiMethod: 'GET',
           apiPath: '/audit_events',
           notes:
-            '`start_time` и `end_time` обязательны (ISO-8601, UTC+0). Фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`',
+            '`start_time` и `end_time` необязательны (ISO-8601, время без смещения считается UTC), без них приходят все события по страницам. Фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`',
           notesEn:
-            '`start_time` and `end_time` required (ISO-8601, UTC+0). Filters: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`',
+            '`start_time` and `end_time` are optional (ISO-8601, a time without an offset is UTC); without them all events come page by page. Filters: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`',
         },
       ],
       notes: 'Доступно только владельцу пространства.',

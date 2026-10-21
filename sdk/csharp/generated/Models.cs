@@ -26,6 +26,12 @@ public readonly struct AuditEventKey : IEquatable<AuditEventKey>
     public static AuditEventKey User2faSuccess { get; } = new("user_2fa_success");
     /// <summary>Двухфакторная аутентификация отключена у сотрудника</summary>
     public static AuditEventKey User2faDisabled { get; } = new("user_2fa_disabled");
+    /// <summary>Создан QR-код для входа в мобильное приложение</summary>
+    public static AuditEventKey LoginGrantCreated { get; } = new("login_grant_created");
+    /// <summary>Сотрудник подтвердил вход по QR-коду</summary>
+    public static AuditEventKey LoginGrantApproved { get; } = new("login_grant_approved");
+    /// <summary>Вход по QR-коду отклонён</summary>
+    public static AuditEventKey LoginGrantDenied { get; } = new("login_grant_denied");
     /// <summary>Создана новая учетная запись пользователя</summary>
     public static AuditEventKey UserCreated { get; } = new("user_created");
     /// <summary>Учетная запись пользователя удалена</summary>
@@ -136,7 +142,7 @@ public readonly struct AuditEventKey : IEquatable<AuditEventKey>
     public static AuditEventKey ExchangeDisabled { get; } = new("exchange_disabled");
 
     /// <summary>Every value this SDK version lists</summary>
-    public static IReadOnlyList<AuditEventKey> Values { get; } = Array.AsReadOnly(new[] { UserLogin, UserLogout, User2faFail, User2faSuccess, User2faDisabled, UserCreated, UserDeleted, UserRoleChanged, UserUpdated, TagCreated, TagDeleted, UserAddedToTag, UserRemovedFromTag, ChatCreated, ChatRenamed, ChatPermissionChanged, UserChatJoin, UserChatLeave, TagAddedToChat, TagRemovedFromChat, MessageUpdated, MessageDeleted, MessageCreated, ReactionCreated, ReactionDeleted, ThreadCreated, AccessTokenCreated, AccessTokenUpdated, AccessTokenDestroy, KmsEncrypt, KmsDecrypt, AuditEventsAccessed, CompanyChatsAccessed, CompanyBotsAccessed, DlpViolationDetected, SearchUsersApi, SearchChatsApi, SearchMessagesApi, BotScopesUpdated, BotWebhookSettingsUpdated, BotTokenRecreated, BotDeleted, BotOauthClientUpdated, BotOauthClientDisabled, BotOauthClientSecretRotated, BotOauthClientSecretIssued, BotTokenCreated, BotTokenUpdated, BotTokenReissued, BotTokenDeleted, OauthAuthorizationGranted, OauthAuthorizationRevoked, OauthTokenRevoked, OauthDeviceAuthorizationApproved, OauthDeviceAuthorizationDenied, VideoCallStarted, VideoCallFinished, VideoCallRecordingReady, ExchangeDisabled });
+    public static IReadOnlyList<AuditEventKey> Values { get; } = Array.AsReadOnly(new[] { UserLogin, UserLogout, User2faFail, User2faSuccess, User2faDisabled, LoginGrantCreated, LoginGrantApproved, LoginGrantDenied, UserCreated, UserDeleted, UserRoleChanged, UserUpdated, TagCreated, TagDeleted, UserAddedToTag, UserRemovedFromTag, ChatCreated, ChatRenamed, ChatPermissionChanged, UserChatJoin, UserChatLeave, TagAddedToChat, TagRemovedFromChat, MessageUpdated, MessageDeleted, MessageCreated, ReactionCreated, ReactionDeleted, ThreadCreated, AccessTokenCreated, AccessTokenUpdated, AccessTokenDestroy, KmsEncrypt, KmsDecrypt, AuditEventsAccessed, CompanyChatsAccessed, CompanyBotsAccessed, DlpViolationDetected, SearchUsersApi, SearchChatsApi, SearchMessagesApi, BotScopesUpdated, BotWebhookSettingsUpdated, BotTokenRecreated, BotDeleted, BotOauthClientUpdated, BotOauthClientDisabled, BotOauthClientSecretRotated, BotOauthClientSecretIssued, BotTokenCreated, BotTokenUpdated, BotTokenReissued, BotTokenDeleted, OauthAuthorizationGranted, OauthAuthorizationRevoked, OauthTokenRevoked, OauthDeviceAuthorizationApproved, OauthDeviceAuthorizationDenied, VideoCallStarted, VideoCallFinished, VideoCallRecordingReady, ExchangeDisabled });
 
     /// <summary>The value as it travels in JSON</summary>
     public string Value => _value ?? "";
@@ -167,6 +173,106 @@ internal class AuditEventKeyConverter : JsonConverter<AuditEventKey>
         new(reader.GetString() ?? "");
 
     public override void Write(Utf8JsonWriter writer, AuditEventKey value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
+/// <summary>Причина отказа во входе по QR-коду</summary>
+[JsonConverter(typeof(AuditLoginGrantDenyReasonConverter))]
+public readonly struct AuditLoginGrantDenyReason : IEquatable<AuditLoginGrantDenyReason>
+{
+    private readonly string? _value;
+
+    public AuditLoginGrantDenyReason(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Сотрудник отклонил вход</summary>
+    public static AuditLoginGrantDenyReason Denied { get; } = new("denied");
+    /// <summary>Сотрудник ввёл не те цифры, что показало устройство</summary>
+    public static AuditLoginGrantDenyReason VerificationFailed { get; } = new("verification_failed");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<AuditLoginGrantDenyReason> Values { get; } = Array.AsReadOnly(new[] { Denied, VerificationFailed });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(AuditLoginGrantDenyReason left, AuditLoginGrantDenyReason right) => left.Equals(right);
+    public static bool operator !=(AuditLoginGrantDenyReason left, AuditLoginGrantDenyReason right) => !left.Equals(right);
+    public static implicit operator AuditLoginGrantDenyReason(string value) => new(value);
+    public bool Equals(AuditLoginGrantDenyReason other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is AuditLoginGrantDenyReason other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class AuditLoginGrantDenyReasonConverter : JsonConverter<AuditLoginGrantDenyReason>
+{
+    public override AuditLoginGrantDenyReason Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, AuditLoginGrantDenyReason value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.Value);
+}
+
+/// <summary>Платформа мобильного приложения, в котором выполняется вход по QR-коду</summary>
+[JsonConverter(typeof(AuditLoginGrantDevicePlatformConverter))]
+public readonly struct AuditLoginGrantDevicePlatform : IEquatable<AuditLoginGrantDevicePlatform>
+{
+    private readonly string? _value;
+
+    public AuditLoginGrantDevicePlatform(string value) => _value = value ?? throw new ArgumentNullException(nameof(value));
+
+    /// <summary>Приложение для iOS</summary>
+    public static AuditLoginGrantDevicePlatform IOS { get; } = new("iOS");
+    /// <summary>Приложение для Android</summary>
+    public static AuditLoginGrantDevicePlatform Android { get; } = new("Android");
+    /// <summary>Приложение для Android из RuStore</summary>
+    public static AuditLoginGrantDevicePlatform Rustore { get; } = new("Rustore");
+    /// <summary>Приложение для Android из AppGallery</summary>
+    public static AuditLoginGrantDevicePlatform Appgallery { get; } = new("Appgallery");
+
+    /// <summary>Every value this SDK version lists</summary>
+    public static IReadOnlyList<AuditLoginGrantDevicePlatform> Values { get; } = Array.AsReadOnly(new[] { IOS, Android, Rustore, Appgallery });
+
+    /// <summary>The value as it travels in JSON</summary>
+    public string Value => _value ?? "";
+
+    /// <summary>Whether this SDK version lists the value</summary>
+    public bool IsKnown
+    {
+        get
+        {
+            foreach (var known in Values)
+                if (Equals(known)) return true;
+            return false;
+        }
+    }
+
+    public static bool operator ==(AuditLoginGrantDevicePlatform left, AuditLoginGrantDevicePlatform right) => left.Equals(right);
+    public static bool operator !=(AuditLoginGrantDevicePlatform left, AuditLoginGrantDevicePlatform right) => !left.Equals(right);
+    public static implicit operator AuditLoginGrantDevicePlatform(string value) => new(value);
+    public bool Equals(AuditLoginGrantDevicePlatform other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+    public override bool Equals(object? obj) => obj is AuditLoginGrantDevicePlatform other && Equals(other);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+    public override string ToString() => Value;
+}
+
+internal class AuditLoginGrantDevicePlatformConverter : JsonConverter<AuditLoginGrantDevicePlatform>
+{
+    public override AuditLoginGrantDevicePlatform Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        new(reader.GetString() ?? "");
+
+    public override void Write(Utf8JsonWriter writer, AuditLoginGrantDevicePlatform value, JsonSerializerOptions options) =>
         writer.WriteStringValue(value.Value);
 }
 
@@ -2190,6 +2296,10 @@ internal sealed class AuditEventDetailsUnionConverter : JsonConverter<AuditEvent
         (typeof(AuditDetailsBotOAuthClientDisabled), new HashSet<string> { "bot_id", "actor_id", "client_id", "deleted_access_tokens_count", "deleted_access_grants_count" }),
         (typeof(AuditDetailsToken), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "scopes", "bot_id" }),
         (typeof(AuditDetailsBotTokenUpdated), new HashSet<string> { "token_kind", "token_name", "resource_owner_id", "current_scopes", "bot_id", "actor_id" }),
+        (typeof(AuditDetailsUserLoginQr), new HashSet<string> { "method", "login_grant_id" }),
+        (typeof(AuditDetailsLoginGrantCreated), new HashSet<string> { "login_grant_id" }),
+        (typeof(AuditDetailsLoginGrantApproved), new HashSet<string> { "login_grant_id", "device" }),
+        (typeof(AuditDetailsLoginGrantDenied), new HashSet<string> { "login_grant_id", "device", "reason" }),
     };
 
     public override AuditEventDetailsUnion Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -2518,6 +2628,38 @@ public class AuditDetailsBotTokenUpdated : AuditEventDetailsUnion
     public int? BotId { get; set; }
     [JsonPropertyName("actor_id")]
     public int? ActorId { get; set; }
+}
+
+public class AuditDetailsUserLoginQr : AuditEventDetailsUnion
+{
+    [JsonPropertyName("method")]
+    public string Method { get; set; } = default!;
+    [JsonPropertyName("login_grant_id")]
+    public string LoginGrantId { get; set; } = default!;
+}
+
+public class AuditDetailsLoginGrantCreated : AuditEventDetailsUnion
+{
+    [JsonPropertyName("login_grant_id")]
+    public string LoginGrantId { get; set; } = default!;
+}
+
+public class AuditDetailsLoginGrantApproved : AuditEventDetailsUnion
+{
+    [JsonPropertyName("login_grant_id")]
+    public string LoginGrantId { get; set; } = default!;
+    [JsonPropertyName("device")]
+    public AuditLoginGrantDevice Device { get; set; } = default!;
+}
+
+public class AuditDetailsLoginGrantDenied : AuditEventDetailsUnion
+{
+    [JsonPropertyName("login_grant_id")]
+    public string LoginGrantId { get; set; } = default!;
+    [JsonPropertyName("device")]
+    public AuditLoginGrantDevice Device { get; set; } = default!;
+    [JsonPropertyName("reason")]
+    public AuditLoginGrantDenyReason Reason { get; set; } = default!;
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
@@ -3001,6 +3143,18 @@ public class AuditEvent
     public string? IpAddress { get; set; }
     [JsonPropertyName("user_agent")]
     public string? UserAgent { get; set; }
+}
+
+public class AuditLoginGrantDevice
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+    [JsonPropertyName("platform")]
+    public AuditLoginGrantDevicePlatform Platform { get; set; } = default!;
+    [JsonPropertyName("os_version")]
+    public string? OsVersion { get; set; }
+    [JsonPropertyName("app_version")]
+    public string? AppVersion { get; set; }
 }
 
 public class AvatarData

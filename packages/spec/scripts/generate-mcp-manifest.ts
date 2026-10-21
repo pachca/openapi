@@ -65,7 +65,11 @@
  *     variant carrying it has none — or is required where the spec does not
  *     require it, or the other way round; an upload loses the spec's words or
  *     its limits, a lifted argument any sentence of the spec but the rewritten
- *     clause; a body yields nothing;
+ *     clause; a body yields nothing; an argument declares contentEncoding where
+ *     neither the spec marks a file (format binary) nor an upload takes its
+ *     contents, or the contents of an upload lose it; an object of the
+ *     arguments that lists its fields, an item and a nested object alike, is
+ *     not closed with additionalProperties: false;
  *   - a field sends a model to an upload step that no upload of the tool fills,
  *     a lift or an unavailable upload points at a field the body lacks, or the
  *     rewrite of an uploaded file's name finds nothing to rewrite;
@@ -81,7 +85,7 @@
  *   - an answer with a body declares no schema, a redirect no url, a file no
  *     description of what comes back; a body that may be null has a data that
  *     may not; any node of an outputSchema declares an enum, a limit or rule,
- *     or a format other than date-time.
+ *     contentEncoding, or a format other than date-time.
  *
  * Cards, authors and text of other people
  *   - a field of an entity with a compact card is neither in the card nor left
@@ -94,7 +98,8 @@
  *     an argument takes its value from a field a card leaves out, or an edit
  *     replaces a list whole (`x-replaces-set`) that no read shows by default;
  *   - the author of an entity is missing from its schema or its card, or kept
- *     out of a single read;
+ *     out of a single read; so is a day (`DAY_FIELDS`) or its flag, or the day
+ *     is no date-time or the flag no boolean;
  *   - text of an answer is neither marked untrusted, declared made by Pachca nor
  *     bounded by a closed set of values, or a name declared trusted is not free
  *     text any answer carries;
@@ -123,7 +128,9 @@
  *     `TRUSTED_TEXT` marks secret lacks `SECRET_NOTE`, a tool whose answer
  *     reaches none carries it, a field so marked is in no answer of a tool, or a
  *     field of free text named as a token or a secret is marked neither secret
- *     nor masked;
+ *     nor masked; an operation that reaches a field `SECRET_ONLY_IN` sorts is
+ *     listed neither under whole nor under masked, or under both, a list names
+ *     an operation that does not reach the field, or is empty;
  *   - a description still carries a sentence written for an HTTP client, or a
  *     pattern written to cut one cuts nothing any more;
  *   - prose is written for a tool or an argument that does not exist, says
@@ -192,6 +199,8 @@ import {
   QUERY_ARGUMENT,
   QUOTED_TERMS,
   SECRET_NOTE,
+  SECRET_ONLY_IN,
+  DAY_FIELDS,
   SERVER_INFO,
   SERVER_INSTRUCTIONS,
   SERVICE_TOOLS,
@@ -226,9 +235,9 @@ const WORLD_PATH = path.join(HERE, 'eval', 'world.json');
  * server has to change before it loads the file, the minor when it still loads
  * it. 1.1.0 dropped the links the server downloaded (`FILE_SOURCES`) in a minor
  * step although a server has to drop its download: no server in use was built
- * on 1.0.0.
+ * on 1.0.0. 1.2.0 added day_fields (`DAY_FIELDS`).
  */
-const SCHEMA_VERSION = '1.1.0';
+const SCHEMA_VERSION = '1.2.0';
 
 /**
  * How much of a text the strictest client keeps, in UTF-16 units. One widely
@@ -462,6 +471,10 @@ function property(schema: any, doc: YamlNode, depth = 0, shape: Shape = { side: 
       Object.entries<any>(source.properties).map(([name, child]) => [name, property(child, doc, depth + 1, shape)]),
     );
     if (source.required?.length && input) out.required = source.required;
+    // A field inside an item is checked like an argument (`RESPONSE_FORMAT.argument_reading`):
+    // left open, a stray field went to the API and came back as a refusal that
+    // named no field.
+    if (input && !source.additionalProperties) out.additionalProperties = false;
   }
   if (source?.type === 'object' && source.additionalProperties && typeof source.additionalProperties === 'object') {
     out.additionalProperties = property(source.additionalProperties, doc, depth + 1, shape);
@@ -543,6 +556,7 @@ function variantsAsOne(source: any, variants: any[], doc: YamlNode, depth: numbe
     description: `${said ? `${sentence(said)} ` : ''}One of — ${lines.join('; ')}${input ? ' (* — required)' : ''}.`,
     properties,
     ...(kinds.length && input ? { required: ['type'] } : {}),
+    ...(input ? { additionalProperties: false } : {}),
   };
 }
 
@@ -660,6 +674,9 @@ function mergeVariants(entries: Array<{ label: string; schema: JsonSchema }>): J
   const maps = entries.filter((e) => e.schema.additionalProperties && typeof e.schema.additionalProperties === 'object');
   if (maps.length) {
     out.additionalProperties = mergeVariants(maps.map((e) => ({ label: e.label, schema: e.schema.additionalProperties as JsonSchema })));
+  } else if (withProperties.length && withProperties.every((e) => e.schema.additionalProperties === false)) {
+    // Fields merged from closed variants stay closed (`RESPONSE_FORMAT.argument_reading`).
+    out.additionalProperties = false;
   }
   return out;
 }
@@ -1063,9 +1080,10 @@ const UPLOAD_FILLS = ['key', 'size'];
  */
 const FILE_CONTENT: JsonSchema = {
   type: 'string',
+  contentEncoding: 'base64',
   description: 'The file contents, base64-encoded — for text you wrote yourself.',
 };
-const IMAGE_CONTENT: JsonSchema = { type: 'string', description: 'The image contents, base64-encoded.' };
+const IMAGE_CONTENT: JsonSchema = { type: 'string', contentEncoding: 'base64', description: 'The image contents, base64-encoded.' };
 
 /**
  * The spec's `name` of a file sends a model to the `key` it has no part in when
@@ -1282,6 +1300,7 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
         description: 'Either content or key.',
         properties: { ...Object.fromEntries(kept), content: FILE_CONTENT },
         required: (item.required ?? []).filter((name: string) => !UPLOAD_FILLS.includes(name)),
+        additionalProperties: false,
       },
       description:
         `${sentence(said)} Each file goes as its contents or as the key of a file already in Pachca: ` +
@@ -1317,6 +1336,7 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
             description: `The key of an image already in place, as the full record carries it in ${lift.at}. It goes as it is.`,
           },
         },
+        additionalProperties: false,
       },
       // The spec's words stay; only the part about keys, which the model never
       // holds, becomes what it passes instead.
@@ -1509,8 +1529,14 @@ function outputSchema(op: Operation, docEn: YamlNode): JsonSchema | null {
  * leaves to other people is untrusted.
  *
  * The walk also names the secrets the answer can carry — the fields `TRUSTED_TEXT`
- * marks secret that it meets — and a tool that answers with one carries
- * `SECRET_NOTE`.
+ * marks secret that it meets, whole where `SECRET_ONLY_IN` does not list the
+ * operation as masked — and a tool that answers with one carries `SECRET_NOTE`.
+ *
+ * `prefix` names the root of the answer where the spec gives it no schema of its
+ * own: the operation for an inline body, `file` and `redirect` for the answers
+ * the generator builds, a service tool's name for its answer. `operation` is what
+ * the answer belongs to, which `SECRET_ONLY_IN` and `SECRET_REACH` go by, so a
+ * built answer is held to its operation like any other.
  */
 interface TextPaths {
   untrusted: string[];
@@ -1520,17 +1546,25 @@ interface TextPaths {
 }
 const TRUSTED_KEYS = new Set(TRUSTED_TEXT.flatMap((group) => group.fields));
 const SECRET_KEYS = new Set(TRUSTED_TEXT.filter((group) => group.secret).flatMap((group) => group.fields));
+/** The operations whose answer reaches each secret field, whole or not — what `SECRET_ONLY_IN` is held against. */
+const SECRET_REACH = new Map<string, Set<string>>();
 const noText = (): TextPaths => ({ untrusted: [], trusted: [], closed: [], secrets: [] });
 /** Every key of free text the walks met, and every key a closed set bounds — what `TRUSTED_TEXT` is held against. */
 const FREE_TEXT_KEYS = new Set<string>();
 const CLOSED_KEYS = new Set<string>();
 
-function textPaths(schema: any, doc: YamlNode, owner: string): TextPaths {
+function textPaths(schema: any, doc: YamlNode, prefix: string, operation: string): TextPaths {
   const found = noText();
   const at = (base: string, name: string): string => (base ? `${base}.${name}` : name);
   const free = (key: string, where: string): void => {
     FREE_TEXT_KEYS.add(key);
-    if (SECRET_KEYS.has(key)) found.secrets.push(key);
+    if (SECRET_KEYS.has(key)) {
+      SECRET_REACH.set(key, (SECRET_REACH.get(key) ?? new Set()).add(operation));
+      // Whole unless listed as masked alone: an operation sorted into neither list
+      // fails the build, and carries the note until it is sorted.
+      const only = SECRET_ONLY_IN[key];
+      if (!only || only.whole.includes(operation) || !only.masked.includes(operation)) found.secrets.push(key);
+    }
     (TRUSTED_KEYS.has(key) ? found.trusted : found.untrusted).push(where);
   };
   const walk = (node: any, schemaName: string, inner: string, where: string, stack: string[]): void => {
@@ -1563,7 +1597,7 @@ function textPaths(schema: any, doc: YamlNode, owner: string): TextPaths {
       else if (open && !node.properties) free(key, where);
     }
   };
-  walk(schema, owner, '', '', []);
+  walk(schema, prefix, '', '', []);
   const unique = (list: string[]): string[] => [...new Set(list)];
   const untrusted = unique(found.untrusted);
   return {
@@ -1578,10 +1612,10 @@ function textPaths(schema: any, doc: YamlNode, owner: string): TextPaths {
 function answerTextPaths(op: Operation, output: JsonSchema | null, docEn: YamlNode): TextPaths {
   for (const code of ANSWER_CODES) {
     const body = op.nodeEn?.responses?.[code]?.content?.['application/json']?.schema;
-    if (body) return textPaths(body, docEn, op.key);
+    if (body) return textPaths(body, docEn, op.key, op.key);
   }
   if (!output) return noText();
-  return textPaths(output, { components: { schemas: {} } }, output.properties?.mime_type ? 'file' : 'redirect');
+  return textPaths(output, { components: { schemas: {} } }, output.properties?.mime_type ? 'file' : 'redirect', op.key);
 }
 
 /**
@@ -1659,6 +1693,43 @@ function lostFields(tool: string, at: string, spec: any, built: JsonSchema | und
   return lostAcross(tool, at, [spec], built, doc, side, 0);
 }
 
+/** The built arguments that stand for a field the spec marks format binary, as `lostAcross` meets them — what `strayEncodings` is held against. */
+const SPEC_BINARY = new Set<JsonSchema>();
+
+/**
+ * contentEncoding changes what the server does with a value: base64 that does
+ * not decode is refused (`RESPONSE_FORMAT.argument_reading`). So it stands only
+ * where a file goes as its contents — a field the spec marks format binary, an
+ * avatar's image among them, and the contents of an upload the server makes
+ * (`FILE_CONTENT`, `IMAGE_CONTENT`). Anywhere else the server would refuse
+ * ordinary text. Run after `lostFields` has met every argument of the spec.
+ */
+function strayEncodings(name: string, schema: JsonSchema): string[] {
+  const problems: string[] = [];
+  const walk = (node: JsonSchema | undefined, at: string): void => {
+    if (!node || typeof node !== 'object') return;
+    if (node.contentEncoding !== undefined) {
+      const where = `${name}: the arguments' ${at || 'root'}`;
+      if (node.contentEncoding !== 'base64') {
+        problems.push(`${where} has contentEncoding ${JSON.stringify(node.contentEncoding)}, and a file goes only as base64`);
+      } else if (!SPEC_BINARY.has(node) && node !== FILE_CONTENT && node !== IMAGE_CONTENT) {
+        problems.push(
+          `${where} has contentEncoding base64, and it is neither a field the spec marks format binary nor the contents ` +
+            'of an upload — the server would refuse text there that is not base64',
+        );
+      }
+    }
+    if ((node === FILE_CONTENT || node === IMAGE_CONTENT) && node.contentEncoding !== 'base64') {
+      problems.push(`${name}: the arguments' ${at} are the contents of an upload, and they do not declare contentEncoding base64`);
+    }
+    for (const [field, inner] of Object.entries(node.properties ?? {})) walk(inner, at ? `${at}.${field}` : field);
+    walk(node.items, `${at}[]`);
+    if (typeof node.additionalProperties === 'object') walk(node.additionalProperties, `${at}{}`);
+  };
+  walk(schema, '');
+  return problems;
+}
+
 /**
  * The same check for one built node that stands for several spec nodes: a field
  * of a union, which `variantsAsOne` and `mergeVariants` spell once for every
@@ -1732,6 +1803,7 @@ function lostAcross(
     const format = across('format');
     if (format === 'binary') {
       if (built.contentEncoding !== 'base64') lost.push(`${tool}: ${at} lost its format binary`);
+      SPEC_BINARY.add(built);
     } else if (built.format !== format) {
       lost.push(
         format === undefined
@@ -1785,6 +1857,7 @@ function outputKeywords(tool: string, schema: JsonSchema | undefined): string[] 
     if (node.format !== undefined && !OUTPUT_FORMATS.includes(String(node.format))) {
       problems.push(`${tool}: the answer's ${at} declares the format ${node.format}`);
     }
+    if (node.contentEncoding !== undefined) problems.push(`${tool}: the answer's ${at} declares contentEncoding`);
     for (const [field, child] of Object.entries(node.properties ?? {})) walk(child, `${at}.${field}`);
     walk(node.items, `${at}[]`);
     if (typeof node.additionalProperties === 'object') walk(node.additionalProperties, `${at}{}`);
@@ -1827,6 +1900,26 @@ function editDefaults(name: string, schema: JsonSchema): string[] {
     if (node.default !== undefined) problems.push(`${name}: edits only what it is given, and ${at} declares a default`);
     for (const [field, inner] of Object.entries(node.properties ?? {})) walk(inner, at ? `${at}.${field}` : field);
     walk(node.items, `${at}[]`);
+  };
+  walk(schema, '');
+  return problems;
+}
+
+/**
+ * Every object of the arguments that lists its fields is closed, the root, an
+ * item and a nested object alike, so a field it does not list is refused where
+ * it stands (`RESPONSE_FORMAT.argument_reading`). A map keeps its free keys.
+ */
+function openFields(name: string, schema: JsonSchema): string[] {
+  const problems: string[] = [];
+  const walk = (node: JsonSchema | undefined, at: string): void => {
+    if (!node || typeof node !== 'object') return;
+    if (node.properties && node.additionalProperties !== false && typeof node.additionalProperties !== 'object') {
+      problems.push(`${name}: the arguments' ${at || 'root'} lists its fields and is not closed with additionalProperties: false`);
+    }
+    for (const [field, inner] of Object.entries(node.properties ?? {})) walk(inner, at ? `${at}.${field}` : field);
+    walk(node.items, `${at}[]`);
+    if (typeof node.additionalProperties === 'object') walk(node.additionalProperties, `${at}{}`);
   };
   walk(schema, '');
   return problems;
@@ -1890,6 +1983,13 @@ const HTTP_REWRITES: Array<[RegExp, string]> = [
   [
     /The file is sent in\s+`multipart\/form-data`\s+format, and the response contains only a link to the new image\./g,
     'The answer contains only a link to the new image.',
+  ],
+  // The API sends and deletes in two calls; here the send names the draft
+  // (`DRAFT_ARGUMENT`) and the server deletes it, so delete_draft after a send
+  // would be a second approval for work already done.
+  [
+    /Sending a message does not remove the draft:[\s\S]*?otherwise the text stays in the input box\./g,
+    '`send_message` with the draft’s `draft_id` deletes the draft once the message is away.',
   ],
   // The answer of a download is the file itself (`binary_body`), not an HTTP body
   // with a header: the name rides in the text half.
@@ -2421,7 +2521,7 @@ function build(): void {
     if (!tool.description) problems.push(`${tool.name} has no description`);
     if (!tool.title) problems.push(`${tool.name} has no title`);
     problems.push(...tool.problems);
-    problems.push(...lintSchema(tool.name, tool.inputSchema));
+    problems.push(...lintSchema(tool.name, tool.inputSchema), ...openFields(tool.name, tool.inputSchema));
     if (/^(PUT|PATCH) /.test(tool.operation)) problems.push(...editDefaults(tool.name, tool.inputSchema));
     if (tool.outputSchema) problems.push(...lintSchema(`${tool.name} answer`, tool.outputSchema), ...outputKeywords(tool.name, tool.outputSchema));
   }
@@ -2578,6 +2678,9 @@ function build(): void {
       }
     }
   }
+  // Every argument of the spec has been met above, so a contentEncoding that is
+  // not where a file goes is one the spec does not ask for.
+  for (const tool of tools) problems.push(...strayEncodings(tool.name, tool.inputSchema));
 
   // A field whose words send a model to an upload step it has no tool for — «the
   // key from Upload file» — is a dead end. Every such field is filled by an
@@ -2611,16 +2714,20 @@ function build(): void {
   // ── Cards, single reads and authors ──────────────────────────────────────
   const modelOf = (entity: string): any => specResolve(docEn.components?.schemas?.[entity], docEn);
   const isListAnswer = (tool: BuiltTool): boolean => [tool.outputSchema?.properties?.data?.type].flat().includes('array');
-  /** Whether a dotted name reaches a field of the model, through nested objects and the items of lists. */
-  const fieldExists = (model: any, name: string): boolean => {
+  /** The field a dotted name reaches in the model, through nested objects and the items of lists, resolved. */
+  const fieldAt = (model: any, name: string): any => {
     let node: any = { properties: model?.properties };
+    let field: any;
     for (const step of name.split('.')) {
-      const field = specResolve(node?.properties?.[step], docEn);
-      if (!field) return false;
+      field = specResolve(node?.properties?.[step], docEn);
+      if (!field) return undefined;
       node = field.type === 'array' ? specResolve(field.items, docEn) : field;
     }
-    return true;
+    return field;
   };
+  /** Whether a dotted name reaches a field of the model. */
+  const fieldExists = (model: any, name: string): boolean => Boolean(fieldAt(model, name));
+  const typesOf = (node: any): string[] => [node?.type].flat().filter(Boolean).map(String);
 
   // A compact card names fields of an entity, and every field the entity has is
   // either in the card or left out with a reason (`COMPACT_OMIT`). A field the API
@@ -2846,6 +2953,35 @@ function build(): void {
     }
   }
 
+  // A day is shown as a day where `DAY_FIELDS` says, in a card, a full record and
+  // a single read alike (`RESPONSE_FORMAT.whole_day`). So the moment has to be a
+  // date-time and the flag a boolean, and both have to be in the entity, in its
+  // card and in the default answer of a single read: a card without the flag
+  // cannot tell a day from a moment.
+  for (const [entity, day] of Object.entries(DAY_FIELDS)) {
+    const model = modelOf(entity);
+    if (!model?.properties) {
+      problems.push(`DAY_FIELDS names ${entity}, which is not a schema of the spec`);
+      continue;
+    }
+    if (!tools.some((t) => t.entity === entity)) problems.push(`DAY_FIELDS names ${entity}, which no tool answers with`);
+    const kept = singleOmitted(entity);
+    for (const name of [day.field, day.when.field]) {
+      if (!fieldExists(model, name)) problems.push(`DAY_FIELDS reads ${name} of ${entity}, which the schema does not have`);
+      const card = COMPACT_PROJECTIONS[entity];
+      if (card && !card.includes(name)) problems.push(`DAY_FIELDS reads ${name} of ${entity}, which its card leaves out`);
+      if ([...kept].some((o) => name === o || name.startsWith(`${o}.`))) problems.push(`DAY_FIELDS reads ${name} of ${entity}, which SINGLE_READ_OMIT keeps out`);
+    }
+    const moment = fieldAt(model, day.field);
+    if (moment && !(typesOf(moment).includes('string') && moment.format === 'date-time')) {
+      problems.push(`DAY_FIELDS shows ${day.field} of ${entity} as a day, and it is no date-time (format date-time) in the schema`);
+    }
+    const flag = fieldAt(model, day.when.field);
+    if (flag && !typesOf(flag).includes('boolean')) {
+      problems.push(`DAY_FIELDS limits the day of ${entity} by ${day.when.field}, and it is no boolean in the schema`);
+    }
+  }
+
   // ── Text of other people ─────────────────────────────────────────────────
   // Every place of an answer where text can be is classified: untrusted, made by
   // Pachca, or bounded by a closed set of values. Two walks have to agree on it —
@@ -2853,7 +2989,9 @@ function build(): void {
   // `TRUSTED_TEXT` has to be free text an answer actually carries.
   const serviceText = new Map<string, TextPaths>();
   for (const service of SERVICE_TOOLS) {
-    if (service.outputSchema) serviceText.set(service.name, textPaths(service.outputSchema, { components: { schemas: {} } }, service.name));
+    if (service.outputSchema) {
+      serviceText.set(service.name, textPaths(service.outputSchema, { components: { schemas: {} } }, service.name, `service tool ${service.name}`));
+    }
   }
   const classified = (name: string, text: TextPaths, schema: JsonSchema | null | undefined): void => {
     const places = textPlaces(schema);
@@ -2905,8 +3043,44 @@ function build(): void {
   for (const service of SERVICE_TOOLS) {
     if (occurrences(service.description, SECRET_NOTE)) problems.push(`service tool ${service.name} carries SECRET_NOTE, and no secret is in its answer`);
   }
+  // A field `SECRET_ONLY_IN` sorts and no answer carries whole is reported there,
+  // by the list that is empty or the operation that does not reach it.
   for (const key of SECRET_KEYS) {
-    if (!secretsMet.has(key)) problems.push(`TRUSTED_TEXT marks ${key} secret, and no answer of a tool carries it`);
+    if (!secretsMet.has(key) && !(key in SECRET_ONLY_IN)) problems.push(`TRUSTED_TEXT marks ${key} secret, and no answer of a tool carries it`);
+  }
+  // Every operation that reaches a field sorted here is in exactly one list, so an
+  // operation the spec adds later, or one forgotten here, fails the build rather
+  // than deciding the note by itself.
+  for (const [key, { whole, masked, why }] of Object.entries(SECRET_ONLY_IN)) {
+    if (!SECRET_KEYS.has(key)) {
+      problems.push(`SECRET_ONLY_IN names ${key}, which TRUSTED_TEXT does not mark secret`);
+      continue;
+    }
+    if (!why.trim()) problems.push(`SECRET_ONLY_IN sorts the answers that reach ${key} without a reason`);
+    if (!whole.length) problems.push(`SECRET_ONLY_IN lists no operation where ${key} comes whole — mark it masked in TRUSTED_TEXT instead`);
+    if (!masked.length) problems.push(`SECRET_ONLY_IN lists no operation where ${key} comes masked or not at all — drop its entry, and it is whole wherever it is answered`);
+    const reach = SECRET_REACH.get(key) ?? new Set<string>();
+    for (const [list, label] of [
+      [whole, 'whole'],
+      [masked, 'masked'],
+    ] as const) {
+      const seen = new Set<string>();
+      for (const operation of list) {
+        if (seen.has(operation)) problems.push(`SECRET_ONLY_IN lists ${operation} twice under ${label} for ${key}`);
+        seen.add(operation);
+        if (!reach.has(operation)) problems.push(`SECRET_ONLY_IN lists ${operation} under ${label} for ${key}, and its answer does not reach it`);
+      }
+    }
+    for (const operation of whole) {
+      if (masked.includes(operation)) problems.push(`SECRET_ONLY_IN lists ${operation} for ${key} both under whole and under masked`);
+    }
+    for (const operation of reach) {
+      if (whole.includes(operation) || masked.includes(operation)) continue;
+      problems.push(
+        `${operation} answers with ${key}, and SECRET_ONLY_IN lists it neither under whole nor under masked — ` +
+          'read what the spec says of the field there and sort it',
+      );
+    }
   }
   // The note rests on the flag, and a flag dropped by mistake would take the note
   // off every tool that hands out a secret while the build stays green. So a
@@ -3640,7 +3814,11 @@ function build(): void {
     };
   });
   for (const service of serviceListing) {
-    problems.push(...lintSchema(`service tool ${service.name}`, service.inputSchema));
+    problems.push(
+      ...lintSchema(`service tool ${service.name}`, service.inputSchema),
+      ...openFields(`service tool ${service.name}`, service.inputSchema),
+      ...strayEncodings(`service tool ${service.name}`, service.inputSchema),
+    );
     compile(`service tool ${service.name}`, service.inputSchema);
     if (service.outputSchema) compile(`service tool ${service.name} answer`, service.outputSchema);
   }
@@ -3698,6 +3876,7 @@ function build(): void {
     compact_projections: COMPACT_PROJECTIONS,
     single_read_omit: Object.fromEntries(Object.entries(SINGLE_READ_OMIT).map(([entity, groups]) => [entity, groups.flatMap((g) => g.fields)])),
     authors: AUTHOR_FIELDS,
+    day_fields: DAY_FIELDS,
     web_links: WEB_LINKS,
     compat_address: COMPAT_ADDRESS,
     files: FILE_SOURCES,

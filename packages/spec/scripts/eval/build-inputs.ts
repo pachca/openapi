@@ -70,6 +70,26 @@ interface Listed {
   name: string;
   description: string;
   input_schema: { properties?: Record<string, unknown> };
+  /**
+   * Not served: the stub heads an answer the world has no text for — a page past
+   * the end of a list — with the title and the path and query arguments other
+   * than limit and cursor, as `RESPONSE_FORMAT.shape` builds a heading.
+   */
+  title?: string;
+  heading_arguments?: string[];
+  /**
+   * Not served: the tool's untrusted list. A nested field the world marks ⟦…⟧
+   * goes as it is when no value at a path of this list inside it is present and
+   * non-empty (`RESPONSE_FORMAT.untrusted_wrapper`) — a webhook echoed from a
+   * call with outgoing_url left out.
+   */
+  untrusted?: string[];
+  /**
+   * Not served: the arguments the server uploads (request.arguments with
+   * `in: upload`), each item of which takes exactly one of key or content
+   * (`RESPONSE_FORMAT.argument_reading`).
+   */
+  upload_arguments?: string[];
 }
 
 /**
@@ -171,10 +191,22 @@ function listing(manifest: any, audience: string): { tools: Listed[]; instructio
   const byName = new Map<string, any>(
     [...manifest.tools, ...manifest.service_tools].map((t: any) => [t.name, t]),
   );
-  const tools = record.tools.map((name: string) => {
+  const tools = record.tools.map((name: string): Listed => {
     const base = byName.get(name);
     if (!base) throw new Error(`${audience} lists ${name}, which the manifest does not define`);
-    return { name, description: base.description ?? '', input_schema: base.inputSchema };
+    const places = Object.entries<{ in?: string }>(base.request?.arguments ?? {});
+    const heading = places
+      .filter(([argument, place]) => (place.in === 'path' || place.in === 'query') && argument !== 'limit' && argument !== 'cursor')
+      .map(([argument]) => argument);
+    return {
+      name,
+      description: base.description ?? '',
+      input_schema: base.inputSchema,
+      ...(base.title ? { title: base.title } : {}),
+      heading_arguments: heading,
+      untrusted: base.untrusted ?? [],
+      upload_arguments: places.filter(([, place]) => place.in === 'upload').map(([argument]) => argument),
+    };
   });
   return { tools, instructions: manifest.instructions };
 }

@@ -1023,7 +1023,7 @@
       {
         "description": "Получи журнал аудита",
         "command": "pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601>",
-        "notes": "`start_time` и `end_time` обязательны (ISO-8601, UTC+0). Фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`"
+        "notes": "`start_time` и `end_time` необязательны (ISO-8601, время без смещения считается UTC), без них приходят все события по страницам. Фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`"
       }
     ]
   },

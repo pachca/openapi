@@ -16,6 +16,7 @@
     "compact_projections",
     "single_read_omit",
     "authors",
+    "day_fields",
     "web_links",
     "compat_address",
     "files",
@@ -256,6 +257,41 @@
         }
       }
     },
+    "day_fields": {
+      "type": "object",
+      "description": "Moments that stand for a whole day, by entity, for response_format.whole_day: in a record where when holds, the field goes in the text half as its date in the zone of Now with « (all day)». An entity named nowhere here has no such field.",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "field",
+          "when"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "The date-time field that stands for the day."
+          },
+          "when": {
+            "type": "object",
+            "required": [
+              "field",
+              "equals"
+            ],
+            "additionalProperties": false,
+            "description": "field is a day only in records where this other field has this value.",
+            "properties": {
+              "field": {
+                "type": "string"
+              },
+              "equals": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
     "web_links": {
       "type": "object",
       "description": "Links into the web app for an item the API answers without one, by kind: response_format.compat answers every item with a link. {app_host} is filled as in instruction_placeholders, the other placeholders from the record. A message carries url in the API, which is used as it is.",
@@ -331,7 +367,7 @@
     },
     "audiences": {
       "type": "object",
-      "description": "What each kind of token receives at the main address. The protocol allows a different listing per authorization, and a tool a role is always refused — its scope never given to the role, or the operation itself closed to it (tool.roles) — is not shown at all. The compatibility pair is not listed here: compat_address says where it is served. A token gets one listing: a bot token the bot entry; any other the entry whose role is the role of its owner (owner for the owner of the workspace, whatever company role they also hold) and whose plan is the plan of the workspace, or the entry of that role with plan null when there is no such entry. A token whose role has no entry, such as a guest, gets an empty listing. A listing is what is shown, not what is allowed: a call to a tool of tools that the listing lacks runs like any other and is refused by the scope check and by the API; a service tool called at the main address is an unknown tool (serviceTool.compat).",
+      "description": "What each kind of token receives at the main address, and nothing else: a listing holds only tools of this manifest. The protocol allows a different listing per authorization, and a tool a role is always refused — its scope never given to the role, or the operation itself closed to it (tool.roles) — is not shown at all. The compatibility pair is not listed here: compat_address says where it is served. A token gets one listing: a bot token the bot entry; any other the entry whose role is the role of its owner (owner for the owner of the workspace, whatever company role they also hold) and whose plan is the plan of the workspace, or the entry of that role with plan null when there is no such entry. A token whose role has no entry, such as a guest, gets an empty listing. A listing is what is shown, not what is allowed: a call to a tool of tools that the listing lacks runs like any other and is refused by the scope check and by the API; a service tool called at the main address is an unknown tool (serviceTool.compat).",
       "additionalProperties": {
         "$ref": "#/$defs/audience"
       }

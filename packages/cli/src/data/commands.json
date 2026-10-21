@@ -899,7 +899,7 @@
             "name": "name",
             "type": "option",
             "required": true,
-            "description": "Название (макс. 255 символов)"
+            "description": "Название. Пустое название заменяется именем и фамилией владельца токена (у бота — его именем), а если их нет — никнеймом. (макс. 255 символов)"
           },
           {
             "name": "member-ids",
@@ -2897,6 +2897,9 @@
               "user_2fa_fail",
               "user_2fa_success",
               "user_2fa_disabled",
+              "login_grant_created",
+              "login_grant_approved",
+              "login_grant_denied",
               "user_created",
               "user_deleted",
               "user_role_changed",

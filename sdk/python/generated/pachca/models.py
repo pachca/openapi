@@ -31,6 +31,9 @@ class AuditEventKey(OpenStrEnum):
     USER_2FA_FAIL = "user_2fa_fail"  # Неудачная попытка двухфакторной аутентификации
     USER_2FA_SUCCESS = "user_2fa_success"  # Успешная двухфакторная аутентификация
     USER_2FA_DISABLED = "user_2fa_disabled"  # Двухфакторная аутентификация отключена у сотрудника
+    LOGIN_GRANT_CREATED = "login_grant_created"  # Создан QR-код для входа в мобильное приложение
+    LOGIN_GRANT_APPROVED = "login_grant_approved"  # Сотрудник подтвердил вход по QR-коду
+    LOGIN_GRANT_DENIED = "login_grant_denied"  # Вход по QR-коду отклонён
     USER_CREATED = "user_created"  # Создана новая учетная запись пользователя
     USER_DELETED = "user_deleted"  # Учетная запись пользователя удалена
     USER_ROLE_CHANGED = "user_role_changed"  # Роль пользователя была изменена
@@ -85,6 +88,22 @@ class AuditEventKey(OpenStrEnum):
     VIDEO_CALL_FINISHED = "video_call_finished"  # Видеозвонок завершён
     VIDEO_CALL_RECORDING_READY = "video_call_recording_ready"  # Запись видеозвонка готова
     EXCHANGE_DISABLED = "exchange_disabled"  # Отключена интеграция с Exchange
+
+
+class AuditLoginGrantDenyReason(OpenStrEnum):
+    """Причина отказа во входе по QR-коду"""
+
+    DENIED = "denied"  # Сотрудник отклонил вход
+    VERIFICATION_FAILED = "verification_failed"  # Сотрудник ввёл не те цифры, что показало устройство
+
+
+class AuditLoginGrantDevicePlatform(OpenStrEnum):
+    """Платформа мобильного приложения, в котором выполняется вход по QR-коду"""
+
+    IOS = "iOS"  # Приложение для iOS
+    ANDROID = "Android"  # Приложение для Android
+    RUSTORE = "Rustore"  # Приложение для Android из RuStore
+    APPGALLERY = "Appgallery"  # Приложение для Android из AppGallery
 
 
 class BotCanEdit(OpenStrEnum):
@@ -688,6 +707,24 @@ class AuditDetailsKms:
 
 
 @dataclass
+class AuditDetailsLoginGrantApproved:
+    login_grant_id: str
+    device: AuditLoginGrantDevice
+
+
+@dataclass
+class AuditDetailsLoginGrantCreated:
+    login_grant_id: str
+
+
+@dataclass
+class AuditDetailsLoginGrantDenied:
+    login_grant_id: str
+    device: AuditLoginGrantDevice
+    reason: AuditLoginGrantDenyReason
+
+
+@dataclass
 class AuditDetailsOAuthAuthorizationGranted:
     client_id: str
     scopes: list[str]
@@ -742,6 +779,12 @@ class AuditDetailsTokenScopes:
 
 
 @dataclass
+class AuditDetailsUserLoginQr:
+    method: str
+    login_grant_id: str
+
+
+@dataclass
 class AuditDetailsUserUpdated:
     changed_attrs: list[str]
     context: str | None = None
@@ -783,6 +826,14 @@ class AuditEvent:
     details: AuditEventDetailsUnion
     ip_address: str | None = None
     user_agent: str | None = None
+
+
+@dataclass
+class AuditLoginGrantDevice:
+    name: str
+    platform: AuditLoginGrantDevicePlatform
+    os_version: str | None = None
+    app_version: str | None = None
 
 
 @dataclass
@@ -2027,7 +2078,7 @@ class UpdateUserAvatarRequest:
     image: bytes
 
 
-AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked, AuditDetailsDeviceAuthorizationApproved, AuditDetailsDeviceAuthorizationDenied, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled, AuditDetailsToken, AuditDetailsBotTokenUpdated]
+AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch, AuditDetailsBot, AuditDetailsBotScopes, AuditDetailsBotWebhookSettings, AuditDetailsBotOAuthClient, AuditDetailsOAuthAuthorizationGranted, AuditDetailsOAuthAuthorizationRevoked, AuditDetailsDeviceAuthorizationApproved, AuditDetailsDeviceAuthorizationDenied, AuditDetailsVideoCallStarted, AuditDetailsVideoCallFinished, AuditDetailsVideoCallRecording, AuditDetailsBotOAuthClientSecretRotated, AuditDetailsBotOAuthClientDisabled, AuditDetailsToken, AuditDetailsBotTokenUpdated, AuditDetailsUserLoginQr, AuditDetailsLoginGrantCreated, AuditDetailsLoginGrantApproved, AuditDetailsLoginGrantDenied]
 
 
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]

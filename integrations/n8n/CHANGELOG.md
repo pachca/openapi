@@ -2,6 +2,12 @@
 
 # Changelog
 
+## 2.2.1 (2026-10-21)
+
+### Features
+
+- Security: the event filter gains the QR code sign-in events — `Login Grant Created`, `Login Grant Approved` and `Login Grant Denied`
+
 ## 2.2.0 (2026-10-20)
 
 ### Features

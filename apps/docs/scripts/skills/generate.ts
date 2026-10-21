@@ -42,6 +42,7 @@ function cleanOutputDirs() {
 }
 
 interface SkillContext {
+  api: ParsedAPI;
   config: SkillConfig;
   endpoints: Endpoint[];
   allEndpoints: Endpoint[];
@@ -100,6 +101,7 @@ export function generateAllSkills(api: ParsedAPI) {
 
     const endpoints = skillEndpoints.get(config.name) || [];
     const ctx: SkillContext = {
+      api,
       config,
       endpoints,
       allEndpoints: api.endpoints,
@@ -182,6 +184,7 @@ export function generateAllSkills(api: ParsedAPI) {
       negativeTriggers: [],
     };
     const ctx: SkillContext = {
+      api,
       config: fallbackConfig,
       endpoints,
       allEndpoints: api.endpoints,
@@ -394,7 +397,8 @@ function generateSkillMd(ctx: SkillContext): string {
     for (const section of config.extraSections) {
       lines.push(`## ${section.title}`);
       lines.push('');
-      lines.push(section.content);
+      const { content } = section;
+      lines.push(typeof content === 'function' ? content(ctx.api) : content);
       lines.push('');
     }
   }

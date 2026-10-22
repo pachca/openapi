@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 (2026-10-22)
+
+An agent with a shell uploads a file itself and attaches it by key; schema_version stays 1.2.0.
+
+- `pachca_get_upload_params` is a tool, beside the upload the server still runs inside a send. A document or picture an agent would not write out as base64 goes this way: the agent asks for the signed form, puts the file name in place of `${filename}` in `key`, posts the form with the file to `direct_url` from its own shell, every other field as it is and the file last, and passes the key in `files`. `direct_url` is the cloud storage Pachca keeps files in, a host outside pachca.com that changes with the provider, so it is always taken from the same answer; the description names it as the one outside address a tool answer goes to. The fields of the form are Pachca's own text and go without the untrusted wrapper. The server still downloads no link, and the tool is not destructive: nothing in the workspace changes until a message takes the key.
+- A file item in `files` takes `size`: with contents the server fills it in, and with a key and no `id` the agent passes it, or readers see 0 KB. The descriptions of `files`, of `key` and of `content` in the tools that send or edit a message or a draft, and of `key` in `promo_images`, name the upload tool.
+- A link in the spec's words to an upload step that is no tool reaches the model as `pachca_get_upload_params`: the image key of `pachca_add_link_preview` names it, and that field and `image_url` no longer say upload keys are out of reach.
+
 ## 1.2.0 (2026-10-21)
 
 Rules from a live run of the server, schema_version 1.2.0.

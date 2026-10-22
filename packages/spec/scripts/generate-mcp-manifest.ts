@@ -199,6 +199,7 @@ import {
   QUERY_ARGUMENT,
   QUOTED_TERMS,
   SECRET_NOTE,
+  STANDALONE_STEPS,
   SECRET_ONLY_IN,
   DAY_FIELDS,
   SERVER_INFO,
@@ -1000,8 +1001,9 @@ function readOperations(problems: string[], oauthFlow: OperationKey[]): Operatio
         node,
         nodeEn,
       });
-      // A chain step is no tool, so a link to it keeps its words (`linksAsTools`).
-      if (!(k in CHAIN_STEPS)) TOOL_BY_KEY.set(k, out[out.length - 1]!.name);
+      // A chain step is no tool, so a link to it keeps its words (`linksAsTools`),
+      // unless it stands as a tool too (`STANDALONE_STEPS`).
+      if (!(k in CHAIN_STEPS) || k in STANDALONE_STEPS) TOOL_BY_KEY.set(k, out[out.length - 1]!.name);
     }
   }
   return out;
@@ -1075,6 +1077,15 @@ const UPLOAD_STEPS = Object.keys(CHAIN_STEPS) as OperationKey[];
 const UPLOAD_FILLS = ['key', 'size'];
 
 /**
+ * The tool a model uploads a file with itself (`STANDALONE_STEPS`), by the name
+ * written text uses, or null while no upload step stands as a tool.
+ */
+function uploadToolName(): string | null {
+  const key = UPLOAD_STEPS.find((k) => k in STANDALONE_STEPS);
+  return key ? (TOOL_BY_KEY.get(key) ?? null) : null;
+}
+
+/**
  * A file the model hands over: its contents, or the key of a file already in
  * Pachca, which goes as it is. No link: the server downloads none (`FILE_SOURCES`).
  */
@@ -1084,6 +1095,26 @@ const FILE_CONTENT: JsonSchema = {
   description: 'The file contents, base64-encoded — for text you wrote yourself.',
 };
 const IMAGE_CONTENT: JsonSchema = { type: 'string', contentEncoding: 'base64', description: 'The image contents, base64-encoded.' };
+
+/** The schemas of upload contents: the check of stray encodings knows them by identity. */
+const UPLOAD_CONTENTS = new Set<JsonSchema>([FILE_CONTENT, IMAGE_CONTENT]);
+
+/**
+ * The contents of a file, pointing a document or picture from disk to the upload
+ * tool while one stands (`STANDALONE_STEPS`): one schema for every tool, made once.
+ */
+let fileContentByKey: JsonSchema | undefined;
+function fileContent(uploader: string | null): JsonSchema {
+  if (!uploader) return FILE_CONTENT;
+  if (!fileContentByKey) {
+    fileContentByKey = {
+      ...FILE_CONTENT,
+      description: `${FILE_CONTENT.description} A document or picture from disk goes by key: upload it with \`${uploader}\`.`,
+    };
+    UPLOAD_CONTENTS.add(fileContentByKey);
+  }
+  return fileContentByKey;
+}
 
 /**
  * The spec's `name` of a file sends a model to the `key` it has no part in when
@@ -1275,11 +1306,27 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
     // to stay is passed again by its key, and an item that carries one goes as
     // it is, without an upload.
     const owner = at.includes('.') ? at.split('.')[0] : 'record';
+    // A file from disk goes by key: the model uploads it with the upload tool
+    // (`STANDALONE_STEPS`) and passes the key, with the size it alone knows —
+    // a file attached by key with no size shows 0 KB to its readers.
+    const uploader = uploadToolName();
     const kept = Object.entries<JsonSchema>(item.properties ?? {})
-      .filter(([name]) => name !== 'size')
+      .filter(([name]) => name !== 'size' || uploader)
       .map(([name, schema]): [string, JsonSchema] => {
         if (name === 'key') {
-          return [name, { ...schema, description: `The key of a file already in Pachca, as an attachment carries it in the full record of the ${owner}. A file passed by its key goes as it is.` }];
+          const yours = uploader ? `, or of a file you uploaded with \`${uploader}\`` : '';
+          return [name, { ...schema, description: `The key of a file already in Pachca, as an attachment carries it in the full record of the ${owner}${yours}. A file passed by its key goes as it is.` }];
+        }
+        if (name === 'size') {
+          return [
+            name,
+            {
+              ...schema,
+              description:
+                'Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it — ' +
+                'the full record carries it, and you know it for a file you uploaded — or readers see 0 KB.',
+            },
+          ];
         }
         if (name === 'id') return [name, { ...schema, description: `${sentence(String(schema.description ?? ''))} Only together with key.` }];
         if (name === 'name' && typeof schema.description === 'string') {
@@ -1298,13 +1345,18 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
       items: {
         type: 'object',
         description: 'Either content or key.',
-        properties: { ...Object.fromEntries(kept), content: FILE_CONTENT },
+        properties: {
+          ...Object.fromEntries(kept),
+          content: fileContent(uploader),
+        },
         required: (item.required ?? []).filter((name: string) => !UPLOAD_FILLS.includes(name)),
         additionalProperties: false,
       },
-      description:
-        `${sentence(said)} Each file goes as its contents or as the key of a file already in Pachca: ` +
-        'the server uploads contents, filling in key and size.',
+      description: uploader
+        ? `${sentence(said)} Each file goes as its contents, which the server uploads, filling in key and size, ` +
+          `or by key: of a file already in Pachca, or of one you uploaded with \`${uploader}\`.`
+        : `${sentence(said)} Each file goes as its contents or as the key of a file already in Pachca: ` +
+          'the server uploads contents, filling in key and size.',
     });
   }
 
@@ -1333,7 +1385,9 @@ function inputSchema(op: Operation, absorbs: Operation[], docEn: YamlNode): Buil
           content: IMAGE_CONTENT,
           key: {
             type: 'string',
-            description: `The key of an image already in place, as the full record carries it in ${lift.at}. It goes as it is.`,
+            description: uploadToolName()
+              ? `The key of an image already in place, as the full record carries it in ${lift.at}, or of an image you uploaded with \`${uploadToolName()}\`. It goes as it is.`
+              : `The key of an image already in place, as the full record carries it in ${lift.at}. It goes as it is.`,
           },
         },
         additionalProperties: false,
@@ -1712,14 +1766,14 @@ function strayEncodings(name: string, schema: JsonSchema): string[] {
       const where = `${name}: the arguments' ${at || 'root'}`;
       if (node.contentEncoding !== 'base64') {
         problems.push(`${where} has contentEncoding ${JSON.stringify(node.contentEncoding)}, and a file goes only as base64`);
-      } else if (!SPEC_BINARY.has(node) && node !== FILE_CONTENT && node !== IMAGE_CONTENT) {
+      } else if (!SPEC_BINARY.has(node) && !UPLOAD_CONTENTS.has(node)) {
         problems.push(
           `${where} has contentEncoding base64, and it is neither a field the spec marks format binary nor the contents ` +
             'of an upload — the server would refuse text there that is not base64',
         );
       }
     }
-    if ((node === FILE_CONTENT || node === IMAGE_CONTENT) && node.contentEncoding !== 'base64') {
+    if (UPLOAD_CONTENTS.has(node) && node.contentEncoding !== 'base64') {
       problems.push(`${name}: the arguments' ${at} are the contents of an upload, and they do not declare contentEncoding base64`);
     }
     for (const [field, inner] of Object.entries(node.properties ?? {})) walk(inner, at ? `${at}.${field}` : field);
@@ -2083,7 +2137,10 @@ function pageNow(page: string): string | null {
 function linksAsTools(text: string): string {
   return text
     .replace(/\[([^\]]+)\]\((GET|POST|PUT|PATCH|DELETE) ([^)]+)\)/g, (_all, label: string, method: string, path: string) => {
-      const tool = TOOL_BY_KEY.get(`${method} ${path}`);
+      // A link to an upload step that is no tool reaches the model as the upload
+      // tool while one stands (`STANDALONE_STEPS`): that is where its key comes from.
+      const key = `${method} ${path}` as OperationKey;
+      const tool = TOOL_BY_KEY.get(key) ?? (UPLOAD_STEPS.includes(key) ? uploadToolName() : null);
       return tool ? `\`${tool}\`` : label;
     })
     // A guide is a page on the site. The title stays in quotes to say what the page
@@ -2186,7 +2243,7 @@ function specText(op: Operation): string {
 function describe(op: Operation, secret: boolean): string {
   const prose = MCP_TOOL_PROSE[op.name];
   const fromSpec = specText(op);
-  const said = [fromSpec, prose?.description, secret ? SECRET_NOTE : ''].filter(Boolean).join(' ');
+  const said = [fromSpec, STANDALONE_STEPS[op.key] ?? '', prose?.description, secret ? SECRET_NOTE : ''].filter(Boolean).join(' ');
   const parts = [said];
   if (prose?.whenToUse?.length) parts.push(`\n\nUse it when:\n${prose.whenToUse.map((l) => `- ${l}`).join('\n')}`);
   if (prose?.notFor?.length) parts.push(`\n\nNot for:\n${prose.notFor.map((l) => `- ${l}`).join('\n')}`);
@@ -2332,7 +2389,18 @@ function build(): void {
   };
   for (const k of Object.keys(NAME_OVERRIDES)) {
     stale('NAME_OVERRIDES', k);
-    if (k in CHAIN_STEPS) problems.push(`NAME_OVERRIDES names ${k}, which is a chain step and no tool`);
+    if (k in CHAIN_STEPS && !(k in STANDALONE_STEPS)) problems.push(`NAME_OVERRIDES names ${k}, which is a chain step and no tool`);
+  }
+  // A step that stands as a tool is still a step: the tools it belongs to run it.
+  for (const [k, note] of Object.entries(STANDALONE_STEPS)) {
+    stale('STANDALONE_STEPS', k);
+    if (!(k in CHAIN_STEPS)) problems.push(`STANDALONE_STEPS names ${k}, which is no chain step`);
+    if (!note.trim()) problems.push(`STANDALONE_STEPS names ${k} without the note its description carries`);
+  }
+  // With an upload step standing as a tool every upload key is within reach, so a
+  // field declared out of reach would tell the model a falsehood.
+  if (uploadToolName() && Object.keys(UPLOAD_UNAVAILABLE).length) {
+    problems.push('UPLOAD_UNAVAILABLE declares fields out of reach while an upload step stands as a tool');
   }
   for (const k of Object.keys(OPEN_WORLD)) {
     stale('OPEN_WORLD', k);
@@ -2364,7 +2432,7 @@ function build(): void {
   }
 
   const tools: BuiltTool[] = operations
-    .filter((op) => !(op.key in CHAIN_STEPS))
+    .filter((op) => !(op.key in CHAIN_STEPS) || op.key in STANDALONE_STEPS)
     .map((op) => {
       const input = inputSchema(op, absorbedBy.get(op.key) ?? [], docEn);
       const output = outputSchema(op, docEn);
@@ -2694,11 +2762,15 @@ function build(): void {
       ...(UPLOAD_UNAVAILABLE[op.key] ?? []).map((u) => u.at),
     ];
     const covered = (at: string): boolean => bases.some((base) => at === base || at.startsWith(`${base}.`) || at.startsWith(`${base}[`));
+    // A field whose words reach the model as the upload tool (`STANDALONE_STEPS`,
+    // `linksAsTools`) is no dead end: the model makes the key itself.
+    const uploader = uploadToolName();
+    const toTool = (words: string): boolean => uploader !== null && linksAsTools(words).includes(`\`${uploader}\``);
     const walk = (node: any, at: string, depth = 0): void => {
       if (!node || typeof node !== 'object' || depth > 12) return;
       const resolved = specResolve(node, docEn);
       const words = [node.description, resolved?.description].filter((d) => typeof d === 'string').join(' ');
-      if (stepLink.test(words) && !covered(at)) {
+      if (stepLink.test(words) && !covered(at) && !toTool(words)) {
         problems.push(`${tool.name}: ${at} takes a key from an upload step, and no upload of the tool fills it — lift it, or declare it in UPLOAD_UNAVAILABLE`);
       }
       for (const variant of resolved?.anyOf ?? resolved?.oneOf ?? []) walk(variant, at, depth + 1);
@@ -3267,7 +3339,7 @@ function build(): void {
   // A body the generator could not read leaves a tool with nothing to pass. An
   // empty schema is a valid schema, so nothing else would notice.
   for (const op of operations) {
-    if (op.key in CHAIN_STEPS || !op.nodeEn?.requestBody) continue;
+    if ((op.key in CHAIN_STEPS && !(op.key in STANDALONE_STEPS)) || !op.nodeEn?.requestBody) continue;
     const tool = tools.find((t) => t.operation === op.key);
     const fields = Object.keys(tool?.inputSchema.properties ?? {});
     const fromPath = paramsOf(op.nodeEn).length;
@@ -3300,7 +3372,7 @@ function build(): void {
   for (const step of Object.keys(CHAIN_STEPS)) {
     const name = byKey.get(step)?.name ?? '';
     const holder = tools.find((t) => t.name === name);
-    if (holder) problems.push(`the chain step ${step} would be named ${name}, which is the tool of ${holder.operation}`);
+    if (holder && holder.operation !== step) problems.push(`the chain step ${step} would be named ${name}, which is the tool of ${holder.operation}`);
   }
   // The scope of every operation an upload runs is on the argument that runs it.
   for (const [stepKey, chain] of Object.entries(CHAIN_STEPS)) {
@@ -3376,6 +3448,13 @@ function build(): void {
     return null;
   };
   for (const op of operations) {
+    // The note of a step that stands as a tool is written text in the same
+    // description, held to the same rule.
+    const note = STANDALONE_STEPS[op.key];
+    if (note) {
+      const run = repeats(wordsIn(specText(op)), note);
+      if (run) problems.push(`${op.name} STANDALONE_STEPS note says again what the spec says: «${run.join(' ')}»`);
+    }
     const prose = MCP_TOOL_PROSE[op.name];
     if (!prose) continue;
     const said = wordsIn(specText(op));
@@ -3943,7 +4022,7 @@ function build(): void {
   const answers = approxTokens(tools.map((t) => (t.outputSchema ? JSON.stringify(t.outputSchema) : '')).join(''));
   console.log(
     `MCP manifest: ${tools.length} tools from ${operations.length} operations ` +
-      `(${Object.keys(CHAIN_STEPS).length} folded as chain steps), ${withProse} with written prose, ` +
+      `(${Object.keys(CHAIN_STEPS).length} folded as chain steps, ${Object.keys(STANDALONE_STEPS).length} of them also a tool), ${withProse} with written prose, ` +
       `${scopes.size} scopes, ${TOOL_SCENARIOS.length} scenarios. Not tools, as steps of the OAuth flow: ${oauthFlow.join(', ') || 'none'}. ` +
       `Listings: ${listings}. Per tool: median ~${median}, largest ${largest}; names of the widest listing ~${nameCost}; ` +
       `outputSchema of the set ~${answers}, not shown to the model.`,

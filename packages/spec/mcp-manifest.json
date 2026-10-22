@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0",
   "generated_from": {
-    "digest": "782c5d62ef0a0fb2"
+    "digest": "26ee88a291d21a9b"
   },
   "server": {
     "name": "pachca",
@@ -1910,7 +1910,7 @@
                 },
                 "key": {
                   "type": "string",
-                  "description": "The key of an image already in place, as the full record carries it in promo.promo_images. It goes as it is."
+                  "description": "The key of an image already in place, as the full record carries it in promo.promo_images, or of an image you uploaded with `get_upload_params`. It goes as it is."
                 }
               },
               "additionalProperties": false
@@ -3015,7 +3015,7 @@
                 },
                 "key": {
                   "type": "string",
-                  "description": "The key of an image already in place, as the full record carries it in promo.promo_images. It goes as it is."
+                  "description": "The key of an image already in place, as the full record carries it in promo.promo_images, or of an image you uploaded with `get_upload_params`. It goes as it is."
                 }
               },
               "additionalProperties": false
@@ -8042,7 +8042,7 @@
                 },
                 "key": {
                   "type": "string",
-                  "description": "The key of a file already in Pachca, as an attachment carries it in the full record of the draft. A file passed by its key goes as it is.",
+                  "description": "The key of a file already in Pachca, as an attachment carries it in the full record of the draft, or of a file you uploaded with `get_upload_params`. A file passed by its key goes as it is.",
                   "maxLength": 1000,
                   "examples": [
                     "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"
@@ -8068,6 +8068,14 @@
                   ],
                   "examples": [
                     "image"
+                  ]
+                },
+                "size": {
+                  "type": "integer",
+                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it — the full record carries it, and you know it for a file you uploaded — or readers see 0 KB.",
+                  "format": "int64",
+                  "examples": [
+                    12345
                   ]
                 },
                 "width": {
@@ -8105,7 +8113,7 @@
                 "content": {
                   "type": "string",
                   "contentEncoding": "base64",
-                  "description": "The file contents, base64-encoded — for text you wrote yourself."
+                  "description": "The file contents, base64-encoded — for text you wrote yourself. A document or picture from disk goes by key: upload it with `get_upload_params`."
                 }
               },
               "required": [
@@ -8113,7 +8121,7 @@
               ],
               "additionalProperties": false
             },
-            "description": "Files to attach, no more than ten. Each file goes as its contents or as the key of a file already in Pachca: the server uploads contents, filling in key and size."
+            "description": "Files to attach, no more than ten. Each file goes as its contents, which the server uploads, filling in key and size, or by key: of a file already in Pachca, or of one you uploaded with `get_upload_params`."
           },
           "schedule": {
             "type": [
@@ -8214,7 +8222,7 @@
         ],
         "additionalProperties": false
       },
-      "signature": "entity_type* (discussion | thread | user), entity_id* (integer), content (string), parent_message_id (integer or null), files [{id (integer), key (string), name* (string), file_type (file | image | audio | voice | video), width (integer), height (integer), duration_ms (integer), waveform (string), content (string)}], schedule {start_date* (string), end_date (string or null), repetition* {interval* (once | daily | weekly | monthly | every_2_months | every_3_months | every_4_months | every_6_months | yearly), days [integer], nth_day (integer or null)}} or null",
+      "signature": "entity_type* (discussion | thread | user), entity_id* (integer), content (string), parent_message_id (integer or null), files [{id (integer), key (string), name* (string), file_type (file | image | audio | voice | video), size (integer), width (integer), height (integer), duration_ms (integer), waveform (string), content (string)}], schedule {start_date* (string), end_date (string or null), repetition* {interval* (once | daily | weekly | monthly | every_2_months | every_3_months | every_4_months | every_6_months | yearly), days [integer], nth_day (integer or null)}} or null",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -8759,7 +8767,7 @@
                 },
                 "key": {
                   "type": "string",
-                  "description": "The key of a file already in Pachca, as an attachment carries it in the full record of the draft. A file passed by its key goes as it is.",
+                  "description": "The key of a file already in Pachca, as an attachment carries it in the full record of the draft, or of a file you uploaded with `get_upload_params`. A file passed by its key goes as it is.",
                   "maxLength": 1000,
                   "examples": [
                     "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"
@@ -8785,6 +8793,14 @@
                   ],
                   "examples": [
                     "image"
+                  ]
+                },
+                "size": {
+                  "type": "integer",
+                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it — the full record carries it, and you know it for a file you uploaded — or readers see 0 KB.",
+                  "format": "int64",
+                  "examples": [
+                    12345
                   ]
                 },
                 "width": {
@@ -8822,7 +8838,7 @@
                 "content": {
                   "type": "string",
                   "contentEncoding": "base64",
-                  "description": "The file contents, base64-encoded — for text you wrote yourself."
+                  "description": "The file contents, base64-encoded — for text you wrote yourself. A document or picture from disk goes by key: upload it with `get_upload_params`."
                 }
               },
               "required": [
@@ -8830,7 +8846,7 @@
               ],
               "additionalProperties": false
             },
-            "description": "Files to attach, no more than ten. The array you pass replaces the previous set: an empty one removes all the attachments, and to keep a file that is already attached, pass it with its `id`. Without this field the attachments stay as they were. Each file goes as its contents or as the key of a file already in Pachca: the server uploads contents, filling in key and size."
+            "description": "Files to attach, no more than ten. The array you pass replaces the previous set: an empty one removes all the attachments, and to keep a file that is already attached, pass it with its `id`. Without this field the attachments stay as they were. Each file goes as its contents, which the server uploads, filling in key and size, or by key: of a file already in Pachca, or of one you uploaded with `get_upload_params`."
           },
           "schedule": {
             "type": [
@@ -8930,7 +8946,7 @@
         ],
         "additionalProperties": false
       },
-      "signature": "id* (integer), content (string), parent_message_id (integer or null), files [{id (integer), key (string), name* (string), file_type (file | image | audio | voice | video), width (integer), height (integer), duration_ms (integer), waveform (string), content (string)}], schedule {start_date* (string), end_date (string or null), repetition* {interval* (once | daily | weekly | monthly | every_2_months | every_3_months | every_4_months | every_6_months | yearly), days [integer], nth_day (integer or null)}} or null",
+      "signature": "id* (integer), content (string), parent_message_id (integer or null), files [{id (integer), key (string), name* (string), file_type (file | image | audio | voice | video), size (integer), width (integer), height (integer), duration_ms (integer), waveform (string), content (string)}], schedule {start_date* (string), end_date (string or null), repetition* {interval* (once | daily | weekly | monthly | every_2_months | every_3_months | every_4_months | every_6_months | yearly), days [integer], nth_day (integer or null)}} or null",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -10510,7 +10526,7 @@
               "properties": {
                 "key": {
                   "type": "string",
-                  "description": "The key of a file already in Pachca, as an attachment carries it in the full record of the message. A file passed by its key goes as it is.",
+                  "description": "The key of a file already in Pachca, as an attachment carries it in the full record of the message, or of a file you uploaded with `get_upload_params`. A file passed by its key goes as it is.",
                   "maxLength": 1000,
                   "examples": [
                     "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"
@@ -10536,6 +10552,14 @@
                   ],
                   "examples": [
                     "image"
+                  ]
+                },
+                "size": {
+                  "type": "integer",
+                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it — the full record carries it, and you know it for a file you uploaded — or readers see 0 KB.",
+                  "format": "int64",
+                  "examples": [
+                    12345
                   ]
                 },
                 "width": {
@@ -10574,7 +10598,7 @@
                 "content": {
                   "type": "string",
                   "contentEncoding": "base64",
-                  "description": "The file contents, base64-encoded — for text you wrote yourself."
+                  "description": "The file contents, base64-encoded — for text you wrote yourself. A document or picture from disk goes by key: upload it with `get_upload_params`."
                 }
               },
               "required": [
@@ -10583,7 +10607,7 @@
               ],
               "additionalProperties": false
             },
-            "description": "Files to attach. Each file goes as its contents or as the key of a file already in Pachca: the server uploads contents, filling in key and size."
+            "description": "Files to attach. Each file goes as its contents, which the server uploads, filling in key and size, or by key: of a file already in Pachca, or of one you uploaded with `get_upload_params`."
           },
           "buttons": {
             "type": "array",
@@ -10686,7 +10710,7 @@
         ],
         "additionalProperties": false
       },
-      "signature": "entity_type (discussion | thread | user), entity_id* (integer), content (string), files [{key (string), name* (string), file_type* (file | image | audio | voice | video), width (integer), height (integer), duration_ms (integer), waveform (string), content (string)}], buttons [[{text* (string), url (string), data (string)}]], parent_message_id (integer), display_avatar_url (string), display_name (string), skip_invite_mentions (boolean), draft_id (integer)",
+      "signature": "entity_type (discussion | thread | user), entity_id* (integer), content (string), files [{key (string), name* (string), file_type* (file | image | audio | voice | video), size (integer), width (integer), height (integer), duration_ms (integer), waveform (string), content (string)}], buttons [[{text* (string), url (string), data (string)}]], parent_message_id (integer), display_avatar_url (string), display_name (string), skip_invite_mentions (boolean), draft_id (integer)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -11380,7 +11404,7 @@
               "properties": {
                 "key": {
                   "type": "string",
-                  "description": "The key of a file already in Pachca, as an attachment carries it in the full record of the message. A file passed by its key goes as it is.",
+                  "description": "The key of a file already in Pachca, as an attachment carries it in the full record of the message, or of a file you uploaded with `get_upload_params`. A file passed by its key goes as it is.",
                   "maxLength": 1000,
                   "examples": [
                     "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png"
@@ -11406,6 +11430,14 @@
                   ],
                   "examples": [
                     "image"
+                  ]
+                },
+                "size": {
+                  "type": "integer",
+                  "description": "Size in bytes, shown to readers. With content the server fills it in. With a key and no id, pass it — the full record carries it, and you know it for a file you uploaded — or readers see 0 KB.",
+                  "format": "int64",
+                  "examples": [
+                    12345
                   ]
                 },
                 "width": {
@@ -11444,7 +11476,7 @@
                 "content": {
                   "type": "string",
                   "contentEncoding": "base64",
-                  "description": "The file contents, base64-encoded — for text you wrote yourself."
+                  "description": "The file contents, base64-encoded — for text you wrote yourself. A document or picture from disk goes by key: upload it with `get_upload_params`."
                 }
               },
               "required": [
@@ -11452,7 +11484,7 @@
               ],
               "additionalProperties": false
             },
-            "description": "Files to attach. The set you pass replaces the previous one: to keep a file already attached, pass it again with the same `key`. Each file goes as its contents or as the key of a file already in Pachca: the server uploads contents, filling in key and size."
+            "description": "Files to attach. The set you pass replaces the previous one: to keep a file already attached, pass it again with the same `key`. Each file goes as its contents, which the server uploads, filling in key and size, or by key: of a file already in Pachca, or of one you uploaded with `get_upload_params`."
           },
           "buttons": {
             "type": "array",
@@ -11529,7 +11561,7 @@
         ],
         "additionalProperties": false
       },
-      "signature": "id* (integer), content (string), files [{key (string), name* (string), file_type (file | image | audio | voice | video), width (integer), height (integer), duration_ms (integer), waveform (string), content (string)}], buttons [[{text* (string), url (string), data (string)}]], display_avatar_url (string), display_name (string)",
+      "signature": "id* (integer), content (string), files [{key (string), name* (string), file_type (file | image | audio | voice | video), size (integer), width (integer), height (integer), duration_ms (integer), waveform (string), content (string)}], buttons [[{text* (string), url (string), data (string)}]], display_avatar_url (string), display_name (string)",
       "request": {
         "media_type": "application/json",
         "arguments": {
@@ -11935,18 +11967,18 @@
                 },
                 "image_url": {
                   "type": "string",
-                  "description": "Public image URL. Through this server it is how a preview gets its image.",
+                  "description": "Public image URL (if you want to upload an image file to Pachca, use the image parameter)",
                   "examples": [
                     "https://example.com/img/landing.png"
                   ]
                 },
                 "image": {
                   "type": "object",
-                  "description": "Image. Upload keys are not available through this server: pass a public link in image_url instead.",
+                  "description": "Image",
                   "properties": {
                     "key": {
                       "type": "string",
-                      "description": "Image path obtained from the Upload file method. Upload keys are not available through this server: pass a public link in image_url instead.",
+                      "description": "Image path obtained from the `get_upload_params` method",
                       "examples": [
                         "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}"
                       ]
@@ -15777,6 +15809,86 @@
       "untrusted": []
     },
     {
+      "name": "pachca_get_upload_params",
+      "title": "Get signature, key and other parameters",
+      "operation": "POST /uploads",
+      "kind": "write",
+      "scope": "uploads:write",
+      "plan": null,
+      "roles": [
+        "owner",
+        "admin",
+        "user",
+        "multi_guest",
+        "bot"
+      ],
+      "bot_token_only": false,
+      "description": "Get signature, key and other parameters. The first step of a file upload: the method issues the storage address and the signed form fields with which the file is uploaded by the next request. Nothing is created in Pachca at this point yet: the uploaded file is visible to nobody and linked to nothing. It becomes an attachment when its `key` is passed in the `files` field — to `send_message` or `create_draft`, and when editing either of them. The parameters are issued for one file: request them again for each next one. The signature is valid for 14 days, and the `key` is tied to the token owner, so someone else's key cannot be attached to your own message. This server takes a file only as base64 contents in the call, so a document or picture from disk, anything you would not write out yourself, you upload from a shell and attach by its key. Put the file name in place of ${filename} in key, then post a multipart form to direct_url from this same answer, never a remembered one: every other field as it is, direct_url itself left out, the file last — `curl -sS -X POST \"<direct_url>\" -F \"key=<key>\" -F \"policy=<policy>\" … -F \"file=@photo.jpg\"` answers 204. direct_url is the cloud storage Pachca keeps files in, a host outside pachca.com that changes with the provider; this form is the one answer of a tool that goes to an outside address, and only there. Then pass that key, with the name, file_type and size of the file, in files, or in the image key that sent you here.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "signature": "no arguments",
+      "request": {
+        "arguments": {}
+      },
+      "entity": "UploadParams",
+      "outputSchema": {
+        "type": "object",
+        "description": "File upload parameters",
+        "properties": {
+          "Content-Disposition": {
+            "type": "string",
+            "description": "Header used (attachment for this request)"
+          },
+          "acl": {
+            "type": "string",
+            "description": "Security level, `private`. Not every workspace gets it: when the response has the field, it is sent in the upload form."
+          },
+          "policy": {
+            "type": "string",
+            "description": "Unique policy for file upload"
+          },
+          "x-amz-credential": {
+            "type": "string",
+            "description": "x-amz-credential for file upload"
+          },
+          "x-amz-algorithm": {
+            "type": "string",
+            "description": "Algorithm used (AWS4-HMAC-SHA256 for this request)"
+          },
+          "x-amz-date": {
+            "type": "string",
+            "description": "Unique x-amz-date for file upload"
+          },
+          "x-amz-signature": {
+            "type": "string",
+            "description": "Unique signature for file upload"
+          },
+          "key": {
+            "type": "string",
+            "description": "Unique key for file upload. To attach the file, replace `${filename}` in the key with the file name and pass the rest as is: the start of the key varies."
+          },
+          "bucket": {
+            "type": "string",
+            "description": "Storage name. Not every workspace gets it: when the response has the field, it is sent in the upload form."
+          },
+          "direct_url": {
+            "type": "string",
+            "description": "Storage address the upload form is sent to"
+          }
+        }
+      },
+      "untrusted": []
+    },
+    {
       "name": "pachca_list_users",
       "title": "List employees",
       "operation": "GET /users",
@@ -18775,6 +18887,7 @@
         "pachca_list_threads",
         "pachca_create_unattached_thread",
         "pachca_get_thread",
+        "pachca_get_upload_params",
         "pachca_list_users",
         "pachca_create_user",
         "pachca_get_user",
@@ -18865,6 +18978,7 @@
         "pachca_list_threads",
         "pachca_create_unattached_thread",
         "pachca_get_thread",
+        "pachca_get_upload_params",
         "pachca_list_users",
         "pachca_create_user",
         "pachca_get_user",
@@ -18955,6 +19069,7 @@
         "pachca_list_threads",
         "pachca_create_unattached_thread",
         "pachca_get_thread",
+        "pachca_get_upload_params",
         "pachca_list_users",
         "pachca_create_user",
         "pachca_get_user",
@@ -19042,6 +19157,7 @@
         "pachca_list_threads",
         "pachca_create_unattached_thread",
         "pachca_get_thread",
+        "pachca_get_upload_params",
         "pachca_list_users",
         "pachca_get_user",
         "pachca_get_user_status"
@@ -19102,6 +19218,7 @@
         "pachca_list_threads",
         "pachca_create_unattached_thread",
         "pachca_get_thread",
+        "pachca_get_upload_params",
         "pachca_list_users",
         "pachca_get_user",
         "pachca_get_user_status"
@@ -19165,6 +19282,7 @@
         "pachca_list_threads",
         "pachca_create_unattached_thread",
         "pachca_get_thread",
+        "pachca_get_upload_params",
         "pachca_list_users",
         "pachca_get_user",
         "pachca_get_user_status",

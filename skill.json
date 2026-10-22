@@ -1,7 +1,7 @@
 {
   "name": "pachca",
   "version": "1.0.0",
-  "description": "Agent skills and CLI for the Pachca corporate messenger REST API — messages, chats, employees, threads, tasks, bots, and webhooks.",
+  "description": "Agent skills for the Pachca corporate messenger: connecting over MCP, CLI or API, writing, search, administration, bots, AI agents in Pachca, OAuth and API scripts.",
   "category": "communication",
   "platforms": [
     "claude-code",

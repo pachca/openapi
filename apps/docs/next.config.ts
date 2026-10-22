@@ -94,6 +94,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Skill archives of the discovery index: the RFC asks for this type,
+        // clients pick the archive format by it.
+        source: '/.well-known/agent-skills/:file(.*\\.tar\\.gz)',
+        headers: [{ key: 'Content-Type', value: 'application/gzip' }],
+      },
+      {
         // A2A Agent Card (Agent2Agent discovery).
         source: '/.well-known/agent-card.json',
         headers: [

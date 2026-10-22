@@ -33,6 +33,8 @@
       "inputs": [
         "scripts/generate-llms.ts",
         "scripts/skills/**",
+        "../../skills/**",
+        "../../packages/cli/oclif.manifest.json",
         "lib/**",
         "content/**",
         "data/releases.json",
@@ -62,6 +64,8 @@
       "inputs": [
         "scripts/generate-llms.ts",
         "scripts/skills/**",
+        "../../skills/**",
+        "../../packages/cli/oclif.manifest.json",
         "lib/**",
         "content/**",
         "data/releases.json",
@@ -89,8 +93,7 @@
         "../../packages/spec/openapi.yaml",
         "scripts/generate-cli.ts",
         "src/base-command.ts",
-        "../../apps/docs/lib/**",
-        "../../apps/docs/scripts/skills/config.ts"
+        "../../apps/docs/lib/**"
       ],
       "outputs": [
         "src/commands/*/*.ts",
@@ -147,7 +150,6 @@
         "../../packages/generator/src/naming.ts",
         "../../apps/docs/lib/openapi/mapper.ts",
         "../../apps/docs/lib/openapi/example-generator.ts",
-        "../../apps/docs/scripts/skills/config.ts",
         "scripts/**"
       ],
       "outputs": [

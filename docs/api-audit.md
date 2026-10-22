@@ -278,7 +278,7 @@ git tag --list 'n8n-v*' --sort=-v:refname | head -1
 - `apps/docs/public/updates.md` и `public/updates/<дата>.md` — из `content/updates/*.md`
 - `apps/docs/public/llms-full.txt`, `llms-en.txt` — из `content/`
 - `apps/docs/public/guides/*.md` — из `content/guides/*.mdx`
-- `apps/docs/public/skills/*` — копии скиллов
+- `apps/docs/public/.well-known/skills/*`, `agent-skills/*`, `public/skill.md` — публикация скиллов из `skills/`
 - `packages/cli/CHANGELOG.md` — из `src/data/changelog.json` (через `patch-manifest.js`)
 - `apps/docs/sitemap.xml`, `feed.xml` — динамические роуты
 
@@ -425,66 +425,43 @@ DLP документирован в **трёх** местах — при изм�
 10. Запустить `cd packages/spec && bun run generate`
 11. Запустить `bun turbo check`. **Если менялись модели / enum / union (а не только тексты доков) — дополнительно `bun run sdk:build`**: `turbo check` **не** компилирует SDK, и поломки генерации под Kotlin / Go / C# / Swift ловятся только этим скриптом (или в CI-джобе «SDK / Generate and build»). Пример: новый член union с непривычной формой поля компилируется в невалидный Kotlin — `turbo check` зелёный, а CI красный. Отсутствующий тулчейн скрипт помечает `SKIP` (не падает), поэтому для полного покрытия держать локально JDK/Go/.NET/Swift
 12. Обновить таблицы в этом документе
-13. **Проверить скиллы** — если затронуты API-методы, перейти к шагу ниже
+13. **Проверить скиллы** — если изменилось поведение, на которое они опираются, перейти к шагу ниже
 
 ### 6a. Проверка скиллов
 
-После внесения изменений в TypeSpec/docs — проверить, нужно ли обновить скиллы.
+Скиллы в `skills/<name>/` (`SKILL.md` и `references/`) пишутся руками: это
+знание о том, как правильно делать задачи в Пачке, а не справочник по
+методам. Справочник агент берёт из описаний инструментов MCP, `--help` CLI и
+`.md`-страниц методов, поэтому новый метод или параметр сам по себе правки
+скилла не требует.
 
-#### Архитектура генерации скиллов
+Скилл правится, когда изменение меняет **поведение**, на которое скилл
+опирается: кто может выполнить действие, что подтверждать, какой токен нужен,
+где появилась возможность, которой раньше не было, какое ограничение снято.
+Найти такие места:
 
-```text
-typespec.tsp → openapi.yaml → generate.ts + config.ts → SKILL.md + endpoints.md
+```bash
+grep -rn "<имя поля, метода или инструмента>" skills
+grep -rniE "только через интерфейс|не поддерживается|недоступн|нельзя" skills
 ```
 
-**Автогенерируемые файлы (НИКОГДА не редактировать вручную):**
+Сборка (`apps/docs/scripts/skills/generate.ts`) проверяет каждый скилл и
+падает с полным списком проблем:
 
-- `skills/*/SKILL.md` — генерируется из config + OpenAPI
-- `skills/*/references/endpoints.md` — генерируется из OpenAPI (параметры, схемы, примеры curl)
-- `skills/pachca-bots/references/webhook-events.md` — генерируется из generate.ts (хардкод)
-- `apps/docs/public/.well-known/skills/*` — копии вышеуказанных файлов
+- `name` совпадает с папкой, описание не длиннее 1024 знаков, `SKILL.md` и
+  файлы `references/` не длиннее 300 строк;
+- относительные ссылки ведут на файлы скилла, а каждый файл `references/`
+  упомянут в `SKILL.md`;
+- ссылки на `https://dev.pachca.com/...` ведут на существующие страницы;
+- инструменты `pachca_*` есть в манифесте MCP, команды `pachca <раздел>
+<действие>` есть в CLI, а скиллы после «→» существуют;
+- скилл-вход `pachca` упоминает все остальные скиллы, у каждого скилла есть
+  строка в `SKILL_SUMMARIES` (из неё собирается раздел в `llms.txt`);
+- нет внутренних номеров задач, бета-заголовка и путей `plans/`.
 
-**Файлы-источники (редактировать для изменения скиллов):**
-
-| Файл                                   | Что содержит                                          | Когда редактировать                                                          |
-| -------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `apps/docs/scripts/skills/config.ts`   | Определения скиллов: теги, триггеры, описания, ошибки | Новый скилл, новый тег OpenAPI, изменение описания, новые специфичные ошибки |
-| `apps/docs/scripts/skills/generate.ts` | Логика генерации, хардкод вебхук-событий              | Новый тип скилла, изменение формата вывода                                   |
-| `packages/spec/typespec.tsp`           | Эндпоинты, параметры, схемы, описания                 | Любые изменения API (отражаются в endpoints.md автоматически)                |
-
-**Команда регенерации:** `npx turbo build` (компилирует TypeSpec И генерирует скиллы)
-
-#### Привязка эндпоинтов к скиллам
-
-Привязка работает через OpenAPI-теги (`@tag` в TypeSpec) → `config.ts: SKILL_TAG_MAP[].tags` + исключения в `COMMON_ENDPOINT_MAP`.
-
-| Скилл             | Теги в config.ts                                   | Доп. маппинг (COMMON_ENDPOINT_MAP)          | Эндпоинты                                                                                                                                     |
-| ----------------- | -------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pachca-profile`  | `Profile`                                          | `/custom_properties` → pachca-profile       | GET /profile, GET/PUT/DELETE /profile/status, PUT/DELETE /profile/avatar, GET /custom_properties                                              |
-| `pachca-oauth`    | `OAuth`                                            | —                                           | GET /oauth/token/info, POST /oauth/token, POST /oauth/revoke                                                                                  |
-| `pachca-users`    | `Users`, `Group tags`                              | —                                           | CRUD /users, GET/PUT/DELETE /users/{id}/status, CRUD /group_tags, GET /group_tags/{id}/users                                                  |
-| `pachca-chats`    | `Chats`, `Members`                                 | —                                           | CRUD /chats, archive/unarchive, CRUD members, tags, leave, exports, GET /company/chats, PUT /chats/{id}/unread, PUT/DELETE /chats/{id}/avatar |
-| `pachca-messages` | `Messages`, `Threads`, `Reactions`, `Read members` | `/uploads`, `/direct_url` → pachca-messages | CRUD /messages, pin, reactions, read_members, threads, uploads, unfurl                                                                        |
-| `pachca-bots`     | `Bots`                                             | —                                           | CRUD /bots, аватар, ротация токенов, PUT /bot/webhook, GET/DELETE /webhooks/events, GET /company/bots                                         |
-| `pachca-forms`    | `Views`                                            | —                                           | POST /views/open                                                                                                                              |
-| `pachca-tasks`    | `Tasks`                                            | —                                           | CRUD /tasks                                                                                                                                   |
-| `pachca-search`   | `Search`                                           | —                                           | GET /search/users, GET /search/chats, GET /search/messages                                                                                    |
-| `pachca-security` | `Security`                                         | —                                           | GET /audit_events                                                                                                                             |
-
-#### Что обновлять при разных типах изменений бэкенда
-
-| Тип изменения в бэкенде                       | Что обновить                                                                                                                                                                                                                              | Файл                                     |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| **Новый эндпоинт в существующем ресурсе**     | 1) Добавить в TypeSpec (→ попадёт в endpoints.md автоматически). 2) Если тег эндпоинта не совпадает с существующим — добавить в COMMON_ENDPOINT_MAP                                                                                       | `typespec.tsp`, `config.ts`              |
-| **Новый ресурс (совсем новый API)**           | 1) Добавить в TypeSpec с `@tag("NewTag")`. 2) Решить: новый скилл или расширить существующий. 3) Добавить скилл в SKILL_TAG_MAP (config.ts): name, tags, description, triggers, negativeTriggers. 4) Обновить CLAUDE.md — таблицу скиллов | `typespec.tsp`, `config.ts`, `CLAUDE.md` |
-| **Удалённый эндпоинт**                        | Убрать из TypeSpec                                                                                                                                                                                                                        | `typespec.tsp`                           |
-| **Новый параметр запроса**                    | Добавить в TypeSpec (→ endpoints.md обновится)                                                                                                                                                                                            | `typespec.tsp`                           |
-| **Удалённый параметр**                        | Убрать из TypeSpec                                                                                                                                                                                                                        | `typespec.tsp`                           |
-| **Новое поле в ответе**                       | Добавить в TypeSpec (→ endpoints.md обновится)                                                                                                                                                                                            | `typespec.tsp`                           |
-| **Новый код ошибки (специфичный для скилла)** | 1) Добавить в enum ValidationErrorCode (TypeSpec). 2) Если ошибка важна для пользователя — добавить в config.ts → `errors[]` соответствующего скилла (отображается в секции «Ограничения и gotchas» SKILL.md)                             | `typespec.tsp`, `config.ts`              |
-| **Изменение скоупа/тарифа**                   | Обновить в TypeSpec. Строку «Bot token only» скилл получает сам, если все его методы отвечают только боту (`x-requirements.roles` или `x-scope-roles`)                                                                                    | `typespec.tsp`                           |
-| **Новый тип вебхук-события**                  | Обновить хардкод в generate.ts (функция `generateWebhookEventsMd`)                                                                                                                                                                        | `generate.ts`                            |
-| **Изменение описания/триггеров скилла**       | Обновить в config.ts: `description`, `triggers`, `negativeTriggers`, `nearestAlternatives`                                                                                                                                                | `config.ts`                              |
+Переименовали или убрали инструмент, команду или страницу — сборка покажет
+скиллы, которые на них ссылаются. Цифры, которые меняются (лимиты запросов),
+в скилл не пишутся: ссылка на [лимиты](https://dev.pachca.com/api/limits.md).
 
 #### Эндпоинт под новым префиксом пути — пинить слаг и имя операции
 
@@ -507,39 +484,6 @@ typespec.tsp → openapi.yaml → generate.ts + config.ts → SKILL.md + endpoin
   (они дублируют логику генератора и иначе падают на «orphan operations»);
 - строку ресурса в `apps/docs/content/guides/n8n/resources.mdx` — иначе падает
   `check-n8n-resources`.
-
-#### Секции SKILL.md и откуда они берутся
-
-Понимание структуры SKILL.md помогает определить, какой файл редактировать:
-
-| Секция в SKILL.md                                   | Источник данных                                                     | Файл-источник                 |
-| --------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------- |
-| Frontmatter (name, description)                     | `config.ts` → SKILL_TAG_MAP                                         | `config.ts`                   |
-| Заголовок (Base URL, авторизация, «Bot token only») | Роли методов скилла из OpenAPI + хардкод                            | `typespec.tsp`, `generate.ts` |
-| «Когда НЕ использовать»                             | `config.ts` → `negativeTriggers`, `nearestAlternatives`             | `config.ts`                   |
-| «Ограничения и gotchas»                             | OpenAPI-схемы (enum, maxLength, maximum) + `config.ts` → `errors[]` | `typespec.tsp`, `config.ts`   |
-| Таблица эндпоинтов                                  | OpenAPI-эндпоинты (метод, путь, скоуп, тариф)                       | `typespec.tsp`                |
-| Ссылка на references/endpoints.md                   | Автогенерация                                                       | —                             |
-
-| Секция в references/endpoints.md | Источник данных                                      | Файл-источник  |
-| -------------------------------- | ---------------------------------------------------- | -------------- |
-| Описание эндпоинта               | `@doc()` в TypeSpec                                  | `typespec.tsp` |
-| Параметры (query, path)          | Параметры операции в TypeSpec                        | `typespec.tsp` |
-| Тело запроса (schema)            | Request-модель в TypeSpec (рекурсивно до глубины 3)  | `typespec.tsp` |
-| Пример curl                      | Автогенерация из `@opExample`                        | `typespec.tsp` |
-| Ответ (schema)                   | Response-модель в TypeSpec (рекурсивно до глубины 3) | `typespec.tsp` |
-
-#### Чеклист обновления скиллов
-
-- [ ] Определить затронутые скиллы по таблице привязки выше
-- [ ] Если новый эндпоинт с новым тегом — добавить тег в `config.ts` → `SKILL_TAG_MAP[].tags` или в `COMMON_ENDPOINT_MAP`
-- [ ] Если появилась специфичная ошибка — добавить в `config.ts` → `errors[]` соответствующего скилла
-- [ ] Запустить `npx turbo build` для регенерации
-- [ ] Источник истины: `packages/spec/openapi.yaml` (генерируется из `typespec.tsp`)
-
-#### Сверить привязку
-
-После правок пройтись по таблице привязки эндпоинтов к скиллам выше: не появилось ли тега без скилла.
 
 ### 6b. Формат записи обновления
 

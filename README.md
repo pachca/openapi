@@ -10,7 +10,7 @@
 
 > English version: [README.en.md](README.en.md)
 
-Unified Developer Experience Platform для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Один источник (TypeSpec) генерирует артефакты для всех каналов: web docs, CLI, SDK, n8n node, agent skills, LLM context.
+Unified Developer Experience Platform для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Один источник (TypeSpec) генерирует артефакты для всех каналов: web docs, CLI, SDK, n8n node, LLM context. Agent Skills пишутся руками и публикуются той же сборкой.
 
 **Документация**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Авторизация**: https://dev.pachca.com/api/authorization · **Changelog**: https://dev.pachca.com/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
 
@@ -37,60 +37,25 @@ pachca api POST /messages -f message[content]="Привет"  # прямой з�
 
 ## Agent Skills
 
-AI-агенты используют CLI-first скиллы с пошаговыми сценариями, zero-friction авторизацией и автоматической проверкой прав.
-
-### Установка (40+ агентов)
+Скиллы — знание о том, как правильно делать задачи в Пачке: куда писать и что подтверждать, как искать и пересказывать, какой токен выбрать, почему не хватает прав. Справочник по аргументам агент берёт из описаний инструментов MCP-сервера, `pachca <команда> --help` и страниц методов, поэтому скиллы его не повторяют. Работают с любым способом подключения: MCP, CLI или API.
 
 ```bash
-npx skills add pachca/openapi
+npx skills add https://dev.pachca.com   # с сайта
+npx skills add pachca/openapi           # из репозитория
 ```
 
-### Совместимость
+| Скилл | Когда пригодится |
+|-------|------------------|
+| `pachca` | Подключение через MCP, CLI или API, выбор токена, нет права или инструмента |
+| `pachca-messaging` | Написать, ответить в треде, упомянуть, черновик, отложенное, файл |
+| `pachca-search` | Найти обсуждение, чат или сотрудника, пересказать тред, дайджест, задачи по итогам |
+| `pachca-admin` | Сотрудники, теги, участники чатов, доступ к API, журнал аудита, экспорт, DLP |
+| `pachca-bots` | Бот или интеграция: вебхуки, события, токены, кнопки, формы, разворачивание ссылок |
+| `pachca-ai-agent` | AI-агент, который живёт в Пачке и отвечает в тредах |
+| `pachca-oauth` | Приложение от имени каждого сотрудника |
+| `pachca-api` | Скрипты, SDK и CI: пагинация, лимиты, ошибки, файлы |
 
-| Агент | Путь |
-|-------|------|
-| Claude Code | `CLAUDE.md` → `AGENTS.md` |
-| Codex CLI | `AGENTS.md` |
-| OpenCode | `skills/` |
-| Cursor, Windsurf, Continue, 40+ других | Автоопределение |
-| Ручная установка | `cp -r skills/pachca-* <path>` |
-
-### Доступные скиллы
-
-| Скилл | Описание |
-|-------|----------|
-| `pachca-profile` | Профиль, статус, кастомные поля |
-| `pachca-users` | Сотрудники и теги (группы) |
-| `pachca-chats` | Каналы, беседы, участники, экспорт |
-| `pachca-messages` | Сообщения, файлы, реакции, кнопки |
-| `pachca-bots` | Боты, вебхуки, unfurling |
-| `pachca-forms` | Интерактивные формы |
-| `pachca-tasks` | Напоминания (задачи) |
-| `pachca-search` | Полнотекстовый поиск |
-| `pachca-security` | Аудит событий, DLP |
-| `pachca-oauth` | Информация о текущем токене: скоупы, владелец, даты |
-| `pachca` | Router skill — маршрутизация к нужному скиллу |
-
-### Как скиллы помогают агенту
-
-**Без скилла** — агент не знает порядок вызовов:
-
-```
-> Отправь файл report.pdf в тред сообщения 123
-Агент: POST /messages с file=@report.pdf  ← неверно, файлы не передаются inline
-```
-
-**Со скиллом** — агент выполняет CLI-команды по сценарию:
-
-```
-> Отправь файл report.pdf в тред сообщения 123
-1. pachca uploads create --file-name=report.pdf --file-size=...
-2. curl <direct_url> -F ... (загрузка на S3)
-3. pachca threads create --message-id=123
-4. pachca messages create --entity-type=thread --entity-id=<thread_id> --files='[{"key":"..."}]'
-```
-
-Скиллы генерируются автоматически из OpenAPI-спеки при `bun turbo build`. Устанавливайте только из официального репозитория — скиллы содержат исключительно инструкции (нет исполняемого кода).
+Скиллы пишутся руками в `skills/<name>/`. Сборка публикует их на dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) и проверяет ссылки, имена инструментов MCP и команд CLI. В скиллах только инструкции, исполняемого кода нет.
 
 ## n8n
 
@@ -240,7 +205,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 │   └── csharp/            # NuGet
 ├── integrations/
 │   └── n8n/               # n8n community node (генерируется из OpenAPI)
-├── skills/                # Agent Skills (генерируются → apps/docs/public/.well-known/skills/)
+├── skills/                # Agent Skills (пишутся руками → apps/docs/public/.well-known/)
 ├── docs/                  # Канонические процесс-доки (api-audit, updates-format, docs-conventions)
 ├── CONTRIBUTING.md        # Раскладка, пайплайн генерации, build/check, workflow
 ├── AGENTS.md              # Гайд для AI-агентов по работе с репозиторием (CLAUDE.md → симлинк)
@@ -277,7 +242,7 @@ apps/docs
     ▼
   Сайт + llms.txt + llms-full.txt + llms-en.txt
   + skill.md + per-endpoint и per-guide .md
-  + Agent Skills (skills/, AGENTS.md, .well-known/{skills,agent-skills}/)
+  + Agent Skills из skills/ (.well-known/{skills,agent-skills}/), AGENTS.md
   + pachca.postman_collection.json
   + CLI examples (10-й код-генератор)
   + OG-изображения + sitemap + RSS
@@ -436,6 +401,6 @@ Badge «Новое» показывается < 7 дней. Попадает в 
 
 ### Безопасность (next.config.ts)
 
-HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `openapi.yaml`, `pachca.postman_collection.json`.
+HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `/.well-known/agent-skills/*`, `openapi.yaml`, `pachca.postman_collection.json`.
 
 </details>

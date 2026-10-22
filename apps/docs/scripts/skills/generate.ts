@@ -1,675 +1,440 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'node:crypto';
-import type { Endpoint, Schema, ParsedAPI } from '../../lib/openapi/types';
-import { generateTitle } from '../../lib/openapi/mapper';
-import { operationRoles } from '../../lib/scope-roles';
-import { SKILL_TAG_MAP, COMMON_ENDPOINT_MAP, ROUTER_SKILL_CONFIG } from './config';
-import type { SkillConfig } from './config';
+import * as yaml from 'js-yaml';
 
+/**
+ * Agent skills are hand-written: `skills/<name>/SKILL.md` plus `references/`
+ * in the repository root. This module checks them and publishes them on the
+ * docs site; it writes nothing into `skills/`.
+ *
+ * Published:
+ * - `/.well-known/agent-skills/index.json` — discovery index v0.2.0; a skill with
+ *   references goes as a `.tar.gz` archive next to it, a single file as `SKILL.md`;
+ * - `/.well-known/skills/index.json` and `/.well-known/skills/<name>/**` — the
+ *   earlier index format (a `files` list) that `npx skills add` still reads, and
+ *   the files themselves for agents reading the site;
+ * - `/skill.md` — the entry skill, with links into its references made absolute;
+ * - `/.well-known/agent-card.json`, root `skill.json` and `AGENTS.md`.
+ *
+ * There is no root `SKILL.md`: `npx skills add pachca/openapi` installs a root
+ * skill alone and skips `skills/`.
+ */
+
+const SITE_URL = 'https://dev.pachca.com';
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
+const PUBLIC_DIR = path.join(process.cwd(), 'public');
+const SOURCE_DIR = path.join(REPO_ROOT, 'skills');
+const ENTRY_SKILL = 'pachca';
+const DISCOVERY_SCHEMA = 'https://schemas.agentskills.io/discovery/0.2.0/schema.json';
 
-const OUTPUT_DIRS = [
-  path.join(REPO_ROOT, 'skills'),
-  path.join(process.cwd(), 'public/.well-known/skills'),
-  path.join(process.cwd(), 'public/.well-known/agent-skills'),
+/** Limits from the Agent Skills spec, tightened: a skill stays short and links out. */
+const MAX_DESCRIPTION = 1024;
+const MAX_LINES = 300;
+const NAME_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const FRONTMATTER_KEYS = new Set(['name', 'description']);
+/** Internal identifiers that must never reach the public repository or the site. */
+const LEAKS: [RegExp, string][] = [
+  [/\b(?:BAK|WEB|PRO|SEC|DES|AGT|DEVP)-\d+\b/, 'an internal ticket id'],
+  [/x-beta/i, 'the beta header'],
+  [/\bstaply\b/i, 'an internal repository'],
+  [/(?:^|[\s(`])plans\//, 'an internal plans/ path'],
 ];
 
+/**
+ * One line per skill for llms.txt and the agent card, in Russian like the rest
+ * of llms.txt. A new skill needs a line here, the build checks it.
+ */
+export const SKILL_SUMMARIES: Record<string, string> = {
+  pachca:
+    'Вход: подключение через MCP, CLI или API, выбор токена, почему нет права или инструмента',
+  'pachca-messaging':
+    'Как писать: оформление, упоминания, куда отвечать, черновики, отложенные, файлы, кнопки, реакции',
+  'pachca-search':
+    'Поиск и пересказ: сообщения, чаты, сотрудники, тред целиком, дайджесты, задачи по итогам',
+  'pachca-admin':
+    'Администрирование: сотрудники, теги, участники чатов, доступ к API, журнал аудита, экспорт, DLP',
+  'pachca-bots':
+    'Боты и интеграции: вебхуки, события, токены и права, кнопки, формы, разворачивание ссылок',
+  'pachca-ai-agent':
+    'AI-агент в Пачке: зовут по нику, контекст треда, реакция agent-thinking, ответ в тред, черновик',
+  'pachca-oauth':
+    'Приложение от имени сотрудника: OAuth с PKCE, обмен кода, хранение токенов, отзыв',
+  'pachca-api':
+    'API из кода и CI: токены, пагинация, лимиты и 429, ошибки, файлы, SDK, CLI в скриптах',
+};
+
+interface Skill {
+  name: string;
+  description: string;
+  /** Path inside the skill → content; `SKILL.md` first, then the rest sorted. */
+  files: Map<string, Buffer>;
+}
+
+interface PublishedFile {
+  /** Path from the repository root. */
+  path: string;
+  content: string | Buffer;
+}
+
 /** RFC digest format: `sha256:` + 64 lowercase hex chars. */
-function sha256(content: string): string {
-  return 'sha256:' + crypto.createHash('sha256').update(content, 'utf8').digest('hex');
+function sha256(content: string | Buffer): string {
+  return 'sha256:' + crypto.createHash('sha256').update(content).digest('hex');
 }
 
-function cleanOutputDirs() {
-  for (const dir of OUTPUT_DIRS) {
-    if (fs.existsSync(dir)) {
-      fs.rmSync(dir, { recursive: true });
-    }
+function listFiles(dir: string, base = dir): string[] {
+  const out: string[] = [];
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.name.startsWith('.')) continue;
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) out.push(...listFiles(p, base));
+    else out.push(path.relative(base, p).split(path.sep).join('/'));
   }
-  const agentsMd = path.join(REPO_ROOT, 'AGENTS.md');
-  if (fs.existsSync(agentsMd)) {
-    fs.unlinkSync(agentsMd);
-  }
-  // Clean up legacy directories no longer generated
-  for (const legacy of ['.claude/skills', '.cursor/rules']) {
-    const dir = path.join(REPO_ROOT, legacy);
-    if (fs.existsSync(dir)) {
-      fs.rmSync(dir, { recursive: true });
-    }
-  }
+  return out.sort();
 }
 
-interface SkillContext {
-  api: ParsedAPI;
-  config: SkillConfig;
-  endpoints: Endpoint[];
-  allEndpoints: Endpoint[];
-  baseUrl: string;
-  allSkills: SkillConfig[];
-}
-
-function buildFullDescription(config: SkillConfig): string {
-  let desc = config.description;
-  if (config.triggers.length > 0) {
-    desc += ` Use when: ${config.triggers.join(', ')}.`;
-  }
-  if (config.negativeTriggers.length > 0) {
-    // `parts` adds "→ neighbouring-skill" routing hints on top of the plain
-    // negative triggers. It was built and then dropped, so eight skills told
-    // agents what they are NOT for without saying where to go instead.
-    const parts: string[] = [...config.negativeTriggers];
-    if (config.nearestAlternatives) {
-      for (const alt of config.nearestAlternatives) {
-        if (typeof alt === 'string') {
-          parts.push(`→ ${alt}`);
-        } else {
-          parts.push(`${alt.text} → ${alt.name}`);
-        }
-      }
-    }
-    desc += ` NOT for: ${parts.join(', ')}.`;
-  }
-  return desc;
-}
-
-export function generateAllSkills(api: ParsedAPI) {
-  cleanOutputDirs();
-
-  const baseUrl = api.servers[0]?.url || 'https://api.pachca.com/api/shared/v1';
-  const skillEndpoints = groupEndpointsBySkill(api.endpoints);
-  const results: { path: string; content: string }[] = [];
-  // name → sha256 of the served SKILL.md, for the RFC v0.2.0 discovery index
-  const skillDigests = new Map<string, string>();
-
-  for (const config of SKILL_TAG_MAP) {
-    if (config.description.length > 1024) {
-      console.warn(
-        `⚠ ${config.name}: description ${config.description.length} chars (max 1024 per RFC)`
-      );
-    }
-
-    const endpoints = skillEndpoints.get(config.name) || [];
-    const ctx: SkillContext = {
-      api,
-      config,
-      endpoints,
-      allEndpoints: api.endpoints,
-      baseUrl,
-      allSkills: SKILL_TAG_MAP,
-    };
-
-    const skillMd = generateSkillMd(ctx);
-    skillDigests.set(config.name, sha256(skillMd));
-
-    const basePaths = [
-      `skills/${config.name}`,
-      `apps/docs/public/.well-known/skills/${config.name}`,
-    ];
-
-    for (const base of basePaths) {
-      results.push({ path: `${base}/SKILL.md`, content: skillMd });
-    }
-
-    if (config.name === 'pachca-bots') {
-      const webhookEventsMd = generateWebhookEventsMd();
-      for (const base of basePaths) {
-        results.push({ path: `${base}/references/webhook-events.md`, content: webhookEventsMd });
-      }
-    }
-
-    // Validation
-    const lineCount = skillMd.split('\n').length;
-    if (lineCount > 500) {
-      console.warn(`⚠ ${config.name}/SKILL.md: ${lineCount} lines (exceeds 500 line limit)`);
-    }
-    const tokenEstimate = Math.round(skillMd.split(/\s+/).length * 1.3);
-    if (tokenEstimate > 5000) {
-      console.warn(`⚠ ${config.name}/SKILL.md: ~${tokenEstimate} tokens (exceeds 5000 limit)`);
-    } else if (tokenEstimate > 4000) {
-      console.warn(`⚠ ${config.name}/SKILL.md: ~${tokenEstimate} tokens (exceeds 4000 target)`);
-    }
-  }
-
-  const knownNames = new Set(SKILL_TAG_MAP.map((c) => c.name));
-  for (const [name, endpoints] of skillEndpoints) {
-    if (knownNames.has(name) || endpoints.length === 0) continue;
-
-    const fallbackConfig: SkillConfig = {
-      name,
-      tags: [],
-      description: `Auto-discovered skill: ${name}.`,
-      triggers: endpoints.map((ep) => ep.summary || `${ep.method} ${ep.path}`),
-      negativeTriggers: [],
-    };
-    const ctx: SkillContext = {
-      api,
-      config: fallbackConfig,
-      endpoints,
-      allEndpoints: api.endpoints,
-      baseUrl,
-      allSkills: SKILL_TAG_MAP,
-    };
-    const skillMd = generateSkillMd(ctx);
-    for (const base of [`skills/${name}`, `apps/docs/public/.well-known/skills/${name}`]) {
-      results.push({ path: `${base}/SKILL.md`, content: skillMd });
-    }
-    console.warn(`⚠ Created fallback skill "${name}" with ${endpoints.length} endpoints`);
-  }
-
-  // Generate router skill
-  const routerMd = generateRouterSkillMd();
-  skillDigests.set(ROUTER_SKILL_CONFIG.name, sha256(routerMd));
-  for (const base of ['skills/pachca', 'apps/docs/public/.well-known/skills/pachca']) {
-    results.push({ path: `${base}/SKILL.md`, content: routerMd });
-  }
-
-  // Root-level entry points for skill catalogs that scan the repository root
-  // rather than recursing into skills/<name>/ (e.g. OpenAgentSkill wants a
-  // skill.json manifest; simpler crawlers look for a top-level SKILL.md). The
-  // recursive registries (skills.sh, GuildSkills) already read skills/*/SKILL.md.
-  results.push({ path: 'SKILL.md', content: routerMd });
-  results.push({ path: 'skill.json', content: generateSkillJson() });
-
-  // Agent Skills Discovery RFC v0.2.0 index. Canonical path is
-  // /.well-known/agent-skills/index.json; also served at the legacy
-  // /.well-known/skills/index.json (Mintlify-style path, referenced by
-  // llms.txt/skill.md) so both discovery conventions work.
-  const rfcIndex = generateIndexJson(skillDigests);
-  results.push({
-    path: 'apps/docs/public/.well-known/agent-skills/index.json',
-    content: rfcIndex,
-  });
-  results.push({
-    path: 'apps/docs/public/.well-known/skills/index.json',
-    content: rfcIndex,
-  });
-  // A2A Agent Card — same skills re-projected into the Agent2Agent schema.
-  results.push({
-    path: 'apps/docs/public/.well-known/agent-card.json',
-    content: generateAgentCardJson(skillDigests),
-  });
-  results.push({ path: 'AGENTS.md', content: generateAgentsMd() });
-
-  return results;
-}
-
-function groupEndpointsBySkill(endpoints: Endpoint[]) {
-  const result = new Map<string, Endpoint[]>();
-  for (const config of SKILL_TAG_MAP) {
-    result.set(config.name, []);
-  }
-
-  for (const ep of endpoints) {
-    const tag = ep.tags[0] || 'Common';
-    let assigned = false;
-
-    // Route by PATH first, regardless of tag. This map used to be consulted
-    // only for a `Common` tag, which no endpoint has — so /custom_properties,
-    // /uploads and /direct_url fell through to placeholder skills that no
-    // index, router or agent-card references, and the three endpoints became
-    // undiscoverable.
-    for (const [pathPrefix, skillName] of Object.entries(COMMON_ENDPOINT_MAP)) {
-      if (ep.path === pathPrefix || ep.path.startsWith(pathPrefix + '/')) {
-        result.get(skillName)?.push(ep);
-        assigned = true;
-        break;
-      }
-    }
-    if (assigned) continue;
-
-    if (tag === 'Common') {
-      result.get('pachca-profile')?.push(ep);
+function readSkills(problems: string[]): Skill[] {
+  const skills: Skill[] = [];
+  for (const e of fs.readdirSync(SOURCE_DIR, { withFileTypes: true })) {
+    if (!e.isDirectory() || e.name.startsWith('.')) continue;
+    const dir = path.join(SOURCE_DIR, e.name);
+    const rel = listFiles(dir);
+    if (!rel.includes('SKILL.md')) {
+      problems.push(`skills/${e.name}: no SKILL.md`);
       continue;
     }
-
-    for (const config of SKILL_TAG_MAP) {
-      if (config.tags.includes(tag)) {
-        result.get(config.name)?.push(ep);
-        assigned = true;
-        break;
-      }
+    const files = new Map<string, Buffer>();
+    for (const f of ['SKILL.md', ...rel.filter((f) => f !== 'SKILL.md')]) {
+      files.set(f, fs.readFileSync(path.join(dir, f)));
     }
-
-    if (!assigned) {
-      const fallbackName = `pachca-${tag.toLowerCase().replace(/\s+/g, '-')}`;
-      console.warn(`⚠ Unassigned tag "${tag}" → fallback skill "${fallbackName}"`);
-      if (!result.has(fallbackName)) {
-        result.set(fallbackName, []);
-      }
-      result.get(fallbackName)?.push(ep);
+    const text = files.get('SKILL.md')!.toString('utf8');
+    const m = text.match(/^---\n([\s\S]*?)\n---\n/);
+    if (!m) {
+      problems.push(`skills/${e.name}/SKILL.md: no frontmatter`);
+      continue;
     }
+    const meta = yaml.load(m[1]) as Record<string, unknown>;
+    for (const key of Object.keys(meta)) {
+      if (!FRONTMATTER_KEYS.has(key))
+        problems.push(`skills/${e.name}: unexpected frontmatter key "${key}"`);
+    }
+    if (meta.name !== e.name)
+      problems.push(`skills/${e.name}: name "${meta.name}" differs from the folder`);
+    if (!NAME_RE.test(e.name) || e.name.length > 64)
+      problems.push(`skills/${e.name}: invalid skill name`);
+    const description = typeof meta.description === 'string' ? meta.description.trim() : '';
+    if (!description) problems.push(`skills/${e.name}: empty description`);
+    if (description.length > MAX_DESCRIPTION) {
+      problems.push(
+        `skills/${e.name}: description ${description.length} chars (max ${MAX_DESCRIPTION})`
+      );
+    }
+    skills.push({ name: e.name, description, files });
   }
-
-  return result;
-}
-
-function generateSkillMd(ctx: SkillContext): string {
-  const { config, endpoints } = ctx;
-  const lines: string[] = [];
-
-  // Frontmatter
-  const fullDescription = buildFullDescription(config);
-  lines.push('---');
-  lines.push(`name: ${config.name}`);
-  lines.push(`description: >`);
-  const descLines = fullDescription.match(/.{1,80}(\s|$)/g) || [fullDescription];
-  for (const dl of descLines) {
-    lines.push(`  ${dl.trim()}`);
-  }
-  lines.push('allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)');
-  lines.push('---');
-  lines.push('');
-
-  // Header
-  lines.push(`# ${config.name}`);
-  lines.push('');
-
-  // Quick start
-  lines.push('## Quick start');
-  lines.push('');
-  lines.push(
-    'Ask the user for a Pachca token (bot: the API tab of the bot in Integrations → Bots, user: Integrations → API).'
+  return skills.sort((a, b) =>
+    a.name === ENTRY_SKILL ? -1 : b.name === ENTRY_SKILL ? 1 : a.name.localeCompare(b.name)
   );
-  // Every method of the skill answers to a bot alone — read from the spec's roles.
-  const botOnly =
-    endpoints.length > 0 &&
-    endpoints.every((ep) => operationRoles(ep.requirements)?.join() === 'bot');
-  if (botOnly) {
-    lines.push('**Bot token only** — user tokens will not work.');
-  }
-  lines.push('');
-  lines.push('Run commands via `npx -y @pachca/cli` with the `--token` flag:');
-  lines.push('');
-  lines.push('    npx -y @pachca/cli <command> --token $PACHCA_TOKEN');
-  lines.push('');
-  lines.push('Or set the `PACHCA_TOKEN` environment variable:');
-  lines.push('');
-  lines.push('    export PACHCA_TOKEN=<token>');
-  lines.push('    npx -y @pachca/cli <command>');
-  lines.push('');
-  lines.push('Help: `npx -y @pachca/cli --help`');
-  lines.push('');
-  lines.push(
-    '> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`'
-  );
-  lines.push('');
-
-  // Before you start
-  lines.push('## Before you start');
-  lines.push('');
-  lines.push('1. If the user has a saved profile — check:');
-  lines.push('');
-  lines.push('       npx -y @pachca/cli auth status');
-  lines.push('');
-  lines.push('   If OK — run commands without `--token`.');
-  lines.push('');
-  lines.push('2. If no profile is configured — ask for a token and use `--token`:');
-  lines.push('');
-  lines.push('       npx -y @pachca/cli auth status --token $PACHCA_TOKEN');
-  lines.push('');
-  lines.push("3. If you don't know the parameters — run `pachca <command> --help`.");
-  lines.push('');
-
-  // Extra sections (e.g. event_key table for pachca-security)
-  if (config.extraSections) {
-    for (const section of config.extraSections) {
-      lines.push(`## ${section.title}`);
-      lines.push('');
-      const { content } = section;
-      lines.push(typeof content === 'function' ? content(ctx.api) : content);
-      lines.push('');
-    }
-  }
-
-  // Gotchas (including rate limit and errors)
-  const gotchas = extractGotchas(endpoints, config);
-  if (gotchas.length > 0) {
-    lines.push('## Limitations');
-    lines.push('');
-    for (const gotcha of gotchas) {
-      lines.push(`- ${gotcha}`);
-    }
-    lines.push('');
-  }
-
-  // Endpoints table
-  if (endpoints.length > 0) {
-    lines.push('## Endpoints');
-    lines.push('');
-    lines.push('| Method | Path | Description |');
-    lines.push('|--------|------|-------------|');
-    for (const ep of endpoints) {
-      const title = generateTitle(ep);
-      lines.push(`| ${ep.method} | ${ep.path} | ${title} |`);
-    }
-    lines.push('');
-  }
-
-  // Special reference files
-  if (config.name === 'pachca-bots') {
-    lines.push('  references/webhook-events.md — Webhook event types');
-    lines.push('');
-  }
-
-  // Fallback
-  lines.push('> If unsure how to complete a task, read the corresponding file from references/.');
-  lines.push('');
-
-  return lines.join('\n');
 }
 
-/** Resolve allOf/oneOf/anyOf to a flat schema (first match wins). */
-function resolveComposed(schema: Schema): Schema {
-  if (schema.allOf?.length) {
-    let merged: Schema = {};
-    for (const sub of schema.allOf) {
-      merged = { ...merged, ...sub };
-    }
-    if (schema.description) merged.description = schema.description;
-    if (schema.example !== undefined) merged.example = schema.example;
-    return merged;
-  }
-  if (schema.oneOf?.length) return schema.oneOf[0];
-  if (schema.anyOf?.length) return schema.anyOf[0];
-  return schema;
+/** Text inside code spans and fenced blocks: where tool and command names live. */
+function codeText(md: string): string {
+  const fenced = [...md.matchAll(/```[^\n]*\n([\s\S]*?)```/g)].map((m) => m[1]);
+  const inline = [...md.replace(/```[\s\S]*?```/g, '').matchAll(/`([^`\n]+)`/g)].map((m) => m[1]);
+  return [...fenced, ...inline].join('\n');
 }
 
-function collectSchemaGotchas(
-  properties: Record<string, Schema>,
-  seen: Set<string>,
-  gotchas: string[],
-  prefix = ''
-): void {
-  for (const [name, rawProp] of Object.entries(properties)) {
-    const prop = resolveComposed(rawProp);
-    const fullName = prefix ? `${prefix}.${name}` : name;
-
-    if (prop.enum && prop.enum.length > 0) {
-      const key = `enum:${fullName}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        const enumDescriptions = prop['x-enum-descriptions'];
-        const values = prop.enum
-          .map((v) => {
-            const key = v as string;
-            const desc = enumDescriptions?.[key];
-            return desc ? `\`${key}\` (${desc})` : `\`${key}\``;
-          })
-          .join(', ');
-        gotchas.push(`\`${fullName}\`: allowed values — ${values}`);
-      }
-    }
-    if (prop.maxLength) {
-      const key = `maxLength:${fullName}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        gotchas.push(`\`${fullName}\`: max ${prop.maxLength} characters`);
-      }
-    }
-    if (prop.type === 'object' && prop.properties) {
-      collectSchemaGotchas(prop.properties, seen, gotchas, fullName);
-    }
-  }
+function loadToolNames(): Set<string> {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(REPO_ROOT, 'packages/spec/mcp-manifest.json'), 'utf8')
+  ) as { tools: { name: string }[]; service_tools?: { name: string }[] };
+  return new Set([...manifest.tools, ...(manifest.service_tools ?? [])].map((t) => t.name));
 }
 
-function extractGotchas(endpoints: Endpoint[], config: SkillConfig): string[] {
-  const gotchas: string[] = [];
-  const seen = new Set<string>();
+function loadCliCommands(): Set<string> {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(REPO_ROOT, 'packages/cli/oclif.manifest.json'), 'utf8')
+  ) as { commands: Record<string, unknown> };
+  return new Set(Object.keys(manifest.commands));
+}
 
-  if (config.name === 'pachca-messages') {
-    gotchas.push('Rate limit: ~50 req/sec, messages ~4 req/sec per chat. On 429 — wait and retry.');
-  } else {
-    gotchas.push('Rate limit: ~50 req/sec. On 429 — wait and retry.');
-  }
+/** Path on the site → the file that serves it, for links to dev.pachca.com. */
+function sitePathExists(urlPath: string): boolean {
+  const clean = decodeURIComponent(urlPath.replace(/[#?].*$/, '')).replace(/\/$/, '');
+  const candidates = /\.[a-z]+$/.test(clean) ? [clean] : [`${clean}.md`, `${clean}/index.md`];
+  return candidates.some((c) => fs.existsSync(path.join(PUBLIC_DIR, c)));
+}
 
-  if (config.errors) {
-    for (const err of config.errors) {
-      gotchas.push(`${err.code}: ${err.reason}. ${err.action}`);
+function checkSkill(
+  skill: Skill,
+  names: Set<string>,
+  tools: Set<string>,
+  commands: Set<string>,
+  problems: string[]
+) {
+  const where = (f: string) => `skills/${skill.name}/${f}`;
+  const skillMd = skill.files.get('SKILL.md')!.toString('utf8');
+
+  for (const [file, buf] of skill.files) {
+    if (!file.endsWith('.md')) continue;
+    const md = buf.toString('utf8');
+    const lines = md.split('\n').length;
+    if (lines > MAX_LINES) problems.push(`${where(file)}: ${lines} lines (max ${MAX_LINES})`);
+
+    for (const [re, what] of LEAKS) {
+      if (re.test(md)) problems.push(`${where(file)}: ${what}`);
     }
-  }
 
-  for (const ep of endpoints) {
-    if (ep.requestBody) {
-      const jsonContent = ep.requestBody.content['application/json'];
-      if (jsonContent?.schema) {
-        const resolved = resolveComposed(jsonContent.schema);
-        if (resolved.properties) {
-          collectSchemaGotchas(resolved.properties, seen, gotchas);
+    for (const m of md.matchAll(/\]\(([^)\s]+)\)/g)) {
+      const target = m[1];
+      if (target.startsWith('#') || /^mailto:/.test(target)) continue;
+      if (/^https?:\/\//.test(target)) {
+        const url = new URL(target);
+        if (url.host === 'dev.pachca.com' && !sitePathExists(url.pathname)) {
+          problems.push(`${where(file)}: link to a missing page ${target}`);
         }
+        continue;
       }
+      const resolved = path.posix.normalize(
+        path.posix.join(path.posix.dirname(file), target.replace(/#.*$/, ''))
+      );
+      if (!skill.files.has(resolved)) problems.push(`${where(file)}: broken link ${target}`);
+    }
+    for (const m of md.matchAll(/(?<![\w/.])https:\/\/dev\.pachca\.com(\/[^\s)`'"<>,]*)/g)) {
+      const urlPath = m[1].replace(/[.:;]+$/, '');
+      if (!sitePathExists(urlPath)) problems.push(`${where(file)}: link to a missing page ${m[0]}`);
+    }
+
+    const code = codeText(md);
+    for (const m of code.matchAll(/\bpachca_[a-z0-9_]+/g)) {
+      if (!tools.has(m[0])) problems.push(`${where(file)}: no MCP tool ${m[0]}`);
+    }
+    // `pachca` in command position: a line start or after a pipe, `&&`, `;` or `(`.
+    for (const m of code.matchAll(
+      /(?:^|[|;&(])[ \t]*(?:\$[ \t]+)?pachca ([a-z][a-z-]*)(?: ([a-z][a-z-]*))?/gm
+    )) {
+      const [topic, action] = [m[1], m[2]];
+      const ok =
+        (action && commands.has(`${topic}:${action}`)) ||
+        commands.has(topic) ||
+        (!action && [...commands].some((c) => c.startsWith(`${topic}:`)));
+      if (!ok)
+        problems.push(
+          `${where(file)}: no CLI command "pachca ${topic}${action ? ` ${action}` : ''}"`
+        );
+    }
+    for (const m of md.matchAll(/→ `?(pachca(?:-[a-z]+)*)`?/g)) {
+      if (!names.has(m[1])) problems.push(`${where(file)}: points to a missing skill ${m[1]}`);
     }
   }
 
-  const paramMaximums = new Map<string, { max: number; endpoint: string }[]>();
-  for (const ep of endpoints) {
-    const queryParams = ep.parameters.filter((p) => p.in === 'query');
-    for (const p of queryParams) {
-      if (p.schema?.maximum) {
-        const entries = paramMaximums.get(p.name) ?? [];
-        entries.push({
-          max: p.schema.maximum as number,
-          endpoint: `${ep.method.toUpperCase()} ${ep.path}`,
-        });
-        paramMaximums.set(p.name, entries);
-      }
+  for (const file of skill.files.keys()) {
+    if (file !== 'SKILL.md' && !skillMd.includes(`](${file}`)) {
+      problems.push(`${where(file)}: not linked from SKILL.md`);
     }
   }
-
-  for (const [name, entries] of paramMaximums) {
-    const uniqueValues = [...new Set(entries.map((e) => e.max))];
-    if (uniqueValues.length === 1) {
-      gotchas.push(`\`${name}\`: max ${uniqueValues[0]}`);
-    } else {
-      const details = entries.map((e) => `${e.max} (${e.endpoint})`).join(', ');
-      gotchas.push(`\`${name}\`: max — ${details}`);
-    }
+  for (const m of skill.description.matchAll(/→ (pachca(?:-[a-z]+)*)/g)) {
+    if (!names.has(m[1]))
+      problems.push(`skills/${skill.name}: description points to a missing skill ${m[1]}`);
   }
-
-  const hasGetEndpoints = endpoints.some((ep) => ep.method === 'GET');
-  if (hasGetEndpoints) {
-    gotchas.push('Pagination: cursor-based (limit + cursor)');
-  }
-
-  if (config.extraGotchas) {
-    for (const g of config.extraGotchas) {
-      gotchas.push(g);
-    }
-  }
-
-  return gotchas;
 }
 
-function generateWebhookEventsMd(): string {
-  const lines: string[] = [];
+// ---------------------------------------------------------------------------
+// Deterministic .tar.gz: fixed mode, owner and time, stored (uncompressed)
+// deflate blocks, so the bytes and the digest depend on the content alone and
+// the generated-files check passes on any machine and zlib build.
+// ---------------------------------------------------------------------------
 
-  lines.push('# Webhook event types');
-  lines.push('');
-  lines.push('Outgoing webhooks send JSON to the specified URL when events occur.');
-  lines.push(
-    'Signature: `Pachca-Signature` (HMAC-SHA256 of the request body with the Signing secret).'
-  );
-  lines.push('');
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
 
-  lines.push('## New messages');
-  lines.push('');
-  lines.push('Sent when a new message appears in a chat or thread where the bot is a member.');
-  lines.push(
-    'Filtered by `trigger_on`: `all_messages` or `commands` (the first word must equal one of `commands`). A new bot is in `commands` mode with an empty list and gets no messages until you change it. There is no mentions-only mode: take all messages and check for `@bot_nickname` in `content`.'
-  );
-  lines.push('');
-  lines.push('```json');
-  lines.push(
-    JSON.stringify(
-      {
-        event: 'new',
-        type: 'message',
-        webhook_timestamp: 1744618734,
-        chat_id: 918264,
-        content: 'Message text',
-        user_id: 134412,
-        id: 56431,
-        created_at: '2025-04-14T08:18:54.000Z',
-        parent_message_id: null,
-        entity_type: 'discussion',
-        entity_id: 918264,
-        thread: null,
-        url: 'https://app.pachca.com/chats/124511?message=56431',
-      },
-      null,
-      2
-    )
-  );
-  lines.push('```');
-  lines.push('');
-
-  lines.push('## Message edits and deletions');
-  lines.push('');
-  lines.push(
-    'Same fields as a new message, `event` is `update` or `delete`. In `commands` mode an edit arrives only if the message starts with a command; deletions always arrive.'
-  );
-  lines.push('');
-
-  lines.push('## Reaction add/remove');
-  lines.push('');
-  lines.push('Sent when a reaction is added/removed in a chat where the bot is a member.');
-  lines.push(
-    'Fields: `event` (`new`/`delete`), `type` (reaction), `code` (emoji), `message_id`, `user_id`.'
-  );
-  lines.push('');
-
-  lines.push('## Button clicks');
-  lines.push('');
-  lines.push('Sent only to the bot that sent the message, when a Data button in it is clicked.');
-  lines.push(
-    'Contains `trigger_id` for opening forms via `POST /views/open` — valid for 3 seconds.'
-  );
-  lines.push('');
-
-  lines.push('## Form submissions');
-  lines.push('');
-  lines.push(
-    '`type` is `view`, `event` is `submit`. Sent to the bot that opened the form, if `button_click` is enabled; the bot does not need to be in the chat. Respond within 3 seconds: `200` closes the form, `400` with `errors` shows them under the fields.'
-  );
-  lines.push('');
-
-  lines.push('## Links to the bot domains');
-  lines.push('');
-  lines.push(
-    '`type` is `message`, `event` is `link_shared`. Sent from any chat in the workspace when a message has a link to one of `unfurl_domains`; requires the `message_link_shared` event. Answer with `POST /messages/{id}/link_previews`.'
-  );
-  lines.push('');
-
-  lines.push('## Chat member changes');
-  lines.push('');
-  lines.push('Sent when members are added/removed in chats where the bot is a member.');
-  lines.push('');
-
-  lines.push('## Workspace member changes');
-  lines.push('');
-  lines.push(
-    'Global event (does not require the bot to be in a chat). Events: invite, confirm, update, suspend, activate, delete.'
-  );
-  lines.push('');
-
-  lines.push('## Video calls');
-  lines.push('');
-  lines.push('Sent for video calls in chats where the bot is a member.');
-  lines.push(
-    'Field `event` distinguishes: `started`, `finished` (includes participants and duration), `recording_ready` (includes recording file `url`, `size`, `duration`).'
-  );
-  lines.push(
-    'Field `type` is always `video_call`. Common fields: `video_room_id`, `chat_id`, `owner_id`, `thread`.'
-  );
-  lines.push('');
-
-  lines.push('## Security');
-  lines.push('');
-  lines.push('1. Verify signature: `HMAC-SHA256(Signing secret, raw body)` === `Pachca-Signature`');
-  lines.push('2. Verify `webhook_timestamp` — must be within 1 minute');
-  lines.push(
-    '3. Verify sender IP: Pachca sends webhooks from `37.200.70.177`, `185.209.115.174` and `135.106.159.61`'
-  );
-  lines.push('');
-  lines.push('```javascript');
-  lines.push(
-    'const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");'
-  );
-  lines.push("if (signature !== request.headers['pachca-signature']) {");
-  lines.push('  throw "Invalid signature";');
-  lines.push('}');
-  lines.push('```');
-  lines.push('');
-
-  return lines.join('\n');
+function crc32(buf: Buffer): number {
+  let c = 0xffffffff;
+  for (const byte of buf) c = CRC_TABLE[(c ^ byte) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
 }
 
-function generateRouterSkillMd(): string {
-  const lines: string[] = [];
+function tarHeader(name: string, size: number): Buffer {
+  const h = Buffer.alloc(512);
+  const put = (value: string, offset: number, length: number) =>
+    h.write(value, offset, Math.min(length, Buffer.byteLength(value)), 'utf8');
+  put(name, 0, 100);
+  put('0000644\0', 100, 8);
+  put('0000000\0', 108, 8);
+  put('0000000\0', 116, 8);
+  put(size.toString(8).padStart(11, '0') + '\0', 124, 12);
+  put('00000000000\0', 136, 12);
+  h.fill(' ', 148, 156);
+  put('0', 156, 1);
+  put('ustar\0', 257, 6);
+  put('00', 263, 2);
+  let sum = 0;
+  for (const byte of h) sum += byte;
+  put(sum.toString(8).padStart(6, '0') + '\0 ', 148, 8);
+  return h;
+}
 
-  lines.push('---');
-  lines.push(`name: ${ROUTER_SKILL_CONFIG.name}`);
-  lines.push('description: >');
-  const descLines = ROUTER_SKILL_CONFIG.description.match(/.{1,80}(\s|$)/g) || [
-    ROUTER_SKILL_CONFIG.description,
-  ];
-  for (const dl of descLines) {
-    lines.push(`  ${dl.trim()}`);
+function tarGz(files: Map<string, Buffer>): Buffer {
+  const parts: Buffer[] = [];
+  for (const [name, data] of files) {
+    if (Buffer.byteLength(name) > 100) throw new Error(`skill archive: path too long ${name}`);
+    parts.push(tarHeader(name, data.length), data, Buffer.alloc((512 - (data.length % 512)) % 512));
   }
-  lines.push('allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)');
-  lines.push('---');
-  lines.push('');
-  lines.push('# pachca');
-  lines.push('');
-  lines.push('Pachca — corporate messenger with REST API, CLI and an MCP server.');
-  lines.push('');
-  lines.push('## Quick start');
-  lines.push('');
-  lines.push('```bash');
-  lines.push('npx -y @pachca/cli <command> --token <TOKEN>');
-  lines.push('```');
-  lines.push('');
-  lines.push('## For regular use');
-  lines.push('');
-  lines.push('```bash');
-  lines.push('npm install -g @pachca/cli && pachca auth login');
-  lines.push('```');
-  lines.push('');
-  lines.push('## MCP server');
-  lines.push('');
-  lines.push(
-    'An MCP client can connect to `https://mcp.pachca.com/mcp` instead: one tool per API method, same rights as the token. ' +
-      'Clients that support OAuth Client ID Metadata Document (CIMD) sign in through the browser; others send a personal or bot token ' +
-      'in `Authorization: Bearer <TOKEN>`. Guide: https://dev.pachca.com/guides/ai-agents/mcp-connect.md'
+  parts.push(Buffer.alloc(1024));
+  const tar = Buffer.concat(parts);
+
+  const blocks: Buffer[] = [Buffer.from([0x1f, 0x8b, 8, 0, 0, 0, 0, 0, 0, 0xff])];
+  for (let off = 0; off < tar.length; off += 0xffff) {
+    const chunk = tar.subarray(off, off + 0xffff);
+    const head = Buffer.alloc(5);
+    head[0] = off + 0xffff >= tar.length ? 1 : 0;
+    head.writeUInt16LE(chunk.length, 1);
+    head.writeUInt16LE(~chunk.length & 0xffff, 3);
+    blocks.push(head, chunk);
+  }
+  const trailer = Buffer.alloc(8);
+  trailer.writeUInt32LE(crc32(tar), 0);
+  trailer.writeUInt32LE(tar.length >>> 0, 4);
+  blocks.push(trailer);
+  return Buffer.concat(blocks);
+}
+
+// ---------------------------------------------------------------------------
+
+/** Links into the entry skill's own files, made absolute for `/skill.md`. */
+function absolutizeEntryLinks(md: string): string {
+  return md.replace(
+    /\]\((?!https?:|#)([^)\s]+)\)/g,
+    (_, target: string) => `](${SITE_URL}/.well-known/skills/${ENTRY_SKILL}/${target})`
   );
-  lines.push('');
-  lines.push('## Routing');
-  lines.push('');
-  lines.push('Identify the user task and activate the appropriate skill.');
-  lines.push('');
-  lines.push('| Task | Skill |');
-  lines.push('|------|-------|');
-  for (const config of SKILL_TAG_MAP) {
-    const shortDesc = config.description.split('.')[0];
-    lines.push(`| ${shortDesc} | \`${config.name}\` |`);
-  }
-  lines.push('');
-  lines.push('## CLI commands');
-  lines.push('');
-  lines.push('Full list: `pachca commands`');
-  lines.push('Help: `pachca <command> --help`');
-  lines.push('');
-
-  return lines.join('\n');
 }
 
 /**
- * Root skill.json manifest for catalogs that require it (OpenAgentSkill).
- * Distinct from the RFC discovery index — this is a single flat manifest
- * describing the repository as one publishable skill package. Fields follow
- * the OpenAgentSkill schema: name, version, description, category, platforms,
- * author. Version tracks the TypeSpec spec package.
+ * Reads, checks and publishes the skills. Runs after the page `.md` files are
+ * written: the links of every skill are checked against them. Throws with the
+ * full list of problems, so one build shows them all.
  */
-function generateSkillJson(): string {
+export function publishSkills(): PublishedFile[] {
+  const problems: string[] = [];
+  const skills = readSkills(problems);
+  const names = new Set(skills.map((s) => s.name));
+  const tools = loadToolNames();
+  const commands = loadCliCommands();
+
+  for (const skill of skills) checkSkill(skill, names, tools, commands, problems);
+
+  const entry = skills.find((s) => s.name === ENTRY_SKILL);
+  if (!entry) problems.push(`skills/${ENTRY_SKILL}: the entry skill is missing`);
+  else {
+    const entryMd = entry.files.get('SKILL.md')!.toString('utf8');
+    for (const s of skills) {
+      if (s.name !== ENTRY_SKILL && !entryMd.includes(`\`${s.name}\``)) {
+        problems.push(`skills/${ENTRY_SKILL}/SKILL.md: does not route to ${s.name}`);
+      }
+    }
+  }
+  for (const s of skills) {
+    if (!SKILL_SUMMARIES[s.name]) problems.push(`skills/${s.name}: no line in SKILL_SUMMARIES`);
+  }
+  for (const name of Object.keys(SKILL_SUMMARIES)) {
+    if (!names.has(name)) problems.push(`SKILL_SUMMARIES: no skill ${name}`);
+  }
+
+  if (problems.length > 0) {
+    throw new Error(`Agent skills failed the checks:\n  - ${problems.join('\n  - ')}`);
+  }
+
+  const out: PublishedFile[] = [];
+  const pub = (p: string) => `apps/docs/public/${p}`;
+  const v2Entries: object[] = [];
+  const v1Entries: object[] = [];
+
+  for (const skill of skills) {
+    for (const [file, data] of skill.files) {
+      out.push({ path: pub(`.well-known/skills/${skill.name}/${file}`), content: data });
+    }
+    v1Entries.push({
+      name: skill.name,
+      description: skill.description,
+      files: [...skill.files.keys()],
+    });
+
+    if (skill.files.size === 1) {
+      const data = skill.files.get('SKILL.md')!;
+      out.push({ path: pub(`.well-known/agent-skills/${skill.name}/SKILL.md`), content: data });
+      v2Entries.push({
+        name: skill.name,
+        type: 'skill-md',
+        description: skill.description,
+        url: `/.well-known/agent-skills/${skill.name}/SKILL.md`,
+        digest: sha256(data),
+      });
+    } else {
+      const archive = tarGz(skill.files);
+      out.push({ path: pub(`.well-known/agent-skills/${skill.name}.tar.gz`), content: archive });
+      v2Entries.push({
+        name: skill.name,
+        type: 'archive',
+        description: skill.description,
+        url: `/.well-known/agent-skills/${skill.name}.tar.gz`,
+        digest: sha256(archive),
+      });
+    }
+  }
+
+  const json = (value: unknown) => JSON.stringify(value, null, 2) + '\n';
+  out.push({
+    path: pub('.well-known/agent-skills/index.json'),
+    content: json({ $schema: DISCOVERY_SCHEMA, skills: v2Entries }),
+  });
+  out.push({ path: pub('.well-known/skills/index.json'), content: json({ skills: v1Entries }) });
+  out.push({ path: pub('.well-known/agent-card.json'), content: json(agentCard(skills)) });
+  out.push({
+    path: pub('skill.md'),
+    content: absolutizeEntryLinks(entry!.files.get('SKILL.md')!.toString('utf8')),
+  });
+  out.push({ path: 'skill.json', content: json(skillJson()) });
+  out.push({ path: 'AGENTS.md', content: generateAgentsMd() });
+
+  return out;
+}
+
+/**
+ * A2A (Agent2Agent) Agent Card, schema v0.2.0, served at
+ * /.well-known/agent-card.json: the same skills in the A2A shape, so A2A-aware
+ * orchestrators can discover the docs as an agent.
+ */
+function agentCard(skills: Skill[]) {
+  return {
+    schemaVersion: '0.2.0',
+    name: 'Pachca API Documentation',
+    description:
+      'Документация и скиллы для AI-агентов мессенджера Пачка: подключение через MCP, CLI и API, сообщения, поиск, администрирование, боты, AI-агенты, OAuth.',
+    url: SITE_URL,
+    version: '2.0.0',
+    documentationUrl: `${SITE_URL}/llms.txt`,
+    capabilities: { streaming: false },
+    skills: skills.map((s) => ({
+      id: s.name,
+      name: SKILL_SUMMARIES[s.name].split(':')[0],
+      description: s.description,
+      tags: ['pachca', ...s.name.split('-').slice(1)],
+      url: `${SITE_URL}/.well-known/skills/${s.name}/SKILL.md`,
+    })),
+  };
+}
+
+/**
+ * Root skill.json for catalogs that want one flat manifest of the repository
+ * (OpenAgentSkill). Version tracks the TypeSpec spec package.
+ */
+function skillJson() {
   let version = '1.0.0';
   try {
     const specPkg = JSON.parse(
@@ -679,91 +444,18 @@ function generateSkillJson(): string {
   } catch {
     // fall back to the default version
   }
-
-  const manifest = {
+  return {
     name: 'pachca',
     version,
     description:
-      'Agent skills and CLI for the Pachca corporate messenger REST API — messages, chats, employees, threads, tasks, bots, and webhooks.',
+      'Agent skills for the Pachca corporate messenger: connecting over MCP, CLI or API, writing, search, administration, bots, AI agents in Pachca, OAuth and API scripts.',
     category: 'communication',
     platforms: ['claude-code', 'cursor', 'codex', 'gemini-cli'],
     author: { name: 'Pachca', github: 'pachca' },
-    homepage: 'https://dev.pachca.com',
+    homepage: SITE_URL,
     repository: 'https://github.com/pachca/openapi',
     license: 'MIT',
   };
-
-  return JSON.stringify(manifest, null, 2) + '\n';
-}
-
-/**
- * Agent Skills Discovery RFC v0.2.0 index.
- * Schema: https://schemas.agentskills.io/discovery/0.2.0/schema.json
- * Top-level: `$schema` + `skills[]`; each skill: name, type ("skill-md"),
- * description (≤1024), url (path-absolute), digest ("sha256:<64 hex>").
- * SKILL.md files are served under /.well-known/skills/<name>/SKILL.md.
- */
-function generateIndexJson(digests: Map<string, string>): string {
-  const entries = [
-    ...SKILL_TAG_MAP.map((c) => ({ name: c.name, description: c.description })),
-    { name: ROUTER_SKILL_CONFIG.name, description: ROUTER_SKILL_CONFIG.description },
-  ];
-
-  const skills = entries
-    .filter((e) => digests.has(e.name))
-    .map((e) => ({
-      name: e.name,
-      type: 'skill-md' as const,
-      description: e.description.slice(0, 1024),
-      url: `/.well-known/skills/${e.name}/SKILL.md`,
-      digest: digests.get(e.name)!,
-    }));
-
-  const index = {
-    $schema: 'https://schemas.agentskills.io/discovery/0.2.0/schema.json',
-    skills,
-  };
-
-  return JSON.stringify(index, null, 2) + '\n';
-}
-
-/** "pachca-group-tags" → "Pachca Group Tags" — readable A2A skill name. */
-function humanizeSkillName(slug: string): string {
-  return slug
-    .split('-')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
-}
-
-/**
- * A2A (Agent2Agent) Agent Card, schema v0.2.0, served at
- * /.well-known/agent-card.json. Re-projects the same skill set as the
- * agentskills.io discovery index into the A2A shape so A2A-aware orchestrators
- * can discover the docs as an agent. Does NOT require an MCP server.
- */
-function generateAgentCardJson(digests: Map<string, string>): string {
-  const SITE = 'https://dev.pachca.com';
-  const configs = [...SKILL_TAG_MAP, ROUTER_SKILL_CONFIG].filter((c) => digests.has(c.name));
-
-  const card = {
-    schemaVersion: '0.2.0',
-    name: 'Pachca API Documentation',
-    description:
-      'Документация и agent-ready навыки для REST API мессенджера Пачка: сообщения, чаты, сотрудники, треды, задачи, боты, вебхуки.',
-    url: SITE,
-    version: '1.0.0',
-    documentationUrl: `${SITE}/llms.txt`,
-    capabilities: { streaming: false },
-    skills: configs.map((c) => ({
-      id: c.name,
-      name: humanizeSkillName(c.name),
-      description: c.description.slice(0, 1024),
-      tags: c.tags ?? [],
-      url: `${SITE}/.well-known/skills/${c.name}/SKILL.md`,
-    })),
-  };
-
-  return JSON.stringify(card, null, 2) + '\n';
 }
 
 /**
@@ -814,7 +506,8 @@ review generated diffs → commit. Branch from \`origin/main\`; open a PR
 | \`packages/spec/openapi.en.yaml\` | \`packages/spec/overlay.en.yaml\` + \`scripts/apply-overlay.ts\` (a changed Russian text also needs \`bun run overlay:fingerprints\` in \`packages/spec\`) |
 | \`packages/spec/mcp-manifest.json\` | the spec + \`packages/spec/mcp-core.ts\`, \`mcp-tools.ts\`, \`scripts/generate-mcp-manifest.ts\` (then \`bun run generate-mcp\` in \`packages/spec\`) |
 | \`packages/mcp-manifest/mcp-manifest.json\`, \`mcp-manifest.schema.json\` | copies of \`packages/spec/mcp-manifest.json\` and \`mcp-manifest.schema.json\` (\`npx turbo build --filter=@pachca/mcp-manifest\`); a changed manifest needs a new version on top of \`packages/mcp-manifest/CHANGELOG.md\` and in its \`package.json\` (the package is not in \`releases.json\`) |
-| \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, \`public/skill.md\`, \`public/.well-known/**\`, Postman collection, root \`SKILL.md\` + \`skill.json\` | \`apps/docs/scripts/generate-llms.ts\` + \`scripts/skills/\` |
+| \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, Postman collection | \`apps/docs/scripts/generate-llms.ts\` |
+| \`apps/docs/public/skill.md\`, \`public/.well-known/**\`, root \`skill.json\` | the hand-written skills in \`skills/<name>/\`, published and checked by \`apps/docs/scripts/skills/generate.ts\` (links, MCP tool and CLI command names, size) |
 | \`packages/cli/src/commands/**\` (except \`auth\`/\`config\`), \`packages/cli/CHANGELOG.md\` | \`packages/cli/scripts/generate-cli.ts\`; \`src/data/changelog.json\` |
 | n8n node files | \`integrations/n8n/scripts/generate-n8n.ts\` |
 | \`AGENTS.md\` (this file) | \`apps/docs/scripts/skills/generate.ts\` (\`generateAgentsMd()\`) |

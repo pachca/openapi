@@ -10,7 +10,7 @@
 
 > Русская версия: [README.md](README.md)
 
-Unified Developer Experience Platform for the [Pachca API](https://dev.pachca.com) — the REST API of Pachca, a corporate messenger. A single source (TypeSpec) generates artifacts for every channel: web docs, CLI, SDKs, an n8n node, agent skills, and LLM context.
+Unified Developer Experience Platform for the [Pachca API](https://dev.pachca.com) — the REST API of Pachca, a corporate messenger. A single source (TypeSpec) generates artifacts for every channel: web docs, CLI, SDKs, an n8n node, and LLM context. Agent Skills are written by hand and published by the same build.
 
 **Docs**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Authorization**: https://dev.pachca.com/api/authorization · **Changelog**: https://dev.pachca.com/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
 
@@ -37,41 +37,25 @@ Every API method is available as a command: typed flags, validation, four output
 
 ## Agent Skills
 
-AI agents use CLI-first skills with step-by-step workflows, zero-friction authorization, and automatic permission checks.
-
-### Install (40+ agents)
+Skills are know-how for doing things in Pachca the right way: where to post and what to confirm, how to find and summarize, which token to pick, why a permission is missing. The argument reference comes from the MCP tool descriptions, `pachca <command> --help` and the method pages, so the skills do not repeat it. They work with any access path: MCP, CLI or API.
 
 ```bash
-npx skills add pachca/openapi
+npx skills add https://dev.pachca.com   # from the site
+npx skills add pachca/openapi           # from the repository
 ```
 
-### Compatibility
+| Skill | Use it for |
+|-------|------------|
+| `pachca` | Connecting over MCP, CLI or API, picking a token, a missing permission or tool |
+| `pachca-messaging` | Writing, replying in a thread, mentions, drafts, scheduled messages, files |
+| `pachca-search` | Finding a discussion, chat or employee, summarizing a thread, digests, tasks from a discussion |
+| `pachca-admin` | Employees, tags, chat members, API access, audit log, export, DLP |
+| `pachca-bots` | A bot or integration: webhooks, events, tokens, buttons, forms, link unfurling |
+| `pachca-ai-agent` | An AI agent that lives in Pachca and answers in threads |
+| `pachca-oauth` | An app acting on behalf of each employee |
+| `pachca-api` | Scripts, SDKs and CI: pagination, limits, errors, files |
 
-| Agent | Path |
-|-------|------|
-| Claude Code | `CLAUDE.md` → `AGENTS.md` |
-| Codex CLI | `AGENTS.md` |
-| OpenCode | `skills/` |
-| Cursor, Windsurf, Continue, 40+ more | Auto-detected |
-| Manual install | `cp -r skills/pachca-* <path>` |
-
-### Available skills
-
-| Skill | Description |
-|-------|-------------|
-| `pachca-profile` | Profile, status, custom fields |
-| `pachca-users` | Employees and tags (groups) |
-| `pachca-chats` | Channels, conversations, members, export |
-| `pachca-messages` | Messages, files, reactions, buttons |
-| `pachca-bots` | Bots, webhooks, unfurling |
-| `pachca-forms` | Interactive forms |
-| `pachca-tasks` | Reminders (tasks) |
-| `pachca-search` | Full-text search |
-| `pachca-security` | Audit events, DLP |
-| `pachca-oauth` | Current token info: scopes, owner, timestamps |
-| `pachca` | Router skill — routes to the right skill |
-
-Skills are generated automatically from the OpenAPI spec on `bun turbo build`. Install only from the official repository — skills contain instructions only (no executable code).
+The skills are written by hand in `skills/<name>/`. The build publishes them on dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) and checks their links and the MCP tool and CLI command names. Skills hold instructions only, no executable code.
 
 ## n8n
 

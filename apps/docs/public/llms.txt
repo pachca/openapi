@@ -6,7 +6,7 @@
 
 > **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~388K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~389K токенов — обычно не помещается в контекст целиком).
 
 > English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~29K токенов).
 
@@ -61,11 +61,11 @@
 | CLI Quick Start | Установка, команды, точечная справка по API | 70–88 |
 | SDK | Типизированные клиенты для 6 языков | 89–115 |
 | MCP-сервер | Адрес, вход и инструменты MCP | 116–119 |
-| Agent Skills | Скиллы для AI-агентов и установка | 120–143 |
-| Руководства | Страницы-руководства (Markdown по `.md`) | 144–218 |
-| API-методы | Все эндпоинты, сгруппированы по разделам | 219–354 |
-| Обновления | Журнал обновлений по датам | 355–421 |
-| Дополнительно | Прочие ссылки и контакты | 422–429 |
+| Agent Skills | Скиллы для AI-агентов и установка | 120–140 |
+| Руководства | Страницы-руководства (Markdown по `.md`) | 141–215 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 216–351 |
+| Обновления | Журнал обновлений по датам | 352–418 |
+| Дополнительно | Прочие ссылки и контакты | 419–426 |
 
 ## CLI Quick Start
 
@@ -119,23 +119,20 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 
 ## Agent Skills
 
-Скиллы для AI-агентов (Claude Code, Cursor и др.):
+Знание о том, как правильно делать задачи в Пачке: куда писать, что подтверждать, какой токен взять, как устроены права. Справочник по аргументам — в описаниях инструментов MCP, `pachca <команда> --help` и страницах методов. Вход — скилл `pachca`, он же отдаётся по адресу `https://dev.pachca.com/skill.md`.
 
-| Скилл | Описание |
-|-------|---------|
-| pachca-profile | Pachca — МОЙ профиль, МОЙ статус, кастомные поля |
-| pachca-oauth | Pachca — информация о текущем OAuth-токене: его скоупы (права доступа), даты создания и последнего использования, тип владельца (пользователь или бот) |
-| pachca-users | Pachca — управление сотрудниками (участниками пространства) и тегами (группами) |
-| pachca-chats | Pachca — управление чатами, каналами и беседами |
-| pachca-messages | Pachca — сообщения: отправка, редактирование, удаление |
-| pachca-bots | Pachca — управление ботами и вебхуки |
-| pachca-forms | Pachca — интерактивные формы и модальные окна для ботов |
-| pachca-tasks | Pachca — задачи и напоминания: создание, список, обновление, выполнение, удаление |
-| pachca-search | Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям |
-| pachca-security | Pachca — журнал безопасности: отслеживание входов, действий пользователей, изменений сообщений и нарушений DLP |
-| pachca | Pachca — корпоративный мессенджер с REST API, CLI и MCP-сервером |
+| Скилл | О чём |
+|-------|-------|
+| [pachca](https://dev.pachca.com/.well-known/skills/pachca/SKILL.md) | Вход: подключение через MCP, CLI или API, выбор токена, почему нет права или инструмента |
+| [pachca-messaging](https://dev.pachca.com/.well-known/skills/pachca-messaging/SKILL.md) | Как писать: оформление, упоминания, куда отвечать, черновики, отложенные, файлы, кнопки, реакции |
+| [pachca-search](https://dev.pachca.com/.well-known/skills/pachca-search/SKILL.md) | Поиск и пересказ: сообщения, чаты, сотрудники, тред целиком, дайджесты, задачи по итогам |
+| [pachca-admin](https://dev.pachca.com/.well-known/skills/pachca-admin/SKILL.md) | Администрирование: сотрудники, теги, участники чатов, доступ к API, журнал аудита, экспорт, DLP |
+| [pachca-bots](https://dev.pachca.com/.well-known/skills/pachca-bots/SKILL.md) | Боты и интеграции: вебхуки, события, токены и права, кнопки, формы, разворачивание ссылок |
+| [pachca-ai-agent](https://dev.pachca.com/.well-known/skills/pachca-ai-agent/SKILL.md) | AI-агент в Пачке: зовут по нику, контекст треда, реакция agent-thinking, ответ в тред, черновик |
+| [pachca-oauth](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md) | Приложение от имени сотрудника: OAuth с PKCE, обмен кода, хранение токенов, отзыв |
+| [pachca-api](https://dev.pachca.com/.well-known/skills/pachca-api/SKILL.md) | API из кода и CI: токены, пагинация, лимиты и 429, ошибки, файлы, SDK, CLI в скриптах |
 
-Установка: `npx skills add pachca/openapi`
+Установка: `npx skills add https://dev.pachca.com`
 
 Индекс скиллов: `https://dev.pachca.com/.well-known/skills/index.json`
 
@@ -146,7 +143,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Быстрый старт](https://dev.pachca.com/guides/quickstart.md): Первый запрос к API Пачки за 5 минут: получение персонального токена, проверка авторизации и отправка сообщения через cURL, Postman или официальный CLI
 - [Треды](https://dev.pachca.com/guides/threads.md): Треды в Пачке для разработчиков: сквозные и самостоятельные треды как уникальная особенность, создание у сообщения (POST /messages/{id}/thread) и без привязки к сообщению (POST /threads), отправка комментариев, добавление участников, видимость родительского чата, нюансы API и поля Message.thread/root_chat_id
 - [Теги](https://dev.pachca.com/guides/tags.md): Теги в Пачке: тег как состав беседы или канала с автоматической синхронизацией участников, упоминание тега в сообщении и в треде, поле list_tags у сотрудника, правила названий, права и события журнала аудита
-- [AI-агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview.md): Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — MCP-сервер Пачки, CLI, llms.txt, Agent Skills, OpenAPI, Arazzo, Context7
+- [AI-агенты, Обзор](https://dev.pachca.com/guides/ai-agents/overview.md): Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — MCP-сервер Пачки, CLI, llms.txt, Agent Skills, OpenAPI, Context7
 - [AI-агенты, MCP-сервер](https://dev.pachca.com/guides/ai-agents/mcp.md): MCP-сервер Пачки: адрес https://mcp.pachca.com/mcp, зачем он, если есть API и CLI, инструмент на каждый метод API, те же права, что в API, подтверждение действий, безопасность и пределы
 - [AI-агенты, Подключение к MCP](https://dev.pachca.com/guides/ai-agents/mcp-connect.md): Как подключить MCP-сервер Пачки: сравнение способов, вход через браузер с экраном согласия в Claude Code, Claude, VS Code и Codex, персональный токен в заголовке для Cursor, Windsurf, SourceCraft Code Assistant и программ с локальными серверами, агент только для чтения, несколько пространств, токен бота для агентов в Yandex AI Studio и на GigaChat, список «Авторизации», отзыв доступа и разбор отказов
 - [AI-агенты, Инструменты MCP](https://dev.pachca.com/guides/ai-agents/mcp-tools.md): Все инструменты MCP-сервера Пачки: инструмент на каждый метод публичного API, какой метод вызывает каждый, кому он доступен, пометки чтения и изменения, как агент отправляет файл, набор по роли, тарифу и типу токена, манифест @pachca/mcp-manifest

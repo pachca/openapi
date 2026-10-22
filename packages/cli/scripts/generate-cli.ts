@@ -1050,24 +1050,6 @@ async function generateAlternativesData(commands: GeneratedCommand[]): Promise<v
     alternatives[commandId] = cmd.summary;
   }
 
-  // Try to load skill config alternatives
-  try {
-    const configPath = path.join(ROOT, 'apps', 'docs', 'scripts', 'skills', 'config.ts');
-    if (fs.existsSync(configPath)) {
-      const { SKILL_TAG_MAP } = await import(configPath);
-      for (const skill of SKILL_TAG_MAP as { name: string; nearestAlternatives?: (string | { name: string; text: string })[] }[]) {
-        if (skill.nearestAlternatives) {
-          for (const alt of skill.nearestAlternatives) {
-            const name = typeof alt === 'string' ? alt : alt.name;
-            alternatives[`skill:${name}`] = typeof alt === 'string' ? name : alt.text;
-          }
-        }
-      }
-    }
-  } catch {
-    // Keep basic alternatives
-  }
-
   fs.writeFileSync(
     path.join(DATA_DIR, 'alternatives.json'),
     JSON.stringify(alternatives, null, 2),

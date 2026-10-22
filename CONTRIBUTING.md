@@ -20,7 +20,7 @@ everything else is generated.** Read this before changing anything.
 | `packages/mcp-manifest` | npm package `@pachca/mcp-manifest`: the MCP tool manifest and its JSON Schema, copied from `packages/spec` by the build |
 | `apps/docs` | Next.js 16 docs site (dev.pachca.com): `content/` MDX, `lib/`, `scripts/` generators, `public/` generated artifacts |
 | `n8n-nodes-pachca` / `integrations/n8n` | n8n community node |
-| `skills/` | Agent Skills (generated) |
+| `skills/` | Agent Skills, written by hand; published to the docs site by `apps/docs/scripts/skills/generate.ts` |
 
 ## Build & check
 
@@ -38,7 +38,7 @@ Targeted regeneration:
 |------------|---------|
 | OpenAPI only (after editing `typespec.tsp`) | `npx turbo build --filter=@pachca/spec --force` |
 | MCP manifest and its npm copies | `npx turbo build --filter=@pachca/mcp-manifest` |
-| llms / skills / postman / per-page md | `cd apps/docs && bun run generate-llms` |
+| llms / skill publishing and checks / postman / per-page md | `cd apps/docs && bun run generate-llms` |
 | CLI commands | `cd packages/cli && bun run generate-cli` |
 | Generator test snapshots | `cd packages/generator && npm run regen-snapshots` |
 | Everything (before commit) | `npx turbo build` |
@@ -51,7 +51,7 @@ If the generator step fails with `Cannot find module @pachca/openapi-parser`:
 ## Generation pipeline
 
 ```
-typespec.tsp → openapi.yaml → (llms / skills / cli / sdk / docs / n8n)
+typespec.tsp → openapi.yaml → (llms / cli / sdk / docs / n8n)
 ```
 
 Edit **only** the source; never hand-edit generated output:
@@ -61,9 +61,10 @@ Edit **only** the source; never hand-edit generated output:
 | `packages/spec/openapi.yaml` | `packages/spec/typespec.tsp` |
 | `packages/spec/mcp-manifest.json` | the spec + `packages/spec/mcp-core.ts`, `mcp-tools.ts`, `scripts/generate-mcp-manifest.ts` |
 | `packages/mcp-manifest/mcp-manifest.json`, `mcp-manifest.schema.json` | copies of `packages/spec/mcp-manifest.json` and `mcp-manifest.schema.json` |
-| `apps/docs/public/llms*.txt`, `public/**/*.md`, `public/skill.md`, `public/.well-known/**`, Postman collection | `apps/docs/scripts/generate-llms.ts` + `scripts/skills/` + `apps/docs/content/**` |
+| `apps/docs/public/llms*.txt`, `public/**/*.md`, Postman collection | `apps/docs/scripts/generate-llms.ts` + `apps/docs/content/**` |
+| `apps/docs/public/skill.md`, `public/.well-known/**`, `skill.json` | `skills/**` (hand-written) via `apps/docs/scripts/skills/generate.ts` |
 | `packages/cli/src/commands/**` (except `auth/`, `config/`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
-| `skills/**`, `AGENTS.md` | `apps/docs/scripts/skills/generate.ts` |
+| `AGENTS.md` | `apps/docs/scripts/skills/generate.ts` |
 | n8n node files | n8n generator |
 
 After a build, review the diff of regenerated files; a stale version

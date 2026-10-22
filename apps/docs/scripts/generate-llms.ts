@@ -16,8 +16,7 @@ import { TAG_TRANSLATIONS } from '../lib/tag-translations';
 import { getOrderedPages } from '../lib/ordered-pages';
 import type { Endpoint } from '../lib/openapi/types';
 import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
-import { generateAllSkills } from './skills/generate';
-import { SKILL_TAG_MAP, ROUTER_SKILL_CONFIG } from './skills/config';
+import { publishSkills, SKILL_SUMMARIES } from './skills/generate';
 import {
   loadUpdates,
   loadTimeline,
@@ -230,16 +229,18 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     `[Инструменты MCP](${SITE_URL}/guides/ai-agents/mcp-tools.md).\n\n`;
 
   content += '## Agent Skills\n\n';
-  content += 'Скиллы для AI-агентов (Claude Code, Cursor и др.):\n\n';
-  content += '| Скилл | Описание |\n';
-  content += '|-------|---------|\n';
-  for (const config of SKILL_TAG_MAP) {
-    const shortDesc = config.description.split('.')[0];
-    content += `| ${config.name} | ${shortDesc} |\n`;
+  content +=
+    'Знание о том, как правильно делать задачи в Пачке: куда писать, что подтверждать, какой токен взять, ' +
+    'как устроены права. Справочник по аргументам — в описаниях инструментов MCP, `pachca <команда> --help` ' +
+    'и страницах методов. Вход — скилл `pachca`, он же отдаётся по адресу ' +
+    `\`${SITE_URL}/skill.md\`.\n\n`;
+  content += '| Скилл | О чём |\n';
+  content += '|-------|-------|\n';
+  for (const [name, summary] of Object.entries(SKILL_SUMMARIES)) {
+    content += `| [${name}](${SITE_URL}/.well-known/skills/${name}/SKILL.md) | ${summary} |\n`;
   }
-  content += `| ${ROUTER_SKILL_CONFIG.name} | ${ROUTER_SKILL_CONFIG.description.split('.')[0]} |\n`;
   content += '\n';
-  content += 'Установка: `npx skills add pachca/openapi`\n\n';
+  content += `Установка: \`npx skills add ${SITE_URL}\`\n\n`;
   // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
   // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
   content += `Индекс скиллов: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
@@ -1456,166 +1457,6 @@ function insertDocumentMap(content: string): string {
   return out.join('\n');
 }
 
-function generateEnglishTitle(ep: Endpoint): string {
-  // Derive English title from operationId: "MessageOperations_createMessage" → "Create message"
-  const parts = ep.id.split('_');
-  const action = parts.length > 1 ? parts[1] : ep.id;
-  // camelCase → words: "createMessage" → "create message", "listChatMessages" → "list chat messages"
-  const words = action
-    .replace(/([A-Z])/g, ' $1')
-    .trim()
-    .toLowerCase();
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
-
-function generateModularSkillsSection(): string {
-  let section = '## Modular Skills\n\n';
-  section +=
-    'For AI agents that support modular skills, install specialized skills for better context efficiency:\n\n';
-  section += '```bash\nnpx skills add pachca/openapi\n```\n\n';
-  section += '| Skill | Description |\n';
-  section += '|-------|-------------|\n';
-  for (const config of SKILL_TAG_MAP) {
-    const shortDesc = config.description.split('.')[0];
-    section += `| ${config.name} | ${shortDesc} |\n`;
-  }
-  section += `\nSkills index: \`${SITE_URL}/.well-known/skills/index.json\`\n`;
-  section += `API catalog (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — single JSON with all API descriptions (OpenAPI, Postman), docs (HTML, llms.txt) and metadata.\n`;
-  return section;
-}
-
-function generateLegacySkillMd(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
-  const baseUrl = api.servers[0]?.url;
-  const grouped = groupByTag(api.endpoints);
-  const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
-  const guidePages = getOrderedPages();
-
-  const FRONTMATTER = `---
-name: pachca
-description: Interact with the Pachca corporate messenger API — send messages, manage chats, users, tags, tasks, handle webhooks, upload files, and build bots. Use when integrating with Pachca or automating team communication workflows.
-metadata:
-  author: pachca
-  version: "1.0"
----`;
-
-  const STATIC_SECTIONS = `## CLI (recommended)
-
-\`\`\`bash
-# Zero-install
-npx -y @pachca/cli <command> --token <TOKEN>
-
-# For regular use
-npm install -g @pachca/cli && pachca auth login
-\`\`\`
-
-## Authentication
-
-All requests require a Bearer token. With CLI, use \`--token\` flag or \`PACHCA_TOKEN\` env var.
-
-For direct API calls, add the \`Authorization\` header:
-
-\`\`\`
-Authorization: Bearer <access_token>
-\`\`\`
-
-**Token types:**
-- **Personal token** — acts as a person. It sees the chats, threads and messages that person sees in Pachca, and nothing more. Created in Integrations → API, where you pick its scopes; also obtainable with \`pachca auth login\`, which takes the whole catalogue trimmed by your role.
-- **Bot token** — acts as a service account. It sees every open channel of the workspace, plus closed channels, conversations and threads the bot was added to. Created in the API tab of the bot, under Integrations → Bots; a bot can hold several tokens, each with its own scopes.
-
-Scopes decide which methods a token may call; they never widen the data beyond the boundary of the token type. What a token may do also follows the current role of its owner, and that is checked on every request — a lowered role starts answering 403 without the token being touched.
-
-A personal token issued in the interface does not expire. One obtained by \`pachca auth login\` lives an hour and renews itself. Some methods answer only to a bot token: opening a form, creating link previews, self-registering a bot webhook, deleting a webhook event.
-
-## MCP server
-
-\`https://mcp.pachca.com/mcp\` (Streamable HTTP) gives an MCP client one tool per API method, under the same rights as the token it connects with. Clients that support OAuth Client ID Metadata Document (CIMD), such as Claude Code, Claude, VS Code and Codex, sign in through the browser with a consent screen; others send a personal or bot token in \`Authorization: Bearer <TOKEN>\`.
-
-\`\`\`bash
-# Claude Code: add the server, then sign in with /mcp
-claude mcp add --transport http pachca https://mcp.pachca.com/mcp
-\`\`\`
-
-Guides: ${SITE_URL}/guides/ai-agents/mcp-connect.md (connecting clients), ${SITE_URL}/guides/ai-agents/mcp-tools.md (all tools).`;
-
-  const CONSTRAINTS = `## Constraints
-
-### Rate Limits
-- **Message send/edit/delete:** ~4 req/sec per chat (burst: 30/sec for 5s)
-- **Message read:** ~10 req/sec
-- **Other endpoints:** ~50 req/sec
-- **Webhooks:** ~4 req/sec per webhook ID
-- On \`429\` response, respect the \`Retry-After\` header.
-
-### Pagination
-- **Cursor-based** (preferred): use \`limit\` (1–50) and \`cursor\` parameters. Response includes \`meta.paginate\` with \`next_page\`, \`prev_page\`, \`has_next\`, \`has_prev\`.
-- Use \`has_next\` / \`has_prev\` to detect end of data. Use \`prev_page\` to poll for new records "above" the list.
-- Search endpoints (\`/search/users\`, \`/search/chats\`, \`/search/messages\`) return only \`next_page\` and \`total\`.
-- **Offset-based** (legacy): use \`per\` (1–50) and \`page\` parameters.
-
-### Permissions
-- User management, tag management, and message deletion require an **admin** token.
-- Audit events and data export require an **owner** token and **Corporation** pricing plan.
-- Link preview (unfurling) requires a dedicated unfurling bot token with whitelisted domains.
-- \`POST /direct_url\` is the only endpoint that does not require authentication.
-
-### Error Handling
-- \`400\` — validation error
-- \`401\` — missing or invalid token
-- \`403\` — insufficient permissions
-- \`404\` — resource not found
-- \`429\` — rate limited (check \`Retry-After\`)
-
-Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] }\``;
-
-  let capabilities = '## Capabilities\n\n';
-  for (const tag of sortedTags) {
-    capabilities += `### ${tag}\n`;
-    for (const ep of grouped.get(tag)!) {
-      capabilities += `- \`${ep.method} ${ep.path}\` — ${generateEnglishTitle(ep)}\n`;
-    }
-    capabilities += '\n';
-  }
-
-  let guides = '## Guides\n\nDetailed documentation on specific topics is available at:\n\n';
-  for (const guide of guidePages) {
-    if (guide.path === '/') continue;
-    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}, ${guide.title}` : guide.title;
-    guides += `- [${displayTitle}](${SITE_URL}${guide.path}) — ${guide.description}\n`;
-  }
-
-  return [
-    FRONTMATTER,
-    '',
-    `# Pachca API`,
-    '',
-    'Pachca is a corporate messenger for teams. The REST API lets you automate communication workflows: send and manage messages, organize chats and channels, manage users and permissions, build interactive bots, handle file uploads, and react to real-time events via webhooks.',
-    '',
-    `**Base URL:** \`${baseUrl}\``,
-    '',
-    '## Accessing Documentation',
-    '',
-    '| Format | URL | Best for |',
-    '|--------|-----|----------|',
-    `| LLM-friendly summary | \`${SITE_URL}/llms.txt\` | Quick overview with links |`,
-    `| Full documentation | \`${SITE_URL}/llms-full.txt\` | Complete reference in one file |`,
-    `| OpenAPI 3.0 spec | \`${SITE_URL}/openapi.yaml\` | Programmatic parsing and code generation |`,
-    '| CLI (per-endpoint, on demand) | `npx -y @pachca/cli api <METHOD> <path> --docs` | One endpoint without loading the full file |',
-    '| Markdown page | append `.md` to any page URL | Reading a single guide page as Markdown |',
-    '',
-    'For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt` — or, to avoid loading the whole file, pull just the endpoint you need with `npx -y @pachca/cli api <METHOD> <path> --describe` (or `--spec` / `--docs`; list all endpoints: `npx -y @pachca/cli api ls`).',
-    '',
-    STATIC_SECTIONS,
-    '',
-    capabilities,
-    '',
-    CONSTRAINTS,
-    '',
-    guides,
-    '',
-    generateModularSkillsSection(),
-  ].join('\n');
-}
-
 function generatePostmanCollection(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   const baseUrl = api.servers[0]?.url ?? 'https://api.pachca.com/api/shared/v1';
   const grouped = groupByTag(api.endpoints);
@@ -2126,13 +1967,6 @@ function writeFile(filePath: string, content: string) {
   fs.writeFileSync(fullPath, data, 'utf-8');
 }
 
-function writeFileFromRoot(filePath: string, content: string) {
-  const fullPath = path.join(REPO_ROOT, filePath);
-  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  const resolved = RESOLVE_LINKS_IN.test(filePath) ? resolveMethodLinksForText(content) : content;
-  fs.writeFileSync(fullPath, resolved, 'utf-8');
-}
-
 /** Agent preamble at the top of every page `.md` (one blockquote, up to three
  *  lines): location in the IA, a one-line summary, and the imperative directive
  *  to load /llms.txt for the broader API overview. Mirrors the tone of
@@ -2254,24 +2088,6 @@ async function main() {
   writeFile('public/llms-en.txt', llmsEnTxt);
   console.log(`✓ public/llms-en.txt (${llmsEnTxt.length} chars)`);
 
-  const skillMd = generateLegacySkillMd(api);
-  writeFile('public/skill.md', skillMd);
-  console.log('✓ public/skill.md');
-
-  const skillFiles = generateAllSkills(api);
-  for (const file of skillFiles) {
-    writeFileFromRoot(file.path, file.content);
-  }
-  console.log(`✓ ${skillFiles.length} skill files`);
-
-  const removedSkillDirs = sweepOrphanSkillDirs(skillFiles);
-  if (removedSkillDirs.length > 0)
-    console.log(
-      `✓ removed ${removedSkillDirs.length} orphan skill dirs: ${removedSkillDirs.join(', ')}`
-    );
-
-  // scenarios.json removed — its role is covered by the n8n node (n8n-nodes-pachca)
-
   const postmanCollection = generatePostmanCollection(api);
   writeFile('public/pachca.postman_collection.json', JSON.stringify(postmanCollection, null, 2));
   console.log('✓ public/pachca.postman_collection.json');
@@ -2309,10 +2125,22 @@ async function main() {
   if (removed.length > 0)
     console.log(`✓ removed ${removed.length} orphan .md: ${removed.join(', ')}`);
 
+  // Skills last: their links are checked against the page .md files written above.
+  const skillFiles = publishSkills();
+  for (const dir of ['public/.well-known/skills', 'public/.well-known/agent-skills']) {
+    fs.rmSync(path.join(process.cwd(), dir), { recursive: true, force: true });
+  }
+  for (const file of skillFiles) {
+    const fullPath = path.join(REPO_ROOT, file.path);
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+    fs.writeFileSync(fullPath, file.content);
+  }
+  console.log(`✓ ${skillFiles.length} skill files`);
+
   assertGeneratedMarkdownIntegrity(llmsTxt);
 
   console.log(
-    `\nTotal: ${8 + skillFiles.length + endpointFiles.length + guideFiles.length + updateFiles.length} files generated`
+    `\nTotal: ${7 + skillFiles.length + endpointFiles.length + guideFiles.length + updateFiles.length} files generated`
   );
 }
 
@@ -2338,32 +2166,6 @@ function sweepOrphanMarkdown(dirs: string[], writtenPaths: string[]): string[] {
       }
     };
     walk(abs);
-  }
-  return removed;
-}
-
-/**
- * Delete whole generated skill directories that the current run did NOT produce
- * (orphans left behind when a skill is renamed/removed, e.g. after an IA retag).
- * Dir-level on purpose: hand-written references inside a still-valid skill dir are
- * preserved. Scoped to our own `pachca*` skill dirs only — never other assets.
- */
-function sweepOrphanSkillDirs(skillFiles: { path: string }[]): string[] {
-  const valid = new Set<string>();
-  for (const f of skillFiles) {
-    const m = f.path.match(/(?:^|\/)skills\/([^/]+)\//);
-    if (m) valid.add(m[1]);
-  }
-  const removed: string[] = [];
-  for (const base of ['skills', 'apps/docs/public/.well-known/skills']) {
-    const abs = path.join(REPO_ROOT, base);
-    if (!fs.existsSync(abs)) continue;
-    for (const e of fs.readdirSync(abs, { withFileTypes: true })) {
-      if (e.isDirectory() && e.name.startsWith('pachca') && !valid.has(e.name)) {
-        fs.rmSync(path.join(abs, e.name), { recursive: true, force: true });
-        removed.push(`${base}/${e.name}`);
-      }
-    }
   }
   return removed;
 }

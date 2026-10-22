@@ -76,6 +76,8 @@ claude mcp add --transport http pachca https://mcp.pachca.com/mcp
 
 Сервер добавляется в текущий проект. Чтобы он был во всех проектах, добавьте флаг `--scope user`.
 
+Сервер вместе со скиллами и командами ставит и [плагин «Пачка»](/guides/ai-agents/plugin).
+
 ### Claude
 
 В приложении Claude и на сайте claude.ai откройте **Settings** > **Connectors**, нажмите **Add custom connector** и укажите адрес `https://mcp.pachca.com/mcp`. Затем нажмите **Connect** у нового коннектора и войдите.

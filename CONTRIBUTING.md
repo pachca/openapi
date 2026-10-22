@@ -6,7 +6,7 @@ AI-agent artifacts. **TypeSpec is the single source of truth — almost
 everything else is generated.** Read this before changing anything.
 
 > Using the Pachca API (not contributing here)? See `skill.md`,
-> `/llms.txt`, the `skills/` directory, or <https://dev.pachca.com> —
+> `/llms.txt`, the plugin in `plugins/pachca/`, or <https://dev.pachca.com> —
 > not this file.
 
 ## Layout
@@ -20,7 +20,7 @@ everything else is generated.** Read this before changing anything.
 | `packages/mcp-manifest` | npm package `@pachca/mcp-manifest`: the MCP tool manifest and its JSON Schema, copied from `packages/spec` by the build |
 | `apps/docs` | Next.js 16 docs site (dev.pachca.com): `content/` MDX, `lib/`, `scripts/` generators, `public/` generated artifacts |
 | `n8n-nodes-pachca` / `integrations/n8n` | n8n community node |
-| `skills/` | Agent Skills, written by hand; published to the docs site by `apps/docs/scripts/skills/generate.ts` |
+| `plugins/pachca` | The Pachca plugin for Claude Code and Codex: hand-written Agent Skills (`skills/`), commands, MCP config; skills are published to the docs site by `apps/docs/scripts/skills/generate.ts` |
 
 ## Build & check
 
@@ -62,7 +62,7 @@ Edit **only** the source; never hand-edit generated output:
 | `packages/spec/mcp-manifest.json` | the spec + `packages/spec/mcp-core.ts`, `mcp-tools.ts`, `scripts/generate-mcp-manifest.ts` |
 | `packages/mcp-manifest/mcp-manifest.json`, `mcp-manifest.schema.json` | copies of `packages/spec/mcp-manifest.json` and `mcp-manifest.schema.json` |
 | `apps/docs/public/llms*.txt`, `public/**/*.md`, Postman collection | `apps/docs/scripts/generate-llms.ts` + `apps/docs/content/**` |
-| `apps/docs/public/skill.md`, `public/.well-known/**`, `skill.json` | `skills/**` (hand-written) via `apps/docs/scripts/skills/generate.ts` |
+| `apps/docs/public/skill.md`, `public/.well-known/**`, `skill.json` | `plugins/pachca/skills/**` (hand-written) via `apps/docs/scripts/skills/generate.ts` |
 | `packages/cli/src/commands/**` (except `auth/`, `config/`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
 | `AGENTS.md` | `apps/docs/scripts/skills/generate.ts` |
 | n8n node files | n8n generator |

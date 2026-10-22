@@ -240,7 +240,10 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     content += `| [${name}](${SITE_URL}/.well-known/skills/${name}/SKILL.md) | ${summary} |\n`;
   }
   content += '\n';
-  content += `Установка: \`npx skills add ${SITE_URL}\`\n\n`;
+  content +=
+    `Установка: \`npx skills add ${SITE_URL}\`. В Claude Code и Codex скиллы вместе с MCP-сервером и командами ставит плагин «Пачка»: ` +
+    `\`claude plugin marketplace add pachca/openapi\`, затем \`claude plugin install pachca@pachca\`. ` +
+    `Подробнее: [Плагин и скиллы](${SITE_URL}/guides/ai-agents/plugin.md).\n\n`;
   // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
   // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
   content += `Индекс скиллов: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;

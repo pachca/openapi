@@ -278,7 +278,7 @@ git tag --list 'n8n-v*' --sort=-v:refname | head -1
 - `apps/docs/public/updates.md` и `public/updates/<дата>.md` — из `content/updates/*.md`
 - `apps/docs/public/llms-full.txt`, `llms-en.txt` — из `content/`
 - `apps/docs/public/guides/*.md` — из `content/guides/*.mdx`
-- `apps/docs/public/.well-known/skills/*`, `agent-skills/*`, `public/skill.md` — публикация скиллов из `skills/`
+- `apps/docs/public/.well-known/skills/*`, `agent-skills/*`, `public/skill.md` — публикация скиллов из `plugins/pachca/skills/`
 - `packages/cli/CHANGELOG.md` — из `src/data/changelog.json` (через `patch-manifest.js`)
 - `apps/docs/sitemap.xml`, `feed.xml` — динамические роуты
 
@@ -429,7 +429,7 @@ DLP документирован в **трёх** местах — при изм�
 
 ### 6a. Проверка скиллов
 
-Скиллы в `skills/<name>/` (`SKILL.md` и `references/`) пишутся руками: это
+Скиллы в `plugins/pachca/skills/<name>/` (`SKILL.md` и `references/`) пишутся руками: это
 знание о том, как правильно делать задачи в Пачке, а не справочник по
 методам. Справочник агент берёт из описаний инструментов MCP, `--help` CLI и
 `.md`-страниц методов, поэтому новый метод или параметр сам по себе правки
@@ -441,8 +441,8 @@ DLP документирован в **трёх** местах — при изм�
 Найти такие места:
 
 ```bash
-grep -rn "<имя поля, метода или инструмента>" skills
-grep -rniE "только через интерфейс|не поддерживается|недоступн|нельзя" skills
+grep -rn "<имя поля, метода или инструмента>" plugins/pachca
+grep -rniE "только через интерфейс|не поддерживается|недоступн|нельзя" plugins/pachca
 ```
 
 Сборка (`apps/docs/scripts/skills/generate.ts`) проверяет каждый скилл и
@@ -567,7 +567,7 @@ grep -rn "<имя_поля>" apps/docs/content/guides apps/docs/content/api
 сам себе:
 
 ```bash
-grep -rniE "только через интерфейс|только в интерфейсе|не поддерживается|недоступн|нельзя получить|только через" apps/docs/content/guides apps/docs/content/api skills
+grep -rniE "только через интерфейс|только в интерфейсе|не поддерживается|недоступн|нельзя получить|только через" apps/docs/content/guides apps/docs/content/api plugins/pachca
 ```
 
 Промахи, пойманные этим грепом: «Повторно получить токен вы сможете только через

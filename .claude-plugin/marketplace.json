@@ -1,0 +1,15 @@
+{
+  "name": "pachca",
+  "description": "Pachca plugins for Claude Code",
+  "owner": {
+    "name": "Pachca",
+    "url": "https://dev.pachca.com"
+  },
+  "plugins": [
+    {
+      "name": "pachca",
+      "source": "./plugins/pachca",
+      "description": "The Pachca MCP server, skills and commands for working in Pachca"
+    }
+  ]
+}

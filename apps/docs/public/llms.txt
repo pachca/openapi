@@ -62,10 +62,10 @@
 | SDK | Типизированные клиенты для 6 языков | 89–115 |
 | MCP-сервер | Адрес, вход и инструменты MCP | 116–119 |
 | Agent Skills | Скиллы для AI-агентов и установка | 120–140 |
-| Руководства | Страницы-руководства (Markdown по `.md`) | 141–215 |
-| API-методы | Все эндпоинты, сгруппированы по разделам | 216–351 |
-| Обновления | Журнал обновлений по датам | 352–418 |
-| Дополнительно | Прочие ссылки и контакты | 419–426 |
+| Руководства | Страницы-руководства (Markdown по `.md`) | 141–216 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 217–352 |
+| Обновления | Журнал обновлений по датам | 353–419 |
+| Дополнительно | Прочие ссылки и контакты | 420–427 |
 
 ## CLI Quick Start
 
@@ -132,7 +132,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 | [pachca-oauth](https://dev.pachca.com/.well-known/skills/pachca-oauth/SKILL.md) | Приложение от имени сотрудника: OAuth с PKCE, обмен кода, хранение токенов, отзыв |
 | [pachca-api](https://dev.pachca.com/.well-known/skills/pachca-api/SKILL.md) | API из кода и CI: токены, пагинация, лимиты и 429, ошибки, файлы, SDK, CLI в скриптах |
 
-Установка: `npx skills add https://dev.pachca.com`
+Установка: `npx skills add https://dev.pachca.com`. В Claude Code и Codex скиллы вместе с MCP-сервером и командами ставит плагин «Пачка»: `claude plugin marketplace add pachca/openapi`, затем `claude plugin install pachca@pachca`. Подробнее: [Плагин и скиллы](https://dev.pachca.com/guides/ai-agents/plugin.md).
 
 Индекс скиллов: `https://dev.pachca.com/.well-known/skills/index.json`
 
@@ -147,6 +147,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [AI-агенты, MCP-сервер](https://dev.pachca.com/guides/ai-agents/mcp.md): MCP-сервер Пачки: адрес https://mcp.pachca.com/mcp, зачем он, если есть API и CLI, инструмент на каждый метод API, те же права, что в API, подтверждение действий, безопасность и пределы
 - [AI-агенты, Подключение к MCP](https://dev.pachca.com/guides/ai-agents/mcp-connect.md): Как подключить MCP-сервер Пачки: сравнение способов, вход через браузер с экраном согласия в Claude Code, Claude, VS Code и Codex, персональный токен в заголовке для Cursor, Windsurf, SourceCraft Code Assistant и программ с локальными серверами, агент только для чтения, несколько пространств, токен бота для агентов в Yandex AI Studio и на GigaChat, список «Авторизации», отзыв доступа и разбор отказов
 - [AI-агенты, Инструменты MCP](https://dev.pachca.com/guides/ai-agents/mcp-tools.md): Все инструменты MCP-сервера Пачки: инструмент на каждый метод публичного API, какой метод вызывает каждый, кому он доступен, пометки чтения и изменения, как агент отправляет файл, набор по роли, тарифу и типу токена, манифест @pachca/mcp-manifest
+- [AI-агенты, Плагин и скиллы](https://dev.pachca.com/guides/ai-agents/plugin.md): Плагин «Пачка» для Claude Code и Codex: MCP-сервер, скиллы о том, как правильно работать в Пачке, и команды для пересказа треда, дайджеста, объявления и задач по итогам обсуждения. Скиллы для Cursor и других агентов ставит npx skills add
 - [AI-агенты, Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction.md): Как устроен AI-агент в Пачке: агент — это бот, которого зовут по нику в треде или пишут ему в личные сообщения. Как агент собирает контекст треда, показывает, что работает, реакцией agent-thinking с таймером и отвечает
 - [AI-агенты, Черновик вместо отправки](https://dev.pachca.com/guides/ai-agents/drafts.md): Агент готовит сообщение черновиком, а отправляет сотрудник: зачем это нужно, почему работает только личным токеном, один черновик на чат и чем от черновика отличается отложенное сообщение
 - [AI-агенты, Оформление ответов](https://dev.pachca.com/guides/ai-agents/markdown.md): Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чеклисты, подсветка кода, diff, диаграммы Mermaid. Файлы .html открываются просмотром прямо в переписке

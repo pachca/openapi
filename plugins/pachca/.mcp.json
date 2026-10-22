@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pachca": {
+      "type": "http",
+      "url": "https://mcp.pachca.com/mcp"
+    }
+  }
+}

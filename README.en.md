@@ -42,6 +42,10 @@ Skills are know-how for doing things in Pachca the right way: where to post and 
 ```bash
 npx skills add https://dev.pachca.com   # from the site
 npx skills add pachca/openapi           # from the repository
+
+# The Pachca plugin for Claude Code: MCP server, skills and commands
+claude plugin marketplace add pachca/openapi
+claude plugin install pachca@pachca
 ```
 
 | Skill | Use it for |
@@ -55,7 +59,7 @@ npx skills add pachca/openapi           # from the repository
 | `pachca-oauth` | An app acting on behalf of each employee |
 | `pachca-api` | Scripts, SDKs and CI: pagination, limits, errors, files |
 
-The skills are written by hand in `skills/<name>/`. The build publishes them on dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) and checks their links and the MCP tool and CLI command names. Skills hold instructions only, no executable code.
+The skills are written by hand in `plugins/pachca/skills/<name>/`. The build publishes them on dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) and checks their links and the MCP tool and CLI command names. Skills hold instructions only, no executable code.
 
 ## n8n
 

@@ -42,6 +42,10 @@ pachca api POST /messages -f message[content]="Привет"  # прямой з�
 ```bash
 npx skills add https://dev.pachca.com   # с сайта
 npx skills add pachca/openapi           # из репозитория
+
+# Плагин «Пачка» для Claude Code: MCP-сервер, скиллы и команды
+claude plugin marketplace add pachca/openapi
+claude plugin install pachca@pachca
 ```
 
 | Скилл | Когда пригодится |
@@ -55,7 +59,7 @@ npx skills add pachca/openapi           # из репозитория
 | `pachca-oauth` | Приложение от имени каждого сотрудника |
 | `pachca-api` | Скрипты, SDK и CI: пагинация, лимиты, ошибки, файлы |
 
-Скиллы пишутся руками в `skills/<name>/`. Сборка публикует их на dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) и проверяет ссылки, имена инструментов MCP и команд CLI. В скиллах только инструкции, исполняемого кода нет.
+Скиллы пишутся руками в `plugins/pachca/skills/<name>/`. Сборка публикует их на dev.pachca.com (`/.well-known/agent-skills/index.json`, `/skill.md`) и проверяет ссылки, имена инструментов MCP и команд CLI. В скиллах только инструкции, исполняемого кода нет.
 
 ## n8n
 
@@ -205,7 +209,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 │   └── csharp/            # NuGet
 ├── integrations/
 │   └── n8n/               # n8n community node (генерируется из OpenAPI)
-├── skills/                # Agent Skills (пишутся руками → apps/docs/public/.well-known/)
+├── plugins/pachca/        # Плагин: Agent Skills (пишутся руками), команды, MCP
 ├── docs/                  # Канонические процесс-доки (api-audit, updates-format, docs-conventions)
 ├── CONTRIBUTING.md        # Раскладка, пайплайн генерации, build/check, workflow
 ├── AGENTS.md              # Гайд для AI-агентов по работе с репозиторием (CLAUDE.md → симлинк)
@@ -242,7 +246,7 @@ apps/docs
     ▼
   Сайт + llms.txt + llms-full.txt + llms-en.txt
   + skill.md + per-endpoint и per-guide .md
-  + Agent Skills из skills/ (.well-known/{skills,agent-skills}/), AGENTS.md
+  + Agent Skills из plugins/pachca/skills/ (.well-known/{skills,agent-skills}/), AGENTS.md
   + pachca.postman_collection.json
   + CLI examples (10-й код-генератор)
   + OG-изображения + sitemap + RSS

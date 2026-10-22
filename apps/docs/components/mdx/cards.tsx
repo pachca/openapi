@@ -69,6 +69,7 @@ import {
   Plug,
   Server,
   Wrench,
+  Puzzle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -131,6 +132,7 @@ const iconMap: Record<string, LucideIcon> = {
   Plug,
   Server,
   Wrench,
+  Puzzle,
 };
 
 /** Icon mapping for guide pages by path */
@@ -143,6 +145,7 @@ const GUIDE_ICONS: Record<string, string> = {
   '/guides/ai-agents/mcp': 'Server',
   '/guides/ai-agents/mcp-connect': 'Plug',
   '/guides/ai-agents/mcp-tools': 'Wrench',
+  '/guides/ai-agents/plugin': 'Puzzle',
   '/guides/ai-agents/interaction': 'BotMessageSquare',
   '/guides/ai-agents/markdown': 'FileDiff',
   '/guides/ai-agents/drafts': 'FilePen',

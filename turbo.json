@@ -33,7 +33,7 @@
       "inputs": [
         "scripts/generate-llms.ts",
         "scripts/skills/**",
-        "../../skills/**",
+        "../../plugins/pachca/**",
         "../../packages/cli/oclif.manifest.json",
         "lib/**",
         "content/**",
@@ -64,7 +64,7 @@
       "inputs": [
         "scripts/generate-llms.ts",
         "scripts/skills/**",
-        "../../skills/**",
+        "../../plugins/pachca/**",
         "../../packages/cli/oclif.manifest.json",
         "lib/**",
         "content/**",

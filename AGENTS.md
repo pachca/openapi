@@ -2,7 +2,7 @@
 
 Guidance for AI coding agents working in this repository. (Using the Pachca
 API instead of contributing here? See `skill.md`, `/llms.txt`, or the
-`skills/` directory — not this file.)
+plugin in `plugins/pachca/` — not this file.)
 
 ## What this repo is
 
@@ -40,7 +40,7 @@ review generated diffs → commit. Branch from `origin/main`; open a PR
 | `packages/spec/mcp-manifest.json` | the spec + `packages/spec/mcp-core.ts`, `mcp-tools.ts`, `scripts/generate-mcp-manifest.ts` (then `bun run generate-mcp` in `packages/spec`) |
 | `packages/mcp-manifest/mcp-manifest.json`, `mcp-manifest.schema.json` | copies of `packages/spec/mcp-manifest.json` and `mcp-manifest.schema.json` (`npx turbo build --filter=@pachca/mcp-manifest`); a changed manifest needs a new version on top of `packages/mcp-manifest/CHANGELOG.md` and in its `package.json` (the package is not in `releases.json`) |
 | `apps/docs/public/llms*.txt`, `public/**/*.md`, Postman collection | `apps/docs/scripts/generate-llms.ts` |
-| `apps/docs/public/skill.md`, `public/.well-known/**`, root `skill.json` | the hand-written skills in `skills/<name>/`, published and checked by `apps/docs/scripts/skills/generate.ts` (links, MCP tool and CLI command names, size) |
+| `apps/docs/public/skill.md`, `public/.well-known/**`, root `skill.json` | the hand-written skills in `plugins/pachca/skills/<name>/`, published and checked by `apps/docs/scripts/skills/generate.ts` (links, MCP tool and CLI command names, size) |
 | `packages/cli/src/commands/**` (except `auth`/`config`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
 | n8n node files | `integrations/n8n/scripts/generate-n8n.ts` |
 | `AGENTS.md` (this file) | `apps/docs/scripts/skills/generate.ts` (`generateAgentsMd()`) |

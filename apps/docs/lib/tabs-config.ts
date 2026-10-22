@@ -111,6 +111,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
       { title: 'MCP-сервер', path: '/guides/ai-agents/mcp' },
       { title: 'Подключение к MCP', path: '/guides/ai-agents/mcp-connect' },
       { title: 'Инструменты MCP', path: '/guides/ai-agents/mcp-tools' },
+      { title: 'Плагин и скиллы', path: '/guides/ai-agents/plugin' },
       { title: 'Взаимодействие с агентом', path: '/guides/ai-agents/interaction' },
       { title: 'Черновик вместо отправки', path: '/guides/ai-agents/drafts' },
       { title: 'Оформление ответов', path: '/guides/ai-agents/markdown' },

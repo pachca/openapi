@@ -11,7 +11,7 @@
 //   - packages/cli/src/data/changelog.json → packages/cli/CHANGELOG.md
 //   - apps/docs/content/**.mdx + apps/docs/data/releases.json
 //                                          → apps/docs/public/**, llms*.txt
-//   - skills/** (hand-written)             → apps/docs/public/.well-known/**, skill.md, skill.json
+//   - plugins/pachca/skills/** (by hand)   → apps/docs/public/.well-known/**, skill.md, skill.json
 //   - apps/docs/scripts/skills/generate.ts → AGENTS.md (template-driven)
 //
 // The deployment Docker image always regenerates these on build, so prod

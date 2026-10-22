@@ -4,9 +4,10 @@ import crypto from 'node:crypto';
 import * as yaml from 'js-yaml';
 
 /**
- * Agent skills are hand-written: `skills/<name>/SKILL.md` plus `references/`
- * in the repository root. This module checks them and publishes them on the
- * docs site; it writes nothing into `skills/`.
+ * Agent skills are hand-written: `plugins/pachca/skills/<name>/SKILL.md` plus
+ * `references/`, inside the Pachca plugin for Claude Code and Codex. This module
+ * checks them and the plugin's commands, and publishes the skills on the docs
+ * site; it writes nothing into the plugin.
  *
  * Published:
  * - `/.well-known/agent-skills/index.json` — discovery index v0.2.0; a skill with
@@ -18,13 +19,17 @@ import * as yaml from 'js-yaml';
  * - `/.well-known/agent-card.json`, root `skill.json` and `AGENTS.md`.
  *
  * There is no root `SKILL.md`: `npx skills add pachca/openapi` installs a root
- * skill alone and skips `skills/`.
+ * skill alone and skips the rest. It finds the plugin's skills through
+ * `.claude-plugin/marketplace.json`.
  */
 
 const SITE_URL = 'https://dev.pachca.com';
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
-const SOURCE_DIR = path.join(REPO_ROOT, 'skills');
+const PLUGIN_REL = 'plugins/pachca';
+const SOURCE_REL = `${PLUGIN_REL}/skills`;
+const SOURCE_DIR = path.join(REPO_ROOT, SOURCE_REL);
+const COMMANDS_DIR = path.join(REPO_ROOT, PLUGIN_REL, 'commands');
 const ENTRY_SKILL = 'pachca';
 const DISCOVERY_SCHEMA = 'https://schemas.agentskills.io/discovery/0.2.0/schema.json';
 
@@ -100,7 +105,7 @@ function readSkills(problems: string[]): Skill[] {
     const dir = path.join(SOURCE_DIR, e.name);
     const rel = listFiles(dir);
     if (!rel.includes('SKILL.md')) {
-      problems.push(`skills/${e.name}: no SKILL.md`);
+      problems.push(`${SOURCE_REL}/${e.name}: no SKILL.md`);
       continue;
     }
     const files = new Map<string, Buffer>();
@@ -110,23 +115,31 @@ function readSkills(problems: string[]): Skill[] {
     const text = files.get('SKILL.md')!.toString('utf8');
     const m = text.match(/^---\n([\s\S]*?)\n---\n/);
     if (!m) {
-      problems.push(`skills/${e.name}/SKILL.md: no frontmatter`);
+      problems.push(`${SOURCE_REL}/${e.name}/SKILL.md: no frontmatter`);
       continue;
     }
-    const meta = yaml.load(m[1]) as Record<string, unknown>;
+    let meta: Record<string, unknown>;
+    try {
+      meta = (yaml.load(m[1]) as Record<string, unknown>) ?? {};
+    } catch (err) {
+      problems.push(
+        `${SOURCE_REL}/${e.name}/SKILL.md: frontmatter is not valid YAML (${(err as Error).message.split('\n')[0]})`
+      );
+      continue;
+    }
     for (const key of Object.keys(meta)) {
       if (!FRONTMATTER_KEYS.has(key))
-        problems.push(`skills/${e.name}: unexpected frontmatter key "${key}"`);
+        problems.push(`${SOURCE_REL}/${e.name}: unexpected frontmatter key "${key}"`);
     }
     if (meta.name !== e.name)
-      problems.push(`skills/${e.name}: name "${meta.name}" differs from the folder`);
+      problems.push(`${SOURCE_REL}/${e.name}: name "${meta.name}" differs from the folder`);
     if (!NAME_RE.test(e.name) || e.name.length > 64)
-      problems.push(`skills/${e.name}: invalid skill name`);
+      problems.push(`${SOURCE_REL}/${e.name}: invalid skill name`);
     const description = typeof meta.description === 'string' ? meta.description.trim() : '';
-    if (!description) problems.push(`skills/${e.name}: empty description`);
+    if (!description) problems.push(`${SOURCE_REL}/${e.name}: empty description`);
     if (description.length > MAX_DESCRIPTION) {
       problems.push(
-        `skills/${e.name}: description ${description.length} chars (max ${MAX_DESCRIPTION})`
+        `${SOURCE_REL}/${e.name}: description ${description.length} chars (max ${MAX_DESCRIPTION})`
       );
     }
     skills.push({ name: e.name, description, files });
@@ -164,77 +177,105 @@ function sitePathExists(urlPath: string): boolean {
   return candidates.some((c) => fs.existsSync(path.join(PUBLIC_DIR, c)));
 }
 
-function checkSkill(
-  skill: Skill,
-  names: Set<string>,
-  tools: Set<string>,
-  commands: Set<string>,
-  problems: string[]
-) {
-  const where = (f: string) => `skills/${skill.name}/${f}`;
+interface CheckContext {
+  skills: Set<string>;
+  tools: Set<string>;
+  commands: Set<string>;
+  pluginCommands: Set<string>;
+  problems: string[];
+}
+
+/** Checks any published Markdown: leaks, site links, tool, CLI and skill names. */
+function checkMarkdown(md: string, label: string, ctx: CheckContext) {
+  const lines = md.split('\n').length;
+  if (lines > MAX_LINES) ctx.problems.push(`${label}: ${lines} lines (max ${MAX_LINES})`);
+
+  for (const [re, what] of LEAKS) {
+    if (re.test(md)) ctx.problems.push(`${label}: ${what}`);
+  }
+
+  for (const m of md.matchAll(/(?<![\w/.])https:\/\/dev\.pachca\.com(\/[^\s)`'"<>,]*)/g)) {
+    const urlPath = m[1].replace(/[.:;]+$/, '');
+    if (!sitePathExists(urlPath)) ctx.problems.push(`${label}: link to a missing page ${m[0]}`);
+  }
+
+  const code = codeText(md);
+  for (const m of code.matchAll(/\bpachca_[a-z0-9_]+/g)) {
+    if (!ctx.tools.has(m[0])) ctx.problems.push(`${label}: no MCP tool ${m[0]}`);
+  }
+  // `pachca` in command position: a line start or after a pipe, `&&`, `;` or `(`.
+  for (const m of code.matchAll(
+    /(?:^|[|;&(])[ \t]*(?:\$[ \t]+)?pachca ([a-z][a-z-]*)(?: ([a-z][a-z-]*))?/gm
+  )) {
+    const [topic, action] = [m[1], m[2]];
+    const ok =
+      (action && ctx.commands.has(`${topic}:${action}`)) ||
+      ctx.commands.has(topic) ||
+      (!action && [...ctx.commands].some((c) => c.startsWith(`${topic}:`)));
+    if (!ok) {
+      ctx.problems.push(`${label}: no CLI command "pachca ${topic}${action ? ` ${action}` : ''}"`);
+    }
+  }
+  for (const m of md.matchAll(/→ `?(pachca(?:-[a-z]+)*)`?/g)) {
+    if (!ctx.skills.has(m[1])) ctx.problems.push(`${label}: points to a missing skill ${m[1]}`);
+  }
+  for (const m of md.matchAll(/\/pachca:([a-z-]+)/g)) {
+    if (!ctx.pluginCommands.has(m[1]))
+      ctx.problems.push(`${label}: no plugin command /pachca:${m[1]}`);
+  }
+}
+
+function checkSkill(skill: Skill, ctx: CheckContext) {
+  const where = (f: string) => `${SOURCE_REL}/${skill.name}/${f}`;
   const skillMd = skill.files.get('SKILL.md')!.toString('utf8');
 
   for (const [file, buf] of skill.files) {
     if (!file.endsWith('.md')) continue;
     const md = buf.toString('utf8');
-    const lines = md.split('\n').length;
-    if (lines > MAX_LINES) problems.push(`${where(file)}: ${lines} lines (max ${MAX_LINES})`);
-
-    for (const [re, what] of LEAKS) {
-      if (re.test(md)) problems.push(`${where(file)}: ${what}`);
-    }
+    checkMarkdown(md, where(file), ctx);
 
     for (const m of md.matchAll(/\]\(([^)\s]+)\)/g)) {
       const target = m[1];
-      if (target.startsWith('#') || /^mailto:/.test(target)) continue;
-      if (/^https?:\/\//.test(target)) {
-        const url = new URL(target);
-        if (url.host === 'dev.pachca.com' && !sitePathExists(url.pathname)) {
-          problems.push(`${where(file)}: link to a missing page ${target}`);
-        }
-        continue;
-      }
+      if (target.startsWith('#') || /^(?:https?|mailto):/.test(target)) continue;
       const resolved = path.posix.normalize(
         path.posix.join(path.posix.dirname(file), target.replace(/#.*$/, ''))
       );
-      if (!skill.files.has(resolved)) problems.push(`${where(file)}: broken link ${target}`);
-    }
-    for (const m of md.matchAll(/(?<![\w/.])https:\/\/dev\.pachca\.com(\/[^\s)`'"<>,]*)/g)) {
-      const urlPath = m[1].replace(/[.:;]+$/, '');
-      if (!sitePathExists(urlPath)) problems.push(`${where(file)}: link to a missing page ${m[0]}`);
-    }
-
-    const code = codeText(md);
-    for (const m of code.matchAll(/\bpachca_[a-z0-9_]+/g)) {
-      if (!tools.has(m[0])) problems.push(`${where(file)}: no MCP tool ${m[0]}`);
-    }
-    // `pachca` in command position: a line start or after a pipe, `&&`, `;` or `(`.
-    for (const m of code.matchAll(
-      /(?:^|[|;&(])[ \t]*(?:\$[ \t]+)?pachca ([a-z][a-z-]*)(?: ([a-z][a-z-]*))?/gm
-    )) {
-      const [topic, action] = [m[1], m[2]];
-      const ok =
-        (action && commands.has(`${topic}:${action}`)) ||
-        commands.has(topic) ||
-        (!action && [...commands].some((c) => c.startsWith(`${topic}:`)));
-      if (!ok)
-        problems.push(
-          `${where(file)}: no CLI command "pachca ${topic}${action ? ` ${action}` : ''}"`
-        );
-    }
-    for (const m of md.matchAll(/→ `?(pachca(?:-[a-z]+)*)`?/g)) {
-      if (!names.has(m[1])) problems.push(`${where(file)}: points to a missing skill ${m[1]}`);
+      if (!skill.files.has(resolved)) ctx.problems.push(`${where(file)}: broken link ${target}`);
     }
   }
 
   for (const file of skill.files.keys()) {
     if (file !== 'SKILL.md' && !skillMd.includes(`](${file}`)) {
-      problems.push(`${where(file)}: not linked from SKILL.md`);
+      ctx.problems.push(`${where(file)}: not linked from SKILL.md`);
     }
   }
   for (const m of skill.description.matchAll(/→ (pachca(?:-[a-z]+)*)/g)) {
-    if (!names.has(m[1]))
-      problems.push(`skills/${skill.name}: description points to a missing skill ${m[1]}`);
+    if (!ctx.skills.has(m[1])) {
+      ctx.problems.push(
+        `${SOURCE_REL}/${skill.name}: description points to a missing skill ${m[1]}`
+      );
+    }
+  }
+}
+
+/** Plugin commands: a description, and every skill they lean on exists. */
+function checkCommand(name: string, md: string, ctx: CheckContext) {
+  const label = `${PLUGIN_REL}/commands/${name}.md`;
+  const m = md.match(/^---\n([\s\S]*?)\n---\n/);
+  let meta: Record<string, unknown> = {};
+  try {
+    meta = m ? ((yaml.load(m[1]) as Record<string, unknown>) ?? {}) : {};
+  } catch (e) {
+    ctx.problems.push(
+      `${label}: frontmatter is not valid YAML (${(e as Error).message.split('\n')[0]})`
+    );
+  }
+  if (typeof meta.description !== 'string' || !meta.description.trim()) {
+    ctx.problems.push(`${label}: no description in the frontmatter`);
+  }
+  checkMarkdown(md, label, ctx);
+  for (const s of md.matchAll(/`(pachca-[a-z-]+)` skill/g)) {
+    if (!ctx.skills.has(s[1])) ctx.problems.push(`${label}: no skill ${s[1]}`);
   }
 }
 
@@ -324,23 +365,36 @@ export function publishSkills(): PublishedFile[] {
   const problems: string[] = [];
   const skills = readSkills(problems);
   const names = new Set(skills.map((s) => s.name));
-  const tools = loadToolNames();
-  const commands = loadCliCommands();
+  const commandFiles = fs
+    .readdirSync(COMMANDS_DIR)
+    .filter((f) => f.endsWith('.md'))
+    .sort();
+  const ctx: CheckContext = {
+    skills: names,
+    tools: loadToolNames(),
+    commands: loadCliCommands(),
+    pluginCommands: new Set(commandFiles.map((f) => f.replace(/\.md$/, ''))),
+    problems,
+  };
 
-  for (const skill of skills) checkSkill(skill, names, tools, commands, problems);
+  for (const skill of skills) checkSkill(skill, ctx);
+  for (const f of commandFiles) {
+    checkCommand(f.replace(/\.md$/, ''), fs.readFileSync(path.join(COMMANDS_DIR, f), 'utf8'), ctx);
+  }
 
   const entry = skills.find((s) => s.name === ENTRY_SKILL);
-  if (!entry) problems.push(`skills/${ENTRY_SKILL}: the entry skill is missing`);
+  if (!entry) problems.push(`${SOURCE_REL}/${ENTRY_SKILL}: the entry skill is missing`);
   else {
     const entryMd = entry.files.get('SKILL.md')!.toString('utf8');
     for (const s of skills) {
       if (s.name !== ENTRY_SKILL && !entryMd.includes(`\`${s.name}\``)) {
-        problems.push(`skills/${ENTRY_SKILL}/SKILL.md: does not route to ${s.name}`);
+        problems.push(`${SOURCE_REL}/${ENTRY_SKILL}/SKILL.md: does not route to ${s.name}`);
       }
     }
   }
   for (const s of skills) {
-    if (!SKILL_SUMMARIES[s.name]) problems.push(`skills/${s.name}: no line in SKILL_SUMMARIES`);
+    if (!SKILL_SUMMARIES[s.name])
+      problems.push(`${SOURCE_REL}/${s.name}: no line in SKILL_SUMMARIES`);
   }
   for (const name of Object.keys(SKILL_SUMMARIES)) {
     if (!names.has(name)) problems.push(`SKILL_SUMMARIES: no skill ${name}`);
@@ -469,7 +523,7 @@ function generateAgentsMd(): string {
 
 Guidance for AI coding agents working in this repository. (Using the Pachca
 API instead of contributing here? See \`skill.md\`, \`/llms.txt\`, or the
-\`skills/\` directory — not this file.)
+plugin in \`plugins/pachca/\` — not this file.)
 
 ## What this repo is
 
@@ -507,7 +561,7 @@ review generated diffs → commit. Branch from \`origin/main\`; open a PR
 | \`packages/spec/mcp-manifest.json\` | the spec + \`packages/spec/mcp-core.ts\`, \`mcp-tools.ts\`, \`scripts/generate-mcp-manifest.ts\` (then \`bun run generate-mcp\` in \`packages/spec\`) |
 | \`packages/mcp-manifest/mcp-manifest.json\`, \`mcp-manifest.schema.json\` | copies of \`packages/spec/mcp-manifest.json\` and \`mcp-manifest.schema.json\` (\`npx turbo build --filter=@pachca/mcp-manifest\`); a changed manifest needs a new version on top of \`packages/mcp-manifest/CHANGELOG.md\` and in its \`package.json\` (the package is not in \`releases.json\`) |
 | \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, Postman collection | \`apps/docs/scripts/generate-llms.ts\` |
-| \`apps/docs/public/skill.md\`, \`public/.well-known/**\`, root \`skill.json\` | the hand-written skills in \`skills/<name>/\`, published and checked by \`apps/docs/scripts/skills/generate.ts\` (links, MCP tool and CLI command names, size) |
+| \`apps/docs/public/skill.md\`, \`public/.well-known/**\`, root \`skill.json\` | the hand-written skills in \`plugins/pachca/skills/<name>/\`, published and checked by \`apps/docs/scripts/skills/generate.ts\` (links, MCP tool and CLI command names, size) |
 | \`packages/cli/src/commands/**\` (except \`auth\`/\`config\`), \`packages/cli/CHANGELOG.md\` | \`packages/cli/scripts/generate-cli.ts\`; \`src/data/changelog.json\` |
 | n8n node files | \`integrations/n8n/scripts/generate-n8n.ts\` |
 | \`AGENTS.md\` (this file) | \`apps/docs/scripts/skills/generate.ts\` (\`generateAgentsMd()\`) |

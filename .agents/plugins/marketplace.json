@@ -1,0 +1,12 @@
+{
+  "name": "pachca",
+  "interface": { "displayName": "Pachca" },
+  "plugins": [
+    {
+      "name": "pachca",
+      "source": { "source": "local", "path": "./plugins/pachca" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    }
+  ]
+}

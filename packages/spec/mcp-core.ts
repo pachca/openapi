@@ -19,7 +19,8 @@
  *     (`NAME_OVERRIDES`), the prefix they ship with (`TOOL_PREFIX`) and how a
  *     name is recognised in written text (`TOOL_NAME_IN_PROSE`);
  *   - the handful of operations that are steps of one human action, not actions
- *     (`CHAIN_STEPS`); the fields the server fills by running those steps
+ *     (`CHAIN_STEPS`), the one of them that also stands as a tool for a file the
+ *     model cannot hand over (`STANDALONE_STEPS`); the fields the server fills by running those steps
  *     (`UPLOAD_LIFTS`) or cannot fill (`UPLOAD_UNAVAILABLE`); and the limits of
  *     a file both ways (`FILE_SOURCES`);
  *   - the fields of the API kept out of the tools for safety (`WITHHELD`);
@@ -171,7 +172,8 @@ export const NAME_OVERRIDES: Record<OperationKey, string> = {
  * names their operations and the scopes they need, read from the spec.
  *
  * This is the only folding left in the set, and it exists because the steps have
- * no meaning apart from the action they serve.
+ * no meaning apart from the action they serve. One step also stands as a tool of
+ * its own, for a file the model cannot hand over as contents (`STANDALONE_STEPS`).
  */
 export const CHAIN_STEPS: Record<OperationKey, { into: OperationKey[]; argument: string }> = {
   // A draft takes the same upload key as a message: without the steps folded in,
@@ -184,6 +186,45 @@ export const CHAIN_STEPS: Record<OperationKey, { into: OperationKey[]; argument:
     into: ['POST /messages', 'PUT /messages/{id}', 'POST /drafts', 'PUT /drafts/{id}'],
     argument: 'files',
   },
+};
+
+/**
+ * Chain steps that also stand as a tool of their own, each with the note its
+ * description carries.
+ *
+ * Contents passed in the call work for a text a model writes; a real document or
+ * picture does not fit — the model would have to write tens of thousands of
+ * base64 characters out itself, and a picture pasted into a chat has no bytes it
+ * can reach at all. The public link that covered this is gone (`FILE_SOURCES`),
+ * and with it the last way to send such a file. An agent with a shell can still
+ * send one: it asks for the upload form here, posts the bytes to the storage
+ * itself and passes the key in the files of a message or draft, the screenshots
+ * of a bot or the image of a link preview — the usual way a remote server takes
+ * a file. The bytes go from the agent straight to the cloud storage the API
+ * names, a host outside pachca.com; the server fetches nothing. Putting the bytes
+ * in place is the agent's own request, so `POST /direct_url` stays a step only,
+ * and a link to it in the spec's words reaches the model as this tool.
+ *
+ * The note says what the spec has no place for, because the spec's home of it is
+ * the second step, which is no tool: that the bytes go with the agent's own shell,
+ * how the form is posted and where, and that the key with the file name in place
+ * of `${filename}` is what a message takes. The address is the storage's of the
+ * moment and changes with the provider, so it is always taken from the same
+ * answer; a remembered one is refused. It is the one outside address a tool's
+ * answer goes to, so the form is Pachca's own text (`TRUSTED_TEXT`) and the note
+ * names the exception to the rule of the instructions; the instructions have no
+ * room left for it.
+ */
+export const STANDALONE_STEPS: Record<OperationKey, string> = {
+  'POST /uploads':
+    'This server takes a file only as base64 contents in the call, so a document or picture from disk, anything ' +
+    'you would not write out yourself, you upload from a shell and attach by its key. Put the file name in place ' +
+    'of ${filename} in key, then post a multipart form to direct_url from this same answer, never a remembered ' +
+    'one: every other field as it is, direct_url itself left out, the file last — `curl -sS -X POST ' +
+    '"<direct_url>" -F "key=<key>" -F "policy=<policy>" … -F "file=@photo.jpg"` answers 204. direct_url is ' +
+    'the cloud storage Pachca keeps files in, a host outside pachca.com that changes with the provider; this form ' +
+    'is the one answer of a tool that goes to an outside address, and only there. Then pass that key, with the ' +
+    'name, file_type and size of the file, in files, or in the image key that sent you here.',
 };
 
 /**
@@ -246,8 +287,10 @@ export const WITHHELD: Partial<Record<OperationKey, Array<{ at: string; drop: Re
  * sends whatever the link carries to its host before the API has a say, and an
  * injection in a chat can write that link, so data would leave with no message
  * sent at all. The contents work for text a model wrote itself, a table as `.md`,
- * and for a file a model with file tools reads and encodes. A model with none
- * cannot write a real image out as base64, so it has only a key to pass.
+ * and for a small file a model with file tools reads and encodes. A real
+ * document or picture does not fit in a call, so a model with a shell uploads it
+ * itself and passes the key (`STANDALONE_STEPS`); a model with no shell has only
+ * the keys of files already in Pachca.
  *
  * Out: a file handed back to the model (`RESPONSE_FORMAT.binary_body`) is held to
  * what the strictest client takes. An image goes as an image only while its
@@ -312,6 +355,7 @@ export const ADDITIVE: Record<OperationKey, string> = {
   'PUT /chats/{id}/unread': "Moves only the caller's own unread marker; nothing anyone wrote changes.",
   'POST /chats/exports': 'Starts an archive of messages; the messages stay where they are.',
   'POST /drafts': 'A new draft; a second ordinary draft in the same chat is refused, not overwritten.',
+  'POST /uploads': 'A signed form for one upload; nothing in the workspace changes until a message takes the key.',
   'POST /tasks': 'A new task.',
   'POST /group_tags': 'A new group tag.',
   'POST /bots/{id}/tokens': "One more token; the bot's other tokens keep working.",
@@ -355,19 +399,16 @@ export const ACCESS_EXCEPTIONS: Array<{ host: OperationKey; argument: string; ro
 ];
 
 /**
- * Fields that take an upload key where this server makes no upload for them.
+ * Fields that take an upload key where a model has no way to obtain one.
  *
- * A model cannot obtain such a key, so the field stays for completeness and both
- * it and its neighbour say to pass a public link in the neighbour instead. A
- * preview image could be lifted into an upload like the screenshots of a bot,
- * but it sits inside a map keyed by the link, and `image_url` already takes a
- * public address of the image, which the API keeps as it is.
- * A field whose description links an upload step and that is neither uploaded
- * nor declared here fails the build.
+ * Such a field stays for completeness and both it and its neighbour say to pass a
+ * public link in the neighbour instead. While an upload step stands as a tool
+ * (`STANDALONE_STEPS`) every key is within reach — the image of a link preview
+ * takes the key of an upload the agent made — so the table is empty, and the
+ * build fails if it is not. A field whose description links an upload step and
+ * that is neither uploaded nor reachable fails the build too.
  */
-export const UPLOAD_UNAVAILABLE: Record<OperationKey, Array<{ at: string; use: string }>> = {
-  'POST /messages/{id}/link_previews': [{ at: 'link_previews.{}.image', use: 'image_url' }],
-};
+export const UPLOAD_UNAVAILABLE: Record<OperationKey, Array<{ at: string; use: string }>> = {};
 
 /**
  * The draft a send replaces, cleared once the message is away.
@@ -1371,6 +1412,23 @@ export const TRUSTED_TEXT: Array<{ fields: string[]; why: string; secret?: boole
       'fetch.id',
     ],
     why: 'Identifiers Pachca generates.',
+  },
+  {
+    fields: [
+      'UploadParams.Content-Disposition',
+      'UploadParams.acl',
+      'UploadParams.policy',
+      'UploadParams.x-amz-credential',
+      'UploadParams.x-amz-algorithm',
+      'UploadParams.x-amz-date',
+      'UploadParams.x-amz-signature',
+      'UploadParams.key',
+      'UploadParams.bucket',
+      'UploadParams.direct_url',
+    ],
+    why:
+      'The upload form Pachca signs and the address of the storage it keeps files in: nobody writes them, and the ' +
+      'form goes to that address, the one outside address a tool answer is sent to (`STANDALONE_STEPS`).',
   },
   {
     fields: ['PaginationMeta.paginate.next_page', 'PaginationMeta.paginate.prev_page', 'SearchPaginationMeta.paginate.next_page'],

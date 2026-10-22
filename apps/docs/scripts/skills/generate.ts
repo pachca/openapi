@@ -156,11 +156,56 @@ function codeText(md: string): string {
   return [...fenced, ...inline].join('\n');
 }
 
-function loadToolNames(): Set<string> {
+interface ManifestTool {
+  name: string;
+  title?: string;
+  description: string;
+  inputSchema: unknown;
+  annotations?: unknown;
+}
+
+function loadManifestTools(): ManifestTool[] {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(REPO_ROOT, 'packages/spec/mcp-manifest.json'), 'utf8')
-  ) as { tools: { name: string }[]; service_tools?: { name: string }[] };
-  return new Set([...manifest.tools, ...(manifest.service_tools ?? [])].map((t) => t.name));
+  ) as { tools: ManifestTool[]; service_tools?: ManifestTool[] };
+  return [...manifest.tools, ...(manifest.service_tools ?? [])];
+}
+
+/**
+ * Mocked MCP tools of the plugin's eval suite carry the real descriptions and
+ * schemas from the manifest, so an eval run sees the tools as a live session
+ * does. Only the tools some case mocks are listed.
+ */
+function evalToolsJson(tools: ManifestTool[], problems: string[]): PublishedFile | null {
+  const evalsDir = path.join(REPO_ROOT, PLUGIN_REL, 'evals');
+  if (!fs.existsSync(evalsDir)) return null;
+  const mocked = new Set<string>();
+  for (const f of listFiles(evalsDir)) {
+    const m = f.match(/(?:^|\/)mocks\/pachca\/(pachca_[a-z0-9_]+)\.md$/);
+    if (m) mocked.add(m[1]);
+  }
+  const byName = new Map(tools.map((t) => [t.name, t]));
+  for (const name of mocked) {
+    if (!byName.has(name))
+      problems.push(`${PLUGIN_REL}/evals: mock for a missing MCP tool ${name}`);
+  }
+  const listed = [...mocked]
+    .filter((n) => byName.has(n))
+    .sort()
+    .map((n) => {
+      const t = byName.get(n)!;
+      return {
+        name: t.name,
+        ...(t.title ? { title: t.title } : {}),
+        description: t.description,
+        inputSchema: t.inputSchema,
+        ...(t.annotations ? { annotations: t.annotations } : {}),
+      };
+    });
+  return {
+    path: `${PLUGIN_REL}/evals/mocks/pachca/_tools.json`,
+    content: JSON.stringify({ tools: listed }, null, 2) + '\n',
+  };
 }
 
 function loadCliCommands(): Set<string> {
@@ -365,13 +410,15 @@ export function publishSkills(): PublishedFile[] {
   const problems: string[] = [];
   const skills = readSkills(problems);
   const names = new Set(skills.map((s) => s.name));
+  const manifestTools = loadManifestTools();
+  const evalTools = evalToolsJson(manifestTools, problems);
   const commandFiles = fs
     .readdirSync(COMMANDS_DIR)
     .filter((f) => f.endsWith('.md'))
     .sort();
   const ctx: CheckContext = {
     skills: names,
-    tools: loadToolNames(),
+    tools: new Set(manifestTools.map((t) => t.name)),
     commands: loadCliCommands(),
     pluginCommands: new Set(commandFiles.map((f) => f.replace(/\.md$/, ''))),
     problems,
@@ -455,6 +502,7 @@ export function publishSkills(): PublishedFile[] {
   });
   out.push({ path: 'skill.json', content: json(skillJson()) });
   out.push({ path: 'AGENTS.md', content: generateAgentsMd() });
+  if (evalTools) out.push(evalTools);
 
   return out;
 }

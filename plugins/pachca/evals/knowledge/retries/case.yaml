@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-retries
+description: "What pachca-bots adds: answered with the plugin and without it"
+tags: [knowledge, pachca-bots]
+runs: 3
+execution:
+  prompt: "Мой обработчик вебхука Пачки упал с 500. Пачка повторит событие?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer says Pachca does not retry on an error code or a timeout (it retries only when it could not connect) and recommends answering 200 at once, queueing work, and using the event history to recover missed events. FAIL if it says Pachca will retry the 500."

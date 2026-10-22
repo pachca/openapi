@@ -1,0 +1,21 @@
+schema_version: "1.1"
+name: route-pachca-bots-06
+description: "Routes to pachca-bots, no sibling skill fires"
+tags: [routing, pachca-bots]
+runs: 3
+execution:
+  prompt: "Нужна форма в модальном окне для заявки на отпуск в Пачке"
+  max_turns: 3
+  allowed_tools: [Skill]
+graders:
+  - name: fires
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?(?:pachca-bots)\""
+  - name: no-sibling
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?pachca-(?!bots\")[a-z-]+\""
+    min: 0
+    max: 0
+    arm: both

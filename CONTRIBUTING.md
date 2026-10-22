@@ -75,6 +75,34 @@ For `packages/generator` snapshot fixtures, use `npm run regen-snapshots`
 (backed by top-level `scripts/regen-generator-snapshots.ts`) instead of
 ad-hoc `bun -e` commands or the old `bin/` / `tests/` helpers.
 
+## Agent skills and the plugin
+
+`plugins/pachca` is the Pachca plugin for Claude Code and Codex. Its skills
+(`skills/<name>/SKILL.md` plus `references/`) and commands (`commands/*.md`)
+are written by hand. The docs build publishes the skills on dev.pachca.com and
+fails on a broken link, a missing MCP tool, CLI command or skill, or an
+internal id; see `apps/docs/scripts/skills/generate.ts`.
+
+Evals live in `plugins/pachca/evals` and run with `claude plugin eval`
+(Claude Code 2.1.269+). Each run calls the model with your own account:
+
+```bash
+cd plugins/pachca
+# Routing: the right skill fires for a request, no sibling does
+claude plugin eval . --tag routing --ablation none --model claude-sonnet-5-5 -j 6
+# Knowledge: answers with the plugin and without it; the delta is what skills add
+claude plugin eval . --tag knowledge --model claude-sonnet-5-5 -j 6
+# Actions through the MCP server, answered by mocks
+claude plugin eval . --tag action --ablation none --model claude-sonnet-5-5
+```
+
+`--tag pachca-messaging` (any skill name) narrows a run to one skill. Run the
+cases of a skill after changing it, and add a case when a skill learns a rule.
+A case is a folder with `case.yaml`; actions keep MCP mocks next to it in
+`mocks/pachca/<tool>.md`, and the build writes the tool schemas they need
+into `evals/mocks/pachca/_tools.json` from the MCP manifest. Results go to
+`evals/results/` (gitignored).
+
 ## Workflow
 
 1. Edit source.

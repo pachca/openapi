@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-suspend-vs-delete
+description: "What pachca-admin adds: answered with the plugin and without it"
+tags: [knowledge, pachca-admin]
+runs: 3
+execution:
+  prompt: "Сотрудник уходит из компании. Удалить его в Пачке или приостановить?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer prefers suspension and explains that deletion is irreversible (a new invitation makes a different employee) and has side effects such as leaving chats or losing tags. FAIL if it recommends deletion by default without warning that it cannot be undone."

@@ -1,0 +1,21 @@
+schema_version: "1.1"
+name: route-pachca-oauth-04
+description: "Routes to pachca-oauth, no sibling skill fires"
+tags: [routing, pachca-oauth]
+runs: 3
+execution:
+  prompt: "Сотрудник отозвал доступ у нашего бота в Пачке, что будет с токеном?"
+  max_turns: 3
+  allowed_tools: [Skill]
+graders:
+  - name: fires
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?(?:pachca-oauth)\""
+  - name: no-sibling
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?pachca-(?!oauth\")[a-z-]+\""
+    min: 0
+    max: 0
+    arm: both

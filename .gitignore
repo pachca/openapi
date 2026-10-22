@@ -70,6 +70,7 @@ evals/results/
 .mcp.json
 # The plugin ships its MCP server config: a public address, no token.
 !plugins/pachca/.mcp.json
+plugins/pachca/evals/results/
 .playwright-mcp/
 .pi/tmp/
 

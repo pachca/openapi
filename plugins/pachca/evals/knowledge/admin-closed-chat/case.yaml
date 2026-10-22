@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-admin-closed-chat
+description: "What pachca-admin adds: answered with the plugin and without it"
+tags: [knowledge, pachca-admin]
+runs: 3
+execution:
+  prompt: "Я администратор пространства в Пачке. Почему я не вижу закрытый канал отдела продаж?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer says closed chats are visible only to their members, for every role including admins, and that joining the chat (an admin joins as chat admin) or asking a member is the way in. FAIL if it says admins see all chats or blames a bug."

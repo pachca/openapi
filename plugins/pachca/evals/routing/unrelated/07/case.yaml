@@ -1,0 +1,17 @@
+schema_version: "1.1"
+name: route-unrelated-07
+description: "Not about Pachca: no Pachca skill fires"
+tags: [routing, unrelated]
+runs: 3
+execution:
+  prompt: "Как настроить cron, чтобы скрипт запускался каждую ночь?"
+  max_turns: 3
+  allowed_tools: [Skill]
+graders:
+  - name: no-pachca-skill
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?pachca(?:-[a-z-]+)?\""
+    min: 0
+    max: 0
+    arm: both

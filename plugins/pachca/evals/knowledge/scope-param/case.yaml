@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-scope-param
+description: "What pachca-oauth adds: answered with the plugin and without it"
+tags: [knowledge, pachca-oauth]
+runs: 3
+execution:
+  prompt: "В ссылке на авторизацию бота Пачки я передаю scope=messages:read. Сотрудник увидит только это право?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer says the scope parameter in the link is ignored and the consent screen shows the scope set from the bot settings, which the employee accepts whole or not at all. FAIL if it says the link scope narrows the request."

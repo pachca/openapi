@@ -55,6 +55,7 @@ const GENERATED_PATHS = [
   // Docs — root + agent indices
   'AGENTS.md',
   'skill.json',
+  'plugins/pachca/evals/mocks/pachca/_tools.json',
   'apps/docs/public/.well-known/agent-card.json',
   'apps/docs/public/index.md',
   'apps/docs/public/llms.txt',

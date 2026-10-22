@@ -1,0 +1,14 @@
+schema_version: "1.1"
+name: act-thread-reply
+description: "An action through the MCP server, checked against mocks"
+tags: [action, pachca-messaging]
+runs: 3
+execution:
+  prompt: "Ответь в треде к сообщению 1001 в Пачке: «Беру в работу»"
+  max_turns: 10
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: sent
+    type: regex
+    target: "mock_calls"
+    pattern: "pachca_send_message"

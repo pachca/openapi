@@ -1,0 +1,21 @@
+schema_version: "1.1"
+name: route-pachca-api-08
+description: "Routes to pachca-api, no sibling skill fires"
+tags: [routing, pachca-api]
+runs: 3
+execution:
+  prompt: "Какой метод API Пачки получает историю сообщений чата?"
+  max_turns: 3
+  allowed_tools: [Skill]
+graders:
+  - name: fires
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?(?:pachca-api)\""
+  - name: no-sibling
+    type: tool_used
+    tool: Skill
+    input_match: "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?pachca-(?!api\")[a-z-]+\""
+    min: 0
+    max: 0
+    arm: both

@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-refresh
+description: "What pachca-oauth adds: answered with the plugin and without it"
+tags: [knowledge, pachca-oauth]
+runs: 3
+execution:
+  prompt: "Получил токен сотрудника через OAuth для бота Пачки. Как и когда его продлевать?"
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer says the token does not expire (no expires_in), there is nothing to refresh, and it works until the employee revokes access, OAuth is turned off or the bot is deleted. FAIL if it describes a refresh schedule or a refresh_token flow as required."

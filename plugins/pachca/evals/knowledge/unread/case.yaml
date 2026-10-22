@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: know-unread
+description: "What pachca-search adds: answered with the plugin and without it"
+tags: [knowledge, pachca-search]
+runs: 3
+execution:
+  prompt: "Покажи мне непрочитанные сообщения в Пачке."
+  max_turns: 6
+  allowed_tools: [Skill, Read, Glob, Grep]
+graders:
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer explains that Pachca has no way to list unread messages or read an unread counter, and offers a time window instead (for example since yesterday). FAIL if it claims to fetch unread messages or invents an unread filter or method."

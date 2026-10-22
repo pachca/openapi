@@ -48,7 +48,6 @@ const hook: Hook<'command_not_found'> = async function (opts) {
     }
 
     process.stderr.write(`\n  Все команды: pachca commands\n`);
-    process.stderr.write(`  Помощь по сценариям: pachca guide\n`);
   }
 
   process.exit(2);

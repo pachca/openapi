@@ -49,5 +49,4 @@ Identify the user task and activate the appropriate skill.
 ## CLI commands
 
 Full list: `pachca commands`
-Advanced workflows: references/ in each skill
 Help: `pachca <command> --help`

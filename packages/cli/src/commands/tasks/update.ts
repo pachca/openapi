@@ -4,12 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class TasksUpdate extends BaseCommand {
   static override description = "Редактирование напоминания";
-
-  static override examples = [
-      "Отметить задачу выполненной — Обнови статус задачи:\n  $ pachca tasks update",
-      "Обновить задачу (перенести срок, сменить ответственных) — Обнови нужные поля задачи:\n  $ pachca tasks update"
-  ];
-
   static scope = "tasks:update";
   static apiMethod = "PUT";
   static apiPath = "/tasks/{id}";

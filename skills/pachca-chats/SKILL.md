@@ -28,7 +28,7 @@ Or set the `PACHCA_TOKEN` environment variable:
     export PACHCA_TOKEN=<token>
     npx -y @pachca/cli <command>
 
-Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
+Help: `npx -y @pachca/cli --help`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
@@ -45,107 +45,6 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
        npx -y @pachca/cli auth status --token $PACHCA_TOKEN
 
 3. If you don't know the parameters — run `pachca <command> --help`.
-
-## Workflows
-
-### Создать канал и пригласить участников
-
-1. Создай канал с участниками:
-   ```bash
-   pachca chats create --name="Новый канал" --channel --member-ids='[1,2,3]'
-   ```
-   > `"channel": true` для канала, `false` (по умолчанию) для беседы. Участников можно передать сразу: `member_ids` и/или `group_tag_ids`
-
-2. Или добавь участников позже:
-   ```bash
-   pachca members add <chat_id> --member-ids='[1,2,3]'
-   ```
-
-> `channel` — boolean, не строка. `member_ids` и `group_tag_ids` — опциональны при создании.
-
-
-### Переименовать или обновить чат
-
-1. Обнови чат:
-   ```bash
-   pachca chats update <ID> --name="Новое название"
-   ```
-   > Доступные поля: `name`, `public`
-
-> Для изменения состава участников используй POST/DELETE /chats/{id}/members.
-
-
-### Поставить или убрать аватар чата
-
-1. Загрузи аватар беседы или канала:
-   ```bash
-   pachca chats update-avatar <ID> --file=<путь_к_файлу>
-   ```
-   > Файл передается в формате multipart/form-data: jpg, jpeg, png или gif. У личного чата и треда аватара нет — ответ 403
-
-2. Чтобы убрать аватар, удали его:
-   ```bash
-   pachca chats remove-avatar <ID> --force
-   ```
-
-> Доступно тому же, кто может менять название чата. Ссылка на аватар приходит в поле `avatar_url` чата.
-
-
-### Создать проектную беседу из шаблона
-
-1. Создай беседу с участниками из тега:
-   ```bash
-   pachca chats create --name="Проект Alpha" --group-tag-ids='[42]' --member-ids='[186,187]'
-   ```
-
-2. Отправь приветственное сообщение:
-   ```bash
-   pachca messages create --entity-id=<chat_id> --content="Добро пожаловать в проект!"
-   ```
-
-> `group_tag_ids` при создании добавляет всех участников тега сразу.
-
-
-### Найти активные чаты за период
-
-1. Получи чаты с активностью после указанной даты:
-   ```bash
-   pachca chats list --last-message-at-after=<дата> --all
-   ```
-   > Для диапазона добавь `--last-message-at-before`. Дата в ISO-8601 UTC+0
-
-
-### Найти и заархивировать неактивные чаты
-
-1. Получи чаты без активности с нужной даты:
-   ```bash
-   pachca chats list --last-message-at-before=<порог> --all
-   ```
-   > Архивные чаты в выдачу не попадают, поэтому отсеивать уже заархивированные не нужно. Чтобы получить их вместе с активными, добавь `--archived` и смотри поле `archived` каждого чата
-
-2. Для каждого чата: архивируй:
-   ```bash
-   pachca chats archive <ID>
-   ```
-   > Проверяй `"channel": false` — архивация каналов может быть нежелательной
-
-
-### Выгрузить все чаты пространства, включая закрытые
-
-1. Получи беседы и каналы всего пространства, включая закрытые, где владелец токена не состоит:
-   ```bash
-   pachca chats list-company --all
-   ```
-   > Возвращаются и активные, и архивные чаты. Оставить одно состояние можно флагом `--activity` со значением `active` или `archived`. Личные переписки и треды метод не отдаёт
-
-2. Если метод ответил `403` — у токена нет скоупа `company_chats:read`, либо владелец токена не владелец пространства, либо у пространства нет тарифа «Корпорация». Тогда возьми открытые чаты обычным списком:
-   ```bash
-   pachca chats list --availability=public --archived --all
-   ```
-   > Закрытые чаты, где токен не участник, в такую выдачу не попадут
-
-> Каждый запрос к списку чатов пространства пишется в журнал аудита как `company_chats_accessed`.
-
 
 ## Limitations
 
@@ -178,11 +77,5 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | PUT | /chats/{id}/unarchive | Разархивация чата |
 | PUT | /chats/{id}/unread | Отметка чата непрочитанным |
 | GET | /company/chats | Список чатов пространства |
-
-## Advanced workflows
-
-For advanced workflows, read the files in references/:
-  references/archive-and-manage-chat.md — Archive and manage chat
-  references/export-chat-history.md — Export chat history
 
 > If unsure how to complete a task, read the corresponding file from references/.

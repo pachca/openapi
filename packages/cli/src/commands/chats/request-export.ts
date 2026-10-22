@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class ChatsRequestExport extends BaseCommand {
   static override description = "Экспорт сообщений";
-
-  static override examples = [
-      "Экспорт истории чата — Запроси экспорт и возьми номер выгрузки из `data.id`:\n  $ pachca chats request-export"
-  ];
-
   static override hiddenAliases = ["common:request-export"];
   static scope = "chat_exports:write";
   static plan = "corporation";

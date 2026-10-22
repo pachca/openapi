@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class BotsRemoveEvent extends BaseCommand {
   static override description = "Удаление события истории";
-
-  static override examples = [
-      "Обработка событий через историю (polling) — Удали обработанное событие:\n  $ pachca bots remove-event"
-  ];
-
   static scope = "webhooks:events:delete";
   static apiMethod = "DELETE";
   static apiPath = "/webhooks/events/{id}";

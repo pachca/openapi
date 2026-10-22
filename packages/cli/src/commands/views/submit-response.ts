@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class ViewsSubmitResponse extends BaseCommand {
   static override description = "Ответ на отправку формы";
-
-  static override examples = [
-      "Обработать отправку формы (view_submission) — Если адрес исходящего вебхука не задан → ответь методом по `view_id` и `submit_id` из события: пустой `errors` закрывает форму, заполненный показывает ошибки полей:\n  $ pachca views submit-response"
-  ];
-
   static scope = "views:write";
   static apiMethod = "POST";
   static apiPath = "/views/{view_id}/submit_response";

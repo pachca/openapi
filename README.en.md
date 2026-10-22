@@ -10,7 +10,7 @@
 
 > Русская версия: [README.md](README.md)
 
-Unified Developer Experience Platform for the [Pachca API](https://dev.pachca.com) — the REST API of Pachca, a corporate messenger. A single source (TypeSpec + workflows.ts + examples.ts) generates artifacts for every channel: web docs, CLI, SDKs, an n8n node, agent skills, and LLM context.
+Unified Developer Experience Platform for the [Pachca API](https://dev.pachca.com) — the REST API of Pachca, a corporate messenger. A single source (TypeSpec) generates artifacts for every channel: web docs, CLI, SDKs, an n8n node, agent skills, and LLM context.
 
 **Docs**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Authorization**: https://dev.pachca.com/api/authorization · **Changelog**: https://dev.pachca.com/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
 
@@ -24,7 +24,6 @@ npx @pachca/cli messages create --entity-id=123 --content="Hello!" --token $PACH
 npm install -g @pachca/cli
 pachca auth login
 pachca messages create --entity-id=123 --content="Hello!"
-pachca guide "send a message"  # CLI guide
 
 # Built-in API reference right in the terminal (for agents)
 pachca api ls                          # list every endpoint
@@ -150,8 +149,7 @@ npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,sw
 | [`/llms.txt`](https://dev.pachca.com/llms.txt) | Short index: every endpoint with links + a line map |
 | [`/llms-full.txt`](https://dev.pachca.com/llms-full.txt) | Full docs: guides + endpoints with parameters |
 | [`/llms-en.txt`](https://dev.pachca.com/llms-en.txt) | English version of the full docs (for Context7) |
-| [`/skill.md`](https://dev.pachca.com/skill.md) | AI-agent skill: workflows, capabilities, links |
-| [`/workflows.arazzo.yaml`](https://dev.pachca.com/workflows.arazzo.yaml) | Multi-step API workflows in Arazzo 1.0.1 |
+| [`/skill.md`](https://dev.pachca.com/skill.md) | Entry skill for AI agents: connecting and links |
 | `/api/{section}/{action}.md` | A standalone .md for each endpoint and guide |
 | `<any page>.md` | Markdown version of any page (or the `Accept: text/markdown` header) |
 | `/.well-known/agent-skills/index.json` | Agent Skills discovery index (Cloudflare RFC) |

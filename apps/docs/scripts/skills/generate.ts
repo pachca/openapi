@@ -6,8 +6,6 @@ import { generateTitle } from '../../lib/openapi/mapper';
 import { operationRoles } from '../../lib/scope-roles';
 import { SKILL_TAG_MAP, COMMON_ENDPOINT_MAP, ROUTER_SKILL_CONFIG } from './config';
 import type { SkillConfig } from './config';
-import { WORKFLOWS } from '@pachca/spec/workflows';
-import type { Workflow } from '@pachca/spec/workflows';
 
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
 
@@ -48,15 +46,6 @@ interface SkillContext {
   allEndpoints: Endpoint[];
   baseUrl: string;
   allSkills: SkillConfig[];
-}
-
-function slugify(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-zа-яё0-9\s-]/gi, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 60);
 }
 
 function buildFullDescription(config: SkillConfig): string {
@@ -121,17 +110,6 @@ export function generateAllSkills(api: ParsedAPI) {
       results.push({ path: `${base}/SKILL.md`, content: skillMd });
     }
 
-    // Generate inline:false workflow reference files
-    const workflows = WORKFLOWS[config.name] || [];
-    const refWorkflows = workflows.filter((wf) => wf.inline === false);
-    for (const wf of refWorkflows) {
-      const slug = slugify(wf.titleEn || wf.title);
-      const refMd = renderCLIWorkflow(wf, 'ru');
-      for (const base of basePaths) {
-        results.push({ path: `${base}/references/${slug}.md`, content: refMd });
-      }
-    }
-
     if (config.name === 'pachca-bots') {
       const webhookEventsMd = generateWebhookEventsMd();
       for (const base of basePaths) {
@@ -149,26 +127,6 @@ export function generateAllSkills(api: ParsedAPI) {
       console.warn(`⚠ ${config.name}/SKILL.md: ~${tokenEstimate} tokens (exceeds 5000 limit)`);
     } else if (tokenEstimate > 4000) {
       console.warn(`⚠ ${config.name}/SKILL.md: ~${tokenEstimate} tokens (exceeds 4000 target)`);
-    }
-
-    // Validate workflow steps
-    for (const wf of workflows) {
-      if (wf.inline !== false && wf.steps.length > 3) {
-        console.warn(
-          `⚠ ${config.name}: scenario "${wf.title}" has ${wf.steps.length} steps in SKILL.md (max 3, consider inline: false)`
-        );
-      }
-      for (const step of wf.steps) {
-        // A step of the OAuth flow has no CLI command by design: the CLI signs in with `auth login`
-        const oauthFlow = api.endpoints.some(
-          (ep) => ep.oauthFlow && ep.method === step.apiMethod && ep.path === step.apiPath
-        );
-        if (step.apiMethod && !step.command && !oauthFlow) {
-          console.warn(
-            `⚠ ${config.name}: step "${step.description.slice(0, 50)}" has API method but no command`
-          );
-        }
-      }
     }
   }
 
@@ -285,39 +243,8 @@ function groupEndpointsBySkill(endpoints: Endpoint[]) {
   return result;
 }
 
-function renderCLIWorkflow(workflow: Workflow, lang: 'ru' | 'en' = 'ru'): string {
-  const title = lang === 'en' ? workflow.titleEn || workflow.title : workflow.title;
-  let md = `### ${title}\n\n`;
-
-  for (let i = 0; i < workflow.steps.length; i++) {
-    const step = workflow.steps[i];
-    const desc = lang === 'en' ? step.descriptionEn || step.description : step.description;
-    const notes = lang === 'en' ? step.notesEn || step.notes : step.notes;
-    md += `${i + 1}. ${desc}`;
-    if (step.command) {
-      md += `:\n   \`\`\`bash\n   ${step.command}\n   \`\`\``;
-    }
-    md += '\n';
-    if (notes) {
-      md += `   > ${notes}\n`;
-    }
-    md += '\n';
-  }
-
-  const wfNotes = lang === 'en' ? workflow.notesEn || workflow.notes : workflow.notes;
-  if (wfNotes) {
-    md += `> ${wfNotes}\n\n`;
-  }
-
-  return md;
-}
-
 function generateSkillMd(ctx: SkillContext): string {
   const { config, endpoints } = ctx;
-  const allWorkflows = WORKFLOWS[config.name] || [];
-  const inlineWorkflows = allWorkflows.filter((wf) => wf.inline !== false);
-  const refWorkflows = allWorkflows.filter((wf) => wf.inline === false);
-
   const lines: string[] = [];
 
   // Frontmatter
@@ -360,7 +287,7 @@ function generateSkillMd(ctx: SkillContext): string {
   lines.push('    export PACHCA_TOKEN=<token>');
   lines.push('    npx -y @pachca/cli <command>');
   lines.push('');
-  lines.push('Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`');
+  lines.push('Help: `npx -y @pachca/cli --help`');
   lines.push('');
   lines.push(
     '> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`'
@@ -382,15 +309,6 @@ function generateSkillMd(ctx: SkillContext): string {
   lines.push('');
   lines.push("3. If you don't know the parameters — run `pachca <command> --help`.");
   lines.push('');
-
-  // Inline workflows (max 3 steps)
-  if (inlineWorkflows.length > 0) {
-    lines.push('## Workflows');
-    lines.push('');
-    for (const wf of inlineWorkflows) {
-      lines.push(renderCLIWorkflow(wf, 'ru'));
-    }
-  }
 
   // Extra sections (e.g. event_key table for pachca-security)
   if (config.extraSections) {
@@ -423,19 +341,6 @@ function generateSkillMd(ctx: SkillContext): string {
     for (const ep of endpoints) {
       const title = generateTitle(ep);
       lines.push(`| ${ep.method} | ${ep.path} | ${title} |`);
-    }
-    lines.push('');
-  }
-
-  // References to advanced workflows
-  if (refWorkflows.length > 0) {
-    lines.push('## Advanced workflows');
-    lines.push('');
-    lines.push('For advanced workflows, read the files in references/:');
-    for (const wf of refWorkflows) {
-      const slug = slugify(wf.titleEn || wf.title);
-      const title = wf.titleEn || wf.title;
-      lines.push(`  references/${slug}.md — ${title}`);
     }
     lines.push('');
   }
@@ -751,7 +656,6 @@ function generateRouterSkillMd(): string {
   lines.push('## CLI commands');
   lines.push('');
   lines.push('Full list: `pachca commands`');
-  lines.push('Advanced workflows: references/ in each skill');
   lines.push('Help: `pachca <command> --help`');
   lines.push('');
 
@@ -882,7 +786,7 @@ single source of truth; everything else is generated from it.
 
 | Path | What |
 |------|------|
-| \`packages/spec\` | TypeSpec (\`typespec.tsp\`) → \`openapi.yaml\`; English overlay → \`openapi.en.yaml\`; MCP tool manifest (\`mcp-manifest.json\`); \`workflows.ts\`, examples |
+| \`packages/spec\` | TypeSpec (\`typespec.tsp\`) → \`openapi.yaml\`; English overlay → \`openapi.en.yaml\`; MCP tool manifest (\`mcp-manifest.json\`), examples |
 | \`packages/cli\` | oclif CLI \`@pachca/cli\`, generated from OpenAPI |
 | \`packages/generator\` | Multi-language SDK generator |
 | \`packages/openapi-parser\` | Shared OpenAPI parser |
@@ -910,7 +814,7 @@ review generated diffs → commit. Branch from \`origin/main\`; open a PR
 | \`packages/spec/openapi.en.yaml\` | \`packages/spec/overlay.en.yaml\` + \`scripts/apply-overlay.ts\` (a changed Russian text also needs \`bun run overlay:fingerprints\` in \`packages/spec\`) |
 | \`packages/spec/mcp-manifest.json\` | the spec + \`packages/spec/mcp-core.ts\`, \`mcp-tools.ts\`, \`scripts/generate-mcp-manifest.ts\` (then \`bun run generate-mcp\` in \`packages/spec\`) |
 | \`packages/mcp-manifest/mcp-manifest.json\`, \`mcp-manifest.schema.json\` | copies of \`packages/spec/mcp-manifest.json\` and \`mcp-manifest.schema.json\` (\`npx turbo build --filter=@pachca/mcp-manifest\`); a changed manifest needs a new version on top of \`packages/mcp-manifest/CHANGELOG.md\` and in its \`package.json\` (the package is not in \`releases.json\`) |
-| \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, \`public/skill.md\`, \`public/.well-known/**\`, \`public/workflows.arazzo.yaml\`, Postman collection, root \`SKILL.md\` + \`skill.json\` | \`apps/docs/scripts/generate-llms.ts\` + \`scripts/skills/\` |
+| \`apps/docs/public/llms*.txt\`, \`public/**/*.md\`, \`public/skill.md\`, \`public/.well-known/**\`, Postman collection, root \`SKILL.md\` + \`skill.json\` | \`apps/docs/scripts/generate-llms.ts\` + \`scripts/skills/\` |
 | \`packages/cli/src/commands/**\` (except \`auth\`/\`config\`), \`packages/cli/CHANGELOG.md\` | \`packages/cli/scripts/generate-cli.ts\`; \`src/data/changelog.json\` |
 | n8n node files | \`integrations/n8n/scripts/generate-n8n.ts\` |
 | \`AGENTS.md\` (this file) | \`apps/docs/scripts/skills/generate.ts\` (\`generateAgentsMd()\`) |

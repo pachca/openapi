@@ -196,7 +196,7 @@ export default class Api extends BaseCommand {
     outputData(data, { ...this.getOutputOptions(), format: outFormat as 'json' | 'yaml' | 'csv' });
   }
 
-  /** Load the build-time endpoint index (mirrors guide.ts workflows.json loading). */
+  /** Load the build-time endpoint index. */
   private async loadEndpoints(): Promise<EndpointIndexEntry[]> {
     try {
       const data = await import('../data/endpoints.json', { with: { type: 'json' } });

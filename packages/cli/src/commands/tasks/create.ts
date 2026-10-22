@@ -5,13 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class TasksCreate extends BaseCommand {
   static override description = "Новое напоминание";
-
-  static override examples = [
-      "Форма заявки/запроса — При submit: создай задачу или отправь уведомление ответственному:\n  $ pachca tasks create",
-      "Создать напоминание — Создай задачу:\n  $ pachca tasks create",
-      "Создать серию напоминаний — Для каждой даты: создай задачу:\n  $ pachca tasks create"
-  ];
-
   static scope = "tasks:create";
   static apiMethod = "POST";
   static apiPath = "/tasks";

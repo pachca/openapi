@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class ReactionsAdd extends BaseCommand {
   static override description = "Добавление реакции";
-
-  static override examples = [
-      "Добавить реакцию на сообщение — Добавь реакцию:\n  $ pachca reactions add"
-  ];
-
   static scope = "reactions:write";
   static apiMethod = "POST";
   static apiPath = "/messages/{id}/reactions";

@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class DraftsUpdate extends BaseCommand {
   static override description = "Редактирование черновика";
-
   static scope = "drafts:write";
   static apiMethod = "PUT";
   static apiPath = "/drafts/{id}";

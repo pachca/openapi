@@ -1818,27 +1818,6 @@
     ]
   },
   {
-    "section": "guide",
-    "commands": [
-      {
-        "command": "pachca guide",
-        "summary": "Поиск сценариев использования",
-        "method": null,
-        "path": null,
-        "scope": null,
-        "plan": null,
-        "args": [
-          {
-            "name": "query",
-            "required": false,
-            "description": "Поисковый запрос"
-          }
-        ],
-        "flags": []
-      }
-    ]
-  },
-  {
     "section": "introspect",
     "commands": [
       {

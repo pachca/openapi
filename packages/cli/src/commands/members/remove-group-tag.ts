@@ -5,7 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class MembersRemoveGroupTag extends BaseCommand {
   static override description = "Исключение тега из чата";
-
   static scope = "chat_members:write";
   static apiMethod = "DELETE";
   static apiPath = "/chats/{id}/group_tags/{tag_id}";

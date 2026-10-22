@@ -5,13 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class MembersAdd extends BaseCommand {
   static override description = "Добавление участников";
-
-  static override examples = [
-      "Подписаться на тред сообщения — Добавь бота в участники чата треда:\n  $ pachca members add",
-      "Создать канал и пригласить участников — Или добавь участников позже:\n  $ pachca members add",
-      "Онбординг нового сотрудника — Добавь в нужные каналы:\n  $ pachca members add"
-  ];
-
   static scope = "chat_members:write";
   static apiMethod = "POST";
   static apiPath = "/chats/{id}/members";

@@ -19,7 +19,6 @@ Pachca is a corporate messenger for teams. The REST API lets you automate commun
 | LLM-friendly summary | `https://dev.pachca.com/llms.txt` | Quick overview with links |
 | Full documentation | `https://dev.pachca.com/llms-full.txt` | Complete reference in one file |
 | OpenAPI 3.0 spec | `https://dev.pachca.com/openapi.yaml` | Programmatic parsing and code generation |
-| Arazzo workflows | `https://dev.pachca.com/workflows.arazzo.yaml` | Multi-step call sequences for chained operations |
 | CLI (per-endpoint, on demand) | `npx -y @pachca/cli api <METHOD> <path> --docs` | One endpoint without loading the full file |
 | Markdown page | append `.md` to any page URL | Reading a single guide page as Markdown |
 
@@ -203,40 +202,6 @@ Guides: https://dev.pachca.com/guides/ai-agents/mcp-connect.md (connecting clien
 - `POST /uploads` — Get upload params
 
 
-## Common Workflows
-
-### CLI Quick Start
-
-```bash
-npx -y @pachca/cli <command> --token <TOKEN>
-```
-
-### Find chat by name and send message
-
-1. List all chats, find by `name` field: `pachca chats list --all`
-   > GET /chats does not support name search — paginate through all
-2. Send message to the chat: `pachca messages create --entity-id=<chat_id> --content="Hello"`
-
-### Find active chats in a date range
-
-1. List chats with activity after a date: `pachca chats list --last-message-at-after=<date> --all`
-   > Add `--last-message-at-before` for range. Date in ISO-8601 UTC
-
-### Set up a bot with outgoing webhook
-
-1. Create bot in Pachca UI: Integrations → Bots → Create bot
-2. Create a token on the API tab of the bot — its value is shown once
-3. On the Outgoing webhook tab, press Enable, give the URL and pick the events
-
-### Show interactive form to user
-
-1. Send message with button: `pachca messages create --entity-id=<chat_id> --content="Fill the form" --buttons='[[{"text":"Open","data":"open_form"}]]'`
-2. On button click — receive webhook event with `trigger_id`
-3. Open form immediately: `pachca views open --type=modal --trigger-id=<trigger_id> --title="Request" --blocks='[...]'`
-   > `trigger_id` expires in 3 seconds — prepare form object in advance
-4. On form submit — receive webhook, process data
-
-
 
 ## Constraints
 
@@ -311,13 +276,11 @@ Detailed documentation on specific topics is available at:
 - [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Журнал аудита событий Пачки для команд безопасности: структура записи, типы событий и состав деталей, фильтры и пагинация, хранение. Тариф «Корпорация»
 - [Права и роли](https://dev.pachca.com/guides/permissions) — Как устроены права в API Пачки: роль в пространстве (Владелец, Администратор, Сотрудник, гости) и роль в чате (Создатель, Админ, Редактор, Участник, Подписчик), единственная точка их связи, видимость закрытых бесед и каналов, инвентаризация чатов и ботов пространства, управление чужими чатами и чаты уволенных сотрудников
 - [Форматирование текста](https://dev.pachca.com/guides/markdown) — Какой markdown понимает Пачка в тексте сообщений, входящих вебхуках и блоках форм: жирный, курсив, зачёркнутый, ссылки, строчный код и блоки кода. Строка с решёткой становится жирной, а списки, цитаты и таблицы остаются обычным текстом.
-- [Сценарии](https://dev.pachca.com/guides/workflows) — Пошаговые сценарии для типичных задач с API Пачки: какие методы вызывать и в каком порядке. Основа Agent Skills для AI-агентов и команды pachca guide в CLI
 - [CLI, Обзор](https://dev.pachca.com/guides/cli/overview) — Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+
 - [CLI, Установка](https://dev.pachca.com/guides/cli/installation) — Установка @pachca/cli: глобально через npm или без установки через npx (для агентов и CI). Автодополнение, настройки по умолчанию, диагностика и обновление.
 - [CLI, Авторизация](https://dev.pachca.com/guides/cli/authentication) — Авторизация Pachca CLI: вход через браузер и вход готовым токеном, список «Токены CLI» в Пачке, хранение токена, профили, выход, приоритет источников токена, headless-режим для CI и агентов.
 - [CLI, Вывод](https://dev.pachca.com/guides/cli/output) — Форматы вывода Pachca CLI (table, json, yaml, csv), выбор колонок, плоский TSV-режим, пайпы и перенаправление, курсорная пагинация.
 - [CLI, Флаги и скрипты](https://dev.pachca.com/guides/cli/scripting) — Глобальные флаги Pachca CLI, сортировка, kebab-case, boolean-флаги, dry-run, деструктивные операции, exit codes, таксономия ошибок, переменные окружения, неинтерактивный режим.
-- [CLI, Сценарии](https://dev.pachca.com/guides/cli/workflows) — Готовые пошаговые сценарии Pachca CLI через pachca guide: поиск рецептов по задаче, последовательности команд с комментариями.
 - [CLI, Файлы](https://dev.pachca.com/guides/cli/files) — Файлы в Pachca CLI: pachca upload получает подпись и загружает на S3 одной командой, pachca files get забирает вложения, у которых нет прямой ссылки.
 - [CLI, Прямые запросы](https://dev.pachca.com/guides/cli/api-requests) — Команда pachca api: прямые HTTP-запросы к любому методу (поля -f/-F, инлайн JSON, stdin) и встроенный справочник по API (ls, --describe, --spec, --docs) прямо в терминале, без сайта документации.
 - [CLI, Команды](https://dev.pachca.com/guides/cli/commands) — Справочник всех команд Pachca CLI: каждый метод API как команда, паттерн pachca [секция] [действие] [--флаги]. Параметры каждой команды — по клику.
@@ -370,4 +333,4 @@ npx skills add pachca/openapi
 | pachca-security | Pachca — журнал безопасности: отслеживание входов, действий пользователей, изменений сообщений и нарушений DLP |
 
 Skills index: `https://dev.pachca.com/.well-known/skills/index.json`
-API catalog (RFC 9727): `https://dev.pachca.com/.well-known/api-catalog` — single JSON with all API descriptions (OpenAPI, Postman, Arazzo), docs (HTML, llms.txt) and metadata.
+API catalog (RFC 9727): `https://dev.pachca.com/.well-known/api-catalog` — single JSON with all API descriptions (OpenAPI, Postman), docs (HTML, llms.txt) and metadata.

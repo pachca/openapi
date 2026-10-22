@@ -11,7 +11,7 @@ single source of truth; everything else is generated from it.
 
 | Path | What |
 |------|------|
-| `packages/spec` | TypeSpec (`typespec.tsp`) → `openapi.yaml`; English overlay → `openapi.en.yaml`; MCP tool manifest (`mcp-manifest.json`); `workflows.ts`, examples |
+| `packages/spec` | TypeSpec (`typespec.tsp`) → `openapi.yaml`; English overlay → `openapi.en.yaml`; MCP tool manifest (`mcp-manifest.json`), examples |
 | `packages/cli` | oclif CLI `@pachca/cli`, generated from OpenAPI |
 | `packages/generator` | Multi-language SDK generator |
 | `packages/openapi-parser` | Shared OpenAPI parser |
@@ -39,7 +39,7 @@ review generated diffs → commit. Branch from `origin/main`; open a PR
 | `packages/spec/openapi.en.yaml` | `packages/spec/overlay.en.yaml` + `scripts/apply-overlay.ts` (a changed Russian text also needs `bun run overlay:fingerprints` in `packages/spec`) |
 | `packages/spec/mcp-manifest.json` | the spec + `packages/spec/mcp-core.ts`, `mcp-tools.ts`, `scripts/generate-mcp-manifest.ts` (then `bun run generate-mcp` in `packages/spec`) |
 | `packages/mcp-manifest/mcp-manifest.json`, `mcp-manifest.schema.json` | copies of `packages/spec/mcp-manifest.json` and `mcp-manifest.schema.json` (`npx turbo build --filter=@pachca/mcp-manifest`); a changed manifest needs a new version on top of `packages/mcp-manifest/CHANGELOG.md` and in its `package.json` (the package is not in `releases.json`) |
-| `apps/docs/public/llms*.txt`, `public/**/*.md`, `public/skill.md`, `public/.well-known/**`, `public/workflows.arazzo.yaml`, Postman collection, root `SKILL.md` + `skill.json` | `apps/docs/scripts/generate-llms.ts` + `scripts/skills/` |
+| `apps/docs/public/llms*.txt`, `public/**/*.md`, `public/skill.md`, `public/.well-known/**`, Postman collection, root `SKILL.md` + `skill.json` | `apps/docs/scripts/generate-llms.ts` + `scripts/skills/` |
 | `packages/cli/src/commands/**` (except `auth`/`config`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
 | n8n node files | `integrations/n8n/scripts/generate-n8n.ts` |
 | `AGENTS.md` (this file) | `apps/docs/scripts/skills/generate.ts` (`generateAgentsMd()`) |

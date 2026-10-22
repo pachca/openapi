@@ -4,13 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ChatsList extends BaseCommand {
   static override description = "Список чатов";
-
-  static override examples = [
-      "Найти активные чаты за период — Получи чаты с активностью после указанной даты:\n  $ pachca chats list",
-      "Найти и заархивировать неактивные чаты — Получи чаты без активности с нужной даты:\n  $ pachca chats list",
-      "Выгрузить все чаты пространства, включая закрытые — Если метод ответил `403` — у токена нет скоупа `company_chats:read`, либо владелец токена не владелец пространства, либо у пространства нет тарифа «Корпорация». Тогда возьми открытые чаты обычным списком:\n  $ pachca chats list"
-  ];
-
   static scope = "chats:read";
   static apiMethod = "GET";
   static apiPath = "/chats";

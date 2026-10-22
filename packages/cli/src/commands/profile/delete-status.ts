@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class ProfileDeleteStatus extends BaseCommand {
   static override description = "Удаление своего статуса";
-
-  static override examples = [
-      "Сбросить статус — Удали статус:\n  $ pachca profile delete-status"
-  ];
-
   static scope = "profile_status:write";
   static apiMethod = "DELETE";
   static apiPath = "/profile/status";

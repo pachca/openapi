@@ -7,7 +7,6 @@ import * as path from 'node:path';
 
 export default class FilesDirectUrl extends BaseCommand {
   static override description = "Загрузка файла";
-
   static override hiddenAliases = ["common:direct-url"];
   static apiMethod = "POST";
   static apiPath = "/direct_url";

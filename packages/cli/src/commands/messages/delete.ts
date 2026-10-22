@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class MessagesDelete extends BaseCommand {
   static override description = "Удаление сообщения";
-
-  static override examples = [
-      "Удалить сообщение — Удали сообщение:\n  $ pachca messages delete"
-  ];
-
   static scope = "messages:delete";
   static apiMethod = "DELETE";
   static apiPath = "/messages/{id}";

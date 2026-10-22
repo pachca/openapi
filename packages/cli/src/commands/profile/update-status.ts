@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ProfileUpdateStatus extends BaseCommand {
   static override description = "Новый свой статус";
-
-  static override examples = [
-      "Установить статус — Установи статус:\n  $ pachca profile update-status"
-  ];
-
   static scope = "profile_status:write";
   static apiMethod = "PUT";
   static apiPath = "/profile/status";

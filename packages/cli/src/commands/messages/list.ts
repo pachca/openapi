@@ -5,12 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class MessagesList extends BaseCommand {
   static override description = "Список сообщений чата";
-
-  static override examples = [
-      "Получить историю сообщений чата — Получи сообщения чата с пагинацией:\n  $ pachca messages list",
-      "Получить список активных тредов за период — Для каждого треда возьми `chat_id` и подтяни сообщения:\n  $ pachca messages list"
-  ];
-
   static scope = "messages:read";
   static apiMethod = "GET";
   static apiPath = "/messages";

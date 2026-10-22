@@ -18,7 +18,6 @@ import type { Endpoint } from '../lib/openapi/types';
 import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
 import { generateAllSkills } from './skills/generate';
 import { SKILL_TAG_MAP, ROUTER_SKILL_CONFIG } from './skills/config';
-import { WORKFLOWS } from '@pachca/spec/workflows';
 import {
   loadUpdates,
   loadTimeline,
@@ -244,7 +243,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
   // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
   content += `Индекс скиллов: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
-  content += `Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.\n\n`;
+  content += `Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman), доками (HTML, llms.txt) и метаданными.\n\n`;
 
   content += '## Руководства\n';
   for (const guide of guidePages) {
@@ -278,7 +277,6 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // и коллекции для инструментов, а не doc-страницы (иначе их сэмплят как страницы).
   content += `- OpenAPI 3.0 spec: \`${SITE_URL}/openapi.yaml\` — машиночитаемая спецификация API для кодогенерации и инструментов\n`;
   content += `- Postman collection: \`${SITE_URL}/pachca.postman_collection.json\` — готовая коллекция для импорта в Postman/Bruno/Insomnia\n`;
-  content += `- Arazzo 1.0.1: \`${SITE_URL}/workflows.arazzo.yaml\` — многошаговые сценарии API, порядок вызовов для агентов\n`;
   content += `- [Agent Skill](${SITE_URL}/skill.md): Описание API для AI-агентов (SKILL.md)\n`;
   content += '- [Веб-сайт](https://pachca.com/)\n';
   content += '- [Получить помощь](mailto:team@pachca.com)\n';
@@ -1458,80 +1456,6 @@ function insertDocumentMap(content: string): string {
   return out.join('\n');
 }
 
-function generateWorkflowsSection(): string {
-  let content = '## Common Workflows\n\n';
-  content += '### CLI Quick Start\n\n';
-  content += '```bash\n';
-  content += 'npx -y @pachca/cli <command> --token <TOKEN>\n';
-  content += '```\n\n';
-
-  // English workflow summaries for skill.md (source workflows are in Russian)
-  const featured: { title: string; steps: { desc: string; cmd?: string; note?: string }[] }[] = [
-    {
-      title: 'Find chat by name and send message',
-      steps: [
-        {
-          desc: 'List all chats, find by `name` field',
-          cmd: 'pachca chats list --all',
-          note: 'GET /chats does not support name search — paginate through all',
-        },
-        {
-          desc: 'Send message to the chat',
-          cmd: 'pachca messages create --entity-id=<chat_id> --content="Hello"',
-        },
-      ],
-    },
-    {
-      title: 'Find active chats in a date range',
-      steps: [
-        {
-          desc: 'List chats with activity after a date',
-          cmd: 'pachca chats list --last-message-at-after=<date> --all',
-          note: 'Add `--last-message-at-before` for range. Date in ISO-8601 UTC',
-        },
-      ],
-    },
-    {
-      title: 'Set up a bot with outgoing webhook',
-      steps: [
-        { desc: 'Create bot in Pachca UI: Integrations → Bots → Create bot' },
-        { desc: 'Create a token on the API tab of the bot — its value is shown once' },
-        { desc: 'On the Outgoing webhook tab, press Enable, give the URL and pick the events' },
-      ],
-    },
-    {
-      title: 'Show interactive form to user',
-      steps: [
-        {
-          desc: 'Send message with button',
-          cmd: `pachca messages create --entity-id=<chat_id> --content="Fill the form" --buttons='[[{"text":"Open","data":"open_form"}]]'`,
-        },
-        { desc: 'On button click — receive webhook event with `trigger_id`' },
-        {
-          desc: 'Open form immediately',
-          cmd: `pachca views open --type=modal --trigger-id=<trigger_id> --title="Request" --blocks='[...]'`,
-          note: '`trigger_id` expires in 3 seconds — prepare form object in advance',
-        },
-        { desc: 'On form submit — receive webhook, process data' },
-      ],
-    },
-  ];
-
-  for (const wf of featured) {
-    content += `### ${wf.title}\n\n`;
-    for (let i = 0; i < wf.steps.length; i++) {
-      const step = wf.steps[i];
-      content += `${i + 1}. ${step.desc}`;
-      if (step.cmd) content += `: \`${step.cmd}\``;
-      content += '\n';
-      if (step.note) content += `   > ${step.note}\n`;
-    }
-    content += '\n';
-  }
-
-  return content;
-}
-
 function generateEnglishTitle(ep: Endpoint): string {
   // Derive English title from operationId: "MessageOperations_createMessage" → "Create message"
   const parts = ep.id.split('_');
@@ -1556,7 +1480,7 @@ function generateModularSkillsSection(): string {
     section += `| ${config.name} | ${shortDesc} |\n`;
   }
   section += `\nSkills index: \`${SITE_URL}/.well-known/skills/index.json\`\n`;
-  section += `API catalog (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — single JSON with all API descriptions (OpenAPI, Postman, Arazzo), docs (HTML, llms.txt) and metadata.\n`;
+  section += `API catalog (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — single JSON with all API descriptions (OpenAPI, Postman), docs (HTML, llms.txt) and metadata.\n`;
   return section;
 }
 
@@ -1612,8 +1536,6 @@ claude mcp add --transport http pachca https://mcp.pachca.com/mcp
 \`\`\`
 
 Guides: ${SITE_URL}/guides/ai-agents/mcp-connect.md (connecting clients), ${SITE_URL}/guides/ai-agents/mcp-tools.md (all tools).`;
-
-  const workflowsSection = generateWorkflowsSection();
 
   const CONSTRAINTS = `## Constraints
 
@@ -1677,7 +1599,6 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
     `| LLM-friendly summary | \`${SITE_URL}/llms.txt\` | Quick overview with links |`,
     `| Full documentation | \`${SITE_URL}/llms-full.txt\` | Complete reference in one file |`,
     `| OpenAPI 3.0 spec | \`${SITE_URL}/openapi.yaml\` | Programmatic parsing and code generation |`,
-    `| Arazzo workflows | \`${SITE_URL}/workflows.arazzo.yaml\` | Multi-step call sequences for chained operations |`,
     '| CLI (per-endpoint, on demand) | `npx -y @pachca/cli api <METHOD> <path> --docs` | One endpoint without loading the full file |',
     '| Markdown page | append `.md` to any page URL | Reading a single guide page as Markdown |',
     '',
@@ -1686,7 +1607,6 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
     STATIC_SECTIONS,
     '',
     capabilities,
-    workflowsSection,
     '',
     CONSTRAINTS,
     '',
@@ -1694,83 +1614,6 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
     '',
     generateModularSkillsSection(),
   ].join('\n');
-}
-
-/**
- * Arazzo 1.0.1 description of the common multi-step workflows, referencing
- * the Pachca OpenAPI description. OpenAPI alone does not make an API
- * agent-ready for chained calls; Arazzo expresses the call sequences
- * (Bump.sh / OAI Workflows guidance, 2026). Source of truth: WORKFLOWS in
- * @pachca/spec; only API-backed steps become Arazzo steps (manual UI steps
- * are folded into the workflow description).
- */
-function generateArazzo(api: Awaited<ReturnType<typeof parseOpenAPI>>): string {
-  const opByKey = new Map<string, string>();
-  for (const ep of api.endpoints) opByKey.set(`${ep.method} ${ep.path}`, ep.id);
-
-  const slug = (s: string) =>
-    s
-      .toLowerCase()
-      .normalize('NFKD')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 56);
-
-  const usedWfIds = new Set<string>();
-  const workflows: Record<string, unknown>[] = [];
-
-  for (const [skill, list] of Object.entries(WORKFLOWS)) {
-    for (const wf of list) {
-      const steps: Record<string, unknown>[] = [];
-      const manual: string[] = [];
-      for (const st of wf.steps) {
-        const desc = st.descriptionEn || st.description;
-        if (!st.apiMethod || !st.apiPath) {
-          manual.push(desc);
-          continue;
-        }
-        const opId = opByKey.get(`${st.apiMethod} ${st.apiPath}`);
-        if (!opId) continue;
-        const sid = `${slug(wf.titleEn || wf.title) || skill}-${steps.length + 1}`;
-        steps.push({
-          stepId: sid,
-          description: st.notesEn || st.notes ? `${desc} (${st.notesEn || st.notes})` : desc,
-          operationId: opId,
-        });
-      }
-      if (steps.length === 0) continue;
-
-      let wid = slug(wf.titleEn || wf.title) || skill;
-      const base = wid;
-      for (let n = 2; usedWfIds.has(wid); n++) wid = `${base}-${n}`;
-      usedWfIds.add(wid);
-
-      const descParts: string[] = [];
-      if (wf.notesEn || wf.notes) descParts.push(wf.notesEn || wf.notes || '');
-      if (manual.length) descParts.push(`Manual prerequisites: ${manual.join('; ')}.`);
-
-      workflows.push({
-        workflowId: wid,
-        summary: wf.titleEn || wf.title,
-        ...(descParts.length ? { description: descParts.join(' ') } : {}),
-        steps,
-      });
-    }
-  }
-
-  const doc = {
-    arazzo: '1.0.1',
-    info: {
-      title: 'Pachca API Workflows',
-      version: '1.0.0',
-      summary:
-        'Multi-step recipes for common Pachca API tasks, referencing the Pachca OpenAPI description.',
-    },
-    sourceDescriptions: [{ name: 'pachca', url: `${SITE_URL}/openapi.yaml`, type: 'openapi' }],
-    workflows,
-  };
-
-  return yaml.dump(doc, { lineWidth: 100, noRefs: true });
 }
 
 function generatePostmanCollection(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
@@ -2432,10 +2275,6 @@ async function main() {
   const postmanCollection = generatePostmanCollection(api);
   writeFile('public/pachca.postman_collection.json', JSON.stringify(postmanCollection, null, 2));
   console.log('✓ public/pachca.postman_collection.json');
-
-  const arazzo = generateArazzo(api);
-  writeFile('public/workflows.arazzo.yaml', arazzo);
-  console.log('✓ public/workflows.arazzo.yaml');
 
   const endpointFiles = await generateEndpointMdFiles(api);
   for (const file of endpointFiles) {

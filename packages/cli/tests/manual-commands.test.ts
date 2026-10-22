@@ -600,27 +600,6 @@ describe('manual commands — functional tests', () => {
     });
   });
 
-  describe('guide', () => {
-    it('no query → list all workflows', async () => {
-      const { stdout } = await runCommand(['guide', '--json'], { root: CLI_ROOT });
-      const parsed = JSON.parse(stdout);
-      expect(Array.isArray(parsed)).toBe(true);
-      expect(parsed.length).toBeGreaterThan(0);
-    });
-
-    it('query "сообщение" → found workflows', async () => {
-      const { stdout } = await runCommand(['guide', 'сообщение', '--json'], { root: CLI_ROOT });
-      const parsed = JSON.parse(stdout);
-      expect(Array.isArray(parsed)).toBe(true);
-    });
-
-    it('query "xyznonexistent" → empty array', async () => {
-      const { stdout } = await runCommand(['guide', 'xyznonexistent123', '--json'], { root: CLI_ROOT });
-      const parsed = JSON.parse(stdout);
-      expect(parsed).toEqual([]);
-    });
-  });
-
   describe('commands', () => {
     it('lists all commands', async () => {
       const { stdout } = await runCommand(['commands', '--json'], { root: CLI_ROOT });

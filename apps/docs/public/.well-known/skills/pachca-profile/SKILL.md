@@ -30,7 +30,7 @@ Or set the `PACHCA_TOKEN` environment variable:
     export PACHCA_TOKEN=<token>
     npx -y @pachca/cli <command>
 
-Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
+Help: `npx -y @pachca/cli --help`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
@@ -47,78 +47,6 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
        npx -y @pachca/cli auth status --token $PACHCA_TOKEN
 
 3. If you don't know the parameters — run `pachca <command> --help`.
-
-## Workflows
-
-### Получить свой профиль
-
-1. Получи информацию о текущем пользователе:
-   ```bash
-   pachca profile get
-   ```
-
-> Возвращает `id`, `first_name`, `last_name`, `nickname`, `email`, `phone_number`, `department`, `title`, `role`, `suspended`, `invite_status`, `list_tags`, `custom_properties`, `user_status`, `bot`, `sso`, `created_at`, `last_activity_at`, `time_zone`, `image_url`.
-
-
-### Проверить свой токен
-
-1. Получи информацию о токене: скоупы, дату создания, срок жизни:
-   ```bash
-   pachca oauth token-info
-   ```
-
-> Полезно для диагностики: какие скоупы доступны токену, когда он истекает.
-
-
-### Установить статус
-
-1. Установи статус:
-   ```bash
-   pachca profile update-status --emoji="🏖️" --title="В отпуске" --is-away --away-message="Я в отпуске до 10 марта" --expires-at="2025-03-10T23:59:59.000Z"
-   ```
-   > `is_away: true` — режим «Нет на месте». `expires_at` — автосброс (ISO-8601, UTC+0). `away_message` — макс 1024 символа
-
-
-### Сбросить статус
-
-1. Удали статус:
-   ```bash
-   pachca profile delete-status --force
-   ```
-
-
-### Получить кастомные поля профиля
-
-1. Получи список дополнительных полей для сотрудников:
-   ```bash
-   pachca custom-properties list --entity-type=User
-   ```
-   > Добавь `entity_type=User` для фильтрации
-
-2. Получи профиль — в `custom_properties` содержатся значения полей:
-   ```bash
-   pachca profile get
-   ```
-
-> Кастомные поля настраиваются администратором пространства.
-
-
-### Загрузить аватар профиля
-
-1. Загрузи аватар из файла:
-   ```bash
-   pachca profile update-avatar --file=<путь_к_файлу>
-   ```
-   > Файл изображения передается в формате multipart/form-data
-
-
-### Удалить аватар профиля
-
-1. Удали аватар:
-   ```bash
-   pachca profile delete-avatar --force
-   ```
-
 
 ## Limitations
 

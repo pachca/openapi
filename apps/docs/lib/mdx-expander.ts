@@ -21,8 +21,6 @@ import { getOrderedPages } from './ordered-pages';
 import { generateNavigation, compareEndpointsForNav } from './navigation';
 import { sortTagsByOrder } from './guides-config';
 import { SCOPE_ROLES, SCOPE_ROLE_LABELS } from './scope-roles';
-import { WORKFLOWS } from '@pachca/spec/workflows';
-import { SKILL_TAG_MAP } from '../scripts/skills/config';
 
 // ============================================
 // Helper functions
@@ -752,26 +750,6 @@ export async function expandMdxComponents(content: string): Promise<string> {
 
       result = result.replace(fullMatch, md);
     }
-  }
-
-  // <AgentSkillsWorkflows /> -> markdown list of skills and workflows
-  if (result.includes('<AgentSkillsWorkflows')) {
-    let md = '';
-    for (const skill of SKILL_TAG_MAP) {
-      const workflows = WORKFLOWS[skill.name] ?? [];
-      if (!workflows.length) continue;
-      md += `### ${skill.name}\n\n`;
-      for (const wf of workflows) {
-        md += `**${wf.title}**\n\n`;
-        wf.steps.forEach((step, i) => {
-          const text = typeof step === 'string' ? step : step.description;
-          md += `${i + 1}. ${text}\n`;
-        });
-        if (wf.notes) md += `\n> ${wf.notes}\n`;
-        md += '\n';
-      }
-    }
-    result = result.replace(/<AgentSkillsWorkflows\s*\/>/g, md);
   }
 
   // <NpmBadge package="..." version="..." date="..." /> -> markdown link

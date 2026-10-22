@@ -5,7 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class GroupTagsUpdate extends BaseCommand {
   static override description = "Редактирование тега";
-
   static scope = "group_tags:write";
   static apiMethod = "PUT";
   static apiPath = "/group_tags/{id}";

@@ -28,7 +28,7 @@ Or set the `PACHCA_TOKEN` environment variable:
     export PACHCA_TOKEN=<token>
     npx -y @pachca/cli <command>
 
-Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
+Help: `npx -y @pachca/cli --help`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
@@ -45,47 +45,6 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
        npx -y @pachca/cli auth status --token $PACHCA_TOKEN
 
 3. If you don't know the parameters — run `pachca <command> --help`.
-
-## Workflows
-
-### Получить журнал аудита событий
-
-1. Получи журнал аудита:
-   ```bash
-   pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601>
-   ```
-   > `start_time` и `end_time` необязательны (ISO-8601, время без смещения считается UTC), без них приходят все события по страницам. Фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`
-
-> Доступно только владельцу пространства.
-
-
-### Мониторинг подозрительных входов
-
-1. Получи события неудачных 2FA за период:
-   ```bash
-   pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --event-key=user_2fa_fail --all
-   ```
-
-2. Повтори запрос с `--event-key=user_2fa_disabled` — отключение второго фактора у сотрудника:
-   ```bash
-   pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --event-key=user_2fa_disabled --all
-   ```
-
-3. Если найдены аномалии — отправь уведомление администратору:
-   ```bash
-   pachca messages create --entity-type=user --entity-id=<admin_id> --content="Обнаружены подозрительные входы"
-   ```
-
-
-### Экспорт логов за период
-
-1. Получи все события за период с пагинацией:
-   ```bash
-   pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --all
-   ```
-
-2. Собери все события в массив → сохрани в файл или отправь во внешнюю систему
-
 
 ## Available event_key values
 

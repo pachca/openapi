@@ -55,16 +55,6 @@ pachca auth switch bot-notify
 Токены хранятся в `~/.config/pachca/config.toml` (chmod 600).
 В CI — через переменную окружения PACHCA_TOKEN.
 
-## Поиск по сценариям
-
-Не знаете какую команду использовать? Поищите по задаче:
-
-```
-pachca guide "отправить файл"
-pachca guide "создать беседу и добавить участников"
-pachca guide            # список всех сценариев
-```
-
 <!-- AUTO:COMMANDS -->
 <!-- AUTO:COMMANDS:END -->
 

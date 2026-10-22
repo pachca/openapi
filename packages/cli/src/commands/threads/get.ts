@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ThreadsGet extends BaseCommand {
   static override description = "Информация о треде";
-
   static scope = "threads:read";
   static apiMethod = "GET";
   static apiPath = "/threads/{id}";

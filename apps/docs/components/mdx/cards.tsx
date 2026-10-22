@@ -147,7 +147,6 @@ const GUIDE_ICONS: Record<string, string> = {
   '/guides/ai-agents/markdown': 'FileDiff',
   '/guides/ai-agents/drafts': 'FilePen',
   '/guides/cli/overview': 'Terminal',
-  '/guides/workflows': 'Route',
   '/guides/webhook': 'Webhook',
   '/guides/webhook/overview': 'Webhook',
   '/guides/oauth/overview': 'KeyRound',

@@ -13,7 +13,7 @@ everything else is generated.** Read this before changing anything.
 
 | Path | What |
 |------|------|
-| `packages/spec` | TypeSpec (`typespec.tsp`) → `openapi.yaml`; English overlay, `workflows.ts`, examples |
+| `packages/spec` | TypeSpec (`typespec.tsp`) → `openapi.yaml`; English overlay, examples |
 | `packages/cli` | oclif CLI `@pachca/cli`, generated from OpenAPI |
 | `packages/generator` | Multi-language SDK generator |
 | `packages/openapi-parser` | Shared OpenAPI parser |
@@ -61,7 +61,7 @@ Edit **only** the source; never hand-edit generated output:
 | `packages/spec/openapi.yaml` | `packages/spec/typespec.tsp` |
 | `packages/spec/mcp-manifest.json` | the spec + `packages/spec/mcp-core.ts`, `mcp-tools.ts`, `scripts/generate-mcp-manifest.ts` |
 | `packages/mcp-manifest/mcp-manifest.json`, `mcp-manifest.schema.json` | copies of `packages/spec/mcp-manifest.json` and `mcp-manifest.schema.json` |
-| `apps/docs/public/llms*.txt`, `public/**/*.md`, `public/skill.md`, `public/.well-known/**`, `public/workflows.arazzo.yaml`, Postman collection | `apps/docs/scripts/generate-llms.ts` + `scripts/skills/` + `apps/docs/content/**` |
+| `apps/docs/public/llms*.txt`, `public/**/*.md`, `public/skill.md`, `public/.well-known/**`, Postman collection | `apps/docs/scripts/generate-llms.ts` + `scripts/skills/` + `apps/docs/content/**` |
 | `packages/cli/src/commands/**` (except `auth/`, `config/`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
 | `skills/**`, `AGENTS.md` | `apps/docs/scripts/skills/generate.ts` |
 | n8n node files | n8n generator |

@@ -4,13 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class BotsUpdate extends BaseCommand {
   static override description = "Редактирование бота";
-
-  static override examples = [
-      "Обновить Webhook URL бота — Пользовательским токеном (с правом редактировать бота) — обнови URL по `id` бота. Пустая строка отключает вебхук:\n  $ pachca bots update",
-      "Включить боту авторизацию от имени сотрудника — Пользовательским токеном (создатель бота или администратор, если бот открыт администраторам) включи авторизацию: где хранится секрет, адреса возврата и права, которые бот попросит у сотрудника. Права бери из `pachca bots list-scopes`:\n  $ pachca bots update",
-      "Включить боту авторизацию от имени сотрудника — Чтобы бот появился в витрине, добавь описание и опубликуй страницу:\n  $ pachca bots update"
-  ];
-
   static scope = "bots:write";
   static apiMethod = "PUT";
   static apiPath = "/bots/{id}";

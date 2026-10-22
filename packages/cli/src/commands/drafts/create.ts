@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class DraftsCreate extends BaseCommand {
   static override description = "Новый черновик";
-
-  static override examples = [
-      "Отправить сообщение позже или по расписанию — Создай отложенное сообщение: `schedule.start_date` — когда отправить, `schedule.repetition.interval` — как повторять (`once`, если один раз):\n  $ pachca drafts create"
-  ];
-
   static scope = "drafts:write";
   static apiMethod = "POST";
   static apiPath = "/drafts";

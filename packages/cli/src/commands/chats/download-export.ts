@@ -6,11 +6,6 @@ import { formatSize } from '../../utils.js';
 
 export default class ChatsDownloadExport extends BaseCommand {
   static override description = "Скачать архив экспорта";
-
-  static override examples = [
-      "Экспорт истории чата — Скачай файл экспорта:\n  $ pachca chats download-export"
-  ];
-
   static override hiddenAliases = ["common:get-exports"];
   static scope = "chat_exports:read";
   static plan = "corporation";

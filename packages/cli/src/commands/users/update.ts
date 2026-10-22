@@ -4,12 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class UsersUpdate extends BaseCommand {
   static override description = "Редактирование сотрудника";
-
-  static override examples = [
-      "Массовое создание сотрудников с тегами — Или обнови существующего:\n  $ pachca users update",
-      "Offboarding сотрудника — Заблокировать доступ:\n  $ pachca users update"
-  ];
-
   static scope = "users:update";
   static apiMethod = "PUT";
   static apiPath = "/users/{id}";

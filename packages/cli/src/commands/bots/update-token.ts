@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class BotsUpdateToken extends BaseCommand {
   static override description = "Изменение токена бота";
-
   static scope = "bots:write";
   static apiMethod = "PUT";
   static apiPath = "/bots/{id}/tokens/{token_id}";

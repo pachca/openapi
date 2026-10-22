@@ -182,7 +182,6 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
     items: [
       { title: 'Права и роли', path: '/guides/permissions' },
       { title: 'Форматирование текста', path: '/guides/markdown' },
-      { title: 'Сценарии', path: '/guides/workflows' },
     ],
   },
 ];
@@ -202,7 +201,6 @@ export const CLI_SECTIONS: SidebarSection[] = [
     items: [
       { title: 'Вывод', path: '/guides/cli/output' },
       { title: 'Флаги и скрипты', path: '/guides/cli/scripting' },
-      { title: 'Сценарии', path: '/guides/cli/workflows' },
       { title: 'Файлы', path: '/guides/cli/files' },
       { title: 'Прямые запросы', path: '/guides/cli/api-requests' },
     ],

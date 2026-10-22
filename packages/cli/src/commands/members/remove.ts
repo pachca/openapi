@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class MembersRemove extends BaseCommand {
   static override description = "Исключение участника";
-
-  static override examples = [
-      "Архивация и управление чатом — Удалить участника:\n  $ pachca members remove"
-  ];
-
   static scope = "chat_members:write";
   static apiMethod = "DELETE";
   static apiPath = "/chats/{id}/members/{user_id}";

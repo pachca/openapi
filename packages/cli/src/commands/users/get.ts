@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class UsersGet extends BaseCommand {
   static override description = "Информация о сотруднике";
-
-  static override examples = [
-      "Получить сотрудника по ID — Получи информацию о сотруднике:\n  $ pachca users get"
-  ];
-
   static scope = "users:read";
   static apiMethod = "GET";
   static apiPath = "/users/{id}";

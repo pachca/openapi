@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class BotsUpdateWebhook extends BaseCommand {
   static override description = "Саморегистрация вебхука бота";
-
-  static override examples = [
-      "Обновить Webhook URL бота — Или: бот сам обновляет свой webhook своим же токеном — без `id` и без участия администратора (нужен скоуп `bot_self:webhook:write`):\n  $ pachca bots update-webhook"
-  ];
-
   static scope = "bot_self:webhook:write";
   static apiMethod = "PUT";
   static apiPath = "/bot/webhook";

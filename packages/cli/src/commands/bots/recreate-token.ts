@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class BotsRecreateToken extends BaseCommand {
   static override description = "Ротация токена бота";
-
-  static override examples = [
-      "Ротация токена бота — Пользовательским токеном (создатель бота или администратор, если бот открыт администраторам) — перевыпусти основной токен по `id` бота: тот, что без имени, а если такого нет, самый старый. Прежнее значение инвалидируется сразу:\n  $ pachca bots recreate-token"
-  ];
-
   static scope = "bots:write";
   static apiMethod = "POST";
   static apiPath = "/bots/{id}/recreate_token";

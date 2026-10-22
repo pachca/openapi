@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class BotsListCompany extends BaseCommand {
   static override description = "Список ботов пространства";
-
-  static override examples = [
-      "Инвентаризация всех ботов пространства — Получи всех ботов пространства, а не только доступных для редактирования:\n  $ pachca bots list-company"
-  ];
-
   static scope = "company_bots:read";
   static plan = "corporation";
   static apiMethod = "GET";

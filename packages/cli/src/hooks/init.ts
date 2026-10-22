@@ -46,7 +46,6 @@ const SKIP_AUTH = new Set([
   'doctor',
   'autocomplete',
   'commands',
-  'guide',
   'introspect',
   'changelog',
   'upgrade',

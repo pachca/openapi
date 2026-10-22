@@ -82,7 +82,6 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca group-tags list` | `GET` Список тегов |
 | `pachca group-tags list-users` | `GET` Список сотрудников тега |
 | `pachca group-tags update` | `PUT` Редактирование тега |
-| `pachca guide` | Поиск сценариев использования |
 | `pachca introspect` | Метаданные команды в машиночитаемом формате |
 | `pachca members add` | `POST` Добавление участников |
 | `pachca members add-group-tags` | `POST` Добавление тегов |

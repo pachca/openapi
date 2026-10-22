@@ -31,7 +31,7 @@ Or set the `PACHCA_TOKEN` environment variable:
     export PACHCA_TOKEN=<token>
     npx -y @pachca/cli <command>
 
-Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
+Help: `npx -y @pachca/cli --help`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
@@ -74,13 +74,5 @@ Eleven block types: `header`, `plain_text`, `markdown`, `divider`, `input`, `sel
 |--------|------|-------------|
 | POST | /views/open | Открытие представления |
 | POST | /views/{view_id}/submit_response | Ответ на отправку формы |
-
-## Advanced workflows
-
-For advanced workflows, read the files in references/:
-  references/show-interactive-form-to-user.md — Show interactive form to user
-  references/handle-form-submission-viewsubmission.md — Handle form submission (view_submission)
-  references/employee-survey-via-form.md — Employee survey via form
-  references/requestapplication-form.md — Request/application form
 
 > If unsure how to complete a task, read the corresponding file from references/.

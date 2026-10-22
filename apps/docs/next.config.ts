@@ -107,7 +107,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/:path(openapi\\.yaml|workflows\\.arazzo\\.yaml)',
+        source: '/:path(openapi\\.yaml)',
         headers: [
           { key: 'Content-Type', value: 'application/yaml' },
           { key: 'Access-Control-Allow-Origin', value: '*' },

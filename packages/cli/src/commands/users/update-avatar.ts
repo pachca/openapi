@@ -6,11 +6,6 @@ import * as path from 'node:path';
 
 export default class UsersUpdateAvatar extends BaseCommand {
   static override description = "Загрузка аватара сотрудника";
-
-  static override examples = [
-      "Загрузить аватар сотрудника — Загрузи аватар сотруднику:\n  $ pachca users update-avatar"
-  ];
-
   static scope = "user_avatar:write";
   static apiMethod = "PUT";
   static apiPath = "/users/{user_id}/avatar";

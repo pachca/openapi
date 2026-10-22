@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ThreadsCreate extends BaseCommand {
   static override description = "Новый самостоятельный тред";
-
   static scope = "threads:create";
   static apiMethod = "POST";
   static apiPath = "/threads";

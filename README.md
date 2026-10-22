@@ -10,7 +10,7 @@
 
 > English version: [README.en.md](README.en.md)
 
-Unified Developer Experience Platform для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Один источник (TypeSpec + workflows.ts + examples.ts) генерирует артефакты для всех каналов: web docs, CLI, SDK, n8n node, agent skills, LLM context.
+Unified Developer Experience Platform для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Один источник (TypeSpec) генерирует артефакты для всех каналов: web docs, CLI, SDK, n8n node, agent skills, LLM context.
 
 **Документация**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Авторизация**: https://dev.pachca.com/api/authorization · **Changelog**: https://dev.pachca.com/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
 
@@ -24,7 +24,6 @@ npx @pachca/cli messages create --entity-id=123 --content="Привет!" --toke
 npm install -g @pachca/cli
 pachca auth login
 pachca messages create --entity-id=123 --content="Привет!"
-pachca guide "отправить сообщение"  # CLI guide
 
 # Встроенный справочник по API прямо в терминале (для агентов)
 pachca api ls                          # список всех эндпоинтов
@@ -169,8 +168,7 @@ npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,sw
 | [`/llms.txt`](https://dev.pachca.com/llms.txt) | Краткий индекс: все endpoint'ы со ссылками + карта строк |
 | [`/llms-full.txt`](https://dev.pachca.com/llms-full.txt) | Полная документация: гайды + endpoint'ы с параметрами |
 | [`/llms-en.txt`](https://dev.pachca.com/llms-en.txt) | Английская версия полной документации (для Context7) |
-| [`/skill.md`](https://dev.pachca.com/skill.md) | AI-agent skill: workflows, capabilities, ссылки |
-| [`/workflows.arazzo.yaml`](https://dev.pachca.com/workflows.arazzo.yaml) | Многошаговые сценарии API в формате Arazzo 1.0.1 |
+| [`/skill.md`](https://dev.pachca.com/skill.md) | Скилл-вход для AI-агентов: подключение и ссылки |
 | `/api/{section}/{action}.md` | Отдельный .md для каждого endpoint'а и гайда |
 | `<любая страница>.md` | Markdown-версия любой страницы (или заголовок `Accept: text/markdown`) |
 | `/.well-known/agent-skills/index.json` | Discovery-индекс Agent Skills (Cloudflare RFC) |
@@ -228,7 +226,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 ├── apps/
 │   └── docs/              # Next.js 16 сайт документации (@pachca/docs)
 ├── packages/
-│   ├── spec/              # TypeSpec спецификация + workflows.ts + examples.ts (@pachca/spec)
+│   ├── spec/              # TypeSpec спецификация + examples.ts (@pachca/spec)
 │   ├── generator/         # SDK код-генератор для 6 языков (@pachca/generator)
 │   ├── openapi-parser/    # Парсер OpenAPI-спеки (@pachca/openapi-parser)
 │   ├── mcp-manifest/      # MCP-манифест и его схема для npm (@pachca/mcp-manifest)
@@ -279,18 +277,10 @@ apps/docs
     ▼
   Сайт + llms.txt + llms-full.txt + llms-en.txt
   + skill.md + per-endpoint и per-guide .md
-  + workflows.arazzo.yaml (Arazzo 1.0.1)
   + Agent Skills (skills/, AGENTS.md, .well-known/{skills,agent-skills}/)
   + pachca.postman_collection.json
   + CLI examples (10-й код-генератор)
   + OG-изображения + sitemap + RSS
-
-workflows.ts + examples.ts (packages/spec — единый источник сценариев)
-    │
-    ├──→ Web (страница сценариев с поиском)
-    ├──→ CLI (pachca guide)
-    ├──→ Skills (CLI-сценарии в SKILL.md)
-    └──→ n8n (примеры значений в нодах)
 ```
 
 ## Turborepo пайплайн

@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class BotsList extends BaseCommand {
   static override description = "Список ботов";
-
-  static override examples = [
-      "Найти и удалить бота — Пользовательским токеном (скоуп `bots:read`) получи список ботов, доступных тебе для редактирования: созданных тобой и тех, чьи настройки открывают тебе доступ. Фильтруй по имени параметром `query`. Пока `meta.paginate.has_next` равен `true`, следующую страницу бери из `meta.paginate.next_page`:\n  $ pachca bots list"
-  ];
-
   static scope = "bots:read";
   static apiMethod = "GET";
   static apiPath = "/bots";

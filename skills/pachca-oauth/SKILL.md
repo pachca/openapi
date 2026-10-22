@@ -33,7 +33,7 @@ Or set the `PACHCA_TOKEN` environment variable:
     export PACHCA_TOKEN=<token>
     npx -y @pachca/cli <command>
 
-Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
+Help: `npx -y @pachca/cli --help`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
@@ -63,10 +63,5 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | POST | /oauth/revoke | Отзыв токена |
 | POST | /oauth/token | Обмен кода на токен |
 | GET | /oauth/token/info | Информация о токене |
-
-## Advanced workflows
-
-For advanced workflows, read the files in references/:
-  references/get-an-employee-token-via-oauth.md — Get an employee token via OAuth
 
 > If unsure how to complete a task, read the corresponding file from references/.

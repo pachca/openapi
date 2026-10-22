@@ -4,11 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class ReadMemberListReaders extends BaseCommand {
   static override description = "Список прочитавших сообщение";
-
-  static override examples = [
-      "Проверить, кто прочитал сообщение — Получи массив `user_id` прочитавших:\n  $ pachca read-member list-readers"
-  ];
-
   static scope = "messages:read";
   static apiMethod = "GET";
   static apiPath = "/messages/{id}/read_member_ids";

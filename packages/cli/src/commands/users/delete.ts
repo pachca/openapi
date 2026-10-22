@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class UsersDelete extends BaseCommand {
   static override description = "Удаление сотрудника";
-
-  static override examples = [
-      "Offboarding сотрудника — Опционально: удалить аккаунт полностью:\n  $ pachca users delete"
-  ];
-
   static scope = "users:delete";
   static apiMethod = "DELETE";
   static apiPath = "/users/{id}";

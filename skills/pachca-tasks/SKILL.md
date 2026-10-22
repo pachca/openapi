@@ -28,7 +28,7 @@ Or set the `PACHCA_TOKEN` environment variable:
     export PACHCA_TOKEN=<token>
     npx -y @pachca/cli <command>
 
-Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
+Help: `npx -y @pachca/cli --help`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
@@ -45,88 +45,6 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
        npx -y @pachca/cli auth status --token $PACHCA_TOKEN
 
 3. If you don't know the parameters — run `pachca <command> --help`.
-
-## Workflows
-
-### Создать напоминание
-
-1. Создай задачу:
-   ```bash
-   pachca tasks create --kind=reminder --content="Позвонить клиенту" --due-at=<дата> --chat-id=<chat_id>
-   ```
-   > `chat_id` для привязки к чату, `custom_properties` для дополнительных полей
-
-> Тип `custom_properties[].value` всегда строка. Дополнительные поля: GET /custom_properties?entity_type=Task.
-
-
-### Получить список предстоящих задач
-
-1. Получи невыполненные задачи:
-   ```bash
-   pachca tasks list --status=undone --all
-   ```
-   > `status`: `"undone"` — не выполнена, `"done"` — выполнена. Без параметра возвращаются задачи в любом состоянии. Ещё фильтры: `--author-id`, `--performer-ids`, `--chat-ids`
-
-
-### Собрать задачи по чатам проекта
-
-1. Запроси задачи нужных чатов:
-   ```bash
-   pachca tasks list --chat-ids=198,334 --all
-   ```
-   > С `--chat-ids` выдача перестаёт ограничиваться своими задачами и отдаёт все задачи указанных чатов. Недоступные чаты игнорируются без ошибки, не более 100 идентификаторов
-
-2. Сузь выборку по автору, ответственным и состоянию:
-   ```bash
-   pachca tasks list --chat-ids=198,334 --author-id=12 --performer-ids=185,186 --status=undone --all
-   ```
-   > Фильтры комбинируются между собой
-
-
-### Получить задачу по ID
-
-1. Получи информацию о задаче:
-   ```bash
-   pachca tasks get <ID>
-   ```
-
-
-### Отметить задачу выполненной
-
-1. Обнови статус задачи:
-   ```bash
-   pachca tasks update <ID> --status=done
-   ```
-
-
-### Обновить задачу (перенести срок, сменить ответственных)
-
-1. Обнови нужные поля задачи:
-   ```bash
-   pachca tasks update <ID> --due-at=<дата> --priority=2 --performer-ids='[186,187]'
-   ```
-   > `performer_ids` заменяет весь список. `priority`: 1 (обычный), 2 (важно), 3 (очень важно)
-
-
-### Удалить задачу
-
-1. Удали задачу:
-   ```bash
-   pachca tasks delete <ID> --force
-   ```
-
-> Удаление необратимо. Чтобы просто закрыть — используй PUT с `"status": "done"`.
-
-
-### Создать серию напоминаний
-
-1. Подготовь список дат (ежедневно, еженедельно и т.д.)
-
-2. Для каждой даты: создай задачу:
-   ```bash
-   pachca tasks create --kind=reminder --content="Напоминание" --due-at=<дата>
-   ```
-
 
 ## Limitations
 

@@ -15,6 +15,13 @@ const redirects: Redirect[] = [
     permanent: true,
   },
 
+  // Страницы сценариев убраны: знание о том, как делать задачи в Пачке, теперь
+  // в скиллах для агентов, а `pachca guide` из CLI удалён.
+  { source: '/guides/workflows', destination: '/guides/ai-agents/overview', permanent: true },
+  { source: '/guides/workflows.md', destination: '/guides/ai-agents/overview.md', permanent: true },
+  { source: '/guides/cli/workflows', destination: '/guides/cli/overview', permanent: true },
+  { source: '/guides/cli/workflows.md', destination: '/guides/cli/overview.md', permanent: true },
+
   // ===== Корни разделов → стартовые страницы (иначе 404) =====
   { source: '/api', destination: '/api/authorization', permanent: false },
   { source: '/guides', destination: '/guides/quickstart', permanent: false },

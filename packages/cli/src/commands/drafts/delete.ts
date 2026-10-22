@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class DraftsDelete extends BaseCommand {
   static override description = "Удаление черновика";
-
-  static override examples = [
-      "Отправить сообщение позже или по расписанию — Чтобы отменить отправку — удали отложенное сообщение:\n  $ pachca drafts delete"
-  ];
-
   static scope = "drafts:write";
   static apiMethod = "DELETE";
   static apiPath = "/drafts/{id}";

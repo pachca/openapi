@@ -64,7 +64,6 @@ const GENERATED_PATHS = [
   'apps/docs/public/skill.md',
   'apps/docs/public/updates.md',
   'apps/docs/public/pachca.postman_collection.json',
-  'apps/docs/public/workflows.arazzo.yaml',
   // Docs — per-page MD twins
   'apps/docs/public/api/**',
   'apps/docs/public/guides/**',

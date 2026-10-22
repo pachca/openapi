@@ -4,13 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class MessagesUpdate extends BaseCommand {
   static override description = "Редактирование сообщения";
-
-  static override examples = [
-      "Отредактировать сообщение — Обнови сообщение:\n  $ pachca messages update",
-      "Изменить вложения сообщения — Обнови сообщение с новым массивом `files`:\n  $ pachca messages update",
-      "Обработать нажатие кнопки (callback) — Опционально: обнови исходное сообщение:\n  $ pachca messages update"
-  ];
-
   static scope = "messages:update";
   static apiMethod = "PUT";
   static apiPath = "/messages/{id}";

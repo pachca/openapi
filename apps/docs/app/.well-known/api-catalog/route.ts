@@ -45,11 +45,6 @@ export async function GET(): Promise<Response> {
             type: 'application/json',
             title: 'Pachca API — Postman collection',
           },
-          {
-            href: `${SITE_URL}/workflows.arazzo.yaml`,
-            type: 'application/yaml',
-            title: 'Pachca API — Arazzo workflows',
-          },
         ],
         'service-doc': [
           {

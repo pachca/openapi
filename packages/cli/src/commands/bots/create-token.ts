@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class BotsCreateToken extends BaseCommand {
   static override description = "Новый токен бота";
-
-  static override examples = [
-      "Выпустить боту отдельный токен — Выпусти токен с именем и правами из каталога. Без `--scopes` токен выпускается без прав, право не из каталога отклоняется с `400`:\n  $ pachca bots create-token"
-  ];
-
   static scope = "bots:write";
   static apiMethod = "POST";
   static apiPath = "/bots/{id}/tokens";

@@ -5,11 +5,6 @@ import * as clack from '@clack/prompts';
 
 export default class ReactionsRemove extends BaseCommand {
   static override description = "Удаление реакции";
-
-  static override examples = [
-      "Добавить реакцию на сообщение — Убрать реакцию:\n  $ pachca reactions remove"
-  ];
-
   static scope = "reactions:write";
   static apiMethod = "DELETE";
   static apiPath = "/messages/{id}/reactions";

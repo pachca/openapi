@@ -20,7 +20,6 @@ import { ParamsTable } from '@/components/mdx/params-table';
 import { Mermaid } from '@/components/mdx/mermaid';
 import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
-import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { McpTools } from '@/components/mdx/mcp-tools';
 import { GlobalFlags } from '@/components/mdx/global-flags';
@@ -578,7 +577,6 @@ export const customMdxComponents = {
   WebhookPlayground,
   MessagePlayground,
   FormPlayground,
-  AgentSkillsWorkflows,
   CliCommands,
   McpTools,
   GlobalFlags,

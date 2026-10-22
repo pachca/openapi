@@ -2,7 +2,7 @@
  * CLI Command Generator
  *
  * Reads openapi.yaml and generates oclif commands in src/commands/*\/*.ts.
- * Also generates src/data/workflows.json, src/data/alternatives.json, and README.md.
+ * Also generates src/data/alternatives.json and README.md.
  *
  * Usage: tsx scripts/generate-cli.ts
  */
@@ -73,7 +73,7 @@ interface GeneratedCommand {
   summary: string;
 }
 
-function generateCommand(endpoint: Endpoint, examples?: string[]): GeneratedCommand {
+function generateCommand(endpoint: Endpoint): GeneratedCommand {
   const url = generateUrlFromOperation(endpoint).replace(/^\/api\//, '/');
   const [, section, action] = url.split('/');
   const filename = `${action}.ts`;
@@ -140,7 +140,6 @@ function generateCommand(endpoint: Endpoint, examples?: string[]): GeneratedComm
     summary,
     defaultColumns,
     stdinField,
-    examples,
   });
 
   return { section, action, filename, code, summary };
@@ -317,7 +316,6 @@ interface CommandGenParams {
   summary: string;
   defaultColumns: string[];
   stdinField?: BodyField;
-  examples?: string[];
 }
 
 /**
@@ -979,17 +977,11 @@ function generateCommandCode(p: CommandGenParams): string {
     staticMeta.push(`  static requiredFlags = ${JSON.stringify(allRequiredFlags.map((f) => f.flagName))};`);
   }
 
-  // Build examples from workflows
-  const examplesBlock = p.examples && p.examples.length > 0
-    ? `\n  static override examples = ${JSON.stringify(p.examples, null, 4).replace(/\n/g, '\n  ')};\n`
-    : '';
-
   return `// Auto-generated from openapi.yaml — DO NOT EDIT
 ${imports.join('\n')}
 
 export default class ${p.className} extends BaseCommand {
   static override description = ${JSON.stringify(p.summary)};
-${examplesBlock}
 ${staticMeta.join('\n')}
 
   static override args = {
@@ -1048,58 +1040,7 @@ function toPascalCase(str: string): string {
     .join('');
 }
 
-// ----- Workflow & Alternative Data Generation -----
-
-/**
- * A workflow with an OAuth flow step (`x-oauth-flow`) is not a CLI recipe: the CLI has no
- * command for that step, and its other steps alone would look like the whole flow.
- */
-function hasOAuthFlowStep(
-  workflow: { steps: { apiMethod?: string; apiPath?: string }[] },
-  endpoints: Endpoint[],
-): boolean {
-  return workflow.steps.some((step) =>
-    endpoints.some((ep) => ep.oauthFlow && ep.method === step.apiMethod && ep.path === step.apiPath),
-  );
-}
-
-async function generateWorkflowsData(endpoints: Endpoint[]): Promise<void> {
-  try {
-    // Dynamic import of workflows from packages/spec
-    const workflowsPath = path.join(ROOT, 'packages', 'spec', 'workflows.ts');
-    if (!fs.existsSync(workflowsPath)) return;
-
-    const { WORKFLOWS } = await import(workflowsPath);
-
-    const entries: { title: string; skill: string; steps: { description: string; command?: string; notes?: string }[] }[] = [];
-
-    for (const [skill, workflows] of Object.entries(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string; notes?: string; apiMethod?: string; apiPath?: string }[] }[]>)) {
-      for (const w of workflows) {
-        if (hasOAuthFlowStep(w, endpoints)) continue;
-        // Only include steps that have a command (skip text-only steps for CLI)
-        const cliSteps = w.steps
-          .filter((step) => step.command)
-          .map((step) => ({ description: step.description, command: step.command, notes: step.notes }));
-
-        // Skip workflows with no CLI commands
-        if (cliSteps.length === 0) continue;
-
-        entries.push({
-          title: w.title,
-          skill,
-          steps: cliSteps,
-        });
-      }
-    }
-
-    fs.writeFileSync(
-      path.join(DATA_DIR, 'workflows.json'),
-      JSON.stringify(entries, null, 2),
-    );
-  } catch {
-    // Keep empty workflows.json
-  }
-}
+// ----- Alternative Data Generation -----
 
 async function generateAlternativesData(commands: GeneratedCommand[]): Promise<void> {
   const alternatives: Record<string, string> = {};
@@ -1377,68 +1318,18 @@ function generateReadme(commands: GeneratedCommand[], globalFlags: GlobalFlagEnt
 
 // ----- Main -----
 
-async function loadWorkflowExamples(endpoints: Endpoint[]): Promise<Map<string, string[]>> {
-  const map = new Map<string, string[]>();
-  try {
-    const workflowsPath = path.join(ROOT, 'packages', 'spec', 'workflows.ts');
-    if (!fs.existsSync(workflowsPath)) return map;
-
-    // Build mapping: "METHOD /path" → "pachca section action"
-    const pathToCommand = new Map<string, string>();
-    for (const ep of endpoints) {
-      const url = generateUrlFromOperation(ep).replace(/^\/api\//, '/');
-      const [, section, action] = url.split('/');
-      const cliCmd = `pachca ${section} ${action}`;
-      pathToCommand.set(`${ep.method} ${ep.path}`, cliCmd);
-    }
-
-    const { WORKFLOWS } = await import(workflowsPath);
-    for (const workflows of Object.values(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string; apiMethod?: string; apiPath?: string }[] }[]>)) {
-      for (const w of workflows) {
-        if (hasOAuthFlowStep(w, endpoints)) continue;
-        for (const step of w.steps) {
-          // Key examples by "METHOD /path", not path alone — otherwise operations
-          // sharing a path (e.g. GET and POST /threads) inherit each other's examples.
-          // Only steps that name their endpoint produce an example. Scraping a
-          // "METHOD /path" out of the prose description used to be the fallback,
-          // but a path mentioned illustratively would attach the example to a
-          // different command — and no step relies on it.
-          if (step.command && step.apiPath && step.apiMethod) {
-            const cmdBase = step.command.split(/\s+/).slice(0, 3).join(' ');
-            const key = `${step.apiMethod} ${step.apiPath}`;
-            if (!map.has(key)) map.set(key, []);
-            const existing = map.get(key)!;
-            // Label with the STEP, not just the workflow title: one workflow's
-            // steps map to different commands, so the bare title claimed e.g.
-            // «Добавить реакцию» on `reactions remove`.
-            const example = `${w.title} — ${step.description}:\n  $ ${cmdBase}`;
-            if (!existing.includes(example)) existing.push(example);
-          }
-        }
-      }
-    }
-  } catch {
-    // No workflows
-  }
-  return map;
-}
-
 async function main(): Promise<void> {
   console.log('Generating CLI commands from openapi.yaml...');
 
   const endpoints = parseOpenAPI();
   console.log(`  Parsed ${endpoints.length} endpoints`);
 
-  // Load workflow examples for embedding in --help
-  const workflowExamples = await loadWorkflowExamples(endpoints);
-
   const commands: GeneratedCommand[] = [];
 
   for (const endpoint of endpoints) {
     // Шаг OAuth (`x-oauth-flow`) описан в справке, но команды под него нет: вход в CLI — `auth login`.
     if (endpoint.oauthFlow) continue;
-    const examples = workflowExamples.get(`${endpoint.method} ${endpoint.path}`)?.slice(0, 3);
-    const cmd = generateCommand(endpoint, examples);
+    const cmd = generateCommand(endpoint);
     commands.push(cmd);
 
     // Write command file
@@ -1491,9 +1382,6 @@ async function main(): Promise<void> {
   }
 
   // Generate data files
-  await generateWorkflowsData(endpoints);
-  console.log('  Generated workflows.json');
-
   await generateAlternativesData(commands);
   console.log('  Generated alternatives.json');
 

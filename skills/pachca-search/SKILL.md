@@ -28,7 +28,7 @@ Or set the `PACHCA_TOKEN` environment variable:
     export PACHCA_TOKEN=<token>
     npx -y @pachca/cli <command>
 
-Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
+Help: `npx -y @pachca/cli --help`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
@@ -45,39 +45,6 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
        npx -y @pachca/cli auth status --token $PACHCA_TOKEN
 
 3. If you don't know the parameters — run `pachca <command> --help`.
-
-## Workflows
-
-### Найти сообщение по тексту
-
-1. Полнотекстовый поиск по сообщениям:
-   ```bash
-   pachca search list-messages --query="текст"
-   ```
-   > `limit` (до 200), `cursor`. Фильтры: `chat_ids[]`, `user_ids[]`, `active`, `created_from`/`created_to`
-
-> Поиск по всем доступным чатам. `root_chat_id` в ответе — корневой чат для тредов.
-
-
-### Найти чат по названию
-
-1. Полнотекстовый поиск по чатам:
-   ```bash
-   pachca search list-chats --query="название"
-   ```
-   > `limit` (до 100), `cursor`. Фильтры: `active`, `chat_subtype`, `personal`, `created_from`/`created_to`
-
-
-### Найти сотрудника по имени
-
-1. Полнотекстовый поиск по сотрудникам:
-   ```bash
-   pachca search list-users --query="имя"
-   ```
-   > `sort=alphabetical` для алфавитного порядка, `sort=by_score` (по умолчанию). Фильтры: `company_roles[]`, `created_from`/`created_to`
-
-> Поиск по имени, email, должности и другим полям. Поддерживает сортировку по релевантности.
-
 
 ## Limitations
 

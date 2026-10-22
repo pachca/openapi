@@ -4,7 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class DraftsList extends BaseCommand {
   static override description = "Список черновиков";
-
   static scope = "drafts:read";
   static apiMethod = "GET";
   static apiPath = "/drafts";

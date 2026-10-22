@@ -224,5 +224,4 @@ PACHCA_TOKEN=YOUR_ACCESS_TOKEN pachca messages create --entity-id 123 --content 
 ## Связанные разделы
 
 - [Вывод](/guides/cli/output)
-- [Сценарии](/guides/cli/workflows)
 - [Команды](/guides/cli/commands)

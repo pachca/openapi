@@ -37,7 +37,6 @@
         "content/**",
         "data/releases.json",
         "../../packages/cli/src/data/*.json",
-        "../../packages/spec/workflows.ts",
         "../../packages/spec/mcp-manifest.json"
       ],
       "outputs": [
@@ -49,8 +48,7 @@
         "public/guides/**",
         "public/**/*.md",
         "public/.well-known/**",
-        "public/pachca.postman_collection.json",
-        "public/workflows.arazzo.yaml"
+        "public/pachca.postman_collection.json"
       ],
       "cache": true
     },
@@ -68,7 +66,6 @@
         "content/**",
         "data/releases.json",
         "../../packages/cli/src/data/*.json",
-        "../../packages/spec/workflows.ts",
         "../../packages/spec/mcp-manifest.json"
       ],
       "outputs": [
@@ -80,8 +77,7 @@
         "public/guides/**",
         "public/**/*.md",
         "public/.well-known/**",
-        "public/pachca.postman_collection.json",
-        "public/workflows.arazzo.yaml"
+        "public/pachca.postman_collection.json"
       ],
       "cache": true
     },
@@ -94,7 +90,6 @@
         "scripts/generate-cli.ts",
         "src/base-command.ts",
         "../../apps/docs/lib/**",
-        "../../packages/spec/workflows.ts",
         "../../apps/docs/scripts/skills/config.ts"
       ],
       "outputs": [
@@ -147,7 +142,6 @@
       "inputs": [
         "../../packages/spec/openapi.yaml",
         "../../packages/spec/openapi.en.yaml",
-        "../../packages/spec/workflows.ts",
         "../../packages/spec/examples.ts",
         "../../packages/openapi-parser/src/**",
         "../../packages/generator/src/naming.ts",

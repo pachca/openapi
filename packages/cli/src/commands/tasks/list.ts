@@ -4,13 +4,6 @@ import { BaseCommand } from '../../base-command.js';
 
 export default class TasksList extends BaseCommand {
   static override description = "Список напоминаний";
-
-  static override examples = [
-      "Получить список предстоящих задач — Получи невыполненные задачи:\n  $ pachca tasks list",
-      "Собрать задачи по чатам проекта — Запроси задачи нужных чатов:\n  $ pachca tasks list",
-      "Собрать задачи по чатам проекта — Сузь выборку по автору, ответственным и состоянию:\n  $ pachca tasks list"
-  ];
-
   static scope = "tasks:read";
   static apiMethod = "GET";
   static apiPath = "/tasks";

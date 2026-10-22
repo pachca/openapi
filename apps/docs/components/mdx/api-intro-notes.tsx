@@ -17,6 +17,10 @@ export function ApiIntroNotes() {
       <Link href="/guides/n8n/overview" className="text-primary hover:underline">
         n8n
       </Link>
+      . AI-агенту в Claude Code, Cursor и других программах весь API доступен через{' '}
+      <Link href="/guides/ai-agents/mcp" className="text-primary hover:underline">
+        MCP-сервер
+      </Link>
       .
     </p>
   );

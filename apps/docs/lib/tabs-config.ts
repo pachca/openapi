@@ -21,6 +21,11 @@ export interface TabConfig {
 export interface SidebarSection {
   title: string;
   items: SidebarPageItem[];
+  /**
+   * Prefix for the titles of the section's pages outside the sidebar (browser
+   * tab, llms.txt), as a group gives its children: «AI-агенты, Обзор».
+   */
+  titlePrefix?: string;
 }
 
 export interface SidebarPageItem {
@@ -94,18 +99,21 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
     items: [
       { title: 'Главная', path: '/' },
       { title: 'Быстрый старт', path: '/guides/quickstart' },
-      {
-        title: 'AI-агенты',
-        path: '/guides/ai-agents/overview',
-        children: [
-          { title: 'Обзор', path: '/guides/ai-agents/overview' },
-          { title: 'Взаимодействие с агентом', path: '/guides/ai-agents/interaction' },
-          { title: 'Черновик вместо отправки', path: '/guides/ai-agents/drafts' },
-          { title: 'Оформление ответов', path: '/guides/ai-agents/markdown' },
-        ],
-      },
       { title: 'Треды', path: '/guides/threads' },
       { title: 'Теги', path: '/guides/tags' },
+    ],
+  },
+  {
+    title: 'AI-агенты',
+    titlePrefix: 'AI-агенты',
+    items: [
+      { title: 'Обзор', path: '/guides/ai-agents/overview' },
+      { title: 'MCP-сервер', path: '/guides/ai-agents/mcp' },
+      { title: 'Подключение к MCP', path: '/guides/ai-agents/mcp-connect' },
+      { title: 'Инструменты MCP', path: '/guides/ai-agents/mcp-tools' },
+      { title: 'Взаимодействие с агентом', path: '/guides/ai-agents/interaction' },
+      { title: 'Черновик вместо отправки', path: '/guides/ai-agents/drafts' },
+      { title: 'Оформление ответов', path: '/guides/ai-agents/markdown' },
     ],
   },
   {
@@ -292,7 +300,10 @@ export function getNestedParentTitle(pathname: string): string | null {
   const allSections = [...GUIDE_SECTIONS, ...CLI_SECTIONS, ...SDK_SECTIONS, ...N8N_SECTIONS];
   for (const section of allSections) {
     for (const item of section.items) {
-      if (!item.children) continue;
+      if (!item.children) {
+        if (section.titlePrefix && item.path === pathname) return section.titlePrefix;
+        continue;
+      }
       if (item.path === pathname) return item.title;
       for (const child of item.children) {
         if (child.path === pathname) return item.title;

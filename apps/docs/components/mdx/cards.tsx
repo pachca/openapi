@@ -66,6 +66,9 @@ import {
   ListOrdered,
   Upload,
   ExternalLink,
+  Plug,
+  Server,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -125,6 +128,9 @@ const iconMap: Record<string, LucideIcon> = {
   ListOrdered,
   Upload,
   ExternalLink,
+  Plug,
+  Server,
+  Wrench,
 };
 
 /** Icon mapping for guide pages by path */
@@ -134,6 +140,9 @@ const GUIDE_ICONS: Record<string, string> = {
   '/guides/tags': 'Tags',
   '/guides/ai-agents': 'Sparkles',
   '/guides/ai-agents/overview': 'Sparkles',
+  '/guides/ai-agents/mcp': 'Server',
+  '/guides/ai-agents/mcp-connect': 'Plug',
+  '/guides/ai-agents/mcp-tools': 'Wrench',
   '/guides/ai-agents/interaction': 'BotMessageSquare',
   '/guides/ai-agents/markdown': 'FileDiff',
   '/guides/ai-agents/drafts': 'FilePen',

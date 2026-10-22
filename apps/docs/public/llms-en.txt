@@ -14,6 +14,7 @@
 - Scopes decide which methods a token may call. They never widen the data beyond the boundary of the token type
 - Get a personal token: Integrations → API, choosing its scopes. Get a bot token: Integrations → Bots, then the API tab of the bot, one token per purpose with its own scopes
 - A personal token issued in the interface does not expire; one obtained by `pachca auth login` lives an hour and renews itself
+- MCP server: `https://mcp.pachca.com/mcp`, one tool per API method under the same rights as the token. Clients that support OAuth Client ID Metadata Document (CIMD), such as Claude Code, Claude, VS Code and Codex, sign in through the browser and get a one-hour token that renews itself; other clients send a personal or bot token in `Authorization: Bearer <TOKEN>`
 - What a token may do also follows the current role of its owner, checked on every request — lowering the role starts returning 403 without touching the token
 - TypeScript SDK: `const client = new PachcaClient("YOUR_TOKEN")`
 - Python SDK: `client = PachcaClient("YOUR_TOKEN")`

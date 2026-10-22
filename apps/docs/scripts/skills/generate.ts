@@ -715,7 +715,7 @@ function generateRouterSkillMd(): string {
   lines.push('');
   lines.push('# pachca');
   lines.push('');
-  lines.push('Pachca — corporate messenger with REST API and CLI.');
+  lines.push('Pachca — corporate messenger with REST API, CLI and an MCP server.');
   lines.push('');
   lines.push('## Quick start');
   lines.push('');
@@ -728,6 +728,14 @@ function generateRouterSkillMd(): string {
   lines.push('```bash');
   lines.push('npm install -g @pachca/cli && pachca auth login');
   lines.push('```');
+  lines.push('');
+  lines.push('## MCP server');
+  lines.push('');
+  lines.push(
+    'An MCP client can connect to `https://mcp.pachca.com/mcp` instead: one tool per API method, same rights as the token. ' +
+      'Clients that support OAuth Client ID Metadata Document (CIMD) sign in through the browser; others send a personal or bot token ' +
+      'in `Authorization: Bearer <TOKEN>`. Guide: https://dev.pachca.com/guides/ai-agents/mcp-connect.md'
+  );
   lines.push('');
   lines.push('## Routing');
   lines.push('');

@@ -33,6 +33,7 @@ import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
+import { McpTools } from '@/components/mdx/mcp-tools';
 import { GlobalFlags } from '@/components/mdx/global-flags';
 import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
@@ -234,6 +235,7 @@ const components = {
   ScopeRoles,
   AgentSkillsWorkflows,
   CliCommands,
+  McpTools,
   GlobalFlags,
   SdkCommands,
   NpmBadge,

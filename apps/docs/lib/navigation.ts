@@ -88,7 +88,7 @@ function generateSectionNavigation(sections: SidebarSection[]): NavigationSectio
       }
     }
 
-    return { title: section.title, items };
+    return { title: section.title, titlePrefix: section.titlePrefix, items };
   });
 }
 
@@ -344,7 +344,12 @@ export async function resolveRelatedItems(
           }
         }
       } else if (!navByHref.has(item.href)) {
-        navByHref.set(item.href, { title: item.title, sectionTitle: section.title });
+        // A section with a title prefix acts as the group of its pages.
+        navByHref.set(item.href, {
+          title: item.title,
+          groupTitle: section.titlePrefix,
+          sectionTitle: section.title,
+        });
       }
     }
   }

@@ -1,17 +1,17 @@
 ---
 name: pachca
 description: >
-  Pachca — корпоративный мессенджер с REST API и CLI. Роутер: определяет нужный
-  скилл для любой задачи, связанной с Pachca. Используй этот скилл, когда
-  пользователь упоминает Pachca, хочет взаимодействовать с API Pachca или
-  нуждается в помощи с любой операцией Pachca. Этот скилл маршрутизирует к нужному
-  под-скиллу. НЕ делай API-вызовы напрямую — направь к нужному скиллу.
+  Pachca — корпоративный мессенджер с REST API, CLI и MCP-сервером. Роутер:
+  определяет нужный скилл для любой задачи, связанной с Pachca. Используй этот
+  скилл, когда пользователь упоминает Pachca, хочет взаимодействовать с API Pachca
+  или нуждается в помощи с любой операцией Pachca. Этот скилл маршрутизирует к
+  нужному под-скиллу. НЕ делай API-вызовы напрямую — направь к нужному скиллу.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
 # pachca
 
-Pachca — corporate messenger with REST API and CLI.
+Pachca — corporate messenger with REST API, CLI and an MCP server.
 
 ## Quick start
 
@@ -24,6 +24,10 @@ npx -y @pachca/cli <command> --token <TOKEN>
 ```bash
 npm install -g @pachca/cli && pachca auth login
 ```
+
+## MCP server
+
+An MCP client can connect to `https://mcp.pachca.com/mcp` instead: one tool per API method, same rights as the token. Clients that support OAuth Client ID Metadata Document (CIMD) sign in through the browser; others send a personal or bot token in `Authorization: Bearer <TOKEN>`. Guide: https://dev.pachca.com/guides/ai-agents/mcp-connect.md
 
 ## Routing
 

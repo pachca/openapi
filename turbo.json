@@ -27,7 +27,8 @@
     "generate-llms": {
       "dependsOn": [
         "@pachca/spec#generate",
-        "@pachca/spec#overlay:apply"
+        "@pachca/spec#overlay:apply",
+        "@pachca/spec#generate-mcp"
       ],
       "inputs": [
         "scripts/generate-llms.ts",
@@ -36,7 +37,8 @@
         "content/**",
         "data/releases.json",
         "../../packages/cli/src/data/*.json",
-        "../../packages/spec/workflows.ts"
+        "../../packages/spec/workflows.ts",
+        "../../packages/spec/mcp-manifest.json"
       ],
       "outputs": [
         "public/llms.txt",
@@ -56,7 +58,8 @@
       "dependsOn": [
         "@pachca/spec#generate",
         "@pachca/spec#overlay:apply",
-        "@pachca/cli#build"
+        "@pachca/cli#build",
+        "@pachca/spec#generate-mcp"
       ],
       "inputs": [
         "scripts/generate-llms.ts",
@@ -65,7 +68,8 @@
         "content/**",
         "data/releases.json",
         "../../packages/cli/src/data/*.json",
-        "../../packages/spec/workflows.ts"
+        "../../packages/spec/workflows.ts",
+        "../../packages/spec/mcp-manifest.json"
       ],
       "outputs": [
         "public/llms.txt",
